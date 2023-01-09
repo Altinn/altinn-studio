@@ -60,7 +60,7 @@ services:
       - GeneralSettings:TemplateLocation=Templates/AspNet
       - PostgreSQLSettings:AdminConnectionString=Host=host.docker.internal;Port=5432;Username=designer_admin;Password={0};Database=designerdb
       - PostgreSQLSettings:ConnectionString=Host=host.docker.internal;Port=5432;Username=designer;Password={0};Database=designerdb
-      - PostgreSQLSettings:DesignerDbAdminPwd=zI1NiIsInR5cCI6
+      - PostgreSQLSettings:DesignerDbAdminPwd=${POSTGRES_PASSWORD}
       - PostgreSQLSettings:DesignerDbPwd=designer
       - PostgreSQLSettings:EnableDBConnection=true
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1/
@@ -123,13 +123,15 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
   designerdb:
+    container_name: altinn-postgres
     image: postgres
     restart: always
     environment:
-      POSTGRES_PASSWORD: zI1NiIsInR5cCI6
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_USER: designer_admin
       POSTGRES_DB: designerdb
     ports:
       - "5432:5432"
     volumes:
       - ./development/designerdb/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./development/designerdb/data.sql:/data.sql

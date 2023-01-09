@@ -4,7 +4,6 @@ const runCommand = require("./utils/run-command.js");
 const ensureDotEnv = require("./utils/ensure-dot-env.js");
 const path = require("path");
 const fs = require("fs");
-const os = require("os");
 
 const startingDockerCompose = () =>
   runCommand("docker compose up -d --remove-orphans");
@@ -30,7 +29,6 @@ const ensureAdminPassword = (env) =>
     ].join(" ")
   );
 
-// http://studio.localhost/repos/api/swagger
 const createTestDepOrg = (env) =>
   gitaApi({
     path: "/repos/api/v1/orgs",
@@ -65,6 +63,8 @@ const createCypressEnvFile = async (env) => {
     adminUser: env.GITEA_ADMIN_USER,
     adminPwd: env.GITEA_ADMIN_PASS,
     accessToken: "",
+    useCaseUser: env.GITEA_ADMIN_USER,
+    useCaseUserPwd: env.GITEA_ADMIN_PASS,
   };
   const allTokens = await gitaApi({
     path: `/repos/api/v1/users/${env.GITEA_ADMIN_USER}/tokens`,
@@ -108,16 +108,33 @@ const createCypressEnvFile = async (env) => {
   console.log("Wrote a new:", cypressEnvFilePath);
 };
 
+const ensureDeploymentEntry = async () => {
+  runCommand(
+    [
+      `docker exec -i altinn-postgres psql`,
+      `-U designer_admin designerdb`,
+      `< designerdb/data.sql`,
+    ].join(" ")
+  );
+};
+
 const script = async () => {
   const currentEnv = ensureDotEnv();
   await startingDockerCompose();
+  /*
   await waitFor("http://studio.localhost/repos/");
   await createAdminUser(currentEnv);
   await ensureAdminPassword(currentEnv);
   await createTestDepOrg(currentEnv);
   await addUserToOwnersTeam(currentEnv);
   await createCypressEnvFile(currentEnv);
+   */
+  await ensureDeploymentEntry();
   process.exit(0);
 };
 
 script().then();
+
+/**
+ * docker exec -i altinn-studio-designerdb-1 psql -U designer_admin designerdb < development/designerdb/data.sql
+ */

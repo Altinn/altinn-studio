@@ -53,7 +53,7 @@ context(
       cy.intercept('**/Deployments*').as('deploys');
       cy.get(designer.appMenu.deploy).should('be.visible').click();
       cy.wait('@deploys').its('response.statusCode').should('eq', 200);
-      var checkDeployOf = Cypress.env('environment') == 'prod' ? 'prod' : 'at22';
+      const checkDeployOf = Cypress.env('environment') === 'prod' ? 'prod' : 'at22';
       cy.get(designer.deployHistory[checkDeployOf]).then((table) => {
         cy.get(table).isVisible();
         cy.get(table).find('tbody > tr').should('have.length.gte', 1);

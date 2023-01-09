@@ -1,5 +1,11 @@
 const { request } = require("http");
 
+/**
+ * @see http://studio.localhost/repos/api/swagger
+ *
+ * @param options
+ * @returns {Promise<unknown>}
+ */
 module.exports = (options) =>
   new Promise(function (resolve, reject) {
     const req = request(

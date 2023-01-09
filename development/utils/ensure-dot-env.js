@@ -17,6 +17,7 @@ const defaultEnvVars = {
   GITEA_ADMIN_PASS: randomPass(),
   GITEA_ADMIN_USER: "localgiteaadmin",
   GITEA_ORG_USER: "ttd",
+  POSTGRES_PASSWORD: randomPass(),
 };
 
 module.exports = () => {
