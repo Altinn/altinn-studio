@@ -2,12 +2,11 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { AltinnSpinner } from 'app-shared/components';
 import type { IGiteaOrganisation } from 'app-shared/types/global';
-import { AltinnDropdown } from 'app-shared/components/AltinnDropdown';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useAppSelector } from '../../common/hooks';
-import { Select, SingleOnChangeEvent } from '@altinn/altinn-design-system';
+import { Select } from '@altinn/altinn-design-system';
 
 const zIndex = {
   zIndex: 1300,

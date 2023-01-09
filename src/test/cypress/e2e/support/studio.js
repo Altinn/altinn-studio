@@ -19,7 +19,7 @@ Cypress.Commands.add('studiologin', (userName, userPwd) => {
 Cypress.Commands.add('createapp', (orgName, appName) => {
   cy.get(dashboard.newApp).should('be.visible').click();
   cy.get(dashboard.appOwners).should('be.visible').click();
-  cy.contains(dashboard.appOwnersList, orgName).click();
+  cy.contains(dashboard.appOwnersList, 'Testdepartementet').click();
   cy.get(dashboard.appName).should('be.visible').type(appName);
   cy.intercept('POST', '**/designer/api/v1/repos/**').as('postCreateApp');
   cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
