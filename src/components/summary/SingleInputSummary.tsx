@@ -2,8 +2,10 @@ import * as React from 'react';
 
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
+import { useAppSelector } from 'src/common/hooks';
 import { useDisplayData } from 'src/components/hooks';
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
+import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
 
 export interface ISingleInputSummary {
@@ -25,11 +27,16 @@ const useStyles = makeStyles({
       fontSize: '1.8rem',
     },
   },
+  emptyField: {
+    fontStyle: 'italic',
+    fontSize: '1.6rem',
+  },
 });
 
 function SingleInputSummary({ formData, display, ...rest }: ISingleInputSummary) {
   const classes = useStyles();
   const displayData = useDisplayData({ formData });
+  const language = useAppSelector((state) => state.language.language);
 
   return (
     <>
@@ -42,12 +49,21 @@ function SingleInputSummary({ formData, display, ...rest }: ISingleInputSummary)
         xs={12}
         data-testid={'single-input-summary'}
       >
-        <Typography
-          className={classes.data}
-          variant='body1'
-        >
-          {displayData}
-        </Typography>
+        {typeof displayData !== 'undefined' ? (
+          <Typography
+            className={classes.data}
+            variant='body1'
+          >
+            {displayData}
+          </Typography>
+        ) : (
+          <Typography
+            variant='body1'
+            className={classes.emptyField}
+          >
+            {getLanguageFromKey('general.empty_summary', language || {})}
+          </Typography>
+        )}
       </Grid>
     </>
   );

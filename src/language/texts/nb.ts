@@ -110,6 +110,7 @@ export function nb() {
       edit_alt_error: 'Rett feil her',
       edit_alt: 'Rediger',
       edit: 'Endre',
+      empty_summary: 'Du har ikke lagt inn informasjon her',
       enabled: 'Aktivert',
       error_message_with_colon: 'Feilmelding:',
       for: 'for',

@@ -3,10 +3,8 @@ import { renderHook } from '@testing-library/react';
 import { useDisplayData } from 'src/components/hooks/useDisplayData';
 
 describe('useDisplayData', () => {
-  test('should be empty string if formData is null or undefined', async () => {
-    expect(renderHook(() => useDisplayData({ formData: undefined })).result.current).toBe('');
-
-    expect(renderHook(() => useDisplayData({ formData: undefined })).result.current).toBe('');
+  test('should return undefined if formData is undefined', async () => {
+    expect(renderHook(() => useDisplayData({ formData: undefined })).result.current).toBeUndefined();
   });
 
   test('should handle formData as object', async () => {

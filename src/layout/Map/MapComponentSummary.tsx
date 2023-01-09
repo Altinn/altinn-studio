@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { Map } from '@altinn/altinn-design-system';
-import { Typography } from '@material-ui/core';
+import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
-import { parseLocation, useStyles } from 'src/layout/Map/MapComponent';
+import { parseLocation } from 'src/layout/Map/MapComponent';
 import { markerIcon } from 'src/layout/Map/MapIcons';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/utils/sharedUtils';
 import type { ILayoutCompMap } from 'src/layout/Map/types';
@@ -13,6 +13,19 @@ export interface IMapComponentSummary {
   component: ILayoutCompMap;
   formData: any;
 }
+
+export const useStyles = makeStyles(() => ({
+  mapMargin: {
+    marginTop: 12,
+  },
+  footer: {
+    paddingTop: '12px',
+  },
+  emptyField: {
+    fontStyle: 'italic',
+    fontSize: '1.6rem',
+  },
+}));
 
 function MapComponentSummary({ component, formData }: IMapComponentSummary) {
   const classes = useStyles();
@@ -25,22 +38,35 @@ function MapComponentSummary({ component, formData }: IMapComponentSummary) {
 
   const footerText = location
     ? getParsedLanguageFromKey('map_component.selectedLocation', language, [location.latitude, location.longitude])
-    : getLanguageFromKey('map_component.noSelectedLocation', language);
+    : null;
 
   return (
-    <>
-      {location && (
-        <Map
-          readOnly={true}
-          layers={layers}
-          centerLocation={location}
-          zoom={16}
-          markerLocation={location}
-          markerIcon={markerIcon}
-        />
+    <Grid
+      item
+      xs={12}
+      className={location ? classes.mapMargin : undefined}
+    >
+      {location ? (
+        <>
+          <Map
+            readOnly={true}
+            layers={layers}
+            centerLocation={location}
+            zoom={16}
+            markerLocation={location}
+            markerIcon={markerIcon}
+          />
+          <Typography className={classes.footer}>{footerText}</Typography>
+        </>
+      ) : (
+        <Typography
+          variant='body1'
+          className={classes.emptyField}
+        >
+          {getLanguageFromKey('general.empty_summary', language || {})}
+        </Typography>
       )}
-      <Typography className={classes.footer}>{footerText}</Typography>
-    </>
+    </Grid>
   );
 }
 

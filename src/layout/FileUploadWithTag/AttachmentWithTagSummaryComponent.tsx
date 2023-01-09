@@ -4,6 +4,7 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 import { getOptionLookupKey } from 'src/utils/options';
+import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
 import type { IAttachment } from 'src/shared/resources/attachments';
 
@@ -20,12 +21,17 @@ const useStyles = makeStyles({
     marginTop: 10,
     paddingTop: 10,
   },
+  emptyField: {
+    fontStyle: 'italic',
+    fontSize: '1.6rem',
+  },
 });
 
 export function AttachmentWithTagSummaryComponent({ componentRef, component }: IAttachmentWithTagSummaryComponent) {
   const classes = useStyles();
   const attachments: IAttachment[] | undefined = useAppSelector((state) => state.attachments.attachments[componentRef]);
   const textResources = useAppSelector((state) => state.textResources.resources);
+  const language = useAppSelector((state) => state.language.language);
   const options = useAppSelector(
     (state) =>
       state.optionState.options[
@@ -43,32 +49,43 @@ export function AttachmentWithTagSummaryComponent({ componentRef, component }: I
     const optionsTagLabel = getOptionsTagLabel(attachment);
     return textResources?.find(({ id }) => id === optionsTagLabel)?.value || optionsTagLabel;
   };
+  const isEmpty = !attachments || attachments.length < 1;
   return (
     <Grid
       item
       xs={12}
       data-testid={'attachment-with-tag-summary'}
     >
-      {attachments?.map((attachment) => (
-        <Grid
-          container={true}
-          className={classes.row}
-          key={`attachment-summary-${attachment.id}`}
+      {isEmpty ? (
+        <Typography
+          variant='body1'
+          className={classes.emptyField}
+          component='p'
         >
-          <Typography
-            key={`attachment-summary-name-${attachment.id}`}
-            variant='body1'
+          {getLanguageFromKey('general.empty_summary', language || {})}
+        </Typography>
+      ) : (
+        attachments?.map((attachment) => (
+          <Grid
+            container={true}
+            className={classes.row}
+            key={`attachment-summary-${attachment.id}`}
           >
-            {attachment.name}
-          </Typography>
-          <Typography
-            key={`attachment-summary-tag-${attachment.id}`}
-            variant='body1'
-          >
-            {attachment.tags && attachment.tags[0] && tryToGetTextResource(attachment)}
-          </Typography>
-        </Grid>
-      ))}
+            <Typography
+              key={`attachment-summary-name-${attachment.id}`}
+              variant='body1'
+            >
+              {attachment.name}
+            </Typography>
+            <Typography
+              key={`attachment-summary-tag-${attachment.id}`}
+              variant='body1'
+            >
+              {attachment.tags && attachment.tags[0] && tryToGetTextResource(attachment)}
+            </Typography>
+          </Grid>
+        ))
+      )}
     </Grid>
   );
 }

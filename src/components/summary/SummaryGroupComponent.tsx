@@ -74,6 +74,11 @@ const useStyles = makeStyles({
     cursor: 'pointer',
     paddingLeft: 0,
   },
+  emptyField: {
+    fontStyle: 'italic',
+    fontSize: '1.6rem',
+    marginTop: 4,
+  },
 });
 
 function SummaryGroupComponent({
@@ -319,16 +324,18 @@ function SummaryGroupComponent({
     return componentArray;
   };
 
+  const isEmpty = stopIndex - startIndex < 0;
+
   const renderComponents: any = largeGroup
     ? createRepeatingGroupSummaryForLargeGroups()
     : createRepeatingGroupSummaryComponents();
 
-  if (largeGroup && layout) {
-    return <>{renderComponents}</>;
-  }
-
   if (!language) {
     return null;
+  }
+
+  if (!isEmpty && largeGroup && layout) {
+    return renderComponents;
   }
 
   return (
@@ -364,7 +371,17 @@ function SummaryGroupComponent({
           item
           xs={12}
         >
-          {renderComponents}
+          {isEmpty ? (
+            <Typography
+              variant='body1'
+              className={classes.emptyField}
+              component='p'
+            >
+              {getLanguageFromKey('general.empty_summary', language)}
+            </Typography>
+          ) : (
+            renderComponents
+          )}
         </Grid>
       </Grid>
       {groupHasErrors && !display?.hideValidationMessages && (

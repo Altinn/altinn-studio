@@ -110,6 +110,7 @@ export function en() {
       edit_alt_error: 'Fix error here',
       edit_alt: 'Edit',
       edit: 'Edit',
+      empty_summary: 'You have not entered any information here',
       enabled: 'Enabled',
       error_message_with_colon: 'Error message:',
       for: 'for',

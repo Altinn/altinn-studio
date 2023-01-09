@@ -19,7 +19,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
     >
       <button
-        class="MuiButtonBase-root MuiIconButton-root makeStyles-editButton-5"
+        class="MuiButtonBase-root MuiIconButton-root makeStyles-editButton-6"
         tabindex="0"
         type="button"
       >
@@ -27,14 +27,14 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
           class="MuiIconButton-label"
         >
           <p
-            class="MuiTypography-root makeStyles-change-7 MuiTypography-body1"
+            class="MuiTypography-root makeStyles-change-8 MuiTypography-body1"
           >
             <span>
               Change
             </span>
             <i
               aria-hidden="true"
-              class="fa fa-editing-file makeStyles-editIcon-6"
+              class="fa fa-editing-file makeStyles-editIcon-7"
             />
           </p>
         </span>
@@ -59,7 +59,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
              : 
           </span>
           <span
-            class="makeStyles-data-8"
+            class="makeStyles-data-9"
           >
             1
           </span>
@@ -74,7 +74,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
              : 
           </span>
           <span
-            class="makeStyles-data-8"
+            class="makeStyles-data-9"
           >
             2
           </span>
