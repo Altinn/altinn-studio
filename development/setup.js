@@ -132,7 +132,3 @@ const script = async () => {
 };
 
 script().then();
-
-/**
- * docker exec -i altinn-studio-designerdb-1 psql -U designer_admin designerdb < development/designerdb/data.sql
- */
