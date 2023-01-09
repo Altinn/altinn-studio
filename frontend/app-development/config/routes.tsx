@@ -129,9 +129,10 @@ const routes: IRoute[] = [
     },
   },
   {
+    activeSubHeaderSelection: TopBarMenu.Text,
+    activeLeftMenuSelection: 'Tekster',
     path: '/:org/:app/text-editor',
     exact: true,
-    activeSubHeaderSelection: TopBarMenu.Text,
     menu: 'texts',
     subapp: TextEditor,
   },
