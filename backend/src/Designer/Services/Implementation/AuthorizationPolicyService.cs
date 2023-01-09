@@ -45,6 +45,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             FileSystemObject policyFile = await GetAuthorizationPolicyFileFromGitea(org, app, shortCommitId);
             byte[] data = Convert.FromBase64String(policyFile.Content);
             string policyFileContent = Encoding.UTF8.GetString(data);
+            policyFileContent = policyFileContent.Replace("[ORG]", org).Replace("[APP]", app);
             await _authorizationPolicyClient.SavePolicy(org, app, policyFileContent, deploymentEnvironment);
         }
 
