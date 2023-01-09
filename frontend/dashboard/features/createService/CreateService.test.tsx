@@ -61,7 +61,9 @@ describe('CreateService', () => {
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('user_full_name')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeDisabled();
+      expect(screen.getByRole('combobox')).toHaveTextContent('user_full_name');
     });
   });
 
@@ -70,12 +72,6 @@ describe('CreateService', () => {
     render();
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
-
-    await user.click(
-      screen.getByRole((content, element) => {
-        return element.hasAttribute('aria-haspopup');
-      })
-    );
 
     await user.click(screen.getByRole('option', { name: /user_full_name/i }));
     await user.type(screen.getByRole('textbox'), 'this-app-name-is-longer-than-max');
@@ -92,12 +88,6 @@ describe('CreateService', () => {
     render();
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
-
-    await user.click(
-      screen.getByRole((content, element) => {
-        return element.hasAttribute('aria-haspopup');
-      })
-    );
 
     await user.click(screen.getByRole('option', { name: /user_full_name/i }));
     await user.type(screen.getByRole('textbox'), 'datamodels');
@@ -123,12 +113,6 @@ describe('CreateService', () => {
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
-    await user.click(
-      screen.getByRole((content, element) => {
-        return element.hasAttribute('aria-haspopup');
-      })
-    );
-
     await user.click(screen.getByRole('option', { name: /user_full_name/i }));
     await user.type(screen.getByRole('textbox'), 'this-app-name-exists');
 
@@ -150,12 +134,6 @@ describe('CreateService', () => {
     render();
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
-
-    await user.click(
-      screen.getByRole((content, element) => {
-        return element.hasAttribute('aria-haspopup');
-      })
-    );
 
     await user.click(screen.getByRole('option', { name: /user_full_name/i }));
     await user.type(screen.getByRole('textbox'), 'new-app');

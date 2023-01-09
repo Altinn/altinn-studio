@@ -25,6 +25,8 @@ module.exports = () => {
   const existingData = fs.existsSync(dotenvLocations)
     ? fs.readFileSync(dotenvLocations, "utf-8").split(os.EOL)
     : [];
+  const { O_RDWR, O_CREAT } = fs.constants;
+  const fd = fs.openSync(dotenvLocations, O_RDWR | O_CREAT, 0o600);
   existingData.forEach((line) => {
     const trimmedLine = line.trim();
     if (trimmedLine.length > 0 && trimmedLine[0] !== "#") {
@@ -36,7 +38,7 @@ module.exports = () => {
   Object.keys(envData).forEach((key) =>
     newEnv.push([key, envData[key]].join("="))
   );
-  fs.writeFileSync(dotenvLocations, newEnv.join(os.EOL), "utf-8");
+  fs.writeFileSync(fd, newEnv.join(os.EOL), "utf-8");
   console.log("Done ensuring .env variables at:", dotenvLocations);
   return envData;
 };

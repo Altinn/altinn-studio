@@ -68,22 +68,19 @@ export const ServiceOwnerSelector = ({
     serviceOwnerRef.current = document.querySelector('#service-owner');
   });
 
-  const handleChange = (value: string) => {
-    onServiceOwnerChanged(value);
-  };
-
-  if (isLoadingOrganisations) {
-    return <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />;
-  }
-
-  return (
+  const handleChange = (value: string) => onServiceOwnerChanged(value);
+  const value =
+    selectableOrgsOrUser.length === 1 ? selectableOrgsOrUser[0].value : selectedOrgOrUser;
+  return isLoadingOrganisations ? (
+    <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
+  ) : (
     <div>
       <Select
         inputId='service-owner'
         label={getLanguageFromKey('general.service_owner', language)}
         onChange={handleChange}
         options={selectableOrgsOrUser}
-        value={selectedOrgOrUser}
+        value={value}
         disabled={selectableOrgsOrUser.length === 1}
       />
       {errorMessage && (
