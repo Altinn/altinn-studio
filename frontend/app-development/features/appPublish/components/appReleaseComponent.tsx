@@ -1,6 +1,5 @@
 import React from 'react';
-import { CircularProgress, Grid, Typography } from '@mui/material';
-import Moment from 'moment';
+import { CircularProgress } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type {
   IAppReleaseErrors,
@@ -13,12 +12,13 @@ import { useAppSelector } from '../../../common/hooks';
 import { gitCommitPath } from 'app-shared/api-paths';
 import { useParams } from 'react-router-dom';
 import classes from './appReleaseComponent.module.css';
+import { formatDateTime } from 'app-shared/pure/date-format';
 
 interface IAppReleaseComponent {
   release: IRelease;
 }
 
-function ReleaseComponent(props: IAppReleaseComponent) {
+export function ReleaseComponent(props: IAppReleaseComponent) {
   const { release } = props;
 
   const appReleaseErrors: IAppReleaseErrors = useAppSelector((state) => state.appReleases.errors);
@@ -60,60 +60,35 @@ function ReleaseComponent(props: IAppReleaseComponent) {
   }
   const { org, app } = useParams();
   return (
-    <Grid container={true} direction='row' className={classes.releaseWrapper}>
-      <Grid container={true} direction='row' justifyContent='space-between'>
-        <Grid item={true} className={classes.releaseRow}>
-          <Typography className={classes.releaseText}>
-            {getLanguageFromKey('app_release.release_version', language)} {release.tagName}
-          </Typography>
-        </Grid>
-        <Grid item={true} className={classes.releaseRow}>
-          <Typography className={classes.releaseText}>
-            {Moment(release.created).format('DD.MM.YYYY HH:mm')}
-          </Typography>
-        </Grid>
-      </Grid>
-      <Grid
-        container={true}
-        direction='row'
-        justifyContent='space-between'
-        className={classes.releaseRow}
-      >
-        <Grid item={true}>
-          <Grid container={true} direction='row'>
-            {renderStatusIcon(release.build)}
-            <Typography className={classes.releaseText}>
-              <a
-                href={getReleaseBuildPipelineLink(release.build.id)}
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                {getLanguageFromKey('app_release.release_build_log', language)}
-              </a>
-            </Typography>
-          </Grid>
-        </Grid>
-        <Grid item={true}>
-          <Typography className={classes.releaseText}>
-            <a
-              href={gitCommitPath(org, app, release.targetCommitish)}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              {getLanguageFromKey('app_release.release_see_commit', language)}
-            </a>
-          </Typography>
-        </Grid>
-      </Grid>
-      <Grid container={true} direction='row' className={classes.releaseRow}>
-        <Grid item={true}>
-          <Typography className={classes.releaseText}>
-            {RenderBodyInprogressOrErrorBody()}
-          </Typography>
-        </Grid>
-      </Grid>
-    </Grid>
+    <div className={classes.releaseWrapper}>
+      <div>
+        <div className={classes.releaseRow}>
+          {getLanguageFromKey('app_release.release_version', language)} {release.tagName}
+        </div>
+        <div className={classes.releaseRow}>{formatDateTime(release.created)}</div>
+      </div>
+      <div className={classes.releaseRow}>
+        <div>
+          {renderStatusIcon(release.build)}
+          <a
+            href={getReleaseBuildPipelineLink(release.build.id)}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            {getLanguageFromKey('app_release.release_build_log', language)}
+          </a>
+        </div>
+        <div>
+          <a
+            href={gitCommitPath(org, app, release.targetCommitish)}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            {getLanguageFromKey('app_release.release_see_commit', language)}
+          </a>
+        </div>
+      </div>
+      <div className={classes.releaseRow}>{RenderBodyInprogressOrErrorBody()}</div>
+    </div>
   );
 }
-
-export default ReleaseComponent;

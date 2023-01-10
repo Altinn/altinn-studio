@@ -1,22 +1,20 @@
-import React from 'react';
-import { Grid, Typography } from '@mui/material';
-
-import AltinnButton from 'app-shared/components/AltinnButton';
-import AltinnPopover from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { getLanguageFromKey } from 'app-shared/utils/language';
+import React, { useEffect, useRef, useState } from 'react';
+import classes from './createAppReleaseComponent.module.css';
+import type { ChangeEvent } from 'react';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
+import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
-import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { TextField, TextArea, Button } from '@altinn/altinn-design-system';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
-import { TextField, TextArea } from '@altinn/altinn-design-system';
-import classes from './createAppReleaseComponent.module.css';
 
-function ReleaseComponent() {
+export function CreateReleaseComponent() {
   const dispatch = useAppDispatch();
 
-  const [tagName, setTagName] = React.useState<string>('');
-  const [body, setBody] = React.useState<string>('');
+  const [tagName, setTagName] = useState<string>('');
+  const [body, setBody] = useState<string>('');
 
   const releaseState: IAppReleaseState = useAppSelector((state) => state.appReleases);
   const createReleaseErrorCode: number = useAppSelector(
@@ -25,12 +23,12 @@ function ReleaseComponent() {
   const repoStatus: IRepoStatusState = useAppSelector((state) => state.repoStatus);
   const language: any = useAppSelector((state) => state.languageState.language);
 
-  const [openErrorPopover, setOpenErrorPopover] = React.useState<boolean>(
+  const [openErrorPopover, setOpenErrorPopover] = useState<boolean>(
     createReleaseErrorCode !== null
   );
-  const ref = React.useRef<React.RefObject<HTMLButtonElement>>();
+  const ref = useRef();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (createReleaseErrorCode !== null) {
       setOpenErrorPopover(true);
     }
@@ -55,11 +53,11 @@ function ReleaseComponent() {
     return tagName.length <= 128;
   }
 
-  function handleTagNameChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleTagNameChange(event: ChangeEvent<HTMLInputElement>) {
     setTagName(event.currentTarget.value.toLowerCase());
   }
 
-  function handleBodyChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
+  function handleBodyChange(event: ChangeEvent<HTMLTextAreaElement>) {
     setBody(event.currentTarget.value);
   }
 
@@ -89,48 +87,37 @@ function ReleaseComponent() {
 
   return (
     <>
-      <Grid container={true} direction='column'>
-        <Grid container={true} direction='column' className={classes.createReleaseFormItem}>
-          <Grid container={true} direction='column-reverse' justifyContent='flex-end'>
-            {!versionNameValid() ? (
-              <Grid className={classes.createReleaseInvalidTagNameWrapper} item={true}>
-                <Typography className={classes.createReleaseInvalidTagNameText}>
-                  {getLanguageFromKey(
-                    'app_create_release.release_versionnumber_validation',
-                    language
-                  )}
-                </Typography>
-              </Grid>
-            ) : null}
-            <div style={{width: '50%'}}>
-              <TextField
-                label={getLanguageFromKey('app_create_release.release_versionnumber', language)}
-                onChange={handleTagNameChange}
-                value={tagName}
-                isValid={versionNameValid()}
-              />
+      <div>
+        <div className={classes.createReleaseFormItem}>
+          {!versionNameValid() ? (
+            <div className={classes.createReleaseInvalidTagName}>
+              {getLanguageFromKey('app_create_release.release_versionnumber_validation', language)}
             </div>
-          </Grid>
-        </Grid>
-        <Grid container={true} direction='column' className={classes.createReleaseFormItem}>
+          ) : null}
+          <div style={{ width: '50%' }}>
+            <TextField
+              label={getLanguageFromKey('app_create_release.release_versionnumber', language)}
+              onChange={handleTagNameChange}
+              value={tagName}
+              isValid={versionNameValid()}
+            />
+          </div>
+        </div>
+        <div className={classes.createReleaseFormItem}>
           <TextArea
             label={getLanguageFromKey('app_create_release.release_description', language)}
             value={body}
             onChange={handleBodyChange}
             rows={4}
           />
-        </Grid>
-        <Grid container={true} direction='column' className={classes.createReleaseFormItem}>
-          <div>
-            <AltinnButton
-              btnRef={ref}
-              onClickFunction={handleBuildVersionClick}
-              btnText={getLanguageFromKey('app_create_release.build_version', language)}
-            />
-          </div>
-        </Grid>
-      </Grid>
-      <AltinnPopover
+        </div>
+        <div className={classes.createReleaseFormItem}>
+          <Button ref={ref} onClick={handleBuildVersionClick}>
+            {getLanguageFromKey('app_create_release.build_version', language)}
+          </Button>
+        </div>
+      </div>
+      <AltinnPopoverSimple
         open={createReleaseErrorCode !== null && openErrorPopover}
         anchorEl={ref.current}
         handleClose={handlePopoverClose}
@@ -144,42 +131,26 @@ function ReleaseComponent() {
           },
         }}
       >
-        <Grid container={true} direction='row' spacing={3}>
-          <Grid
-            item={true}
-            xs={1}
-            style={{
-              padding: 0,
-            }}
-          >
+        <div>
+          <div style={{ padding: 0 }}>
             <i className={`${classes.popoverErrorIcon} ai ai-circle-exclamation`} />
-          </Grid>
-          <Grid
-            item={true}
-            xs={11}
-            style={{
-              padding: 0,
-            }}
-          >
-            <Typography className={classes.popoverErrorText}>
-              <>
-                {getLanguageFromKey('app_create_release_errors.build_cannot_start', language)}
-                &nbsp;
-                <a href='mailto:tjenesteeier@altinn.no' target='_blank' rel='noreferrer'>
-                  {getLanguageFromKey('app_create_release_errors.altinn_servicedesk', language)}
-                </a>
-              </>
-            </Typography>
-            <Typography className={classes.popoverTechnicalErrorText}>
+          </div>
+          <div style={{ padding: 0 }}>
+            <div className={classes.popoverErrorText}>
+              {getLanguageFromKey('app_create_release_errors.build_cannot_start', language)}
+              &nbsp;
+              <a href='mailto:tjenesteeier@altinn.no' target='_blank' rel='noreferrer'>
+                {getLanguageFromKey('app_create_release_errors.altinn_servicedesk', language)}
+              </a>
+            </div>
+            <div className={classes.popoverTechnicalErrorText}>
               {getLanguageFromKey('app_create_release_errors.technical_error_code', language)}
               &nbsp;
               {createReleaseErrorCode}
-            </Typography>
-          </Grid>
-        </Grid>
-      </AltinnPopover>
+            </div>
+          </div>
+        </div>
+      </AltinnPopoverSimple>
     </>
   );
 }
-
-export default ReleaseComponent;

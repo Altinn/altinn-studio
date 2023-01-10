@@ -2,21 +2,18 @@
   padding: 1.2rem;
 }
 
-.createReleaseInvalidTagNameText {
-  background-color: #FBF6BD;
+.createReleaseInvalidTagName {
+  background-color: #fbf6bd;
   padding: 1.2rem;
-}
-
-.createReleaseInvalidTagNameWrapper {
   padding: 1.2rem 0 1.2rem 0;
 }
 
 .createReleaseErrorPopoverRoot {
-  background-color: #F9CAD3;
+  background-color: #f9cad3;
 }
 
 .popoverErrorIcon {
-  color: #E23B53;
+  color: #e23b53;
   padding-top: 0.8rem;
 }
 

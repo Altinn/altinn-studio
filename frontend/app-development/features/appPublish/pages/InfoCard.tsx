@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import classNames from 'classnames';
 import classes from './InfoCard.module.css';
 import Illustration from './illustration-help-2-circle.svg';
@@ -9,7 +9,7 @@ export interface IAltinnInformationCardComponentProvidedProps {
 }
 
 export const InfoCard = (
-  props: React.PropsWithChildren<IAltinnInformationCardComponentProvidedProps>
+  props: PropsWithChildren<IAltinnInformationCardComponentProvidedProps>
 ) => {
   return (
     <div className={classes.container}>
