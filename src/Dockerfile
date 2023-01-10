@@ -12,6 +12,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final
 EXPOSE 5005
 WORKDIR /app
 COPY --from=build /app_output .
+ENV ASPNETCORE_URLS=
 
 # setup the user and group
 # busybox doesn't include longopts, so the options are roughly
