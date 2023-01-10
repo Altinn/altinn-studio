@@ -3,15 +3,15 @@
   "description": "JSON schema editor",
   "version": "0.1.0",
   "dependencies": {
-    "@mui/lab": "5.0.0-alpha.114",
+    "@mui/lab": "5.0.0-alpha.115",
     "jsonpointer": "5.0.1"
   },
   "devDependencies": {
     "jest": "29.3.1"
   },
   "peerDependencies": {
-    "@altinn/altinn-design-system": "0.25.11",
-    "@mui/material": "5.11.2",
+    "@altinn/altinn-design-system": "0.25.14",
+    "@mui/material": "5.11.4",
     "@reduxjs/toolkit": "1.9.1",
     "axios": "1.2.2",
     "classnames": "2.3.2",
