@@ -715,6 +715,7 @@
   "ux_editor.checkboxes_option_value": "Value",
   "ux_editor.checkboxes_option_value_error_duplicate": "The value must be unique.",
   "ux_editor.checkboxes_option_value_error_empty": "The value cannot be empty.",
+  "ux_editor.choose_variant": "Choose message variant",
   "ux_editor.collapsable_schema_components": "Form",
   "ux_editor.collapsable_text_advanced_components": "Advanced",
   "ux_editor.collapsable_text_components": "Text",
@@ -880,6 +881,7 @@
   "ux_editor.service_logic_icon_aria_label": "Logic button",
   "ux_editor.service_logic_icon_title": "Logic icon",
   "ux_editor.service_logic_validations": "Validations",
+  "ux_editor.show_icon": "Should the icon be displayed?",
   "ux_editor.success": "Success",
   "ux_editor.toolbar_add_container": "Add container",
   "ux_editor.toolbar_component_search": "Find component...",
@@ -892,7 +894,5 @@
   "validation_errors.maxLength": "Use {0} or fewer characters",
   "validation_errors.min": "Minimum valid value is {0}",
   "validation_errors.minLength": "Use {0} or more characters",
-  "validation_errors.pattern": "Wrong format or value",
-  "ux_editor.choose_variant": "Choose message variant",
-  "ux_editor.show_icon": "Should the icon be displayed?"
+  "validation_errors.pattern": "Wrong format or value"
 }

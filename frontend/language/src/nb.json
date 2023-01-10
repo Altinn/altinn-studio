@@ -746,6 +746,7 @@
   "ux_editor.checkboxes_option_value": "Verdi",
   "ux_editor.checkboxes_option_value_error_duplicate": "Verdien må være unik.",
   "ux_editor.checkboxes_option_value_error_empty": "Du må angi en verdi.",
+  "ux_editor.choose_variant": "Velg meldingstype",
   "ux_editor.collapsable_schema_components": "Skjema",
   "ux_editor.collapsable_text_advanced_components": "Avansert",
   "ux_editor.collapsable_text_components": "Tekst",
@@ -916,6 +917,7 @@
   "ux_editor.service_logic_icon_aria_label": "Logikkknapp",
   "ux_editor.service_logic_icon_title": "Logikk",
   "ux_editor.service_logic_validations": "Valideringer",
+  "ux_editor.show_icon": "Skal ikonet vises?",
   "ux_editor.success": "Vellykket",
   "ux_editor.toolbar_add_container": "Legg til container",
   "ux_editor.toolbar_component_search": "Finn komponent...",
@@ -928,7 +930,5 @@
   "validation_errors.maxLength": "Bruk {0} eller færre tegn",
   "validation_errors.min": "Minste gyldig verdi er {0}",
   "validation_errors.minLength": "Bruk {0} eller flere tegn",
-  "validation_errors.pattern": "Feil format eller verdi",
-  "ux_editor.choose_variant": "Velg meldingstype",
-  "ux_editor.show_icon": "Skal ikonet vises?"
+  "validation_errors.pattern": "Feil format eller verdi"
 }
