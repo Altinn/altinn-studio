@@ -72,7 +72,7 @@ export const CheckboxGroupPreview = ({
     });
     setIsAddMode(false);
     setNewOption(initialNewOption());
-  }
+  };
 
   return (
     <div className={classes.root}>

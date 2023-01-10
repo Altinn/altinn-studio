@@ -75,7 +75,7 @@ export function EditContainer(props: IEditContainerProps) {
   const handleComponentChangeAndSave = (updatedComponent: IFormComponent): void => {
     handleComponentUpdate(updatedComponent);
     handleSaveChange(updatedComponent);
-  }
+  };
 
   const handleComponentDelete = (e: any): void => {
     if (activeList.length > 1) {
