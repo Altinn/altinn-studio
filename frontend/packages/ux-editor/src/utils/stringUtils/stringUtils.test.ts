@@ -5,12 +5,12 @@ test('comma separated string should be converted to string[]', () => {
   expect(result).toMatchObject(['a', 'b', 'c']);
 });
 
-test('comma separated string should be converted to string[] without white spaces', () => {
+test('comma separated string should be converted to string[] without whitespace', () => {
   const result = stringToArray('d, e, f');
   expect(result).toMatchObject(['d', 'e', 'f']);
 });
 
-test('comma separated string with numbers should be converted to string[] without white spaces', () => {
+test('comma separated string with numbers should be converted to string[] without whitespace', () => {
   const result = stringToArray('1, 2, 3');
   expect(result).toMatchObject(['1', '2', '3']);
 });
