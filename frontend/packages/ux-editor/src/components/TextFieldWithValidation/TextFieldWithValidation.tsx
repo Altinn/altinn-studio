@@ -32,10 +32,8 @@ export const TextFieldWithValidation = ({
   };
 
   const handleOnTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const error = validate(event.target.value);
-    if (!error) {
-      onChange(event);
-    }
+    validate(event.target.value);
+    onChange(event);
   };
 
   const textFieldLabel = `${label} ${validation?.required ? '*' : ''}`;

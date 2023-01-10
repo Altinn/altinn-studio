@@ -54,7 +54,7 @@ export const MapComponent = ({
                 message: t('validation_errors.numbers_only')
               }
             }}
-            onChange={(event) => handleCenterLocationChange(event)}
+            onChange={handleCenterLocationChange}
           />
         </div>
         <div>
@@ -72,7 +72,7 @@ export const MapComponent = ({
                 message: t('validation_errors.numbers_only')
               }
             }}
-            onChange={(event) => handleCenterLocationChange(event)}
+            onChange={handleCenterLocationChange}
           />
         </div>
       </div>

@@ -62,7 +62,7 @@ test('should not display asterisk on non-required fields', () => {
   expect(screen.queryByRole('Last name *')).not.toBeInTheDocument();
 });
 
-test('should display an error message and do not call onChange if input is invalid', async () => {
+test('should display an error message and and call onChange if input is invalid', async () => {
   const onChangeMock = jest.fn();
   const { user } = renderTextFieldWithValidation({
     label: 'Age',
@@ -76,7 +76,7 @@ test('should display an error message and do not call onChange if input is inval
   });
 
   await user.type(screen.getByLabelText('Age'), 'A');
-  expect(onChangeMock).not.toHaveBeenCalled();
+  expect(onChangeMock).toHaveBeenCalled();
   expect(screen.getByText('Age must be typeof number.')).toBeInTheDocument();
 });
 
