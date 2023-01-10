@@ -87,7 +87,7 @@ export function CloneModal(props: ICloneModalProps) {
           <div className={classes.blackText}>{t('sync_header.clone_https')}</div>
           <TextField
             id='repository-url-form'
-            value={window.location.origin.toString() + repositoryGitPath(org, app)}
+            value={gitUrl}
             readOnly
           />
         </>
