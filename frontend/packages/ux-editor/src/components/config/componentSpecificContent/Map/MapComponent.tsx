@@ -198,6 +198,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
         icon={<Add />}
         variant={ButtonVariant.Outline}
         onClick={handleAddLayer}
+        disabled={component.layers?.some((layer) => !layer.url)}
         fullWidth
       >
         {t('ux_editor.add_map_layer')}
