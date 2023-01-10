@@ -28,7 +28,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/[action]")]
+    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/{action=Index}")]
     public class ModelController : Controller
     {
         private readonly IRepository _repository;
