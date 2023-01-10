@@ -1592,8 +1592,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
             string authorizationPolicyData = File.ReadAllText(policyPath, Encoding.UTF8);
 
-            // Replace "org" and "app" in the authorization policy file.
-            authorizationPolicyData = authorizationPolicyData.Replace("[ORG]", org).Replace("[APP]", app);
             File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
         }
 

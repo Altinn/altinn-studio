@@ -35,6 +35,18 @@ services:
       context: ./../Altinn.Platform/Altinn.Platform.PDF/
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  altinn_pdf_service:
+    container_name: altinn-pdf-service
+    image: browserless/chrome:1-puppeteer-19.2.2
+    restart: always
+    profiles:
+        - pdf
+    networks:
+      - altinntestlocal_network
+    ports:
+      - "5300:3000"
+    extra_hosts:
+      - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
   altinn_localtest:
     container_name: localtest
     image: localtest:latest

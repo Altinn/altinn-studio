@@ -552,7 +552,7 @@
   "receipt_platform.reference_number": "Referansenummer",
   "receipt_platform.sender": "Avsender",
   "receipt_platform.sent_content": "Følgende er sendt inn:",
-  "right_menu.calcluations": "Beregninger",
+  "right_menu.calculations": "Beregninger",
   "right_menu.conditional_rendering": "Vis/skjul",
   "right_menu.content": "Innhold",
   "right_menu.dynamics": "Dynamikk",
@@ -763,7 +763,7 @@
   "ux_editor.component_group": "Gruppe",
   "ux_editor.component_header": "Tittel",
   "ux_editor.component_image": "Bilde",
-  "ux_editor.component_information_panel": "Panel",
+  "ux_editor.component_information_panel": "Informativ melding",
   "ux_editor.component_input": "Kort svar",
   "ux_editor.component_navigation_bar": "Navigasjonsbar",
   "ux_editor.component_navigation_buttons": "Navigasjonsknapper",
@@ -928,5 +928,7 @@
   "validation_errors.maxLength": "Bruk {0} eller færre tegn",
   "validation_errors.min": "Minste gyldig verdi er {0}",
   "validation_errors.minLength": "Bruk {0} eller flere tegn",
-  "validation_errors.pattern": "Feil format eller verdi"
+  "validation_errors.pattern": "Feil format eller verdi",
+  "ux_editor.choose_variant": "Velg meldingstype",
+  "ux_editor.show_icon": "Skal ikonet vises?"
 }

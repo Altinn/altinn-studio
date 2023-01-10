@@ -190,7 +190,7 @@ public class AppTestOrg
             PartyId = PartyId,
             OrgNumber = OrgNumber,
             IsDeleted = false,
-            PartyTypeName = Altinn.Platform.Register.Enums.PartyType.Organisation, // TODO: consider supporting bankrupt
+            PartyTypeName = Altinn.Platform.Register.Enums.PartyType.Organisation, // TODO: consider supporting bankrupt or subUnit
             Name = Name,
             ChildParties = childParties,
             //HelperFieldsSetLater
@@ -266,9 +266,9 @@ public class AppTestPerson
         {
             PartyId = PartyId,
             IsDeleted = false,
-            SSN = SSN,
+            SSN = string.IsNullOrEmpty(SSN) ? null : SSN,
             Name = GetFullName(),
-            PartyTypeName = Altinn.Platform.Register.Enums.PartyType.Person, // TODO: consider supporting selfIdentified
+            PartyTypeName = string.IsNullOrEmpty(SSN) ? Altinn.Platform.Register.Enums.PartyType.SelfIdentified : Altinn.Platform.Register.Enums.PartyType.Person,
             ChildParties = childParties,
             //HelperFieldsSetLater
             // OnlyHierarchyElementWithNoAccess =

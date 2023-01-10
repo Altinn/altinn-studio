@@ -37,6 +37,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             var app = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.AppAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
             var org = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.OrgAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
             string policyString = await _localApp.GetXACMLPolicy($"{org}/{app}");
+            policyString = policyString.Replace("[ORG]", org).Replace("[APP]", app);
             return ParsePolicyContent(policyString);
         }
 
@@ -45,7 +46,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             throw new NotImplementedException();
         }
-              
+
         public static XacmlPolicy ParsePolicyContent(string policyContent)
         {
             XacmlPolicy policy;

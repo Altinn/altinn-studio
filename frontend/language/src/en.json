@@ -527,7 +527,7 @@
   "receipt_platform.reference_number": "Reference number:",
   "receipt_platform.sender": "Sender",
   "receipt_platform.sent_content": "The following is submitted:",
-  "right_menu.calcluations": "Calculations",
+  "right_menu.calculations": "Calculations",
   "right_menu.conditional_rendering": "Show/hide",
   "right_menu.content": "Content",
   "right_menu.dynamics": "Dynamics",
@@ -731,7 +731,7 @@
   "ux_editor.component_group": "Group",
   "ux_editor.component_header": "Title",
   "ux_editor.component_image": "Image",
-  "ux_editor.component_information_panel": "Panel",
+  "ux_editor.component_information_panel": "Informative message",
   "ux_editor.component_input": "Short answer",
   "ux_editor.component_navigation_bar": "Navigation bar",
   "ux_editor.component_navigation_buttons": "Navigation buttons",
@@ -892,5 +892,7 @@
   "validation_errors.maxLength": "Use {0} or fewer characters",
   "validation_errors.min": "Minimum valid value is {0}",
   "validation_errors.minLength": "Use {0} or more characters",
-  "validation_errors.pattern": "Wrong format or value"
+  "validation_errors.pattern": "Wrong format or value",
+  "ux_editor.choose_variant": "Choose message variant",
+  "ux_editor.show_icon": "Should the icon be displayed?"
 }
