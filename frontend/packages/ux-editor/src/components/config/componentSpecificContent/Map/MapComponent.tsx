@@ -148,7 +148,8 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     <>
       {component.layers?.map(
         (layer, index): JSX.Element => (
-          <FieldSet className={classes.fieldSet}>
+          // Find a way to avoid using index as key
+          <FieldSet key={index} className={classes.fieldSet}>
             <div className={classes.layerHeaderContainer}>
               <p className={classes.numericLayerText}>
                 {t('ux_editor.map_layer')} {index + 1}
