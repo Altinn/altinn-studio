@@ -141,7 +141,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
 
-            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, schemaName);
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName);
 
             return jsonContent;
         }
@@ -324,6 +324,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
         }
 
+        [Obsolete]
         private async Task UpdateAppTexts(
             string org, string repository, string developer, Manatee.Json.Schema.JsonSchema jsonSchema)
         {
@@ -338,6 +339,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.SaveServiceTexts(existingTexts);
         }
 
+        [Obsolete]
         private Manatee.Json.Schema.JsonSchema GenerateJsonSchema(Stream xsdStream)
         {
             var xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
@@ -481,6 +483,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.WriteStreamByRelativePathAsync($"App/models/{schemaName}.xsd", xsdMemoryStream, true);
         }
 
+        [Obsolete]
         private static async Task<ModelMetadata> UpdateModelMetadata(
             AltinnAppGitRepository altinnAppGitRepository,
             Manatee.Json.Schema.JsonSchema jsonSchema,
@@ -494,6 +497,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return modelMetadata;
         }
 
+        [Obsolete]
         private static Stream ConvertJsonSchemaToXsd(Manatee.Json.Schema.JsonSchema jsonSchema)
         {
             JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
