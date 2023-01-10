@@ -99,7 +99,7 @@ export const TextEditor = ({ language }: TextEditorProps) => {
   return (
     <>
       <Dialog open={!hideIntroPage}>
-        <Panel forceMobileLayout={true} title={t('schema_editor.info_dialog_title')}>
+        <Panel forceMobileLayout={true} title={t('text_editor.info_dialog_title')}>
           <div>
             <p>{t('text_editor.info_dialog_1')}</p>
             <p>
