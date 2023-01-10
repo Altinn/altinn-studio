@@ -875,7 +875,19 @@
   "validation_errors.min": "Minimum valid value is {0}",
   "validation_errors.minLength": "Use {0} or more characters",
   "validation_errors.pattern": "Wrong format or value",
+  "validation_errors.required": "Field is required!",
+  "validation_errors.numbers_only": "Only numbers are allowed!",
+  "validation_errors.value_as_url": "Invalid url!",
   "ux_editor.info": "Information",
   "ux_editor.warning": "Warning",
-  "ux_editor.success": "Success"
+  "ux_editor.success": "Success",
+  "ux_editor.center_location": "Center location",
+  "ux_editor.map_layer": "Map layer",
+  "ux_editor.latitude_label": "Latitude",
+  "ux_editor.longitude_label": "Longitude",
+  "ux_editor.url_label": "Url",
+  "ux_editor.attribution_label": "Attribution",
+  "ux_editor.subdomains_label": "Subdomain",
+  "ux_editor.adjust_zoom": "Default zoom",
+  "ux_editor.add_map_layer": "Add map layer"
 }

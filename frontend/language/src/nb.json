@@ -911,7 +911,19 @@
   "validation_errors.min": "Minste gyldig verdi er {0}",
   "validation_errors.minLength": "Bruk {0} eller flere tegn",
   "validation_errors.pattern": "Feil format eller verdi",
+  "validation_errors.required": "Feltet er påkrevd!",
+  "validation_errors.numbers_only": "Kun tall er gyldig verdi!",
+  "validation_errors.value_as_url": "Ugyldig lenke!",
   "ux_editor.info": "Informasjon",
   "ux_editor.warning": "Advarsel",
-  "ux_editor.success": "Vellykket"
+  "ux_editor.success": "Vellykket",
+  "ux_editor.center_location": "Sentrum av kartet",
+  "ux_editor.map_layer": "Kartlag",
+  "ux_editor.latitude_label": "Latitude",
+  "ux_editor.longitude_label": "Longitude",
+  "ux_editor.url_label": "Lenke",
+  "ux_editor.attribution_label": "Sitering",
+  "ux_editor.subdomains_label": "Subdomene",
+  "ux_editor.adjust_zoom": "Standard zoom",
+  "ux_editor.add_map_layer": "Legg til kartlag"
 }
