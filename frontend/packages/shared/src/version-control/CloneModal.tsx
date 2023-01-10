@@ -23,7 +23,7 @@ export function CloneModal(props: ICloneModalProps) {
   const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
 
-  const canCopy = () => {
+  const canCopy = document.queryCommandSupported ?  document.queryCommandSupported('copy') : false;
     if (document.queryCommandSupported) {
       return document.queryCommandSupported('copy');
     }
