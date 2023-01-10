@@ -28,20 +28,6 @@
       <PackageReference Include="JsonSchema.Net" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)'=='Debug'">
-     <PackageReference Include="StyleCop.Analyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <AdditionalFiles Include="..\..\..\stylecop.json">
-      <Link>stylecop.json</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>bin\Release</OutputPath>
     <DocumentationFile>bin\Release\AltinnCore.DataModeling.xml</DocumentationFile>

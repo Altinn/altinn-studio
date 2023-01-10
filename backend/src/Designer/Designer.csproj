@@ -52,20 +52,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)'=='Debug'">
-     <PackageReference Include="StyleCop.Analyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <AdditionalFiles Include="..\..\..\stylecop.json">
-      <Link>stylecop.json</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-
   <ItemGroup>
     <None Update="wwwroot/**/*;Views/**/*;Areas/**/Views;">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
