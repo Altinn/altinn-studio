@@ -23,10 +23,10 @@ import {
   getLocalStorageItem,
   setLocalStorageItem,
 } from 'app-shared/features/dataModelling/functions/localStorage';
-import { getLanguageFromKey, ILanguage } from 'app-shared/utils/language';
+import { getLanguageFromKey, LanguageTree } from 'app-shared/utils/language';
 
 interface TextEditorProps extends React.PropsWithChildren<any> {
-  language: ILanguage;
+  language: LanguageTree;
 }
 
 export const TextEditor = ({ language }: TextEditorProps) => {

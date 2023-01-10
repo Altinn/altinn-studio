@@ -10,7 +10,7 @@ import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
 import type { IMetadataOption } from './functions/types';
 import { LandingPagePanel } from './components/LandingPagePanel';
 import { Dialog } from '@mui/material';
-import type { ILanguage } from '../../utils/language';
+import type { LanguageTree } from 'app-shared/utils/language';
 import { getLanguageFromKey } from '../../utils/language';
 import { getLocalStorageItem, setLocalStorageItem } from './functions/localStorage';
 import { CreateNewWrapper } from './components/CreateNewWrapper';
@@ -21,7 +21,7 @@ import { datamodelPath } from '../../api-paths';
 import classes from './DataModelling.module.css';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
-  language: ILanguage;
+  language: LanguageTree;
   org: string;
   repo: string;
   createPathOption?: boolean;

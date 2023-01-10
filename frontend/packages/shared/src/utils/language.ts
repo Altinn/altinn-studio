@@ -2,11 +2,11 @@ import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import ReactHtmlParser from 'react-html-parser';
 
-export interface ILanguage {
-  [key: string]: string | ILanguage;
+export interface LanguageTree {
+  [key: string]: string | LanguageTree;
 }
 
-export function getLanguageFromKey(key: string, language: ILanguage) {
+export function getLanguageFromKey(key: string, language: LanguageTree) {
   if (!key) {
     return key;
   }
