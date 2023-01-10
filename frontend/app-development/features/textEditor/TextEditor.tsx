@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import type { TextResourceFile, LangCode } from '@altinn/text-editor';
+import type { LangCode, TextResourceFile } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl } from '@altinn/text-editor';
-import { Button, ButtonColor, ButtonVariant, Panel } from '@altinn/altinn-design-system';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  PanelVariant,
+  PopoverPanel,
+} from '@altinn/altinn-design-system';
 import { AltinnSpinner } from 'app-shared/components';
 import { getOrgApp } from '../../common/hooks';
 import { useGetLanguagesQuery } from '../../services/languagesApi';
 import {
+  useAddByLangCodeMutation,
+  useDeleteByLangCodeMutation,
   useGetAppTextsByLangCodeQuery,
   useUpdateTranslationByLangCodeMutation,
-  useDeleteByLangCodeMutation,
-  useAddByLangCodeMutation,
 } from '../../services/textsApi';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Dialog } from '@mui/material';
-import classes from 'app-shared/features/dataModelling/DataModelling.module.css';
+import classes from './TextEditor.module.css';
 import {
   getLocalStorageItem,
   setLocalStorageItem,
@@ -98,40 +103,42 @@ export const TextEditor = ({ language }: TextEditorProps) => {
     setHideIntroPage(setLocalStorageItem('hideTextsIntroPage', true));
   return (
     <>
-      <Dialog open={!hideIntroPage}>
-        <Panel forceMobileLayout={true} title={t('text_editor.info_dialog_title')}>
-          <div>
-            <p>{t('text_editor.info_dialog_1')}</p>
-            <p>
-              <Link
-                target={'_blank'}
-                to={`/../designer/${orgApp.org}/${orgApp.app}/Text`}
-                relative={'path'}
-              >
-                {t('text_editor.info_dialog_nav_to_old')}
-              </Link>
-            </p>
-          </div>
-          <span className={classes.button}>
-            <Button
-              color={ButtonColor.Primary}
-              onClick={() => setHideIntroPage(true)}
-              variant={ButtonVariant.Outline}
-            >
-              {t('general.close')}
-            </Button>
-          </span>
-          <span className={classes.button}>
-            <Button
-              color={ButtonColor.Secondary}
-              onClick={handleHideIntroPageButtonClick}
-              variant={ButtonVariant.Outline}
-            >
-              {t('general.do_not_show_anymore')}
-            </Button>
-          </span>
-        </Panel>
-      </Dialog>
+      <PopoverPanel
+        forceMobileLayout={true}
+        variant={PanelVariant.Info}
+        open={!hideIntroPage}
+        side={'bottom'}
+        title={t('text_editor.info_dialog_title')}
+        trigger={<span className={'sr-only'} />}
+        onOpenChange={() => setHideIntroPage(!hideIntroPage)}
+      >
+        <p>{t('text_editor.info_dialog_1')}</p>
+        <p>
+          <Link
+            target={'_blank'}
+            to={`/../designer/${orgApp.org}/${orgApp.app}/Text`}
+            relative={'path'}
+          >
+            {t('text_editor.info_dialog_nav_to_old')}
+          </Link>
+        </p>
+        <span className={classes.buttons}>
+          <Button
+            color={ButtonColor.Primary}
+            onClick={() => setHideIntroPage(true)}
+            variant={ButtonVariant.Outline}
+          >
+            {t('general.close')}
+          </Button>
+          <Button
+            color={ButtonColor.Secondary}
+            onClick={handleHideIntroPageButtonClick}
+            variant={ButtonVariant.Outline}
+          >
+            {t('general.do_not_show_anymore')}
+          </Button>
+        </span>
+      </PopoverPanel>
       <TextEditorImpl
         selectedLangCode={selectedLangCode}
         searchQuery={getSearchQuery()}
