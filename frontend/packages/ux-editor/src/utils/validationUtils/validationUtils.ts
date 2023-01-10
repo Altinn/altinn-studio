@@ -1,0 +1,39 @@
+export interface Validation {
+  required?: {
+    message: string;
+  };
+  valueAsNumber?: {
+    message: string;
+  };
+  valueAsUrl?: {
+    message: string;
+  };
+}
+
+export const validate = (
+  validation: Validation,
+  inputValue: string
+): { error: string | undefined } => {
+  if (validation.required) {
+    const isInvalid = !inputValue;
+    if (isInvalid) {
+      return { error: validation.required.message };
+    }
+  }
+
+  if (validation.valueAsNumber) {
+    const isInvalid = isNaN(parseInt(inputValue, 10));
+    if (isInvalid) {
+      return { error: validation.valueAsNumber.message };
+    }
+  }
+
+  if (validation.valueAsUrl) {
+    try {
+      new URL(inputValue);
+    } catch {
+      return { error: validation.valueAsUrl.message };
+    }
+  }
+  return { error: undefined };
+};
