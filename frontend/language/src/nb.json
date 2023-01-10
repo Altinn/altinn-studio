@@ -923,7 +923,9 @@
   "ux_editor.longitude_label": "Longitude",
   "ux_editor.url_label": "Lenke",
   "ux_editor.attribution_label": "Sitering",
-  "ux_editor.subdomains_label": "Subdomene",
+  "ux_editor.subdomains_label": "Subdomener (kommaseparert)",
+  "ux_editor.subdomains_placeholder": "domene1, domene2, domene3",
   "ux_editor.adjust_zoom": "Standard zoom",
-  "ux_editor.add_map_layer": "Legg til kartlag"
+  "ux_editor.add_map_layer": "Legg til kartlag",
+  "ux_editor.add_subdomain": "Legg til subdomene"
 }

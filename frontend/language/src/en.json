@@ -887,7 +887,9 @@
   "ux_editor.longitude_label": "Longitude",
   "ux_editor.url_label": "Url",
   "ux_editor.attribution_label": "Attribution",
-  "ux_editor.subdomains_label": "Subdomain",
+  "ux_editor.subdomains_label": "Subdomains (comma separated)",
+  "ux_editor.subdomains_placeholder": "domain1, domain2, domain3",
   "ux_editor.adjust_zoom": "Default zoom",
-  "ux_editor.add_map_layer": "Add map layer"
+  "ux_editor.add_map_layer": "Add map layer",
+  "ux_editor.add_subdomain": "Add subdomain"
 }
