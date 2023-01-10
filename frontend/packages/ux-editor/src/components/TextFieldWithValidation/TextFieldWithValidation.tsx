@@ -9,7 +9,7 @@ export interface TextFieldWithValidationProps {
   value: string;
   name: string;
   className?: string;
-  validation?: Validation;
+  validation: Validation;
   inputMode?: 'search' | 'text' | 'none' | 'tel' | 'numeric' | 'url' | 'email' | 'decimal';
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
