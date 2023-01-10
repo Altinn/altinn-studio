@@ -23,12 +23,7 @@ export function CloneModal(props: ICloneModalProps) {
   const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
 
-  const canCopy = document.queryCommandSupported ?  document.queryCommandSupported('copy') : false;
-    if (document.queryCommandSupported) {
-      return document.queryCommandSupported('copy');
-    }
-    return false;
-  };
+  const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;
 
   useEffect(() => {
     const source = axios.CancelToken.source();
@@ -85,11 +80,7 @@ export function CloneModal(props: ICloneModalProps) {
         )}
         <>
           <div className={classes.blackText}>{t('sync_header.clone_https')}</div>
-          <TextField
-            id='repository-url-form'
-            value={gitUrl}
-            readOnly
-          />
+          <TextField id='repository-url-form' value={gitUrl} readOnly />
         </>
         {canCopy && (
           <Button onClick={copyGitUrl} id='copy-repository-url-button'>
