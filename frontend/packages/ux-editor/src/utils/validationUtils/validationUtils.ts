@@ -31,6 +31,7 @@ export const validate = (
 
   if (validation.valueAsUrl) {
     try {
+      // new url throws if the provided input does not match the format of a valid url.
       new URL(inputValue);
     } catch {
       return { error: validation.valueAsUrl.message };
