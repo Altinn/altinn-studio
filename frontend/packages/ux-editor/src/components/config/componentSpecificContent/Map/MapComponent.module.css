@@ -20,3 +20,21 @@
 .fullWidth {
   width: 100%;
 }
+
+.fieldSet {
+  border: 0.1rem solid #bcc7cc;
+  padding: 1.2rem;
+  margin-bottom: 12px;
+}
+
+.numericLayerText {
+  font-weight: bold;
+  margin: 0;
+}
+
+.layerHeaderContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
