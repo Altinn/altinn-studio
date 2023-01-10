@@ -80,7 +80,7 @@ test('should display an error message and do not call onChange if input is inval
   expect(screen.getByText('Age must be typeof number.')).toBeInTheDocument();
 });
 
-test('should call onChange and not display error message when input is valid', async () => {
+test('should call onChange and should not display error message when input is valid', async () => {
   const onChangeMock = jest.fn();
   const { user } = renderTextFieldWithValidation({
     label: 'Age',
