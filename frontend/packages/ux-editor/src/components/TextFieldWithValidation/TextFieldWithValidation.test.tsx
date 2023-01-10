@@ -47,7 +47,7 @@ test('should display an error message if no value is entered in a required field
 test('should display asterisk on required field', () => {
   renderTextFieldWithValidation({
     label: 'Name',
-    name: "name",
+    name: 'name',
     validation: { required: { message: 'Name is required' } }
   });
 
@@ -59,7 +59,7 @@ test('should not display asterisk on non-required fields', () => {
     label: 'Last name',
     name: 'lastName'
   });
-  expect(screen.queryByRole('Last name *')).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('Last name *')).not.toBeInTheDocument();
 });
 
 test('should display an error message and and call onChange if input is invalid', async () => {
