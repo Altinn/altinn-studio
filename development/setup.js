@@ -11,7 +11,7 @@ const startingDockerCompose = () =>
 const createAdminUser = (env) =>
   runCommand(
     [
-      `docker exec altinn-repositories gitea admin user create`,
+      `docker exec studio-repositories gitea admin user create`,
       `--username ${env.GITEA_ADMIN_USER}`,
       `--password ${env.GITEA_ADMIN_PASS}`,
       `--email ${env.GITEA_ADMIN_USER}@digdir.no`,
@@ -23,7 +23,7 @@ const createAdminUser = (env) =>
 const ensureAdminPassword = (env) =>
   runCommand(
     [
-      `docker exec altinn-repositories gitea admin user change-password`,
+      `docker exec studio-repositories gitea admin user change-password`,
       `--username ${env.GITEA_ADMIN_USER}`,
       `--password ${env.GITEA_ADMIN_PASS}`,
     ].join(" ")
@@ -111,9 +111,9 @@ const createCypressEnvFile = async (env) => {
 const ensureDeploymentEntry = async () => {
   runCommand(
     [
-      `docker exec -i altinn-postgres psql`,
+      `docker exec -i studio-db psql`,
       `-U designer_admin designerdb`,
-      `< designerdb/data.sql`,
+      `< db/data.sql`,
     ].join(" ")
   );
 };

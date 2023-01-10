@@ -1,3 +1,0 @@
-CREATE USER designer WITH PASSWORD 'designer';
-GRANT ALL PRIVILEGES ON DATABASE designerdb TO designer;
-CREATE SCHEMA IF NOT EXISTS designer AUTHORIZATION designer;
