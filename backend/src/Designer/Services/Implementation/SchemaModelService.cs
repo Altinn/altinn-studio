@@ -443,7 +443,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 application.DataTypes = new List<DataType>();
             }
 
-            DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic != null);
+            DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic?.ClassRef != null);
             DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
 
             if (logicElement == null)
