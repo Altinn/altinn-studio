@@ -9,14 +9,14 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.25.11",
-    "@mui/x-data-grid": "5.17.17",
+    "@altinn/altinn-design-system": "0.25.14",
+    "@mui/x-data-grid": "5.17.18",
     "@reduxjs/toolkit": "1.9.1",
     "lodash-es": "4.17.21",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-redux": "8.0.5",
-    "react-router-dom": "6.6.1",
+    "react-router-dom": "6.6.2",
     "react-use": "17.4.0",
     "redux": "4.2.0",
     "redux-saga": "1.2.2"

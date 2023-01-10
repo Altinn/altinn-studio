@@ -1,13 +1,19 @@
-import React from 'react';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
-import { Add, Edit } from '@navikt/ds-icons';
+import React, { useState } from 'react';
+import { Button, ButtonColor, ButtonVariant, Select } from '@altinn/altinn-design-system';
+import { Add, Close, Edit, Search } from '@navikt/ds-icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentEditId, upsertTextResources } from '../features/appData/textResources/textResourcesSlice';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { getCurrentEditId, textResourceByLanguageAndIdSelector } from '../selectors/textResourceSelectors';
+import {
+  getAllTextResourceIds,
+  getCurrentEditId,
+  textResourceByLanguageAndIdSelector
+} from '../selectors/textResourceSelectors';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { useText } from '../hooks';
+import { prepend } from 'app-shared/utils/arrayUtils';
+import cn from 'classnames';
 
 export interface TextResourceProps {
   description?: string;
@@ -27,7 +33,9 @@ export const TextResource = ({
   const dispatch = useDispatch();
 
   const textResource = useSelector(textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId));
+  const textResourceIds = useSelector(getAllTextResourceIds);
   const t = useText();
+  const [isSearchMode, setIsSearchMode] = useState(false);
 
   const addTextResource = (id: string) => dispatch(upsertTextResources({
     language: DEFAULT_LANGUAGE,
@@ -49,11 +57,40 @@ export const TextResource = ({
     }
   };
 
+  const searchOptions = prepend(
+    textResourceIds.map((id) => ({ label: id, value: id })),
+    { label: t('ux_editor.search_text_resources_none'), value: '' }
+  );
+
   return (
-    <div className={isEditing ? classes.isEditing : undefined}>
-      {label && <p className={classes.label}>{label}</p>}
-      {description && <p className={classes.description}>{description}</p>}
-      <div className={classes.textResource}>
+    <span className={cn(
+      classes.root,
+      isEditing && classes.isEditing,
+      isSearchMode && classes.isSearching,
+    )}>
+      {label && <span className={classes.label}>{label}</span>}
+      {description && <span className={classes.description}>{description}</span>}
+      {isSearchMode && (
+        <span className={classes.searchContainer}>
+          <span className={classes.select}>
+            <Select
+              hideLabel={true}
+              label={t('ux_editor.search_text_resources_label')}
+              onChange={(id) => handleIdChange(id === '' ? undefined : id)}
+              options={searchOptions}
+              value={textResource?.id ?? ''}
+            />
+          </span>
+          <Button
+            aria-label={t('ux_editor.search_text_resources_close')}
+            color={ButtonColor.Secondary}
+            icon={<Close />}
+            onClick={() => setIsSearchMode(false)}
+            variant={ButtonVariant.Quiet}
+          />
+        </span>
+      )}
+      <span className={classes.textResource}>
         {textResource?.value ? (
           <>
             <span>{textResource.value}</span>
@@ -79,7 +116,15 @@ export const TextResource = ({
             />
           </>
         )}
-      </div>
-    </div>
+        <Button
+          aria-label={t('general.search')}
+          color={ButtonColor.Secondary}
+          disabled={isSearchMode}
+          icon={<Search />}
+          onClick={() => setIsSearchMode(true)}
+          variant={ButtonVariant.Quiet}
+        />
+      </span>
+    </span>
   );
 }

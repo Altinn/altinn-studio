@@ -19,20 +19,12 @@ export interface ICloneModalProps {
 
 export function CloneModal(props: ICloneModalProps) {
   const [hasDataModel, setHasDataModel] = useState(false);
-
-  const copyGitUrl = () => {
-    const textField = document.querySelector('#repository-url');
-    (textField as any).select();
-    document.execCommand('copy');
-  };
-
-  const canCopy = () => {
-    if (document.queryCommandSupported) {
-      return document.queryCommandSupported('copy');
-    }
-    return false;
-  };
   const { org, app } = useParams();
+  const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
+  const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
+
+  const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;
+
   useEffect(() => {
     const source = axios.CancelToken.source();
     const checkIfDataModelExists = async () => {
@@ -88,9 +80,9 @@ export function CloneModal(props: ICloneModalProps) {
         )}
         <>
           <div className={classes.blackText}>{t('sync_header.clone_https')}</div>
-          <TextField id='repository-url-form' value={repositoryGitPath(org, app)} readOnly />
+          <TextField id='repository-url-form' value={gitUrl} readOnly />
         </>
-        {canCopy() && (
+        {canCopy && (
           <Button onClick={copyGitUrl} id='copy-repository-url-button'>
             {t('sync_header.clone_https_button')}
           </Button>

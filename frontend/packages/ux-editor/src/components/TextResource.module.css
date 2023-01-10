@@ -1,3 +1,22 @@
+.root {
+  --frame-offset: 4px;
+  border-radius: 2px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.root.isEditing {
+  outline-offset: var(--frame-offset);
+  outline: 1px dashed #008fd6;
+}
+
+.root.isSearching {
+  --search-background-color: #1EADF718;
+  background-color: var(--search-background-color);
+  box-shadow: 0 0 0 var(--frame-offset) var(--search-background-color);
+}
+
 .label {
   margin: 0;
 }
@@ -8,7 +27,7 @@
 }
 
 .textResource {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 1rem;
 }
@@ -17,8 +36,12 @@
   color: #c9c9c9;
 }
 
-.isEditing {
-  border-radius: 2px;
-  outline-offset: 4px;
-  outline: 1px dashed #008fd6;
+.searchContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.searchContainer .select {
+  flex: 1;
 }

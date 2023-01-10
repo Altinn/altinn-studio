@@ -1,4 +1,5 @@
 import { IAppState } from '../types/global';
+import { removeDuplicates } from 'app-shared/utils/arrayUtils';
 
 export const getAllTextResources = (state: IAppState) => state
   .appData
@@ -15,3 +16,9 @@ export const textResourceByLanguageAndIdSelector =
         .find((textResource) => textResource.id === id);
 
 export const getCurrentEditId = (state: IAppState) => state.appData.textResources.currentEditId;
+
+export const getAllTextResourceIds = (state: IAppState) => removeDuplicates(
+  Object
+    .values(getAllTextResources(state))
+    .flatMap((resources) => resources.map((textResource) => textResource.id))
+);
