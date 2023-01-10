@@ -91,7 +91,7 @@ export function CloneModal(props: ICloneModalProps) {
             readOnly
           />
         </>
-        {canCopy() && (
+        {canCopy && (
           <Button onClick={copyGitUrl} id='copy-repository-url-button'>
             {t('sync_header.clone_https_button')}
           </Button>
