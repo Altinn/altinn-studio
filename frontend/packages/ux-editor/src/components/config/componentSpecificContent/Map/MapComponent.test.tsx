@@ -13,10 +13,7 @@ const language: Record<string, string> = {
   'ux_editor.latitude_label': 'Latitude',
   'ux_editor.longitude_label': 'Longitude',
   'ux_editor.url_label': 'Lenke',
-  'ux_editor.attribution_label': 'Sitering',
-  'ux_editor.subdomains_label': 'Subdomene',
   'ux_editor.adjust_zoom': 'Standard zoom',
-  'ux_editor.add_map_layer': 'Legg til kartlag'
 };
 
 const renderMapComponent = ({

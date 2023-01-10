@@ -927,7 +927,7 @@
   "ux_editor.latitude_label": "Latitude",
   "ux_editor.longitude_label": "Longitude",
   "ux_editor.url_label": "Lenke",
-  "ux_editor.attribution_label": "Sitering",
+  "ux_editor.attribution_label": "Opphav",
   "ux_editor.subdomains_label": "Subdomener (kommaseparert)",
   "ux_editor.subdomains_placeholder": "domene1, domene2, domene3",
   "ux_editor.adjust_zoom": "Standard zoom",
