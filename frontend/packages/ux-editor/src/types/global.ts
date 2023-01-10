@@ -196,21 +196,16 @@ export interface PanelComponent extends IFormComponent {
 }
 
 export interface MapComponent extends IFormComponent {
-  markerLocation: {
-    title: string;
-    type: object;
-    description: string;
-    latitude: {
-      type: number;
-      title: string;
-      description: string;
-    };
-    longitude: {
-      type: number;
-      title: string;
-      description: string;
-    };
+  centerLocation: {
+    latitude: number;
+    longitude: number;
   };
+  zoom: number;
+  layers?: {
+    url: string;
+    attribution?: string;
+    subdomains?: string[];
+  }[];
 }
 
 export type FormComponentType =
