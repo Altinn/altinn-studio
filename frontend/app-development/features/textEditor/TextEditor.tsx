@@ -19,16 +19,14 @@ import {
 } from '../../services/textsApi';
 import { Link, useSearchParams } from 'react-router-dom';
 import classes from './TextEditor.module.css';
-import {
-  getLocalStorageItem,
-  setLocalStorageItem,
-} from 'app-shared/features/dataModelling/functions/localStorage';
-import { getLanguageFromKey, LanguageTree } from 'app-shared/utils/language';
+import { getLocalStorage, setLocalStorage } from 'app-shared/utils/localStorage';
+import type { LanguageTree } from 'app-shared/utils/language';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 interface TextEditorProps extends React.PropsWithChildren<any> {
   language: LanguageTree;
 }
-
+const storageGroupName = 'textEditorStorage';
 export const TextEditor = ({ language }: TextEditorProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLangCode = searchParams.get('lang');
@@ -70,7 +68,7 @@ export const TextEditor = ({ language }: TextEditorProps) => {
   const t = (key: string) => getLanguageFromKey(key, language);
 
   const [hideIntroPage, setHideIntroPage] = useState(
-    () => getLocalStorageItem('hideTextsIntroPage') ?? false
+    () => getLocalStorage(storageGroupName, 'hideTextsIntroPage') ?? false
   );
   if (isInitialLoadingLang) {
     return <AltinnSpinner />;
@@ -99,7 +97,7 @@ export const TextEditor = ({ language }: TextEditorProps) => {
       data: translations,
     });
   const handleHideIntroPageButtonClick = () =>
-    setHideIntroPage(setLocalStorageItem('hideTextsIntroPage', true));
+    setHideIntroPage(setLocalStorage(storageGroupName, 'hideTextsIntroPage', true));
   return (
     <>
       <PopoverPanel

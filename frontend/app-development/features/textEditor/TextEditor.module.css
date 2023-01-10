@@ -1,6 +1,4 @@
 .buttons {
-  display: inline-flex;
-}
-.buttons>button:not(:first-of-type) {
-  margin-left: 13px;
+  display: flex;
+  gap: 13px;
 }
