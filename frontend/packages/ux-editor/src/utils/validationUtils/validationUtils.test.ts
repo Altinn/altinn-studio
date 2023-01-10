@@ -28,7 +28,7 @@ test('valueAsNumber should allow empty string when required is not set', () => {
 test('valueAsNumber should not allow empty string when required is set', () => {
   const { error } = validate(
     {
-      required: { message: 'Field is required ' },
+      required: { message: 'Field is required' },
       valueAsNumber: { message: 'Only numbers are allowed' },
     },
     ''
