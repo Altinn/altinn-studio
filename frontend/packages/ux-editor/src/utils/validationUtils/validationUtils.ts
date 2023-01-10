@@ -22,7 +22,8 @@ export const validate = (
   }
 
   if (validation.valueAsNumber) {
-    const isInvalid = isNaN(parseInt(inputValue, 10));
+    const allowEmptyField = !validation.required;
+    const isInvalid = allowEmptyField && !inputValue ? false : isNaN(parseInt(inputValue, 10));
     if (isInvalid) {
       return { error: validation.valueAsNumber.message };
     }
