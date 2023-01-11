@@ -44,14 +44,16 @@ test('should display an error message if no value is entered in a required field
   expect(screen.getByText('Age is required')).toBeInTheDocument();
 });
 
-test('should display asterisk on required field', () => {
+test('should display asterisk and have aria-required on required field', () => {
   renderTextFieldWithValidation({
     label: 'Name',
     name: 'name',
     validation: { required: { message: 'Name is required' } }
   });
 
-  expect(screen.getByLabelText('Name *')).toBeInTheDocument();
+  const inputField = screen.getByLabelText('Name *');
+  expect(inputField).toBeInTheDocument();
+  expect(inputField).toHaveAttribute('aria-required', 'true');
 });
 
 test('should not display asterisk on non-required fields', () => {
@@ -59,7 +61,9 @@ test('should not display asterisk on non-required fields', () => {
     label: 'Last name',
     name: 'lastName'
   });
+
   expect(screen.queryByLabelText('Last name *')).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Last name')).toHaveAttribute('aria-required', 'false');
 });
 
 test('should display an error message and and call onChange if input is invalid', async () => {

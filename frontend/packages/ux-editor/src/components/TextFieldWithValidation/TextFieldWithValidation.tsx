@@ -37,6 +37,8 @@ export const TextFieldWithValidation = ({
   };
 
   const textFieldLabel = `${label} ${validation?.required ? '*' : ''}`;
+  const isRequired = !!validation?.required;
+
   return (
     <>
       <TextField
@@ -49,7 +51,8 @@ export const TextFieldWithValidation = ({
         onChange={handleOnTextFieldChange}
         aria-errormessage={errorMessageId}
         aria-invalid={!!validationError}
-        required={!!validation?.required?.message}
+        aria-required={isRequired}
+        required={isRequired}
       />
       <div className={classes.errorMessageContainer}>
         {validationError ? (
