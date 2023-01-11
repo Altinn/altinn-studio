@@ -51,7 +51,7 @@ steps:
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Authentication'
   continueOnError: false
-  failTaskOnFailedTests: true
+  failOnStderr: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
@@ -62,7 +62,7 @@ steps:
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'App'
   continueOnError: true
-  failTaskOnFailedTests: true
+  failOnStderr: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
@@ -81,7 +81,7 @@ steps:
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Platform'
   continueOnError: true
-  failTaskOnFailedTests: true
+  failOnStderr: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
@@ -91,8 +91,8 @@ steps:
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Cleanup'
+  failOnStderr: true
   continueOnError: true
-  failTaskOnFailedTests: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
@@ -101,7 +101,7 @@ steps:
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'eFormidling Integration point'
   continueOnError: true
-  failTaskOnFailedTests: true
+  failOnStderr: true
   condition: and(always(), eq(variables['environment'], 'tt02'))
 
 - task: PublishTestResults@2
@@ -112,6 +112,6 @@ steps:
      **/src/test/K6/src/reports/*.xml
     searchFolder: '$(Build.SourcesDirectory)'
     mergeTestResults: true
-    failTaskOnFailedTests: true
+    failOnStderr: true
     testRunTitle: '$(environment)_use_cases'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
