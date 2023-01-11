@@ -1,6 +1,5 @@
 const gulp = require('gulp');
 const run = require('gulp-run-command').default;
-const del = require('del');
 const path = require('path');
 
 // When specifying options, you need to add all options to avoid lint errors.
@@ -12,28 +11,19 @@ const defaultGulpRunOptions = {
   env: {},
 };
 
-const cleanGlobs = [
-  'wwwroot/designer/css/lib/**/*.css',
-  'wwwroot/designer/js/lib/**/*.js',
-  'wwwroot/designer/css/font-awesome/*.css',
-  'wwwroot/designer/js/lib/**',
-  'wwwroot/designer/css/lib/**',
-  'wwwroot/designer/css/bootstrap*.css',
-  'wwwroot/designer/css/font/fontawesome*.*',
-];
-const FRONTEND_FOLDER = path.resolve(__dirname,"..","..","..","frontend");
-const jsServDevFile = path.join(FRONTEND_FOLDER, 'dist/app-development/app-development.js');
-const jsServDevModuleFile1 = path.join(FRONTEND_FOLDER, 'dist/app-development/1.app-development.js');
-const jsServDevModuleFile2 = path.join(FRONTEND_FOLDER, 'dist/app-development/2.app-development.js');
-const jsServDevModuleFile3 = path.join(FRONTEND_FOLDER, 'dist/app-development/3.app-development.js');
-const jsServDevModuleFile4 = path.join(FRONTEND_FOLDER, 'dist/app-development/4.app-development.js');
-const jsServDevMonacoWorker1 = path.join(FRONTEND_FOLDER, 'dist/app-development/editor.worker.js');
-const jsServDevMonacoWorker2 = path.join(FRONTEND_FOLDER, 'dist/app-development/ts.worker.js');
-const jsDashboardFile = path.join(FRONTEND_FOLDER, 'dist/dashboard/dashboard.js');
-const cssServDevFile = path.join(FRONTEND_FOLDER, 'dist/app-development/app-development.css');
-const cssDashboardFile = path.join(FRONTEND_FOLDER, 'dist/dashboard/dashboard.css');
-const langNoFile = path.join(FRONTEND_FOLDER, 'dist/language/nb.json');
-const langEnFile = path.join(FRONTEND_FOLDER, 'dist/language/en.json');
+const FRONT_DIR = path.resolve(__dirname, '..', '..', '..', 'frontend');
+const jsServDevFile = path.join(FRONT_DIR, 'dist/app-development/app-development.js');
+const jsServDevModuleFile1 = path.join(FRONT_DIR, 'dist/app-development/1.app-development.js');
+const jsServDevModuleFile2 = path.join(FRONT_DIR, 'dist/app-development/2.app-development.js');
+const jsServDevModuleFile3 = path.join(FRONT_DIR, 'dist/app-development/3.app-development.js');
+const jsServDevModuleFile4 = path.join(FRONT_DIR, 'dist/app-development/4.app-development.js');
+const jsServDevMonacoWorker1 = path.join(FRONT_DIR, 'dist/app-development/editor.worker.js');
+const jsServDevMonacoWorker2 = path.join(FRONT_DIR, 'dist/app-development/ts.worker.js');
+const jsDashboardFile = path.join(FRONT_DIR, 'dist/dashboard/dashboard.js');
+const cssServDevFile = path.join(FRONT_DIR, 'dist/app-development/app-development.css');
+const cssDashboardFile = path.join(FRONT_DIR, 'dist/dashboard/dashboard.css');
+const langNoFile = path.join(FRONT_DIR, 'dist/language/nb.json');
+const langEnFile = path.join(FRONT_DIR, 'dist/language/en.json');
 
 const jslibDest = 'wwwroot/designer/js/lib/';
 const copyGlobs = [
@@ -120,14 +110,12 @@ function copyReactJs(cb) {
   copyDashboardJs();
   copyServDevJs();
   cb();
-  return;
 }
 
 function copyReactCss(cb) {
   copyDashboardCss();
   copyServDevCss();
   cb();
-  return;
 }
 
 const APP_DEVELOPMENT_ROOT = './wwwroot/designer/frontend/app-development';
@@ -138,7 +126,6 @@ function copyDashboardJs() {
   setTimeout(function () {
     gulp.src(jsDashboardFile).pipe(gulp.dest(DASHBOARD_ROOT));
   }, 1000);
-  return;
 }
 
 function copyServDevJs() {
@@ -151,34 +138,32 @@ function copyServDevJs() {
     gulp.src(jsServDevMonacoWorker1).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
     gulp.src(jsServDevMonacoWorker2).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
   }, 1000);
-  return;
 }
 
 function copyDashboardCss() {
   setTimeout(function () {
     gulp.src(cssDashboardFile).pipe(gulp.dest(DASHBOARD_ROOT));
   }, 1000);
-  return;
 }
 
 function copyServDevCss() {
   setTimeout(function () {
     gulp.src(cssServDevFile).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
   }, 1000);
-  return;
 }
 
 function copyLangFiles(cb) {
   gulp.src(langNoFile).pipe(gulp.dest(LANG_ROOT));
   gulp.src(langEnFile).pipe(gulp.dest(LANG_ROOT));
   setTimeout(cb, 1000);
-  return;
 }
 
 gulp.task('build', gulp.series([copyNodeModulePackages]));
 
-gulp.task('copy-files', gulp.series(copyNodeModulePackages, copyReactJs, copyReactCss, copyLangFiles));
-
+gulp.task(
+  'copy-files',
+  gulp.series(copyNodeModulePackages, copyReactJs, copyReactCss, copyLangFiles)
+);
 
 gulp.task(
   'develop-designer-backend',
@@ -187,13 +172,13 @@ gulp.task(
     run('dotnet run'),
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: path.join(FRONTEND_FOLDER,'app-development'),
+      cwd: path.join(FRONT_DIR, 'app-development'),
     }),
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: path.join(FRONTEND_FOLDER,'dashboard'),
-    }),
-  ),
+      cwd: path.join(FRONT_DIR, 'dashboard'),
+    })
+  )
 );
 
 gulp.task(
@@ -202,13 +187,13 @@ gulp.task(
     copyNodeModulePackages,
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: path.join(FRONTEND_FOLDER,'app-development'),
+      cwd: path.join(FRONT_DIR, 'app-development'),
     }),
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: path.join(FRONTEND_FOLDER,'dashboard'),
-    }),
-  ),
+      cwd: path.join(FRONT_DIR, 'dashboard'),
+    })
+  )
 );
 
 gulp.task(
@@ -218,9 +203,9 @@ gulp.task(
     run('dotnet run'),
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: path.join(FRONTEND_FOLDER,'dashboard'),
-    }),
-  ),
+      cwd: path.join(FRONT_DIR, 'dashboard'),
+    })
+  )
 );
 
 gulp.task(
@@ -228,9 +213,9 @@ gulp.task(
   gulp.series(
     run('yarn --immutable', {
       ...defaultGulpRunOptions,
-      cwd: FRONTEND_FOLDER,
-    }),
-  ),
+      cwd: FRONT_DIR,
+    })
+  )
 );
 
 gulp.task(
@@ -238,8 +223,8 @@ gulp.task(
   gulp.series([
     run('yarn run build', {
       ...defaultGulpRunOptions,
-      cwd: FRONTEND_FOLDER,
+      cwd: FRONT_DIR,
     }),
     'copy-files',
-  ]),
+  ])
 );
