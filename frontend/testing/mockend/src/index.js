@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-global-assign
 require = require('esm')(module /*, options*/);
 const bodyParser = require('body-parser');
-const { ensureStorageDir } = require('./utils');
+const { ensureStorageDir, fixtureRoute } = require('./utils');
 
 const {
   datamodelGetPath,
@@ -46,5 +46,12 @@ module.exports = (middlewares, devServer) => {
   app.get('/designer/api/:org/:app/preview-status', require('./routes/preview-get'));
   app.get('/designer/html/preview.html', require('./routes/get-preview-html'));
 
+  app.get('/designer/api/v1/:org/:app/Deployments', fixtureRoute('Deployments'));
+  app.get('/designer/api/v1/:org/:app/deployments/permissions', fixtureRoute('permissions'));
+  app.get('/designer/api/v1/:org/:app/releases', fixtureRoute('releases'));
+  app.get('/designer/api/v1/repos/:org/:app/branches/branch', require('./routes/get-branch'));
+  app.get('/designer/api/v1/repos/:org/:app/status', fixtureRoute('status'));
+  app.post('/designer/api/v1/:org/:app/Deployments', require('./routes/create-deployment'));
+  app.post('/designer/api/v1/:org/:app/releases', require('./routes/create-release'));
   return middlewares;
 };

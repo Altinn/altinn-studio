@@ -1,0 +1,3370 @@
+{
+  "results": [
+    {
+      "tagName": "2404",
+      "name": "2404",
+      "body": "automation",
+      "targetCommitish": "940f119905cada186000ab31a8e3be88d73375ce",
+      "build": {
+        "id": "586908",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-11-21T13:17:38.7616749Z",
+        "finished": "2022-11-21T13:19:01.2338274Z"
+      },
+      "created": "2022-11-21T13:17:25.3038369+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2403",
+      "name": "2403",
+      "body": "automation",
+      "targetCommitish": "dde9bd29a1aa7532918c50ad8547dd21f8e95301",
+      "build": {
+        "id": "584676",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-11-18T12:08:25.553224Z",
+        "finished": "2022-11-18T12:09:57.0658448Z"
+      },
+      "created": "2022-11-18T12:08:12.748628+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2402",
+      "name": "2402",
+      "body": "automation",
+      "targetCommitish": "d53d73552c4e33f66ec01d944a6332b4285a6f36",
+      "build": {
+        "id": "584672",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-11-18T12:06:56.6274705Z",
+        "finished": "2022-11-18T12:07:50.4642677Z"
+      },
+      "created": "2022-11-18T12:06:42.1042152+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2401",
+      "name": "2401",
+      "body": "automation",
+      "targetCommitish": "a740e0b56cc7eb1a71666c963719c160eda658fb",
+      "build": {
+        "id": "583574",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-11-17T11:51:46.4905808Z",
+        "finished": "2022-11-17T11:53:20.414998Z"
+      },
+      "created": "2022-11-17T11:51:35.1124614+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2400",
+      "name": "2400",
+      "body": "automation",
+      "targetCommitish": "b205757628788d7240b5f6d6e4bcf796d510b4ee",
+      "build": {
+        "id": "582819",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-11-16T14:45:22.7279692Z",
+        "finished": "2022-11-16T14:46:46.6901861Z"
+      },
+      "created": "2022-11-16T14:45:08.6031579+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2399",
+      "name": "2399",
+      "body": "automation",
+      "targetCommitish": "f7ee62c8c9411eeb0122546b3422094e17cafe78",
+      "build": {
+        "id": "582716",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-11-16T12:29:54.6629281Z",
+        "finished": "2022-11-16T12:31:18.1116142Z"
+      },
+      "created": "2022-11-16T12:29:42.0736207+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2398",
+      "name": "2398",
+      "body": "automation",
+      "targetCommitish": "9780eae3c7cd3adcc622b1a31ce7c4c467c551e3",
+      "build": {
+        "id": "581696",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-11-15T13:10:41.7813473Z",
+        "finished": "2022-11-15T13:12:25.3315359Z"
+      },
+      "created": "2022-11-15T13:10:24.8380694+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2397",
+      "name": "2397",
+      "body": "automation",
+      "targetCommitish": "28191d37aefa1d5d70ad8af9a945db8bcb4c3d9c",
+      "build": {
+        "id": "569974",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-11-02T08:05:56.7910473Z",
+        "finished": "2022-11-02T08:07:42.3834933Z"
+      },
+      "created": "2022-11-02T08:05:44.1776976+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2396",
+      "name": "2396",
+      "body": "automation",
+      "targetCommitish": "f7e8cff7f3c9c1f0d2fcebca7d41a8dab04d47b4",
+      "build": {
+        "id": "569535",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-11-01T17:44:46.4581929Z",
+        "finished": "2022-11-01T17:45:19.7721069Z"
+      },
+      "created": "2022-11-01T17:44:33.1129655+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2395",
+      "name": "2395",
+      "body": "automation",
+      "targetCommitish": "42f4007dbdabc5ab1c4002381f9a21119d7c6445",
+      "build": {
+        "id": "569303",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-11-01T14:40:26.6446547Z",
+        "finished": "2022-11-01T14:41:48.3369716Z"
+      },
+      "created": "2022-11-01T14:40:13.6454004+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2394",
+      "name": "2394",
+      "body": "automation",
+      "targetCommitish": "1fc0ac091a7a06c4e4034f28b2f5fa015ddfcb20",
+      "build": {
+        "id": "568388",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-31T14:20:58.0628656Z",
+        "finished": "2022-10-31T14:22:22.5239187Z"
+      },
+      "created": "2022-10-31T14:20:45.8606551+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2393",
+      "name": "2393",
+      "body": "automation",
+      "targetCommitish": "45ecb50af135162098ed7f92576e32229be9aebb",
+      "build": {
+        "id": "568384",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-10-31T14:19:27.2940705Z",
+        "finished": "2022-10-31T14:20:11.6796722Z"
+      },
+      "created": "2022-10-31T14:19:15.3713224+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2392",
+      "name": "2392",
+      "body": "automation",
+      "targetCommitish": "aae99ec58d524531b9acde0d03c7a2e9f1d2b798",
+      "build": {
+        "id": "566118",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-28T09:42:25.5600153Z",
+        "finished": "2022-10-28T09:43:58.0396149Z"
+      },
+      "created": "2022-10-28T09:42:13.1554476+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2391",
+      "name": "2391",
+      "body": "automation",
+      "targetCommitish": "8619b3af8b10c6dcb5e556928d67ce705cd984a0",
+      "build": {
+        "id": "566110",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-10-28T09:40:58.8767258Z",
+        "finished": "2022-10-28T09:41:22.9651232Z"
+      },
+      "created": "2022-10-28T09:40:43.5040087+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2390",
+      "name": "2390",
+      "body": "automation",
+      "targetCommitish": "3984adc478c5d761ef2f80a87a0151b903ff3f71",
+      "build": {
+        "id": "566078",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-28T09:14:15.835708Z",
+        "finished": "2022-10-28T09:15:50.2913218Z"
+      },
+      "created": "2022-10-28T09:14:03.4983206+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2389",
+      "name": "2389",
+      "body": "automation",
+      "targetCommitish": "29a033888402491155f79daf808260eaaab9c78f",
+      "build": {
+        "id": "565324",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-27T11:00:26.006156Z",
+        "finished": "2022-10-27T11:01:49.9870453Z"
+      },
+      "created": "2022-10-27T11:00:09.7586582+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2388",
+      "name": "2388",
+      "body": "automation",
+      "targetCommitish": "a604cde2c09b7d2a1666baa437aacee09acfdc50",
+      "build": {
+        "id": "565319",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-27T10:58:22.3050772Z",
+        "finished": "2022-10-27T10:59:47.5005845Z"
+      },
+      "created": "2022-10-27T10:58:09.7110738+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2387",
+      "name": "2387",
+      "body": "automation",
+      "targetCommitish": "41d620de79469cd58ade202b91a193e88ecf3288",
+      "build": {
+        "id": "565192",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-27T08:36:36.1518789Z",
+        "finished": "2022-10-27T08:38:30.8552958Z"
+      },
+      "created": "2022-10-27T08:36:21.7867502+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2386",
+      "name": "2386",
+      "body": "automation",
+      "targetCommitish": "712897ba4981bec732218023874d3e78edb2a596",
+      "build": {
+        "id": "564641",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-26T13:53:39.7546479Z",
+        "finished": "2022-10-26T13:55:23.9834243Z"
+      },
+      "created": "2022-10-26T13:53:25.4072789+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2385",
+      "name": "2385",
+      "body": "automation",
+      "targetCommitish": "098b3845234d961a813e15c1f876f707f83d592c",
+      "build": {
+        "id": "564607",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-10-26T13:13:30.6570709Z",
+        "finished": "2022-10-26T13:14:06.3239184Z"
+      },
+      "created": "2022-10-26T13:13:15.6661817+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2384",
+      "name": "2384",
+      "body": "automation",
+      "targetCommitish": "b16aa7bd65a2b21ed0848d9f769f634f51e94a88",
+      "build": {
+        "id": "564603",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-10-26T13:12:01.6366204Z",
+        "finished": "2022-10-26T13:12:35.6688359Z"
+      },
+      "created": "2022-10-26T13:11:45.8259346+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2383",
+      "name": "2383",
+      "body": "automation",
+      "targetCommitish": "18eb139beccc6b49a2491bd5ee31945a25f9662c",
+      "build": {
+        "id": "564558",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-26T12:24:54.6258622Z",
+        "finished": "2022-10-26T12:26:18.14541Z"
+      },
+      "created": "2022-10-26T12:24:42.1205978+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2382",
+      "name": "2382",
+      "body": "automation",
+      "targetCommitish": "296e9251569b2ab503028455231cee8aee6c0614",
+      "build": {
+        "id": "564552",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-26T12:16:33.5742801Z",
+        "finished": "2022-10-26T12:17:59.7713709Z"
+      },
+      "created": "2022-10-26T12:16:20.2226414+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2381",
+      "name": "2381",
+      "body": "automation",
+      "targetCommitish": "b9b9c8ca5daf15714904831027a962d1004ffdb6",
+      "build": {
+        "id": "564543",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-26T12:14:41.7768029Z",
+        "finished": "2022-10-26T12:16:05.8953948Z"
+      },
+      "created": "2022-10-26T12:14:28.8662489+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2380",
+      "name": "2380",
+      "body": "automation",
+      "targetCommitish": "80b7a3b6aed00fefeda8d8b9e65b3f8dae0ba606",
+      "build": {
+        "id": "562714",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-24T08:25:43.0718831Z",
+        "finished": "2022-10-24T08:27:16.8727Z"
+      },
+      "created": "2022-10-24T08:25:30.127447+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2379",
+      "name": "2379",
+      "body": "automation",
+      "targetCommitish": "66ec3dc04ff2bd2f1fbe7909176f0713bbc4b712",
+      "build": {
+        "id": "562710",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-24T08:21:28.4074882Z",
+        "finished": "2022-10-24T08:22:52.0727088Z"
+      },
+      "created": "2022-10-24T08:21:15.3662914+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2378",
+      "name": "2378",
+      "body": "automation",
+      "targetCommitish": "7c53e139c8dfdc3e2fc920aa66a2c3c7df6bbeb3",
+      "build": {
+        "id": "562704",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-24T08:16:46.0018157Z",
+        "finished": "2022-10-24T08:18:41.6181147Z"
+      },
+      "created": "2022-10-24T08:16:33.0550801+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2377",
+      "name": "2377",
+      "body": "automation",
+      "targetCommitish": "65643fac7dcf4d836f8de79935fa3221e67c0167",
+      "build": {
+        "id": "560701",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-21T11:27:07.8685946Z",
+        "finished": "2022-10-21T11:28:32.5888636Z"
+      },
+      "created": "2022-10-21T11:26:55.5150783+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2376",
+      "name": "2376",
+      "body": "automation",
+      "targetCommitish": "bf981ab314db93112c478113d030b48460eae327",
+      "build": {
+        "id": "560491",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-21T07:28:26.566737Z",
+        "finished": "2022-10-21T07:29:59.9243292Z"
+      },
+      "created": "2022-10-21T07:28:14.0597975+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2375",
+      "name": "2375",
+      "body": "automation",
+      "targetCommitish": "6561aedcd49721333d314261b9f8ae8b1699b6c4",
+      "build": {
+        "id": "559865",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-20T13:09:42.176365Z",
+        "finished": "2022-10-20T13:11:17.6085405Z"
+      },
+      "created": "2022-10-20T13:09:29.6784399+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2374",
+      "name": "2374",
+      "body": "automation",
+      "targetCommitish": "bd8b9f24e912901807f147babdbec0f12121c0c2",
+      "build": {
+        "id": "559647",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-20T09:16:07.5740704Z",
+        "finished": "2022-10-20T09:17:33.2516768Z"
+      },
+      "created": "2022-10-20T09:15:55.8231101+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2373",
+      "name": "2373",
+      "body": "automation",
+      "targetCommitish": "2434c91e02a82294108dde5c1005b1bb6c8342d5",
+      "build": {
+        "id": "558993",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-19T13:33:14.1987897Z",
+        "finished": "2022-10-19T13:34:49.5421858Z"
+      },
+      "created": "2022-10-19T13:32:55.7656446+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2372",
+      "name": "2372",
+      "body": "automation",
+      "targetCommitish": "9547ebd5efa9326ec34732739ec19900f9ecbe19",
+      "build": {
+        "id": "558805",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-19T10:49:53.5327615Z",
+        "finished": "2022-10-19T10:52:00.0648121Z"
+      },
+      "created": "2022-10-19T10:49:42.1753168+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2371",
+      "name": "2371",
+      "body": "automation",
+      "targetCommitish": "9629eee772ae4394dd9274e821bedc9c36f7cca2",
+      "build": {
+        "id": "558803",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-19T10:46:15.44136Z",
+        "finished": "2022-10-19T10:47:41.1570364Z"
+      },
+      "created": "2022-10-19T10:46:02.0140464+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2370",
+      "name": "2370",
+      "body": "automation",
+      "targetCommitish": "be3b1e8176fbbbbe8a74fda38f2535cbbb6e2db3",
+      "build": {
+        "id": "558577",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-19T05:51:29.3480184Z",
+        "finished": "2022-10-19T05:53:01.2529986Z"
+      },
+      "created": "2022-10-19T05:51:18.3262293+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2369",
+      "name": "2369",
+      "body": "automation",
+      "targetCommitish": "405173a0689b1434603b4b1f732f51c0e468b41a",
+      "build": {
+        "id": "558136",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-18T14:42:20.785691Z",
+        "finished": "2022-10-18T14:43:45.7307646Z"
+      },
+      "created": "2022-10-18T14:42:07.0884494+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2368",
+      "name": "2368",
+      "body": "automation",
+      "targetCommitish": "88de3f17df257441435c0573f079091cfafe0d63",
+      "build": {
+        "id": "558057",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-10-18T12:46:53.4939595Z",
+        "finished": "2022-10-18T12:47:28.4445622Z"
+      },
+      "created": "2022-10-18T12:46:40.4118865+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2367",
+      "name": "2367",
+      "body": "automation",
+      "targetCommitish": "a9430d789ca437f7066672d3bde30a91a65dea87",
+      "build": {
+        "id": "557228",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-17T11:46:59.7276916Z",
+        "finished": "2022-10-17T11:48:25.9991663Z"
+      },
+      "created": "2022-10-17T11:46:45.802028+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2366",
+      "name": "2366",
+      "body": "automation",
+      "targetCommitish": "41e41d7aa10b36e49331be8df81c99118e2103ae",
+      "build": {
+        "id": "557111",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-17T10:10:40.817165Z",
+        "finished": "2022-10-17T10:12:13.8257546Z"
+      },
+      "created": "2022-10-17T10:10:29.1270596+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2365",
+      "name": "2365",
+      "body": "automation",
+      "targetCommitish": "5299d4c902658965872bd449ee250c1e42add02d",
+      "build": {
+        "id": "557069",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-17T09:31:22.8031253Z",
+        "finished": "2022-10-17T09:33:06.5616933Z"
+      },
+      "created": "2022-10-17T09:31:10.0028308+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2364",
+      "name": "2364",
+      "body": "automation",
+      "targetCommitish": "a0c668f86f646e1490dae7d0b5d9bea6b49e538a",
+      "build": {
+        "id": "557058",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-17T09:25:49.7234017Z",
+        "finished": "2022-10-17T09:27:26.8235666Z"
+      },
+      "created": "2022-10-17T09:25:36.923907+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2363",
+      "name": "2363",
+      "body": "automation",
+      "targetCommitish": "bfe2e07a0889745f4f3932fbd55d036f35f3fc6c",
+      "build": {
+        "id": "555029",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-14T11:58:20.1587484Z",
+        "finished": "2022-10-14T12:00:53.9656336Z"
+      },
+      "created": "2022-10-14T11:58:01.8938494+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2362",
+      "name": "2362",
+      "body": "automation",
+      "targetCommitish": "7b9696c119a159c0100337441123ea1dfcdaba79",
+      "build": {
+        "id": "554763",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-14T07:38:51.9658046Z",
+        "finished": "2022-10-14T07:40:16.2970134Z"
+      },
+      "created": "2022-10-14T07:38:35.5150824+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2361",
+      "name": "2361",
+      "body": "automation",
+      "targetCommitish": "37576e4fe8f40fa4d632fd0bb12256ec7acd603e",
+      "build": {
+        "id": "554209",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-13T13:01:47.2784951Z",
+        "finished": "2022-10-13T13:03:14.8655496Z"
+      },
+      "created": "2022-10-13T13:01:33.9881892+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2360",
+      "name": "2360",
+      "body": "automation",
+      "targetCommitish": "328de1845f27e332ec4c2f23b9f912fbce173b62",
+      "build": {
+        "id": "554152",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-13T12:12:04.6908159Z",
+        "finished": "2022-10-13T12:13:38.5618683Z"
+      },
+      "created": "2022-10-13T12:11:51.780977+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2359",
+      "name": "2359",
+      "body": "automation",
+      "targetCommitish": "94798b27a221282acbfa285f4bde780c774f29f8",
+      "build": {
+        "id": "554002",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-13T09:26:05.1857021Z",
+        "finished": "2022-10-13T09:27:29.7799216Z"
+      },
+      "created": "2022-10-13T09:25:52.5820665+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2358",
+      "name": "2358",
+      "body": "automation",
+      "targetCommitish": "ded308ca0e4de76c302be92b48fad8f6022ad2d5",
+      "build": {
+        "id": "553469",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-12T18:08:17.6409089Z",
+        "finished": "2022-10-12T18:10:10.623314Z"
+      },
+      "created": "2022-10-12T18:08:05.683883+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2357",
+      "name": "2357",
+      "body": "automation",
+      "targetCommitish": "47e32e8ca4cdc6088a40a998086b14126b10b5b6",
+      "build": {
+        "id": "553293",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-12T13:17:11.7794848Z",
+        "finished": "2022-10-12T13:18:38.3668001Z"
+      },
+      "created": "2022-10-12T13:16:58.3879904+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2356",
+      "name": "2356",
+      "body": "automation",
+      "targetCommitish": "d9c075858aba27b870f8d8bfe50c44345a37001d",
+      "build": {
+        "id": "553279",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-12T13:12:01.5726267Z",
+        "finished": "2022-10-12T13:13:27.5513904Z"
+      },
+      "created": "2022-10-12T13:11:49.5448057+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2355",
+      "name": "2355",
+      "body": "automation",
+      "targetCommitish": "25c86d41805a3732fe7b451b36e2ec712f3d8e26",
+      "build": {
+        "id": "553007",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-10-12T08:51:44.1456914Z",
+        "finished": "2022-10-12T08:52:27.7178351Z"
+      },
+      "created": "2022-10-12T08:51:30.1011852+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2354",
+      "name": "2354",
+      "body": "automation",
+      "targetCommitish": "6ea3590a5a1172581c8bd7e4f7940ef13c7dbd42",
+      "build": {
+        "id": "552557",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-11T19:37:14.4200233Z",
+        "finished": "2022-10-11T19:38:39.1489157Z"
+      },
+      "created": "2022-10-11T19:37:02.0931248+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2353",
+      "name": "2353",
+      "body": "automation",
+      "targetCommitish": "5e74af7da62a59eba08bc02f815c365cd19cb37f",
+      "build": {
+        "id": "552249",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-11T12:31:07.9635523Z",
+        "finished": "2022-10-11T12:32:53.1349968Z"
+      },
+      "created": "2022-10-11T12:30:52.6725462+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2352",
+      "name": "2352",
+      "body": "automation",
+      "targetCommitish": "2e4a085b4feff8ba2f338f314f7034e78b425886",
+      "build": {
+        "id": "552141",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-11T10:36:52.2815712Z",
+        "finished": "2022-10-11T10:38:29.3287043Z"
+      },
+      "created": "2022-10-11T10:36:40.8652992+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2351",
+      "name": "2351",
+      "body": "automation",
+      "targetCommitish": "ab617544da46e605ed7686295f7bedc54d07427d",
+      "build": {
+        "id": "551321",
+        "status": "completed",
+        "result": "none",
+        "started": null,
+        "finished": null
+      },
+      "created": "2022-10-10T12:20:36.0371208+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2350",
+      "name": "2350",
+      "body": "automation",
+      "targetCommitish": "480e5a936c7bd0c276a9df05b67fb9db4d1b7cff",
+      "build": {
+        "id": "549192",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-07T10:33:42.7979788Z",
+        "finished": "2022-10-07T10:35:07.1986678Z"
+      },
+      "created": "2022-10-07T10:33:30.338486+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2349",
+      "name": "2349",
+      "body": "automation",
+      "targetCommitish": "4beb84573d49e06123eceed8d975bbcc6b402a57",
+      "build": {
+        "id": "548521",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-06T13:48:33.5311197Z",
+        "finished": "2022-10-06T13:49:50.9600689Z"
+      },
+      "created": "2022-10-06T13:48:17.0318244+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2348",
+      "name": "2348",
+      "body": "automation",
+      "targetCommitish": "6f44a966de6a9841728c66c05bede45597934d04",
+      "build": {
+        "id": "548090",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-10-06T07:53:59.0305052Z",
+        "finished": "2022-10-06T07:54:32.1153597Z"
+      },
+      "created": "2022-10-06T07:53:42.9246902+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2347",
+      "name": "2347",
+      "body": "automation",
+      "targetCommitish": "260cf8d22cbf419ad96695a183e305e65dd1baca",
+      "build": {
+        "id": "548072",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-06T07:47:10.2624692Z",
+        "finished": "2022-10-06T07:48:35.1704605Z"
+      },
+      "created": "2022-10-06T07:46:57.099612+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2346",
+      "name": "2346",
+      "body": "automation",
+      "targetCommitish": "bfbe0617decc13b9dd2bc1045c89ce5987e4651c",
+      "build": {
+        "id": "548014",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-06T07:17:53.7383851Z",
+        "finished": "2022-10-06T07:19:20.4441124Z"
+      },
+      "created": "2022-10-06T07:17:40.2797411+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2345",
+      "name": "2345",
+      "body": "automation",
+      "targetCommitish": "d2b1e031d8ecb755cad5622e5ea87fc60b9f413d",
+      "build": {
+        "id": "546890",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-04T20:31:09.2503548Z",
+        "finished": "2022-10-04T20:32:31.2184955Z"
+      },
+      "created": "2022-10-04T20:30:58.1907999+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2344",
+      "name": "2344",
+      "body": "automation",
+      "targetCommitish": "dd972d9c70839eedab57f5463e078483da457d86",
+      "build": {
+        "id": "546879",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-10-04T20:19:06.2277117Z",
+        "finished": "2022-10-04T20:20:30.3392857Z"
+      },
+      "created": "2022-10-04T20:18:54.7429161+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2343",
+      "name": "2343",
+      "body": "automation",
+      "targetCommitish": "1cd9e021de5a5ffd418da374613064a0013bf3d9",
+      "build": {
+        "id": "546870",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-10-04T20:15:06.9902564Z",
+        "finished": "2022-10-04T20:15:41.5113023Z"
+      },
+      "created": "2022-10-04T20:14:54.7693147+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2342",
+      "name": "2342",
+      "body": "automation",
+      "targetCommitish": "108f386d0f3eff9f0d96a6622c101aee833a41e3",
+      "build": {
+        "id": "545800",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-10-03T11:59:48.9889899Z",
+        "finished": "2022-10-03T12:00:26.1051866Z"
+      },
+      "created": "2022-10-03T11:59:35.6327019+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2341",
+      "name": "2341",
+      "body": "automation",
+      "targetCommitish": "c9a0461701cb2d44a78e32d53b8ce7708073b174",
+      "build": {
+        "id": "543725",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-30T14:02:05.4764396Z",
+        "finished": "2022-09-30T14:02:29.7265273Z"
+      },
+      "created": "2022-09-30T14:01:50.5557104+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2340",
+      "name": "2340",
+      "body": "automation",
+      "targetCommitish": "8624754457ba2d71fc40c3a299a3877a7bb77dff",
+      "build": {
+        "id": "543650",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-30T12:03:46.7323565Z",
+        "finished": "2022-09-30T12:05:02.5429822Z"
+      },
+      "created": "2022-09-30T12:03:34.8014553+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2339",
+      "name": "2339",
+      "body": "automation",
+      "targetCommitish": "5a6e9f3c3de6a4c4836af06195ed30fb342141e4",
+      "build": {
+        "id": "542953",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-29T14:55:01.1544342Z",
+        "finished": "2022-09-29T14:55:36.6586501Z"
+      },
+      "created": "2022-09-29T14:54:47.9217291+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2338",
+      "name": "2338",
+      "body": "automation",
+      "targetCommitish": "a06e126136be1d94c70a701323c9e61f72d5de5e",
+      "build": {
+        "id": "542832",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-29T11:54:18.2879225Z",
+        "finished": "2022-09-29T11:56:12.6989055Z"
+      },
+      "created": "2022-09-29T11:54:04.7183086+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2337",
+      "name": "2337",
+      "body": "automation",
+      "targetCommitish": "5c6e213d3fa6237bba7fe990af80c17fe8b0dbdb",
+      "build": {
+        "id": "542799",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-29T11:09:57.3553201Z",
+        "finished": "2022-09-29T11:11:21.0430981Z"
+      },
+      "created": "2022-09-29T11:09:43.1886234+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2336",
+      "name": "2336",
+      "body": "automation",
+      "targetCommitish": "823bd715c94eec665f0f2f08b0b23ee867d68eba",
+      "build": {
+        "id": "542625",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-29T09:13:15.1752221Z",
+        "finished": "2022-09-29T09:14:08.6601761Z"
+      },
+      "created": "2022-09-29T09:13:02.0914987+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2335",
+      "name": "2335",
+      "body": "automation",
+      "targetCommitish": "0bcc6f16ad159776d3dddfd47135b767969d774f",
+      "build": {
+        "id": "542614",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-29T09:07:00.5333825Z",
+        "finished": "2022-09-29T09:08:24.0258361Z"
+      },
+      "created": "2022-09-29T09:06:47.2739759+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2334",
+      "name": "2334",
+      "body": "automation",
+      "targetCommitish": "4d018e3e837c2f95661f82558ea3940105964c2b",
+      "build": {
+        "id": "542511",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-29T07:57:11.6332221Z",
+        "finished": "2022-09-29T07:58:38.8098718Z"
+      },
+      "created": "2022-09-29T07:56:57.845231+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2333",
+      "name": "2333",
+      "body": "automation",
+      "targetCommitish": "6bdd1acff0f547e59697797efb255752c8617a41",
+      "build": {
+        "id": "541774",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-28T11:10:39.5199557Z",
+        "finished": "2022-09-28T11:12:26.1863748Z"
+      },
+      "created": "2022-09-28T11:10:24.9574657+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2332",
+      "name": "2332",
+      "body": "automation",
+      "targetCommitish": "c82d4a3b59ff0d127269d7ea6915d1b4f3a08377",
+      "build": {
+        "id": "541675",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-28T08:43:58.1367751Z",
+        "finished": "2022-09-28T08:44:45.6253324Z"
+      },
+      "created": "2022-09-28T08:43:44.9725369+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2331",
+      "name": "2331",
+      "body": "automation",
+      "targetCommitish": "daadeecaf545ac97f6982c46c5375dad38cffd64",
+      "build": {
+        "id": "541579",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-28T06:53:08.827102Z",
+        "finished": "2022-09-28T06:54:33.5877097Z"
+      },
+      "created": "2022-09-28T06:52:56.4017801+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2330",
+      "name": "2330",
+      "body": "automation",
+      "targetCommitish": "3dc7377d0394a57e8d3a5b058bfd6641fb8d295c",
+      "build": {
+        "id": "537976",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-23T09:17:34.2888449Z",
+        "finished": "2022-09-23T09:19:09.2579148Z"
+      },
+      "created": "2022-09-23T09:17:19.1206097+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2329",
+      "name": "2329",
+      "body": "automation",
+      "targetCommitish": "d563f608738ca3a6ed98bcb80efb60edaf8261c1",
+      "build": {
+        "id": "537415",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-22T14:26:09.7771174Z",
+        "finished": "2022-09-22T14:27:34.9396474Z"
+      },
+      "created": "2022-09-22T14:25:56.0564982+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2328",
+      "name": "2328",
+      "body": "automation",
+      "targetCommitish": "a1395270cca591e18c11cee429898354f66806ef",
+      "build": {
+        "id": "537399",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-22T14:08:56.2392232Z",
+        "finished": "2022-09-22T14:10:20.6593476Z"
+      },
+      "created": "2022-09-22T14:08:43.6667291+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2327",
+      "name": "2327",
+      "body": "automation",
+      "targetCommitish": "62fd31c5ff65181019cc7bc43c56edaf10be3e0a",
+      "build": {
+        "id": "537395",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-22T14:04:47.6919751Z",
+        "finished": "2022-09-22T14:05:22.5912796Z"
+      },
+      "created": "2022-09-22T14:04:33.8583078+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2326",
+      "name": "2326",
+      "body": "automation",
+      "targetCommitish": "70a585e7385e561bad192730e316fa867b5654b2",
+      "build": {
+        "id": "537363",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-22T13:36:58.8399785Z",
+        "finished": "2022-09-22T13:38:24.3450384Z"
+      },
+      "created": "2022-09-22T13:36:46.1283552+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2325",
+      "name": "2325",
+      "body": "automation",
+      "targetCommitish": "111e1b23117f1b90aec90d30cf19997a4e37a102",
+      "build": {
+        "id": "537245",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-22T11:43:48.554964Z",
+        "finished": "2022-09-22T11:45:14.5860546Z"
+      },
+      "created": "2022-09-22T11:43:36.6787369+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2324",
+      "name": "2324",
+      "body": "automation",
+      "targetCommitish": "e734c304135f77611a1bedffa49a8f2b9a0bbe09",
+      "build": {
+        "id": "537168",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-22T09:47:22.3325626Z",
+        "finished": "2022-09-22T09:47:47.9326349Z"
+      },
+      "created": "2022-09-22T09:47:09.3334127+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2323",
+      "name": "2323",
+      "body": "automation",
+      "targetCommitish": "2aafa0e11af659b29bc5953c6491b902b309cff5",
+      "build": {
+        "id": "537054",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-22T07:46:45.2081866Z",
+        "finished": "2022-09-22T07:47:18.9291626Z"
+      },
+      "created": "2022-09-22T07:46:32.2947215+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2322",
+      "name": "2322",
+      "body": "automation",
+      "targetCommitish": "ecaf1af07a2ec2b60fd4b58441850cb228891244",
+      "build": {
+        "id": "536284",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-21T07:05:44.2497219Z",
+        "finished": "2022-09-21T07:06:30.827748Z"
+      },
+      "created": "2022-09-21T07:05:27.6067284+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2321",
+      "name": "2321",
+      "body": "automation",
+      "targetCommitish": "2a423e0e01aa2713a3552f2e9974bcd9979f3b13",
+      "build": {
+        "id": "536278",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-21T07:01:21.6479553Z",
+        "finished": "2022-09-21T07:01:44.8764631Z"
+      },
+      "created": "2022-09-21T07:01:07.569952+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2320",
+      "name": "2320",
+      "body": "automation",
+      "targetCommitish": "62d6b29bffe00fa1ed47254abe76ec32f3668c8c",
+      "build": {
+        "id": "535779",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-20T14:36:28.1539371Z",
+        "finished": "2022-09-20T14:37:12.6748172Z"
+      },
+      "created": "2022-09-20T14:36:13.6660491+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2319",
+      "name": "2319",
+      "body": "automation",
+      "targetCommitish": "e71761c68bafce108425f511b033511832bbcf9c",
+      "build": {
+        "id": "535491",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-20T08:38:34.0946262Z",
+        "finished": "2022-09-20T08:38:57.9366407Z"
+      },
+      "created": "2022-09-20T08:38:19.6725682+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2318",
+      "name": "2318",
+      "body": "automation",
+      "targetCommitish": "9a08e2d4f4635c101d51f24dc4ca37fe081b274c",
+      "build": {
+        "id": "534871",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-19T12:39:30.5350188Z",
+        "finished": "2022-09-19T12:40:55.5980643Z"
+      },
+      "created": "2022-09-19T12:39:17.8665548+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2317",
+      "name": "2317",
+      "body": "automation",
+      "targetCommitish": "c3e4bec8eb1e14e6bf58caa8068a9d1b506d8c85",
+      "build": {
+        "id": "534809",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-19T11:33:49.4419544Z",
+        "finished": "2022-09-19T11:35:13.9835441Z"
+      },
+      "created": "2022-09-19T11:33:38.6955127+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2316",
+      "name": "2316",
+      "body": "automation",
+      "targetCommitish": "1719a15db87f0b7e572ebd84c7af4533050f6a24",
+      "build": {
+        "id": "534785",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-19T11:17:47.9574062Z",
+        "finished": "2022-09-19T11:19:13.9677597Z"
+      },
+      "created": "2022-09-19T11:17:36.348484+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2315",
+      "name": "2315",
+      "body": "automation",
+      "targetCommitish": "ea15acff044ec2a882ade68af95329fa84859b26",
+      "build": {
+        "id": "534634",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-19T08:23:20.04303Z",
+        "finished": "2022-09-19T08:25:05.1021679Z"
+      },
+      "created": "2022-09-19T08:23:06.4672723+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2314",
+      "name": "2314",
+      "body": "automation",
+      "targetCommitish": "6f31fdab4f3cd76c19fcc6adc2bb82645ca42332",
+      "build": {
+        "id": "531987",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-15T17:59:23.5151367Z",
+        "finished": "2022-09-15T18:00:56.5153777Z"
+      },
+      "created": "2022-09-15T17:59:11.9694756+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2313",
+      "name": "2313",
+      "body": "automation",
+      "targetCommitish": "4b19452f5970cb9acc7181077a9ec7576584054b",
+      "build": {
+        "id": "531752",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-15T12:06:33.3595721Z",
+        "finished": "2022-09-15T12:08:00.3288232Z"
+      },
+      "created": "2022-09-15T12:06:20.2117449+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2312",
+      "name": "2312",
+      "body": "automation",
+      "targetCommitish": "2dae84de41ea69307b91740f65efeb6dbac13ce5",
+      "build": {
+        "id": "531687",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-15T10:41:07.7549619Z",
+        "finished": "2022-09-15T10:43:14.4990966Z"
+      },
+      "created": "2022-09-15T10:40:55.0394804+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2311",
+      "name": "2311",
+      "body": "automation",
+      "targetCommitish": "2567bf2e3ab539d225787ea919147e547928ea78",
+      "build": {
+        "id": "531627",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-15T09:43:43.084623Z",
+        "finished": "2022-09-15T09:45:09.5426756Z"
+      },
+      "created": "2022-09-15T09:43:29.2652225+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2310",
+      "name": "2310",
+      "body": "automation",
+      "targetCommitish": "90117e7c211f9e6eb216782ef89346d61214db50",
+      "build": {
+        "id": "531607",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-15T09:22:32.9929492Z",
+        "finished": "2022-09-15T09:24:18.2079975Z"
+      },
+      "created": "2022-09-15T09:22:19.5371649+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2309",
+      "name": "2309",
+      "body": "automation",
+      "targetCommitish": "f11b49cc0e41b1713081515c3a008308c724fd35",
+      "build": {
+        "id": "531387",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-15T06:44:02.8545101Z",
+        "finished": "2022-09-15T06:44:25.6519527Z"
+      },
+      "created": "2022-09-15T06:43:49.326316+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2308",
+      "name": "2308",
+      "body": "automation",
+      "targetCommitish": "1b85e535f509c9783206e4c1d2ea802f0e69d5be",
+      "build": {
+        "id": "531378",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-15T06:39:36.9733847Z",
+        "finished": "2022-09-15T06:40:59.98553Z"
+      },
+      "created": "2022-09-15T06:39:24.6879377+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2307",
+      "name": "2307",
+      "body": "automation",
+      "targetCommitish": "b7a7742211df397a2169661a5543c2fb81fd1d35",
+      "build": {
+        "id": "530791",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-14T11:39:14.8878757Z",
+        "finished": "2022-09-14T11:39:43.2354578Z"
+      },
+      "created": "2022-09-14T11:38:57.2118359+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2306",
+      "name": "2306",
+      "body": "automation",
+      "targetCommitish": "64e1ead06854d0b92175f48336b6f020f423b634",
+      "build": {
+        "id": "530363",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-13T23:11:04.8852685Z",
+        "finished": "2022-09-13T23:12:40.4985066Z"
+      },
+      "created": "2022-09-13T23:10:51.4302895+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2305",
+      "name": "2305",
+      "body": "automation",
+      "targetCommitish": "8e8fc22240b08815c23359a8f35928a74c1ef083",
+      "build": {
+        "id": "529856",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-13T08:43:11.0690655Z",
+        "finished": "2022-09-13T08:44:56.5389519Z"
+      },
+      "created": "2022-09-13T08:42:56.4931759+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2304",
+      "name": "2304",
+      "body": "automation",
+      "targetCommitish": "5fed4e630f166a35b502fbf49c1110edb955d718",
+      "build": {
+        "id": "529140",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-12T10:36:14.1328694Z",
+        "finished": "2022-09-12T10:36:59.1139043Z"
+      },
+      "created": "2022-09-12T10:36:00.241998+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2303",
+      "name": "2303",
+      "body": "automation",
+      "targetCommitish": "6e4993133977c3f2e4aa0d2c7033e53fde7e7f75",
+      "build": {
+        "id": "529001",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-12T07:29:51.6091738Z",
+        "finished": "2022-09-12T07:31:36.245082Z"
+      },
+      "created": "2022-09-12T07:29:39.2946301+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2302",
+      "name": "2302",
+      "body": "automation",
+      "targetCommitish": "d03a8bf1c680a55c56d8d42206118634b163a196",
+      "build": {
+        "id": "527169",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-09T14:55:53.1492554Z",
+        "finished": "2022-09-09T14:57:19.0960324Z"
+      },
+      "created": "2022-09-09T14:55:40.6434743+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2301",
+      "name": "2301",
+      "body": "automation",
+      "targetCommitish": "821ab127baf43839e8e8f7915dbe3153e555862b",
+      "build": {
+        "id": "527026",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-09T11:17:15.8865565Z",
+        "finished": "2022-09-09T11:18:51.6718665Z"
+      },
+      "created": "2022-09-09T11:17:04.3409879+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2300",
+      "name": "2300",
+      "body": "automation",
+      "targetCommitish": "56acdb0faaed21bd2b6181e7c15486714f733210",
+      "build": {
+        "id": "526201",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-08T12:25:45.4357368Z",
+        "finished": "2022-09-08T12:26:11.7919183Z"
+      },
+      "created": "2022-09-08T12:25:31.8792782+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2299",
+      "name": "2299",
+      "body": "automation",
+      "targetCommitish": "33910e58291a741903e7284bc07ec60eddbfde7d",
+      "build": {
+        "id": "526188",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-08T12:14:08.4730523Z",
+        "finished": "2022-09-08T12:16:26.5553355Z"
+      },
+      "created": "2022-09-08T12:13:54.2527359+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2298",
+      "name": "2298",
+      "body": "automation",
+      "targetCommitish": "25f6c4718d412e4e54273fe0b1e84a4cab79589d",
+      "build": {
+        "id": "526053",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-08T09:38:23.1457731Z",
+        "finished": "2022-09-08T09:40:20.3984201Z"
+      },
+      "created": "2022-09-08T09:38:06.4478074+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2297",
+      "name": "2297",
+      "body": "automation",
+      "targetCommitish": "52edc9c0112f48893f834e4910e99a9a25b466e1",
+      "build": {
+        "id": "525912",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-08T08:35:56.9771306Z",
+        "finished": "2022-09-08T08:36:51.2123584Z"
+      },
+      "created": "2022-09-08T08:35:41.2637595+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2296",
+      "name": "2296",
+      "body": "automation",
+      "targetCommitish": "683646dae4b2b9b417bf6af228ca3eaa55d5eb47",
+      "build": {
+        "id": "525318",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-07T13:11:37.5559332Z",
+        "finished": "2022-09-07T13:11:59.3818902Z"
+      },
+      "created": "2022-09-07T13:11:22.7823697+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2295",
+      "name": "2295",
+      "body": "automation",
+      "targetCommitish": "6e0e50c69b7c186b19886a158dfaf9cfe0a09af2",
+      "build": {
+        "id": "525242",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-07T11:56:12.9359059Z",
+        "finished": "2022-09-07T11:57:47.6880417Z"
+      },
+      "created": "2022-09-07T11:55:59.9357533+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2294",
+      "name": "2294",
+      "body": "automation",
+      "targetCommitish": "32d376e12c0afa3c162e5857ea5021881d8ace00",
+      "build": {
+        "id": "525139",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-07T10:14:40.9701378Z",
+        "finished": "2022-09-07T10:15:17.1865205Z"
+      },
+      "created": "2022-09-07T10:14:27.5903907+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2293",
+      "name": "2293",
+      "body": "automation",
+      "targetCommitish": "c1e26597cd862b54afd281d14daab15b6c65eeaf",
+      "build": {
+        "id": "524938",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-07T05:55:32.2129584Z",
+        "finished": "2022-09-07T05:56:56.3568862Z"
+      },
+      "created": "2022-09-07T05:55:18.4147135+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2292",
+      "name": "2292",
+      "body": "automation",
+      "targetCommitish": "d314c501952bb45c5840465450167e68e076bffd",
+      "build": {
+        "id": "523603",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-05T13:35:53.9051238Z",
+        "finished": "2022-09-05T13:37:21.957715Z"
+      },
+      "created": "2022-09-05T13:35:39.8757273+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2291",
+      "name": "2291",
+      "body": "automation",
+      "targetCommitish": "72f10259ab74b2493ce0d1b82991b9f5eac528ec",
+      "build": {
+        "id": "520537",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-01T14:09:51.7776742Z",
+        "finished": "2022-09-01T14:11:26.8942333Z"
+      },
+      "created": "2022-09-01T14:09:37.8395343+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2290",
+      "name": "2290",
+      "body": "automation",
+      "targetCommitish": "f3a34d950b0e9003ed279ce25b2cd9b5013a1f53",
+      "build": {
+        "id": "520354",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-09-01T11:07:12.8898824Z",
+        "finished": "2022-09-01T11:07:35.8287046Z"
+      },
+      "created": "2022-09-01T11:06:59.4372949+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2289",
+      "name": "2289",
+      "body": "automation",
+      "targetCommitish": "8a6d29e186e4e85b6ec7388635fbe940ca2d67b9",
+      "build": {
+        "id": "520259",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-01T08:58:25.1701351Z",
+        "finished": "2022-09-01T09:00:14.162465Z"
+      },
+      "created": "2022-09-01T08:58:11.7080263+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2288",
+      "name": "2288",
+      "body": "automation",
+      "targetCommitish": "3354704fc97bf6f8be6c8ef1f3f39f50a5f45053",
+      "build": {
+        "id": "520154",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-09-01T07:32:09.3021339Z",
+        "finished": "2022-09-01T07:33:35.8397777Z"
+      },
+      "created": "2022-09-01T07:31:55.526604+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2287",
+      "name": "2287",
+      "body": "automation",
+      "targetCommitish": "42ad5e40b86398889d113d9ec47f46290ff8cc8c",
+      "build": {
+        "id": "518741",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-08-30T11:50:43.1991308Z",
+        "finished": "2022-08-30T11:51:10.6155096Z"
+      },
+      "created": "2022-08-30T11:50:30.535585+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2286",
+      "name": "2286",
+      "body": "automation",
+      "targetCommitish": "36305e8ee62c3ba26d350a3a21cdee9d9f7deb54",
+      "build": {
+        "id": "517947",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-08-29T12:48:59.0194399Z",
+        "finished": "2022-08-29T12:49:33.3299803Z"
+      },
+      "created": "2022-08-29T12:48:45.5117368+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2285",
+      "name": "2285",
+      "body": "automation",
+      "targetCommitish": "5d13f942f7b7bbda812d7f9e5be37e2b6c3aa1e8",
+      "build": {
+        "id": "517762",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-08-29T08:33:56.5426354Z",
+        "finished": "2022-08-29T08:35:25.6360388Z"
+      },
+      "created": "2022-08-29T08:33:42.6255422+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2284",
+      "name": "2284",
+      "body": "automation",
+      "targetCommitish": "18f55b6ff55d80795f28c6ad6eadea8af0e5e8a2",
+      "build": {
+        "id": "515630",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-08-26T07:43:04.2319582Z",
+        "finished": "2022-08-26T07:43:29.2798423Z"
+      },
+      "created": "2022-08-26T07:42:48.503277+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2283",
+      "name": "2283",
+      "body": "automation",
+      "targetCommitish": "d0d930056e3d01a72446f9794b79f5f1b8455b1d",
+      "build": {
+        "id": "514965",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-08-25T11:47:30.170683Z",
+        "finished": "2022-08-25T11:48:17.6002041Z"
+      },
+      "created": "2022-08-25T11:47:15.1834209+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2282",
+      "name": "2282",
+      "body": "automation",
+      "targetCommitish": "14f8016cd8b8a5d1aa1d5408fc3b26ab399789d1",
+      "build": {
+        "id": "514120",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-08-24T11:15:59.1968704Z",
+        "finished": "2022-08-24T11:17:24.0404167Z"
+      },
+      "created": "2022-08-24T11:15:46.3807681+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2281",
+      "name": "2281",
+      "body": "automation",
+      "targetCommitish": "d3f2181204131391fa70734316dadc924c9fb0c9",
+      "build": {
+        "id": "514032",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-08-24T09:49:18.7593563Z",
+        "finished": "2022-08-24T09:50:59.8849378Z"
+      },
+      "created": "2022-08-24T09:49:06.63635+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2280",
+      "name": "2280",
+      "body": "automation",
+      "targetCommitish": "ef909b5af8933d9c6d8e7affe8a861a8340afe36",
+      "build": {
+        "id": "514005",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-08-24T09:19:55.3020845Z",
+        "finished": "2022-08-24T09:20:21.6891184Z"
+      },
+      "created": "2022-08-24T09:19:40.2499015+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2279",
+      "name": "2279",
+      "body": "automation",
+      "targetCommitish": "bbbe0ab2e5bd2ef26b00c354249f66cd767b4487",
+      "build": {
+        "id": "509384",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-08-18T11:29:14.6977163Z",
+        "finished": "2022-08-18T11:30:41.2173938Z"
+      },
+      "created": "2022-08-18T11:29:02.6674052+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2278",
+      "name": "2278",
+      "body": "automation",
+      "targetCommitish": "7737b7f3784af82e23aeefc73c04e824d7bce5bf",
+      "build": {
+        "id": "509378",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-08-18T11:16:21.0107816Z",
+        "finished": "2022-08-18T11:17:52.2188623Z"
+      },
+      "created": "2022-08-18T11:16:10.6911365+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2277",
+      "name": "2277",
+      "body": "automation",
+      "targetCommitish": "0cd939a629d3b3fc3ff7763828a9a0bc89a24a35",
+      "build": {
+        "id": "509128",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-08-18T06:20:43.0926873Z",
+        "finished": "2022-08-18T06:22:18.2136168Z"
+      },
+      "created": "2022-08-18T06:20:29.0010136+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2276",
+      "name": "2276",
+      "body": "automation",
+      "targetCommitish": "baafa538478ae36c8ab779fc2b958ed1a63f19c3",
+      "build": {
+        "id": "499320",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-08-05T07:32:20.3411021Z",
+        "finished": "2022-08-05T07:33:55.222329Z"
+      },
+      "created": "2022-08-05T07:32:06.5584023+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2275",
+      "name": "2275",
+      "body": "automation",
+      "targetCommitish": "07a274a04dba48adec55c56878811449e8ff4c06",
+      "build": {
+        "id": "483308",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-07-15T07:56:05.5080377Z",
+        "finished": "2022-07-15T07:56:38.4280017Z"
+      },
+      "created": "2022-07-15T07:55:01.2167927+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2274",
+      "name": "2274",
+      "body": "automation",
+      "targetCommitish": "c8829a28c280b6108fd14eb8dfa3fdce4542321c",
+      "build": {
+        "id": "483260",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-07-15T07:31:57.3440992Z",
+        "finished": "2022-07-15T07:32:30.4200686Z"
+      },
+      "created": "2022-07-15T07:30:01.5797159+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2273",
+      "name": "2273",
+      "body": "automation",
+      "targetCommitish": "d6e94cce7633ededfd441a062195ef0148807d5c",
+      "build": {
+        "id": "482685",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-07-14T13:38:40.3722079Z",
+        "finished": "2022-07-14T13:40:17.0570374Z"
+      },
+      "created": "2022-07-14T13:38:27.6782129+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2272",
+      "name": "2272",
+      "body": "automation",
+      "targetCommitish": "54bfb25b1a497e9ee7a4844daff8dd328ed20747",
+      "build": {
+        "id": "476008",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-07-06T07:03:12.0687102Z",
+        "finished": "2022-07-06T07:03:53.5823495Z"
+      },
+      "created": "2022-07-06T07:02:57.9342361+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2271",
+      "name": "2271",
+      "body": "automation",
+      "targetCommitish": "306f8e1c54e59b284e29b1557a2928091eb69cfd",
+      "build": {
+        "id": "471854",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-06-30T13:20:23.2976905Z",
+        "finished": "2022-06-30T13:21:02.1445538Z"
+      },
+      "created": "2022-06-30T13:20:08.7072832+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2270",
+      "name": "2270",
+      "body": "automation",
+      "targetCommitish": "9b28ba85ab8d7f61da8059389261afb9a57686d8",
+      "build": {
+        "id": "465385",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-06-22T10:42:05.6119799Z",
+        "finished": "2022-06-22T10:44:53.5797234Z"
+      },
+      "created": "2022-06-22T10:41:52.522342+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2269",
+      "name": "2269",
+      "body": "automation",
+      "targetCommitish": "94d683bd10e3322f5edfa57b1f25269a3668e135",
+      "build": {
+        "id": "464722",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-06-21T16:01:03.8818666Z",
+        "finished": "2022-06-21T16:02:30.3932399Z"
+      },
+      "created": "2022-06-21T16:00:46.409551+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2268",
+      "name": "2268",
+      "body": "automation",
+      "targetCommitish": "66689c4f6ac04b800b0d36124dfc5e6194029bc0",
+      "build": {
+        "id": "449401",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-06-03T07:18:07.2088719Z",
+        "finished": "2022-06-03T07:19:44.5559153Z"
+      },
+      "created": "2022-06-03T07:17:55.3277689+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2267",
+      "name": "2267",
+      "body": "automation",
+      "targetCommitish": "fcaa0404f144c280d13c01f93faec6209e7d6b7a",
+      "build": {
+        "id": "439139",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-05-20T13:23:56.9839051Z",
+        "finished": "2022-05-20T13:25:24.3651163Z"
+      },
+      "created": "2022-05-20T13:23:45.8684098+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2266",
+      "name": "2266",
+      "body": "automation",
+      "targetCommitish": "6b11cadf09a57e0a7400733b89ff75743bff4799",
+      "build": {
+        "id": "439137",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-05-20T13:20:36.1598992Z",
+        "finished": "2022-05-20T13:22:03.499416Z"
+      },
+      "created": "2022-05-20T13:20:22.4149903+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2265",
+      "name": "2265",
+      "body": "automation",
+      "targetCommitish": "52962d03752c01c9aa193b6a9f96597696385c10",
+      "build": {
+        "id": "438834",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-05-20T06:29:18.7813705Z",
+        "finished": "2022-05-20T06:30:53.8342098Z"
+      },
+      "created": "2022-05-20T06:29:06.6839744+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2264",
+      "name": "2264",
+      "body": "automation",
+      "targetCommitish": "9404b3efb2e9bb7f9fb13b1ecd468d8bb5f7fe90",
+      "build": {
+        "id": "438326",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-05-19T13:52:26.6586911Z",
+        "finished": "2022-05-19T13:52:54.4359307Z"
+      },
+      "created": "2022-05-19T13:52:15.1016758+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2263",
+      "name": "2263",
+      "body": "automation",
+      "targetCommitish": "95f2bce0666530fad2dd2454f085d9453fc4145f",
+      "build": {
+        "id": "438118",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-05-19T11:20:35.3246456Z",
+        "finished": "2022-05-19T11:22:11.7798517Z"
+      },
+      "created": "2022-05-19T11:20:21.3205053+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2262",
+      "name": "2262",
+      "body": "automation",
+      "targetCommitish": "3544a4b8de715638d1f3d493ca727a7d20fdc63f",
+      "build": {
+        "id": "437926",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-05-19T08:20:13.6521696Z",
+        "finished": "2022-05-19T08:21:59.0844839Z"
+      },
+      "created": "2022-05-19T08:19:59.9185079+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2261",
+      "name": "2261",
+      "body": "automation",
+      "targetCommitish": "4b5faf53211b204cdf9be6a4dfb1bfac45fde5d1",
+      "build": {
+        "id": "437066",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-05-18T09:24:27.2710405Z",
+        "finished": "2022-05-18T09:26:03.4403015Z"
+      },
+      "created": "2022-05-18T09:24:13.209497+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2260",
+      "name": "2260",
+      "body": "automation",
+      "targetCommitish": "f97a58d8bd065e4b6895592e42b80d51a43ab03f",
+      "build": {
+        "id": "427383",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-05-06T13:06:01.4088105Z",
+        "finished": "2022-05-06T13:07:27.299463Z"
+      },
+      "created": "2022-05-06T13:05:48.3047405+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2259",
+      "name": "2259",
+      "body": "automation",
+      "targetCommitish": "5a864474a8e18897d20c4e901ea433ca6273fa31",
+      "build": {
+        "id": "426417",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-05-05T11:45:15.8014483Z",
+        "finished": "2022-05-05T11:47:03.8399723Z"
+      },
+      "created": "2022-05-05T11:45:02.3254422+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2258",
+      "name": "2258",
+      "body": "automation",
+      "targetCommitish": "1a82642983d49fe0fa74f2702fdd1645c5cc567d",
+      "build": {
+        "id": "424427",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-05-03T09:10:05.8479268Z",
+        "finished": "2022-05-03T09:10:44.32171Z"
+      },
+      "created": "2022-05-03T09:09:53.86363+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2257",
+      "name": "2257",
+      "body": "automation",
+      "targetCommitish": "fdfbbd2418e6af7a5597fce50879e73790ba520b",
+      "build": {
+        "id": "424423",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-05-03T09:05:52.2031123Z",
+        "finished": "2022-05-03T09:07:27.270662Z"
+      },
+      "created": "2022-05-03T09:05:38.8439719+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2256",
+      "name": "2256",
+      "body": "automation",
+      "targetCommitish": "31acfea045b4c1eb3db7753fe74c5cd5b06a3fc1",
+      "build": {
+        "id": "421803",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-04-29T06:58:43.479089Z",
+        "finished": "2022-04-29T07:00:29.3141126Z"
+      },
+      "created": "2022-04-29T06:58:31.5442836+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2255",
+      "name": "2255",
+      "body": "automation",
+      "targetCommitish": "326ad2d31501a16ca3d5a5565650025137a9e058",
+      "build": {
+        "id": "421308",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-04-28T12:18:55.9702267Z",
+        "finished": "2022-04-28T12:20:41.7472852Z"
+      },
+      "created": "2022-04-28T12:18:41.6220335+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2254",
+      "name": "2254",
+      "body": "automation",
+      "targetCommitish": "b82cd200913149adfbe747da5e4f7a55e397971f",
+      "build": {
+        "id": "419449",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-04-26T11:02:06.8694431Z",
+        "finished": "2022-04-26T11:03:35.7980709Z"
+      },
+      "created": "2022-04-26T11:01:51.6086839+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2253",
+      "name": "2253",
+      "body": "automation",
+      "targetCommitish": "828de5f46b6db33420f9ed0150c1855259f75af5",
+      "build": {
+        "id": "414037",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-04-19T12:56:33.1508936Z",
+        "finished": "2022-04-19T12:58:01.5093493Z"
+      },
+      "created": "2022-04-19T12:56:18.5085435+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2252",
+      "name": "2252",
+      "body": "automation",
+      "targetCommitish": "5d78cb002ef2038a166438ac74185ed6a5ad7086",
+      "build": {
+        "id": "411677",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-04-11T12:31:22.1516514Z",
+        "finished": "2022-04-11T12:31:57.4725606Z"
+      },
+      "created": "2022-04-11T12:31:09.5782255+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2251",
+      "name": "2251",
+      "body": "automation",
+      "targetCommitish": "eff8cd3f8e8c22c1eeaee3080bc1597270569be8",
+      "build": {
+        "id": "403944",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-03-31T13:41:49.1708204Z",
+        "finished": "2022-03-31T13:42:16.9219453Z"
+      },
+      "created": "2022-03-31T13:41:31.0136305+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2250",
+      "name": "2250",
+      "body": "automation",
+      "targetCommitish": "e86ef0c023bc018ed4d199b0064501e38c1ae23f",
+      "build": {
+        "id": "403682",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-31T09:19:56.8247534Z",
+        "finished": "2022-03-31T09:21:14.0703229Z"
+      },
+      "created": "2022-03-31T09:19:43.2601772+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2249",
+      "name": "2249",
+      "body": "automation",
+      "targetCommitish": "9e118b54f4d57d8db7cbe27eb3e4b68ac8169b3d",
+      "build": {
+        "id": "403649",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-31T08:54:12.0584892Z",
+        "finished": "2022-03-31T08:56:29.0305866Z"
+      },
+      "created": "2022-03-31T08:53:55.9700628+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2248",
+      "name": "2248",
+      "body": "automation",
+      "targetCommitish": "b7cc7c5a9cf219b88495e889fd8aae876c6a3ff8",
+      "build": {
+        "id": "403561",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-31T07:11:38.1736212Z",
+        "finished": "2022-03-31T07:13:07.2137984Z"
+      },
+      "created": "2022-03-31T07:11:24.8829544+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2247",
+      "name": "2247",
+      "body": "automation",
+      "targetCommitish": "2e02fd2575bafb299a360bb55a6b0c1c6a24672c",
+      "build": {
+        "id": "402921",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-30T11:37:35.3848587Z",
+        "finished": "2022-03-30T11:39:10.4451055Z"
+      },
+      "created": "2022-03-30T11:37:22.3728013+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2246",
+      "name": "2246",
+      "body": "automation",
+      "targetCommitish": "8e4c0dfb81be87236909ea889f730fb910aa0048",
+      "build": {
+        "id": "401907",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-29T11:35:08.3844664Z",
+        "finished": "2022-03-29T11:36:35.4617401Z"
+      },
+      "created": "2022-03-29T11:34:55.5457505+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2245",
+      "name": "2245",
+      "body": "automation",
+      "targetCommitish": "bac185297441d20c163630f6e5db1d67b9c66e91",
+      "build": {
+        "id": "401893",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-29T11:28:26.1785871Z",
+        "finished": "2022-03-29T11:29:59.7567443Z"
+      },
+      "created": "2022-03-29T11:28:12.5447968+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2244",
+      "name": "2244",
+      "body": "automation",
+      "targetCommitish": "c65c144901cb68c58dfff482e2ba632035a82baa",
+      "build": {
+        "id": "401877",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-29T11:18:40.2938992Z",
+        "finished": "2022-03-29T11:20:12.8192327Z"
+      },
+      "created": "2022-03-29T11:18:27.9429964+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2243",
+      "name": "2243",
+      "body": "automation",
+      "targetCommitish": "dbd732b34a26601713d4ef380cc07a1116a67bda",
+      "build": {
+        "id": "401582",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-03-29T07:35:16.5771879Z",
+        "finished": "2022-03-29T07:35:44.9918475Z"
+      },
+      "created": "2022-03-29T07:35:03.8057136+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2242",
+      "name": "2242",
+      "body": "test",
+      "targetCommitish": "02e0762dcedf87854f4c463d8564a4a619824fc5",
+      "build": {
+        "id": "401563",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-29T07:10:30.3296845Z",
+        "finished": "2022-03-29T07:11:58.3114303Z"
+      },
+      "created": "2022-03-29T07:10:16.6484321+00:00",
+      "createdBy": "jeeva",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2241",
+      "name": "2241",
+      "body": "automation",
+      "targetCommitish": "8678aafb540ef0427c55e336d9007ff255ab9d5f",
+      "build": {
+        "id": "396431",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-22T11:23:42.2589128Z",
+        "finished": "2022-03-22T11:25:23.3609107Z"
+      },
+      "created": "2022-03-22T11:23:29.26635+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2240",
+      "name": "2240",
+      "body": "automation",
+      "targetCommitish": "bf6152b451bc296716b632e84a5692068507ba67",
+      "build": {
+        "id": "392682",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-17T11:39:01.0097614Z",
+        "finished": "2022-03-17T11:40:48.8612775Z"
+      },
+      "created": "2022-03-17T11:38:48.6914777+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2239",
+      "name": "2239",
+      "body": "automation",
+      "targetCommitish": "d7060500492be6dfcdf9a9f11814b6061560376c",
+      "build": {
+        "id": "391400",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-16T08:49:21.5867276Z",
+        "finished": "2022-03-16T08:50:57.6183193Z"
+      },
+      "created": "2022-03-16T08:49:09.0357277+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2238",
+      "name": "2238",
+      "body": "automation",
+      "targetCommitish": "be2c51de55dcd2906da101215ef9434a8af6f3a3",
+      "build": {
+        "id": "390720",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-15T11:33:10.6855482Z",
+        "finished": "2022-03-15T11:34:35.8437142Z"
+      },
+      "created": "2022-03-15T11:32:57.8989507+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2237",
+      "name": "2237",
+      "body": "automation",
+      "targetCommitish": "639b5232d640cdf52eceb6186d9a33a0ce4b2654",
+      "build": {
+        "id": "387832",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-03-11T13:11:21.9629742Z",
+        "finished": "2022-03-11T13:11:56.6997299Z"
+      },
+      "created": "2022-03-11T13:11:09.2919757+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2236",
+      "name": "2236",
+      "body": "automation",
+      "targetCommitish": "58f81f9122ebb1c49e3342113273e5ef5b2a942a",
+      "build": {
+        "id": "386962",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-03-10T13:31:33.2877228Z",
+        "finished": "2022-03-10T13:32:02.9651861Z"
+      },
+      "created": "2022-03-10T13:31:13.0961486+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2235",
+      "name": "2235",
+      "body": "automation",
+      "targetCommitish": "3d399da845f8329533abfddd0445aaceb44e36ff",
+      "build": {
+        "id": "386737",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-10T10:10:33.8211697Z",
+        "finished": "2022-03-10T10:12:04.2478972Z"
+      },
+      "created": "2022-03-10T10:10:18.5151862+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2234",
+      "name": "2234",
+      "body": "automation",
+      "targetCommitish": "95ab27132a9beb1b7708de9c791dcb7451b5045d",
+      "build": {
+        "id": "382004",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-04T11:03:51.7101141Z",
+        "finished": "2022-03-04T11:05:29.7951568Z"
+      },
+      "created": "2022-03-04T11:03:38.4253784+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2233",
+      "name": "2233",
+      "body": "automation",
+      "targetCommitish": "b0fc58afab2046212787dc07c641fe45c2c93c05",
+      "build": {
+        "id": "381297",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-03T13:57:33.638272Z",
+        "finished": "2022-03-03T13:59:07.7993686Z"
+      },
+      "created": "2022-03-03T13:57:21.0385805+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2232",
+      "name": "2232",
+      "body": "automation",
+      "targetCommitish": "e21ff40008f1b61f5b1272913fc6d2590465925c",
+      "build": {
+        "id": "381028",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-03T09:39:27.0408249Z",
+        "finished": "2022-03-03T09:40:57.9491509Z"
+      },
+      "created": "2022-03-03T09:39:11.2657438+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2231",
+      "name": "2231",
+      "body": "automation",
+      "targetCommitish": "4b6125fb95a4bb185d4d7f24ca2d11dce871ef53",
+      "build": {
+        "id": "380177",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-03-02T11:46:41.2366748Z",
+        "finished": "2022-03-02T11:47:35.8093535Z"
+      },
+      "created": "2022-03-02T11:46:27.5166854+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2230",
+      "name": "2230",
+      "body": "automation",
+      "targetCommitish": "428c7228413da40b56593a29db1d5847e2f50833",
+      "build": {
+        "id": "379978",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-02T08:41:19.9836246Z",
+        "finished": "2022-03-02T08:43:19.5956937Z"
+      },
+      "created": "2022-03-02T08:41:07.2650102+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2229",
+      "name": "2229",
+      "body": "automation",
+      "targetCommitish": "4b3765e3d1073f3cb775f79be5225472078af79a",
+      "build": {
+        "id": "379951",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-03-02T08:16:14.5069128Z",
+        "finished": "2022-03-02T08:17:44.7669389Z"
+      },
+      "created": "2022-03-02T08:16:01.8415536+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2228",
+      "name": "2228",
+      "body": "automation",
+      "targetCommitish": "1e908bc7157d1bfe9b742ed2d77308cbe5ddaa99",
+      "build": {
+        "id": "379199",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-03-01T09:15:14.3298159Z",
+        "finished": "2022-03-01T09:15:59.7095854Z"
+      },
+      "created": "2022-03-01T09:15:00.191459+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2227",
+      "name": "2227",
+      "body": "automation",
+      "targetCommitish": "3e73f3eece5c062412f526ff87dcc9943f07a4ea",
+      "build": {
+        "id": "375459",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-24T11:23:07.6112701Z",
+        "finished": "2022-02-24T11:24:34.0577415Z"
+      },
+      "created": "2022-02-24T11:22:56.3160087+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2226",
+      "name": "2226",
+      "body": "automation",
+      "targetCommitish": "b7a42a1d6e6320c9a033dbab06864edd57a08dea",
+      "build": {
+        "id": "374708",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-23T17:17:26.7017556Z",
+        "finished": "2022-02-23T17:18:51.9513498Z"
+      },
+      "created": "2022-02-23T17:17:16.0161078+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2225",
+      "name": "2225",
+      "body": "automation",
+      "targetCommitish": "f165714296e45d4d3bf050b559e2c13bf99a143d",
+      "build": {
+        "id": "373807",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-22T14:15:54.0867084Z",
+        "finished": "2022-02-22T14:17:35.1593527Z"
+      },
+      "created": "2022-02-22T14:15:38.5984766+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2224",
+      "name": "2224",
+      "body": "automation",
+      "targetCommitish": "a51c6d72a6b033878ff8234984e48ef749a9ab1f",
+      "build": {
+        "id": "370647",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-18T11:05:45.5121218Z",
+        "finished": "2022-02-18T11:07:24.7480979Z"
+      },
+      "created": "2022-02-18T11:05:32.8440409+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2223",
+      "name": "2223",
+      "body": "automation",
+      "targetCommitish": "6d00ed4211d9a0e2aba2dce8dc089fd6fcbbf6a5",
+      "build": {
+        "id": "369882",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-17T13:44:00.8268448Z",
+        "finished": "2022-02-17T13:45:42.8461446Z"
+      },
+      "created": "2022-02-17T13:43:45.4795537+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2222",
+      "name": "2222",
+      "body": "automation",
+      "targetCommitish": "7b4e63770da838615c25c3ed8cb255b7835b023e",
+      "build": {
+        "id": "369814",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-17T12:26:50.9640804Z",
+        "finished": "2022-02-17T12:28:40.1943346Z"
+      },
+      "created": "2022-02-17T12:26:35.7513356+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2221",
+      "name": "2221",
+      "body": "automation",
+      "targetCommitish": "17453803eb85e89b84c2c48c2f7f2e5674bc5989",
+      "build": {
+        "id": "369520",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-02-17T10:27:18.8275315Z",
+        "finished": "2022-02-17T10:27:51.034186Z"
+      },
+      "created": "2022-02-17T10:26:59.5125348+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2220",
+      "name": "2220",
+      "body": "automation",
+      "targetCommitish": "ed3085112b2658e3931203560fa0cae5b3b7fb80",
+      "build": {
+        "id": "368743",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-16T11:43:28.8139496Z",
+        "finished": "2022-02-16T11:44:55.5957954Z"
+      },
+      "created": "2022-02-16T11:43:15.0485309+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2219",
+      "name": "2219",
+      "body": "automation",
+      "targetCommitish": "517e2b81426ed8ecd0b4a4824d047bee6052af0a",
+      "build": {
+        "id": "364223",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-02-10T14:20:39.7347668Z",
+        "finished": "2022-02-10T14:21:02.982124Z"
+      },
+      "created": "2022-02-10T14:20:08.2800173+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2218",
+      "name": "2218",
+      "body": "automation",
+      "targetCommitish": "047c555b4027e39f300a3aac97e81ba153968126",
+      "build": {
+        "id": "364040",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-10T11:53:38.029934Z",
+        "finished": "2022-02-10T11:55:18.1194335Z"
+      },
+      "created": "2022-02-10T11:53:26.1875873+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2217",
+      "name": "2217",
+      "body": "automation",
+      "targetCommitish": "9495f38a0c709519f9fb8485732f4f7f64439f09",
+      "build": {
+        "id": "362975",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-02-09T14:52:18.8616438Z",
+        "finished": "2022-02-09T14:52:48.1806118Z"
+      },
+      "created": "2022-02-09T14:52:02.8465453+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2216",
+      "name": "2216",
+      "body": "automation",
+      "targetCommitish": "18046c4fa39df3f8c1b641a7cbb156dae3dbbe41",
+      "build": {
+        "id": "362857",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-09T11:56:10.9475761Z",
+        "finished": "2022-02-09T11:57:44.313566Z"
+      },
+      "created": "2022-02-09T11:55:55.741556+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2215",
+      "name": "2215",
+      "body": "automation",
+      "targetCommitish": "ca8f41996531d09d4ac0ed3d747e6e8d939d59b0",
+      "build": {
+        "id": "361848",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-02-08T10:28:01.6218474Z",
+        "finished": "2022-02-08T10:28:36.0117521Z"
+      },
+      "created": "2022-02-08T10:27:46.4113009+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2214",
+      "name": "2214",
+      "body": "automation",
+      "targetCommitish": "f8c32f9a6e772c753de71353a8e2605663e29108",
+      "build": {
+        "id": "361806",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-08T09:31:53.1345605Z",
+        "finished": "2022-02-08T09:33:28.7531636Z"
+      },
+      "created": "2022-02-08T09:31:38.6757133+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2213",
+      "name": "2213",
+      "body": "automation",
+      "targetCommitish": "d8990f2a5ca17a3d249ad0e8b03c2548e1de1434",
+      "build": {
+        "id": "360937",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-07T08:57:54.0713108Z",
+        "finished": "2022-02-07T08:59:29.6295552Z"
+      },
+      "created": "2022-02-07T08:57:38.3801981+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2212",
+      "name": "2212",
+      "body": "automation",
+      "targetCommitish": "f5b72852860867bb620fc56dd03774f5d05dcd1d",
+      "build": {
+        "id": "358953",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-04T13:09:19.2573591Z",
+        "finished": "2022-02-04T13:10:35.3670807Z"
+      },
+      "created": "2022-02-04T13:09:06.3397982+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2211",
+      "name": "2211",
+      "body": "automation",
+      "targetCommitish": "63fb7e6cec42825b1f5063f6ac91b566968ee83a",
+      "build": {
+        "id": "358200",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-03T14:42:01.9034602Z",
+        "finished": "2022-02-03T14:43:38.6696591Z"
+      },
+      "created": "2022-02-03T14:41:44.3365721+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2210",
+      "name": "2210",
+      "body": "automation",
+      "targetCommitish": "176069051b1609f2509e95b56e47b2f2fc3ef63f",
+      "build": {
+        "id": "357354",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-02T14:08:33.5178689Z",
+        "finished": "2022-02-02T14:10:06.0797329Z"
+      },
+      "created": "2022-02-02T14:08:17.5275511+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2209",
+      "name": "2209",
+      "body": "automation",
+      "targetCommitish": "13d6be6f6918966aa2e4796aeb3087909185031f",
+      "build": {
+        "id": "356774",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-01T15:48:02.565698Z",
+        "finished": "2022-02-01T15:49:43.0470904Z"
+      },
+      "created": "2022-02-01T15:47:48.2755313+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2208",
+      "name": "2208",
+      "body": "automation",
+      "targetCommitish": "423315bdc672f85a1be477299ab453ca48c61bb4",
+      "build": {
+        "id": "356720",
+        "status": "completed",
+        "result": "failed",
+        "started": "2022-02-01T14:33:21.1983006Z",
+        "finished": "2022-02-01T14:33:50.9096585Z"
+      },
+      "created": "2022-02-01T14:33:07.7664898+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    },
+    {
+      "tagName": "2207",
+      "name": "2207",
+      "body": "automation",
+      "targetCommitish": "adf026b1ef10b1f991d90aff765e5df8b49baf5f",
+      "build": {
+        "id": "356661",
+        "status": "completed",
+        "result": "succeeded",
+        "started": "2022-02-01T13:13:56.5142924Z",
+        "finished": "2022-02-01T13:15:36.6103505Z"
+      },
+      "created": "2022-02-01T13:13:41.7139257+00:00",
+      "createdBy": "AutoTest",
+      "app": "autodeploy-v3",
+      "org": "ttd"
+    }
+  ]
+}

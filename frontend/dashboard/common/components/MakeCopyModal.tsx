@@ -1,7 +1,7 @@
 import type { MouseEvent, ChangeEvent } from 'react';
 import React, { useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
-import { AltinnPopoverComponent } from 'app-shared/components/molecules/AltinnPopoverSimple';
+import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
@@ -82,7 +82,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
   };
 
   return (
-    <AltinnPopoverComponent
+    <AltinnPopoverSimple
       open={!!anchorEl}
       anchorEl={anchorEl}
       anchorOrigin={transformAnchorOrigin}
@@ -114,6 +114,6 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
         </div>
         {isLoading && <AltinnSpinner spinnerText={t('dashboard.creating_your_copy')} />}
       </SimpleContainer>
-    </AltinnPopoverComponent>
+    </AltinnPopoverSimple>
   );
 };

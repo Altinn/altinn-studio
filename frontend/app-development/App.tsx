@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import postMessages from 'app-shared/utils/postMessages';
-import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
+import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';

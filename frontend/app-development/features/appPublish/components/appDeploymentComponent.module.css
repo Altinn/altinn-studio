@@ -1,18 +1,32 @@
 .mainContainer {
   height: fit-content;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .headingContainer {
-  border-bottom: 2px solid #C9C9C9;
+  border-bottom: 2px solid #c9c9c9;
   border-top: 2px solid #000000;
-  margin-bottom: 3.6rem;
+  margin-bottom: 2rem;
   margin-top: 2rem;
   padding: 2rem 5rem;
   width: 100%;
+  display: flex;
 }
 
+.headingContainer :first-child {
+  width: 200px;
+}
+.headingContainer :nth-child(2) {
+  flex-grow: 1;
+}
+
+.headingContainer :last-child {
+  width: fit-content;
+}
 .dropdownGrid {
-  padding-bottom: 5rem;
+  padding-bottom: 4rem;
   padding-left: 5rem;
   padding-right: 6rem;
 }
@@ -30,14 +44,11 @@
   border: 1px solid black;
 }
 
-.gridEnvTitle {
-  max-width: 22.5rem;
-  padding-right: 0.5rem;
-}
-
 .envTitle {
   font-size: 18px;
   font-weight: 500;
+  max-width: 22.5rem;
+  padding-right: 0.5rem;
 }
 
 .table {
@@ -63,26 +74,36 @@
 }
 
 .deployStatusGridContainer {
-  margin-top: 2.6rem;
+  display: flex;
+  align-items: center;
 }
 
 .deploySpinnerGridItem {
-  min-width: 4.4rem;
+  min-width: 6rem;
 }
 
 .deploymentListGrid {
   padding-left: 4.8rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .deployUnavailableContainer {
-  background-color: #F9CAD3;
+  background-color: #f9cad3;
   padding: 1.2rem;
 }
 
 .paperProps {
-  background-color: #F9CAD3;
+  background-color: #f9cad3;
 }
 
 .typographyTekniskFeilkode {
   padding-top: 1.2rem;
+}
+
+.bodyContainer {
+  display: flex;
+}
+.bodyContainer > * {
+  flex-basis: 49%;
 }

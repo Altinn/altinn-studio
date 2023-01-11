@@ -1,31 +1,29 @@
-import React from 'react';
-import { Grid } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import classes from './deployContainer.module.css';
 import moment from 'moment';
-
-import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
 import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
+import type { IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentSlice';
+import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
+import type { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
+import type { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
+import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
+import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
+import { AppDeploymentComponent } from '../components/appDeploymentComponent';
+import { BuildResult } from '../../../sharedResources/appRelease/types';
+import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { useParams } from 'react-router-dom';
 import {
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
 } from '../../../sharedResources/appCluster/appClusterSlice';
-import type { IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import type { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
-import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
-import { BuildResult } from '../../../sharedResources/appRelease/types';
-import type { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
-import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
-import AppDeploymentComponent from '../components/appDeploymentComponent';
-import { useParams } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
-import classes from './deployContainer.module.css';
 
-export const DeployContainer = () => {
+export const DeployContainerComponent = () => {
   const { org, app } = useParams();
   const dispatch = useAppDispatch();
 
-  const [environments, setEnvironments] = React.useState([]);
-  const [imageOptions, setImageOptions] = React.useState([]);
+  const [environments, setEnvironments] = useState([]);
+  const [imageOptions, setImageOptions] = useState([]);
 
   const appCluster: IAppClusterState = useAppSelector((state) => state.appCluster);
   const appDeployments: IAppDeploymentState = useAppSelector((state) => state.appDeployments);
@@ -47,7 +45,7 @@ export const DeployContainer = () => {
     return name;
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(ConfigurationActions.getEnvironments());
     dispatch(AppDeploymentActions.getAppDeploymentsStartInterval());
 
@@ -57,7 +55,7 @@ export const DeployContainer = () => {
     };
   }, [dispatch]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       !!orgs.allOrgs &&
       !!orgs.allOrgs[org] &&
@@ -74,7 +72,7 @@ export const DeployContainer = () => {
     }
   }, [orgs, org, configuration]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (environments.length) {
       dispatch(getDeploymentsStartInterval());
     } else {
@@ -82,7 +80,7 @@ export const DeployContainer = () => {
     }
   }, [environments, dispatch, appDeployments]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const tempImages = deployableImages.releases
       .filter((image) => image.build.result === BuildResult.succeeded)
       .map((image) => {
@@ -101,19 +99,19 @@ export const DeployContainer = () => {
 
   if (isLoading()) {
     return (
-      <Grid container={true} direction='row' className={classes.deployContainer}>
+      <div className={classes.deployContainer}>
         <AltinnContentLoader width={900} height={320}>
           <rect x='60' y='13' rx='0' ry='0' width='650' height='76' />
           <rect x='60' y='110' rx='0' ry='0' width='333' height='44' />
           <rect x='60' y='171' rx='0' ry='0' width='202' height='41' />
           <rect x='487' y='111' rx='0' ry='0' width='220' height='42' />
         </AltinnContentLoader>
-      </Grid>
+      </div>
     );
   }
 
   return (
-    <Grid container={true} direction='row' className={classes.deployContainer}>
+    <div className={classes.deployContainer}>
       {environments.map((env: any, index: number) => {
         return (
           <AppDeploymentComponent
@@ -141,8 +139,6 @@ export const DeployContainer = () => {
           />
         );
       })}
-    </Grid>
+    </div>
   );
 };
-
-export default DeployContainer;

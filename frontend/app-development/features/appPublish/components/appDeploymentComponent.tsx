@@ -1,30 +1,28 @@
-import React, { useCallback } from 'react';
-import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
-import Select from 'react-select';
-import moment from 'moment';
+import React, { createRef, useCallback, useEffect, useState } from 'react';
 import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
-import { AltinnButton, AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
+import { AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
+import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { getValueByPath } from 'app-shared/utils/getValueByPath';
+
 import { useDispatch } from 'react-redux';
 import type {
   ICreateAppDeploymentEnvObject,
   ICreateAppDeploymentErrors,
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
-import {
-  Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material';
 import classes from './appDeploymentComponent.module.css';
-import { useMediaQuery } from '../../../common/hooks';
+import { addMinutesToTime, formatDateTime, formatTimeHHmm } from 'app-shared/pure/date-format';
+import {
+  Button,
+  Table,
+  TableRow,
+  TableHeader,
+  TableCell,
+  TableBody,
+  Select,
+} from '@altinn/altinn-design-system';
 
 interface IAppDeploymentComponentProps {
   envName: string;
@@ -60,7 +58,7 @@ interface IPopoverState {
   paperProps: any;
 }
 
-const AppDeploymentComponent = ({
+export const AppDeploymentComponent = ({
   deployError,
   deployHistory,
   deploymentList,
@@ -74,16 +72,13 @@ const AppDeploymentComponent = ({
   orgName,
 }: IAppDeploymentComponentProps) => {
   const dispatch = useDispatch();
-
-  const breakpointMdUp = useMediaQuery('(min-width: 1025px)');
-
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [deployButtonDisabled, setDeployButtonDisabled] = React.useState(true);
-  const [deployInProgress, setDeployInProgress] = React.useState(null);
-  const [deploymentStatus, setDeploymentStatus] = React.useState(null);
-  const [selectedImageTag, setSelectedImageTag] = React.useState(null);
-  const [shouldDisplayDeployStatus, setShouldDisplayDeployStatus] = React.useState(false);
-  const [succeededDeployHistory, setSucceededDeployHistory] = React.useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [deployButtonDisabled, setDeployButtonDisabled] = useState(true);
+  const [deployInProgress, setDeployInProgress] = useState(null);
+  const [deploymentStatus, setDeploymentStatus] = useState(null);
+  const [selectedImageTag, setSelectedImageTag] = useState(null);
+  const [shouldDisplayDeployStatus, setShouldDisplayDeployStatus] = useState(false);
+  const [succeededDeployHistory, setSucceededDeployHistory] = useState([]);
 
   const initialPopoverState: IPopoverState = {
     btnConfirmText: '',
@@ -96,23 +91,17 @@ const AppDeploymentComponent = ({
     paperProps: {},
   };
 
-  const [popoverState, setPopoverState] = React.useState<IPopoverState>(initialPopoverState);
-  const [deployButtonHasShownError, setDeployButtonHasShownError] = React.useState(null);
+  const [popoverState, setPopoverState] = useState<IPopoverState>(initialPopoverState);
+  const [deployButtonHasShownError, setDeployButtonHasShownError] = useState(null);
 
-  const deployButtonRef = React.createRef<HTMLInputElement>();
+  const deployButtonRef = createRef<HTMLInputElement>();
 
   const appDeployedVersion =
     deploymentList && deploymentList.items && deploymentList.items.length > 0
       ? deploymentList.items[0].version
       : undefined;
 
-  const doSetSelectedImageTag = (event: any) => {
-    if (getValueByPath(event, 'value', null) !== null) {
-      setSelectedImageTag(event.value);
-    } else {
-      setSelectedImageTag(null);
-    }
-  };
+  const doSetSelectedImageTag = (value: string) => setSelectedImageTag(value);
 
   const startDeploy = () => {
     setDeployInProgress(true);
@@ -125,12 +114,8 @@ const AppDeploymentComponent = ({
     );
   };
 
-  React.useEffect(() => {
-    if (selectedImageTag === null || deployInProgress === true) {
-      setDeployButtonDisabled(true);
-    } else {
-      setDeployButtonDisabled(false);
-    }
+  useEffect(() => {
+    setDeployButtonDisabled(selectedImageTag === null || deployInProgress === true);
   }, [selectedImageTag, deployInProgress]);
 
   const deployFailedPopover = useCallback(() => {
@@ -140,15 +125,13 @@ const AppDeploymentComponent = ({
       ...popoverState,
       children: (
         <>
-          <Typography>
+          <div>
             {getParsedLanguageFromKey('app_deploy_messages.technical_error_1', language, [])}
-          </Typography>
+          </div>
           <div className={classes.typographyTekniskFeilkode}>
-            <Typography variant='caption'>
-              {getParsedLanguageFromKey('app_deploy_messages.technical_error_code', language, [
-                deployError[0].errorCode,
-              ])}
-            </Typography>
+            {getParsedLanguageFromKey('app_deploy_messages.technical_error_code', language, [
+              deployError[0].errorCode,
+            ])}
           </div>
         </>
       ),
@@ -156,15 +139,19 @@ const AppDeploymentComponent = ({
       transformOrigin: { horizontal: 'left', vertical: 'top' },
       paperProps: { classes: { root: classes.paperProps } },
     });
-  }, [
-    classes.paperProps,
-    classes.typographyTekniskFeilkode,
-    deployButtonRef,
-    deployError,
-    language,
-    popoverState,
-  ]);
-  React.useEffect(() => {
+  }, [deployButtonRef, deployError, language, popoverState]);
+
+  useEffect(() => {
+    setSucceededDeployHistory(
+      deployHistory.filter(
+        (deployment: IDeployment) =>
+          deployment.build.result === DeploymentStatus.succeeded &&
+          deployment.build.finished !== null
+      )
+    );
+  }, [deployHistory]);
+
+  useEffect(() => {
     if (deployHistory && deployHistory[0] && deployHistory[0].build.finished === null) {
       setDeployInProgress(true);
       setDeploymentStatus(DeploymentStatus.inProgress);
@@ -181,20 +168,8 @@ const AppDeploymentComponent = ({
       setDeploymentStatus(null);
     }
 
-    setSucceededDeployHistory(
-      deployHistory.filter(
-        (deployment: IDeployment) =>
-          deployment.build.result === DeploymentStatus.succeeded &&
-          deployment.build.finished !== null
-      )
-    );
-
     if (deployHistory && deployHistory[0] && deployHistory[0].created) {
-      const now = moment();
-      const deployCreatedPlusOneHour = moment(new Date(deployHistory[0].created)).add(60, 'm');
-      now < deployCreatedPlusOneHour
-        ? setShouldDisplayDeployStatus(true)
-        : setShouldDisplayDeployStatus(false);
+      setShouldDisplayDeployStatus(new Date() < addMinutesToTime(deployHistory[0].created, 60));
     }
 
     if (
@@ -211,7 +186,7 @@ const AppDeploymentComponent = ({
     setPopoverState({
       ...popoverState,
       children: (
-        <Typography>
+        <>
           {appDeployedVersion
             ? getParsedLanguageFromKey('app_deploy_messages.deploy_confirmation', language, [
                 selectedImageTag,
@@ -220,7 +195,7 @@ const AppDeploymentComponent = ({
             : getParsedLanguageFromKey('app_deploy_messages.deploy_confirmation_short', language, [
                 selectedImageTag,
               ])}
-        </Typography>
+        </>
       ),
       btnMethod: handleDeployButtonConfirmation,
       btnConfirmText: 'Ja',
@@ -242,53 +217,36 @@ const AppDeploymentComponent = ({
     setPopoverState(initialPopoverState);
   };
 
-  const selectNoOptionsMessage = () => getLanguageFromKey('app_publish.no_versions', language);
-
   const returnMissingPermissionsText = () => (
-    <Grid container={true} className={classes.deployStatusGridContainer} alignItems='center'>
-      <Grid item={true} className={classes.deploySpinnerGridItem} xs={1}>
-        <AltinnIcon
-          iconClass='fa fa-info-circle'
-          iconColor='#000'
-          iconSize='3.6rem'
-        />
-      </Grid>
-      <Grid item xs={10}>
-        <Typography>
-          {getParsedLanguageFromKey(
-            'app_publish.missing_rights',
-            language,
-            [envName.toUpperCase(), orgName],
-            true
-          )}
-        </Typography>
-      </Grid>
-    </Grid>
+    <div className={classes.deployStatusGridContainer}>
+      <div className={classes.deploySpinnerGridItem}>
+        <AltinnIcon iconClass='fa fa-info-circle' iconColor='#000' iconSize='3.6rem' />
+      </div>
+      <div>
+        {getParsedLanguageFromKey(
+          'app_publish.missing_rights',
+          language,
+          [envName.toUpperCase(), orgName],
+          true
+        )}
+      </div>
+    </div>
   );
 
   const returnDeployDropDown = () => (
     <>
-      <Typography>{getLanguageFromKey('app_deploy_messages.choose_version', language)}</Typography>
+      <div>{getLanguageFromKey('app_deploy_messages.choose_version', language)}</div>
       <div className={classes.select} id={`deploy-select-${envName.toLowerCase()}`}>
-        <Select
-          className='basic-single'
-          classNamePrefix='select'
-          isClearable={true}
-          isSearchable={true}
-          name='color'
-          options={releases}
-          onChange={doSetSelectedImageTag}
-          noOptionsMessage={selectNoOptionsMessage}
-          placeholder=''
-        />
+        <Select options={releases} onChange={doSetSelectedImageTag} />
       </div>
       <div className={classes.deployButton} ref={deployButtonRef}>
-        <AltinnButton
-          btnText={getLanguageFromKey('app_deploy_messages.btn_deploy_new_version', language)}
+        <Button
           disabled={deployButtonDisabled}
-          onClickFunction={deployButtonConfirmationPopover}
+          onClick={deployButtonConfirmationPopover}
           id={`deploy-button-${envName.toLowerCase()}`}
-        />
+        >
+          {getLanguageFromKey('app_deploy_messages.btn_deploy_new_version', language)}
+        </Button>
         <AltinnPopoverSimple
           open={!!anchorEl}
           anchorEl={anchorEl}
@@ -305,23 +263,15 @@ const AppDeploymentComponent = ({
         </AltinnPopoverSimple>
       </div>
       {shouldDisplayDeployStatus && (
-        <Grid container={true} className={classes.deployStatusGridContainer} alignItems='center'>
-          <Grid item={true} className={classes.deploySpinnerGridItem} xs={1}>
+        <div className={classes.deployStatusGridContainer}>
+          <div className={classes.deploySpinnerGridItem}>
             {deploymentStatus === DeploymentStatus.inProgress && <AltinnSpinner />}
             {deploymentStatus === DeploymentStatus.succeeded && (
-              <AltinnIcon
-                iconClass='ai ai-check-circle'
-                iconColor='#12AA64'
-                iconSize='3.6rem'
-              />
+              <AltinnIcon iconClass='ai ai-check-circle' iconColor='#12AA64' iconSize='3.6rem' />
             )}
             {(deploymentStatus === DeploymentStatus.partiallySucceeded ||
               deploymentStatus === DeploymentStatus.none) && (
-              <AltinnIcon
-                iconClass='ai ai-info-circle'
-                iconColor='#008FD6'
-                iconSize='3.6rem'
-              />
+              <AltinnIcon iconClass='ai ai-info-circle' iconColor='#008FD6' iconSize='3.6rem' />
             )}
             {(deploymentStatus === DeploymentStatus.canceled ||
               deploymentStatus === DeploymentStatus.failed) && (
@@ -331,132 +281,95 @@ const AppDeploymentComponent = ({
                 iconSize='3.6rem'
               />
             )}
-          </Grid>
-          <Grid item={true} xs={true}>
-            {deploymentStatus === DeploymentStatus.inProgress && (
-              <Typography>
-                {getParsedLanguageFromKey('app_deploy_messages.deploy_in_progress', language, [
-                  deployHistory[0].createdBy,
-                  deployHistory[0].tagName,
-                  getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
-                ])}
-              </Typography>
-            )}
-            {deploymentStatus === DeploymentStatus.succeeded && (
-              <Typography>
-                {getParsedLanguageFromKey('app_deploy_messages.success', language, [
-                  deployHistory[0].tagName,
-                  moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
-                  envName,
-                  deployHistory[0].createdBy,
-                  getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
-                ])}
-              </Typography>
-            )}
-            {deploymentStatus === DeploymentStatus.failed && (
-              <Typography>
-                {getParsedLanguageFromKey('app_deploy_messages.failed', language, [
-                  deployHistory[0].tagName,
-                  moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
-                  envName,
-                  getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
-                ])}
-              </Typography>
-            )}
-            {deploymentStatus === DeploymentStatus.canceled && (
-              <Typography>
-                {getParsedLanguageFromKey('app_deploy_messages.canceled', language, [
-                  deployHistory[0].tagName,
-                  moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
-                  envName,
-                  getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
-                ])}
-              </Typography>
-            )}
-            {deploymentStatus === DeploymentStatus.partiallySucceeded && (
-              <Typography>
-                {getParsedLanguageFromKey('app_deploy_messages.partiallySucceeded', language, [
-                  deployHistory[0].tagName,
-                  envName,
-                  moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
-                  getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
-                ])}
-              </Typography>
-            )}
-            {deploymentStatus === DeploymentStatus.none && (
-              <Typography>
-                {getParsedLanguageFromKey('app_deploy_messages.none', language, [
-                  deployHistory[0].tagName,
-                  moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
-                  envName,
-                  getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
-                ])}
-              </Typography>
-            )}
-          </Grid>
-        </Grid>
+          </div>
+          <div>
+            {deploymentStatus === DeploymentStatus.inProgress &&
+              getParsedLanguageFromKey('app_deploy_messages.deploy_in_progress', language, [
+                deployHistory[0]?.createdBy,
+                deployHistory[0]?.tagName,
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
+              ])}
+            {deploymentStatus === DeploymentStatus.succeeded &&
+              getParsedLanguageFromKey('app_deploy_messages.success', language, [
+                deployHistory[0]?.tagName,
+                formatTimeHHmm(deployHistory[0]?.build.finished),
+                envName,
+                deployHistory[0]?.createdBy,
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
+              ])}
+            {deploymentStatus === DeploymentStatus.failed &&
+              getParsedLanguageFromKey('app_deploy_messages.failed', language, [
+                deployHistory[0]?.tagName,
+                formatTimeHHmm(deployHistory[0]?.build.finished),
+                envName,
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
+              ])}
+            {deploymentStatus === DeploymentStatus.canceled &&
+              getParsedLanguageFromKey('app_deploy_messages.canceled', language, [
+                deployHistory[0]?.tagName,
+                formatTimeHHmm(deployHistory[0]?.build.finished),
+                envName,
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
+              ])}
+            {deploymentStatus === DeploymentStatus.partiallySucceeded &&
+              getParsedLanguageFromKey('app_deploy_messages.partiallySucceeded', language, [
+                deployHistory[0]?.tagName,
+                envName,
+                formatTimeHHmm(deployHistory[0]?.build.finished),
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
+              ])}
+            {deploymentStatus === DeploymentStatus.none &&
+              getParsedLanguageFromKey('app_deploy_messages.none', language, [
+                deployHistory[0]?.tagName,
+                formatTimeHHmm(deployHistory[0]?.build.finished),
+                envName,
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
+              ])}
+          </div>
+        </div>
       )}
     </>
   );
 
   const returnDeployUnavailable = () => (
-    <>
-      <Grid container={true} className={classes.deployUnavailableContainer} alignItems='flex-start'>
-        <Grid item={true} className={classes.deploySpinnerGridItem} xs={1}>
-          <AltinnIcon
-            iconClass='ai ai-circle-exclamation'
-            iconColor='#E23B53'
-            iconSize='3.6rem'
-          />
-        </Grid>
-        <Grid item={true} xs={true}>
-          {getParsedLanguageFromKey('app_deploy_messages.unable_to_list_deploys', language)}
-        </Grid>
-      </Grid>
-    </>
+    <div className={classes.deployUnavailableContainer}>
+      <div className={classes.deploySpinnerGridItem}>
+        <AltinnIcon iconClass='ai ai-circle-exclamation' iconColor='#E23B53' iconSize='3.6rem' />
+      </div>
+      <div>{getParsedLanguageFromKey('app_deploy_messages.unable_to_list_deploys', language)}</div>
+    </div>
   );
 
   return (
-    <>
-      <Grid container={true} className={classes.mainContainer}>
-        <Grid container={true} item={true} className={classes.headingContainer}>
-          <Grid item={true} className={classes.gridEnvTitle} xs={3}>
-            <Typography className={classes.envTitle}>
-              {getParsedLanguageFromKey('app_deploy.environment', language, [
-                envName.toUpperCase(),
-              ])}
-            </Typography>
-          </Grid>
-          <Grid item={true} className={classes.gridItem} xs={3}>
-            {deploymentList &&
-              deploymentList.getStatus.success === true &&
-              appDeployedVersion !== undefined && (
-                <>
-                  {getParsedLanguageFromKey('app_deploy.deployed_version', language, [
-                    appDeployedVersion,
-                  ])}
-                </>
-              )}
-            {deploymentList &&
-              deploymentList.getStatus.success === true &&
-              appDeployedVersion === undefined && (
-                <>{getParsedLanguageFromKey('app_deploy.no_app_deployed', language)}</>
-              )}
-            {deploymentList && deploymentList.getStatus.success === false && (
-              <>{getParsedLanguageFromKey('app_deploy.deployed_version_unavailable', language)}</>
-            )}
-          </Grid>
-          <Grid item={true} className={classes.gridItem} xs={6}>
-            <AltinnLink
-              url={urlToApp}
-              linkTxt={urlToAppLinkTxt}
-              shouldShowIcon={false}
-              openInNewTab={true}
-            />
-          </Grid>
-        </Grid>
-
-        <Grid item={true} xs={12} sm={12} md={5} className={classes.dropdownGrid}>
+    <div className={classes.mainContainer}>
+      <div className={classes.headingContainer}>
+        <div className={classes.envTitle}>
+          {getParsedLanguageFromKey('app_deploy.environment', language, [envName.toUpperCase()])}
+        </div>
+        <div className={classes.gridItem}>
+          {deploymentList &&
+            deploymentList.getStatus.success === true &&
+            appDeployedVersion !== undefined &&
+            getParsedLanguageFromKey('app_deploy.deployed_version', language, [appDeployedVersion])}
+          {deploymentList &&
+            deploymentList.getStatus.success === true &&
+            appDeployedVersion === undefined &&
+            getParsedLanguageFromKey('app_deploy.no_app_deployed', language)}
+          {deploymentList &&
+            deploymentList.getStatus.success === false &&
+            getParsedLanguageFromKey('app_deploy.deployed_version_unavailable', language)}
+        </div>
+        <div className={classes.gridItem}>
+          <AltinnLink
+            url={urlToApp}
+            linkTxt={urlToAppLinkTxt}
+            shouldShowIcon={false}
+            openInNewTab={true}
+          />
+        </div>
+      </div>
+      <div className={classes.bodyContainer}>
+        <div className={classes.dropdownGrid}>
           {!deployPermission && returnMissingPermissionsText()}
           {deploymentList &&
             deploymentList.getStatus.success === true &&
@@ -466,29 +379,26 @@ const AppDeploymentComponent = ({
             deploymentList.getStatus.success === false &&
             deployPermission &&
             returnDeployUnavailable()}
-        </Grid>
-
-        <Grid item={true} className={classes.deploymentListGrid}>
+        </div>
+        <div className={classes.deploymentListGrid}>
           {succeededDeployHistory.length === 0 ? (
-            <Typography id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
+            <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
               {getParsedLanguageFromKey(
                 'app_deploy_table.deployed_version_history_empty',
                 language,
                 [envName.toUpperCase()]
               )}
-            </Typography>
+            </span>
           ) : (
             <>
-              <Typography id={`deploy-history-for-${envName.toLowerCase()}-available`}>
+              <div id={`deploy-history-for-${envName.toLowerCase()}-available`}>
                 {getParsedLanguageFromKey('app_deploy_table.deployed_version_history', language, [
                   envName.toUpperCase(),
                 ])}
-              </Typography>
+              </div>
               <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
                 <Table
-                  stickyHeader={!!breakpointMdUp}
                   className={classes.table}
-                  size='small'
                   aria-label={getParsedLanguageFromKey(
                     'app_deploy_table.deploy_table_aria',
                     language,
@@ -496,47 +406,32 @@ const AppDeploymentComponent = ({
                     true
                   )}
                 >
-                  <TableHead>
+                  <TableHeader>
                     <TableRow className={classes.tableRow}>
                       <TableCell className={classes.colorBlack}>
-                        <Typography>
-                          {getParsedLanguageFromKey('app_deploy_table.version_col', language)}
-                        </Typography>
+                        {getParsedLanguageFromKey('app_deploy_table.version_col', language)}
                       </TableCell>
                       <TableCell className={classes.colorBlack}>
-                        <Typography>
-                          {getParsedLanguageFromKey(
-                            'app_deploy_table.available_version_col',
-                            language
-                          )}
-                        </Typography>
+                        {getParsedLanguageFromKey(
+                          'app_deploy_table.available_version_col',
+                          language
+                        )}
                       </TableCell>
-                      {!breakpointMdUp ? null : (
-                        <TableCell className={classes.colorBlack}>
-                          <Typography>
-                            {getParsedLanguageFromKey('app_deploy_table.deployed_by_col', language)}
-                          </Typography>
-                        </TableCell>
-                      )}
+                      <TableCell className={classes.colorBlack}>
+                        {getParsedLanguageFromKey('app_deploy_table.deployed_by_col', language)}
+                      </TableCell>
                     </TableRow>
-                  </TableHead>
+                  </TableHeader>
                   <TableBody>
                     {succeededDeployHistory.map((deploy: IDeployment) => {
                       return (
-                        <TableRow key={deploy.tagName} className={classes.tableRow}>
-                          <TableCell component='th' scope='row'>
-                            <Typography>{deploy.tagName}</Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography>
-                              {moment(new Date(deploy.build.finished)).format('DD.MM.YY HH:mm')}
-                            </Typography>
-                          </TableCell>
-                          {!breakpointMdUp ? null : (
-                            <TableCell>
-                              <Typography>{deploy.createdBy}</Typography>
-                            </TableCell>
-                          )}
+                        <TableRow
+                          key={`${deploy.tagName}-${deploy.created}`}
+                          className={classes.tableRow}
+                        >
+                          <TableCell>{deploy.tagName}</TableCell>
+                          <TableCell>{formatDateTime(deploy.build.finished)}</TableCell>
+                          <TableCell>{deploy.createdBy}</TableCell>
                         </TableRow>
                       );
                     })}
@@ -545,10 +440,8 @@ const AppDeploymentComponent = ({
               </div>
             </>
           )}
-        </Grid>
-      </Grid>
-    </>
+        </div>
+      </div>
+    </div>
   );
 };
-
-export default AppDeploymentComponent;

@@ -1,12 +1,13 @@
 .appReleaseWrapper {
   background: white;
-  border-bottom: 1px solid #BCC7CC;
-  border-left: 1px solid #BCC7CC;
+  border-bottom: 1px solid #bcc7cc;
+  border-left: 1px solid #bcc7cc;
   display: flex;
+  flex-direction: column;
   flex-grow: 1;
   height: calc(100vh - var(--header-height));
   max-width: 78.6rem;
-  min-width: 24.6rem;
+  min-width: 34.6rem;
   overflow-x: hidden;
   overflow-y: scroll;
 }
@@ -36,7 +37,7 @@
 }
 
 .appCreateReleaseStatusIcon {
-  color: #1EAEF7;
+  color: #1eaef7;
   height: 48px;
   padding-top: 1.2rem;
   width: 48px;
@@ -47,13 +48,13 @@
 }
 
 .popoverPaper {
-  background-color: #FBF6BD;
+  background-color: #fbf6bd;
   max-width: 50rem;
   padding: 2rem;
 }
 
 .cannotCreateReleaseContainer {
-  background-color: #F9CAD3;
+  background-color: #f9cad3;
   height: 100%;
   margin: 1.2rem;
 }
@@ -72,14 +73,18 @@
 }
 
 .versionHeader {
-  border-bottom: 1px solid #BCC7CC;
+  border-bottom: 1px solid #bcc7cc;
   padding: 1rem 2rem 0;
 }
 
 .versionHeaderTitle {
-  border-bottom: 2px solid #1EAEF7;
+  border-bottom: 2px solid #1eaef7;
   display: inline-block;
   font-weight: 500;
   margin-bottom: -2px;
   padding: 0;
+}
+
+.versionSubHeader {
+  display: flex;
 }

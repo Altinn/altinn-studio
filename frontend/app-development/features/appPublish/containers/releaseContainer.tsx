@@ -1,36 +1,34 @@
-import React, { useEffect } from 'react';
-import {
-  CircularProgress,
-  Grid,
-  Popover,
-  Typography,
-} from '@mui/material';
-import AltinnIcon from 'app-shared/components/AltinnIcon';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
+import type { KeyboardEvent, MouseEvent } from 'react';
+import React, { useEffect, useState } from 'react';
+import classes from './releaseContainer.module.css';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
+import type { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
+import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import type { IRelease } from '../../../sharedResources/appRelease/types';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
+import { CircularProgress, Popover } from '@mui/material';
+import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
+import { ReleaseComponent } from '../components/appReleaseComponent';
 import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
-import type { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
-import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
-import ReleaseComponent from '../components/appReleaseComponent';
-import CreateReleaseComponent from '../components/createAppReleaseComponent';
-import { useParams } from 'react-router-dom';
-import { useAppDispatch, useAppSelector, useMediaQuery } from '../../../common/hooks';
 import { frontendLangPath, gitCommitPath, repoStatusPath } from 'app-shared/api-paths';
-import classes from './releaseContainer.module.css';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
+import { useAppDispatch, useAppSelector, useMediaQuery } from '../../../common/hooks';
+import { useParams } from 'react-router-dom';
+import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { Upload, SuccessStroke } from '@navikt/ds-icons';
 
-function AppReleaseContainer() {
+export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
   const dispatch = useAppDispatch();
 
-  const [anchorElement, setAchorElement] = React.useState<Element>();
+  const [anchorElement, setAchorElement] = useState<Element>();
 
-  const [popoverOpenClick, setPopoverOpenClick] = React.useState<boolean>(false);
-  const [popoverOpenHover, setPopoverOpenHover] = React.useState<boolean>(false);
+  const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
+  const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
   const appReleases: IAppReleaseState = useAppSelector((state) => state.appReleases);
   const repoStatus: IRepoStatusState = useAppSelector((state) => state.repoStatus);
@@ -58,7 +56,7 @@ function AppReleaseContainer() {
     };
   }, [dispatch, language, org, app]);
 
-  function handlePopoverKeyPress(event: React.KeyboardEvent) {
+  function handlePopoverKeyPress(event: KeyboardEvent) {
     if (event.key === 'Enter' || event.key === ' ') {
       if (!anchorElement) {
         setAchorElement(event.currentTarget);
@@ -67,14 +65,14 @@ function AppReleaseContainer() {
     }
   }
 
-  function handlePopoverOpenClicked(event: React.MouseEvent) {
+  function handlePopoverOpenClicked(event: MouseEvent) {
     if (!anchorElement) {
       setAchorElement(event.currentTarget);
     }
     setPopoverOpenClick(!popoverOpenClick);
   }
 
-  function handlePopoverOpenHover(event: React.MouseEvent) {
+  function handlePopoverOpenHover(event: MouseEvent) {
     setAchorElement(event.currentTarget);
     setPopoverOpenHover(true);
   }
@@ -87,37 +85,26 @@ function AppReleaseContainer() {
 
   function renderCannotCreateRelease() {
     return (
-      <Grid
-        container={true}
-        direction='row'
-        className={classes.cannotCreateReleaseContainer}
-        spacing={1}
-      >
+      <div className={classes.cannotCreateReleaseContainer}>
         {hiddenMdDown ? null : (
-          <Grid item={true} xs={1}>
-            <AltinnIcon
-              iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
-              iconColor='#E23B53'
-            />
-          </Grid>
+          <AltinnIconComponent
+            iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
+            iconColor='#E23B53'
+          />
         )}
-        <Grid item={true} xs={12} md={10}>
-          <Grid container={true} direction='column'>
-            <Typography className={classes.cannotCreateReleaseTitle}>
-              {getParsedLanguageFromKey(
-                'app_create_release_errors.fetch_release_failed',
-                language,
-                ['mailto:tjenesteeier@altinn.no']
-              )}
-            </Typography>
-            <Typography className={classes.cannotCreateReleaseSubTitle}>
-              {getLanguageFromKey('app_create_release_errors.technical_error_code', language)}
-              &nbsp;
-              {appReleases.errors.fetchReleaseErrorCode}
-            </Typography>
-          </Grid>
-        </Grid>
-      </Grid>
+        <div>
+          <div className={classes.cannotCreateReleaseTitle}>
+            {getParsedLanguageFromKey('app_create_release_errors.fetch_release_failed', language, [
+              'mailto:tjenesteeier@altinn.no',
+            ])}
+          </div>
+          <div className={classes.cannotCreateReleaseSubTitle}>
+            {getLanguageFromKey('app_create_release_errors.technical_error_code', language)}
+            &nbsp;
+            {appReleases.errors.fetchReleaseErrorCode}
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -127,35 +114,14 @@ function AppReleaseContainer() {
     }
     if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus) {
       return (
-        <Grid container={true} direction='row' justifyContent='center'>
-          <Grid container={true} direction='row' justifyContent='center'>
-            <Grid
-              container={true}
-              direction='column'
-              justifyContent='space-evenly'
-              style={{
-                padding: '2rem',
-              }}
-            >
-              <Grid item={true}>
-                <CircularProgress
-                  style={{
-                    color: '#1EAEF7',
-                  }}
-                />
-              </Grid>
-              <Grid item={true}>
-                <Typography
-                  style={{
-                    padding: '1.2rem',
-                  }}
-                >
-                  {getLanguageFromKey('app_create_release.check_status', language)}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
+        <div style={{ padding: '2rem' }}>
+          <div>
+            <CircularProgress style={{ color: '#1EAEF7' }} />
+          </div>
+          <div style={{ padding: '1.2rem' }}>
+            {getLanguageFromKey('app_create_release.check_status', language)}
+          </div>
+        </div>
       );
     }
     if (appReleases.errors.fetchReleaseErrorCode !== null) {
@@ -189,13 +155,13 @@ function AppReleaseContainer() {
       !handleMergeConflict.repoStatus.contentStatus.length ||
       !appReleases.releases.length
     ) {
-      return null;
+      return <SuccessStroke />;
     }
     if (
       !!handleMergeConflict.repoStatus.contentStatus ||
       !!handleMergeConflict.repoStatus.aheadBy
     ) {
-      return <i className='fa fa-circle-upload' />;
+      return <Upload />;
     }
     return null;
   }
@@ -215,18 +181,10 @@ function AppReleaseContainer() {
       !!appReleases.releases[0] &&
       repoStatus.branch.master.commit.id === appReleases.releases[0].targetCommitish
     ) {
-      return (
-        <Typography>
-          {getLanguageFromKey('app_create_release.local_changes_cant_build', language)}
-        </Typography>
-      );
+      return getLanguageFromKey('app_create_release.local_changes_cant_build', language);
     }
     if (handleMergeConflict.repoStatus.contentStatus) {
-      return (
-        <Typography>
-          {getLanguageFromKey('app_create_release.local_changes_can_build', language)}
-        </Typography>
-      );
+      return getLanguageFromKey('app_create_release.local_changes_can_build', language);
     }
     return null;
   }
@@ -246,7 +204,7 @@ function AppReleaseContainer() {
       !handleMergeConflict.repoStatus.contentStatus
     ) {
       return (
-        <Typography>
+        <>
           {getLanguageFromKey('app_release.release_title', language)} &nbsp;
           {repoStatus.branch.master ? (
             <a
@@ -257,7 +215,7 @@ function AppReleaseContainer() {
               {getLanguageFromKey('app_release.release_title_link', language)}
             </a>
           ) : null}
-        </Typography>
+        </>
       );
     }
     if (latestRelease.targetCommitish === repoStatus.branch.master.commit.id) {
@@ -280,66 +238,44 @@ function AppReleaseContainer() {
 
   return (
     <>
-      <Grid container={true} direction='row' className={classes.appReleaseWrapper}>
-        <Grid container={true} direction='column'>
-          <Grid item={true} className={classes.versionHeader}>
-            <Typography className={classes.versionHeaderTitle}>
-              {getLanguageFromKey('app_release.release_tab_versions', language)}
-            </Typography>
-          </Grid>
-
-          <Grid container={true} direction='column' className={classes.appCreateReleaseWrapper}>
-            <Grid container={true} direction='row' justifyContent='space-between'>
-              <Grid item={true} xs={10}>
-                <Typography className={classes.appCreateReleaseTitle}>
-                  {renderCreateReleaseTitle()}
-                </Typography>
-              </Grid>
-              <Grid
-                item={true}
-                className={classes.appCreateReleaseStatusIcon}
-                onClick={handlePopoverOpenClicked}
-                onMouseOver={handlePopoverOpenHover}
-                onMouseLeave={handlePopoverClose}
-                tabIndex={0}
-                onKeyPress={handlePopoverKeyPress}
-                xs={1}
-              >
-                {renderStatusIcon()}
-              </Grid>
-            </Grid>
-            <Grid item={true} className={classes.appReleaseCreateRelease}>
-              {renderCreateRelease()}
-            </Grid>
-          </Grid>
-          <Grid item={true}>
-            <Typography className={classes.appReleaseHistoryTitle}>
-              {getLanguageFromKey('app_release.earlier_releases', language)}
-            </Typography>
-          </Grid>
-          <Grid container={true} className={classes.appReleaseHistory}>
-            {!!appReleases.releases.length &&
-              appReleases.releases.map((release: IRelease, index: number) => (
-                <ReleaseComponent key={index} release={release} />
-              ))}
-          </Grid>
-        </Grid>
-      </Grid>
+      <div className={classes.appReleaseWrapper}>
+        <div className={classes.versionHeader}>
+          <div className={classes.versionHeaderTitle}>
+            {getLanguageFromKey('app_release.release_tab_versions', language)}
+          </div>
+        </div>
+        <div className={classes.versionSubHeader}>
+          <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
+          <Button
+            className={classes.appCreateReleaseStatusIcon}
+            onClick={handlePopoverOpenClicked}
+            onMouseOver={handlePopoverOpenHover}
+            onMouseLeave={handlePopoverClose}
+            tabIndex={0}
+            onKeyPress={handlePopoverKeyPress}
+            icon={renderStatusIcon()}
+            size={ButtonSize.Small}
+            variant={ButtonVariant.Quiet}
+          />
+        </div>
+        <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
+        <div className={classes.appReleaseHistoryTitle}>
+          {getLanguageFromKey('app_release.earlier_releases', language)}
+        </div>
+        <div className={classes.appReleaseHistory}>
+          {!!appReleases.releases.length &&
+            appReleases.releases.map((release: IRelease, index: number) => (
+              <ReleaseComponent key={index} release={release} />
+            ))}
+        </div>
+      </div>
       <Popover
         className={classes.popover}
-        classes={{
-          paper: classes.popoverPaper,
-        }}
+        classes={{ paper: classes.popoverPaper }}
         anchorEl={anchorElement}
         open={popoverOpenClick || popoverOpenHover}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         onClose={handlePopoverClose}
       >
         {renderStatusMessage()}
@@ -347,5 +283,3 @@ function AppReleaseContainer() {
     </>
   );
 }
-
-export default AppReleaseContainer;
