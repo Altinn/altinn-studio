@@ -285,45 +285,45 @@ export const AppDeploymentComponent = ({
           <div>
             {deploymentStatus === DeploymentStatus.inProgress &&
               getParsedLanguageFromKey('app_deploy_messages.deploy_in_progress', language, [
-                deployHistory[0].createdBy,
-                deployHistory[0].tagName,
-                getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                deployHistory[0]?.createdBy,
+                deployHistory[0]?.tagName,
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
               ])}
             {deploymentStatus === DeploymentStatus.succeeded &&
               getParsedLanguageFromKey('app_deploy_messages.success', language, [
-                deployHistory[0].tagName,
-                formatTimeHHmm(deployHistory[0].build.finished),
+                deployHistory[0]?.tagName,
+                formatTimeHHmm(deployHistory[0]?.build.finished),
                 envName,
-                deployHistory[0].createdBy,
-                getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                deployHistory[0]?.createdBy,
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
               ])}
             {deploymentStatus === DeploymentStatus.failed &&
               getParsedLanguageFromKey('app_deploy_messages.failed', language, [
-                deployHistory[0].tagName,
-                formatTimeHHmm(deployHistory[0].build.finished),
+                deployHistory[0]?.tagName,
+                formatTimeHHmm(deployHistory[0]?.build.finished),
                 envName,
-                getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
               ])}
             {deploymentStatus === DeploymentStatus.canceled &&
               getParsedLanguageFromKey('app_deploy_messages.canceled', language, [
-                deployHistory[0].tagName,
-                formatTimeHHmm(deployHistory[0].build.finished),
+                deployHistory[0]?.tagName,
+                formatTimeHHmm(deployHistory[0]?.build.finished),
                 envName,
-                getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
               ])}
             {deploymentStatus === DeploymentStatus.partiallySucceeded &&
               getParsedLanguageFromKey('app_deploy_messages.partiallySucceeded', language, [
-                deployHistory[0].tagName,
+                deployHistory[0]?.tagName,
                 envName,
-                formatTimeHHmm(deployHistory[0].build.finished),
-                getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                formatTimeHHmm(deployHistory[0]?.build.finished),
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
               ])}
             {deploymentStatus === DeploymentStatus.none &&
               getParsedLanguageFromKey('app_deploy_messages.none', language, [
-                deployHistory[0].tagName,
-                formatTimeHHmm(deployHistory[0].build.finished),
+                deployHistory[0]?.tagName,
+                formatTimeHHmm(deployHistory[0]?.build.finished),
                 envName,
-                getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                getAzureDevopsBuildResultUrl(deployHistory[0]?.build.id),
               ])}
           </div>
         </div>
