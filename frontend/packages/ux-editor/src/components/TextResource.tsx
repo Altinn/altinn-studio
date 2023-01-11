@@ -20,6 +20,7 @@ export interface TextResourceProps {
   handleIdChange: (id: string) => void;
   label?: string;
   placeholder?: string;
+  previewMode?: boolean;
   textResourceId?: string;
 }
 
@@ -28,6 +29,7 @@ export const TextResource = ({
   handleIdChange,
   label,
   placeholder,
+  previewMode,
   textResourceId,
 }: TextResourceProps) => {
   const dispatch = useDispatch();
@@ -65,6 +67,7 @@ export const TextResource = ({
   return (
     <span className={cn(
       classes.root,
+      previewMode && classes.previewMode,
       isEditing && classes.isEditing,
       isSearchMode && classes.isSearching,
     )}>
@@ -83,9 +86,11 @@ export const TextResource = ({
           </span>
           <Button
             aria-label={t('ux_editor.search_text_resources_close')}
+            className={classes.button}
             color={ButtonColor.Secondary}
             icon={<Close />}
             onClick={() => setIsSearchMode(false)}
+            title={t('ux_editor.search_text_resources_close')}
             variant={ButtonVariant.Quiet}
           />
         </span>
@@ -96,10 +101,12 @@ export const TextResource = ({
             <span>{textResource.value}</span>
             <Button
               aria-label={t('general.edit')}
+              className={classes.button}
               color={ButtonColor.Secondary}
               disabled={isEditing}
               icon={<Edit/>}
               onClick={handleEditButtonClick}
+              title={t('general.edit')}
               variant={ButtonVariant.Quiet}
             />
           </>
@@ -108,20 +115,24 @@ export const TextResource = ({
             <span className={classes.placeholder}>{placeholder}</span>
             <Button
               aria-label={t('general.add')}
+              className={classes.button}
               color={ButtonColor.Secondary}
               disabled={isEditing}
               icon={<Add />}
               onClick={handleEditButtonClick}
+              title={t('general.add')}
               variant={ButtonVariant.Quiet}
             />
           </>
         )}
         <Button
           aria-label={t('general.search')}
+          className={classes.button}
           color={ButtonColor.Secondary}
           disabled={isSearchMode}
           icon={<Search />}
           onClick={() => setIsSearchMode(true)}
+          title={t('general.search')}
           variant={ButtonVariant.Quiet}
         />
       </span>
