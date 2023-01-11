@@ -893,8 +893,8 @@
   "validation_errors.maxLength": "Use {0} or fewer characters",
   "validation_errors.min": "Minimum valid value is {0}",
   "validation_errors.minLength": "Use {0} or more characters",
-  "validation_errors.numbers_only": "Only numbers are allowed!",
+  "validation_errors.numbers_only": "Only numbers are allowed",
   "validation_errors.pattern": "Wrong format or value",
-  "validation_errors.required": "Field is required!",
-  "validation_errors.value_as_url": "Invalid url!"
+  "validation_errors.required": "Field is required",
+  "validation_errors.value_as_url": "Invalid url"
 }

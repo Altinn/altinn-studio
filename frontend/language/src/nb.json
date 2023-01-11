@@ -929,8 +929,8 @@
   "validation_errors.maxLength": "Bruk {0} eller færre tegn",
   "validation_errors.min": "Minste gyldig verdi er {0}",
   "validation_errors.minLength": "Bruk {0} eller flere tegn",
-  "validation_errors.numbers_only": "Kun tall er gyldig verdi!",
+  "validation_errors.numbers_only": "Kun tall er gyldig verdi",
   "validation_errors.pattern": "Feil format eller verdi",
-  "validation_errors.required": "Feltet er påkrevd!",
-  "validation_errors.value_as_url": "Ugyldig lenke!"
+  "validation_errors.required": "Feltet er påkrevd",
+  "validation_errors.value_as_url": "Ugyldig lenke"
 }
