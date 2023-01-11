@@ -2,11 +2,11 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { AltinnSpinner } from 'app-shared/components';
 import type { IGiteaOrganisation } from 'app-shared/types/global';
-import { AltinnDropdown } from 'app-shared/components/AltinnDropdown';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useAppSelector } from '../../common/hooks';
+import { Select } from '@altinn/altinn-design-system';
 
 const zIndex = {
   zIndex: 1300,
@@ -68,24 +68,20 @@ export const ServiceOwnerSelector = ({
     serviceOwnerRef.current = document.querySelector('#service-owner');
   });
 
-  const handleChange = ({ target }: { target: HTMLInputElement }) => {
-    onServiceOwnerChanged(target.value);
-  };
-
-  if (isLoadingOrganisations) {
-    return <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />;
-  }
-
-  return (
+  const handleChange = (value: string) => onServiceOwnerChanged(value);
+  const value =
+    selectableOrgsOrUser.length === 1 ? selectableOrgsOrUser[0].value : selectedOrgOrUser;
+  return isLoadingOrganisations ? (
+    <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
+  ) : (
     <div>
-      <AltinnDropdown
-        id='service-owner'
-        inputHeader={getLanguageFromKey('general.service_owner', language)}
-        handleChange={handleChange}
-        dropdownItems={selectableOrgsOrUser}
-        selectedValue={selectedOrgOrUser}
+      <Select
+        inputId='service-owner'
+        label={getLanguageFromKey('general.service_owner', language)}
+        onChange={handleChange}
+        options={selectableOrgsOrUser}
+        value={value}
         disabled={selectableOrgsOrUser.length === 1}
-        fullWidth={true}
       />
       {errorMessage && (
         <AltinnPopper anchorEl={serviceOwnerRef.current} message={errorMessage} styleObj={zIndex} />

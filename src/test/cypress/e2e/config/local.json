@@ -5,7 +5,7 @@
     "autoTestUser": "testuser",
     "autoTestUserPwd": "Studio@123",
     "testEmail": "test1@test.com",
-    "deployApp": "ttd/deploy",
+    "deployApp": "ttd/autodeploy-v3",
     "designerApp": "ttd/designer",
     "withoutDataModelApp": "ttd/appwithout-dm",
     "appOwner": "ttd"

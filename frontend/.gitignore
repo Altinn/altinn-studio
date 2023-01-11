@@ -9,5 +9,5 @@ language/old/*
 !/.yarn/sdks
 !/.yarn/versions
 **/stats.json
-stats.csv
+*.csv
 script.js

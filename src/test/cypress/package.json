@@ -8,7 +8,7 @@
     "prettier:format": "prettier -w e2e/**/*.js",
     "eslint:check": "eslint \"e2e/**\"",
     "eslint:fix": "eslint \"e2e/**\" --fix",
-    "cy:open": "cypress open ",
+    "cy:open": "cypress open -e environment=local",
     "cy:verify": "cypress verify",
     "cy:version": "cypress -v",
     "cy:cachelist": "cypress cache list",

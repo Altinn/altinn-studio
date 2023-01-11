@@ -3,14 +3,14 @@ const ts = require('ts-morph');
 const path = require('path');
 const glob = require('glob');
 
-const getFileImports = (file) => {
+const getTsSourceFile = (file) => {
   const project = new ts.Project();
-  const sourceFile = project.createSourceFile(
-    'dummy.ts',
-    fs.readFileSync(path.join(__dirname, file), 'utf8')
-  );
+  return project.createSourceFile('dummy.ts', fs.readFileSync(path.join(__dirname, file), 'utf8'));
+};
+
+const getFileImports = (project, file) => {
   const output = [];
-  sourceFile.getImportDeclarations().forEach((importDecl) => {
+  project.getImportDeclarations().forEach((importDecl) => {
     const module = importDecl.getModuleSpecifier().getLiteralText();
     const defaultimport = importDecl.getDefaultImport();
     if (defaultimport) {
@@ -34,20 +34,24 @@ const getFileImports = (file) => {
 };
 
 const writeToFile = () => {
-  const stream = fs.createWriteStream('stats.csv');
+  const statsStream = fs.createWriteStream('stats.csv');
   glob(`${__dirname}/**/*.ts*`, {}, (err, files) => {
-    stream.write(`${['file', 'module', 'name', 'default'].join(';')}\r\n`);
+    statsStream.write(`${['file', 'module', 'name', 'default'].join(';')}\r\n`);
     files.forEach((file) => {
       if (!file.includes('node_modules')) {
-        const short = file.substring(__dirname.length);
-        getFileImports(short).forEach((stat) => {
-          stream.write(`${Object.values(stat).join(';')}\r\n`);
+        const shortFilename = file.substring(__dirname.length);
+        const tsSourceFile = getTsSourceFile(shortFilename);
+        getFileImports(tsSourceFile, shortFilename).forEach((stat) => {
+          statsStream.write(`${Object.values(stat).join(';')}\r\n`);
         });
       }
     });
-    stream.end();
+    statsStream.end();
     console.log('Done collecting stats');
   });
 };
 
 writeToFile();
+//const fileHasDefaultExport = (project) => project.getDefaultExportSymbol() !== undefined;
+//console.log(fileHasDefaultExport('app-development/config/routes.tsx'));
+//console.log(fileHasDefaultExport('packages/shared/src/components/AltinnPopper.tsx'));
