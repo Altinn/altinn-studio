@@ -24,7 +24,12 @@ context(
     });
     beforeEach(() => {
       cy.intercept('GET', '**/datamodels').as('getDatamodels');
-      Cypress.Cookies.preserveOnce('AltinnStudioDesigner', 'i_like_gitea', 'XSRF-TOKEN', 'AS-XSRF-TOKEN');
+      Cypress.Cookies.preserveOnce(
+        'AltinnStudioDesigner',
+        'i_like_gitea',
+        'XSRF-TOKEN',
+        'AS-XSRF-TOKEN'
+      );
       cy.visit('/');
       cy.searchAndOpenApp(Cypress.env('deployApp'));
       cy.wait('@getDatamodels');
@@ -32,12 +37,15 @@ context(
     });
 
     it('Navigation', () => {
-      cy.get(designer.aboutApp.repoName).invoke('val').should('contain', Cypress.env('deployApp').split('/')[1]);
+      cy.get(designer.aboutApp.repoName)
+        .invoke('val')
+        .should('contain', Cypress.env('deployApp').split('/')[1]);
       cy.get(designer.appMenu.edit).should('be.visible').click();
-      cy.get(designer.formComponents.shortAnswer).parentsUntil(designer.draggable).should('be.visible');
+      cy.get(designer.formComponents.shortAnswer)
+        .parentsUntil(designer.draggable)
+        .should('be.visible');
       cy.get(designer.appMenu.texts).should('be.visible').click();
-      cy.getIframeBody().find('#tabs').should('be.visible');
-      cy.getIframeBody().find('#saveTextsBtn').should('be.visible');
+      cy.get(designer.texts.new).should('be.visible');
     });
 
     it('Gitea connection - Pull changes', () => {
@@ -59,5 +67,5 @@ context(
         cy.get(table).find('tbody > tr').should('have.length.gte', 1);
       });
     });
-  },
+  }
 );

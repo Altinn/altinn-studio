@@ -85,6 +85,7 @@
     "dashboard",
     "language",
     "testing/mockend",
+    "testing/cypress",
     "packages/schema-editor",
     "packages/schema-model",
     "packages/shared",
