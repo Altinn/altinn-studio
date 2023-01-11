@@ -60,8 +60,7 @@ steps:
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'App'
-  continueOnError: true
-  condition: and(succeeded(), eq(variables['availability'], 'up'))
+  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
    k6 run  --quiet $(pwd)/src/tests/altinn-ui/messagebox.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
@@ -74,16 +73,14 @@ steps:
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Platform'
-  continueOnError: true
-  condition: and(succeeded(), eq(variables['availability'], 'up'))
+  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
    k6 run  --quiet $(pwd)/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Cleanup'
-  continueOnError: true
-  condition: and(succeeded(), eq(variables['availability'], 'up'))
+  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'
