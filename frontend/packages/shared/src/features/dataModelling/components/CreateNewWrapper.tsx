@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { TextField } from '@altinn/altinn-design-system';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  ErrorMessage,
-} from '@digdir/design-system-react';
-import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
+import { Button, ButtonColor, ButtonVariant, ErrorMessage } from '@digdir/design-system-react';
+import { AltinnPopoverSimple } from '../../../components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from '../../../utils/language';
 
 export interface ICreateNewWrapper {
