@@ -143,7 +143,8 @@
         { "if": {"properties": {"type": { "const": "Summary"}}}, "then": {"$ref": "#/definitions/summaryComponent"}},
         { "if": {"properties": {"type": { "const": "Header"}}}, "then": {"$ref": "#/definitions/headerComponent"}},
         { "if": {"properties": {"type": { "const": "Panel"}}}, "then": {"$ref": "#/definitions/panelComponent"}},
-        { "if": {"properties": {"type": { "const": "List"}}}, "then": {"$ref": "#/definitions/listComponent"}}
+        { "if": {"properties": {"type": { "const": "List"}}}, "then": {"$ref": "#/definitions/listComponent"}},
+        { "if": { "properties": { "type": { "const": "MapComponent" } } }, "then": { "$ref": "#/definitions/mapComponent" }}
       ]
     },
     "headerComponent": {
@@ -320,6 +321,58 @@
         "mapping": {
           "$ref": "#/definitions/mapping",
           "description": "Creates a new app instance with data collected from a stateless part of the app."
+        }
+      }
+    },
+    "mapComponent": {
+      "properties": {
+        "layers": {
+          "type": "object",
+          "title": "Layers",
+          "description": "Map layer",
+          "required": ["url"],
+          "properties": {
+            "url": {
+              "type": "string",
+              "title": "Map layer url",
+              "description": "Url to a map tile. {z}/{x}/{y} will be replaced with tile coordinates, {s} will be replaced with a random subdomain if subdomains are given"
+            },
+            "attribution": {
+              "type": "string",
+              "title": "Attribution",
+              "description": "Ascribing a work or remark to a particular unit for recognition"
+            },
+            "subdomains": {
+              "type": "array",
+              "title": "Subdomains",
+              "description": "List of subdomains. Used for balancing the load on different map tiling servers. A random one will replace {s} in the defined url.",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "centerLocation": {
+          "type": "object",
+          "title": "Center location",
+          "description": "Center location of the map",
+          "properties": {
+            "latitude": {
+              "type": "number",
+              "title": "latitude",
+              "description": "Set the latitude coordinate"
+            },
+            "longitude": {
+              "type": "number",
+              "title": "longitude",
+              "description": "Set the longitude coordinate"
+            }
+          }
+        },
+        "zoom": {
+          "type": "number",
+          "title": "Zoom",
+          "description": "adjusts the default map-zoom"
         }
       }
     },
