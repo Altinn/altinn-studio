@@ -1,5 +1,5 @@
 export const stringToArray = (value: string): string[] => {
-  return value?.replace(/ /g, '').split(',');
+  return value?.split(',').map((string) => string.trim());
 };
 
 export const arrayToString = (value: string[]): string => {
