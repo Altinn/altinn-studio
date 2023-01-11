@@ -51,43 +51,43 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Gets or Sets AvatarUrl
         /// </summary>
-        [DataMember(Name="avatar_url", EmitDefaultValue=false)]
+        [DataMember(Name = "avatar_url", EmitDefaultValue = false)]
         public string AvatarUrl { get; set; }
 
         /// <summary>
         /// Gets or Sets Description
         /// </summary>
-        [DataMember(Name="description", EmitDefaultValue=false)]
+        [DataMember(Name = "description", EmitDefaultValue = false)]
         public string Description { get; set; }
 
         /// <summary>
         /// Gets or Sets FullName
         /// </summary>
-        [DataMember(Name="full_name", EmitDefaultValue=false)]
+        [DataMember(Name = "full_name", EmitDefaultValue = false)]
         public string FullName { get; set; }
 
         /// <summary>
         /// Gets or Sets Id
         /// </summary>
-        [DataMember(Name="id", EmitDefaultValue=false)]
+        [DataMember(Name = "id", EmitDefaultValue = false)]
         public long? Id { get; set; }
 
         /// <summary>
         /// Gets or Sets Location
         /// </summary>
-        [DataMember(Name="location", EmitDefaultValue=false)]
+        [DataMember(Name = "location", EmitDefaultValue = false)]
         public string Location { get; set; }
 
         /// <summary>
         /// Gets or Sets Username
         /// </summary>
-        [DataMember(Name="username", EmitDefaultValue=false)]
+        [DataMember(Name = "username", EmitDefaultValue = false)]
         public string Username { get; set; }
 
         /// <summary>
         /// Gets or Sets Website
         /// </summary>
-        [DataMember(Name="website", EmitDefaultValue=false)]
+        [DataMember(Name = "website", EmitDefaultValue = false)]
         public string Website { get; set; }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             sb.Append("}\n");
             return sb.ToString();
         }
-  
+
         /// <summary>
         /// Returns the JSON string presentation of the object
         /// </summary>

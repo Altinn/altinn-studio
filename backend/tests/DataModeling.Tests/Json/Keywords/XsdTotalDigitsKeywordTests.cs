@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
-public class XsdTotalDigitsKeywordTests: ValueKeywordTestsBase<XsdTotalDigitsKeywordTests, XsdTotalDigitsKeyword, uint>
+public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKeywordTests, XsdTotalDigitsKeyword, uint>
 {
     private const string KeywordPlaceholder = "totalDigits";
 

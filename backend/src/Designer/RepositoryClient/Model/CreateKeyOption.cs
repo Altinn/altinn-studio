@@ -72,19 +72,19 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// An armored SSH key to add
         /// </summary>
-        [DataMember(Name="key", EmitDefaultValue=false)]
+        [DataMember(Name = "key", EmitDefaultValue = false)]
         public string Key { get; set; }
 
         /// <summary>
         /// Describe if the key has only read access or read/write
         /// </summary>
-        [DataMember(Name="read_only", EmitDefaultValue=false)]
+        [DataMember(Name = "read_only", EmitDefaultValue = false)]
         public bool? IsReadOnly { get; set; }
 
         /// <summary>
         /// Title of the key to add
         /// </summary>
-        [DataMember(Name="title", EmitDefaultValue=false)]
+        [DataMember(Name = "title", EmitDefaultValue = false)]
         public string Title { get; set; }
 
         /// <summary>

@@ -6,7 +6,7 @@ namespace DataModeling.Tests._TestData.Model.CSharp
 {
     public class melding
     {
-        [XmlElement("e1")]        
+        [XmlElement("e1")]
         [JsonPropertyName("e1")]
         public string E1 { get; set; }
     }

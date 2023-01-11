@@ -56,7 +56,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A View with update status</returns>
         [HttpPost]
         [Route("{configName}")]
-        public IActionResult SaveConfig([FromBody]dynamic jsonData, [FromRoute] string org, string app, string configName)
+        public IActionResult SaveConfig([FromBody] dynamic jsonData, [FromRoute] string org, string app, string configName)
         {
             _repository.SaveConfiguration(org, app, configName + ".json", jsonData.ToString());
             return Ok("Config successfully saved.");

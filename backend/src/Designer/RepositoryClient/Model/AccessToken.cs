@@ -47,7 +47,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Name of the repository to create
         /// </summary>
-        [DataMember(Name="name", EmitDefaultValue=false)]
+        [DataMember(Name = "name", EmitDefaultValue = false)]
         public string Name { get; set; }
     }
 }

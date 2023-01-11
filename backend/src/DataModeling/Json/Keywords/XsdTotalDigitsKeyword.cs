@@ -19,7 +19,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 [SchemaDraft(Draft.Draft201909)]
 [SchemaDraft(Draft.Draft202012)]
 [JsonConverter(typeof(XsdTotalDigitsKeywordJsonConverter))]
-public sealed class XsdTotalDigitsKeyword: IJsonSchemaKeyword, IEquatable<XsdTotalDigitsKeyword>
+public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTotalDigitsKeyword>
 {
     /// <summary>
     /// The name of the keyword

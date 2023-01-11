@@ -14,7 +14,7 @@ using static Designer.Tests.Controllers.DataModelsController.Utils.MockUtils;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class DeleteDatamodelTests: ApiTestsBase<DatamodelsController, DeleteDatamodelTests>
+public class DeleteDatamodelTests : ApiTestsBase<DatamodelsController, DeleteDatamodelTests>
 {
     private const string VersionPrefix = "/designer/api";
     private readonly Mock<IRepository> _repositoryMock;

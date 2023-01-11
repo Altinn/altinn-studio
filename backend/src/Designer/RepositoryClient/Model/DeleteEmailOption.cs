@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// email addresses to delete
         /// </summary>
-        [DataMember(Name="emails", EmitDefaultValue=false)]
+        [DataMember(Name = "emails", EmitDefaultValue = false)]
         public List<string> Emails { get; set; }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return                
+            return
                     this.Emails == input.Emails ||
                     (this.Emails != null &&
                     this.Emails.SequenceEqual(input.Emails));

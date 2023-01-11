@@ -34,6 +34,6 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Defines if there is any merge conflicts
         /// </summary>
-        public bool HasMergeConflict { get; set;  }
+        public bool HasMergeConflict { get; set; }
     }
 }

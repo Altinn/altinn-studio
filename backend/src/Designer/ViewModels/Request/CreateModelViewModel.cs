@@ -35,7 +35,7 @@ namespace Altinn.Studio.Designer.ViewModels.Request
             if (ModelName.AsFileName(false) != ModelName)
             {
                 yield return new ValidationResult("ModelName contains characters invalid in a filename.");
-            }            
+            }
         }
     }
 }

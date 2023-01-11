@@ -46,13 +46,13 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             List<ValidationResult> issues = new List<ValidationResult>();
-            
+
             if (string.IsNullOrEmpty(TagName))
             {
                 issues.Add(new ValidationResult($"Tag name cannot be empty", new[] { nameof(TagName) }));
                 return issues;
             }
-            
+
             if (TagName[0] == '.' || TagName[0] == '-')
             {
                 issues.Add(new ValidationResult($"Tag name cannot start with '.' or '-'.", new[] { nameof(TagName) }));

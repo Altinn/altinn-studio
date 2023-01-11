@@ -5,7 +5,7 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
-public class XsdRootElementKeywordTests: ValueKeywordTestsBase<XsdRootElementKeywordTests, XsdRootElementKeyword, string>
+public class XsdRootElementKeywordTests : ValueKeywordTestsBase<XsdRootElementKeywordTests, XsdRootElementKeyword, string>
 {
     protected override XsdRootElementKeyword CreateKeywordWithValue(string value) => new(value);
 

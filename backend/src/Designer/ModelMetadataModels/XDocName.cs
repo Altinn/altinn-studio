@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         #endregion
 
         #region - XFormNS Emelemts -
-        
+
         /// <summary>
         /// XName for the caption element
         /// </summary>

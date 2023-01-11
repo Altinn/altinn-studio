@@ -26,7 +26,7 @@ using XmlSchemaValidator = SharedResources.Tests.XmlSchemaValidator;
 
 namespace Designer.Tests.Factories.ModelFactory
 {
-    public class JsonSchema2Metadata2CSharpTests: FluentTestsBase<JsonSchema2Metadata2CSharpTests>
+    public class JsonSchema2Metadata2CSharpTests : FluentTestsBase<JsonSchema2Metadata2CSharpTests>
     {
         private readonly ITestOutputHelper _outputHelper;
 

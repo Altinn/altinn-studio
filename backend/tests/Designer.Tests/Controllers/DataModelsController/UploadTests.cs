@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class UploadTests: ApiTestsBase<DatamodelsController, UploadTests>
+public class UploadTests : ApiTestsBase<DatamodelsController, UploadTests>
 {
     private const string VersionPrefix = "/designer/api";
 

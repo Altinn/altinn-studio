@@ -18,5 +18,5 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         [JsonProperty("dataSource")]
         public string DataSource { get; set; }
-    } 
+    }
 }

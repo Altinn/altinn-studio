@@ -5,7 +5,7 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Keyword;
 
-public class FormatMaximumKeywordTests: ValueKeywordTestsBase<FormatMaximumKeywordTests, FormatMaximumKeyword, string>
+public class FormatMaximumKeywordTests : ValueKeywordTestsBase<FormatMaximumKeywordTests, FormatMaximumKeyword, string>
 {
     protected override FormatMaximumKeyword CreateKeywordWithValue(string value) => new(value);
 

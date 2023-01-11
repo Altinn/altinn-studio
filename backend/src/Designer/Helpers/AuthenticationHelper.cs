@@ -134,7 +134,7 @@ namespace Altinn.Studio.Designer.Helpers
         /// <param name="sessionCookieId">the session cookie id</param>
         /// <returns>The gitea session</returns>
         public static string GetGiteaSession(HttpContext context, string sessionCookieId)
-         {
+        {
             if (context.Request.Cookies != null && context.Request.Cookies.ContainsKey(sessionCookieId))
             {
                 return context.Request.Cookies[sessionCookieId];

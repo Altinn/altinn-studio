@@ -142,7 +142,7 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         {
             return ToString("nb");
         }
-        
+
         /// <summary>
         /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>

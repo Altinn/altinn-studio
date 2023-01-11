@@ -197,7 +197,7 @@ namespace Altinn.Studio.Designer.Extensions
         {
             return element.AttributeValue(XName.Get(attributeName));
         }
- 
+
         /// <summary>
         /// Creates the culture string from X element.
         /// </summary>

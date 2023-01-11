@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 
 namespace Designer.Tests.Factories.ModelFactory
 {
-    public class JsonSchemaToMetamodelConverterTests: FluentTestsBase<JsonSchemaToMetamodelConverterTests>
+    public class JsonSchemaToMetamodelConverterTests : FluentTestsBase<JsonSchemaToMetamodelConverterTests>
     {
         private readonly ITestOutputHelper _outputHelper;
 

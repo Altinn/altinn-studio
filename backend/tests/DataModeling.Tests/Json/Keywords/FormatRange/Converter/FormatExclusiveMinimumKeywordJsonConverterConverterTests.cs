@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
 
-public class FormatExclusiveMinimumKeywordJsonConverterConverterTests: ValueKeywordConverterTestBase<FormatExclusiveMinimumKeywordJsonConverterConverterTests, FormatExclusiveMinimumKeyword, string>
+public class FormatExclusiveMinimumKeywordJsonConverterConverterTests : ValueKeywordConverterTestBase<FormatExclusiveMinimumKeywordJsonConverterConverterTests, FormatExclusiveMinimumKeyword, string>
 {
     private const string KeywordPlaceholder = "formatExclusiveMinimum";
 
