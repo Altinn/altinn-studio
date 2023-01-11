@@ -4,12 +4,12 @@ import { EditModalContent } from '../components/config/EditModalContent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
-import { componentIcons } from '../components';
+import { componentIcons, ComponentTypes } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type { FormComponentType, IAppState, IFormComponent } from '../types/global';
 import classes from './EditContainer.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
-import { Cancel, Delete, Edit, Success } from '@navikt/ds-icons';
+import { Cancel, Delete, Edit, Monitor, Success } from '@navikt/ds-icons';
 import cn from 'classnames';
 import { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
@@ -17,6 +17,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useText } from '../hooks';
 import { textSelector } from '../selectors/textSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
+import { ComponentPreview } from './ComponentPreview';
 
 export interface IEditContainerProps {
   component: IFormComponent;
@@ -30,6 +31,12 @@ export interface IEditContainerProps {
   dragHandleRef: ConnectDragSource;
 }
 
+enum EditContainerMode {
+  Closed = 'closed',
+  Edit = 'edit',
+  Preview = 'preview',
+}
+
 export function EditContainer(props: IEditContainerProps) {
   const dispatch = useDispatch();
   const t = useText();
@@ -38,7 +45,9 @@ export function EditContainer(props: IEditContainerProps) {
     id: props.id,
     ...props.component,
   });
-  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [mode, setMode] = useState<EditContainerMode>(EditContainerMode.Closed);
+  const isEditMode = mode === EditContainerMode.Edit;
+  const isPreviewMode = mode === EditContainerMode.Preview;
   const [listItem, setListItem] = useState<any>({
     id: props.id,
     firstInActiveList: props.firstInActiveList,
@@ -53,8 +62,19 @@ export function EditContainer(props: IEditContainerProps) {
   const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
   const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
 
+  const previewableComponents = [
+    ComponentTypes.Checkboxes,
+  ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
+
+  const isPreviewable = previewableComponents.includes(component.type as ComponentTypes);
+
   const handleComponentUpdate = (updatedComponent: IFormComponent): void => {
     setComponent({ ...updatedComponent });
+  };
+
+  const handleComponentChangeAndSave = (updatedComponent: IFormComponent): void => {
+    handleComponentUpdate(updatedComponent);
+    handleSaveChange(updatedComponent);
   };
 
   const handleComponentDelete = (e: any): void => {
@@ -68,7 +88,7 @@ export function EditContainer(props: IEditContainerProps) {
   };
 
   const handleOpenEdit = (): void => {
-    setIsEditMode(true);
+    setMode(EditContainerMode.Edit);
     const newListItem = { ...listItem, inEditMode: true };
     setListItem(newListItem);
     props.sendItemToParent(listItem);
@@ -87,7 +107,7 @@ export function EditContainer(props: IEditContainerProps) {
   const handleSave = (): void => {
     const newListItem = { ...listItem, inEditMode: false };
     setListItem(newListItem);
-    setIsEditMode(false);
+    setMode(isPreviewable ? EditContainerMode.Preview : EditContainerMode.Closed);
 
     if (JSON.stringify(component) !== JSON.stringify(props.component)) {
       handleSaveChange(component);
@@ -107,7 +127,7 @@ export function EditContainer(props: IEditContainerProps) {
 
   const handleDiscard = (): void => {
     setComponent({ ...props.component });
-    setIsEditMode(false);
+    setMode(EditContainerMode.Closed);
     dispatch(FormLayoutActions.deleteActiveList());
   };
 
@@ -128,7 +148,7 @@ export function EditContainer(props: IEditContainerProps) {
 
   const activeListIndex = activeList.findIndex((item: any) => item.id === props.id);
   return (
-    <div className={cn(classes.wrapper, isEditMode && classes.editMode)}>
+    <div className={cn(classes.wrapper, isPreviewMode && classes.previewMode)}>
       <div className={classes.formComponentWithHandle}>
         <div ref={props.dragHandleRef} className={classes.dragHandle}>
           <DragHandle/>
@@ -139,12 +159,19 @@ export function EditContainer(props: IEditContainerProps) {
           onKeyDown={handleKeyPress}
           tabIndex={0}
         >
-          {isEditMode && component ? (
+          {isPreviewMode && component && (
+            <ComponentPreview
+              component={component}
+              handleComponentChange={handleComponentChangeAndSave}
+            />
+          )}
+          {isEditMode && component && (
             <EditModalContent
               component={JSON.parse(JSON.stringify(component))}
               handleComponentUpdate={handleComponentUpdate}
             />
-          ) : (
+          )}
+          {(mode === EditContainerMode.Closed || !component) && (
             <div className={classes.formComponentTitle}>
               <i className={componentIcons[component.type] || 'fa fa-help-circle'}/>
               {component.textResourceBindings?.title
@@ -180,6 +207,15 @@ export function EditContainer(props: IEditContainerProps) {
               variant={ButtonVariant.Quiet}
             />
           )}
+          {isPreviewable && (
+            <Button
+              color={ButtonColor.Secondary}
+              icon={<Monitor/>}
+              onClick={() => setMode(EditContainerMode.Preview)}
+              title='Forhåndsvisning (under utvikling)'
+              variant={ButtonVariant.Quiet}
+            />
+          )}
         </div>
       )}
       {isEditMode && (
@@ -198,6 +234,15 @@ export function EditContainer(props: IEditContainerProps) {
             tabIndex={0}
             variant={ButtonVariant.Quiet}
           />
+          {isPreviewable && (
+            <Button
+              color={ButtonColor.Secondary}
+              icon={<Monitor/>}
+              onClick={() => setMode(EditContainerMode.Preview)}
+              title='Forhåndsvisning (under utvikling)'
+              variant={ButtonVariant.Quiet}
+            />
+          )}
         </div>
       )}
     </div>

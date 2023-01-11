@@ -1,23 +1,39 @@
-import React from 'react';
-import type { TextResourceFile, LangCode } from '@altinn/text-editor';
+import React, { useState } from 'react';
+import type { LangCode, TextResourceFile } from '@altinn/text-editor';
+import { TextEditor as TextEditorImpl } from '@altinn/text-editor';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  PanelVariant,
+  PopoverPanel,
+} from '@altinn/altinn-design-system';
 import { AltinnSpinner } from 'app-shared/components';
-import { TextEditor } from '@altinn/text-editor';
 import { getOrgApp } from '../../common/hooks';
 import { useGetLanguagesQuery } from '../../services/languagesApi';
 import {
+  useAddByLangCodeMutation,
+  useDeleteByLangCodeMutation,
   useGetAppTextsByLangCodeQuery,
   useUpdateTranslationByLangCodeMutation,
-  useDeleteByLangCodeMutation,
-  useAddByLangCodeMutation,
 } from '../../services/textsApi';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import classes from './TextEditor.module.css';
+import { getLocalStorage, setLocalStorage } from 'app-shared/utils/localStorage';
+import type { LanguageTree } from 'app-shared/utils/language';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
-export const TextEditorImpl = () => {
+interface TextEditorProps extends React.PropsWithChildren<any> {
+  language: LanguageTree;
+}
+const storageGroupName = 'textEditorStorage';
+export const TextEditor = ({ language }: TextEditorProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const getSelectedLangCode = () => searchParams.get('lang');
+  const selectedLangCode = searchParams.get('lang');
   const getSearchQuery = () => searchParams.get('search') || '';
   const orgApp = getOrgApp();
   const { data: appLangCodes } = useGetLanguagesQuery(orgApp);
+
   const setSelectedLangCode = (lang: string) => {
     const params: any = { lang };
     if (getSearchQuery().length > 0) {
@@ -26,7 +42,7 @@ export const TextEditorImpl = () => {
     setSearchParams(params);
   };
   const setSearchQuery = (search: string) => {
-    const params: any = { lang: getSelectedLangCode() };
+    const params: any = { lang: selectedLangCode };
     if (search.length > 0) {
       params.search = search;
     }
@@ -40,15 +56,20 @@ export const TextEditorImpl = () => {
   } = useGetAppTextsByLangCodeQuery(
     {
       ...orgApp,
-      langCode: getSelectedLangCode(),
+      langCode: selectedLangCode,
     },
-    { skip: !getSelectedLangCode() }
+    { skip: !selectedLangCode }
   );
 
   const [updateLang] = useUpdateTranslationByLangCodeMutation();
   const [deleteLanguage] = useDeleteByLangCodeMutation();
   const [addLanguage] = useAddByLangCodeMutation();
 
+  const t = (key: string) => getLanguageFromKey(key, language);
+
+  const [hideIntroPage, setHideIntroPage] = useState(
+    () => getLocalStorage(storageGroupName, 'hideTextsIntroPage') ?? false
+  );
   if (isInitialLoadingLang) {
     return <AltinnSpinner />;
   }
@@ -72,21 +93,58 @@ export const TextEditorImpl = () => {
   const handleTranslationChange = (translations: TextResourceFile) =>
     updateLang({
       ...orgApp,
-      langCode: getSelectedLangCode(),
+      langCode: selectedLangCode,
       data: translations,
     });
-
+  const handleHideIntroPageButtonClick = () =>
+    setHideIntroPage(setLocalStorage(storageGroupName, 'hideTextsIntroPage', true));
   return (
     <>
-      <TextEditor
-        selectedLangCode={getSelectedLangCode()}
+      <PopoverPanel
+        forceMobileLayout={true}
+        variant={PanelVariant.Info}
+        open={!hideIntroPage}
+        side={'bottom'}
+        title={t('text_editor.info_dialog_title')}
+        trigger={<span className={'sr-only'} />}
+        onOpenChange={() => setHideIntroPage(!hideIntroPage)}
+      >
+        <p>{t('text_editor.info_dialog_1')}</p>
+        <p>
+          <Link
+            target={'_blank'}
+            to={`/../designer/${orgApp.org}/${orgApp.app}/Text`}
+            relative={'path'}
+          >
+            {t('text_editor.info_dialog_nav_to_old')}
+          </Link>
+        </p>
+        <span className={classes.buttons}>
+          <Button
+            color={ButtonColor.Primary}
+            onClick={() => setHideIntroPage(true)}
+            variant={ButtonVariant.Outline}
+          >
+            {t('general.close')}
+          </Button>
+          <Button
+            color={ButtonColor.Secondary}
+            onClick={handleHideIntroPageButtonClick}
+            variant={ButtonVariant.Outline}
+          >
+            {t('general.do_not_show_anymore')}
+          </Button>
+        </span>
+      </PopoverPanel>
+      <TextEditorImpl
+        selectedLangCode={selectedLangCode}
         searchQuery={getSearchQuery()}
         setSelectedLangCode={setSelectedLangCode}
         setSearchQuery={setSearchQuery}
         availableLangCodes={appLangCodes}
         translations={
           translations || {
-            language: getSelectedLangCode(),
+            language: selectedLangCode,
             resources: [],
           }
         }

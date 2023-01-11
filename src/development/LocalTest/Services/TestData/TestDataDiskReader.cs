@@ -16,7 +16,7 @@ public static class TestDataDiskReader
         var testData = new TestDataModel();
         await ReadFolderToDictionary(Path.Join(testDataPath, "authorization", "claims"), testData.Authorization.Claims);
         await ReadRoles(testDataPath, testData);
-        await ReadFolderToDictionary(Path.Join(testDataPath, "authorization", "partyList"), testData.Authorization.PartyList);
+        await ReadFolderToDictionary(Path.Join(testDataPath, "authorization", "partylist"), testData.Authorization.PartyList);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Profile", "User"), testData.Profile.User);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Org"), testData.Register.Org);
         await ReadFolderToDictionary(Path.Join(testDataPath, "Register", "Party"), testData.Register.Party);
