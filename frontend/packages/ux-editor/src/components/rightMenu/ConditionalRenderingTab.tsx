@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
 import classes from './ConditionalRenderingTab.module.css';
 import { Add } from '@navikt/ds-icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';

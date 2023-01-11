@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, ButtonColor, ButtonVariant, Select } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
 import { Add, Close, Edit, Search } from '@navikt/ds-icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';

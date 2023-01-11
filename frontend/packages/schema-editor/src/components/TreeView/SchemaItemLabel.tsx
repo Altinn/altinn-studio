@@ -14,7 +14,7 @@ import {
   pointerIsDefinition,
 } from '@altinn/schema-model';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { EllipsisH, Warning } from '@navikt/ds-icons';
 import { useDispatch } from 'react-redux';
 import {

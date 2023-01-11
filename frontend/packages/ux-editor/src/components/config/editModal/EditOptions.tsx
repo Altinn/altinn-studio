@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import type { IOptions, } from '../../../types/global';
+import { TextField } from '@altinn/altinn-design-system';
 import {
   Button,
   ButtonColor,
   ButtonVariant,
   FieldSet,
   RadioGroup,
-  RadioGroupVariant,
-  TextField
-} from '@altinn/altinn-design-system';
+  RadioGroupVariant
+} from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';

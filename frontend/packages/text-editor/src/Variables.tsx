@@ -1,11 +1,6 @@
 import classes from './Variables.module.css';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  PanelVariant,
-  PopoverPanel,
-} from '@altinn/altinn-design-system';
+import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
+import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { InformationColored } from '@navikt/ds-icons';
 import React from 'react';
 import type { TextResourceVariable } from './types';

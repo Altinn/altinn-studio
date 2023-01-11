@@ -1,5 +1,5 @@
 import React from 'react';
-import { FieldSet, Select } from '@altinn/altinn-design-system';
+import { FieldSet, Select } from '@digdir/design-system-react';
 import classes from './ButtonComponent.module.css';
 import { EditTitle } from '../../editModal/EditTitle';
 import { useText } from '../../../../hooks';

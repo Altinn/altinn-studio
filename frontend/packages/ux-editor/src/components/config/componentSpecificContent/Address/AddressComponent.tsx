@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox, FieldSet } from '@altinn/altinn-design-system';
+import { Checkbox, FieldSet } from '@digdir/design-system-react';
 import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';

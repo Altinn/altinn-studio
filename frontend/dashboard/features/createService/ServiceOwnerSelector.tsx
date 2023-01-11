@@ -6,7 +6,7 @@ import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useAppSelector } from '../../common/hooks';
-import { Select } from '@altinn/altinn-design-system';
+import { Select } from '@digdir/design-system-react';
 
 const zIndex = {
   zIndex: 1300,

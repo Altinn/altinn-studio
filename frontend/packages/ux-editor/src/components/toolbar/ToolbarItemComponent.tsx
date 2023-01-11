@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import classes from './ToolbarItemComponent.module.css';
 import type { IAppState } from '../../types/global';
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Helptext } from '@navikt/ds-icons';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useSelector } from 'react-redux';

@@ -8,7 +8,8 @@ import type {
   TextResourceIdMutation,
 } from './types';
 import { AltinnSpinner } from 'app-shared/components';
-import { Button, ButtonColor, ButtonVariant, SearchField } from '@altinn/altinn-design-system';
+import { SearchField } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { RightMenu } from './RightMenu';
 import { getRandNumber } from './utils';
 import {

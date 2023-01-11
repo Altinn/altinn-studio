@@ -18,14 +18,13 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
+import { TextArea, TextField } from '@altinn/altinn-design-system';
 import {
   Checkbox,
   ErrorMessage,
   FieldSet,
   Select,
-  TextArea,
-  TextField,
-} from '@altinn/altinn-design-system';
+} from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { UiSchemaNode, CombinationKind } from '@altinn/schema-model';

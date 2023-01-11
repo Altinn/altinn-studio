@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
 import type { LangCode, TextResourceFile } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl } from '@altinn/text-editor';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  PanelVariant,
-  PopoverPanel,
-} from '@altinn/altinn-design-system';
+import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { AltinnSpinner } from 'app-shared/components';
 import { getOrgApp } from '../../common/hooks';
 import { useGetLanguagesQuery } from '../../services/languagesApi';

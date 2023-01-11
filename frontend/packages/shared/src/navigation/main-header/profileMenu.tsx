@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './profileMenu.module.css';
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Menu, MenuItem } from '@mui/material';
 import { PeopleInCircleFilled } from '@navikt/ds-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';

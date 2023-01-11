@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { Button, ButtonColor, ButtonVariant, Panel } from '@altinn/altinn-design-system';
+import { Panel } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/index';
 import { createDataModel, deleteDataModel, fetchDataModel, saveDataModel } from './sagas';
 import { createDataModelMetadataOptions } from './functions/createDataModelMetadataOptions';

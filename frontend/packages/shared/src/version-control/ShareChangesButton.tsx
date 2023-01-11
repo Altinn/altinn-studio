@@ -1,6 +1,6 @@
 import React from 'react';
 import { getLanguageFromKey } from '../utils/language';
-import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { Upload, Cancel } from '@navikt/ds-icons';
 import classes from './VersionControlHeader.module.css';
 

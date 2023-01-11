@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { Button, ButtonColor, ButtonVariant, CheckboxGroup, FieldSet, TextField } from '@altinn/altinn-design-system';
+import { TextField } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { CheckboxGroup, FieldSet } from '@digdir/design-system-react';
 import { IFormCheckboxComponent, IOptions } from '../../../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import classes from './CheckboxGroupPreview.module.css';
@@ -110,6 +112,7 @@ export const CheckboxGroupPreview = ({
         isAddMode ? (
           <div className={classes.addSection}>
             <FieldSet
+              contentClass={classes.fieldSetContent}
               error={errorMessage}
               legend={tCheckboxes('add')}
             >

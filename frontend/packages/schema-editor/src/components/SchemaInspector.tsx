@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Panel, PanelVariant, Tabs } from '@altinn/altinn-design-system';
-import type { TabItem } from '@altinn/altinn-design-system';
+import { Panel, PanelVariant } from '@altinn/altinn-design-system';
+import { Tabs } from '@digdir/design-system-react';
+import type { TabItem } from '@digdir/design-system-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { getTranslation } from '../utils/language';

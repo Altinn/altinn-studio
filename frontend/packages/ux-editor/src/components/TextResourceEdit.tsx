@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from '../types/global';
-import { Button, ButtonColor, ButtonVariant, FieldSet, TextArea } from '@altinn/altinn-design-system';
+import { TextArea } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, FieldSet } from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
 import { getAllTextResources, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId, upsertTextResources } from '../features/appData/textResources/textResourcesSlice';
@@ -25,26 +26,25 @@ export const TextResourceEdit = () => {
     <FieldSet
       legend={t('ux_editor.edit_text_resource')}
       description={t('ux_editor.field_id').replace('{id}', editId)}
+      contentClass={classes.textBoxList}
     >
-      <div className={classes.textBoxList}>
-        {languages.map((language) => (
-          <TextBox
-            key={language}
-            language={language}
-            t={t}
-            textResource={textResources[language]?.find((resource) => resource.id === editId)}
-            textResourceId={editId}
-          />
-        ))}
-        <Button
-          color={ButtonColor.Secondary}
-          icon={<Close />}
-          onClick={() => setEditId(undefined)}
-          variant={ButtonVariant.Outline}
-        >
-          {t('general.close')}
-        </Button>
-      </div>
+      {languages.map((language) => (
+        <TextBox
+          key={language}
+          language={language}
+          t={t}
+          textResource={textResources[language]?.find((resource) => resource.id === editId)}
+          textResourceId={editId}
+        />
+      ))}
+      <Button
+        color={ButtonColor.Secondary}
+        icon={<Close />}
+        onClick={() => setEditId(undefined)}
+        variant={ButtonVariant.Outline}
+      >
+        {t('general.close')}
+      </Button>
     </FieldSet>
   );
 };

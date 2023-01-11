@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './LandingPage.module.css';
 import { PreviewContext } from '../PreviewContext';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 

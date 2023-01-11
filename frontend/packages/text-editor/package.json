@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "dependencies": {
     "@altinn/altinn-design-system": "0.25.14",
+    "@digdir/design-system-react": "0.1.0",
     "iso-639-1": "2.1.15"
   },
   "devDependencies": {
