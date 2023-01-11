@@ -51,7 +51,6 @@ steps:
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Authentication'
   continueOnError: false
-  failOnStderr: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
@@ -61,9 +60,7 @@ steps:
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'App'
-  continueOnError: true
-  failOnStderr: true
-  condition: and(succeeded(), eq(variables['availability'], 'up'))
+  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
    k6 run  --quiet $(pwd)/src/tests/altinn-ui/messagebox.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
@@ -80,9 +77,7 @@ steps:
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Platform'
-  continueOnError: true
-  failOnStderr: true
-  condition: and(succeeded(), eq(variables['availability'], 'up'))
+  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
    k6 run  --quiet $(pwd)/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
@@ -91,17 +86,13 @@ steps:
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Cleanup'
-  failOnStderr: true
-  continueOnError: true
-  condition: and(succeeded(), eq(variables['availability'], 'up'))
+  condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
 - script: |
    k6 run  --quiet $(pwd)/src/tests/platform/eFormidling/eFormidling.js -e env=$(environment) -e operatoraccesskey=$(operatoraccesskey) -e messageId=$(operatoraccesskey) -e orgNo=$(orgNo)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'eFormidling Integration point'
-  continueOnError: true
-  failOnStderr: true
   condition: and(always(), eq(variables['environment'], 'tt02'))
 
 - task: PublishTestResults@2
