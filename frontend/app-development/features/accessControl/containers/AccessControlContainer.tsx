@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
-import { CheckboxGroup, CheckboxGroupVariant } from '@altinn/altinn-design-system';
+import { CheckboxGroup, CheckboxGroupVariant } from '@digdir/design-system-react';
 import classes from './AccessControlContainer.module.css';
 import type { RootState } from '../../../store';
 import { useAppSelector } from 'app-development/common/hooks';

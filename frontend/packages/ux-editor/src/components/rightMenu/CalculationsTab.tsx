@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './CalculationsTab.module.css';
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Add } from '@navikt/ds-icons';
 import { RuleModal } from '../toolbar/RuleModal';
 import { LogicMode } from '../../types/global';

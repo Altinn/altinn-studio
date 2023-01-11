@@ -78,6 +78,7 @@ __metadata:
     jsonpointer: 5.0.1
   peerDependencies:
     "@altinn/altinn-design-system": 0.25.14
+    "@digdir/design-system-react": 0.1.0
     "@mui/material": 5.11.4
     "@reduxjs/toolkit": 1.9.1
     axios: 1.2.2
@@ -106,6 +107,7 @@ __metadata:
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
     "@altinn/altinn-design-system": 0.25.14
+    "@digdir/design-system-react": 0.1.0
     iso-639-1: 2.1.15
     jest: 29.3.1
     ts-jest: 29.0.3
@@ -1644,6 +1646,16 @@ __metadata:
   version: 0.2.3
   resolution: "@bcoe/v8-coverage@npm:0.2.3"
   checksum: 850f9305536d0f2bd13e9e0881cb5f02e4f93fad1189f7b2d4bebf694e3206924eadee1068130d43c11b750efcc9405f88a8e42ef098b6d75239c0f047de1a27
+  languageName: node
+  linkType: hard
+
+"@digdir/design-system-react@npm:0.1.0":
+  version: 0.1.0
+  resolution: "@digdir/design-system-react@npm:0.1.0"
+  peerDependencies:
+    react: ^18.1.0
+    react-dom: ^18.0.0
+  checksum: 834524f57e2edb1ce1d6846dd5154bfee90ae37227dc00a87ce2a3ac5ef86ab9c4b894dc2a052d15ae69c41603daf107fa3e679aa40ae16b5c7319faca20491c
   languageName: node
   linkType: hard
 
@@ -4717,6 +4729,7 @@ __metadata:
   resolution: "app-development@workspace:app-development"
   dependencies:
     "@altinn/altinn-design-system": 0.25.14
+    "@digdir/design-system-react": 0.1.0
     "@mui/material": 5.11.4
     "@reduxjs/toolkit": 1.9.1
     axios: 1.2.2
@@ -4745,6 +4758,7 @@ __metadata:
   resolution: "app-preview@workspace:app-preview"
   dependencies:
     "@altinn/altinn-design-system": 0.25.14
+    "@digdir/design-system-react": 0.1.0
     axios: 1.2.2
     classnames: 2.3.2
     cross-env: 7.0.3
@@ -4767,6 +4781,7 @@ __metadata:
     3: 2.1.0
     "@altinn/altinn-design-system": 0.25.14
     "@altinn/schema-editor": 0.1.0
+    "@digdir/design-system-react": 0.1.0
     "@mui/material": 5.11.4
     "@reduxjs/toolkit": 1.9.1
     "@types/react": 18.0.26
@@ -6208,6 +6223,7 @@ __metadata:
   resolution: "dashboard@workspace:dashboard"
   dependencies:
     "@altinn/altinn-design-system": 0.25.14
+    "@digdir/design-system-react": 0.1.0
     "@mui/x-data-grid": 5.17.18
     "@reduxjs/toolkit": 1.9.1
     cross-env: 7.0.3

@@ -4,7 +4,7 @@ import classes from './App.module.css';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
 import type { SelectedContext } from '../resources/fetchDashboardResources/dashboardSlice';
 import { AltinnSpinner } from 'app-shared/components';
-import { Button } from '@altinn/altinn-design-system';
+import { Button } from '@digdir/design-system-react';
 import { CenterContainer } from '../common/components/CenterContainer';
 import { CreateService } from '../features/createService/CreateService';
 import { Dashboard } from '../features/dashboard/Dashboard';

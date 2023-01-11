@@ -13,7 +13,7 @@
   border: 1px solid #c9c9c9;
 }
 
-.addSection fieldset > div {
+.fieldSetContent {
   display: flex;
   flex-direction: column;
   gap: 2rem;

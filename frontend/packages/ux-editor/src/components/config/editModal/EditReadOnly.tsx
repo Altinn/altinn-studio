@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Checkbox } from '@altinn/altinn-design-system';
+import { Checkbox } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 

@@ -25,7 +25,7 @@ import {
   ButtonVariant,
   Checkbox,
   FieldSet,
-} from '@altinn/altinn-design-system';
+} from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { Add } from '@navikt/ds-icons';
 

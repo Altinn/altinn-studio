@@ -8,7 +8,7 @@ import { componentIcons, ComponentTypes } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type { FormComponentType, IAppState, IFormComponent } from '../types/global';
 import classes from './EditContainer.module.css';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { Cancel, Delete, Edit, Monitor, Success } from '@navikt/ds-icons';
 import cn from 'classnames';
 import { ConnectDragSource } from 'react-dnd';

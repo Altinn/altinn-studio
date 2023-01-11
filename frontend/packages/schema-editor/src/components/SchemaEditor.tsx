@@ -34,7 +34,7 @@ import {
 import { IconImage } from './common/Icon';
 import { ActionMenu } from './common/ActionMenu';
 import { createSelector } from '@reduxjs/toolkit';
-import { Button, ButtonVariant, Tabs } from '@altinn/altinn-design-system';
+import { Button, ButtonVariant, Tabs } from '@digdir/design-system-react';
 import { Add } from '@navikt/ds-icons';
 
 export interface IEditorProps {

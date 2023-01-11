@@ -1,12 +1,12 @@
 import React from 'react';
 import { Add, Delete } from '@navikt/ds-icons';
+import { TextField } from '@altinn/altinn-design-system';
 import {
   FieldSet,
-  TextField,
   Button,
   ButtonVariant,
   ButtonColor
-} from '@altinn/altinn-design-system';
+} from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { TextFieldWithValidation } from '../../../TextFieldWithValidation';
 import { useText } from '../../../../hooks';

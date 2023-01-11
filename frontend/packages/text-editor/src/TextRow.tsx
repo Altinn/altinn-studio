@@ -2,13 +2,8 @@ import React, { useEffect, useState } from 'react';
 import classes from './TextRow.module.css';
 import type { TextDetail, TextResourceEntry } from './types';
 import { Delete } from '@navikt/ds-icons';
-import {
-  Button,
-  ButtonVariant,
-  ErrorMessage,
-  TextArea,
-  TextField,
-} from '@altinn/altinn-design-system';
+import { TextArea, TextField } from '@altinn/altinn-design-system';
+import { Button, ButtonVariant, ErrorMessage, } from '@digdir/design-system-react';
 import { Variables } from './Variables';
 
 export interface LangRowProps {
