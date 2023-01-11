@@ -33,6 +33,7 @@ namespace LocalTest.Controllers
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IParties _partiesService;
         private readonly IClaims _claimsService;
         private readonly ILocalApp _localApp;
         private readonly TestDataService _testDataService;
@@ -43,6 +44,7 @@ namespace LocalTest.Controllers
             IUserProfiles userProfileService,
             IAuthentication authenticationService,
             IApplicationRepository applicationRepository,
+            IParties partiesService,
             IClaims claimsService,
             ILocalApp localApp,
             TestDataService testDataService)
@@ -52,6 +54,7 @@ namespace LocalTest.Controllers
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
             _applicationRepository = applicationRepository;
+            _partiesService = partiesService;
             _claimsService = claimsService;
             _localApp = localApp;
             _testDataService = testDataService;
@@ -138,7 +141,7 @@ namespace LocalTest.Controllers
                 int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
                 string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
-                CreateJwtCookieAndAppendToResponse(token);
+                CreateJwtCookieAndAppendToResponse(token, startAppModel.PartyId);
             }
 
             if (startAppModel.AppPathSelection.Equals("accessmanagement"))
@@ -151,32 +154,25 @@ namespace LocalTest.Controllers
             // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data
             await _applicationRepository.Update(app);
 
-            if(_localPlatformSettings.LocalAppMode == "http")
+            if (_localPlatformSettings.LocalAppMode == "http")
             {
                 // Instantiate a prefill if a file attachment exists.
                 var prefill = Request.Form.Files.FirstOrDefault();
                 if (prefill != null)
                 {
-                    var instance = new Instance{
+                    var instance = new Instance
+                    {
                         AppId = app.Id,
                         Org = app.Org,
-                        InstanceOwner = new(),
-                        DataValues = new(),
+                        InstanceOwner = new()
+                        {
+                            PartyId = startAppModel.PartyId.ToString(),
+                        },
+                        DataValues = new()
+                        {
+                            { "PrefillFilename", prefill.FileName }
+                        },
                     };
-
-                    var owner = prefill.FileName.Split(".")[0];
-                    if (owner.Length == 9)
-                    {
-                        instance.InstanceOwner.OrganisationNumber = owner;
-                    }
-                    else if (owner.Length == 12)
-                    {
-                        instance.InstanceOwner.PersonNumber = owner;
-                    }
-                    else
-                    {
-                        throw new Exception($"instance owner must be specified as part of the prefill filename. 9 digigts for OrganisationNumber, 12 for PersonNumber (eg 897069631.xml, not {prefill.FileName})");
-                    }
 
                     var xmlDataId = app.DataTypes.First(dt => dt.AppLogic is not null).Id;
 
@@ -297,18 +293,41 @@ namespace LocalTest.Controllers
         private async Task<IEnumerable<SelectListItem>> GetTestUsersForList()
         {
             var data = await _testDataService.GetTestData();
-            List<SelectListItem> userItems = new List<SelectListItem>();
+            var userItems = new List<SelectListItem>();
 
             foreach (UserProfile profile in data.Profile.User.Values)
             {
                 var properProfile = await _userProfileService.GetUser(profile.UserId);
-                SelectListItem item = new SelectListItem()
-                {
-                    Value = properProfile.UserId.ToString(),
-                    Text = properProfile.Party.Person.Name
-                };
 
-                userItems.Add(item);
+                var group = new SelectListGroup()
+                {
+                    Name = properProfile.Party.Person.Name,
+                };
+                var userParties = await _partiesService.GetParties(properProfile.UserId);
+
+                if (userParties.Count == 1)
+                {
+                    // Don't add singe party users to a group
+                    var party = userParties.First();
+                    userItems.Add(new()
+                    {
+                        Value = properProfile.UserId + "." + party.PartyId,
+                        Text = party.Name,
+                    });
+                }
+                else
+                {
+                    // When a user represents multiple parties, add it to a group, so that it stands out visually
+                    foreach (var party in userParties)
+                    {
+                        userItems.Add(new()
+                        {
+                            Value = properProfile.UserId + "." + party.PartyId,
+                            Text = $"{party.Name} ({party.PartyTypeName})",
+                            Group = group,
+                        });
+                    }
+                }
             }
 
             return userItems;
@@ -393,8 +412,11 @@ namespace LocalTest.Controllers
         /// Creates a session cookie meant to be used to hold the generated JSON Web Token and appends it to the response.
         /// </summary>
         /// <param name="cookieValue">The cookie value.</param>
-        private void CreateJwtCookieAndAppendToResponse(string cookieValue)
+        private void CreateJwtCookieAndAppendToResponse(string identityCookie, int altinnPartyId)
         {
+            ICookieManager cookieManager = new ChunkingCookieManager();
+
+            // Add cookie proving the users identity
             CookieBuilder cookieBuilder = new RequestPathBaseCookieBuilder
             {
                 Name = "AltinnStudioRuntime",
@@ -405,15 +427,30 @@ namespace LocalTest.Controllers
                 Domain = _generalSettings.Hostname,
                 Expiration = new TimeSpan(0, 1337, 0)
             };
-
             CookieOptions cookieOptions = cookieBuilder.Build(HttpContext);
-
-            ICookieManager cookieManager = new ChunkingCookieManager();
             cookieManager.AppendResponseCookie(
                 HttpContext,
                 cookieBuilder.Name,
-                cookieValue,
+                identityCookie,
                 cookieOptions);
+
+            // Add cookie about users prefered party (for creating new instances)
+            CookieBuilder partyCookieBuilder = new RequestPathBaseCookieBuilder
+            {
+                Name = "AltinnPartyId",
+                SameSite = SameSiteMode.Lax,
+                HttpOnly = false,
+                SecurePolicy = CookieSecurePolicy.None,
+                IsEssential = true,
+                Domain = _generalSettings.Hostname,
+                Expiration = new TimeSpan(0, 1337, 0)
+            };
+            CookieOptions partyCookieOptions = cookieBuilder.Build(HttpContext);
+            cookieManager.AppendResponseCookie(
+                HttpContext,
+                partyCookieBuilder.Name,
+                altinnPartyId.ToString(),
+                partyCookieOptions);
         }
     }
 }
