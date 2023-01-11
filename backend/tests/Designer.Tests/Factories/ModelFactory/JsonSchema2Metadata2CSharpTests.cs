@@ -139,9 +139,7 @@ namespace Designer.Tests.Factories.ModelFactory
                 .And.TypeReadFromAssembly(modelName)
                 .And.JsonObjectDeserializedToTypeFromAssembly(jsonModel)
                 .And.XmlObjectDeserializedToTypeFromAssembly(xmlModel)
-
-                // Create expected objects created with new classes.
-                .When.ExpectedJsonAndXmlObjectCreatedNewWay(
+                .When.ExpectedJsonAndXmlObjectCreatedNewWay( // Create expected objects created with new classes.
                     "yabbin",
                     "hvem-er-hvem",
                     xsdResource,

@@ -166,8 +166,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 .AppendLine()
                 .AppendLine("namespace CorePoC.TestModel")
                 .AppendLine("{")
-                ////Append all classes
-                .Append(string.Concat(classes.Values.Reverse()))
+                .Append(string.Concat(classes.Values.Reverse())) // Append all classes
                 .AppendLine("}");
 
             return writer.ToString();
