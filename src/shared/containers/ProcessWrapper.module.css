@@ -1,0 +1,15 @@
+.content {
+  display: contents;
+}
+
+@media print {
+  .hide-form {
+    display: none;
+  }
+}
+
+@media only screen {
+  .hide-pdf {
+    display: none;
+  }
+}

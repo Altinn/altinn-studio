@@ -1,6 +1,8 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import cn from 'classnames';
+
 import { useAppSelector, useInstanceIdParams, useProcess } from 'src/common/hooks';
 import { useApiErrorCheck } from 'src/common/hooks/useApiErrorCheck';
 import { AltinnContentIconFormData, AltinnContentLoader } from 'src/components/shared';
@@ -11,6 +13,7 @@ import UnknownError from 'src/features/instantiate/containers/UnknownError';
 import PDFView from 'src/features/pdf/PDFView';
 import Receipt from 'src/features/receipt/containers/ReceiptContainer';
 import Presentation from 'src/shared/containers/Presentation';
+import css from 'src/shared/containers/ProcessWrapper.module.css';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
@@ -27,7 +30,8 @@ const ProcessWrapper = () => {
   window['instanceId'] = instanceIdFromUrl;
 
   const [searchParams] = useSearchParams();
-  const pdf = searchParams.get('pdf') === '1';
+  const renderPDF = searchParams.get('pdf') === '1';
+  const previewPDF = searchParams.get('pdf') === 'preview';
 
   React.useEffect(() => {
     if (!instantiating && !instanceId) {
@@ -47,7 +51,7 @@ const ProcessWrapper = () => {
   }
   const { taskType } = process;
 
-  if (pdf) {
+  if (renderPDF) {
     return (
       <PDFView
         appName={appName as string}
@@ -57,30 +61,46 @@ const ProcessWrapper = () => {
   }
 
   return (
-    <Presentation
-      header={appName}
-      appOwner={appOwner}
-      type={taskType}
-    >
-      {isLoading === false ? (
-        <>
-          {taskType === ProcessTaskType.Data && <Form />}
-          {taskType === ProcessTaskType.Archived && <Receipt />}
-          {taskType === ProcessTaskType.Confirm &&
-            (behavesLikeDataTask(process.taskId, layoutSets) ? <Form /> : <Confirm />)}
-          {taskType === ProcessTaskType.Feedback && <Feedback />}
-        </>
-      ) : (
-        <div style={{ marginTop: '2.5rem' }}>
-          <AltinnContentLoader
-            width='100%'
-            height={700}
-          >
-            <AltinnContentIconFormData />
-          </AltinnContentLoader>
+    <>
+      <div
+        className={cn(css['content'], {
+          [css['hide-form']]: previewPDF,
+        })}
+      >
+        <Presentation
+          header={appName}
+          appOwner={appOwner}
+          type={taskType}
+        >
+          {isLoading === false ? (
+            <>
+              {taskType === ProcessTaskType.Data && <Form />}
+              {taskType === ProcessTaskType.Archived && <Receipt />}
+              {taskType === ProcessTaskType.Confirm &&
+                (behavesLikeDataTask(process.taskId, layoutSets) ? <Form /> : <Confirm />)}
+              {taskType === ProcessTaskType.Feedback && <Feedback />}
+            </>
+          ) : (
+            <div style={{ marginTop: '2.5rem' }}>
+              <AltinnContentLoader
+                width='100%'
+                height={700}
+              >
+                <AltinnContentIconFormData />
+              </AltinnContentLoader>
+            </div>
+          )}
+        </Presentation>
+      </div>
+      {previewPDF && (
+        <div className={cn(css['content'], css['hide-pdf'])}>
+          <PDFView
+            appName={appName as string}
+            appOwner={appOwner}
+          />
         </div>
       )}
-    </Presentation>
+    </>
   );
 };
 

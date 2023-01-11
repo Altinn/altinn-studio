@@ -61,8 +61,6 @@ const PDFView = ({ appName, appOwner }: PDFViewProps) => {
   }
 
   const pdfLayout = pdfLayoutName ? layouts[pdfLayoutName] : undefined;
-
-  document.body.style.backgroundColor = 'white';
   return (
     <div className={css['pdf-wrapper']}>
       <h1 className={cn({ [css['title-margin']]: !appOwner })}>{appName}</h1>
