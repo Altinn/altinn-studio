@@ -1,7 +1,6 @@
+#nullable enable
 using Altinn.ResourceRegistry.Core.Enums;
 using Altinn.ResourceRegistry.Core.Models;
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Altinn.ResourceRegistry.Models
@@ -14,37 +13,37 @@ namespace Altinn.ResourceRegistry.Models
         /// <summary>
         /// The identifier of the resource
         /// </summary>
-        public string Identifier { get; set; }
+        public string Identifier { get; set; } = default!;
 
         /// <summary>
         /// The title of service
         /// </summary>
-        public Dictionary<string, string> Title { get; set; }
+        public Dictionary<string, string> Title { get; set; } = default!;
 
         /// <summary>
         /// Description
         /// </summary>
-        public Dictionary<string, string> Description { get; set; }
+        public Dictionary<string, string> Description { get; set; } = default!;
 
         /// <summary>
         /// Description explaining the rights a recipient will receive if given access to the resource
         /// </summary>
-        public Dictionary<string, string> RightDescription { get; set;  }
+        public Dictionary<string, string> RightDescription { get; set;  } = default!;
 
         /// <summary>
         /// The homepage
         /// </summary>
-        public string Homepage { get; set; }    
+        public string Homepage { get; set; } = default!;
 
         /// <summary>
         /// The status
         /// </summary>
-        public string Status { get; set; }
+        public string Status { get; set; } = default!;
 
         /// <summary>
         /// When the resource is available from
         /// </summary>
-        public DateTime ValidFrom { get; set; } 
+        public DateTime ValidFrom { get; set; }
 
         /// <summary>
         /// When the resource is available to
@@ -54,7 +53,7 @@ namespace Altinn.ResourceRegistry.Models
         /// <summary>
         /// IsPartOf
         /// </summary>
-        public string IsPartOf { get; set; }
+        public string IsPartOf { get; set; } = default!;
 
         /// <summary>
         /// IsPublicService
@@ -69,7 +68,7 @@ namespace Altinn.ResourceRegistry.Models
         /// <summary>
         /// ResourceReference
         /// </summary>
-        public List<ResourceReference> ResourceReferences { get; set; }
+        public List<ResourceReference> ResourceReferences { get; set; } = default!;
 
         /// <summary>
         /// IsComplete
@@ -79,17 +78,17 @@ namespace Altinn.ResourceRegistry.Models
         /// <summary>
         /// HasCompetentAuthority
         /// </summary>
-        public CompetentAuthority HasCompetentAuthority { get; set; }
+        public CompetentAuthority HasCompetentAuthority { get; set; } = default!;
 
         /// <summary>
         /// Keywords
         /// </summary>
-        public List<Keyword> Keywords { get; set; }
+        public List<Keyword> Keywords { get; set; } = default!;
 
         /// <summary>
         /// Sector
         /// </summary>
-        public List<string> Sector { get; set; }
+        public List<string> Sector { get; set; } = default!;
 
         /// <summary>
         /// ResourceType

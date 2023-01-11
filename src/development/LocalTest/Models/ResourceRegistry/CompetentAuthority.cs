@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+#nullable enable
 
 namespace Altinn.ResourceRegistry.Core.Models
 {
@@ -14,12 +10,12 @@ namespace Altinn.ResourceRegistry.Core.Models
         /// <summary>
         /// The organization number
         /// </summary>
-        public string Organization { get; set; }
+        public string Organization { get; set; } = default!;
 
         /// <summary>
         /// The organization code
         /// </summary>
-        public string Orgcode { get; set; }
+        public string Orgcode { get; set; } = default!;
 
         /// <summary>
         /// The organization name. If not set it will be retrived from register based on Organization number

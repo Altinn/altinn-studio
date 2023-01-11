@@ -62,7 +62,7 @@ namespace Altinn.ResourceRegistry.Core
         }
 
         /// <inheritdoc/>
-        public async Task<bool> StorePolicy(ServiceResource serviceResources, Stream fileStream)
+        public Task<bool> StorePolicy(ServiceResource serviceResources, Stream fileStream)
         {
             throw new NotImplementedException();
         }

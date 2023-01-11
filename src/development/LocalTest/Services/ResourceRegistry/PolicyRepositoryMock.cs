@@ -7,15 +7,15 @@ namespace ResourceRegistryTest.Mocks
 {
     public class PolicyRepositoryMock : IPolicyRepository
     {
-        public async Task<Stream> GetPolicyAsync(string resourceId)
+        public Task<Stream> GetPolicyAsync(string resourceId)
         {
             resourceId = Path.Combine(GetPolicyContainerPath(), resourceId, "resourcepolicy.xml");
             if (File.Exists(resourceId))
             {
-                return new FileStream(resourceId, FileMode.Open, FileAccess.Read, FileShare.Read); 
+                return Task.FromResult((Stream)new FileStream(resourceId, FileMode.Open, FileAccess.Read, FileShare.Read));
             }
 
-            return null;
+            return Task.FromResult<Stream>(null);
         }
 
         public Task<Stream> GetPolicyVersionAsync(string filepath, string version)
