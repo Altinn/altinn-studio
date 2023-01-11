@@ -1,18 +1,18 @@
 import React from 'react';
-import { CircularProgress } from '@mui/material';
-import { getLanguageFromKey } from 'app-shared/utils/language';
+import classes from './appReleaseComponent.module.css';
 import type {
   IAppReleaseErrors,
   IBuild,
   IRelease,
 } from '../../../sharedResources/appRelease/types';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
-import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
-import { useAppSelector } from '../../../common/hooks';
-import { gitCommitPath } from 'app-shared/api-paths';
-import { useParams } from 'react-router-dom';
-import classes from './appReleaseComponent.module.css';
+import { CircularProgress } from '@mui/material';
 import { formatDateTime } from 'app-shared/pure/date-format';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
+import { gitCommitPath } from 'app-shared/api-paths';
+import { useAppSelector } from '../../../common/hooks';
+import { useParams } from 'react-router-dom';
 
 interface IAppReleaseComponent {
   release: IRelease;
@@ -32,14 +32,7 @@ export function ReleaseComponent(props: IAppReleaseComponent) {
       return <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`} />;
     }
     if (status.status !== BuildStatus.completed) {
-      return (
-        <CircularProgress
-          classes={{
-            root: classes.spinnerRoot,
-          }}
-          size='2.4rem'
-        />
-      );
+      return <CircularProgress classes={{ root: classes.spinnerRoot }} size='2.4rem' />;
     }
     return null;
   }
@@ -61,11 +54,11 @@ export function ReleaseComponent(props: IAppReleaseComponent) {
   const { org, app } = useParams();
   return (
     <div className={classes.releaseWrapper}>
-      <div>
-        <div className={classes.releaseRow}>
+      <div className={classes.releaseRow}>
+        <div>
           {getLanguageFromKey('app_release.release_version', language)} {release.tagName}
         </div>
-        <div className={classes.releaseRow}>{formatDateTime(release.created)}</div>
+        <time dateTime={release.created}>{formatDateTime(release.created)}</time>
       </div>
       <div className={classes.releaseRow}>
         <div>

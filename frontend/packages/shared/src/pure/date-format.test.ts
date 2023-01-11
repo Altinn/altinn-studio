@@ -1,4 +1,9 @@
-import { formatDateDDMMYY, formatDateTime, formatTimeHHmm } from 'app-shared/pure/date-format';
+import {
+  formatDateDDMMYY,
+  formatDateTime,
+  formatTimeHHmm,
+  addMinutesToTime,
+} from 'app-shared/pure/date-format';
 
 test('that formatTimeHHmm works', () => {
   const formatted = formatTimeHHmm(
@@ -24,4 +29,12 @@ test('that formatDateTime works', () => {
     'Tue Jan 10 2023 13:23:45 GMT+0100 (Central European Standard Time)'
   );
   expect(formatted).toBe('10.01.2023 13:23');
+});
+
+test('that addMinutesToTime works', () => {
+  const formatted = addMinutesToTime(
+    'Tue Jan 10 2023 13:23:45 GMT+0100 (Central European Standard Time)',
+    30
+  );
+  expect(formatDateTime(formatted.toString())).toBe('10.01.2023 13:53');
 });

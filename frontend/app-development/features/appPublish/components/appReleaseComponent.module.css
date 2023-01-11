@@ -26,4 +26,6 @@
   font-size: 1.6rem;
   word-break: break-word;
   word-wrap: normal;
+  display: flex;
+  justify-content: space-between;
 }

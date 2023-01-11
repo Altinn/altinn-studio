@@ -14,3 +14,6 @@ export const formatDateDDMMYY = (dateasstring: string) =>
 
 export const formatDateTime = (dateasstring: string) =>
   [formatDateDDMMYY(dateasstring), formatTimeHHmm(dateasstring)].join(' ');
+
+export const addMinutesToTime = (datestring: string, minutes: number) =>
+  new Date(new Date(datestring).getTime() + minutes * 60000);

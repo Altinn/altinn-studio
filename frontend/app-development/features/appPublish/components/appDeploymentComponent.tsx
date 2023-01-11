@@ -1,6 +1,5 @@
 import React, { createRef, useCallback, useEffect, useState } from 'react';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import moment from 'moment';
 import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import { AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
 import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
@@ -14,7 +13,7 @@ import type {
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
 import classes from './appDeploymentComponent.module.css';
-import { formatDateTime, formatTimeHHmm } from 'app-shared/pure/date-format';
+import { addMinutesToTime, formatDateTime, formatTimeHHmm } from 'app-shared/pure/date-format';
 import {
   Button,
   Table,
@@ -168,11 +167,7 @@ export const AppDeploymentComponent = ({
     );
 
     if (deployHistory && deployHistory[0] && deployHistory[0].created) {
-      const now = moment();
-      const deployCreatedPlusOneHour = moment(new Date(deployHistory[0].created)).add(60, 'm');
-      now < deployCreatedPlusOneHour
-        ? setShouldDisplayDeployStatus(true)
-        : setShouldDisplayDeployStatus(false);
+      setShouldDisplayDeployStatus(new Date() < addMinutesToTime(deployHistory[0].created, 60));
     }
 
     if (

@@ -1,23 +1,25 @@
+import type { KeyboardEvent, MouseEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import classes from './releaseContainer.module.css';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
-import type { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
-import type { IRelease } from '../../../sharedResources/appRelease/types';
-import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
-import type { MouseEvent, KeyboardEvent } from 'react';
-import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
+import type { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
+import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
+import type { IRelease } from '../../../sharedResources/appRelease/types';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
+import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { CircularProgress, Popover } from '@mui/material';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
-import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
-import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import { frontendLangPath, gitCommitPath, repoStatusPath } from 'app-shared/api-paths';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useAppDispatch, useAppSelector, useMediaQuery } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
+import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { Upload, SuccessStroke } from '@navikt/ds-icons';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
@@ -153,13 +155,13 @@ export function ReleaseContainer() {
       !handleMergeConflict.repoStatus.contentStatus.length ||
       !appReleases.releases.length
     ) {
-      return null;
+      return <SuccessStroke />;
     }
     if (
       !!handleMergeConflict.repoStatus.contentStatus ||
       !!handleMergeConflict.repoStatus.aheadBy
     ) {
-      return <i className='fa fa-circle-upload' />;
+      return <Upload />;
     }
     return null;
   }
@@ -242,22 +244,21 @@ export function ReleaseContainer() {
             {getLanguageFromKey('app_release.release_tab_versions', language)}
           </div>
         </div>
-        <div className={classes.appCreateReleaseWrapper}>
-          <div>
-            <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-            <button
-              className={classes.appCreateReleaseStatusIcon}
-              onClick={handlePopoverOpenClicked}
-              onMouseOver={handlePopoverOpenHover}
-              onMouseLeave={handlePopoverClose}
-              tabIndex={0}
-              onKeyPress={handlePopoverKeyPress}
-            >
-              {renderStatusIcon()}
-            </button>
-          </div>
-          <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
+        <div className={classes.versionSubHeader}>
+          <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
+          <Button
+            className={classes.appCreateReleaseStatusIcon}
+            onClick={handlePopoverOpenClicked}
+            onMouseOver={handlePopoverOpenHover}
+            onMouseLeave={handlePopoverClose}
+            tabIndex={0}
+            onKeyPress={handlePopoverKeyPress}
+            icon={renderStatusIcon()}
+            size={ButtonSize.Small}
+            variant={ButtonVariant.Quiet}
+          />
         </div>
+        <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
         <div className={classes.appReleaseHistoryTitle}>
           {getLanguageFromKey('app_release.earlier_releases', language)}
         </div>

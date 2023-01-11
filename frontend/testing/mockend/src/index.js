@@ -49,7 +49,9 @@ module.exports = (middlewares, devServer) => {
   app.get('/designer/api/v1/:org/:app/Deployments', fixtureRoute('Deployments'));
   app.get('/designer/api/v1/:org/:app/deployments/permissions', fixtureRoute('permissions'));
   app.get('/designer/api/v1/:org/:app/releases', fixtureRoute('releases'));
+  app.get('/designer/api/v1/repos/:org/:app/branches/branch', require('./routes/get-branch'));
   app.get('/designer/api/v1/repos/:org/:app/status', fixtureRoute('status'));
   app.post('/designer/api/v1/:org/:app/Deployments', require('./routes/create-deployment'));
+  app.post('/designer/api/v1/:org/:app/releases', require('./routes/create-release'));
   return middlewares;
 };
