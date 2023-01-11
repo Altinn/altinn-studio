@@ -1,7 +1,7 @@
 import React, { createRef, useCallback, useEffect, useState } from 'react';
-import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import { AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
+import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
