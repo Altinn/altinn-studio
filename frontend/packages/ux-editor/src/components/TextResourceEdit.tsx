@@ -26,7 +26,7 @@ export const TextResourceEdit = () => {
     <FieldSet
       legend={t('ux_editor.edit_text_resource')}
       description={t('ux_editor.field_id').replace('{id}', editId)}
-      contentClass={classes.textBoxList}
+      contentClassName={classes.textBoxList}
     >
       {languages.map((language) => (
         <TextBox

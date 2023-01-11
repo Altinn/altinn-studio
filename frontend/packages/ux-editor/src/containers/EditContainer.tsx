@@ -64,6 +64,7 @@ export function EditContainer(props: IEditContainerProps) {
 
   const previewableComponents = [
     ComponentTypes.Checkboxes,
+    ComponentTypes.RadioButtons,
   ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
 
   const isPreviewable = previewableComponents.includes(component.type as ComponentTypes);

@@ -1,27 +1,30 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { CheckboxGroup } from '@digdir/design-system-react';
-import { IFormCheckboxComponent } from '../../../types/global';
-import classes from './CheckboxGroupPreview.module.css';
+import { RadioGroup } from '@digdir/design-system-react';
+import { IFormRadioButtonComponent } from '../../../types/global';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import classes from './RadioGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
 import { useText } from '../../../hooks';
 import {
   changeComponentOptionLabel,
   changeDescriptionBinding,
-  changeTitleBinding
+  changeTitleBinding,
 } from '../../../utils/component';
 import { AddOption } from '../../../components/AddOption';
 
-export interface CheckboxGroupPreviewProps extends IGenericEditComponent {
-  component: IFormCheckboxComponent;
+export interface RadioGroupPreviewProps extends IGenericEditComponent {
+  component: IFormRadioButtonComponent;
 }
 
-export const CheckboxGroupPreview = ({
+export const RadioGroupPreview = ({
   component,
   handleComponentChange,
-}: CheckboxGroupPreviewProps) => {
+}: RadioGroupPreviewProps) => {
   const t = useText();
-  const tCheckboxes = (key: string) => t(`ux_editor.checkboxes_${key}`);
+  const tRadios = (key: string) => t(`ux_editor.radios_${key}`);
+
+  const radioGroupName = useRef(generateRandomId(12));
 
   const changeOptionLabel = (value: string, label: string) =>
     handleComponentChange(changeComponentOptionLabel(component, value, label));
@@ -34,11 +37,11 @@ export const CheckboxGroupPreview = ({
 
   return (
     <div className={classes.root}>
-      <CheckboxGroup
+      <RadioGroup
         legend={(
           <TextResource
             handleIdChange={changeLegend}
-            placeholder={tCheckboxes('legend_placeholder')}
+            placeholder={tRadios('legend_placeholder')}
             previewMode
             textResourceId={component.textResourceBindings?.title}
           />
@@ -46,27 +49,28 @@ export const CheckboxGroupPreview = ({
         description={(
           <TextResource
             handleIdChange={changeDescription}
-            placeholder={tCheckboxes('description_placeholder')}
+            placeholder={tRadios('description_placeholder')}
             previewMode
             textResourceId={component.textResourceBindings?.description}
           />
         )}
         items={component.options?.map(({value, label}) => ({
-          name: value,
+          value,
           label: (
             <TextResource
               handleIdChange={(id) => changeOptionLabel(value, id)}
-              placeholder={tCheckboxes('option_label_placeholder')}
+              placeholder={tRadios('option_label_placeholder')}
               previewMode
               textResourceId={label}
             />
           ),
         })) || []}
+        name={radioGroupName.current}
         presentation
       />
       {!component.optionsId && (
         <AddOption
-          addButtonClass={classes.addCheckbox}
+          addButtonClass={classes.addRadioButton}
           component={component}
           handleComponentChange={handleComponentChange}
         />

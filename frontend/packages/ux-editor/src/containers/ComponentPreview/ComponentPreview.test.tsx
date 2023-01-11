@@ -1,7 +1,7 @@
 import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { ComponentPreview, ComponentPreviewProps } from './ComponentPreview';
-import { FormComponentType, IFormCheckboxComponent } from '../../types/global';
+import { FormComponentType, IFormCheckboxComponent, IFormRadioButtonComponent } from '../../types/global';
 import { ComponentTypes } from '../../components';
 
 // Test data:
@@ -16,6 +16,10 @@ const defaultProps: ComponentPreviewProps = {
 const checkboxGroupPreviewId = 'CheckboxGroupPreview';
 jest.mock('./CheckboxGroupPreview', () => ({
   CheckboxGroupPreview: () => <div data-testid={checkboxGroupPreviewId} />
+}));
+const radioGroupPreviewId = 'RadioGroupPreview';
+jest.mock('./RadioGroupPreview', () => ({
+  RadioGroupPreview: () => <div data-testid={radioGroupPreviewId} />
 }));
 
 describe('ComponentPreview', () => {
@@ -32,6 +36,17 @@ describe('ComponentPreview', () => {
     expect(screen.getByTestId(checkboxGroupPreviewId)).toBeInTheDocument();
   });
 
+  it('Renders RadioGroupPreview when component type is RadioButtons', () => {
+    const radiosComponent: IFormRadioButtonComponent = {
+      ...component,
+      options: [],
+      optionsId: '1',
+      type: ComponentTypes.RadioButtons,
+    };
+    render({ component: radiosComponent });
+    expect(screen.getByTestId(radioGroupPreviewId)).toBeInTheDocument();
+  });
+
   it.each([
     ComponentTypes.AddressComponent,
     ComponentTypes.AttachmentList,
@@ -46,9 +61,9 @@ describe('ComponentPreview', () => {
     ComponentTypes.Input,
     ComponentTypes.NavigationBar,
     ComponentTypes.NavigationButtons,
+    ComponentTypes.Map,
     ComponentTypes.Panel,
     ComponentTypes.Paragraph,
-    ComponentTypes.RadioButtons,
     ComponentTypes.TextArea,
     ComponentTypes.ThirdParty,
   ])('Renders error text when component type is %s', (type: ComponentTypes) => {

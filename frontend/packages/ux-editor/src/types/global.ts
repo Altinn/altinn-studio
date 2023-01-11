@@ -3,6 +3,7 @@ import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IErrorState } from '../features/error/errorSlice';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import type { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
+import { ComponentTypes } from '../components';
 
 export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
   formDesigner: T1;
@@ -84,25 +85,29 @@ export interface IFormComponent extends ICreateFormComponent {
 }
 
 export interface IFormHeaderComponent extends IFormComponent {
+  type: ComponentTypes.Header;
   size: string;
 }
 
 export interface IFormInputComponent extends IFormComponent {
-  type: string;
+  type: ComponentTypes.Input;
   disabled?: boolean;
 }
 
 export interface IFormCheckboxComponent extends IFormComponent {
+  type: ComponentTypes.Checkboxes;
   options: IOptions[];
   preselectedOptionIndex?: number;
   optionsId: string;
 }
 
 export interface IFormButtonComponent extends IFormComponent {
+  type: ComponentTypes.Button;
   onClickAction: () => void;
 }
 
 export interface IFormRadioButtonComponent extends IFormComponent {
+  type: ComponentTypes.RadioButtons;
   options: IOptions[];
   preselectedOptionIndex?: number;
   optionsId: string;
@@ -115,10 +120,12 @@ export interface IFormGenericOptionsComponent extends IFormComponent {
 }
 
 export interface IFormDropdownComponent extends IFormComponent {
+  type: ComponentTypes.Dropdown;
   optionsId: string;
 }
 
 export interface IFormFileUploaderComponent extends IFormComponent {
+  type: ComponentTypes.FileUpload;
   description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
@@ -129,6 +136,7 @@ export interface IFormFileUploaderComponent extends IFormComponent {
 }
 
 export interface IFormFileUploaderWithTagComponent extends IFormComponent {
+  type: ComponentTypes.FileUploadWithTag;
   description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
@@ -151,6 +159,7 @@ export interface IProperties extends IFormComponent {
 }
 
 export interface IFormImageComponent extends IFormComponent {
+  type: ComponentTypes.Image;
   image?: {
     src?: {
       [lang: string]: string;
@@ -161,25 +170,30 @@ export interface IFormImageComponent extends IFormComponent {
 }
 
 export interface IFormAddressComponent extends IFormComponent {
+  type: ComponentTypes.AddressComponent;
   simplified: boolean;
 }
 
 export interface IFormGroupComponent extends IFormComponent {
+  type: ComponentTypes.Group;
   maxCount: number;
   children: string[];
 }
 
 export interface IFormDatepickerComponent extends IFormComponent {
+  type: ComponentTypes.Datepicker;
   timeStamp: boolean;
 }
 
 export interface IThirdPartyComponent extends IFormComponent {
+  type: ComponentTypes.ThirdParty;
   tagName: string;
   framework: string;
   [id: string]: any;
 }
 
 export interface PanelComponent extends IFormComponent {
+  type: ComponentTypes.Panel;
   variant: {
     title: string;
     description: string;
@@ -196,6 +210,7 @@ export interface PanelComponent extends IFormComponent {
 }
 
 export interface MapComponent extends IFormComponent {
+  type: ComponentTypes.Map;
   centerLocation: {
     latitude: number;
     longitude: number;
