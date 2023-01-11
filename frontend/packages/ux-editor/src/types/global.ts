@@ -195,6 +195,19 @@ export interface PanelComponent extends IFormComponent {
   };
 }
 
+export interface MapComponent extends IFormComponent {
+  centerLocation: {
+    latitude: number;
+    longitude: number;
+  };
+  zoom: number;
+  layers?: {
+    url: string;
+    attribution?: string;
+    subdomains?: string[];
+  }[];
+}
+
 export type FormComponentType =
   | IFormComponent
   | IFormHeaderComponent
@@ -209,7 +222,8 @@ export type FormComponentType =
   | IFormImageComponent
   | IFormDatepickerComponent
   | IThirdPartyComponent
-  | PanelComponent;
+  | PanelComponent
+  | MapComponent;
 
 export interface IFormDesignerComponents {
   [id: string]: IFormComponent;

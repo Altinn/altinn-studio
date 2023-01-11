@@ -88,6 +88,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     case ComponentTypes.Panel: {
       return language['ux_editor.component_information_panel'];
     }
+    case ComponentTypes.Map: {
+      return language['ux_editor.component_map'];
+    }
     default: {
       return '';
     }

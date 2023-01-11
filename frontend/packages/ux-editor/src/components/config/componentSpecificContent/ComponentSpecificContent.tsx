@@ -9,6 +9,7 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentTypes } from '../..';
 import { useText } from '../../../hooks';
 import type { IFormImageComponent } from '../../../types/global';
+import { MapComponent } from './Map';
 
 export function ComponentSpecificContent({
   component,
@@ -62,6 +63,15 @@ export function ComponentSpecificContent({
             handleComponentChange={handleComponentChange}
           />
         </>
+      );
+    }
+
+    case ComponentTypes.Map: {
+      return (
+        <MapComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+        />
       );
     }
     default: {
