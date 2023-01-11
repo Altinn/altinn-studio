@@ -142,6 +142,16 @@ export const AppDeploymentComponent = ({
   }, [deployButtonRef, deployError, language, popoverState]);
 
   useEffect(() => {
+    setSucceededDeployHistory(
+      deployHistory.filter(
+        (deployment: IDeployment) =>
+          deployment.build.result === DeploymentStatus.succeeded &&
+          deployment.build.finished !== null
+      )
+    );
+  }, [deployHistory]);
+
+  useEffect(() => {
     if (deployHistory && deployHistory[0] && deployHistory[0].build.finished === null) {
       setDeployInProgress(true);
       setDeploymentStatus(DeploymentStatus.inProgress);
@@ -157,14 +167,6 @@ export const AppDeploymentComponent = ({
       setDeployInProgress(false);
       setDeploymentStatus(null);
     }
-
-    setSucceededDeployHistory(
-      deployHistory.filter(
-        (deployment: IDeployment) =>
-          deployment.build.result === DeploymentStatus.succeeded &&
-          deployment.build.finished !== null
-      )
-    );
 
     if (deployHistory && deployHistory[0] && deployHistory[0].created) {
       setShouldDisplayDeployStatus(new Date() < addMinutesToTime(deployHistory[0].created, 60));
