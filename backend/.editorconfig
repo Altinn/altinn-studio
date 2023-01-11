@@ -184,7 +184,7 @@ end_of_line = lf
 end_of_line = crlf
 
 # Setting up for tests classes
-[{tests/**.cs}]
+[tests/**.cs]
 # CA1018: Mark attributes with AttributeUsageAttribute
 dotnet_diagnostic.CA1018.severity = suggestion
 # CA1507: Use nameof to express symbol names
