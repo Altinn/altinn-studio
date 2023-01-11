@@ -9,7 +9,7 @@ pr: none
 
 variables:
   cyCacheDir: "/home/AzDevOps/.cache/Cypress"
-  cypressTestDir: "$(Build.SourcesDirectory)/frontend/test/cypress"
+  cypressTestDir: "$(Build.SourcesDirectory)/frontend/testing/cypress"
 
 schedules:
 - cron: "10,25,40,55 * * * *"
