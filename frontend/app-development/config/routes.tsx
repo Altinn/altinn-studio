@@ -4,7 +4,6 @@ import { Administration } from '../features/administration/components/Administra
 import { TextEditor } from '../features/textEditor';
 import DeployPage from '../features/appPublish/pages/deployPage';
 import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
-import { IFrame } from '../features/iFrame/IFrameComponent';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 
@@ -41,48 +40,12 @@ const routes: IRoute[] = [
     subapp: SubApp,
   },
   {
-    path: '/:org/:app/texts',
-    exact: true,
-    activeSubHeaderSelection: TopBarMenu.Text,
-    activeLeftMenuSelection: 'Tekster',
-    menu: 'language',
-    subapp: IFrame,
-    props: {
-      headerTextKey: 'shared.wip_title',
-      subtext1TextKey: 'shared.wip_subtext_1',
-      subtext2TextKey: 'shared.wip_subtext_2',
-      linkTextKey: 'shared.wip_link_text',
-      urlKey: 'shared.wip_link_github_url',
-      imageSource: '../../designer/img/illustration-help-circle.svg',
-      shadow: true,
-      iframeEndingUrl: 'Text',
-    },
-  },
-  {
     path: '/:org/:app',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.About,
     activeLeftMenuSelection: 'Om appen',
     menu: 'about',
     subapp: Administration,
-  },
-  {
-    path: '/:org/:app/datamodel-old',
-    exact: true,
-    activeSubHeaderSelection: TopBarMenu.Datamodel,
-    activeLeftMenuSelection: '',
-    menu: 'datamodel',
-    subapp: IFrame,
-    props: {
-      headerTextKey: 'shared.wip_title',
-      subtext1TextKey: 'shared.wip_subtext_1',
-      subtext2TextKey: 'shared.wip_subtext_2',
-      linkTextKey: 'shared.wip_link_text',
-      urlKey: 'shared.wip_link_github_url',
-      imageSource: '../../designer/img/illustration-help-circle.svg',
-      shadow: true,
-      iframeEndingUrl: 'Model',
-    },
   },
   {
     path: '/:org/:app/datamodel',
@@ -129,9 +92,10 @@ const routes: IRoute[] = [
     },
   },
   {
+    activeSubHeaderSelection: TopBarMenu.Text,
+    activeLeftMenuSelection: 'Tekster',
     path: '/:org/:app/text-editor',
     exact: true,
-    activeSubHeaderSelection: TopBarMenu.Text,
     menu: 'texts',
     subapp: TextEditor,
   },

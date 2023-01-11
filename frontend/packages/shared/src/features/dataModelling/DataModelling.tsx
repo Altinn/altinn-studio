@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Button, ButtonColor, ButtonVariant, Panel } from '@altinn/altinn-design-system';
 import { SchemaEditorApp } from '@altinn/schema-editor/index';
-import type { ILanguage } from '@altinn/schema-editor/types';
 import { createDataModel, deleteDataModel, fetchDataModel, saveDataModel } from './sagas';
 import { createDataModelMetadataOptions } from './functions/createDataModelMetadataOptions';
 import { findPreferredMetadataOption } from './functions/findPreferredMetadataOption';
@@ -11,6 +10,7 @@ import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
 import type { IMetadataOption } from './functions/types';
 import { LandingPagePanel } from './components/LandingPagePanel';
 import { Dialog } from '@mui/material';
+import type { LanguageTree } from 'app-shared/utils/language';
 import { getLanguageFromKey } from '../../utils/language';
 import { getLocalStorageItem, setLocalStorageItem } from './functions/localStorage';
 import { CreateNewWrapper } from './components/CreateNewWrapper';
@@ -21,7 +21,7 @@ import { datamodelPath } from '../../api-paths';
 import classes from './DataModelling.module.css';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
-  language: ILanguage;
+  language: LanguageTree;
   org: string;
   repo: string;
   createPathOption?: boolean;

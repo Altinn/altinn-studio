@@ -1,10 +1,6 @@
+export { LanguageTree as ILanguage } from 'app-shared/utils/language';
 /** Interfaces */
 import type { UiSchemaNodes } from '@altinn/schema-model';
-
-export interface ILanguage {
-  [key: string]: string | ILanguage;
-}
-
 export interface IJsonSchema {
   properties?: { [key: string]: { [key: string]: any } };
   $defs?: { [key: string]: { [key: string]: any } };

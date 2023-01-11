@@ -2,11 +2,15 @@ import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import ReactHtmlParser from 'react-html-parser';
 
-export function getLanguageFromKey(key: string, language: any) {
+export interface LanguageTree {
+  [key: string]: string | LanguageTree;
+}
+
+export function getLanguageFromKey(key: string, language: LanguageTree) {
   if (!key) {
     return key;
   }
-  return language[key] || key;
+  return (language[key] || key) as string;
 }
 
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}

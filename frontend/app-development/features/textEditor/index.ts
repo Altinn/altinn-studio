@@ -1,1 +1,1 @@
-export { TextEditorImpl as TextEditor } from './TextEditor';
+export { TextEditor } from './TextEditor';

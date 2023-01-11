@@ -33,15 +33,9 @@ export const menu: TopBarMenuItem[] = [
   },
   {
     key: TopBarMenu.Text,
-    link: '/:org/:app/texts',
+    link: '/:org/:app/text-editor',
     repositoryTypes: [RepositoryType.App],
   },
-  // Replace item above with this one once new text editor is ready for use
-  // {
-  //   key: TopBarMenu.Text,
-  //   link: '/:org/:app/text-editor',
-  //   repositoryTypes: [RepositoryType.App],
-  // },
   {
     key: TopBarMenu.Deploy,
     link: '/:org/:app/deploy',
