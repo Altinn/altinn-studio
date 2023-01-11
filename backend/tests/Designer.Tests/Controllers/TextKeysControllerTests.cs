@@ -193,7 +193,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
         {
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(8, keys.Count);
-            Assert.False(keys.Contains("AlreadyExistingKey"));
+            Assert.DoesNotContain("AlreadyExistingKey", keys);
         }
         finally
         {
