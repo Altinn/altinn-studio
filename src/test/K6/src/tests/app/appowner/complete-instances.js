@@ -1,9 +1,9 @@
-/*  Environment variables for test environments: 
+/*  Environment variables for test environments:
     -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script sets complete confirmation as app owner on all the archived instances from today from a specific app.
 
-    example: k6 run /src/tests/app/appowner/complete-instances.js 
+    example: k6 run /src/tests/app/appowner/complete-instances.js
     -e env=test -e appsaccesskey=*** -e maskinporten=token
 */
 
@@ -12,7 +12,7 @@ import * as storageInstances from '../../../api/platform/storage/instances.js';
 import * as appInstances from '../../../api/app/instances.js';
 import * as setUpData from '../../../setup.js';
 import * as support from '../../../support.js';
-import { addErrorCount } from '../../../errorcounter.js';
+import { addErrorCount, stopIterationOnFail } from '../../../errorcounter.js';
 
 const appOwner = __ENV.org;
 const appName = __ENV.level2app;
@@ -53,6 +53,7 @@ export default function (data) {
         'Instance is confirmed complete': (r) => r.status === 200,
       });
       addErrorCount(success);
+      stopIterationOnFail('Complete confirm instances as app owner');
     });
   }
 }
