@@ -65,8 +65,13 @@ export default function (data) {
     'instanceOwner.partyId': partyId,
   };
   res = instances.getAllinstancesWithFilters(runtimeToken, filters);
+
+  const firstInstance = JSON.parse(res.body).instances[0];
+  const instanceIdSplit = firstInstance["id"].split('/');
+
   success = check(res, {
     'GET Instances by instanceOwner status is 200': (r) => r.status === 200,
+    'GET Instances by instanceOwner instanceId has expected format': instanceIdSplit.length === 2
   });
   addErrorCount(success);
 
