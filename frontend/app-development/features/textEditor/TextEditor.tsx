@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { LangCode, TextResourceFile } from '@altinn/text-editor';
-import { TextEditor as TextEditorImpl } from '@altinn/text-editor';
+import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { AltinnSpinner } from 'app-shared/components';
@@ -23,7 +23,7 @@ interface TextEditorProps extends React.PropsWithChildren<any> {
 }
 const storageGroupName = 'textEditorStorage';
 export const TextEditor = ({ language }: TextEditorProps) => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams({ lang: defaultLangCode });
   const selectedLangCode = searchParams.get('lang');
   const getSearchQuery = () => searchParams.get('search') || '';
   const orgApp = getOrgApp();
