@@ -194,19 +194,15 @@ interface SaveDataParams {
 
 export function* saveStatelessData({ state, model, field, componentId }: SaveDataParams) {
   const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
-  let options: AxiosRequestConfig = {
-    headers: {
-      'X-DataField': (field && encodeURIComponent(field)) || 'undefined',
-      'X-ComponentId': (componentId && encodeURIComponent(componentId)) || 'undefined',
-    },
+  let headers: AxiosRequestConfig['headers'] = {
+    'X-DataField': (field && encodeURIComponent(field)) || 'undefined',
+    'X-ComponentId': (componentId && encodeURIComponent(componentId)) || 'undefined',
   };
   if (!allowAnonymous) {
     const selectedPartyId = state.party.selectedParty?.partyId;
-    options = {
-      headers: {
-        ...options.headers,
-        party: `partyid:${selectedPartyId}`,
-      },
+    headers = {
+      ...headers,
+      party: `partyid:${selectedPartyId}`,
     };
   }
 
@@ -216,7 +212,7 @@ export function* saveStatelessData({ state, model, field, componentId }: SaveDat
     layoutSets: state.formLayout.layoutsets,
   });
   if (currentDataType) {
-    const response = yield call(post, getStatelessFormDataUrl(currentDataType, allowAnonymous), options, model);
+    const response = yield call(post, getStatelessFormDataUrl(currentDataType, allowAnonymous), { headers }, model);
     const formData = convertModelToDataBinding(response?.data);
     yield sagaPut(FormDataActions.fetchFulfilled({ formData }));
     yield sagaPut(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));

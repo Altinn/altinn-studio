@@ -82,7 +82,7 @@ describe('Expression validation', () => {
         });
       }
 
-      const result: typeof tests['content'][number]['layouts'] = {};
+      const result: (typeof tests)['content'][number]['layouts'] = {};
       for (const page of Object.keys(t.layouts)) {
         const layout = t.layouts[page].data.layout;
         preProcessLayout(layout);

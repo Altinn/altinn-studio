@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosError, AxiosRequestConfig, AxiosResponse, RawAxiosRequestHeaders } from 'axios';
 
 export enum HttpStatusCodes {
   Ok = 200,
@@ -8,9 +8,10 @@ export enum HttpStatusCodes {
 }
 
 export async function get(url: string, options?: AxiosRequestConfig): Promise<any> {
+  const headers = options?.headers as RawAxiosRequestHeaders | undefined;
   const response: AxiosResponse = await axios.get(url, {
     ...options,
-    headers: { Pragma: 'no-cache', ...options?.headers },
+    headers: { ...headers, Pragma: 'no-cache' },
   });
   return response.data ? response.data : null;
 }

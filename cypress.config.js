@@ -2,9 +2,10 @@ const { defineConfig } = require('cypress');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 
+// noinspection JSUnusedGlobalSymbols
 module.exports = defineConfig({
   e2e: {
-    setupNodeEvents(on, config) {
+    setupNodeEvents(_, config) {
       const validEnvironments = ['local', 'at21', 'at22', 'tt02'];
 
       if (validEnvironments.includes(config.env.environment)) {
