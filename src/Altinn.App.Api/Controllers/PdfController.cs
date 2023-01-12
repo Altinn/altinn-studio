@@ -104,7 +104,6 @@ namespace Altinn.App.Api.Controllers
             layoutSettings ??= new();
             layoutSettings.Pages ??= new();
             layoutSettings.Pages.ExcludeFromPdf ??= new();
-            layoutSettings.Pages.Order ??= new();
             layoutSettings.Components ??= new();
             layoutSettings.Components.ExcludeFromPdf ??= new();
 
@@ -116,7 +115,6 @@ namespace Altinn.App.Api.Controllers
             {
                 ExcludedPages = layoutSettings.Pages.ExcludeFromPdf,
                 ExcludedComponents = layoutSettings.Components.ExcludeFromPdf,
-                PageOrder = layoutSettings.Pages.Order,
             };
             return Ok(result);
         }
