@@ -13,7 +13,6 @@ context(
   },
   () => {
     before(() => {
-      cy.visit('/');
       cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
       cy.getrepo(Cypress.env('deployApp'), Cypress.env('accessToken')).then((response) => {
         if (response.status === 404) {
@@ -23,13 +22,8 @@ context(
       });
     });
     beforeEach(() => {
+      cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
       cy.intercept('GET', '**/datamodels').as('getDatamodels');
-      Cypress.Cookies.preserveOnce(
-        'AltinnStudioDesigner',
-        'i_like_gitea',
-        'XSRF-TOKEN',
-        'AS-XSRF-TOKEN'
-      );
       cy.visit('/');
       cy.searchAndOpenApp(Cypress.env('deployApp'));
       cy.wait('@getDatamodels');
