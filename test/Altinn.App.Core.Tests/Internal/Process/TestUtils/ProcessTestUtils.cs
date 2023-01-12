@@ -8,7 +8,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Process.TestUtils;
 internal static class ProcessTestUtils
 {
     private static readonly string TestDataPath = Path.Combine("Internal", "Process", "TestData");
-    
+
     internal static ProcessReader SetupProcessReader(string bpmnfile)
     {
         Mock<IProcess> processServiceMock = new Mock<IProcess>();
