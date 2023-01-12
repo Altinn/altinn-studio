@@ -818,6 +818,12 @@
         },
         "saveWhileTyping": {
           "$ref": "#/definitions/saveWhileTyping"
+        },
+        "variant": {
+          "type":"string",
+          "title": "Input Variant",
+          "description":"An enum to choose if the inputfield it is a normal textfield or a searchbar",
+          "enum":["text","search"]
         }
       }
     },
@@ -900,6 +906,10 @@
           "type": "string",
           "title": "Binding to show in summary",
           "description": "The value of this binding will be shown in the summary component for the list. This binding must be one of the specified bindings under dataModelBindings."
+        },
+        "mapping": {
+          "$ref": "#/definitions/mapping",
+          "description": "(Optional) Used to map data model paths to query parameters when fetching list data"
         }
       },
       "required": [

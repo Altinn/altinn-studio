@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { TextField } from '@altinn/altinn-design-system';
+import { SearchField, TextField } from '@altinn/altinn-design-system';
 
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -16,6 +16,7 @@ export function InputComponent({
   formData,
   formatting,
   handleDataChange,
+  variant,
   textResourceBindings,
   saveWhileTyping,
 }: IInputProps) {
@@ -24,21 +25,34 @@ export function InputComponent({
     formData?.simpleBinding ?? '',
     saveWhileTyping,
   );
-
   const handleChange = (e) => setValue(e.target.value);
 
   return (
-    <TextField
-      id={id}
-      onBlur={saveValue}
-      onChange={handleChange}
-      onPaste={onPaste}
-      readOnly={readOnly}
-      isValid={isValid}
-      required={required}
-      value={value}
-      aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
-      formatting={formatting as IInputFormatting}
-    />
+    <>
+      {variant === 'search' ? (
+        <SearchField
+          id={id}
+          value={value}
+          onChange={handleChange}
+          onBlur={saveValue}
+          onPaste={onPaste}
+          disabled={readOnly}
+          aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
+        ></SearchField>
+      ) : (
+        <TextField
+          id={id}
+          onBlur={saveValue}
+          onChange={handleChange}
+          onPaste={onPaste}
+          readOnly={readOnly}
+          isValid={isValid}
+          required={required}
+          value={value}
+          aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
+          formatting={formatting as IInputFormatting}
+        />
+      )}
+    </>
   );
 }

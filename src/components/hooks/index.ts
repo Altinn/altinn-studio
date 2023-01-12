@@ -80,7 +80,7 @@ export const useGetDataList = ({ id }: IUseGetDataListParams) => {
   const [dataList, setDataList] = useState<any>(undefined);
   useEffect(() => {
     if (id) {
-      setDataList(dataListState[getOptionLookupKey({ id: id })]?.listItems);
+      setDataList(dataListState[id]?.listItems);
     }
   }, [id, dataListState]);
   return dataList;

@@ -5,6 +5,7 @@ import { autoSaveSaga, saveFormDataSaga, submitFormSaga } from 'src/features/for
 import { deleteAttachmentReferenceSaga, updateFormDataSaga } from 'src/features/form/data/update/updateFormDataSagas';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { checkIfRuleShouldRunSaga } from 'src/features/form/rules/check/checkRulesSagas';
+import { checkIfDataListShouldRefetchSaga } from 'src/shared/resources/dataLists/fetchDataListsSaga';
 import { checkIfOptionsShouldRefetchSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
@@ -97,7 +98,7 @@ const formDataSlice = createSagaSlice((mkAction: MkActionType<IFormDataState>) =
     }),
     updateFulfilled: mkAction<IUpdateFormDataFulfilled>({
       takeLatest: [checkIfRuleShouldRunSaga, autoSaveSaga],
-      takeEvery: checkIfOptionsShouldRefetchSaga,
+      takeEvery: [checkIfOptionsShouldRefetchSaga, checkIfDataListShouldRefetchSaga],
       reducer: (state, action) => {
         const { field, data } = action.payload;
         // Remove if data is null, undefined or empty string

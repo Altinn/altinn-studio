@@ -2,4 +2,5 @@ import type { IInputFormatting, ILayoutCompBase, ILayoutCompWillBeSavedWhileTypi
 
 export interface ILayoutCompInput extends ILayoutCompBase<'Input'>, ILayoutCompWillBeSavedWhileTyping {
   formatting?: IInputFormatting;
+  variant?: 'text' | 'search';
 }
