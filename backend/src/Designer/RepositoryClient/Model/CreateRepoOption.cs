@@ -65,43 +65,43 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Whether the repository should be auto-intialized?
         /// </summary>
-        [DataMember(Name="auto_init", EmitDefaultValue=false)]
+        [DataMember(Name = "auto_init", EmitDefaultValue = false)]
         public bool? AutoInit { get; set; }
 
         /// <summary>
         /// Description of the repository to create
         /// </summary>
-        [DataMember(Name="description", EmitDefaultValue=false)]
+        [DataMember(Name = "description", EmitDefaultValue = false)]
         public string Description { get; set; }
 
         /// <summary>
         /// Gitignores to use
         /// </summary>
-        [DataMember(Name="gitignores", EmitDefaultValue=false)]
+        [DataMember(Name = "gitignores", EmitDefaultValue = false)]
         public string Gitignores { get; set; }
 
         /// <summary>
         /// License to use
         /// </summary>
-        [DataMember(Name="license", EmitDefaultValue=false)]
+        [DataMember(Name = "license", EmitDefaultValue = false)]
         public string License { get; set; }
 
         /// <summary>
         /// Name of the repository to create
         /// </summary>
-        [DataMember(Name="name", EmitDefaultValue=false)]
+        [DataMember(Name = "name", EmitDefaultValue = false)]
         public string Name { get; set; }
 
         /// <summary>
         /// Whether the repository is private
         /// </summary>
-        [DataMember(Name="private", EmitDefaultValue=false)]
+        [DataMember(Name = "private", EmitDefaultValue = false)]
         public bool? IsPrivate { get; set; }
 
         /// <summary>
         /// Readme of the repository to create
         /// </summary>
-        [DataMember(Name="readme", EmitDefaultValue=false)]
+        [DataMember(Name = "readme", EmitDefaultValue = false)]
         public string Readme { get; set; }
 
         /// <summary>

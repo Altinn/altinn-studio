@@ -8,7 +8,7 @@ Altinn Studio is available at <https://altinn.studio>.
 Read the [Altinn Studio documentation](https://docs.altinn.studio/) to [get started](https://docs.altinn.studio/app/getting-started/).
 We've also created a [into course for app development](https://docs.altinn.studio/app/app-dev-course/) that you can follow at your own pace.
 
-![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg 'Altinn 3 - Concept')
+![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg "Altinn 3 - Concept")
 
 ## Build status
 
@@ -44,10 +44,6 @@ _NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/
 
 Clone [Altinn Studio repo][9]
 
-```bash
-git clone https://github.com/Altinn/altinn-studio
-```
-
 Run all parts of the solution in containers (Make sure docker is running)
 
 ```bash
@@ -66,7 +62,7 @@ docker-compose up -d --build <container>
 Example
 
 ```bash
-docker-compose up -d --build altinn_designer
+docker-compose up -d --build studio_designer
 ```
 
 ### Running and developing solutions locally
@@ -89,13 +85,15 @@ Navigate to the designer backend folder `cd backend/src/Designer`. The first tim
 - On MacOS you need one extra step before running .NET:
 
   Change location where the application stores the DataProtectionKeys
-   ```bash
-   export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
-   ```
+
+  ```bash
+  export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
+  ```
 
 Build and prepare for running the application.
 
 ```bash
+cd backend/src/Designer
 dotnet build
 yarn run gulp # run this when there are changes in frontend that you want to serve from backend
 ```
@@ -111,6 +109,7 @@ yarn run gulp-install-deps
 There are multiple ways to start the frontend applications
 
 ```bash
+cd backend/src/Designer
 yarn run develop-designer-frontend # Run the front end watching dashboard
 ```
 
@@ -131,7 +130,7 @@ If you need to rebuild other react apps, for instance `dashboard` or `app-develo
 to `frontend` and then run the following build script, which will build app frontend apps.
 
 ```bash
-yarn run build
+yarn --cwd "frontend" run build
 ```
 
 Some React projects also have various other predefined scripts, which can be viewed in the `package.json` file
@@ -141,16 +140,17 @@ which is located in the root folder of each react project, example `frontend/das
 
 ### Lint checks
 
-1. Navigate to the folder `frontend`.
-2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `yarn run lint`.
+```bash
+yarn --cwd "frontend" --immutable
+yarn --cwd "frontend" run lint
+```
 
 ### Unit tests
 
-1. Navigate to the folder `frontend`.
-2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `yarn run test`.
-
+```
+yarn --cwd "frontend" --immutable
+yarn --cwd "frontend" run test
+```
 
 ## Running the tests
 

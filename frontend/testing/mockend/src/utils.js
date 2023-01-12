@@ -8,4 +8,5 @@ module.exports = {
   ensureStorageDir: () => fs.existsSync(storageDir) || fs.mkdirSync(storageDir),
   getStoragePath: (filename) => path.resolve(storageDir, filename),
   getTemplatePath: (filename) => path.resolve(__dirname, 'templates', filename),
+  fixtureRoute: (filename) => (req, res) => res.json(require(`./fixtures/${filename}.json`)),
 };

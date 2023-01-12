@@ -46,19 +46,19 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Gets or Sets _Email
         /// </summary>
-        [DataMember(Name="email", EmitDefaultValue=false)]
+        [DataMember(Name = "email", EmitDefaultValue = false)]
         public string EmailId { get; set; }
 
         /// <summary>
         /// Gets or Sets Primary
         /// </summary>
-        [DataMember(Name="primary", EmitDefaultValue=false)]
+        [DataMember(Name = "primary", EmitDefaultValue = false)]
         public bool? Primary { get; set; }
 
         /// <summary>
         /// Gets or Sets Verified
         /// </summary>
-        [DataMember(Name="verified", EmitDefaultValue=false)]
+        [DataMember(Name = "verified", EmitDefaultValue = false)]
         public bool? Verified { get; set; }
 
         /// <summary>

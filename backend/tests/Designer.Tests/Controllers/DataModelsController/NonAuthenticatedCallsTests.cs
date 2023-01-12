@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class NonAuthenticatedCallsTests: ApiTestsBase<DatamodelsController, NonAuthenticatedCallsTests>
+public class NonAuthenticatedCallsTests : ApiTestsBase<DatamodelsController, NonAuthenticatedCallsTests>
 {
     private const string VersionPrefix = "/designer/api";
     private readonly WebApplicationFactory<DatamodelsController> _factory;

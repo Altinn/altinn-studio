@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DataModeling.Tests.TestDataClasses;
 
-public class Json2XmlTestData: IEnumerable<object[]>
+public class Json2XmlTestData : IEnumerable<object[]>
 {
     public IEnumerator<object[]> GetEnumerator()
     {

@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace DataModeling.Tests.TestDataClasses;
 
 [ExcludeFromCodeCoverage]
-public class RoundTripConversionTestData: IEnumerable<object[]>
+public class RoundTripConversionTestData : IEnumerable<object[]>
 {
     public IEnumerator<object[]> GetEnumerator()
     {

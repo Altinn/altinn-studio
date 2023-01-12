@@ -74,7 +74,7 @@ namespace Designer.Tests.Services
 
             Mock<IAzureDevOpsBuildClient> azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
             azureDevOpsBuildClient.Setup(b => b.QueueAsync(
-                It.IsAny<QueueBuildParameters>(), 
+                It.IsAny<QueueBuildParameters>(),
                 It.IsAny<int>())).ReturnsAsync(GetBuild());
 
             _deploymentRepository.Setup(r => r.Create(
@@ -152,7 +152,7 @@ namespace Designer.Tests.Services
             await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First(), "ttd");
 
             // Assert
-            _deploymentRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);            
+            _deploymentRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             _deploymentRepository.Verify(r => r.Update(It.IsAny<DeploymentEntity>()), Times.Once);
         }
 

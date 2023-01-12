@@ -590,29 +590,29 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         }
 
         private static BaseValueType MapIntegerValueTypes(JsonSchema subSchema)
+        {
+            var baseValueType = BaseValueType.Integer;
+
+            if (subSchema.TryGetKeyword(out MinimumKeyword minimumKeyword))
             {
-                var baseValueType = BaseValueType.Integer;
+                decimal? minimum = minimumKeyword.Value;
 
-                if (subSchema.TryGetKeyword(out MinimumKeyword minimumKeyword))
+                if (minimum > 0.0m)
                 {
-                    decimal? minimum = minimumKeyword.Value;
-
-                    if (minimum > 0.0m)
-                    {
-                        baseValueType = BaseValueType.PositiveInteger;
-                    }
-                    else if (minimum == 0.0m)
-                    {
-                        baseValueType = BaseValueType.NonNegativeInteger;
-                    }
+                    baseValueType = BaseValueType.PositiveInteger;
                 }
-                else if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
+                else if (minimum == 0.0m)
                 {
-                    baseValueType = parsedBaseValueType;
+                    baseValueType = BaseValueType.NonNegativeInteger;
                 }
-
-                return baseValueType;
             }
+            else if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
+            {
+                baseValueType = parsedBaseValueType;
+            }
+
+            return baseValueType;
+        }
 
         private static bool TryParseXsdTypeKeyword(JsonSchema subSchema, out BaseValueType baseValueType)
         {

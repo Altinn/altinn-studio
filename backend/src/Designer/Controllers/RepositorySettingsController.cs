@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="altinnGitRepositoryFactory">An instance <see cref="IAltinnGitRepositoryFactory"/> that knows how to get repositories.</param>
         public RepositorySettingsController(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
-            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;            
+            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
         /// <summary>

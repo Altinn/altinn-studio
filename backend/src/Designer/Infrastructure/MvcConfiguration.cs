@@ -33,7 +33,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             });
 
             mvc.AddXmlSerializerFormatters();
-            
+
             services.AddAntiforgery(options =>
             {
                 // asp .net core expects two types of tokens: One that is attached to the request as header, and the other one as cookie.
@@ -44,11 +44,11 @@ namespace Altinn.Studio.Designer.Infrastructure
                 // The tokens are based on the logged-in user and must be updated if the user changes.
                 // https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1
                 // https://github.com/axios/axios/blob/master/lib/defaults.js
-                options.Cookie.Name = "AS-XSRF-TOKEN"; 
+                options.Cookie.Name = "AS-XSRF-TOKEN";
                 options.HeaderName = "X-XSRF-TOKEN";
             });
 
             return services;
-        }      
+        }
     }
 }

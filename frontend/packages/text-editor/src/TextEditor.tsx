@@ -8,7 +8,8 @@ import type {
   TextResourceIdMutation,
 } from './types';
 import { AltinnSpinner } from 'app-shared/components';
-import { Button, ButtonColor, ButtonVariant, SearchField } from '@altinn/altinn-design-system';
+import { SearchField } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { RightMenu } from './RightMenu';
 import { getRandNumber } from './utils';
 import {
@@ -46,16 +47,15 @@ export const TextEditor = ({
   onAddLang,
   onDeleteLang,
 }: TextEditorProps) => {
-  const handleSelectedLangChange = (langCode: LangCode) => setSelectedLangCode(langCode);
   const { resources } = translations;
   const [textIds, setTextIds] = useState(resources.map(({ id }) => id) || []);
   const getUpdatedTexts = useCallback(() => mapTextResources(resources), [resources]);
   const [texts, setTexts] = useState(getUpdatedTexts());
   useEffect(() => {
-    if (!selectedLangCode) {
+    if (!availableLangCodes?.includes(selectedLangCode)) {
       setSelectedLangCode(defaultLangCode);
     }
-  }, [selectedLangCode, setSelectedLangCode]);
+  }, [setSelectedLangCode, selectedLangCode, availableLangCodes]);
   useEffect(() => {
     setTexts(getUpdatedTexts());
   }, [getUpdatedTexts, resources]);
@@ -88,7 +88,6 @@ export const TextEditor = ({
     mutatingIds[idx] = newId;
     setTextIds(mutatingIds);
   };
-
   const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
   return (
     <div className={classes.TextEditor}>
@@ -99,6 +98,7 @@ export const TextEditor = ({
             color={ButtonColor.Primary}
             onClick={handleAddNewEntryClick}
             disabled={isFetchingTranslations}
+            data-testid='text-editor-btn-add'
           >
             Ny tekst
           </Button>
@@ -125,7 +125,7 @@ export const TextEditor = ({
         onAddLang={onAddLang}
         onDeleteLang={onDeleteLang}
         selectedLangCode={selectedLangCode}
-        onSelectedLangChange={handleSelectedLangChange}
+        onSelectedLangChange={setSelectedLangCode}
         availableLangCodes={availableLangCodes || [defaultLangCode]}
       />
     </div>

@@ -1,0 +1,40 @@
+.textField {
+  width: 100%;
+}
+
+.spacing {
+  margin-top: 12px;
+}
+
+.subTitle {
+  margin-top: 12px;
+  font-size: 18px;
+}
+
+.formGroup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.fieldSet {
+  border: 0.1rem solid #bcc7cc;
+  padding: 1.2rem;
+  margin-bottom: 12px;
+}
+
+.numericLayerText {
+  font-weight: bold;
+  margin: 0;
+}
+
+.layerHeaderContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}

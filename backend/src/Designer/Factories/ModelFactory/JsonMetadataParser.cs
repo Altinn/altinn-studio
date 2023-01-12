@@ -68,8 +68,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else if (parentElement.ParentElement == null && !string.IsNullOrWhiteSpace(targetNamespace))
             {
-                 classBuilder.AppendLine(
-                     $"  [XmlRoot(ElementName=\"{parentElement.Name}\", Namespace=\"{targetNamespace}\")]");
+                classBuilder.AppendLine(
+                    $"  [XmlRoot(ElementName=\"{parentElement.Name}\", Namespace=\"{targetNamespace}\")]");
             }
             else
             {
@@ -129,15 +129,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     string dataType = element.Value.TypeName;
                     if (element.Value.XsdValueType != null)
                     {
-                      try
-                      {
-                        dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType);
-                        primitiveType = true;
-                      }
-                      catch (NotImplementedException)
-                      {
-                        // No primitive type detected, assuming referred type
-                      }
+                        try
+                        {
+                            dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType);
+                            primitiveType = true;
+                        }
+                        catch (NotImplementedException)
+                        {
+                            // No primitive type detected, assuming referred type
+                        }
                     }
 
                     if (element.Value.MaxOccurs > 1)
@@ -151,7 +151,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                     if (!primitiveType)
                     {
-                      referredTypes.Add(element.Value);
+                        referredTypes.Add(element.Value);
                     }
                 }
                 else if (element.Value.Type == ElementType.Attribute)
@@ -159,7 +159,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     string dataType = "string";
                     if (element.Value.XsdValueType != null)
                     {
-                         dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType.Value);
+                        dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType.Value);
                     }
 
                     WriteRestrictionAnnotations(classBuilder, element.Value);

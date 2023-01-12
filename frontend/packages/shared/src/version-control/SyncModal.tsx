@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { CircularProgress, Popover } from '@mui/material';
 import classNames from 'classnames';
 import classes from './SyncModal.module.css';
-import { Button, ButtonColor, ButtonVariant, TextArea } from '@altinn/altinn-design-system';
+import { TextArea } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { SimpleContainer } from '../primitives';
 
 export interface ISyncModalComponentProps {

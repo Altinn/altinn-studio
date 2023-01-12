@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { SaveFile } from '@navikt/ds-icons';
 import classes from './VersionControlHeader.module.css';
 

@@ -46,6 +46,7 @@ export enum ComponentTypes {
   AttachmentList = 'AttachmentList',
   ThirdParty = 'ThirdParty',
   Panel = 'Panel',
+  Map = 'Map',
 }
 
 export const componentIcons: IComponentIcon = {
@@ -67,6 +68,7 @@ export const componentIcons: IComponentIcon = {
   NavigationButtons: 'fa fa-button',
   AttachmentList: 'fa fa-attachment',
   Panel: 'fa fa-paragraph', // TODO make sure to use the correct icon.
+  Map: 'fa fa-address',
 };
 const Header: IComponent = {
   name: ComponentTypes.Header,
@@ -193,11 +195,17 @@ const InformationPanel: IComponent = {
   Icon: componentIcons.Panel,
 };
 
+const Map: IComponent = {
+  name: ComponentTypes.Map,
+  Icon: componentIcons.Map,
+};
+
 export const advancedComponents: IComponent[] = [
   AddressComponent,
   AttachmentList,
   Group,
   NavigationBar,
+  Map,
 ];
 
 export const schemaComponents: IComponent[] = [

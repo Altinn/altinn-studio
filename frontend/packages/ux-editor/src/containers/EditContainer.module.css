@@ -14,11 +14,29 @@
   flex: 1;
 }
 
+.previewMode .formComponentWithHandle {
+  border: 1px dashed transparent;
+}
+
+.previewMode:hover .formComponentWithHandle {
+  border-color: #008FD6;
+  box-shadow: 0 0 4px #1EADF740;
+  border-radius: 5px;
+}
+
 .dragHandle {
   background-color: #00000010;
   border-bottom-left-radius: 5px;
   border-top-left-radius: 5px;
   visibility: hidden;
+  width: var(--drag-handle-width);
+}
+
+.previewMode .dragHandle {
+  --drag-handle-border-left-width: 6px;
+  --drag-handle-inner-width: calc(var(--drag-handle-width) - var(--drag-handle-border-left-width));
+  border-left: var(--drag-handle-border-left-width) solid #008FD6;
+  box-sizing: border-box;
 }
 
 .wrapper:hover .dragHandle {
@@ -35,6 +53,10 @@
   color: #022F51;
   flex: 1;
   padding: 1rem;
+}
+
+.previewMode .formComponent {
+  border: 0;
 }
 
 .buttons {

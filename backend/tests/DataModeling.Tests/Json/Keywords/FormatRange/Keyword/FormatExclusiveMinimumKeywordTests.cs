@@ -5,7 +5,7 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Keyword;
 
-public class FormatExclusiveMinimumKeywordTests: ValueKeywordTestsBase<FormatExclusiveMinimumKeywordTests, FormatExclusiveMinimumKeyword, string>
+public class FormatExclusiveMinimumKeywordTests : ValueKeywordTestsBase<FormatExclusiveMinimumKeywordTests, FormatExclusiveMinimumKeyword, string>
 {
     protected override FormatExclusiveMinimumKeyword CreateKeywordWithValue(string value) => new(value);
 

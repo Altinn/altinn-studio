@@ -69,6 +69,7 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
   [ComponentTypes.AddressComponent]: [EditSettings.Title],
   [ComponentTypes.FileUploadWithTag]: [EditSettings.Title, EditSettings.Description],
   [ComponentTypes.Panel]: [EditSettings.Title, EditSettings.Description],
+  [ComponentTypes.Map]: [EditSettings.ReadOnly],
 };
 
 export const configComponents: IConfigComponents = {

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { IAppState } from 'packages/ux-editor/src/types/global';
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { PageElement } from './PageElement';
 import { useDispatch, useSelector } from 'react-redux';

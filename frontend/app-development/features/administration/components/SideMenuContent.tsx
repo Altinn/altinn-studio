@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import type { ICommit, IRepository } from '../../../types/global';

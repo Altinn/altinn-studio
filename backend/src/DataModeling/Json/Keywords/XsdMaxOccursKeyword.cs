@@ -14,7 +14,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 [SchemaDraft(Draft.Draft201909)]
 [SchemaDraft(Draft.Draft202012)]
 [JsonConverter(typeof(XsdMaxOccursKeywordJsonConverter))]
-public sealed class XsdMaxOccursKeyword: IJsonSchemaKeyword, IEquatable<XsdMaxOccursKeyword>
+public sealed class XsdMaxOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMaxOccursKeyword>
 {
     /// <summary>
     /// The name of the keyword

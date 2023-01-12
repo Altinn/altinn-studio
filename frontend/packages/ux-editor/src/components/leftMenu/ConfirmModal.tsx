@@ -1,7 +1,7 @@
 import React from 'react';
 import { Popover } from '@mui/material';
 import classes from './ConfirmModal.module.css';
-import { Button, ButtonColor } from '@altinn/altinn-design-system';
+import { Button, ButtonColor } from '@digdir/design-system-react';
 
 export interface IConfirmModalProps {
   header: string;

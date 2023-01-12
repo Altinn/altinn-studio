@@ -84,7 +84,7 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         /// Short type
         /// </summary>
         Short,
-        
+
         /// <summary>
         /// Non-negative integer type
         /// </summary>
@@ -119,7 +119,7 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         /// Double type
         /// </summary>
         Double,
-        
+
         /// <summary>
         /// Long type
         /// </summary>

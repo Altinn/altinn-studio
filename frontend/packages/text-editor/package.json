@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "dependencies": {
     "@altinn/altinn-design-system": "0.25.14",
+    "@digdir/design-system-react": "0.1.0",
     "iso-639-1": "2.1.15"
   },
   "devDependencies": {
     "jest": "29.3.1",
-    "ts-jest": "29.0.3"
+    "ts-jest": "29.0.4"
   },
   "license": "MIT",
   "main": "index.ts",

@@ -5,7 +5,7 @@ import type { FormComponentType, IThirdPartyComponent } from '../../types/global
 import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { FieldSet } from '@altinn/altinn-design-system';
+import { FieldSet } from '@digdir/design-system-react';
 import classes from './EditModalContent.module.css';
 
 export interface IEditModalContentProps {

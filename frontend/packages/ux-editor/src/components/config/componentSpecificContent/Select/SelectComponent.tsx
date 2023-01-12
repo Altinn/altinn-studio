@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, FieldSet } from '@altinn/altinn-design-system';
+import { Select, FieldSet } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 
 type Option = {

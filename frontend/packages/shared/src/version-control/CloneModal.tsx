@@ -9,7 +9,8 @@ import { datamodelXsdPath, repositoryGitPath } from '../api-paths';
 import { useParams } from 'react-router-dom';
 import { SimpleContainer } from '../primitives';
 import classes from './CloneModal.module.css';
-import { Button, TextField } from '@altinn/altinn-design-system';
+import { TextField } from '@altinn/altinn-design-system';
+import { Button } from '@digdir/design-system-react';
 
 export interface ICloneModalProps {
   anchorEl: Element;

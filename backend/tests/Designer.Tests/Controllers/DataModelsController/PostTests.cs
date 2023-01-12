@@ -48,7 +48,7 @@ public class PostTests : ApiTestsBase<DatamodelsController, PostTests>
         var url = $"{VersionPrefix}/{org}/{targetRepository}/Datamodels/Post";
 
         var createViewModel = new CreateModelViewModel()
-            { ModelName = "test", RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
+        { ModelName = "test", RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
         var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = JsonContent.Create(createViewModel, null, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
@@ -94,7 +94,7 @@ public class PostTests : ApiTestsBase<DatamodelsController, PostTests>
         var url = $"{VersionPrefix}/xyz/dummyRepo/Datamodels/Post";
 
         var createViewModel = new CreateModelViewModel()
-            { ModelName = modelName, RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
+        { ModelName = modelName, RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
         var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = JsonContent.Create(createViewModel, null, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })

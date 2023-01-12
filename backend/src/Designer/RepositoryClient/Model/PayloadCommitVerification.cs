@@ -39,29 +39,29 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             this.Signature = Signature;
             this.Verified = Verified;
         }
-        
+
         /// <summary>
         /// Gets or Sets Payload
         /// </summary>
-        [DataMember(Name="payload", EmitDefaultValue=false)]
+        [DataMember(Name = "payload", EmitDefaultValue = false)]
         public string Payload { get; set; }
 
         /// <summary>
         /// Gets or Sets Reason
         /// </summary>
-        [DataMember(Name="reason", EmitDefaultValue=false)]
+        [DataMember(Name = "reason", EmitDefaultValue = false)]
         public string Reason { get; set; }
 
         /// <summary>
         /// Gets or Sets Signature
         /// </summary>
-        [DataMember(Name="signature", EmitDefaultValue=false)]
+        [DataMember(Name = "signature", EmitDefaultValue = false)]
         public string Signature { get; set; }
 
         /// <summary>
         /// Gets or Sets Verified
         /// </summary>
-        [DataMember(Name="verified", EmitDefaultValue=false)]
+        [DataMember(Name = "verified", EmitDefaultValue = false)]
         public bool? Verified { get; set; }
     }
 }

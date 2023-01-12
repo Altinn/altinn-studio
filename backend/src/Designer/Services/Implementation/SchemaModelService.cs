@@ -132,7 +132,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             XmlSchema xsd = _jsonSchemaToXmlSchemaConverter.Convert(jsonSchema);
 
-            await altinnAppGitRepository.SaveXsd(xsd,  Path.ChangeExtension(schemaName, "xsd"));
+            await altinnAppGitRepository.SaveXsd(xsd, Path.ChangeExtension(schemaName, "xsd"));
 
             var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
             ModelMetadata modelMetadata = metamodelConverter.Convert(jsonContent);
@@ -141,7 +141,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
 
-            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, schemaName);
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName);
 
             return jsonContent;
         }
@@ -443,7 +443,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 application.DataTypes = new List<DataType>();
             }
 
-            DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic != null);
+            DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic?.ClassRef != null);
             DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
 
             if (logicElement == null)

@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.ModelBinding
 
             if (modelType.Equals(typeof(AltinnCoreApiModel)))
             {
-               return new AltinnCoreApiModelBinder();
+                return new AltinnCoreApiModelBinder();
             }
 
             return null;

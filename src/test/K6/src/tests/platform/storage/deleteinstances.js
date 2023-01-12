@@ -6,7 +6,7 @@
 import { check } from 'k6';
 import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
-import { addErrorCount } from '../../../errorcounter.js';
+import { addErrorCount, stopIterationOnFail } from '../../../errorcounter.js';
 import * as instances from '../../../api/platform/storage/instances.js';
 
 const userName = __ENV.username;
@@ -78,5 +78,6 @@ export default function (data) {
       'Hard delete instances for party. Remaining instance count is 0': (c) => c === 0,
     });
     addErrorCount(success);
+    stopIterationOnFail('Hard delete instances for party. Remaining instance count is 0');
   });
 }

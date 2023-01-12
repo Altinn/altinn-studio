@@ -1,5 +1,6 @@
 import React from 'react';
-import { FieldSet, RadioGroup, RadioGroupVariant, TextField } from '@altinn/altinn-design-system';
+import { TextField } from '@altinn/altinn-design-system';
+import { FieldSet, RadioGroup, RadioGroupVariant } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { EditTitle } from '../../editModal/EditTitle';
 import { useText } from '../../../../hooks';

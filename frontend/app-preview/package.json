@@ -10,6 +10,7 @@
   ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.25.14",
+    "@digdir/design-system-react": "0.1.0",
     "axios": "1.2.2",
     "classnames": "2.3.2",
     "qs": "6.11.0",

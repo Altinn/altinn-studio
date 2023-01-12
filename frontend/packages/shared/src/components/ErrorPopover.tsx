@@ -1,6 +1,6 @@
 import React from 'react';
 import { Grid, Typography } from '@mui/material';
-import AltinnPopover from './molecules/AltinnPopoverSimple';
+import { AltinnPopoverSimple } from './molecules/AltinnPopoverSimple';
 import classes from './ErrorPopover.module.css';
 
 export interface IErrorPopoverProps {
@@ -11,7 +11,7 @@ export interface IErrorPopoverProps {
 
 export default function ErrorPopover({ anchorEl, onClose, errorMessage }: IErrorPopoverProps) {
   return (
-    <AltinnPopover
+    <AltinnPopoverSimple
       open={!!anchorEl}
       anchorEl={anchorEl}
       handleClose={onClose}
@@ -45,6 +45,6 @@ export default function ErrorPopover({ anchorEl, onClose, errorMessage }: IError
           <Typography className={classes.errorText}>{errorMessage}</Typography>
         </Grid>
       </Grid>
-    </AltinnPopover>
+    </AltinnPopoverSimple>
   );
 }

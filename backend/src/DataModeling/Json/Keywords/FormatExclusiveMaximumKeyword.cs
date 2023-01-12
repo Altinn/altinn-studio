@@ -15,7 +15,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 [SchemaDraft(Draft.Draft201909)]
 [SchemaDraft(Draft.Draft202012)]
 [JsonConverter(typeof(FormatExclusiveMaximumKeywordJsonConverter))]
-public sealed class FormatExclusiveMaximumKeyword: IJsonSchemaKeyword, IEquatable<FormatExclusiveMaximumKeyword>
+public sealed class FormatExclusiveMaximumKeyword : IJsonSchemaKeyword, IEquatable<FormatExclusiveMaximumKeyword>
 {
     /// <summary>
     /// The name of the keyword

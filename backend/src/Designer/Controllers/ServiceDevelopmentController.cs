@@ -187,9 +187,9 @@ namespace Altinn.Studio.Designer.Controllers
 
         private IActionResult GetCalculationFiles(string org, string app)
         {
-          List<AltinnCoreFile> files = _repository.GetCalculationFiles(org, app);
+            List<AltinnCoreFile> files = _repository.GetCalculationFiles(org, app);
 
-          return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
+            return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
         private IActionResult GetValidationFiles(string org, string app)

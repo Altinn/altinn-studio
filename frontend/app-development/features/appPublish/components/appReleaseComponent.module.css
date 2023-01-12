@@ -1,32 +1,31 @@
 .releaseWrapper {
   padding: 1.2rem;
-  border-bottom: 1px solid #BCC7CC;
-}
-
-.releaseRow {
-  padding-top: 1rem;
+  border-bottom: 1px solid #bcc7cc;
 }
 
 .buildFailedIcon {
-  color: #E23B53;
+  color: #e23b53;
   height: 10px;
   padding: 1.2rem 1rem 1.2rem 0;
   width: 10px;
 }
 
 .buildSucceededIcon {
-  color: #12AA64;
+  color: #12aa64;
   height: 10px;
   padding: 1.2rem 1rem 1.2rem 0;
   width: 10px;
 }
 .spinnerRoot {
-  color: #1EAEF7;
+  color: #1eaef7;
   margin-right: 1rem;
 }
 
-.releaseText {
+.releaseRow {
+  padding-top: 1rem;
   font-size: 1.6rem;
   word-break: break-word;
   word-wrap: normal;
+  display: flex;
+  justify-content: space-between;
 }

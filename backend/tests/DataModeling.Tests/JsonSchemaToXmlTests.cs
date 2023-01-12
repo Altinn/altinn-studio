@@ -5,7 +5,7 @@ using Xunit;
 
 namespace DataModeling.Tests
 {
-    public class JsonSchemaToXmlTests: SchemaConversionTestsBase<JsonSchemaToXmlTests>
+    public class JsonSchemaToXmlTests : SchemaConversionTestsBase<JsonSchemaToXmlTests>
     {
         [Theory]
         [ClassData(typeof(Json2XmlTestData))]

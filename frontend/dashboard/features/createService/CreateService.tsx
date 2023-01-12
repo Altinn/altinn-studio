@@ -8,7 +8,7 @@ import { useAppSelector } from '../../common/hooks';
 import { DataModellingFormat, useAddRepoMutation } from '../../services/repoApi';
 import { applicationAboutPage } from '../../common/utils/urlUtils';
 import classes from './CreateService.module.css';
-import { Button, ButtonColor } from '@altinn/altinn-design-system';
+import { Button, ButtonColor } from '@digdir/design-system-react';
 
 enum PageState {
   Idle = 'Idle',

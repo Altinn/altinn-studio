@@ -10,6 +10,7 @@
   ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.25.14",
+    "@digdir/design-system-react": "0.1.0",
     "@mui/x-data-grid": "5.17.18",
     "@reduxjs/toolkit": "1.9.1",
     "lodash-es": "4.17.21",

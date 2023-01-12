@@ -1,24 +1,18 @@
 version: "3.8"
 
-networks:
-  altinncore_network:
-    external: false
-
 volumes:
   designer-git-data:
   gitea-git-data:
-  gitea-db-data:
   gitea-avatars-data:
   gitea-attachments-data:
   keys:
+  pgdata:
 
 services:
-  altinn_loadbalancer:
+  studio_loadbalancer:
     image: nginx:alpine
-    container_name: altinn-loadbalancer
+    container_name: studio-loadbalancer
     restart: always
-    networks:
-      - altinncore_network
     ports:
       - "80:80"
     environment:
@@ -30,7 +24,7 @@ services:
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
     depends_on:
-      - altinn_repositories
+      - studio_repositories
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -38,76 +32,75 @@ services:
       - ./development/load-balancer:/etc/nginx/templates/:ro
       - ./development/load-balancer:/www/:ro
 
-  altinn_designer:
-    container_name: altinn-designer
+  studio_designer:
+    container_name: studio-designer
     image: designer:latest
     restart: always
-    networks:
-      - altinncore_network
     volumes:
       - "designer-git-data:/AltinnCore/Repos"
       - "keys:/mnt/keys"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:6000
-      - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
-      - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1/
-      - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
-      - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000
-      - ServiceRepositorySettings:GiteaLoginUrl=http://studio.localhost/repos/user/login
-      - GeneralSettings:TemplateLocation=/Templates
-      - GeneralSettings:DeploymentLocation=/Templates/deployment
-      - GeneralSettings:LanguageFilesLocation=Languages/
-      - GeneralSettings:TemplateLocation=Templates/AspNet
-      - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
-      - GeneralSettings:AppLocation=Templates/AspNet/App
-      - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
       - GeneralSettings:AltinnStudioEndpoint=http://studio.localhost/
+      - GeneralSettings:AppLocation=Templates/AspNet/App
+      - GeneralSettings:DeploymentLocation=/Templates/deployment
+      - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
+      - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
+      - GeneralSettings:LanguageFilesLocation=Languages/
+      - GeneralSettings:TemplateLocation=/Templates
+      - GeneralSettings:TemplateLocation=Templates/AspNet
+      - PostgreSQLSettings:AdminConnectionString=Host=studio_db;Port=5432;Username=designer_admin;Password={0};Database=designerdb
+      - PostgreSQLSettings:ConnectionString=Host=studio_db;Port=5432;Username=designer;Password={0};Database=designerdb
+      - PostgreSQLSettings:DesignerDbAdminPwd=${POSTGRES_PASSWORD}
+      - PostgreSQLSettings:DesignerDbPwd=designer
+      - PostgreSQLSettings:EnableDBConnection=true
+      - ServiceRepositorySettings:ApiEndPoint=http://studio-repositories:3000/api/v1/
+      - ServiceRepositorySettings:ApiEndPointHost=studio-repositories
+      - ServiceRepositorySettings:GiteaLoginUrl=http://studio.localhost/repos/user/login
+      - ServiceRepositorySettings:RepositoryBaseURL=http://studio-repositories:3000
+      - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
     ports:
       - "6000:6000"
     depends_on:
-      - altinn_repositories
+      - studio_repositories
     build:
       context: .
       dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  altinn_repositories:
-    container_name: altinn-repositories
+  studio_repositories:
+    container_name: studio-repositories
     image: repositories:latest
     restart: always
-    networks:
-      - altinncore_network
     volumes:
       - "gitea-git-data:/var/lib/gitea/git"
-      - "gitea-db-data:/var/lib/gitea/db"
       - "gitea-avatars-data:/var/lib/gitea/avatars"
       - "gitea-attachments-data:/var/lib/gitea/attachments"
     environment:
-      - USER_UID=1000
-      - USER_GID=1000
       - GITEA____RUN_MODE=prod
-      - GITEA__server__SSH_DOMAIN=studio.localhost
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=studio_db:5432
+      - GITEA__database__NAME=giteadb
+      - GITEA__database__PASSWD=gitea
+      - GITEA__database__USER=gitea
+      - GITEA__designer__LFS_JWT_SECRET=MRlYoCcrcHmcKzUoQwaK6vKO3o4FPEJ74em5JnPRii0
+      - GITEA__mailer__ENABLED=false
+      - GITEA__mailer__ENABLE_NOTIFY_MAIL=false
+      - GITEA__mailer__HOST=none
+      - GITEA__mailer__REGISTER_EMAIL_CONFIRM=false
+      - GITEA__mailer__SKIP_VERIFY=false
+      - GITEA__security__INTERNAL_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE1MjMyNjM2NTR9.nxb5jknOl-LnVxOvyu0McHglWoixrfOD0mLZ8Druerw
+      - GITEA__security__SECRET_KEY=VCOEYZOz3vPZrm1vGBOL6paxSePtLUHc85LsK7QIqbPHRcohw72p5K8EQQJ7YrgA
       - GITEA__server__DOMAIN=studio.localhost
       - GITEA__server__ROOT_URL=http://studio.localhost/repos
+      - GITEA__server__SSH_DOMAIN=studio.localhost
+      - GITEA__service__ENABLE_CAPTCHA=false
       - GITEA__session__COOKIE_SECURE=false
-      - GITEA__designer__LFS_JWT_SECRET=MRlYoCcrcHmcKzUoQwaK6vKO3o4FPEJ74em5JnPRii0
-      - GITEA__database__DB_TYPE=sqlite3
-      - GITEA__database__PATH=/var/lib/gitea/db/gitea.db
-      - GITEA__database__HOST=172.18.0.2:5432
-      - GITEA__database__NAME=gitea
-      - GITEA__database__USER=root
-      - GITEA__database__PASSWD=gitea
-      - GITEA__database__SSL_MODE=
-      - GITEA__security__SECRET_KEY=VCOEYZOz3vPZrm1vGBOL6paxSePtLUHc85LsK7QIqbPHRcohw72p5K8EQQJ7YrgA
-      - GITEA__security__INTERNAL_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE1MjMyNjM2NTR9.nxb5jknOl-LnVxOvyu0McHglWoixrfOD0mLZ8Druerw
-      - GITEA__mailer__ENABLED=false
-      - GITEA__mailer__HOST=none
-      - GITEA__mailer__SKIP_VERIFY=false
-      - GITEA__mailer__REGISTER_EMAIL_CONFIRM=false
-      - GITEA__mailer__ENABLE_NOTIFY_MAIL=false
+      - USER_GID=1000
+      - USER_UID=1000
     ports:
       - "3000:3000"
       - "222:22"
@@ -116,3 +109,18 @@ services:
       dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  studio_db:
+    container_name: studio-db
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: designer_admin
+      POSTGRES_DB: designerdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./development/db/data.sql:/data.sql
+      - pgdata:/var/lib/postgresql/data

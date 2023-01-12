@@ -102,10 +102,10 @@ namespace Designer.Tests.Services
             buildResult.Add(BuildResult.Succeeded.ToEnumMemberAttributeValue());
 
             _releaseRepository.Setup(r => r.Get(
-                It.IsAny<string>(), 
-                It.IsAny<string>(), 
-                It.IsAny<string>(), 
-                buildStatus, 
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                buildStatus,
                 buildResult)).ReturnsAsync(GetReleases("createdRelease.json"));
 
             ReleaseService releaseService = new ReleaseService(
@@ -114,7 +114,7 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
                 _releaseLogger.Object);
-            
+
             // Act            
             HttpRequestWithStatusException resultException = null;
             try

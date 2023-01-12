@@ -3,6 +3,7 @@
   --buttons-width: var(--component-button-size-height-small, 36px);
   --drag-handle-border-radius: 5px;
   --drag-handle-width: 25px;
+  --drag-handle-inner-width: 25px;
   --margin-horizontal: 5rem;
   --margin-left-with-handle: calc(var(--margin-horizontal) - var(--drag-handle-width));
   --margin-right-with-buttons: calc(var(--margin-horizontal) - var(--buttons-width) - var(--buttons-distance));

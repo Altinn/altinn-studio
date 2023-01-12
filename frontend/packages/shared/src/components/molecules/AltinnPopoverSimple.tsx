@@ -31,12 +31,11 @@ const defaultTransformOrigin: PopoverOrigin = {
   vertical: 'top',
 };
 
-export const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
+export const AltinnPopoverSimple = (props: IAltinnPopoverProps) => {
   const { anchorOrigin = defaultAnchorOrigin, transformOrigin = defaultTransformOrigin } = props;
 
-  const handleButtonClose = (event: React.MouseEvent<HTMLElement>) => {
+  const handleButtonClose = (event: React.MouseEvent<HTMLElement>) =>
     props.handleClose('close', event);
-  };
 
   const btnClickedHandler = (event: React.MouseEvent<HTMLElement>) => {
     if (props.btnClick) {
@@ -93,5 +92,3 @@ export const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
     </>
   );
 };
-
-export default AltinnPopoverComponent;

@@ -10,7 +10,7 @@ import {
   ButtonVariant,
   FieldSet,
   RadioButton,
-} from '@altinn/altinn-design-system';
+} from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
 
 export interface RightMenuProps {

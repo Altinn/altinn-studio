@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Select, Button } from '@altinn/altinn-design-system';
+import { Select, Button } from '@digdir/design-system-react';
 import classes from './LangSelector.module.css';
 import type { LangCode, Option } from './types';
 

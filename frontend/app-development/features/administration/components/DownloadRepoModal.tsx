@@ -1,6 +1,6 @@
 import React from 'react';
 import { Popover } from '@mui/material';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import classes from './RepoModal.module.css';
 import { useParams } from 'react-router-dom';

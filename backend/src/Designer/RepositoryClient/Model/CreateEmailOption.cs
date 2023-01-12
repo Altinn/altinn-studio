@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// The list of emails
         /// </summary>
-        [DataMember(Name="emails", EmitDefaultValue=false)]
+        [DataMember(Name = "emails", EmitDefaultValue = false)]
         public List<string> Emails { get; set; }
 
         /// <summary>

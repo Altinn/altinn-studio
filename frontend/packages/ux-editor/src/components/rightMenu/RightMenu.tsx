@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './RightMenu.module.css';
 import type { LogicMode } from '../../types/global';
-import { Tabs } from '@altinn/altinn-design-system';
+import { Tabs } from '@digdir/design-system-react';
 import { ConditionalRenderingTab } from './ConditionalRenderingTab';
 import { CalculationsTab } from './CalculationsTab';
 import { ContentTab } from './ContentTab';

@@ -27,6 +27,7 @@ import type {
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 import type { EditorDndEvents } from './helpers/dnd-types';
+import { TextField } from '@altinn/altinn-design-system';
 import {
   Button,
   ButtonColor,
@@ -34,8 +35,7 @@ import {
   Checkbox,
   CheckboxGroup,
   FieldSet,
-  TextField,
-} from '@altinn/altinn-design-system';
+} from '@digdir/design-system-react';
 import classes from './Container.module.css';
 import cn from 'classnames';
 import { Cancel, Collapse, Delete, Edit, Expand, Success } from '@navikt/ds-icons';

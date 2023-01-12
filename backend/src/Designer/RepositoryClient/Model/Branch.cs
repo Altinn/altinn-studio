@@ -36,19 +36,19 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             this.Commit = Commit;
             this.Name = Name;
         }
-        
+
         /// <summary>
         /// Gets or Sets Commit
         /// </summary>
-        [DataMember(Name="commit", EmitDefaultValue=false)]
+        [DataMember(Name = "commit", EmitDefaultValue = false)]
         public PayloadCommit Commit { get; set; }
 
         /// <summary>
         /// Gets or Sets Name
         /// </summary>
-        [DataMember(Name="name", EmitDefaultValue=false)]
+        [DataMember(Name = "name", EmitDefaultValue = false)]
         public string Name { get; set; }
-  
+
         /// <summary>
         /// Returns the JSON string presentation of the object
         /// </summary>

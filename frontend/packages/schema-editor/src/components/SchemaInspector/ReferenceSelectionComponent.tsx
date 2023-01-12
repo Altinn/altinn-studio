@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import type { ISchemaState } from '../../types';
 import { getRootNodes, Keywords } from '@altinn/schema-model';
 import classes from './ReferenceSelectionComponent.module.css';
-import { Select } from '@altinn/altinn-design-system';
+import { Select } from '@digdir/design-system-react';
 
 export interface IReferenceSelectionProps {
   buttonText: string;

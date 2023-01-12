@@ -102,7 +102,7 @@ public static class TypeAssertions
         var property = type.Properties().Single(x => x.Name == propertyName);
         var simpleCompiledAssembly = Compiler.CompileToAssembly(DynamicAnnotationClassString(propertyName, propertyType, expectedAnnotationString));
         var expectedProperty = simpleCompiledAssembly.Types().First().Properties().Single();
-        IsEquivalentTo(expectedProperty.PropertyType,  property.PropertyType);
+        IsEquivalentTo(expectedProperty.PropertyType, property.PropertyType);
         var expectedAnnotation = expectedProperty.CustomAttributes.Single();
         Assert.Single(property.CustomAttributes.Where(x => x.ToString() == expectedAnnotation.ToString()));
     }

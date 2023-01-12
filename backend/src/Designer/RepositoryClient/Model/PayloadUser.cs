@@ -42,24 +42,24 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             this.Name = Name;
             this.Username = Username;
         }
-        
+
         /// <summary>
         /// Gets or Sets Email
         /// </summary>
-        [DataMember(Name="email", EmitDefaultValue=false)]
+        [DataMember(Name = "email", EmitDefaultValue = false)]
         public string Email { get; set; }
 
         /// <summary>
         /// Full name of the commit author
         /// </summary>
         /// <value>Full name</value>
-        [DataMember(Name="name", EmitDefaultValue=false)]
+        [DataMember(Name = "name", EmitDefaultValue = false)]
         public string Name { get; set; }
 
         /// <summary>
         /// Gets or Sets Username
         /// </summary>
-        [DataMember(Name="username", EmitDefaultValue=false)]
+        [DataMember(Name = "username", EmitDefaultValue = false)]
         public string Username { get; set; }
     }
 }

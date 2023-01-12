@@ -50,31 +50,31 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// URL to the user&#39;s avatar
         /// </summary>
-        [DataMember(Name="avatar_url", EmitDefaultValue=false)]
+        [DataMember(Name = "avatar_url", EmitDefaultValue = false)]
         public string AvatarUrl { get; set; }
 
         /// <summary>
         /// Gets or Sets Email
         /// </summary>
-        [DataMember(Name="email", EmitDefaultValue=false)]
+        [DataMember(Name = "email", EmitDefaultValue = false)]
         public string Email { get; set; }
 
         /// <summary>
         /// the user&#39;s full name
         /// </summary>
-        [DataMember(Name="full_name", EmitDefaultValue=false)]
+        [DataMember(Name = "full_name", EmitDefaultValue = false)]
         public string FullName { get; set; }
 
         /// <summary>
         /// the user&#39;s id
         /// </summary>
-        [DataMember(Name="id", EmitDefaultValue=false)]
+        [DataMember(Name = "id", EmitDefaultValue = false)]
         public long? Id { get; set; }
 
         /// <summary>
         /// the user&#39;s username
         /// </summary>
-        [DataMember(Name="login", EmitDefaultValue=false)]
+        [DataMember(Name = "login", EmitDefaultValue = false)]
         public string Login { get; set; }
 
         /// <summary>

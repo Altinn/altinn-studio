@@ -751,7 +751,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                     if (type != null)
                     {
-                       return HandleJsonTypes(nextSchema);
+                        return HandleJsonTypes(nextSchema);
                     }
                     else
                     {

@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.ApiTests;
 /// Logic for setting cookie is ported from <see cref="AuthenticationUtil"/>
 /// </summary>
 [ExcludeFromCodeCoverage]
-internal class ApiTestsAuthAndCookieDelegatingHandler: DelegatingHandler
+internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
 {
     private readonly string _baseAddress;
 
