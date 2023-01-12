@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.PEP" Version="1.0.39" />
+    <PackageReference Include="Altinn.Common.PEP" Version="1.1.0" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.11.0" />
   </ItemGroup>
 
