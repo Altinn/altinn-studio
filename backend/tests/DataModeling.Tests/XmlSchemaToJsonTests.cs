@@ -6,7 +6,7 @@ using Xunit.Abstractions;
 
 namespace DataModeling.Tests
 {
-    public class XmlSchemaToJsonTests: SchemaConversionTestsBase<XmlSchemaToJsonTests>
+    public class XmlSchemaToJsonTests : SchemaConversionTestsBase<XmlSchemaToJsonTests>
     {
         private readonly ITestOutputHelper _testOutputHelper;
 

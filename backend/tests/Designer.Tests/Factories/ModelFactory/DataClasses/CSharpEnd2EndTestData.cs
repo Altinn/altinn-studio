@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Designer.Tests.Factories.ModelFactory.DataClasses;
 
 [ExcludeFromCodeCoverage]
-public class CSharpEnd2EndTestData: IEnumerable<object[]>
+public class CSharpEnd2EndTestData : IEnumerable<object[]>
 {
     public IEnumerator<object[]> GetEnumerator()
     {

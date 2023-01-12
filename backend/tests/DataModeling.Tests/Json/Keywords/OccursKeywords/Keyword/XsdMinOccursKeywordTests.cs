@@ -5,7 +5,7 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Keyword;
 
-public class XsdMinOccursKeywordTests: ValueKeywordTestsBase<XsdMinOccursKeywordTests, XsdMinOccursKeyword, int>
+public class XsdMinOccursKeywordTests : ValueKeywordTestsBase<XsdMinOccursKeywordTests, XsdMinOccursKeyword, int>
 {
     protected override XsdMinOccursKeyword CreateKeywordWithValue(int value) => new(value);
 

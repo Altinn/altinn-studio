@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Designer.Tests.Factories.ModelFactory.DataClasses;
 
 [ExcludeFromCodeCoverage]
-public class CSharpE2ERestrictionsTestData: IEnumerable<object[]>
+public class CSharpE2ERestrictionsTestData : IEnumerable<object[]>
 {
     public IEnumerator<object[]> GetEnumerator()
     {

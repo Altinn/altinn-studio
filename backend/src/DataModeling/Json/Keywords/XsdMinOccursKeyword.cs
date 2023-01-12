@@ -14,7 +14,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 [SchemaDraft(Draft.Draft201909)]
 [SchemaDraft(Draft.Draft202012)]
 [JsonConverter(typeof(XsdMinOccursKeywordJsonConverter))]
-public sealed class XsdMinOccursKeyword: IJsonSchemaKeyword, IEquatable<XsdMinOccursKeyword>
+public sealed class XsdMinOccursKeyword : IJsonSchemaKeyword, IEquatable<XsdMinOccursKeyword>
 {
     /// <summary>
     /// The name of the keyword

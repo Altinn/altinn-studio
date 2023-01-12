@@ -34,10 +34,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
     <PackageReference Include="Microsoft.Azure.KeyVault" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" />
     <PackageReference Include="HtmlAgilityPack" />
@@ -51,20 +47,6 @@
     <PackageReference Include="RestSharp" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)'=='Debug'">
-     <PackageReference Include="StyleCop.Analyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <AdditionalFiles Include="..\..\..\stylecop.json">
-      <Link>stylecop.json</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
 
   <ItemGroup>
     <None Update="wwwroot/**/*;Views/**/*;Areas/**/Views;">

@@ -57,7 +57,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
             {
                 issuer = AccessTokenIssuerProd;
             }
-            
+
             string designerToken = _accesTokenGenerator.GenerateAccessToken(issuer, AccessTokenApp);
             string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(designerToken, request.RequestUri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", altinnToken);

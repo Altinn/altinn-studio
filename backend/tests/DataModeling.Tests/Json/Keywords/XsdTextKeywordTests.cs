@@ -5,7 +5,7 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
-public class XsdTextKeywordTests: ValueKeywordTestsBase<XsdTextKeywordTests, XsdTextKeyword, bool>
+public class XsdTextKeywordTests : ValueKeywordTestsBase<XsdTextKeywordTests, XsdTextKeyword, bool>
 {
     protected override XsdTextKeyword CreateKeywordWithValue(bool value) => new(value);
 

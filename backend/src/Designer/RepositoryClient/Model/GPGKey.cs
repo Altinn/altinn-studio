@@ -64,73 +64,73 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Gets or Sets CanCertify
         /// </summary>
-        [DataMember(Name="can_certify", EmitDefaultValue=false)]
+        [DataMember(Name = "can_certify", EmitDefaultValue = false)]
         public bool? CanCertify { get; set; }
 
         /// <summary>
         /// Gets or Sets CanEncryptComms
         /// </summary>
-        [DataMember(Name="can_encrypt_comms", EmitDefaultValue=false)]
+        [DataMember(Name = "can_encrypt_comms", EmitDefaultValue = false)]
         public bool? CanEncryptComms { get; set; }
 
         /// <summary>
         /// Gets or Sets CanEncryptStorage
         /// </summary>
-        [DataMember(Name="can_encrypt_storage", EmitDefaultValue=false)]
+        [DataMember(Name = "can_encrypt_storage", EmitDefaultValue = false)]
         public bool? CanEncryptStorage { get; set; }
 
         /// <summary>
         /// Gets or Sets CanSign
         /// </summary>
-        [DataMember(Name="can_sign", EmitDefaultValue=false)]
+        [DataMember(Name = "can_sign", EmitDefaultValue = false)]
         public bool? CanSign { get; set; }
 
         /// <summary>
         /// Gets or Sets CreatedAt
         /// </summary>
-        [DataMember(Name="created_at", EmitDefaultValue=false)]
+        [DataMember(Name = "created_at", EmitDefaultValue = false)]
         public DateTime? CreatedAt { get; set; }
 
         /// <summary>
         /// Gets or Sets Emails
         /// </summary>
-        [DataMember(Name="emails", EmitDefaultValue=false)]
+        [DataMember(Name = "emails", EmitDefaultValue = false)]
         public List<GPGKeyEmail> Emails { get; set; }
 
         /// <summary>
         /// Gets or Sets ExpiresAt
         /// </summary>
-        [DataMember(Name="expires_at", EmitDefaultValue=false)]
+        [DataMember(Name = "expires_at", EmitDefaultValue = false)]
         public DateTime? ExpiresAt { get; set; }
 
         /// <summary>
         /// Gets or Sets Id
         /// </summary>
-        [DataMember(Name="id", EmitDefaultValue=false)]
+        [DataMember(Name = "id", EmitDefaultValue = false)]
         public long? Id { get; set; }
 
         /// <summary>
         /// Gets or Sets KeyId
         /// </summary>
-        [DataMember(Name="key_id", EmitDefaultValue=false)]
+        [DataMember(Name = "key_id", EmitDefaultValue = false)]
         public string KeyId { get; set; }
 
         /// <summary>
         /// Gets or Sets PrimaryKeyId
         /// </summary>
-        [DataMember(Name="primary_key_id", EmitDefaultValue=false)]
+        [DataMember(Name = "primary_key_id", EmitDefaultValue = false)]
         public string PrimaryKeyId { get; set; }
 
         /// <summary>
         /// Gets or Sets PublicKey
         /// </summary>
-        [DataMember(Name="public_key", EmitDefaultValue=false)]
+        [DataMember(Name = "public_key", EmitDefaultValue = false)]
         public string PublicKey { get; set; }
 
         /// <summary>
         /// Gets or Sets Subkeys
         /// </summary>
-        [DataMember(Name="subkeys", EmitDefaultValue=false)]
+        [DataMember(Name = "subkeys", EmitDefaultValue = false)]
         public List<GPGKey> Subkeys { get; set; }
 
         /// <summary>

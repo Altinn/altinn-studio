@@ -9,7 +9,7 @@ using XmlSchemaValidator = SharedResources.Tests.XmlSchemaValidator;
 
 namespace DataModeling.Tests
 {
-    public class Seres2JsonSchema2SeresTests: SchemaConversionTestsBase<Seres2JsonSchema2SeresTests>
+    public class Seres2JsonSchema2SeresTests : SchemaConversionTestsBase<Seres2JsonSchema2SeresTests>
     {
         private readonly ITestOutputHelper _testOutputHelper;
 

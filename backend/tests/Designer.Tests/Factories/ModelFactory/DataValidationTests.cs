@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Designer.Tests.Factories.ModelFactory;
 
-public class DataValidationTests: CsharpModelConversionTestsBase<DataValidationTests>
+public class DataValidationTests : CsharpModelConversionTestsBase<DataValidationTests>
 {
     private readonly ITestOutputHelper _testOutputHelper;
 

@@ -205,7 +205,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (JsonException ex)
             {
-                return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance:$"App/config/texts/{filename}", detail:$"Failed to parse App/config/texts/{filename} as JSON\n" + ex.Message);
+                return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance: $"App/config/texts/{filename}", detail: $"Failed to parse App/config/texts/{filename} as JSON\n" + ex.Message);
             }
         }
 

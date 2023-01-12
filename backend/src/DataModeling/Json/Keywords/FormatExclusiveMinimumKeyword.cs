@@ -15,7 +15,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 [SchemaDraft(Draft.Draft201909)]
 [SchemaDraft(Draft.Draft202012)]
 [JsonConverter(typeof(FormatExclusiveMinimumKeywordJsonConverter))]
-public sealed class FormatExclusiveMinimumKeyword: IJsonSchemaKeyword, IEquatable<FormatExclusiveMinimumKeyword>
+public sealed class FormatExclusiveMinimumKeyword : IJsonSchemaKeyword, IEquatable<FormatExclusiveMinimumKeyword>
 {
     /// <summary>
     /// The name of the keyword

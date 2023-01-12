@@ -15,11 +15,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataModeling.Tests", "tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Designer.Tests", "tests\Designer.Tests\Designer.Tests.csproj", "{BF1AA940-F128-44EB-A274-41D020555FCE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedResources.Tests", "tests\SharedResources.Tests\SharedResources.Tests.csproj", "{5861E546-F96E-44E9-A1E1-8A4B08E4DDE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedResources.Tests", "tests\SharedResources.Tests\SharedResources.Tests.csproj", "{5861E546-F96E-44E9-A1E1-8A4B08E4DDE6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "packagegroups", "packagegroups", "{AAD93177-F8EB-47C3-9E95-C2876893F325}"
 	ProjectSection(SolutionItems) = preProject
 		packagegroups\NuGet.props = packagegroups\NuGet.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BAED463D-BBC4-4E1B-8E9B-66A6D9232C14}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
 Global

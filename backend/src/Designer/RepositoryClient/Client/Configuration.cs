@@ -213,7 +213,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
             int timeout = 100000,
             string userAgent = "Swagger-Codegen/1.0.0/csharp")
 
-            // ReSharper restore UnusedParameter.Local
+        // ReSharper restore UnusedParameter.Local
         {
         }
 

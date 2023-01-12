@@ -34,7 +34,7 @@ namespace Designer.Tests
         [InlineData("")]
         [InlineData(@"c:\this\does\not\exists")]
         public void CreateFromPath_InvalidPath_ShouldThrowFileNotFoundException(string repositoryRootPath)
-        {            
+        {
             var filePath = $"{repositoryRootPath}\\myimaginary.schema.json";
 
             Assert.Throws<FileNotFoundException>(() => AltinnCoreFile.CreateFromPath(filePath, repositoryRootPath));

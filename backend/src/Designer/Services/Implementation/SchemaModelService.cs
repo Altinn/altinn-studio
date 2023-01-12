@@ -132,7 +132,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             XmlSchema xsd = _jsonSchemaToXmlSchemaConverter.Convert(jsonSchema);
 
-            await altinnAppGitRepository.SaveXsd(xsd,  Path.ChangeExtension(schemaName, "xsd"));
+            await altinnAppGitRepository.SaveXsd(xsd, Path.ChangeExtension(schemaName, "xsd"));
 
             var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
             ModelMetadata modelMetadata = metamodelConverter.Convert(jsonContent);

@@ -44,13 +44,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Gets or Sets Email
         /// </summary>
-        [DataMember(Name="email", EmitDefaultValue=false)]
+        [DataMember(Name = "email", EmitDefaultValue = false)]
         public string Email { get; set; }
 
         /// <summary>
         /// Gets or Sets Verified
         /// </summary>
-        [DataMember(Name="verified", EmitDefaultValue=false)]
+        [DataMember(Name = "verified", EmitDefaultValue = false)]
         public bool? Verified { get; set; }
 
         /// <summary>

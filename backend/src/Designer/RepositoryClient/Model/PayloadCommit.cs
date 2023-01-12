@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
     /// PayloadCommit represents a commit
     /// </summary>
     [DataContract]
-    public partial class PayloadCommit 
+    public partial class PayloadCommit
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PayloadCommit"/> class.
@@ -56,48 +56,48 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             this.Url = Url;
             this.Verification = Verification;
         }
-        
+
         /// <summary>
         /// Gets or Sets Author
         /// </summary>
-        [DataMember(Name="author", EmitDefaultValue=false)]
+        [DataMember(Name = "author", EmitDefaultValue = false)]
         public PayloadUser Author { get; set; }
 
         /// <summary>
         /// Gets or Sets Committer
         /// </summary>
-        [DataMember(Name="committer", EmitDefaultValue=false)]
+        [DataMember(Name = "committer", EmitDefaultValue = false)]
         public PayloadUser Committer { get; set; }
 
         /// <summary>
         /// sha1 hash of the commit
         /// </summary>
         /// <value>sha1 value</value>
-        [DataMember(Name="id", EmitDefaultValue=false)]
+        [DataMember(Name = "id", EmitDefaultValue = false)]
         public string Id { get; set; }
 
         /// <summary>
         /// Gets or Sets Message
         /// </summary>
-        [DataMember(Name="message", EmitDefaultValue=false)]
+        [DataMember(Name = "message", EmitDefaultValue = false)]
         public string Message { get; set; }
 
         /// <summary>
         /// Gets or Sets Timestamp
         /// </summary>
-        [DataMember(Name="timestamp", EmitDefaultValue=false)]
+        [DataMember(Name = "timestamp", EmitDefaultValue = false)]
         public string Timestamp { get; set; }
 
         /// <summary>
         /// Gets or Sets Url
         /// </summary>
-        [DataMember(Name="url", EmitDefaultValue=false)]
+        [DataMember(Name = "url", EmitDefaultValue = false)]
         public string Url { get; set; }
 
         /// <summary>
         /// Gets or Sets Verification
         /// </summary>
-        [DataMember(Name="verification", EmitDefaultValue=false)]
+        [DataMember(Name = "verification", EmitDefaultValue = false)]
         public PayloadCommitVerification Verification { get; set; }
     }
 }

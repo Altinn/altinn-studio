@@ -48,7 +48,7 @@ namespace Designer.Tests.Factories.ModelFactory
             xwriter.Formatting = Formatting.Indented;
             xwriter.WriteStartDocument(false);
             xmlschema.Write(xmlStream);
-    
+
             await WriteData(xsdName + ".new", xmlStream);
 
             Assert.NotNull(actual);

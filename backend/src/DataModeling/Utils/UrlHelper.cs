@@ -25,7 +25,7 @@ namespace Altinn.Studio.DataModeling.Utils
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
             {
                 uri = new Uri(new Uri(dummyBase), url);
-            }                
+            }
 
             return Path.GetFileNameWithoutExtension(uri.LocalPath);
         }

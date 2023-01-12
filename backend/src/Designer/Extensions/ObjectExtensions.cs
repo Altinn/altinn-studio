@@ -119,7 +119,7 @@ namespace Altinn.Studio.Designer.Extensions
                         string xml = Encoding.UTF8.GetString(buffer.Array, 0, (int)memStream.Length);
                         xml = xml.Substring(xml.IndexOf(Convert.ToChar(60)));
                         xml = xml.Substring(0, xml.LastIndexOf(Convert.ToChar(62)) + 1);
-                        
+
                         return xml;
                     }
 

@@ -742,7 +742,7 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Namespaces.Count, expected.Namespaces.Count);
             for (int i = 0; i < expected.Namespaces.Count; i++)
             {
-                Assert.Equal(expected.Namespaces[i].Prefix,  actual.Namespaces[i].Prefix);
+                Assert.Equal(expected.Namespaces[i].Prefix, actual.Namespaces[i].Prefix);
                 Assert.Equal(expected.Namespaces[i].Ns, actual.Namespaces[i].Ns);
             }
         }
@@ -752,7 +752,7 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.Properties.Count, actual.Properties.Count);
             for (int i = 0; i < expected.Properties.Count; i++)
             {
-                Assert.Equal(expected.Properties[i].Name,  actual.Properties[i].Name);
+                Assert.Equal(expected.Properties[i].Name, actual.Properties[i].Name);
                 Assert.Equal(expected.Properties[i].Value, actual.Properties[i].Value);
             }
         }

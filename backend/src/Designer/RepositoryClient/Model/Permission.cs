@@ -42,23 +42,23 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             this.Pull = Pull;
             this.Push = Push;
         }
-        
+
         /// <summary>
         /// Gets or Sets Admin
         /// </summary>
-        [DataMember(Name="admin", EmitDefaultValue=false)]
+        [DataMember(Name = "admin", EmitDefaultValue = false)]
         public bool? Admin { get; set; }
 
         /// <summary>
         /// Gets or Sets Pull
         /// </summary>
-        [DataMember(Name="pull", EmitDefaultValue=false)]
+        [DataMember(Name = "pull", EmitDefaultValue = false)]
         public bool? Pull { get; set; }
 
         /// <summary>
         /// Gets or Sets Push
         /// </summary>
-        [DataMember(Name="push", EmitDefaultValue=false)]
+        [DataMember(Name = "push", EmitDefaultValue = false)]
         public bool? Push { get; set; }
 
         /// <summary>

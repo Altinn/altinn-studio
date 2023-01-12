@@ -49,6 +49,6 @@ namespace Altinn.Studio.DataModeling.Templates
         private void SetModellnavn(string value)
         {
             ReplaceVariable("modellnavn", value);
-        }        
+        }
     }
 }

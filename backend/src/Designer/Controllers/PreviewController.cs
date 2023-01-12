@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISchemaModelService _schemaModelService;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
-         /// <summary>
+        /// <summary>
         /// Initializes a new instance of the <see cref="PreviewController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service.</param>

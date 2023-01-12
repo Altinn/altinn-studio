@@ -50,31 +50,31 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Gets or Sets Created
         /// </summary>
-        [DataMember(Name="created", EmitDefaultValue=false)]
+        [DataMember(Name = "created", EmitDefaultValue = false)]
         public DateTime? Created { get; set; }
 
         /// <summary>
         /// Gets or Sets Id
         /// </summary>
-        [DataMember(Name="id", EmitDefaultValue=false)]
+        [DataMember(Name = "id", EmitDefaultValue = false)]
         public long? Id { get; set; }
 
         /// <summary>
         /// Gets or Sets IssueId
         /// </summary>
-        [DataMember(Name="issue_id", EmitDefaultValue=false)]
+        [DataMember(Name = "issue_id", EmitDefaultValue = false)]
         public long? IssueId { get; set; }
 
         /// <summary>
         /// Time in seconds
         /// </summary>
-        [DataMember(Name="time", EmitDefaultValue=false)]
+        [DataMember(Name = "time", EmitDefaultValue = false)]
         public long? Time { get; set; }
 
         /// <summary>
         /// Gets or Sets UserId
         /// </summary>
-        [DataMember(Name="user_id", EmitDefaultValue=false)]
+        [DataMember(Name = "user_id", EmitDefaultValue = false)]
         public long? UserId { get; set; }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 }
 
                 if (this.Time != null)
-                { 
+                {
                     hashCode = (hashCode * 59) + this.Time.GetHashCode();
                 }
 

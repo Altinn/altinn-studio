@@ -52,37 +52,37 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Gets or Sets CreatedAt
         /// </summary>
-        [DataMember(Name="created_at", EmitDefaultValue=false)]
+        [DataMember(Name = "created_at", EmitDefaultValue = false)]
         public DateTime? CreatedAt { get; set; }
 
         /// <summary>
         /// Gets or Sets Fingerprint
         /// </summary>
-        [DataMember(Name="fingerprint", EmitDefaultValue=false)]
+        [DataMember(Name = "fingerprint", EmitDefaultValue = false)]
         public string Fingerprint { get; set; }
 
         /// <summary>
         /// Gets or Sets Id
         /// </summary>
-        [DataMember(Name="id", EmitDefaultValue=false)]
+        [DataMember(Name = "id", EmitDefaultValue = false)]
         public long? Id { get; set; }
 
         /// <summary>
         /// Gets or Sets Key
         /// </summary>
-        [DataMember(Name="key", EmitDefaultValue=false)]
+        [DataMember(Name = "key", EmitDefaultValue = false)]
         public string Key { get; set; }
 
         /// <summary>
         /// Gets or Sets Title
         /// </summary>
-        [DataMember(Name="title", EmitDefaultValue=false)]
+        [DataMember(Name = "title", EmitDefaultValue = false)]
         public string Title { get; set; }
 
         /// <summary>
         /// Gets or Sets Url
         /// </summary>
-        [DataMember(Name="url", EmitDefaultValue=false)]
+        [DataMember(Name = "url", EmitDefaultValue = false)]
         public string Url { get; set; }
 
         /// <summary>

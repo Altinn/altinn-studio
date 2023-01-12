@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Repository
         /// Calls a procedure to retrieve succedded release entity
         /// </summary>
         Task<ReleaseEntity> GetSucceededReleaseFromDb(string org, string app, string tagName);
-        
+
         /// <summary>
         /// Calls a function to update release entity
         /// </summary>
