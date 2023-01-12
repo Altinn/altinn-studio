@@ -7,10 +7,13 @@ import { designer } from '../pageobjects/designer';
  * Login to studio with user name and password
  */
 Cypress.Commands.add('studiologin', (userName, userPwd) => {
-  cy.get(login.loginButton).should('be.visible').click();
-  cy.get(login.userName).should('be.visible').type(userName);
-  cy.get(login.userPwd).should('be.visible').type(userPwd, { log: false });
-  cy.get(login.submit).should('be.visible').click();
+  cy.session([userName, userPwd], () => {
+    cy.visit('/');
+    cy.get(login.loginButton).should('be.visible').click();
+    cy.get(login.userName).should('be.visible').type(userName);
+    cy.get(login.userPwd).should('be.visible').type(userPwd, { log: false });
+    cy.get(login.submit).should('be.visible').click();
+  });
 });
 
 /**
@@ -81,5 +84,8 @@ Cypress.Commands.add('getIframeBody', () => {
 Cypress.Commands.add('searchAndOpenApp', (appId) => {
   var appName = appId.split('/')[1];
   cy.get(dashboard.searchApp).type(appName);
-  cy.contains(dashboard.apps.name, appName).siblings(dashboard.apps.links).find(dashboard.apps.edit).click();
+  cy.contains(dashboard.apps.name, appName)
+    .siblings(dashboard.apps.links)
+    .find(dashboard.apps.edit)
+    .click();
 });

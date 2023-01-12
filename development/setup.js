@@ -1,4 +1,4 @@
-const gitaApi = require('./utils/gitea-api.js');
+const giteaApi = require('./utils/gitea-api.js');
 const waitFor = require('./utils/wait-for.js');
 const runCommand = require('./utils/run-command.js');
 const ensureDotEnv = require('./utils/ensure-dot-env.js');
@@ -29,7 +29,7 @@ const ensureAdminPassword = (env) =>
   );
 
 const createTestDepOrg = (env) =>
-  gitaApi({
+  giteaApi({
     path: '/repos/api/v1/orgs',
     method: 'POST',
     user: env.GITEA_ADMIN_USER,
@@ -42,13 +42,13 @@ const createTestDepOrg = (env) =>
   });
 
 const addUserToOwnersTeam = async (env) => {
-  const teams = await gitaApi({
+  const teams = await giteaApi({
     path: `/repos/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
     method: 'GET',
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
   });
-  await gitaApi({
+  await giteaApi({
     path: `/repos/api/v1/teams/${teams[0].id}/members/${env.GITEA_ADMIN_USER}`,
     method: 'PUT',
     user: env.GITEA_ADMIN_USER,
@@ -65,7 +65,7 @@ const createCypressEnvFile = async (env) => {
     useCaseUser: env.GITEA_ADMIN_USER,
     useCaseUserPwd: env.GITEA_ADMIN_PASS,
   };
-  const allTokens = await gitaApi({
+  const allTokens = await giteaApi({
     path: `/repos/api/v1/users/${env.GITEA_ADMIN_USER}/tokens`,
     method: 'GET',
     user: env.GITEA_ADMIN_USER,
@@ -75,7 +75,7 @@ const createCypressEnvFile = async (env) => {
   allTokens.forEach((token) => {
     if (token.name.startsWith(tokenPrefix)) {
       deleteTokenOperations.push(
-        gitaApi({
+        giteaApi({
           path: `/repos/api/v1/users/${env.GITEA_ADMIN_USER}/tokens/${token.id}`,
           method: 'DELETE',
           user: env.GITEA_ADMIN_USER,
@@ -84,7 +84,7 @@ const createCypressEnvFile = async (env) => {
       );
     }
   });
-  const result = await gitaApi({
+  const result = await giteaApi({
     path: `/repos/api/v1/users/${env.GITEA_ADMIN_USER}/tokens`,
     method: 'POST',
     user: env.GITEA_ADMIN_USER,
