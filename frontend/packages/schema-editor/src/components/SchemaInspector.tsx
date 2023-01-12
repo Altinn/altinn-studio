@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Panel, PanelVariant, Tabs } from '@altinn/altinn-design-system';
 import type { TabItem } from '@altinn/altinn-design-system';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -22,6 +22,35 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
     Fields = 'fields'
   }
   const [activeTab, setActiveTab] = useState<string>(TabValue.Properties);
+  const [tabItems, setTabItems] = useState<TabItem[]>([
+    {
+      name: t(TabValue.Properties),
+      content: null,
+      value: TabValue.Properties,
+    }
+  ]);
+
+  useEffect(() => {
+    setActiveTab(TabValue.Properties);
+    if (!selectedItem) return;
+    const tabs = [{
+      name: t(TabValue.Properties),
+      content: <ItemPropertiesTab selectedItem={selectedItem} language={language} />,
+      value: TabValue.Properties,
+    }];
+    if (
+      selectedItem?.fieldType === FieldType.Object &&
+      selectedItem.objectKind !== ObjectKind.Combination &&
+      selectedItem.objectKind !== ObjectKind.Reference
+    ) {
+      tabs.push({
+        name: t(TabValue.Fields),
+        content: <ItemFieldsTab selectedItem={selectedItem} language={language} />,
+        value: TabValue.Fields,
+      });
+    }
+    setTabItems(tabs);
+  }, [selectedItem]);
 
   const switchTab = (tabValue: string) => {
     if ((tabValue === TabValue.Fields.toString() && selectedItem.fieldType !== FieldType.Object) || !selectedItem) {
@@ -30,26 +59,6 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
       setActiveTab(tabValue);
     }
   };
-
-  const tabItems: TabItem[] = [
-    {
-      name: t(TabValue.Properties),
-      content: <ItemPropertiesTab selectedItem={selectedItem} language={language} />,
-      value: TabValue.Properties,
-    }
-  ];
-
-  if (
-    selectedItem?.fieldType === FieldType.Object &&
-    selectedItem.objectKind !== ObjectKind.Combination &&
-    selectedItem.objectKind !== ObjectKind.Reference
-  ) {
-    tabItems.push({
-      name: t(TabValue.Fields),
-      content: <ItemFieldsTab selectedItem={selectedItem} language={language} />,
-      value: TabValue.Fields,
-    });
-  }
 
   return selectedItem ? (
     <div className={classes.root} data-testid='schema-inspector'>
