@@ -5,7 +5,7 @@ export const designer = {
     edit: "[data-testid='top_menu.create']",
     texts: "[data-testid='top_menu.texts']",
     deploy: "[data-testid='top_menu.deploy']",
-    datamodel: "[data-testid='top_menu.datamodel']"
+    datamodel: "[data-testid='top_menu.datamodel']",
   },
   olderBuilds: 'Tidligere bygg av applikasjonen',
   inprogressSpinner: "[role='progressbar']",
@@ -89,7 +89,7 @@ export const designer = {
     docs: 'a[href="https://docs.altinn.studio/"]',
   },
   texts: {
-    new: '.json-editor-btn-add',
+    new: "[data-testid='text-editor-btn-add']",
     root: 'div[data-schemapath="root.resources"]',
     resources: 'tr[data-schemapath^="root.resources"]',
     resourceId: 'input[name$="[id]"]',

@@ -9,7 +9,7 @@ pr: none
 
 variables:
   cyCacheDir: "/home/AzDevOps/.cache/Cypress"
-  cypressTestDir: "$(Build.SourcesDirectory)/src/test/cypress"
+  cypressTestDir: "$(Build.SourcesDirectory)/frontend/testing/cypress"
 
 schedules:
 - cron: "10,25,40,55 * * * *"
@@ -39,7 +39,7 @@ steps:
 
    yarn run cy:verify
 
-   yarn run cy:run -s 'e2e/integration/usecase/usecase.js' -e environment=$(environment),useCaseUserPwd=$(userPassword)
+   yarn run cy:run -s 'src/integration/usecase/usecase.js' -e environment=$(environment),useCaseUserPwd=$(userPassword)
 
   workingDirectory: '$(cypressTestDir)'
   displayName: 'Studio Tests'

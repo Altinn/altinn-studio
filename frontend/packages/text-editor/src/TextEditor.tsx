@@ -98,6 +98,7 @@ export const TextEditor = ({
             color={ButtonColor.Primary}
             onClick={handleAddNewEntryClick}
             disabled={isFetchingTranslations}
+            data-testid='text-editor-btn-add'
           >
             Ny tekst
           </Button>

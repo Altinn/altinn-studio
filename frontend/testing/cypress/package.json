@@ -1,0 +1,30 @@
+{
+  "name": "cypress-studio",
+  "description": "studio tests",
+  "version": "1.0.0",
+  "devDependencies": {
+    "axe-core": "4.6.1",
+    "cypress": "10.11.0",
+    "cypress-axe": "1.2.0",
+    "cypress-plugin-tab": "1.0.5",
+    "eslint": "8.31.0",
+    "eslint-plugin-cypress": "2.12.1"
+  },
+  "main": "index.js",
+  "scripts": {
+    "after:all": "cypress run -b chrome -s 'src/integration/setup/after.js' -e environment=local",
+    "before:all": "cypress run -b chrome -s 'src/integration/setup/before.js' -e environment=local",
+    "cy:cachelist": "cypress cache list",
+    "cy:open": "cypress open -e environment=local",
+    "cy:prunecache": "cypress cache prune",
+    "cy:run": "cypress run",
+    "cy:verify": "cypress verify",
+    "cy:version": "cypress -v",
+    "delete:reports": "rm reports/* || true",
+    "eslint:check": "eslint \"src/**\"",
+    "eslint:fix": "eslint \"src/**\" --fix",
+    "prettier:check": "prettier -c src/**/*.js",
+    "prettier:format": "prettier -w src/**/*.js",
+    "test:studio": "cypress run -b chrome -s 'src/integration/studio/*.js'"
+  }
+}
