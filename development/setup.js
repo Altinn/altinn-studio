@@ -40,20 +40,100 @@ const createTestDepOrg = (env) =>
       description: 'Internt organisasjon for test av løsning',
     },
   });
+const createTestDepTeams = async (env) => {
+  const allTeams = [
+    {
+      name: 'Deploy-AT21',
+      permission: 'write',
+      description: 'Deploy til AT21',
+      includes_all_repositories: true,
+    },
+    {
+      name: 'Deploy-AT22',
+      permission: 'write',
+      description: 'Deploy til AT22',
+      includes_all_repositories: true,
+    },
+    {
+      name: 'Deploy-AT23',
+      permission: 'write',
+      description: 'Deploy til AT23',
+      includes_all_repositories: true,
+    },
+    {
+      name: 'Deploy-AT24',
+      permission: 'write',
+      description: 'Deploy til AT24',
+      includes_all_repositories: true,
+    },
+    {
+      name: 'Deploy-TT02',
+      permission: 'write',
+      description: 'Deploy til TT02',
+      includes_all_repositories: true,
+    },
+    {
+      name: 'Deploy-YT01',
+      permission: 'write',
+      description: 'Deploy til YT01',
+      includes_all_repositories: true,
+    },
+    {
+      name: 'Devs',
+      permission: 'write',
+      description: 'All application developers',
+      includes_all_repositories: true,
+    },
+    {
+      name: 'KunLes',
+      permission: 'read',
+      description: 'Test av kun lesetilgang',
+      includes_all_repositories: true,
+    },
+  ];
 
-const addUserToOwnersTeam = async (env) => {
+  const existingTeams = await giteaApi({
+    path: `/repos/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
+    method: 'GET',
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+  });
+
+  for (const team of allTeams) {
+    const existing = existingTeams.find((t) => t.name === team.name);
+    if (!existing) {
+      await giteaApi({
+        path: `/repos/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
+        method: 'POST',
+        user: env.GITEA_ADMIN_USER,
+        pass: env.GITEA_ADMIN_PASS,
+        body: Object.assign(
+          {
+            units: ['repo.code', 'repo.issues', 'repo.pulls', 'repo.releases'],
+          },
+          team
+        ),
+      });
+    }
+  }
+};
+
+const addUserToSomeTestDepTeams = async (env) => {
   const teams = await giteaApi({
     path: `/repos/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
     method: 'GET',
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
   });
-  await giteaApi({
-    path: `/repos/api/v1/teams/${teams[0].id}/members/${env.GITEA_ADMIN_USER}`,
-    method: 'PUT',
-    user: env.GITEA_ADMIN_USER,
-    pass: env.GITEA_ADMIN_PASS,
-  });
+  for (const teamName of ['Owners', 'Deploy-TT02', 'Devs']) {
+    const existing = teams.find((t) => t.name === teamName);
+    await giteaApi({
+      path: `/repos/api/v1/teams/${existing.id}/members/${env.GITEA_ADMIN_USER}`,
+      method: 'PUT',
+      user: env.GITEA_ADMIN_USER,
+      pass: env.GITEA_ADMIN_PASS,
+    });
+  }
 };
 
 const createCypressEnvFile = async (env) => {
@@ -107,7 +187,7 @@ const createCypressEnvFile = async (env) => {
   console.log('Wrote a new:', cypressEnvFilePath);
 };
 
-const ensureDeploymentEntry = async () => {
+const addReleaseAndDeployTestDataToDb = async () => {
   runCommand(
     [`docker exec -i studio-db psql`, `-U designer_admin designerdb`, `< db/data.sql`].join(' ')
   );
@@ -120,10 +200,12 @@ const script = async () => {
   await createAdminUser(currentEnv);
   await ensureAdminPassword(currentEnv);
   await createTestDepOrg(currentEnv);
-  await addUserToOwnersTeam(currentEnv);
+  await createTestDepTeams(currentEnv);
+  await addUserToSomeTestDepTeams(currentEnv);
   await createCypressEnvFile(currentEnv);
-  await ensureDeploymentEntry();
+  await addReleaseAndDeployTestDataToDb();
   process.exit(0);
 };
 
 script().then();
+//addUserToSomeTestDepTeams(ensureDotEnv()).then(console.log('done'));
