@@ -161,18 +161,18 @@ namespace Altinn.App.Core.Helpers
                     break;
 
                 case JTokenType.Null:
-                    if (oldObj != null)
+                    if (oldObj != null && old?.Type == JTokenType.Object)
                     {
                         foreach (string key in oldObj.Properties().Select(c => c.Name))
                         {
                             FindDiff(dict, oldObj[key], JValue.CreateNull(), Join(prefix, key));
                         }
                     }
-                    else if (old?.Type == JTokenType.Array)
+                    else if (oldArray != null && old?.Type == JTokenType.Array)
                     {
-                        for (index = 0; index < oldArray?.Count; index++)
+                        for (index = 0; index < oldArray.Count; index++)
                         {
-                            dict.Add($"{prefix}[{index}]", null);
+                            FindDiff(dict, oldArray[index], JValue.CreateNull(), $"{prefix}[{index}]");
                         }
                     }
                     else
