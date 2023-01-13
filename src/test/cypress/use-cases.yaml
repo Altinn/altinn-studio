@@ -37,6 +37,8 @@ steps:
 
    yarn run cy:version
 
+   yarn cypress install
+
    yarn run cy:verify
 
    yarn run cy:run -s 'e2e/integration/usecase/usecase.js' -e environment=$(environment),useCaseUserPwd=$(userPassword)
