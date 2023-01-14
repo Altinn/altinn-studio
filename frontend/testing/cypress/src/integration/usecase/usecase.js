@@ -16,8 +16,8 @@ context(
       cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
       cy.getrepo(Cypress.env('deployApp'), Cypress.env('accessToken')).then((response) => {
         if (response.status === 404) {
-          const [orgName, appName] = Cypress.env('deployApp').split('/');
-          cy.createapp(orgName, appName);
+          const [_, appName] = Cypress.env('deployApp').split('/');
+          cy.createapp('Testdepartementet', appName);
         }
       });
     });

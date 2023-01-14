@@ -8,18 +8,29 @@ import Common from '../../pageobjects/common';
 const common = new Common();
 
 context('Dashboard', () => {
-  beforeEach(() => {
+  before(() => {
     cy.visit('/');
-    cy.intercept('GET', '**/repos/search**').as('fetchApps');
-    if (Cypress.env('environment') == 'local') cy.studiologin(Cypress.env('adminUser'), Cypress.env('adminPwd'));
-    if (Cypress.env('environment') != 'local')
+    if (Cypress.env('environment') === 'local') {
+      cy.studiologin(Cypress.env('adminUser'), Cypress.env('adminPwd'));
+    } else {
       cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    }
+    cy.createapp(Cypress.env('adminUser'), 'auto-app');
+    cy.createapp(Cypress.env('adminUser'), 'test-app');
+  });
+
+  beforeEach(() => {
+    cy.visit('/dashboard');
+    cy.intercept('GET', '**/repos/search**').as('fetchApps');
     cy.get(dashboard.searchApp).should('be.visible');
     cy.wait('@fetchApps').its('response.statusCode').should('eq', 200);
   });
 
   it('is possible to view apps, add and remove favourites', () => {
-    var createdBy = Cypress.env('environment') == 'local' ? Cypress.env('adminUser') : Cypress.env('autoTestUser');
+    const createdBy =
+      Cypress.env('environment') === 'local'
+        ? Cypress.env('adminUser')
+        : Cypress.env('autoTestUser');
     cy.intercept('PUT', '**/designer/api/v1/user/starred/**').as('addFavourite');
     cy.contains('h2', 'Mine applikasjoner')
       .siblings()
@@ -48,6 +59,7 @@ context('Dashboard', () => {
   });
 
   it('is possible to change context and view all apps', () => {
+    cy.visit('/dashboard');
     cy.get(header.profileIcon).should('be.visible').click();
     cy.get(header.menu.all).should('be.visible').click();
     cy.wait('@fetchApps');
@@ -61,7 +73,11 @@ context('Dashboard', () => {
       .siblings()
       .then((searchResult) => {
         cy.get(searchResult).find(common.gridRow).should('have.length.gte', 1);
-        cy.get(searchResult).find(common.gridRow).first().find(dashboard.apps.name).should('contain.text', 'auto');
+        cy.get(searchResult)
+          .find(common.gridRow)
+          .first()
+          .find(dashboard.apps.name)
+          .should('contain.text', 'auto');
       });
   });
 
@@ -74,5 +90,10 @@ context('Dashboard', () => {
         cy.get(searchResult).find(common.gridRow).should('have.length', 0);
         cy.get(searchResult).find('p').should('contain.text', 'Ingen applikasjoner funnet');
       });
+  });
+
+  after(() => {
+    cy.deleteallapps('org', Cypress.env('appOwner'), Cypress.env('accessToken'));
+    cy.deleteallapps('user', Cypress.env('adminUser'), Cypress.env('accessToken'));
   });
 });

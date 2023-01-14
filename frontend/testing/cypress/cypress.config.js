@@ -5,6 +5,7 @@ module.exports = defineConfig({
   e2e: {
     supportFile: 'src/support/index.js',
     specPattern: 'src/integration/',
+    testIsolation: false,
     setupNodeEvents(on, config) {
       return require(path.resolve(
         __dirname,

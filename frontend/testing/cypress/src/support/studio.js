@@ -20,9 +20,10 @@ Cypress.Commands.add('studiologin', (userName, userPwd) => {
  * create an app in studio with user logged in and in dashboard
  */
 Cypress.Commands.add('createapp', (orgName, appName) => {
+  cy.visit('/dashboard');
   cy.get(dashboard.newApp).should('be.visible').click();
   cy.get(dashboard.appOwners).should('be.visible').click();
-  cy.contains(dashboard.appOwnersList, 'Testdepartementet').click();
+  cy.contains(dashboard.appOwnersList, orgName).click();
   cy.get(dashboard.appName).should('be.visible').type(appName);
   cy.intercept('POST', '**/designer/api/v1/repos/**').as('postCreateApp');
   cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
@@ -69,13 +70,6 @@ Cypress.Commands.add('deleteLocalChanges', (appId) => {
   cy.get(designer.deleteChanges.confirm).should('be.visible').click();
   cy.wait('@resetRepo');
   cy.get(designer.deleteChanges.name).should('not.exist');
-});
-
-/**
- * Get body of an iframe document
- */
-Cypress.Commands.add('getIframeBody', () => {
-  return cy.get('iframe').its('0.contentDocument.body').should('not.be.empty').then(cy.wrap);
 });
 
 /**
