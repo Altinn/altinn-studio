@@ -3,11 +3,9 @@
 /// <reference types="../../support" />
 
 import { designer } from '../../pageobjects/designer';
-import Common from '../../pageobjects/common';
+import { common } from '../../pageobjects/common';
 
-const common = new Common();
-
-if (Cypress.env('environment') != 'local') {
+if (Cypress.env('environment') !== 'local') {
   context('Sync app and deploy', () => {
     beforeEach(() => {
       cy.intercept('GET', '**/status').as('getRepoStatus');
@@ -60,16 +58,28 @@ if (Cypress.env('environment') != 'local') {
 
       // Start app deploy
       var deployVerions =
-        Cypress.env('environment') != 'prod' ? designer.deploy.at22Versions : designer.deploy.prodVersions;
-      var deployButton = Cypress.env('environment') != 'prod' ? designer.deploy.at22Deploy : designer.deploy.prodDeploy;
-      cy.get(deployVerions).scrollIntoView().find('.select__indicators').should('be.visible').click();
+        Cypress.env('environment') != 'prod'
+          ? designer.deploy.at22Versions
+          : designer.deploy.prodVersions;
+      var deployButton =
+        Cypress.env('environment') != 'prod'
+          ? designer.deploy.at22Deploy
+          : designer.deploy.prodDeploy;
+      cy.get(deployVerions)
+        .scrollIntoView()
+        .find('.select__indicators')
+        .should('be.visible')
+        .click();
       cy.get(designer.deploy.versions).scrollIntoView().children().should('have.length.above', 0);
       cy.get(designer.deploy.latestBuild).scrollIntoView().click();
       cy.get(deployButton).should('be.visible').focus().click();
       cy.get(designer.deploy.confirm).should('be.visible').focus().click();
       cy.wait('@getAppDeploys').its('response.statusCode').should('eq', 200);
       cy.wait(5000);
-      cy.get(deployVerions).siblings(common.gridContainer).find(designer.deploy.inProgress).should('be.visible');
+      cy.get(deployVerions)
+        .siblings(common.gridContainer)
+        .find(designer.deploy.inProgress)
+        .should('be.visible');
     });
   });
 }

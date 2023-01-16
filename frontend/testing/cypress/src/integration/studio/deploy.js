@@ -2,13 +2,10 @@
 /// <reference types="../../support" />
 
 import { designer } from '../../pageobjects/designer';
-import Common from '../../pageobjects/common';
-import { header } from '../../pageobjects/header';
+import { common } from '../../pageobjects/common';
 import { builds } from '../../fixtures/builds';
 import { deploys } from '../../fixtures/deploys';
 import * as texts from '../../fixtures/texts.json';
-
-const common = new Common();
 
 context('Deploy', () => {
   before(() => {
@@ -16,7 +13,8 @@ context('Deploy', () => {
       cy.visit('/');
       cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
       cy.getrepo(Cypress.env('deployApp'), Cypress.env('accessToken')).then((response) => {
-        if (response.status != 200) cy.createapp(Cypress.env('appOwner'), Cypress.env('deployApp').split('/')[1]);
+        if (response.status != 200)
+          cy.createapp(Cypress.env('appOwner'), Cypress.env('deployApp').split('/')[1]);
       });
       cy.clearCookies();
     }
@@ -29,9 +27,11 @@ context('Deploy', () => {
   });
 
   it('is possible to view an inprogress build', () => {
-    cy.intercept('GET', `**/designer/api/v1/${Cypress.env('deployApp')}/releases**`, builds('inprogress')).as(
-      'buildstatus',
-    );
+    cy.intercept(
+      'GET',
+      `**/designer/api/v1/${Cypress.env('deployApp')}/releases**`,
+      builds('inprogress')
+    ).as('buildstatus');
     cy.wait('@buildstatus').its('response.statusCode').should('eq', 200);
     cy.contains(common.gridItem, designer.olderBuilds)
       .next(common.gridContainer)
@@ -41,9 +41,11 @@ context('Deploy', () => {
   });
 
   it('is possible to view the status of a failed build', () => {
-    cy.intercept('GET', `**/designer/api/v1/${Cypress.env('deployApp')}/releases**`, builds('failed')).as(
-      'buildstatus',
-    );
+    cy.intercept(
+      'GET',
+      `**/designer/api/v1/${Cypress.env('deployApp')}/releases**`,
+      builds('failed')
+    ).as('buildstatus');
     cy.wait('@buildstatus').its('response.statusCode').should('eq', 200);
     cy.contains(common.gridItem, designer.olderBuilds)
       .next(common.gridContainer)
@@ -53,9 +55,11 @@ context('Deploy', () => {
   });
 
   it('is possible to view status of a successful build', () => {
-    cy.intercept('GET', `**/designer/api/v1/${Cypress.env('deployApp')}/releases**`, builds('succeeded')).as(
-      'buildstatus',
-    );
+    cy.intercept(
+      'GET',
+      `**/designer/api/v1/${Cypress.env('deployApp')}/releases**`,
+      builds('succeeded')
+    ).as('buildstatus');
     cy.wait('@buildstatus').its('response.statusCode').should('eq', 200);
     cy.contains(common.gridItem, designer.olderBuilds)
       .next(common.gridContainer)
@@ -69,10 +73,14 @@ context('Deploy', () => {
       cy.intercept('GET', '**/designer/api/v1/*/*/Deployments**', deploys()).as('deploys');
     if (Cypress.env('environment') != 'prod') {
       cy.contains('div', 'AT22').scrollIntoView().should('be.visible');
-      cy.get(designer.deployHistory.at22).find('tbody > tr').should('contain.text', Cypress.env('autoTestUser'));
+      cy.get(designer.deployHistory.at22)
+        .find('tbody > tr')
+        .should('contain.text', Cypress.env('autoTestUser'));
     } else {
       cy.contains('div', 'PRODUCTION').scrollIntoView().should('be.visible');
-      cy.get(designer.deployHistory.prod).find('tbody > tr').should('contain.text', Cypress.env('autoTestUser'));
+      cy.get(designer.deployHistory.prod)
+        .find('tbody > tr')
+        .should('contain.text', Cypress.env('autoTestUser'));
     }
   });
 

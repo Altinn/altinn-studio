@@ -3,9 +3,7 @@
 
 import { dashboard } from '../../pageobjects/dashboard';
 import { header } from '../../pageobjects/header';
-import Common from '../../pageobjects/common';
-
-const common = new Common();
+import { common } from '../../pageobjects/common';
 
 context('Dashboard', () => {
   before(() => {

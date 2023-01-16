@@ -3,9 +3,7 @@
 
 import { designer } from '../../pageobjects/designer';
 import { header } from '../../pageobjects/header';
-import Common from '../../pageobjects/common';
-
-const common = new Common();
+import { common } from '../../pageobjects/common';
 
 context('Designer', () => {
   before(() => {
@@ -13,13 +11,16 @@ context('Designer', () => {
       cy.visit('/');
       cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
       cy.getrepo(Cypress.env('designerApp'), Cypress.env('accessToken')).then((response) => {
-        if (response.status != 200) cy.createapp(Cypress.env('appOwner'), Cypress.env('designerApp').split('/')[1]);
+        if (response.status != 200)
+          cy.createapp(Cypress.env('appOwner'), Cypress.env('designerApp').split('/')[1]);
       });
       cy.visit('/');
-      cy.getrepo(Cypress.env('withoutDataModelApp'), Cypress.env('accessToken')).then((response) => {
-        if (response.status != 200)
-          cy.createapp(Cypress.env('appOwner'), Cypress.env('withoutDataModelApp').split('/')[1]);
-      });
+      cy.getrepo(Cypress.env('withoutDataModelApp'), Cypress.env('accessToken')).then(
+        (response) => {
+          if (response.status != 200)
+            cy.createapp(Cypress.env('appOwner'), Cypress.env('withoutDataModelApp').split('/')[1]);
+        }
+      );
       cy.clearCookies();
     }
   });
@@ -58,13 +59,21 @@ context('Designer', () => {
   it('is possible to add and delete text resources', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
     cy.get(designer.appMenu.texts).click();
-    cy.getIframeBody().find(designer.texts.root).find(designer.texts.new).should('be.visible').click();
+    cy.getIframeBody()
+      .find(designer.texts.root)
+      .find(designer.texts.new)
+      .should('be.visible')
+      .click();
     cy.getIframeBody()
       .find(designer.texts.resources)
       .last()
       .then((newText) => {
         cy.get(newText).find(designer.texts.resourceId).should('be.visible').type('test').tab();
-        cy.get(newText).find(designer.texts.resourceValue).should('be.visible').type('automation').tab();
+        cy.get(newText)
+          .find(designer.texts.resourceValue)
+          .should('be.visible')
+          .type('automation')
+          .tab();
         cy.get(newText).find(designer.texts.requiredError).should('be.visible');
         cy.getIframeBody().find(designer.texts.save).should('be.visible').focus().click();
         cy.get(newText).find(designer.texts.delete).should('be.visible').click();
@@ -78,7 +87,11 @@ context('Designer', () => {
     cy.contains('span', 'Rediger dynamikk').should('be.visible');
     cy.get(designer.rules.add).should('be.visible').click();
     cy.get(designer.rules.list).should('be.visible').select('sum');
-    cy.get(designer.rules.paramA).parents('.col').siblings().find(designer.rules.paramValue).click();
+    cy.get(designer.rules.paramA)
+      .parents('.col')
+      .siblings()
+      .find(designer.rules.paramValue)
+      .click();
     cy.get(designer.submit).scrollIntoView().should('be.visible').click();
     cy.contains(common.gridItem, 'sum').should('be.visible').click();
     cy.get(designer.delete).scrollIntoView().should('be.visible').click();
