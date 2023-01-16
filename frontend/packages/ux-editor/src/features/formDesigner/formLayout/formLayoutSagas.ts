@@ -443,7 +443,9 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       })
     );
 
-    if (Object.keys(layoutsCopy).length > 1 && !isReceiptPage) {
+    const hasFirstPage = Object.keys(layoutsCopy).length > 1;
+
+    if (hasFirstPage && !isReceiptPage) {
       const NavigationButtonComponent = {
         type: 'NavigationButtons',
         componentType: ComponentTypes.NavigationButtons,
@@ -464,17 +466,19 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       );
       const firstPageKey = layoutOrder[0];
       const firstPage = layouts[firstPageKey];
-      const hasNavigationButton = Object.keys(firstPage.components).some(
-        (component: string) => firstPage.components[component].type === 'NavigationButtons'
-      );
-      if (!hasNavigationButton) {
-        yield put(
-          FormLayoutActions.addFormComponent({
-            component: { ...NavigationButtonComponent, id: uuidv4() },
-            position: Object.keys(layoutsCopy[firstPageKey].components).length,
-            containerId: Object.keys(layoutsCopy[firstPageKey].containers)[0],
-          })
+      if (firstPage && firstPage.components) {
+        const hasNavigationButton = Object.keys(firstPage.components).some(
+          (component: string) => firstPage.components[component].type === 'NavigationButtons'
         );
+        if (!hasNavigationButton) {
+          yield put(
+            FormLayoutActions.addFormComponent({
+              component: { ...NavigationButtonComponent, id: uuidv4() },
+              position: Object.keys(layoutsCopy[firstPageKey].components).length,
+              containerId: Object.keys(layoutsCopy[firstPageKey].containers)[0],
+            })
+          );
+        }
       }
     }
     yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout }));
