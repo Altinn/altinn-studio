@@ -396,7 +396,8 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             <div className={classes.formGroupButtons}>{this.renderHoverIcons()}</div>
           </div>
         )}
-        {expanded && (
+        {expanded &&
+             components && (
           itemOrder?.length
             ? itemOrder.map((id: string, index: number) => {
               const component = components[id];
