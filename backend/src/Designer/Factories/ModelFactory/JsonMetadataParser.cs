@@ -239,7 +239,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             if (element.IsReadOnly)
             {
-                classBuilder.AppendLine("    [BindNever]");
+                classBuilder.AppendLine(Indent(2) + "[BindNever]");
             }
 
             if (!element.XsdValueType.HasValue || hasRange)
@@ -249,7 +249,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             WriteTypeRestrictions(classBuilder, element.XsdValueType.Value, errorMessage);
         }
-        private static void WriteRestrictions(StringBuilder classBuilder, ElementMetadata element, string errorMessage, out bool hasRange)
+        private void WriteRestrictions(StringBuilder classBuilder, ElementMetadata element, string errorMessage, out bool hasRange)
         {
             hasRange = false;
             if (element.Restrictions.Count == 0)
@@ -259,29 +259,29 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             if (element.Restrictions.ContainsKey("minLength"))
             {
-                classBuilder.AppendLine("    [MinLength(" + element.Restrictions["minLength"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[MinLength(" + element.Restrictions["minLength"].Value + errorMessage + ")]");
             }
 
             if (element.Restrictions.ContainsKey("maxLength"))
             {
-                classBuilder.AppendLine("    [MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) +"[MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
             }
 
             if (element.Restrictions.ContainsKey("minInclusive") && element.Restrictions.ContainsKey("maxInclusive"))
             {
-                classBuilder.AppendLine("    [Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) +"[Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
                 hasRange = true;
             }
 
             if (element.Restrictions.ContainsKey("minimum") && element.Restrictions.ContainsKey("maximum"))
             {
-                classBuilder.AppendLine("    [Range(" + element.Restrictions["minimum"].Value + ", " + element.Restrictions["maximum"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) +"[Range(" + element.Restrictions["minimum"].Value + ", " + element.Restrictions["maximum"].Value + errorMessage + ")]");
                 hasRange = true;
             }
 
             if (element.Restrictions.ContainsKey("pattern"))
             {
-                classBuilder.AppendLine("    [RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
             }
 
             if (element.Restrictions.ContainsKey("totalDigits"))
@@ -291,55 +291,55 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     ? TotalDigitsDecimalRegexString(totalDigitsValue)
                     : TotalDigitsIntegerRegexString(totalDigitsValue);
                 classBuilder.AppendLine(
-                    $@"    [RegularExpression(@""{regexString}""{errorMessage})]");
+                    Indent(2) + $@"[RegularExpression(@""{regexString}""{errorMessage})]");
             }
         }
-        private static void WriteTypeRestrictions(StringBuilder classBuilder, BaseValueType type, string errorMessage)
+        private void WriteTypeRestrictions(StringBuilder classBuilder, BaseValueType type, string errorMessage)
         {
 
             switch (type)
             {
                 case BaseValueType.Double:
-                    classBuilder.AppendLine("    [Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.Int:
-                    classBuilder.AppendLine("    [Range(Int32.MinValue,Int32.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[Range(Int32.MinValue,Int32.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.Integer:
-                    classBuilder.AppendLine("    [Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.NegativeInteger:
-                    classBuilder.AppendLine("    [Range(Double.MinValue,-1" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[Range(Double.MinValue,-1" + errorMessage + ")]");
                     break;
                 case BaseValueType.NonPositiveInteger:
-                    classBuilder.AppendLine("    [Range(Double.MinValue,0" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[Range(Double.MinValue,0" + errorMessage + ")]");
                     break;
                 case BaseValueType.NonNegativeInteger:
-                    classBuilder.AppendLine("    [Range(0,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[Range(0,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.PositiveInteger:
-                    classBuilder.AppendLine("    [Range(1,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[Range(1,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYear:
-                    classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYearMonth:
-                    classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.GMonth:
-                    classBuilder.AppendLine("    [RegularExpression(@\"^0[1-9]|1[0-2]$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^0[1-9]|1[0-2]$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.GDay:
-                    classBuilder.AppendLine("    [RegularExpression(@\"^0[1-9]|[1,2][0-9]|3[0,1]$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^0[1-9]|[1,2][0-9]|3[0,1]$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.Time:
-                    classBuilder.AppendLine("    [RegularExpression(@\"^([0,1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](Z|(\\+|-)([0,1][0-9]|[2][0-3]):[0-5][0-9])?$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^([0,1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](Z|(\\+|-)([0,1][0-9]|[2][0-3]):[0-5][0-9])?$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.TimePeriod:
-                    classBuilder.AppendLine("    [RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.Date:
-                    classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$\"" + errorMessage + ")]");
                     break;
             }
         }
