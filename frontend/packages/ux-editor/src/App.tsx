@@ -83,7 +83,7 @@ export function App() {
   // Make sure to create a new page when the last one is deleted!
   useEffect(() => {
     if (!selectedLayout) {
-      const name = t('left_menu.page') + (layoutOrder.length + 1);
+      const name = t('general.page') + (layoutOrder.length + 1);
       dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
     }
   }, [selectedLayout]);
