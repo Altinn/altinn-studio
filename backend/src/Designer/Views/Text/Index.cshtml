@@ -1,13 +1,16 @@
 @model IList<string>
 @{ViewBag.Title = "Tekster"; }
 @section scripts {
-  <script src="~/designer/js/lib/jsoneditor.js" asp-append-version="true"></script>
+  <script src="https://altinncdn.no/toolkits/jquery/3.5.1/jquery-3.5.1.min.js"></script>
+  <script src="https://altinncdn.no/toolkits/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="/designer/js/lib/jsoneditor.js" asp-append-version="true"></script>
 }
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
   string app = ViewContext.RouteData.Values["app"] as string;
 }
 @section styles {
+  <link rel="stylesheet" href="https://altinncdn.no/toolkits/bootstrap/4.5.2/bootstrap.min.css">
   <style>
     #editor_holder > div > h3 {
       display: none;
@@ -217,7 +220,7 @@ $(document).ready(function () {
                 contentType: "application/json; charset=UTF-8",
                 data: jsonString,
                 headers: { "X-XSRF-TOKEN": getCookieValue("XSRF-TOKEN") },
-              success: function (data) {                
+              success: function (data) {
                     //$("#message").html(data.Message);
                     //$("#json").html(jsonString);
                     //$("#saveConfirmation").show();
