@@ -217,4 +217,3 @@ const script = async () => {
 };
 
 script().then();
-//addUserToSomeTestDepTeams(ensureDotEnv()).then(console.log('done'));
