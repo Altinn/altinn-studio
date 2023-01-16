@@ -68,7 +68,7 @@ export interface ITextResourcesState {
 }
 
 const initialState: ITextResourcesState = {
-  resources: {[DEFAULT_LANGUAGE]: []},
+  resources: { [DEFAULT_LANGUAGE]: [] },
   language: null,
   languages: [],
   fetching: false,
@@ -137,7 +137,7 @@ const textResourcesSlice = createSlice({
       const { language, textResources } = payload;
 
       // Remove old texts
-      state.resources[language] = state.resources[language].filter(({id}) => !textResources[id]);
+      state.resources[language] = state.resources[language]?.filter(({ id }) => !textResources[id]);
 
       // Add new texts (it is not sufficient to iterate through the IDs of state.resources[language] because there might be new IDs)
       Object.keys(textResources).forEach((id) => {
@@ -149,7 +149,10 @@ const textResourcesSlice = createSlice({
       state.fetching = true;
       state.error = null;
     },
-    upsertTextResourcesFulfilled: (state, _action: PayloadAction<IUpsertTextResourcesFulfilled>) => {
+    upsertTextResourcesFulfilled: (
+      state,
+      _action: PayloadAction<IUpsertTextResourcesFulfilled>
+    ) => {
       state.fetched = true;
       state.fetching = false;
     },
@@ -162,7 +165,7 @@ const textResourcesSlice = createSlice({
     setCurrentEditId: (state, action: PayloadAction<string>) => {
       const { payload } = action;
       state.currentEditId = payload;
-    }
+    },
   },
 });
 
