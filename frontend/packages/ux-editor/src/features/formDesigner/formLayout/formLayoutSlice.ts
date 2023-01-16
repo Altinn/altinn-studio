@@ -88,6 +88,10 @@ const formLayoutSlice = createSlice({
 
       const selectedLayout = state.layouts[state.selectedLayout];
 
+      if (!selectedLayout) {
+        return;
+      }
+
       selectedLayout.components[id] = component;
       if (!selectedLayout.order[containerId]) {
         selectedLayout.order[containerId] = [];
@@ -419,10 +423,7 @@ const formLayoutSlice = createSlice({
       newOrder.splice(destination, 0, layout);
       state.layoutSettings.pages.order = newOrder;
     },
-    updateReceiptLayoutName: (
-      state,
-      action: PayloadAction<IUpdateReceiptLayoutNameAction>
-    ) => {
+    updateReceiptLayoutName: (state, action: PayloadAction<IUpdateReceiptLayoutNameAction>) => {
       const { receiptLayoutName } = action.payload;
       state.layoutSettings.receiptLayoutName = receiptLayoutName;
     },
