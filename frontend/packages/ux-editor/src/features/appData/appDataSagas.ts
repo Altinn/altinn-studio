@@ -72,22 +72,39 @@ function* fetchRuleModelSaga(): SagaIterator {
     const scriptEle = window.document.createElement('script');
     scriptEle.innerHTML = ruleModel;
     window.document.body.appendChild(scriptEle);
-    Object.keys((window as any).ruleHandlerObject).forEach((functionName) => {
-      const innerFuncObj = {
-        name: functionName,
-        inputs: (window as any).ruleHandlerHelper[functionName](),
-        type: 'rule',
-      };
-      ruleModelFields.push(innerFuncObj);
+
+    const {
+      ruleHandlerObject,
+      conditionalRuleHandlerObject,
+      ruleHandlerHelper,
+      conditionalRuleHandlerHelper,
+    } = window as unknown as {
+      ruleHandlerObject: object;
+      conditionalRuleHandlerObject: object;
+      ruleHandlerHelper: object;
+      conditionalRuleHandlerHelper: object;
+    };
+
+    Object.keys(ruleHandlerObject).forEach((functionName) => {
+      if (typeof ruleHandlerHelper[functionName] === 'function') {
+        const innerFuncObj = {
+          name: functionName,
+          inputs: ruleHandlerHelper[functionName](),
+          type: 'rule',
+        };
+        ruleModelFields.push(innerFuncObj);
+      }
     });
 
-    Object.keys((window as any).conditionalRuleHandlerObject).forEach((functionName) => {
-      const innerFuncObj = {
-        name: functionName,
-        inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
-        type: 'condition',
-      };
-      ruleModelFields.push(innerFuncObj);
+    Object.keys(conditionalRuleHandlerObject).forEach((functionName) => {
+      if (typeof conditionalRuleHandlerHelper[functionName] === 'function') {
+        const innerFuncObj = {
+          name: functionName,
+          inputs: conditionalRuleHandlerHelper[functionName](),
+          type: 'condition',
+        };
+        ruleModelFields.push(innerFuncObj);
+      }
     });
 
     yield put(fetchRuleModelFulfilled({ ruleModel: ruleModelFields }));
@@ -162,7 +179,9 @@ export function* watchAddTextResourcesSaga(): SagaIterator {
   yield takeLatest(addTextResources.type, addTextResourcesSaga);
 }
 
-export function* upsertTextResourcesSaga({ payload }: PayloadAction<IUpsertTextResources>): SagaIterator {
+export function* upsertTextResourcesSaga({
+  payload,
+}: PayloadAction<IUpsertTextResources>): SagaIterator {
   try {
     const { language, textResources } = payload;
     yield call(restPut, getPutTextResourcesUrl(language), textResources);

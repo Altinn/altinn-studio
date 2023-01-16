@@ -396,7 +396,8 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             <div className={classes.formGroupButtons}>{this.renderHoverIcons()}</div>
           </div>
         )}
-        {expanded && (
+        {expanded &&
+             components && (
           itemOrder?.length
             ? itemOrder.map((id: string, index: number) => {
               const component = components[id];
@@ -612,7 +613,7 @@ const makeMapStateToProps = () => {
   const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
   return (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
     const containers = GetContainersSelector(state);
-    const container = containers[props.id];
+    const container = containers ? containers[props.id] : "";
     const itemOrder = GetLayoutContainerOrder(state, props.id);
     return {
       ...props,

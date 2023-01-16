@@ -78,14 +78,11 @@ export function EditContainer(props: IEditContainerProps) {
     handleSaveChange(updatedComponent);
   };
 
-  const handleComponentDelete = (e: any): void => {
-    if (activeList.length > 1) {
-      dispatch(FormLayoutActions.deleteFormComponents({ components: activeList }));
-    } else {
-      dispatch(FormLayoutActions.deleteFormComponents({ components: [props.id] }));
-    }
+  const handleComponentDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    const componentsToDelete = activeList.length > 1 ? activeList : [props.id];
+    dispatch(FormLayoutActions.deleteFormComponents({ components: componentsToDelete }));
     dispatch(FormLayoutActions.deleteActiveList());
-    e.stopPropagation();
+    event.stopPropagation();
   };
 
   const handleOpenEdit = (): void => {
