@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
                 .AppendLine("using Newtonsoft.Json;")
-                .AppendLine("namespace " + string.Format(CodeGeneration.AppNamespaceTemplate + ".Models"))
+                .AppendLine($"namespace {CodeGeneration.AppNamespaceTemplate}.Models")
                 .AppendLine("{")
                 .Append(string.Concat(classes.Values))
                 .AppendLine("}");
@@ -47,6 +47,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// </summary>
         /// <param name="classes">The classes</param>
         /// <param name="parentElement">The parent Element</param>
+        /// <param name="serviceMetadata">Model metadata</param>
         /// <param name="targetNamespace">Target namespace in xsd schema.</param>
         private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata,  string targetNamespace = null)
         {
@@ -77,21 +78,21 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             int elementOrder = 0;
 
-            foreach (KeyValuePair<string, ElementMetadata> element in serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
+            foreach (ElementMetadata element in serviceMetadata.Elements.Select(e => e.Value).Where(ele => ele.ParentElement == parentElement.ID))
             {
-                bool required = element.Value.MinOccurs > 0;
+                bool required = element.MinOccurs > 0;
 
-                if (element.Value.Type == ElementType.Field)
+                if (element.Type == ElementType.Field)
                 {
                     ParseFieldProperty(element, classBuilder, ref elementOrder, required);
                 }
-                else if (element.Value.Type == ElementType.Group)
+                else if (element.Type == ElementType.Group)
                 {
                     ParseGroupProperty(element, classBuilder, referredTypes, ref elementOrder);
                 }
-                else if (element.Value.Type == ElementType.Attribute)
+                else if (element.Type == ElementType.Attribute)
                 {
-                   ParseAttributeProperty(element, classBuilder);
+                   ParseAttributeProperty(element, classBuilder, required);
                 }
             }
 
@@ -108,58 +109,58 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private void ParseFieldProperty(KeyValuePair<string, ElementMetadata> element, StringBuilder classBuilder, ref int elementOrder, bool required)
+        private void ParseFieldProperty(ElementMetadata element, StringBuilder classBuilder, ref int elementOrder, bool required)
         {
-            (string dataType, bool isValueType) = GetPropertyType(element.Value.XsdValueType);
+            (string dataType, bool isValueType) = GetPropertyType(element.XsdValueType);
 
-            WriteRestrictionAnnotations(classBuilder, element.Value);
-            if (element.Value.IsTagContent)
+            WriteRestrictionAnnotations(classBuilder, element);
+            if (element.IsTagContent)
             {
                 classBuilder.AppendLine("    [XmlText()]");
             }
             else
             {
-                elementOrder = elementOrder + 1;
-                classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
+                elementOrder += 1;
+                classBuilder.AppendLine("    [XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
 
                 // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                 // deserialization, we need both JsonProperty and JsonPropertyName annotations.
-                classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
-                classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
-            }
-            if (required && isValueType)
-            {
-                classBuilder.AppendLine("    [Required]");
+                classBuilder.AppendLine("    [JsonProperty(\"" + element.XName + "\")]");
+                classBuilder.AppendLine("    [JsonPropertyName(\"" + element.XName + "\")]");
             }
 
-            if (element.Value.MaxOccurs > 1)
+            if (element.MaxOccurs > 1)
             {
-                classBuilder.AppendLine("    public List<" + dataType + "> " + element.Value.Name + " { get; set; }\n");
+                classBuilder.AppendLine("    public List<" + dataType + "> " + element.Name + " { get; set; }\n");
             }
             else
             {
-                classBuilder.AppendLine("    public " + dataType + (isValueType? "?": string.Empty) + " " + element.Value.Name + " { get; set; }\n");
+                if (required && isValueType)
+                {
+                    classBuilder.AppendLine("    [Required]");
+                }
+                classBuilder.AppendLine("    public " + dataType + (isValueType? "?": string.Empty) + " " + element.Name + " { get; set; }\n");
             }
         }
 
-        private void ParseGroupProperty(KeyValuePair<string, ElementMetadata> element, StringBuilder classBuilder, List<ElementMetadata> referredTypes, ref int elementOrder)
+        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, List<ElementMetadata> referredTypes, ref int elementOrder)
         {
-            WriteRestrictionAnnotations(classBuilder, element.Value);
-            elementOrder = elementOrder + 1;
-            classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
+            WriteRestrictionAnnotations(classBuilder, element);
+            elementOrder += 1;
+            classBuilder.AppendLine("    [XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
 
             // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
             // deserialization, we need both JsonProperty and JsonPropertyName annotations.
-            classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
-            classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
+            classBuilder.AppendLine("    [JsonProperty(\"" + element.XName + "\")]");
+            classBuilder.AppendLine("    [JsonPropertyName(\"" + element.XName + "\")]");
 
             bool primitiveType = false;
-            string dataType = element.Value.TypeName;
-            if (element.Value.XsdValueType != null)
+            string dataType = element.TypeName;
+            if (element.XsdValueType != null)
             {
                 try
                 {
-                    (dataType, _) = GetPropertyType(element.Value.XsdValueType);
+                    (dataType, _) = GetPropertyType(element.XsdValueType);
                     primitiveType = true;
                 }
                 catch (NotImplementedException)
@@ -168,47 +169,52 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 }
             }
 
-            if (element.Value.MaxOccurs > 1)
+            if (element.MaxOccurs > 1)
             {
-                classBuilder.AppendLine("    public List<" + dataType + "> " + element.Value.Name + " { get; set; }\n");
+                classBuilder.AppendLine("    public List<" + dataType + "> " + element.Name + " { get; set; }\n");
             }
             else
             {
-                classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " { get; set; }\n");
+                classBuilder.AppendLine("    public " + dataType + " " + element.Name + " { get; set; }\n");
             }
 
             if (!primitiveType)
             {
-                referredTypes.Add(element.Value);
+                referredTypes.Add(element);
             }
         }
 
-        private void ParseAttributeProperty(KeyValuePair<string, ElementMetadata> element, StringBuilder classBuilder)
+        private void ParseAttributeProperty(ElementMetadata element, StringBuilder classBuilder, bool required)
         {
             string dataType = "string";
-            if (element.Value.XsdValueType != null)
+            bool isValueType = false;
+            if (element.XsdValueType != null)
             {
-                (dataType, _) = GetPropertyType(element.Value.XsdValueType.Value);
+                (dataType, isValueType) = GetPropertyType(element.XsdValueType.Value);
             }
 
-            WriteRestrictionAnnotations(classBuilder, element.Value);
-            classBuilder.AppendLine("    [XmlAttribute(\"" + element.Value.XName + "\")]");
-            if (element.Value.FixedValue != null)
+            WriteRestrictionAnnotations(classBuilder, element);
+            classBuilder.AppendLine("    [XmlAttribute(\"" + element.XName + "\")]");
+            if (element.FixedValue != null)
             {
                 // This value is fixed so model will ignore any values posted from use. Bind Never prevents MVC Binding
                 classBuilder.AppendLine("    [BindNever]");
                 if (dataType.Equals("string"))
                 {
-                    classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " {get; set; } = \"" + element.Value.FixedValue + "\";\n");
+                    classBuilder.AppendLine("    public " + dataType + " " + element.Name + " {get; set; } = \"" + element.FixedValue + "\";\n");
                 }
                 else
                 {
-                    classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " {get; set;} = " + element.Value.FixedValue + ";\n");
+                    classBuilder.AppendLine("    public " + dataType + " " + element.Name + " {get; set;} = " + element.FixedValue + ";\n");
                 }
             }
             else
             {
-                classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " { get; set; }\n");
+                if (required && isValueType)
+                {
+                    classBuilder.AppendLine("    [Required]");
+                }
+                classBuilder.AppendLine("    public " + dataType + " " + element.Name + " { get; set; }\n");
             }
         }
 
@@ -221,46 +227,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 errorMessage = ", ErrorMessage = \"" + element.Texts[TextCategoryType.Error.ToString()] + "\"";
             }
 
-            bool hasRange = false;
-            if (element.Restrictions.Count > 0)
-            {
-                if (element.Restrictions.ContainsKey("minLength"))
-                {
-                    classBuilder.AppendLine("    [MinLength(" + element.Restrictions["minLength"].Value + errorMessage + ")]");
-                }
-
-                if (element.Restrictions.ContainsKey("maxLength"))
-                {
-                    classBuilder.AppendLine("    [MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
-                }
-
-                if (element.Restrictions.ContainsKey("minInclusive") && element.Restrictions.ContainsKey("maxInclusive"))
-                {
-                    classBuilder.AppendLine("    [Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
-                    hasRange = true;
-                }
-
-                if (element.Restrictions.ContainsKey("minimum") && element.Restrictions.ContainsKey("maximum"))
-                {
-                    classBuilder.AppendLine("    [Range(" + element.Restrictions["minimum"].Value + ", " + element.Restrictions["maximum"].Value + errorMessage + ")]");
-                    hasRange = true;
-                }
-
-                if (element.Restrictions.ContainsKey("pattern"))
-                {
-                    classBuilder.AppendLine("    [RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
-                }
-
-                if (element.Restrictions.ContainsKey("totalDigits"))
-                {
-                    var totalDigitsValue = uint.Parse(element.Restrictions["totalDigits"].Value);
-                    var regexString = element.XsdValueType == BaseValueType.Decimal
-                        ? TotalDigitsDecimalRegexString(totalDigitsValue)
-                        : TotalDigitsIntegerRegexString(totalDigitsValue);
-                    classBuilder.AppendLine(
-                        $@"    [RegularExpression(@""{regexString}""{errorMessage})]");
-                }
-            }
+            WriteRestrictions(classBuilder, element, errorMessage, out bool hasRange);
 
             if (element.IsReadOnly)
             {
@@ -272,7 +239,57 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
-            switch (element.XsdValueType.Value)
+            WriteTypeRestrictions(classBuilder, element.XsdValueType.Value, errorMessage);
+        }
+        private static void WriteRestrictions(StringBuilder classBuilder, ElementMetadata element, string errorMessage, out bool hasRange)
+        {
+            hasRange = false;
+            if (element.Restrictions.Count == 0)
+            {
+                return;
+            }
+
+            if (element.Restrictions.ContainsKey("minLength"))
+            {
+                classBuilder.AppendLine("    [MinLength(" + element.Restrictions["minLength"].Value + errorMessage + ")]");
+            }
+
+            if (element.Restrictions.ContainsKey("maxLength"))
+            {
+                classBuilder.AppendLine("    [MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
+            }
+
+            if (element.Restrictions.ContainsKey("minInclusive") && element.Restrictions.ContainsKey("maxInclusive"))
+            {
+                classBuilder.AppendLine("    [Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
+                hasRange = true;
+            }
+
+            if (element.Restrictions.ContainsKey("minimum") && element.Restrictions.ContainsKey("maximum"))
+            {
+                classBuilder.AppendLine("    [Range(" + element.Restrictions["minimum"].Value + ", " + element.Restrictions["maximum"].Value + errorMessage + ")]");
+                hasRange = true;
+            }
+
+            if (element.Restrictions.ContainsKey("pattern"))
+            {
+                classBuilder.AppendLine("    [RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
+            }
+
+            if (element.Restrictions.ContainsKey("totalDigits"))
+            {
+                uint totalDigitsValue = uint.Parse(element.Restrictions["totalDigits"].Value);
+                string regexString = element.XsdValueType == BaseValueType.Decimal
+                    ? TotalDigitsDecimalRegexString(totalDigitsValue)
+                    : TotalDigitsIntegerRegexString(totalDigitsValue);
+                classBuilder.AppendLine(
+                    $@"    [RegularExpression(@""{regexString}""{errorMessage})]");
+            }
+        }
+        private static void WriteTypeRestrictions(StringBuilder classBuilder, BaseValueType type, string errorMessage)
+        {
+
+            switch (type)
             {
                 case BaseValueType.Double:
                     classBuilder.AppendLine("    [Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
