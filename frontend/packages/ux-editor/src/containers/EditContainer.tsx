@@ -81,7 +81,7 @@ export function EditContainer(props: IEditContainerProps) {
     const componentsToDelete = activeList.length > 1 ? activeList : [props.id];
     dispatch(FormLayoutActions.deleteFormComponents({ components: componentsToDelete }));
     dispatch(FormLayoutActions.deleteActiveList());
-    event.preventDefault();
+    event.stopPropagation();
   };
 
   const handleOpenEdit = (): void => {
