@@ -146,7 +146,16 @@ export function evalExpr(
       return options.defaultValue;
     }
 
-    if (options && 'defaultValue' in options && typeof options.defaultValue !== typeof result) {
+    if (
+      options &&
+      'defaultValue' in options &&
+      options.defaultValue !== null &&
+      typeof options.defaultValue !== typeof result
+    ) {
+      // If you have an expression that expects (for example) a true|false return value, and the actual returned result
+      // is "true" (as a string), it makes sense to finally cast the value to the proper return value type. Since the
+      // expected return type is not configured anywhere readable from this runtime, inferring it from the default value
+      // is the best we can do.
       return castValue(result, typeof options.defaultValue as BaseValue, ctx);
     }
 
@@ -228,7 +237,7 @@ function castValue<T extends BaseValue>(
   context: ExprContext,
 ): BaseToActual<T> | null {
   if (!toType || !(toType in ExprTypes)) {
-    throw new UnknownTargetType(this, toType ? toType : typeof toType);
+    throw new UnknownTargetType(context, toType ? toType : typeof toType);
   }
 
   const typeObj = ExprTypes[toType];
@@ -240,7 +249,7 @@ function castValue<T extends BaseValue>(
   const valueBaseType = valueToBaseValueType(value) as BaseValue;
   if (!typeObj.accepts.includes(valueBaseType)) {
     const supported = [...typeObj.accepts, ...(typeObj.nullable ? ['null'] : [])].join(', ');
-    throw new UnknownSourceType(this, typeof value, supported);
+    throw new UnknownSourceType(context, typeof value, supported);
   }
 
   return typeObj.impl.apply(context, [value]);
