@@ -13,8 +13,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     /// </summary>
     public class JsonMetadataParser
     {
-        private ModelMetadata _serviceMetadata;
-
         /// <summary>
         /// Create Model from ServiceMetadata object
         /// </summary>
@@ -22,11 +20,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// <returns>The model code in C#</returns>
         public string CreateModelFromMetadata(ModelMetadata serviceMetadata)
         {
-            _serviceMetadata = serviceMetadata;
-
             Dictionary<string, string> classes = new Dictionary<string, string>();
 
-            CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null), serviceMetadata.TargetNamespace);
+            CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null), serviceMetadata, serviceMetadata.TargetNamespace);
 
             StringBuilder writer = new StringBuilder()
                 .AppendLine("using System;")
@@ -52,7 +48,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// <param name="classes">The classes</param>
         /// <param name="parentElement">The parent Element</param>
         /// <param name="targetNamespace">Target namespace in xsd schema.</param>
-        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, string targetNamespace = null)
+        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata,  string targetNamespace = null)
         {
             List<ElementMetadata> referredTypes = new List<ElementMetadata>();
 
@@ -81,106 +77,21 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             int elementOrder = 0;
 
-            foreach (KeyValuePair<string, ElementMetadata> element in _serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
+            foreach (KeyValuePair<string, ElementMetadata> element in serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
             {
-                string nullableString = element.Value.MinOccurs == 0 ? "?" : string.Empty;
+                bool required = element.Value.MinOccurs > 0;
 
                 if (element.Value.Type == ElementType.Field)
                 {
-                    string dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType);
-
-                    WriteRestrictionAnnotations(classBuilder, element.Value);
-                    if (element.Value.IsTagContent)
-                    {
-                        classBuilder.AppendLine("    [XmlText()]");
-                    }
-                    else
-                    {
-                        elementOrder = elementOrder + 1;
-                        classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
-
-                        // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
-                        // deserialization, we need both JsonProperty and JsonPropertyName annotations.
-                        classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
-                        classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
-                    }
-
-                    if (element.Value.MaxOccurs > 1)
-                    {
-                        classBuilder.AppendLine("    public List<" + dataType + "> " + element.Value.Name + " { get; set; }\n");
-                    }
-                    else
-                    {
-                        classBuilder.AppendLine("    public " + dataType + (dataType == "string" ? string.Empty : nullableString) + " " + element.Value.Name + " { get; set; }\n");
-                    }
+                    ParseFieldProperty(element, classBuilder, ref elementOrder, required);
                 }
                 else if (element.Value.Type == ElementType.Group)
                 {
-                    WriteRestrictionAnnotations(classBuilder, element.Value);
-                    elementOrder = elementOrder + 1;
-                    classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
-
-                    // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
-                    // deserialization, we need both JsonProperty and JsonPropertyName annotations.
-                    classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
-                    classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
-
-                    bool primitiveType = false;
-                    string dataType = element.Value.TypeName;
-                    if (element.Value.XsdValueType != null)
-                    {
-                        try
-                        {
-                            dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType);
-                            primitiveType = true;
-                        }
-                        catch (NotImplementedException)
-                        {
-                            // No primitive type detected, assuming referred type
-                        }
-                    }
-
-                    if (element.Value.MaxOccurs > 1)
-                    {
-                        classBuilder.AppendLine("    public List<" + dataType + "> " + element.Value.Name + " { get; set; }\n");
-                    }
-                    else
-                    {
-                        classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " { get; set; }\n");
-                    }
-
-                    if (!primitiveType)
-                    {
-                        referredTypes.Add(element.Value);
-                    }
+                    ParseGroupProperty(element, classBuilder, referredTypes, ref elementOrder);
                 }
                 else if (element.Value.Type == ElementType.Attribute)
                 {
-                    string dataType = "string";
-                    if (element.Value.XsdValueType != null)
-                    {
-                        dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType.Value);
-                    }
-
-                    WriteRestrictionAnnotations(classBuilder, element.Value);
-                    classBuilder.AppendLine("    [XmlAttribute(\"" + element.Value.XName + "\")]");
-                    if (element.Value.FixedValue != null)
-                    {
-                        // This value is fixed so model will ignore any values posted from use. Bind Never prevents MVC Binding
-                        classBuilder.AppendLine("    [BindNever]");
-                        if (dataType.Equals("string"))
-                        {
-                            classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " {get; set; } = \"" + element.Value.FixedValue + "\";\n");
-                        }
-                        else
-                        {
-                            classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " {get; set;} = " + element.Value.FixedValue + ";\n");
-                        }
-                    }
-                    else
-                    {
-                        classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " { get; set; }\n");
-                    }
+                   ParseAttributeProperty(element, classBuilder);
                 }
             }
 
@@ -193,7 +104,111 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             foreach (ElementMetadata refType in referredTypes)
             {
-                CreateModelFromMetadataRecursive(classes, refType);
+                CreateModelFromMetadataRecursive(classes, refType, serviceMetadata);
+            }
+        }
+
+        private void ParseFieldProperty(KeyValuePair<string, ElementMetadata> element, StringBuilder classBuilder, ref int elementOrder, bool required)
+        {
+            (string dataType, bool isValueType) = GetPropertyType(element.Value.XsdValueType);
+
+            WriteRestrictionAnnotations(classBuilder, element.Value);
+            if (element.Value.IsTagContent)
+            {
+                classBuilder.AppendLine("    [XmlText()]");
+            }
+            else
+            {
+                elementOrder = elementOrder + 1;
+                classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
+
+                // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
+                // deserialization, we need both JsonProperty and JsonPropertyName annotations.
+                classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
+                classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
+            }
+            if (required)
+            {
+                classBuilder.AppendLine("    [Required]");
+            }
+
+            if (element.Value.MaxOccurs > 1)
+            {
+                classBuilder.AppendLine("    public List<" + dataType + "> " + element.Value.Name + " { get; set; }\n");
+            }
+            else
+            {
+                classBuilder.AppendLine("    public " + dataType + (isValueType? "?": string.Empty) + " " + element.Value.Name + " { get; set; }\n");
+            }
+        }
+
+        private void ParseGroupProperty(KeyValuePair<string, ElementMetadata> element, StringBuilder classBuilder, List<ElementMetadata> referredTypes, ref int elementOrder)
+        {
+            WriteRestrictionAnnotations(classBuilder, element.Value);
+            elementOrder = elementOrder + 1;
+            classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
+
+            // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
+            // deserialization, we need both JsonProperty and JsonPropertyName annotations.
+            classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
+            classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
+
+            bool primitiveType = false;
+            string dataType = element.Value.TypeName;
+            if (element.Value.XsdValueType != null)
+            {
+                try
+                {
+                    (dataType, _) = GetPropertyType(element.Value.XsdValueType);
+                    primitiveType = true;
+                }
+                catch (NotImplementedException)
+                {
+                    // No primitive type detected, assuming referred type
+                }
+            }
+
+            if (element.Value.MaxOccurs > 1)
+            {
+                classBuilder.AppendLine("    public List<" + dataType + "> " + element.Value.Name + " { get; set; }\n");
+            }
+            else
+            {
+                classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " { get; set; }\n");
+            }
+
+            if (!primitiveType)
+            {
+                referredTypes.Add(element.Value);
+            }
+        }
+
+        private void ParseAttributeProperty(KeyValuePair<string, ElementMetadata> element, StringBuilder classBuilder)
+        {
+            string dataType = "string";
+            if (element.Value.XsdValueType != null)
+            {
+                (dataType, _) = GetPropertyType(element.Value.XsdValueType.Value);
+            }
+
+            WriteRestrictionAnnotations(classBuilder, element.Value);
+            classBuilder.AppendLine("    [XmlAttribute(\"" + element.Value.XName + "\")]");
+            if (element.Value.FixedValue != null)
+            {
+                // This value is fixed so model will ignore any values posted from use. Bind Never prevents MVC Binding
+                classBuilder.AppendLine("    [BindNever]");
+                if (dataType.Equals("string"))
+                {
+                    classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " {get; set; } = \"" + element.Value.FixedValue + "\";\n");
+                }
+                else
+                {
+                    classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " {get; set;} = " + element.Value.FixedValue + ";\n");
+                }
+            }
+            else
+            {
+                classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " { get; set; }\n");
             }
         }
 
@@ -304,44 +319,36 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private string GetPropertyTypeFromXsdType(BaseValueType? typeName)
+        private static (string DataType, bool IsValueType) GetPropertyType(BaseValueType? typeName)
         {
-            switch (typeName)
+            return typeName switch
             {
-                case BaseValueType.String:
-                case BaseValueType.NormalizedString:
-                case BaseValueType.Token:
-                case BaseValueType.GDay:
-                case BaseValueType.GYear:
-                case BaseValueType.GYearMonth:
-                case BaseValueType.GMonth:
-                case BaseValueType.Time:
-                case BaseValueType.TimePeriod:
-                case BaseValueType.Date:
-                case null:
-                    return "string";
-                case BaseValueType.Int:
-                    return "int";
-                case BaseValueType.Short:
-                    return "short";
-                case BaseValueType.Decimal:
-                case BaseValueType.Integer:
-                case BaseValueType.PositiveInteger:
-                case BaseValueType.NegativeInteger:
-                case BaseValueType.NonNegativeInteger:
-                case BaseValueType.NonPositiveInteger:
-                    return "decimal";
-                case BaseValueType.DateTime:
-                    return "DateTime";
-                case BaseValueType.Boolean:
-                    return "bool";
-                case BaseValueType.Double:
-                    return "double";
-                case BaseValueType.Long:
-                    return "long";
-            }
+                BaseValueType.String
+                    or BaseValueType.NormalizedString
+                    or BaseValueType.Token
+                    or BaseValueType.GDay
+                    or BaseValueType.GYear
+                    or BaseValueType.GYearMonth
+                    or BaseValueType.GMonth
+                    or BaseValueType.Time
+                    or BaseValueType.TimePeriod
+                    or BaseValueType.Date
+                    or null=> ("string", false),
+                BaseValueType.Int => ("int", true),
+                BaseValueType.Short => ("short", true),
+                BaseValueType.Decimal => ("decimal", true),
+                BaseValueType.Integer => ("decimal", true),
+                BaseValueType.PositiveInteger => ("decimal", true),
+                BaseValueType.NegativeInteger => ("decimal", true),
+                BaseValueType.NonNegativeInteger => ("decimal", true),
+                BaseValueType.NonPositiveInteger => ("decimal", true),
+                BaseValueType.DateTime => ("DateTime", true),
+                BaseValueType.Boolean => ("bool", true),
+                BaseValueType.Double => ("double", true),
+                BaseValueType.Long => ("long", true),
+                _ => throw new NotImplementedException()
+            };
 
-            throw new NotImplementedException();
         }
     }
 }
