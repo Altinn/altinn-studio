@@ -612,7 +612,7 @@ const makeMapStateToProps = () => {
   const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
   return (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
     const containers = GetContainersSelector(state);
-    const container = containers[props.id];
+    const container = containers ? containers[props.id] : "";
     const itemOrder = GetLayoutContainerOrder(state, props.id);
     return {
       ...props,
