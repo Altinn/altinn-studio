@@ -3,14 +3,14 @@
 @section scripts {
   <script src="https://altinncdn.no/toolkits/jquery/3.5.1/jquery-3.5.1.min.js"></script>
   <script src="https://altinncdn.no/toolkits/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <script src="/designer/js/lib/jsoneditor.js" asp-append-version="true"></script>
+  <script src="/designer/js/jsoneditor.js" asp-append-version="true"></script>
 }
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
   string app = ViewContext.RouteData.Values["app"] as string;
 }
 @section styles {
-  <link rel="stylesheet" href="https://altinncdn.no/toolkits/bootstrap/4.5.2/bootstrap.min.css">
+  <link rel="stylesheet" href="https://altinncdn.no/toolkits/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
     #editor_holder > div > h3 {
       display: none;

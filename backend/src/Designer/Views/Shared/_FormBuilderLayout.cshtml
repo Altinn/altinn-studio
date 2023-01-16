@@ -7,7 +7,7 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="~/designer/img/favicon.ico">
+    <link rel="icon" href="/designer/img/favicon.ico">
 
     <title>@ViewBag.Title</title>
     @RenderSection("scripts", required: false)
@@ -26,29 +26,6 @@
 
         body {
             font-family: Roboto, "San Fransisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
-        }
-
-        h1, h2, h3 {
-            letter-spacing: 2px;
-        }
-        .btn, .form-control, .list-group-item:last-child, .list-group-item:first-child, .card {
-            border-radius: 0;
-        }
-
-        #search ~ .fa-search {
-            float: right !important;
-            margin-right: 10px;
-            margin-top: -28px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .control-label {
-            margin-bottom: 0;
-        }
-
-        .errormsg {
-            color: red;
         }
     </style>
 </head>
