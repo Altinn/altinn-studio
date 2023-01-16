@@ -1,7 +1,6 @@
 import React from 'react';
 import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
-import { CheckboxGroupPreview, CheckboxGroupPreviewProps } from './CheckboxGroupPreview';
-import { IFormCheckboxComponent, IOption, ITextResource } from '../../../types/global';
+import { IFormRadioButtonComponent, IOption, ITextResource } from '../../../types/global';
 import { screen } from '@testing-library/react';
 import { ITextResourcesState } from '../../../features/appData/textResources/textResourcesSlice';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
@@ -9,14 +8,15 @@ import { ILanguageState } from '../../../features/appData/language/languageSlice
 import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
 import { ComponentTypes } from '../../../components';
+import { RadioGroupPreview, RadioGroupPreviewProps } from './RadioGroupPreview';
 
 const user = userEvent.setup();
 
 // Test data:
 const titleTextKey = 'title';
 const descriptionTextKey = 'description';
-const titleText = 'Sjekkbokser';
-const descriptionText = 'Velg ett eller flere alternativer';
+const titleText = 'Radioknapper';
+const descriptionText = 'Velg ett alternativ';
 const option1TextKey = 'option1text';
 const option1Text = 'Alternativ 1';
 const option1Value = 'option1';
@@ -27,18 +27,18 @@ const options: IOption[] = [
   { label: option1TextKey, value: option1Value },
   { label: option2TextKey, value: option2Value },
 ];
-const component: IFormCheckboxComponent = {
+const component: IFormRadioButtonComponent = {
   id: '1',
   options,
   optionsId: '',
-  type: ComponentTypes.Checkboxes,
+  type: ComponentTypes.RadioButtons,
   textResourceBindings: {
     title: titleTextKey,
     description: descriptionTextKey,
   }
 };
 const handleComponentChange = jest.fn();
-const defaultProps: CheckboxGroupPreviewProps = {
+const defaultProps: RadioGroupPreviewProps = {
   component,
   handleComponentChange,
 };
@@ -61,14 +61,14 @@ const texts = {
   "ux_editor.add_option": addOptionText,
   "ux_editor.add_option_label": labelText,
   "ux_editor.add_option_value": valueText,
-  "ux_editor.checkboxes_option_value_error_empty": emptyErrorText,
-  "ux_editor.checkboxes_option_value_error_duplicate": duplicateErrorText
+  "ux_editor.radios_option_value_error_empty": emptyErrorText,
+  "ux_editor.radios_option_value_error_duplicate": duplicateErrorText
 };
 
-describe('CheckboxGroupPreview', () => {
-  afterEach(jest.resetAllMocks);
+describe('RadioGroupPreview', () => {
+  afterEach(jest.restoreAllMocks);
 
-  it('Renders checkbox group with legend, description and given options', () => {
+  it('Renders radio group with legend, description and given options', () => {
     render();
     expect(screen.getByText(titleText)).toBeInTheDocument();
     expect(screen.getByText(descriptionText)).toBeInTheDocument();
@@ -142,7 +142,7 @@ describe('CheckboxGroupPreview', () => {
   });
 });
 
-const render = (props: Partial<CheckboxGroupPreviewProps> = {}) => {
+const render = (props: Partial<RadioGroupPreviewProps> = {}) => {
 
   const languageState: ILanguageState = {
     ...languageStateMock,
@@ -163,14 +163,14 @@ const render = (props: Partial<CheckboxGroupPreviewProps> = {}) => {
   };
 
   return renderWithMockStore({ appData })(
-    <CheckboxGroupPreview
+    <RadioGroupPreview
       {...defaultProps}
       {...props}
     />
   );
 };
 
-const renderAndOpenAddSection = async (props?: Partial<CheckboxGroupPreviewProps>) => {
+const renderAndOpenAddSection = async (props?: Partial<RadioGroupPreviewProps>) => {
   render(props);
   const openAddSectionButton = screen.getByRole('button', { name: addOptionText });
   await user.click(openAddSectionButton);
