@@ -7,3 +7,7 @@ body {
   background: #fff;
   font-size: 1rem;
 }
+
+a {
+  text-decoration: none;
+}
