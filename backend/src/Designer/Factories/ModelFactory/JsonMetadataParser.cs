@@ -202,27 +202,27 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             WriteRestrictionAnnotations(classBuilder, element);
-            classBuilder.AppendLine("    [XmlAttribute(\"" + element.XName + "\")]");
+            classBuilder.AppendLine(Indent(2) + "[XmlAttribute(\"" + element.XName + "\")]");
             if (element.FixedValue != null)
             {
                 // This value is fixed so model will ignore any values posted from use. Bind Never prevents MVC Binding
-                classBuilder.AppendLine("    [BindNever]");
+                classBuilder.AppendLine(Indent(2) + "[BindNever]");
                 if (dataType.Equals("string"))
                 {
-                    classBuilder.AppendLine("    public " + dataType + " " + element.Name + " {get; set; } = \"" + element.FixedValue + "\";\n");
+                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " {get; set; } = \"" + element.FixedValue + "\";\n");
                 }
                 else
                 {
-                    classBuilder.AppendLine("    public " + dataType + " " + element.Name + " {get; set;} = " + element.FixedValue + ";\n");
+                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " {get; set;} = " + element.FixedValue + ";\n");
                 }
             }
             else
             {
                 if (required && isValueType)
                 {
-                    classBuilder.AppendLine("    [Required]");
+                    classBuilder.AppendLine(Indent(2) + "[Required]");
                 }
-                classBuilder.AppendLine("    public " + dataType + " " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; }\n");
             }
         }
 
