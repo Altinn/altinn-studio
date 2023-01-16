@@ -4,24 +4,31 @@ import { TextResource } from './TextResource';
 import { ButtonColor, ButtonVariant, TextField } from '@altinn/altinn-design-system';
 import { Button, FieldSet } from '@digdir/design-system-react';
 import { IGenericEditComponent } from './config/componentConfig';
-import { IFormCheckboxComponent, IFormRadioButtonComponent, IOptions } from '../types/global';
+import {
+  IFormGenericOptionsComponent,
+  IOption
+} from '../types/global';
 import { Add } from '@navikt/ds-icons';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { useText } from '../hooks';
 import { addOptionToComponent } from '../utils/component';
 
-export interface AddOptionProps extends IGenericEditComponent {
+export interface AddOptionProps<T extends IFormGenericOptionsComponent> extends IGenericEditComponent {
   addButtonClass: string;
-  component: IFormCheckboxComponent | IFormRadioButtonComponent;
+  component: T;
+  duplicateErrorText: string;
+  emptyErrorText: string;
 }
 
 const initialNewOption = () => ({ label: generateRandomId(12), value: generateRandomId(4) });
 
-export const AddOption = ({
+export const AddOption = <T extends IFormGenericOptionsComponent>({
   addButtonClass,
   component,
+  duplicateErrorText,
+  emptyErrorText,
   handleComponentChange,
-}: AddOptionProps) => {
+}: AddOptionProps<T>) => {
   const t = useText();
 
   const [isAddMode, setIsAddMode] = useState(false);
@@ -33,12 +40,12 @@ export const AddOption = ({
   let errorMessage: string | undefined = undefined;
 
   if (isNewValueEmpty) {
-    errorMessage = t('ux_editor.add_option_value_error_empty');
+    errorMessage = emptyErrorText;
   } else if (!isNewValueUnique) {
-    errorMessage = t('ux_editor.add_option_value_error_duplicate');
+    errorMessage = duplicateErrorText;
   }
 
-  const addOption = (option: IOptions) => {
+  const addOption = (option: IOption) => {
     handleComponentChange(addOptionToComponent(component, option));
     setIsAddMode(false);
     setNewOption(initialNewOption());

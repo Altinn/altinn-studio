@@ -1,7 +1,7 @@
 import React from 'react';
 import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { CheckboxGroupPreview, CheckboxGroupPreviewProps } from './CheckboxGroupPreview';
-import { IFormCheckboxComponent, IOptions, ITextResource } from '../../../types/global';
+import { IFormCheckboxComponent, IOption, ITextResource } from '../../../types/global';
 import { screen } from '@testing-library/react';
 import { ITextResourcesState } from '../../../features/appData/textResources/textResourcesSlice';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
@@ -23,7 +23,7 @@ const option1Value = 'option1';
 const option2TextKey = 'option2text';
 const option2Text = 'Alternativ 2';
 const option2Value = 'option2';
-const options: IOptions[] = [
+const options: IOption[] = [
   { label: option1TextKey, value: option1Value },
   { label: option2TextKey, value: option2Value },
 ];
@@ -61,8 +61,8 @@ const texts = {
   "ux_editor.add_option": addOptionText,
   "ux_editor.add_option_label": labelText,
   "ux_editor.add_option_value": valueText,
-  "ux_editor.add_option_value_error_empty": emptyErrorText,
-  "ux_editor.add_option_value_error_duplicate": duplicateErrorText
+  "ux_editor.checkboxes_option_value_error_empty": emptyErrorText,
+  "ux_editor.checkboxes_option_value_error_duplicate": duplicateErrorText
 };
 
 describe('CheckboxGroupPreview', () => {

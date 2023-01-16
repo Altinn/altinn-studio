@@ -1,4 +1,8 @@
-import { IFormCheckboxComponent, IFormComponent, IFormRadioButtonComponent, IOptions } from '../types/global';
+import {
+  IFormComponent,
+  IFormGenericOptionsComponent,
+  IOption
+} from '../types/global';
 
 export function getTextResourceByAddressKey(key: AddressKeys, t: (key: string) => string): string {
   switch (key) {
@@ -49,9 +53,9 @@ export const changeTitleBinding = (component: IFormComponent, resourceKey: strin
 export const changeDescriptionBinding = (component: IFormComponent, resourceKey: string): IFormComponent =>
   changeTextResourceBinding(component, 'description', resourceKey);
 
-export const addOptionToComponent = <T extends IFormCheckboxComponent | IFormRadioButtonComponent>(
+export const addOptionToComponent = <T extends IFormGenericOptionsComponent>(
   component: T,
-  option: IOptions
+  option: IOption
 ): T => ({
   ...component,
   options: [
@@ -60,7 +64,7 @@ export const addOptionToComponent = <T extends IFormCheckboxComponent | IFormRad
   ],
 });
 
-export const changeComponentOptionLabel = <T extends IFormCheckboxComponent | IFormRadioButtonComponent>(
+export const changeComponentOptionLabel = <T extends IFormGenericOptionsComponent>(
   component: T,
   value: string,
   label: string

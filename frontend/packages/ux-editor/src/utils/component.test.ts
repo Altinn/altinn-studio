@@ -1,4 +1,4 @@
-import { IFormCheckboxComponent, IFormComponent, IFormRadioButtonComponent, IOptions } from '../types/global';
+import { IFormCheckboxComponent, IFormComponent, IFormRadioButtonComponent, IOption } from '../types/global';
 import {
   addOptionToComponent, changeComponentOptionLabel,
   changeTextResourceBinding,
@@ -84,7 +84,7 @@ describe('Component utils', () => {
           ],
           optionsId: null
         };
-        const newOption: IOptions = {
+        const newOption: IOption = {
           label: 'newTestLabel',
           value: 'newTestValue',
         };

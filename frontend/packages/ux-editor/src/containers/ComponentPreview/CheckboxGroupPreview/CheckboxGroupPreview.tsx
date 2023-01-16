@@ -65,9 +65,11 @@ export const CheckboxGroupPreview = ({
         presentation
       />
       {!component.optionsId && (
-        <AddOption
+        <AddOption<IFormCheckboxComponent>
           addButtonClass={classes.addCheckbox}
           component={component}
+          duplicateErrorText={tCheckboxes('option_value_error_duplicate')}
+          emptyErrorText={tCheckboxes('option_value_error_empty')}
           handleComponentChange={handleComponentChange}
         />
       )}

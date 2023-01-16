@@ -69,9 +69,11 @@ export const RadioGroupPreview = ({
         presentation
       />
       {!component.optionsId && (
-        <AddOption
+        <AddOption<IFormRadioButtonComponent>
           addButtonClass={classes.addRadioButton}
           component={component}
+          duplicateErrorText={tRadios('option_value_error_duplicate')}
+          emptyErrorText={tRadios('option_value_error_empty')}
           handleComponentChange={handleComponentChange}
         />
       )}

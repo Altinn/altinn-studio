@@ -39,7 +39,7 @@ export interface IColumnProvidedProps {
   columnIndex: number;
 }
 
-export interface IOptions {
+export interface IOption {
   label: string;
   value: any;
 }
@@ -63,7 +63,7 @@ export interface ICreateFormComponent {
   type?: string;
   name?: string;
   size?: string;
-  options?: IOptions[];
+  options?: IOption[];
   dataModelBindings?: IDataModelBindings;
   textResourceBindings?: ITextResourceBindings;
   customType?: string;
@@ -94,11 +94,8 @@ export interface IFormInputComponent extends IFormComponent {
   disabled?: boolean;
 }
 
-export interface IFormCheckboxComponent extends IFormComponent {
+export interface IFormCheckboxComponent extends IFormGenericOptionsComponent {
   type: ComponentTypes.Checkboxes;
-  options: IOptions[];
-  preselectedOptionIndex?: number;
-  optionsId: string;
 }
 
 export interface IFormButtonComponent extends IFormComponent {
@@ -106,15 +103,12 @@ export interface IFormButtonComponent extends IFormComponent {
   onClickAction: () => void;
 }
 
-export interface IFormRadioButtonComponent extends IFormComponent {
+export interface IFormRadioButtonComponent extends IFormGenericOptionsComponent {
   type: ComponentTypes.RadioButtons;
-  options: IOptions[];
-  preselectedOptionIndex?: number;
-  optionsId: string;
 }
 
 export interface IFormGenericOptionsComponent extends IFormComponent {
-  options: IOptions[];
+  options: IOption[];
   preselectedOptionIndex?: number;
   optionsId: string;
 }
