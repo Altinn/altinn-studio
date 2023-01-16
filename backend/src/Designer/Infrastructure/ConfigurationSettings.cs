@@ -26,6 +26,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<AzureDevOpsSettings>(configuration.GetSection("Integrations:AzureDevOpsSettings"));
             services.Configure<PostgreSQLSettings>(configuration.GetSection("PostgreSQLSettings"));
+            services.Configure<CSharpGenerationSettings>(configuration.GetSection(nameof(CSharpGenerationSettings)));
             return services;
         }
     }
