@@ -3,8 +3,7 @@ pool:
 
 name: $(environment)_Studio_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
 
-trigger:
-- bug/cypress-use-case-dev-pipeline-problem
+trigger: none
 
 pr: none
 
