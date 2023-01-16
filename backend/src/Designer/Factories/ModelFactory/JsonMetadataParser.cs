@@ -155,12 +155,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             WriteRestrictionAnnotations(classBuilder, element);
             elementOrder += 1;
-            classBuilder.AppendLine("    [XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
+            classBuilder.AppendLine(Indent(2) + "[XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
 
             // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
             // deserialization, we need both JsonProperty and JsonPropertyName annotations.
-            classBuilder.AppendLine("    [JsonProperty(\"" + element.XName + "\")]");
-            classBuilder.AppendLine("    [JsonPropertyName(\"" + element.XName + "\")]");
+            classBuilder.AppendLine(Indent(2) + "[JsonProperty(\"" + element.XName + "\")]");
+            classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"" + element.XName + "\")]");
 
             bool primitiveType = false;
             string dataType = element.TypeName;
@@ -179,11 +179,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             if (element.MaxOccurs > 1)
             {
-                classBuilder.AppendLine("    public List<" + dataType + "> " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine(Indent(2) + "public List<" + dataType + "> " + element.Name + " { get; set; }\n");
             }
             else
             {
-                classBuilder.AppendLine("    public " + dataType + " " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; }\n");
             }
 
             if (!primitiveType)
