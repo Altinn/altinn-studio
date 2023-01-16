@@ -2,6 +2,7 @@ const giteaApi = require('./utils/gitea-api.js');
 const waitFor = require('./utils/wait-for.js');
 const runCommand = require('./utils/run-command.js');
 const ensureDotEnv = require('./utils/ensure-dot-env.js');
+const dnsIsOk = require('./utils/check-if-dns-is-correct.js');
 const path = require('path');
 const fs = require('fs');
 
@@ -196,15 +197,23 @@ const addReleaseAndDeployTestDataToDb = async () => {
 const script = async () => {
   const currentEnv = ensureDotEnv();
   await startingDockerCompose();
-  await waitFor('http://studio.localhost/repos/');
-  await createAdminUser(currentEnv);
-  await ensureAdminPassword(currentEnv);
-  await createTestDepOrg(currentEnv);
-  await createTestDepTeams(currentEnv);
-  await addUserToSomeTestDepTeams(currentEnv);
-  await createCypressEnvFile(currentEnv);
-  await addReleaseAndDeployTestDataToDb();
-  process.exit(0);
+  const dnsOk = await dnsIsOk('studio.localhost');
+  if (dnsOk) {
+    await waitFor('http://studio.localhost/repos/');
+    await createAdminUser(currentEnv);
+    await ensureAdminPassword(currentEnv);
+    await createTestDepOrg(currentEnv);
+    await createTestDepTeams(currentEnv);
+    await addUserToSomeTestDepTeams(currentEnv);
+    await createCypressEnvFile(currentEnv);
+    await addReleaseAndDeployTestDataToDb();
+    process.exit(0);
+  } else {
+    console.error(
+      "dns entry for studio.locahost doesn't resolve, probably need to be set in /etc/hosts"
+    );
+    process.exit(1);
+  }
 };
 
 script().then();
