@@ -127,7 +127,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
                 classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
             }
-            if (required)
+            if (required && isValueType)
             {
                 classBuilder.AppendLine("    [Required]");
             }
