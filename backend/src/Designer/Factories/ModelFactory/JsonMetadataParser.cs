@@ -15,7 +15,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     public class JsonMetadataParser
     {
         private readonly CSharpGenerationSettings _generationSettings;
-        private string IndentLine(int level) => new string(' ', level * _generationSettings.IndentSize);
+        private string Indent(int level = 1) => new string(' ', level * _generationSettings.IndentSize);
         public JsonMetadataParser(CSharpGenerationSettings generationSettings)
         {
             _generationSettings = generationSettings;
@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
                 .AppendLine("using Newtonsoft.Json;")
-                .AppendLine($"namespace {CodeGeneration.AppNamespaceTemplate}.Models")
+                .AppendLine($"namespace {_generationSettings.ModelNamespace}")
                 .AppendLine("{")
                 .Append(string.Concat(classes.Values))
                 .AppendLine("}");
@@ -69,20 +69,20 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             StringBuilder classBuilder = new StringBuilder();
             if (parentElement.ParentElement == null && string.IsNullOrWhiteSpace(targetNamespace))
             {
-                classBuilder.AppendLine("  [XmlRoot(ElementName=\"" + parentElement.Name + "\")]");
+                classBuilder.AppendLine(Indent() + "[XmlRoot(ElementName=\"" + parentElement.Name + "\")]");
             }
             else if (parentElement.ParentElement == null && !string.IsNullOrWhiteSpace(targetNamespace))
             {
                 classBuilder.AppendLine(
-                    $"  [XmlRoot(ElementName=\"{parentElement.Name}\", Namespace=\"{targetNamespace}\")]");
+                    Indent() + $"[XmlRoot(ElementName=\"{parentElement.Name}\", Namespace=\"{targetNamespace}\")]");
             }
             else
             {
                 classBuilder.AppendLine(string.Empty);
             }
 
-            classBuilder.AppendLine("  public class " + parentElement.TypeName);
-            classBuilder.AppendLine("  {");
+            classBuilder.AppendLine(Indent() + "public class " + parentElement.TypeName);
+            classBuilder.AppendLine(Indent() + "{");
 
             int elementOrder = 0;
 
