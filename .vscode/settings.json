@@ -16,24 +16,7 @@
     "**/Debug": true
   },
   "typescript.surveys.enabled": false,
-  "cSpell.words": [
-    "altinn",
-    "api",
-    "attattribution",
-    "i",
-    "kartet",
-    "kartlag",
-    "kubernetes",
-    "Legg",
-    "Lenke",
-    "obligatorisk",
-    "påkrevd",
-    "Sentrum",
-    "Sitering",
-    "Subdomene",
-    "være",
-    "wrapper"
-  ],
+  "cSpell.words": ["api", "i", "kubernetes", "wrapper"],
   "java.configuration.updateBuildConfiguration": "interactive",
   "eslint.workingDirectories": [
     { "directory": "./src/studio/src/designer/frontend", "changeProcessCWD": true },
