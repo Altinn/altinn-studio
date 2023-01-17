@@ -14,8 +14,12 @@
         },
         "bindingToShowInSummary": "SelectedItem",
         "dataListId": "people",
-        "tableHeaders": [ "Navn", "Alder", "Yrke" ],
-        "sortableColumns": [ "Alder" ],
+        "tableHeaders": {
+          "name": "Navn",
+          "age": "Alder",
+          "profession": "Yrke"
+        },
+        "sortableColumns": [ "age" ],
         "pagination": {
           "alternatives": [ 5, 10 ],
           "default": 5
