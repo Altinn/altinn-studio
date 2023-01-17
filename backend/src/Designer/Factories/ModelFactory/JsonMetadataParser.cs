@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     /// <summary>
     /// This class is responsible for building the metadata model from JSON
     /// </summary>
-    public class JsonMetadataParser: IModelMetadataParser
+    public class JsonMetadataParser : IModelMetadataParser
     {
         private readonly CSharpGenerationSettings _generationSettings;
         public JsonMetadataParser(CSharpGenerationSettings generationSettings)
@@ -57,7 +57,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// <param name="parentElement">The parent Element</param>
         /// <param name="serviceMetadata">Model metadata</param>
         /// <param name="targetNamespace">Target namespace in xsd schema.</param>
-        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata,  string targetNamespace = null)
+        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata, string targetNamespace = null)
         {
             List<ElementMetadata> referredTypes = new List<ElementMetadata>();
 
@@ -100,7 +100,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 }
                 else if (element.Type == ElementType.Attribute)
                 {
-                   ParseAttributeProperty(element, classBuilder, required);
+                    ParseAttributeProperty(element, classBuilder, required);
                 }
             }
 
@@ -147,7 +147,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     classBuilder.AppendLine(Indent(2) + "[Required]");
                 }
-                classBuilder.AppendLine(Indent(2) + "public " + dataType + (isValueType? "?": string.Empty) + " " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine(Indent(2) + "public " + dataType + (isValueType ? "?" : string.Empty) + " " + element.Name + " { get; set; }\n");
             }
         }
 
@@ -264,24 +264,24 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             if (element.Restrictions.ContainsKey("maxLength"))
             {
-                classBuilder.AppendLine(Indent(2) +"[MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
             }
 
             if (element.Restrictions.ContainsKey("minInclusive") && element.Restrictions.ContainsKey("maxInclusive"))
             {
-                classBuilder.AppendLine(Indent(2) +"[Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
                 hasRange = true;
             }
 
             if (element.Restrictions.ContainsKey("minimum") && element.Restrictions.ContainsKey("maximum"))
             {
-                classBuilder.AppendLine(Indent(2) +"[Range(" + element.Restrictions["minimum"].Value + ", " + element.Restrictions["maximum"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[Range(" + element.Restrictions["minimum"].Value + ", " + element.Restrictions["maximum"].Value + errorMessage + ")]");
                 hasRange = true;
             }
 
             if (element.Restrictions.ContainsKey("pattern"))
             {
-                classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
             }
 
             if (element.Restrictions.ContainsKey("totalDigits"))
@@ -300,46 +300,46 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             switch (type)
             {
                 case BaseValueType.Double:
-                    classBuilder.AppendLine(Indent(2) +"[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.Int:
-                    classBuilder.AppendLine(Indent(2) +"[Range(Int32.MinValue,Int32.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[Range(Int32.MinValue,Int32.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.Integer:
-                    classBuilder.AppendLine(Indent(2) +"[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.NegativeInteger:
-                    classBuilder.AppendLine(Indent(2) +"[Range(Double.MinValue,-1" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,-1" + errorMessage + ")]");
                     break;
                 case BaseValueType.NonPositiveInteger:
-                    classBuilder.AppendLine(Indent(2) +"[Range(Double.MinValue,0" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,0" + errorMessage + ")]");
                     break;
                 case BaseValueType.NonNegativeInteger:
-                    classBuilder.AppendLine(Indent(2) +"[Range(0,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[Range(0,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.PositiveInteger:
-                    classBuilder.AppendLine(Indent(2) +"[Range(1,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[Range(1,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYear:
-                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYearMonth:
-                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.GMonth:
-                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^0[1-9]|1[0-2]$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^0[1-9]|1[0-2]$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.GDay:
-                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^0[1-9]|[1,2][0-9]|3[0,1]$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^0[1-9]|[1,2][0-9]|3[0,1]$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.Time:
-                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^([0,1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](Z|(\\+|-)([0,1][0-9]|[2][0-3]):[0-5][0-9])?$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^([0,1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](Z|(\\+|-)([0,1][0-9]|[2][0-3]):[0-5][0-9])?$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.TimePeriod:
-                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.Date:
-                    classBuilder.AppendLine(Indent(2) +"[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$\"" + errorMessage + ")]");
                     break;
             }
         }
@@ -358,7 +358,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     or BaseValueType.Time
                     or BaseValueType.TimePeriod
                     or BaseValueType.Date
-                    or null=> ("string", false),
+                    or null => ("string", false),
                 BaseValueType.Int => ("int", true),
                 BaseValueType.Short => ("short", true),
                 BaseValueType.Decimal => ("decimal", true),
