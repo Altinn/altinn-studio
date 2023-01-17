@@ -210,7 +210,7 @@ const script = async () => {
     process.exit(0);
   } else {
     console.error(
-      "dns entry for studio.locahost doesn't resolve, probably need to be set in /etc/hosts"
+      "DNS entry for studio.localhost does not resolve to 127.0.0.1. Check that it is set in  /etc/hosts"
     );
     process.exit(1);
   }
