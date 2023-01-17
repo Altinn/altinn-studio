@@ -1,9 +1,27 @@
-html {
-  font-size: 100%;
-}
-
+html,
 body {
-  /* altinn-designsystem seems to set another background color. We need to keep it #fff for dashboard */
+  margin: 0;
+  padding: 0;
+  font-family: Roboto, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  height: 100%;
   background: #fff;
   font-size: 1rem;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 2px;
+}
+
+a {
+  text-decoration: none;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-thumb {
+  background: darkgray;
+  border-radius: 5px;
 }

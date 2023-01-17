@@ -6,18 +6,10 @@ RUN corepack enable
 RUN yarn --immutable
 RUN yarn build
 
-# Building studio frontend static served by the backend
-FROM node:alpine AS generate-designer-js
-WORKDIR /build
-COPY backend/src/Designer .
-RUN corepack enable
-RUN yarn --immutable
-RUN yarn build
-
 # Building the backend
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS generate-studio-backend
 WORKDIR /build
-COPY backend ./
+COPY backend .
 RUN dotnet build src/Designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
@@ -34,7 +26,6 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     DOTNET_RUNNING_IN_CONTAINER=true
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib
 
-COPY --from=generate-designer-js    /build/wwwroot ./wwwroot
 COPY --from=generate-studio-backend /app_output .
 COPY --from=generate-studio-frontend /build/dist/app-development ./wwwroot/designer/frontend/app-development
 COPY --from=generate-studio-frontend /build/dist/dashboard ./wwwroot/designer/frontend/dashboard

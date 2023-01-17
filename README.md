@@ -8,7 +8,7 @@ Altinn Studio is available at <https://altinn.studio>.
 Read the [Altinn Studio documentation](https://docs.altinn.studio/) to [get started](https://docs.altinn.studio/app/getting-started/).
 We've also created a [into course for app development](https://docs.altinn.studio/app/app-dev-course/) that you can follow at your own pace.
 
-![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg "Altinn 3 - Concept")
+![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg 'Altinn 3 - Concept')
 
 ## Build status
 
@@ -90,39 +90,14 @@ Navigate to the designer backend folder `cd backend/src/Designer`. The first tim
   export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
   ```
 
-Build and prepare for running the application.
+#### Developing Frontend
+
+Start the webpack dev server for the respective app you want to develop:
 
 ```bash
-cd backend/src/Designer
-dotnet build
-yarn run gulp # run this when there are changes in frontend that you want to serve from backend
+yarn --cwd "frontend" run start-app-development
+yarn --cwd "frontend" run start-dashboard
 ```
-
-An optional step if you want to run also frontend from the backend. At the time being this is still a thing.
-
-```bash
-cd backend/src/Designer
-yarn --immutable
-yarn run gulp-install-deps
-```
-
-There are multiple ways to start the frontend applications
-
-```bash
-cd backend/src/Designer
-yarn run develop-designer-frontend # Run the front end watching dashboard
-```
-
-If you are not going to edit the designer react app (frontend) you can use
-
-```bash
-cd backend/src/Designer
-yarn --immutable
-yarn run gulp # run this when there are changes in frontend that you want to serve from backend
-dotnet run
-```
-
-Which will build the Designer .NET backend and the designer react app, but not listen to changes to the react app.
 
 If you want to work on creating apps locally, [app-template-dotnet](https://github.com/Altinn/app-template-dotnet) repo should be cloned. If the templates repo is cloned in the same folder as altinn-studio, no changes needs to be done, otherwise it should be referenced in appsettings.Development.json.
 ```
@@ -138,7 +113,7 @@ If you want to work on creating apps locally, [app-template-dotnet](https://gith
 Alternative to cloning app-templates-dotnet repo is to use following script to download template dependencies:
 
 ```sh
-wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip 
+wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip
 ```
 
 
@@ -165,7 +140,7 @@ yarn --cwd "frontend" run lint
 
 ### Unit tests
 
-```
+```bash
 yarn --cwd "frontend" --immutable
 yarn --cwd "frontend" run test
 ```
@@ -174,7 +149,7 @@ yarn --cwd "frontend" run test
 
 ### End to end tests
 
-[Integration tests](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress) for local studio.
+[Integration tests](https://github.com/Altinn/altinn-studio/tree/master/frontend/testing/cypress) for local studio.
 
 ## Deployment
 
