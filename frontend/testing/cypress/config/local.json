@@ -2,8 +2,6 @@
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "baseUrl": "http://studio.localhost",
   "env": {
-    "autoTestUser": "testuser",
-    "autoTestUserPwd": "Studio@123",
     "testEmail": "test1@test.com",
     "deployApp": "ttd/autodeploy-v3",
     "designerApp": "ttd/designer",

@@ -8,13 +8,9 @@ import { common } from '../../pageobjects/common';
 context('Dashboard', () => {
   before(() => {
     cy.visit('/');
-    if (Cypress.env('environment') === 'local') {
-      cy.studiologin(Cypress.env('adminUser'), Cypress.env('adminPwd'));
-    } else {
-      cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    }
-    cy.createapp(Cypress.env('adminUser'), 'auto-app');
-    cy.createapp(Cypress.env('adminUser'), 'test-app');
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createapp(Cypress.env('autoTestUser'), 'auto-app');
+    cy.createapp(Cypress.env('autoTestUser'), 'test-app');
   });
 
   beforeEach(() => {
@@ -25,10 +21,7 @@ context('Dashboard', () => {
   });
 
   it('is possible to view apps, add and remove favourites', () => {
-    const createdBy =
-      Cypress.env('environment') === 'local'
-        ? Cypress.env('adminUser')
-        : Cypress.env('autoTestUser');
+    const createdBy = Cypress.env('autoTestUser');
     cy.intercept('PUT', '**/designer/api/v1/user/starred/**').as('addFavourite');
     cy.contains('h2', 'Mine applikasjoner')
       .siblings()
@@ -91,7 +84,7 @@ context('Dashboard', () => {
   });
 
   after(() => {
-    cy.deleteallapps('org', Cypress.env('appOwner'), Cypress.env('accessToken'));
-    cy.deleteallapps('user', Cypress.env('adminUser'), Cypress.env('accessToken'));
+    //cy.deleteallapps('org', Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteallapps('user', Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 });

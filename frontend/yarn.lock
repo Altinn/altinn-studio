@@ -1871,6 +1871,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@faker-js/faker@npm:^7.6.0":
+  version: 7.6.0
+  resolution: "@faker-js/faker@npm:7.6.0"
+  checksum: 942af6221774e8c98a0eb6bc75265e05fb81a941170377666c3439aab9495dd321d6beedc5406f07e6ad44262b3e43c20961f666d116ad150b78e7437dd1bb2b
+  languageName: node
+  linkType: hard
+
 "@floating-ui/core@npm:^0.7.3":
   version: 0.7.3
   resolution: "@floating-ui/core@npm:0.7.3"
@@ -5995,6 +6002,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "cypress-studio@workspace:testing/cypress"
   dependencies:
+    "@faker-js/faker": ^7.6.0
     axe-core: 4.6.2
     cypress: 12.3.0
     cypress-axe: 1.2.0

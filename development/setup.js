@@ -99,6 +99,8 @@ const addUserToSomeTestDepTeams = async (env) => {
   }
 };
 
+
+
 const addReleaseAndDeployTestDataToDb = async () =>
   runCommand(
     [`docker exec -i studio-db psql`, `-U designer_admin designerdb`, `< db/data.sql`].join(' ')
