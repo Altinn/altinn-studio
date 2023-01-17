@@ -124,6 +124,24 @@ dotnet run
 
 Which will build the Designer .NET backend and the designer react app, but not listen to changes to the react app.
 
+If you want to work on creating apps locally, [app-template-dotnet](https://github.com/Altinn/app-template-dotnet) repo should be cloned. If the templates repo is cloned in the same folder as altinn-studio, no changes needs to be done, otherwise it should be referenced in appsettings.Development.json.
+```
+{
+   "GeneralSettings": {
+    "TemplateLocation": "Path to src folder of app-template-dotnet repo",
+    "DeploymentLocation": "Path to src/deployment folder of app-template-dotnet repo",
+    "AppLocation": "Path to src/App folder of app-template-dotnet repo"
+  }
+}
+```
+
+Alternative to cloning app-templates-dotnet repo is to use following script to download template dependencies:
+
+```sh
+wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip 
+```
+
+
 #### Building the React apps
 
 If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating
