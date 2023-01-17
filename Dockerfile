@@ -2,7 +2,6 @@
 FROM node:alpine AS generate-studio-frontend
 WORKDIR /build
 COPY frontend .
-RUN yarn config
 RUN corepack enable
 RUN yarn --immutable
 RUN yarn build
