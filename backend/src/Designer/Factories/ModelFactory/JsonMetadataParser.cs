@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using static Altinn.Studio.DataModeling.Utils.RestrictionsHelper;
 
@@ -12,14 +11,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     /// <summary>
     /// This class is responsible for building the metadata model from JSON
     /// </summary>
-    public class JsonMetadataParser
+    public class JsonMetadataParser: IModelMetadataParser
     {
         private readonly CSharpGenerationSettings _generationSettings;
-        private string Indent(int level = 1) => new string(' ', level * _generationSettings.IndentSize);
         public JsonMetadataParser(CSharpGenerationSettings generationSettings)
         {
             _generationSettings = generationSettings;
         }
+
+        private string Indent(int level = 1) => new string(' ', level * _generationSettings.IndentSize);
 
         /// <summary>
         /// Create Model from ServiceMetadata object

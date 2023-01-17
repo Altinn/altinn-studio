@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Designer.Tests.Utils;
@@ -68,7 +69,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
         private static string GenerateCSharpClasses(ModelMetadata modelMetadata)
         {
-            JsonMetadataParser modelGenerator = new JsonMetadataParser();
+            JsonMetadataParser modelGenerator = new JsonMetadataParser(new CSharpGenerationSettings());
             string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
             return classes;
         }
