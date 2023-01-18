@@ -18,7 +18,7 @@ export interface EditDataModelBindingsProps extends IGenericEditComponent {
 export const EditDataModelBindings = ({
   component,
   handleComponentChange,
-  renderOptions
+  renderOptions,
 }: EditDataModelBindingsProps) => {
   const language = useSelector(textSelector);
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
@@ -28,13 +28,13 @@ export const EditDataModelBindings = ({
       ...component,
       dataModelBindings: {
         ...component.dataModelBindings,
-        [key]: selectedDataModelElement
+        [key]: selectedDataModelElement,
       },
       required: getMinOccursFromDataModel(selectedDataModelElement, dataModel) > 0,
       timeStamp:
         component.type === ComponentTypes.Datepicker
           ? getXsdDataTypeFromDataModel(selectedDataModelElement, dataModel) === 'DateTime'
-          : undefined
+          : undefined,
     });
   };
 
@@ -42,6 +42,6 @@ export const EditDataModelBindings = ({
     dataModelBinding: component.dataModelBindings,
     onDataModelChange: handleDataModelChange,
     language,
-    ...renderOptions
+    ...renderOptions,
   });
 };
