@@ -35,6 +35,15 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ILogger _logger;
         private readonly JsonSerializerSettings _serializerSettings;
 
+        private static string MakeResourceFilename(string langCode = "nb")
+        {
+            return $"resource.{langCode}.json";
+        }
+        private string MakeResourceFilePath(string org, string app, string developer, string filename)
+        {
+            return _settings.GetLanguageResourcePath(org, app, developer) + filename;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TextController"/> class.
         /// </summary>
@@ -165,11 +174,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("language/{languageCode}")]
         public IActionResult UpdateTextsForKeys(string org, string app, [FromBody] Dictionary<string, string> keysTexts, string languageCode)
         {
+            string filename = MakeResourceFilename(languageCode);
             try
             {
-                string filename = $"resource.{languageCode}.json";
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                string textResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, developer) + filename;
+                string textResourceDirectoryPath = MakeResourceFilePath(org, app, developer, filename);
 
                 TextResource textResourceObject = new TextResource { Language = languageCode, Resources = new List<TextResourceElement>() };
 
@@ -197,15 +206,76 @@ namespace Altinn.Studio.Designer.Controllers
 
                 _repository.SaveLanguageResource(org, app, languageCode, resourceString);
 
-                return Ok($"The text resource, resource.{languageCode}.json, was updated.");
+                return Ok($"The text resource, {filename}, was updated.");
 
             }
             catch (Exception)
             {
-                return BadRequest($"The text resource, resource.{languageCode}.json, could not be updated.");
+                return BadRequest($"The text resource, {filename}, could not be updated.");
             }
         }
 
+        /// <summary>
+        /// Method to update multiple key-names
+        /// Non-existing keys will be added.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="mutations">List of oldId: string, newId: string tuples to change or remove in all text-resource-files.</param>
+        /// <remarks>If the newId is empty or undefined it implies that it is going to be removed</remarks>
+        /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
+        [HttpPut("keys")]
+        public IActionResult UpdateKeyNames(string org, string app, [FromBody] List<TextIdMutation> mutations)
+        {
+            bool mutationHasOccured = false;
+            try
+            {
+                IList<string> langCodes = _repository.GetLanguages(org, app);
+                foreach (string languageCode in langCodes)
+                {
+                    string filename = MakeResourceFilename(languageCode);
+                    string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                    string filePath = MakeResourceFilePath(org, app, developer, filename);
+                    if (!System.IO.File.Exists(filePath))
+                    {
+                        continue;
+                    }
+
+                    string textResource = System.IO.File.ReadAllText(filePath, Encoding.UTF8);
+                    TextResource textResourceObject = JsonConvert.DeserializeObject<TextResource>(textResource);
+
+                    foreach (TextIdMutation m in mutations)
+                    {
+                        int originalEntryIndex = textResourceObject.Resources.FindIndex(textResourceElement => textResourceElement.Id == m.OldId);
+                        if (originalEntryIndex == -1)
+                        {
+                            continue;
+                        }
+
+                        TextResourceElement textEntry = textResourceObject.Resources[originalEntryIndex];
+                        if (m.NewId.HasValue && m.NewId.Value != "") // assign new key/id
+                        {
+                            textEntry.Id = m.NewId.Value;
+                        }
+                        else
+                        {
+                            textResourceObject.Resources.Remove(textEntry); //remove
+                        }
+                        mutationHasOccured = true;
+                    }
+
+                    string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
+
+                    _repository.SaveLanguageResource(org, app, languageCode, resourceString);
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"The update could not be done:\n{e.StackTrace}");
+            }
+
+            return Ok(mutationHasOccured ? $"The IDs were updated." : $"Nothing was changed.");
+        }
         /// <summary>
         /// Deletes a language resource file
         /// </summary>
@@ -217,12 +287,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("language/{languageCode}")]
         public IActionResult DeleteLanguage(string org, string app, string languageCode)
         {
+            string filename = MakeResourceFilename(languageCode);
             if (_repository.DeleteLanguage(org, app, languageCode))
             {
-                return Ok($"Resources.{languageCode}.json was successfully deleted.");
+                return Ok($"{filename} was successfully deleted.");
             }
 
-            return BadRequest($"Resource.{languageCode}.json could not be deleted.");
+            return BadRequest($"{filename} could not be deleted.");
         }
 
         /// <summary>
@@ -267,8 +338,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("service-name")]
         public IActionResult GetServiceName(string org, string app)
         {
-            string defaultLang = "nb";
-            string filename = $"resource.{defaultLang}.json";
+            string filename = MakeResourceFilename();
             string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
 
             try
@@ -299,8 +369,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Obsolete("SetServiceName is deprecated, please use UpdateTextsForKeys instead. Use the following arguments; string org, string app, [FromBody] Dictionary<string, string> keysTexts, and add /{languageCode} to url route.")]
         public void SetServiceName(string org, string app, [FromBody] dynamic serviceName)
         {
-            string defaultLang = "nb";
-            string filename = $"resource.{defaultLang}.json";
+            string filename = MakeResourceFilename();
             string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
             if (System.IO.File.Exists(serviceResourceDirectoryPath))
             {
