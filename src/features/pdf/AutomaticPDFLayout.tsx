@@ -1,5 +1,7 @@
 import React from 'react';
 
+import type { IPdfFormat } from '.';
+
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import css from 'src/features/pdf/PDFView.module.css';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -36,10 +38,9 @@ const renderComponents = new Set([...summaryComponents, ...presentationComponent
 
 interface IAutomaticPDFLayout {
   layouts: ILayouts;
-  excludePageFromPdf: Set<string>;
-  excludeComponentFromPdf: Set<string>;
+  pdfFormat: IPdfFormat;
   pageOrder: string[];
-  hiddenPages: Set<string>;
+  hidden: string[];
 }
 
 const AutomaticPDFSummaryComponent = ({
@@ -74,21 +75,19 @@ const AutomaticPDFSummaryComponent = ({
   }
 };
 
-const AutomaticPDFLayout = ({
-  layouts,
-  excludePageFromPdf,
-  excludeComponentFromPdf,
-  pageOrder,
-  hiddenPages,
-}: IAutomaticPDFLayout) => {
+const AutomaticPDFLayout = ({ layouts, pdfFormat, pageOrder, hidden }: IAutomaticPDFLayout) => {
+  const excludedPages = new Set(pdfFormat.excludedPages);
+  const excludedComponents = new Set(pdfFormat.excludedComponents);
+  const hiddenPages = new Set(hidden);
+
   const layoutAndComponents = Object.entries(layouts as ILayouts)
-    .filter(([pageRef]) => !excludePageFromPdf.has(pageRef))
+    .filter(([pageRef]) => !excludedPages.has(pageRef))
     .filter(([pageRef]) => !hiddenPages.has(pageRef))
     .filter(([pageRef]) => pageOrder.includes(pageRef))
     .sort(([pA], [pB]) => pageOrder.indexOf(pA) - pageOrder.indexOf(pB))
     .map(([pageRef, layout]: [string, ILayoutComponentOrGroup[]]) => [
       pageRef,
-      topLevelComponents(layout).filter((c) => renderComponents.has(c.type) && !excludeComponentFromPdf.has(c.id)),
+      topLevelComponents(layout).filter((c) => renderComponents.has(c.type) && !excludedComponents.has(c.id)),
     ])
     .flatMap(([pageRef, components]: [string, ILayoutComponentOrGroup[]]) => components.map((comp) => [pageRef, comp]));
 
@@ -119,7 +118,7 @@ const AutomaticPDFLayout = ({
           <AutomaticPDFSummaryComponent
             component={component}
             pageRef={pageRef}
-            excludedChildren={Array.from(excludeComponentFromPdf)}
+            excludedChildren={pdfFormat.excludedComponents}
           />
         </div>
       ))}
