@@ -7,6 +7,7 @@ import { common } from '../../pageobjects/common';
 
 context('Dashboard', () => {
   before(() => {
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.createapp(Cypress.env('autoTestUser'), 'auto-app');
@@ -84,6 +85,6 @@ context('Dashboard', () => {
   });
 
   after(() => {
-    cy.deleteallapps('user', Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 });

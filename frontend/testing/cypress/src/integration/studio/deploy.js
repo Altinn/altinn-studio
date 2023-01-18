@@ -9,15 +9,13 @@ import * as texts from '../../fixtures/texts.json';
 
 context('Deploy', () => {
   before(() => {
-    if (Cypress.env('environment') == 'local') {
-      cy.visit('/');
-      cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-      cy.getrepo(Cypress.env('deployApp'), Cypress.env('accessToken')).then((response) => {
-        if (response.status != 200)
-          cy.createapp(Cypress.env('appOwner'), Cypress.env('deployApp').split('/')[1]);
-      });
-      cy.clearCookies();
-    }
+    cy.visit('/');
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.getrepo(Cypress.env('deployApp'), Cypress.env('accessToken')).then((response) => {
+      if (response.status !== 200)
+        cy.createapp('Testdepartementet', Cypress.env('deployApp').split('/')[1]);
+    });
+    cy.clearCookies();
   });
   beforeEach(() => {
     cy.visit('/');

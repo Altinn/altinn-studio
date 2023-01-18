@@ -30,11 +30,10 @@ Cypress.Commands.add('deleteorg', (orgName, accessToken) =>
 /**
  * delete all the apps of an org, authenticated using access token
  */
-Cypress.Commands.add('deleteallapps', (type, ownerName, accessToken) => {
-  let getReposEndpoint;
-  if (type === 'org')
-    getReposEndpoint = `${giteaBaseUrl}/orgs/${ownerName}/repos?token=${accessToken}`;
-  if (type === 'user') getReposEndpoint = `${giteaBaseUrl}/user/repos?token=${accessToken}`;
+Cypress.Commands.add('deleteallapps', (ownerName, accessToken, isOrg) => {
+  const getReposEndpoint = isOrg
+    ? `${giteaBaseUrl}/orgs/${ownerName}/repos?token=${accessToken}`
+    : `${giteaBaseUrl}/users/${ownerName}/repos?token=${accessToken}`;
   cy.request('GET', getReposEndpoint).then((response) => {
     const repos = response.body;
     for (let i = 0; i < repos.length; i++) {

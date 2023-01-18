@@ -8,10 +8,10 @@ import * as texts from '../../fixtures/texts.json';
 
 context('New App', () => {
   beforeEach(() => {
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.get(dashboard.searchApp).should('be.visible');
-    cy.deleteallapps('user', Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
   it('is possible to start app creation and exits', () => {
@@ -46,6 +46,6 @@ context('New App', () => {
     cy.get(gitea.success).should('be.visible');
   });
   after(() => {
-    cy.deleteallapps('user', Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 });
