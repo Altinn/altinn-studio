@@ -443,7 +443,6 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             {renderSelectGroupDataModelBinding(
               tmpContainer.dataModelBindings,
               this.handleDataModelGroupChange,
-              language,
               'group'
             )}
             <div>
