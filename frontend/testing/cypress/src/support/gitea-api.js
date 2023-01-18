@@ -1,5 +1,4 @@
 /// <reference types="cypress" />
-import { faker } from '@faker-js/faker';
 
 const giteaBaseUrl = Cypress.config().baseUrl + '/repos/api/v1';
 
@@ -11,41 +10,6 @@ Cypress.Commands.add('createorg', (orgName, accessToken) =>
     username: orgName,
   })
 );
-/*
-Cypress.Commands.add('createusr', (accessToken, username, password) =>
-  cy
-    .request({
-      method: 'POST',
-      url: `${giteaBaseUrl}/orgs/admin/users`,
-      failOnStatusCode: false,
-      headers: {
-        Authorization: `token ${accessToken}`,
-      },
-      body: {
-        email: faker.internet.email(),
-        full_name: faker.name.fullName(),
-        must_change_password: false,
-        password,
-        send_notify: false,
-        username,
-      },
-    })
-    .then((response) => {
-      cy.request({
-        method: 'POST',
-        url: `${giteaBaseUrl}/orgs/admin/users${username}`,
-        failOnStatusCode: false,
-        headers: {
-          Authorization: `token ${accessToken}`,
-        },
-        body: {
-          password,
-          send_notify: false,
-          username,
-        });
-    })
-);
-*/
 
 /**
  * delete an org with org name, authenticated using access token

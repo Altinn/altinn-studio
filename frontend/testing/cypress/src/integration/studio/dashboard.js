@@ -84,7 +84,6 @@ context('Dashboard', () => {
   });
 
   after(() => {
-    //cy.deleteallapps('org', Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.deleteallapps('user', Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 });
