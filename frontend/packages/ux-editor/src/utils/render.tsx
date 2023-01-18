@@ -2,6 +2,9 @@ import React from 'react';
 import { Typography } from '@mui/material';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
 import type { IDataModelBindings } from '../types/global';
+import { useText } from '../hooks';
+import type { UseText } from '../hooks';
+
 
 export const styles = {
   inputHelper: {
@@ -48,9 +51,7 @@ export const PropertyLabel = ({ textKey, htmlFor }: IPropertyLabelProps) => {
   );
 };
 
-export function noOptionsMessage(language: any): string {
-  return language['general.no_options'];
-}
+const getNoOptionsMessage = (t: UseText): string => t('general.no_options');
 
 export interface IRenderSelectDataModelBinding {
   dataModelBinding: IDataModelBindings;
@@ -60,10 +61,9 @@ export interface IRenderSelectDataModelBinding {
   returnValue?: any;
   key?: string;
   uniqueKey?: any;
-  t: (key: string) => any;
 }
 
-export function renderSelectDataModelBinding({
+export const renderSelectDataModelBinding = ({
   dataModelBinding,
   onDataModelChange,
   language,
@@ -71,8 +71,8 @@ export function renderSelectDataModelBinding({
   returnValue,
   key = 'simpleBinding',
   uniqueKey,
-  t,
-}: IRenderSelectDataModelBinding): JSX.Element {
+}: IRenderSelectDataModelBinding): JSX.Element => {
+  const t = useText();
   const onDMChange = (dataModelField: any) => onDataModelChange(dataModelField, returnValue);
   return (
     <div key={uniqueKey || ''}>
@@ -87,29 +87,30 @@ export function renderSelectDataModelBinding({
         selectedElement={dataModelBinding[key]}
         onDataModelChange={onDMChange}
         language={language}
-        noOptionsMessage={t('general.no_options')}
+        noOptionsMessage={(): string => getNoOptionsMessage(t)}
       />
     </div>
   );
-}
+};
 
-export function renderSelectGroupDataModelBinding(
+export const renderSelectGroupDataModelBinding = (
   dataModelBinding: IDataModelBindings,
   onDataModelChange: any,
   language: any,
-  key = 'simpleBinding',
-): JSX.Element {
+  key = 'simpleBinding'
+): JSX.Element => {
+  const t = useText();
   return (
     <div>
-      <PropertyLabel textKey={language['ux_editor.modal_properties_data_model_helper']}/>
+      <PropertyLabel textKey={language['ux_editor.modal_properties_data_model_helper']} />
 
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
         language={language}
         selectGroup={true}
-        noOptionsMessage={() => noOptionsMessage(language)}
+        noOptionsMessage={(): string => getNoOptionsMessage(t)}
       />
     </div>
   );
-}
+};
