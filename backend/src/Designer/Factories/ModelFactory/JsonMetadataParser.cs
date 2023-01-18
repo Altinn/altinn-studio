@@ -257,36 +257,36 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
-            if (element.Restrictions.ContainsKey("minLength"))
+            if (element.Restrictions.TryGetValue("minLength", out var minLengthRestriction))
             {
-                classBuilder.AppendLine(Indent(2) + "[MinLength(" + element.Restrictions["minLength"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[MinLength(" + minLengthRestriction.Value + errorMessage + ")]");
             }
 
-            if (element.Restrictions.ContainsKey("maxLength"))
+            if (element.Restrictions.TryGetValue("maxLength", out var maxLengthRestriction))
             {
-                classBuilder.AppendLine(Indent(2) + "[MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[MaxLength(" + maxLengthRestriction.Value + errorMessage + ")]");
             }
 
-            if (element.Restrictions.ContainsKey("minInclusive") && element.Restrictions.ContainsKey("maxInclusive"))
+            if (element.Restrictions.TryGetValue("minInclusive", out var minInclusiveRestriction) && element.Restrictions.TryGetValue("maxInclusive", out var maxExclusiveRestriction))
             {
-                classBuilder.AppendLine(Indent(2) + "[Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[Range(" + minInclusiveRestriction.Value + ", " + maxExclusiveRestriction.Value + errorMessage + ")]");
                 hasRange = true;
             }
 
-            if (element.Restrictions.ContainsKey("minimum") && element.Restrictions.ContainsKey("maximum"))
+            if (element.Restrictions.TryGetValue("minimum", out var minimumRestriction) && element.Restrictions.TryGetValue("maximum", out var maximumRestriction))
             {
-                classBuilder.AppendLine(Indent(2) + "[Range(" + element.Restrictions["minimum"].Value + ", " + element.Restrictions["maximum"].Value + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[Range(" + minimumRestriction.Value + ", " + maximumRestriction.Value + errorMessage + ")]");
                 hasRange = true;
             }
 
-            if (element.Restrictions.ContainsKey("pattern"))
+            if (element.Restrictions.TryGetValue("pattern", out var patternRestriction))
             {
-                classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
+                classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"" + patternRestriction.Value + "\"" + errorMessage + ")]");
             }
 
-            if (element.Restrictions.ContainsKey("totalDigits"))
+            if (element.Restrictions.TryGetValue("totalDigits", out var totalDigitsRestriction))
             {
-                uint totalDigitsValue = uint.Parse(element.Restrictions["totalDigits"].Value);
+                uint totalDigitsValue = uint.Parse(totalDigitsRestriction.Value);
                 string regexString = element.XsdValueType == BaseValueType.Decimal
                     ? TotalDigitsDecimalRegexString(totalDigitsValue)
                     : TotalDigitsIntegerRegexString(totalDigitsValue);
