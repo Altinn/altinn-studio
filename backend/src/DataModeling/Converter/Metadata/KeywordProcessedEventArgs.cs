@@ -2,7 +2,7 @@ using System;
 using Json.Pointer;
 using Json.Schema;
 
-namespace Altinn.Studio.Designer.Factories.ModelFactory
+namespace Altinn.Studio.DataModeling.Converter.Metadata
 {
     /// <summary>
     /// Event args added when a keyword has been processed.

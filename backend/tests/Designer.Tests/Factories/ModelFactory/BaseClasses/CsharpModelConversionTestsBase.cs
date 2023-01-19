@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
+using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;

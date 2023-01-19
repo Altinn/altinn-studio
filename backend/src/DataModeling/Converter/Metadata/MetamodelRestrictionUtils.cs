@@ -8,7 +8,7 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Schema;
 
-namespace Altinn.Studio.Designer.Factories.ModelFactory;
+namespace Altinn.Studio.DataModeling.Converter.Metadata;
 
 /// <summary>
 /// Metamodel restrictions helper

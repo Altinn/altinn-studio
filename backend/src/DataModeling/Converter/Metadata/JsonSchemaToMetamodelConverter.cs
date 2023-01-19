@@ -9,9 +9,9 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
-using static Altinn.Studio.Designer.Factories.ModelFactory.MetamodelRestrictionUtils;
+using static Altinn.Studio.DataModeling.Converter.Metadata.MetamodelRestrictionUtils;
 
-namespace Altinn.Studio.Designer.Factories.ModelFactory
+namespace Altinn.Studio.DataModeling.Converter.Metadata
 {
     /// <summary>
     /// Class for converting from a Json Schema to a <see cref="ModelMetadata"/> instance.

@@ -13,6 +13,7 @@ using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
+using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
