@@ -199,30 +199,6 @@ namespace Altinn.Studio.Designer.Extensions
         }
 
         /// <summary>
-        /// Creates the culture string from X element.
-        /// </summary>
-        /// <param name="element">
-        /// The element.
-        /// </param>
-        /// <returns>
-        /// culture string
-        /// </returns>
-        public static CultureString CreateCultureStringFromXElement(this XElement element)
-        {
-            CultureString cs = new CultureString();
-            foreach (XElement content in element.Elements("content"))
-            {
-                XAttribute xAttribute = content.Attribute("lang");
-                if (xAttribute != null && !string.IsNullOrEmpty(xAttribute.Value))
-                {
-                    cs[xAttribute.Value] = content.Value;
-                }
-            }
-
-            return cs;
-        }
-
-        /// <summary>
         /// Gets the element value.
         /// </summary>
         /// <param name="element">
