@@ -24,7 +24,7 @@ services:
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
     depends_on:
-      - studio_repositories
+      - studio_repos
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -55,24 +55,24 @@ services:
       - PostgreSQLSettings:DesignerDbAdminPwd=${POSTGRES_PASSWORD}
       - PostgreSQLSettings:DesignerDbPwd=designer
       - PostgreSQLSettings:EnableDBConnection=true
-      - ServiceRepositorySettings:ApiEndPoint=http://studio-repositories:3000/api/v1/
-      - ServiceRepositorySettings:ApiEndPointHost=studio-repositories
+      - ServiceRepositorySettings:ApiEndPoint=http://studio-repos:3000/api/v1/
+      - ServiceRepositorySettings:ApiEndPointHost=studio-repos
       - ServiceRepositorySettings:GiteaLoginUrl=http://studio.localhost/repos/user/login
-      - ServiceRepositorySettings:RepositoryBaseURL=http://studio-repositories:3000
+      - ServiceRepositorySettings:RepositoryBaseURL=http://studio-repos:3000
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
     ports:
       - "6000:6000"
     depends_on:
-      - studio_repositories
+      - studio_repos
     build:
       context: .
       dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  studio_repositories:
-    container_name: studio-repositories
+  studio_repos:
+    container_name: studio-repos
     image: repositories:latest
     restart: always
     volumes:

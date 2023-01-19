@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
+import { UseText } from '../../hooks';
 import type { IAppState, IDataModelFieldElement } from '../../types/global';
 
 export interface ISelectDataModelProps extends IProvidedProps {
@@ -8,11 +9,12 @@ export interface ISelectDataModelProps extends IProvidedProps {
 }
 
 export interface IProvidedProps {
+  inputId?: string;
   selectedElement: string;
   onDataModelChange: (dataModelField: string) => void;
-  noOptionsMessage?: () => string;
+  noOptionsMessage?: string;
   hideRestrictions?: boolean;
-  language: any;
+  t: UseText;
   selectGroup?: boolean;
 }
 
@@ -49,7 +51,7 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
         <li className='a-dotted'>
           <div className='row'>
             <div className='col-12'>
-              {this.props.language['ux_editor.modal_restrictions_helper']}
+              {this.props.t('ux_editor.modal_restrictions_helper')}
             </div>
           </div>
         </li>
@@ -61,7 +63,7 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
     return Object.keys(selected.restrictions).length === 0 ? (
       <li className='a-dotted'>
         <div className='row'>
-          <div className='col-12'>{this.props.language['ux_editor.modal_restrictions_empty']}</div>
+          <div className='col-12'>{this.props.t('ux_editor.modal_restrictions_empty')}</div>
         </div>
       </li>
     ) : (
@@ -92,23 +94,26 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
       }));
     return (
       <Select
+        inputId={this.props.inputId}
         styles={selectStyles}
         options={dataModelElementNames}
         defaultValue={{ value: selectedElement, label: selectedElement }}
         onChange={this.onDataModelChange}
-        noOptionsMessage={noOptionsMessage}
+        noOptionsMessage={(): string => noOptionsMessage}
       />
     );
   }
 }
 
-const mapStateToProps = (state: IAppState, props: IProvidedProps): ISelectDataModelProps => {
+const mapStateToProps = (
+  state: IAppState,
+  props: IProvidedProps
+): Omit<ISelectDataModelProps, 't' | 'inputId'> => {
   return {
     selectedElement: props.selectedElement,
     onDataModelChange: props.onDataModelChange,
     noOptionsMessage: props.noOptionsMessage,
-    dataModelElements: state.appData.dataModel.model,
-    language: state.appData.languageState.language,
+    dataModelElements: state.appData.dataModel.model
   };
 };
 

@@ -7,15 +7,15 @@
         background-color: rgb(30,174,247);
     }
 </style>
- 
+
 <div id="invaders-container">
     <canvas id="canvas" width="600" height="400"></canvas>
 </div>
 
 @section scripts {
-    <script src="~/designer/js/error/game.min.js" asp-append-version="true"></script>
-    <script src="~/designer/js/error/invaders404.min.js" asp-append-version="true"></script>
-} 
+    <script src="/designer/js/error/game.min.js" asp-append-version="true"></script>
+    <script src="/designer/js/error/invaders404.min.js" asp-append-version="true"></script>
+}
 
 <script>
     ImageMapper.Invasion = function(){
@@ -31,7 +31,7 @@
     };
 
     ImageMapper.Shield = function(){
-	return [ 
+	return [
             [0,1,1,0,0,1,0,0,1,1,1,0,1,0,1,0,0,1,0,1,0,0,1,0,0,0,1,1,1,0,0,0,1,1,1,0],
             [1,0,0,1,0,1,0,0,0,1,0,0,0,0,1,1,0,1,0,1,1,0,1,0,0,0,0,0,1,0,0,0,1,0,1,0],
             [1,1,1,1,0,1,0,0,0,1,0,0,1,0,1,1,1,1,0,1,1,1,1,0,0,0,0,1,1,0,0,0,1,0,1,0],

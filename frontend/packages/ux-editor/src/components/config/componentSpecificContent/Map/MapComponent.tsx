@@ -156,7 +156,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
               </p>
               <Button
                 color={ButtonColor.Danger}
-                icon={<Delete />}
+                icon={<Delete title={t('general.delete')}/>}
                 onClick={(): void => handleOnDeleteLayer(index)}
                 variant={ButtonVariant.Quiet}
               />
@@ -196,7 +196,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
       )}
       <Button
         className={classes.spacing}
-        icon={<Add />}
+        icon={<Add title={t('general.add')}/>}
         variant={ButtonVariant.Outline}
         onClick={handleAddLayer}
         disabled={component.layers?.some((layer) => !layer.url)}

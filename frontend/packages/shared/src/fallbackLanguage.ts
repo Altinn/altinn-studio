@@ -1,4 +1,4 @@
-const fallbackLanguage = {
+export const fallbackLanguage = {
   general: {
     action: 'Action',
     add: 'Add',
@@ -83,5 +83,3 @@ const fallbackLanguage = {
     error_report_header: 'Det er et problem',
   },
 };
-
-export default fallbackLanguage;

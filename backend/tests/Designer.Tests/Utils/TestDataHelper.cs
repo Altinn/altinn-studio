@@ -10,6 +10,7 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Factories.ModelFactory;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -347,6 +348,8 @@ namespace Designer.Tests.Utils
         public static IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter => new XmlSchemaToJsonSchemaConverter();
 
         public static IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter => new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+
+        public static IModelMetadataParser ModelMetadataParser => new JsonMetadataParser(new CSharpGenerationSettings());
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking

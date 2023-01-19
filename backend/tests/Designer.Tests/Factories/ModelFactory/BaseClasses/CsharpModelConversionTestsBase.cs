@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Designer.Tests.Utils;
@@ -44,7 +45,7 @@ public class CsharpModelConversionTestsBase<TTestType> : SchemasConversionTestsB
 
     protected TTestType CSharpClassesCreatedFromMetamodel()
     {
-        CSharpClasses = new JsonMetadataParser().CreateModelFromMetadata(ModelMetadata);
+        CSharpClasses = new JsonMetadataParser(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadata);
         return this as TTestType;
     }
 

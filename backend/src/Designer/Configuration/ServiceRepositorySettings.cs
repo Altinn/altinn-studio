@@ -239,7 +239,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Gets or sets default Bootstrap url
         /// </summary>
-        public string DefaultBootstrapUrl { get; set; } = "https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css";
+        public string DefaultBootstrapUrl { get; set; } = "https://altinncdn.no/toolkits/bootstrap/4.5.2/css/bootstrap.min.css";
 
         /// <summary>
         /// Gets or sets the filename for app implementation

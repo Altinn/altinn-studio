@@ -55,9 +55,19 @@ namespace LocalTest.Models
         public HttpRequestException HttpException { get; set; }
 
         /// <summary>
-        /// Selected userId
+        /// Selected User and party separated by "."
         /// </summary>
-        public int UserId { get; set; }
+        public string UserSelect { get; set; }
+
+        /// <summary>
+        /// The userId part of <see cref="UserSelect" />
+        /// </summary>
+        public int UserId => int.TryParse(UserSelect?.Split(".").First(), out int result) ? result : 0;
+
+        /// <summary>
+        /// The partyId part of <see cref="UserSelect" />
+        /// </summary>
+        public int PartyId => int.TryParse(UserSelect?.Split(".").Last(), out int result) ? result : 0;
 
         /// <summary>
         /// Path for the selected app
@@ -83,7 +93,7 @@ namespace LocalTest.Models
         /// <summary>
         /// List of selectable Apps for dropdown
         /// </summary>
-        public IEnumerable<SelectListItem> TestApps { get; set; }
+        public List<SelectListItem> TestApps { get; set; }
 
         /// <summary>
         /// List of possible authentication levels

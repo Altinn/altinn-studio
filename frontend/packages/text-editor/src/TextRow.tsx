@@ -100,7 +100,7 @@ export const TextRow = ({
           data-testid={'delete-button'}
           className={classes.deleteButton}
           onClick={handleDeleteClick}
-          icon={<Delete />}
+          icon={<Delete title="Slett"/>}
           variant={ButtonVariant.Quiet}
         >
           <span className={'sr-only'}>{`Slett ${textId}`}</span>

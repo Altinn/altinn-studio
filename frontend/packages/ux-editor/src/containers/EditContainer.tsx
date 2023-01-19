@@ -64,6 +64,7 @@ export function EditContainer(props: IEditContainerProps) {
 
   const previewableComponents = [
     ComponentTypes.Checkboxes,
+    ComponentTypes.RadioButtons,
   ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
 
   const isPreviewable = previewableComponents.includes(component.type as ComponentTypes);
@@ -77,14 +78,11 @@ export function EditContainer(props: IEditContainerProps) {
     handleSaveChange(updatedComponent);
   };
 
-  const handleComponentDelete = (e: any): void => {
-    if (activeList.length > 1) {
-      dispatch(FormLayoutActions.deleteFormComponents({ components: activeList }));
-    } else {
-      dispatch(FormLayoutActions.deleteFormComponents({ components: [props.id] }));
-    }
+  const handleComponentDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    const componentsToDelete = activeList.length > 1 ? activeList : [props.id];
+    dispatch(FormLayoutActions.deleteFormComponents({ components: componentsToDelete }));
     dispatch(FormLayoutActions.deleteActiveList());
-    e.stopPropagation();
+    event.stopPropagation();
   };
 
   const handleOpenEdit = (): void => {
@@ -190,7 +188,7 @@ export function EditContainer(props: IEditContainerProps) {
           {(activeListIndex === 0 || activeList.length < 1) && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Delete/>}
+              icon={<Delete title={t('general.delete')}/>}
               onClick={handleComponentDelete}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -200,8 +198,7 @@ export function EditContainer(props: IEditContainerProps) {
             (activeList.length === 1 && activeListIndex === 0)) && (
             <Button
               color={ButtonColor.Secondary}
-              data-testid='EditContainer-edit-button'
-              icon={<Edit/>}
+              icon={<Edit title={t('general.edit')}/>}
               onClick={handleOpenEdit}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -210,7 +207,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor/>}
+              icon={<Monitor title={t('general.preview')}/>}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}
@@ -222,14 +219,14 @@ export function EditContainer(props: IEditContainerProps) {
         <div className={classes.buttons}>
           <Button
             color={ButtonColor.Secondary}
-            icon={<Cancel/>}
+            icon={<Cancel title={t('general.cancel')}/>}
             onClick={handleDiscard}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
           />
           <Button
             color={ButtonColor.Secondary}
-            icon={<Success/>}
+            icon={<Success title={t('general.save')}/>}
             onClick={handleSave}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
@@ -237,7 +234,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor/>}
+              icon={<Monitor title={t('general.preview')}/>}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}

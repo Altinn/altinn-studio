@@ -61,51 +61,6 @@ namespace Altinn.Studio.Designer.Controllers
             return View(metadata);
         }
 
-        /// <summary>
-        /// Post action that is used when uploading a XSD and secondary XSD
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="thefile">The main XSD</param>
-        /// <returns>Return JSON of the generated model</returns>
-        [HttpPost]
-        public ActionResult Upload(string org, string app, IFormFile thefile)
-        {
-            if (thefile == null)
-            {
-                throw new ApplicationException("Cannot upload empty file");
-            }
-
-            string mainFileName = ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
-
-            MemoryStream xsdMemoryStream = new MemoryStream();
-            thefile.OpenReadStream().CopyTo(xsdMemoryStream);
-            xsdMemoryStream.Position = 0;
-            XmlReader reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
-
-            XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
-
-            xsdMemoryStream.Position = 0;
-            reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
-
-            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
-            JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, app, schemaJsonSchema);
-            ModelMetadata modelMetadata = converter.GetModelMetadata();
-
-            HandleTexts(org, app, converter.GetTexts());
-
-            string modelName = Path.GetFileNameWithoutExtension(mainFileName);
-
-            if (_repository.CreateModel(org, app, modelMetadata, mainXsd, modelName))
-            {
-                return RedirectToAction("Index", new { org, app, modelName });
-            }
-
-            return Json(false);
-        }
-
         private void HandleTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> modelTexts)
         {
             // <textResourceElement.Id <language, textResourceElement>>

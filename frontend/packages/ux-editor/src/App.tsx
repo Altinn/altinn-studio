@@ -4,7 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
-import { loadLanguages, loadTextResources } from './features/appData/textResources/textResourcesSlice';
+import {
+  loadLanguages,
+  loadTextResources
+} from './features/appData/textResources/textResourcesSlice';
 import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
 import { fetchDataModel } from './features/appData/dataModel/dataModelSlice';
 import { fetchLanguage } from './features/appData/language/languageSlice';
@@ -15,6 +18,7 @@ import { languagePath, textResourcesPath } from 'app-shared/api-paths';
 import type { IAppState } from './types/global';
 import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { useText } from './hooks';
 
 /**
  * This is the main React component responsible for controlling
@@ -24,6 +28,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export function App() {
   const dispatch = useDispatch();
+  const t = useText();
   const { org, app } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const layoutOrder = useSelector(
@@ -74,6 +79,14 @@ export function App() {
       window.removeEventListener('message', shouldRefetchFiles);
     };
   }, [dispatch, org, app]);
+
+  // Make sure to create a new page when the last one is deleted!
+  useEffect(() => {
+    if (!selectedLayout) {
+      const name = t('general.page') + (layoutOrder.length + 1);
+      dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
+    }
+  }, [selectedLayout]);
 
   return (
     <div>

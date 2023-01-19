@@ -2,6 +2,7 @@ import React from 'react';
 import { Typography } from '@mui/material';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
 import type { IDataModelBindings } from '../types/global';
+import { useText } from '../hooks';
 
 export const styles = {
   inputHelper: {
@@ -48,35 +49,29 @@ export const PropertyLabel = ({ textKey, htmlFor }: IPropertyLabelProps) => {
   );
 };
 
-export function noOptionsMessage(language: any): string {
-  return language['general.no_options'];
-}
-
 export interface IRenderSelectDataModelBinding {
   dataModelBinding: IDataModelBindings;
   onDataModelChange: any;
-  language: any;
   label?: string;
   returnValue?: any;
   key?: string;
   uniqueKey?: any;
-  t: (key: string) => any;
 }
 
-export function renderSelectDataModelBinding({
+export const renderSelectDataModelBinding = ({
   dataModelBinding,
   onDataModelChange,
-  language,
   label,
   returnValue,
   key = 'simpleBinding',
   uniqueKey,
-  t,
-}: IRenderSelectDataModelBinding): JSX.Element {
+}: IRenderSelectDataModelBinding): JSX.Element => {
+  const t = useText();
   const onDMChange = (dataModelField: any) => onDataModelChange(dataModelField, returnValue);
   return (
     <div key={uniqueKey || ''}>
       <PropertyLabel
+        htmlFor={`selectDataModelSelect-${label}`}
         textKey={
           label
             ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
@@ -84,32 +79,37 @@ export function renderSelectDataModelBinding({
         }
       />
       <SelectDataModelComponent
+        inputId={`selectDataModelSelect-${label}`}
         selectedElement={dataModelBinding[key]}
         onDataModelChange={onDMChange}
-        language={language}
+        t={t}
         noOptionsMessage={t('general.no_options')}
       />
     </div>
   );
-}
+};
 
-export function renderSelectGroupDataModelBinding(
+export const renderSelectGroupDataModelBinding = (
   dataModelBinding: IDataModelBindings,
   onDataModelChange: any,
-  language: any,
-  key = 'simpleBinding',
-): JSX.Element {
+  key = 'simpleBinding'
+): JSX.Element => {
+  const t = useText();
   return (
     <div>
-      <PropertyLabel textKey={language['ux_editor.modal_properties_data_model_helper']}/>
+      <PropertyLabel
+        textKey={t('ux_editor.modal_properties_data_model_helper')}
+        htmlFor='dataModalHelper'
+      />
 
       <SelectDataModelComponent
+        inputId='dataModalHelper'
         selectedElement={dataModelBinding[key]}
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
-        language={language}
+        t={t}
         selectGroup={true}
-        noOptionsMessage={() => noOptionsMessage(language)}
+        noOptionsMessage={t('general.no_options')}
       />
     </div>
   );
-}
+};
