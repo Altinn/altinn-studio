@@ -36,10 +36,10 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
     <div data-testid='header-size-select-wrapper'>
       <PropertyLabel
         textKey={t('ux_editor.modal_header_type_helper')}
-        htmlFor={component.id}
+        htmlFor={`edit-header-size-select-${component.id}`}
       />
       <Select
-        id={`edit-header-size-select-${component.id}`}
+        inputId={`edit-header-size-select-${component.id}`}
         styles={selectStyles}
         defaultValue={selectedValue}
         onChange={onSizeChange}
