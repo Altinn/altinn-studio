@@ -1,6 +1,7 @@
 ﻿using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.App.Models;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,13 @@ namespace Altinn.App.Options
         {
             int start = 0;
             int count = 10;
+            string search = "";
+
+            if (keyValuePairs.ContainsKey("search") )
+            {
+                search = keyValuePairs["search"];
+
+            }
 
             if (keyValuePairs.ContainsKey("size") && keyValuePairs.ContainsKey("page"))
             {
@@ -41,6 +49,12 @@ namespace Altinn.App.Options
             items.Add(new ListItem { Name = "Karl", Age = 49, Profession = "Skuespiller" });
             items.Add(new ListItem { Name = "Mette", Age = 33, Profession = "Artist" });
 
+            
+            if (String.IsNullOrEmpty(search) || search != "undefined")
+            {
+                items = items.Where(o => (o.Name == search)).ToList();
+            }
+
             if (keyValuePairs.ContainsKey("sortDirection"))
             {
                 string sortDirection = keyValuePairs["sortDirection"];
@@ -54,11 +68,17 @@ namespace Altinn.App.Options
                     items.Reverse();
                 }
             }
-
+            
             DataListMetadata appListsMetaData = new DataListMetadata() { TotaltItemsCount = items.Count };
-
+           
             List<object> objectList = new List<object>();
             items.ForEach(o => objectList.Add(o));
+
+            if(items.Count<5)
+            {
+                return new DataList { ListItems = objectList, _metaData = appListsMetaData };
+            }
+            
 
             return new DataList { ListItems = objectList.GetRange(start, count), _metaData = appListsMetaData };
         }

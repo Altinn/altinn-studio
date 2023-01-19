@@ -3,6 +3,14 @@
   "data": {
     "layout": [
       {
+        "id": "searchForList",
+        "type": "Input",
+        "variant": "search",
+        "dataModelBindings": {
+          "simpleBinding": "Search"
+        }
+      },
+      {
         "id": "listComponent",
         "type": "List",
         "textResourceBindings": {
@@ -23,6 +31,9 @@
         "pagination": {
           "alternatives": [ 5, 10 ],
           "default": 5
+        },
+        "mapping": {
+          "Search": "search"
         },
         "required": "true"
       },

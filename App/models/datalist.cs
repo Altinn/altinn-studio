@@ -17,5 +17,10 @@ namespace Altinn.App.Models
         [JsonProperty("SelectedItemProfession")]
         [JsonPropertyName("SelectedItemProfession")]
         public string SelectedItemProfession { get; set; }
+
+        [XmlElement("Search", Order = 3)]
+        [JsonProperty("Search")]
+        [JsonPropertyName("Search")]
+        public string Search { get; set; }
     }
 }
