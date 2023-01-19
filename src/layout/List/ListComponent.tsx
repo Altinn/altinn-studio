@@ -1,25 +1,15 @@
 import React from 'react';
 
-import {
-  Pagination,
-  RadioButton,
-  SortDirection,
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHeader,
-  TableRow,
-} from '@altinn/altinn-design-system';
+import { Pagination, ResponsiveTable, SortDirection } from '@altinn/altinn-design-system';
 import { FormControl, FormLabel } from '@material-ui/core';
 import cn from 'classnames';
-import type { ChangeProps, RowData, SortProps } from '@altinn/altinn-design-system';
+import type { ChangeProps, ResponsiveTableConfig, SortProps } from '@altinn/altinn-design-system';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { useGetDataList } from 'src/components/hooks';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { useRadioStyles } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { DataListsActions } from 'src/shared/resources/dataLists/dataListsSlice';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IListProps = PropsFromGenericComponent<'List'>;
@@ -35,12 +25,13 @@ export const ListComponent = ({
   pagination,
   formData,
   handleDataChange,
-  getTextResourceAsString,
   sortableColumns,
-  dataModelBindings,
+  tableHeadersMobile,
   language,
   legend,
 }: IListProps) => {
+  const classes = useRadioStyles();
+  const RenderLegend = legend;
   const dynamicDataList = useGetDataList({ id });
   const calculatedDataList = dynamicDataList || defaultDataList;
   const defaultPagination = pagination ? pagination.default : 0;
@@ -55,50 +46,37 @@ export const ListComponent = ({
     (state) => state.dataListState.dataLists[id]?.paginationData?.totaltItemsCount || 0,
   );
 
-  const handleChange = ({ selectedValue }: ChangeProps) => {
+  const handleChange = ({ selectedValue: selectedValue }: ChangeProps<Record<string, string>>) => {
     for (const key in formData) {
       handleDataChange(selectedValue[key], { key: key });
     }
   };
 
-  const renderRow = (datalist) => {
-    const cells: JSX.Element[] = [];
-    for (const key of Object.keys(datalist)) {
-      cells.push(<TableCell key={`${key}_${datalist[key]}`}>{datalist[key]}</TableCell>);
+  const selectedRow: Record<string, string> = React.useMemo(() => {
+    let matchRow: boolean[] = [];
+    if (!formData || JSON.stringify(formData) === '{}') {
+      return {};
     }
-    return cells;
-  };
-
-  const renderHeaders = (headers) => {
-    const cell: JSX.Element[] = [];
-    for (const header of headers) {
-      if ((sortableColumns || []).includes(header)) {
-        cell.push(
-          <TableCell
-            onChange={handleSortChange}
-            sortKey={header}
-            key={header}
-            sortDirecton={sortColumn === header ? sortDirection : SortDirection.NotActive}
-          >
-            {getTextResourceAsString(header)}
-          </TableCell>,
-        );
-      } else {
-        cell.push(<TableCell key={header}>{getTextResourceAsString(header)}</TableCell>);
+    for (const row of calculatedDataList) {
+      for (const key in formData) {
+        matchRow.push(formData[key] === row[key]);
       }
+      if (!matchRow.includes(false)) {
+        return row;
+      }
+      matchRow = [];
     }
-    return cell;
-  };
+    return {};
+  }, [formData, calculatedDataList]);
 
   const dispatch = useAppDispatch();
 
-  const handleSortChange = ({ sortedColumn, previousSortDirection }: SortProps) => {
+  const handleSortChange = (props: SortProps & { column: string }) => {
     dispatch(
       DataListsActions.setSort({
         key: id || '',
-        sortColumn: sortedColumn,
-        sortDirection:
-          previousSortDirection === SortDirection.Descending ? SortDirection.Ascending : SortDirection.Descending,
+        sortColumn: props.column,
+        sortDirection: props.previous === SortDirection.Descending ? SortDirection.Ascending : SortDirection.Descending,
       }),
     );
   };
@@ -120,32 +98,48 @@ export const ListComponent = ({
       }),
     );
   };
-  const rowAsValue = (datalist) => {
-    const chosenRowData: rowValue = {};
-    for (const key in dataModelBindings) {
-      chosenRowData[key] = datalist[key];
+  const renderPagination = () => {
+    if (pagination) {
+      return (
+        <Pagination
+          numberOfRows={totalItemsCount}
+          rowsPerPageOptions={pagination?.alternatives ? pagination?.alternatives : []}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          currentPage={currentPage}
+          setCurrentPage={handleChangeCurrentPage}
+          descriptionTexts={getLanguageFromKey('list_component', language)}
+        />
+      );
+    } else {
+      return undefined;
     }
-    return chosenRowData;
-  };
-  const rowAsValueString = (datalist) => {
-    return JSON.stringify(rowAsValue(datalist));
   };
 
-  const createLabelRadioButton = (datalist, headers) => {
-    let label = '';
-    let index = 0;
-    for (const key in datalist) {
-      label += `${headers[index]} ${datalist[key]} `;
-      index++;
-    }
-    return label;
+  const config: ResponsiveTableConfig<Record<string, string>> = {
+    rows: calculatedDataList,
+    headers: tableHeaders,
+    showColumnsMobile: tableHeadersMobile,
+    columnSort: {
+      onSortChange: ({ column, next, previous }) => {
+        handleSortChange({ previous: previous, next: next, column: column });
+      },
+      sortable: sortableColumns ? sortableColumns : [],
+      currentlySortedColumn: sortColumn,
+      currentDirection: sortDirection,
+    },
+    rowSelection: {
+      onSelectionChange: (row) => handleChange({ selectedValue: row }),
+      selectedValue: selectedRow,
+    },
+    footer: renderPagination(),
   };
-
-  const classes = useRadioStyles();
-  const RenderLegend = legend;
 
   return (
-    <FormControl component='fieldset'>
+    <FormControl
+      component='fieldset'
+      style={{ width: '100%' }}
+    >
       <FormLabel
         component='legend'
         classes={{ root: cn(classes.legend) }}
@@ -153,63 +147,9 @@ export const ListComponent = ({
       >
         <RenderLegend />
       </FormLabel>
-
-      <Table
-        selectRows={true}
-        onChange={handleChange}
-        selectedValue={formData as RowData}
-        aria-labelledby={`${id}-label`}
-        id={id}
-        tabIndex={0}
-      >
-        <TableHeader>
-          <TableRow>
-            <td />
-            {renderHeaders(tableHeaders)}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {calculatedDataList.map((datalist) => {
-            return (
-              <TableRow
-                key={JSON.stringify(datalist)}
-                rowData={rowAsValue(datalist)}
-              >
-                <TableCell radiobutton={true}>
-                  <RadioButton
-                    name={datalist}
-                    onChange={() => {
-                      // Intentionally empty to prevent double-selection
-                    }}
-                    value={rowAsValueString(datalist)}
-                    checked={rowAsValueString(datalist) === JSON.stringify(formData) ? true : false}
-                    label={createLabelRadioButton(datalist, tableHeaders)}
-                    hideLabel={true}
-                  ></RadioButton>
-                </TableCell>
-                {renderRow(datalist)}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-        {pagination && (
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={tableHeaders && 1 + tableHeaders?.length}>
-                <Pagination
-                  numberOfRows={totalItemsCount}
-                  rowsPerPageOptions={pagination.alternatives}
-                  rowsPerPage={rowsPerPage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  currentPage={currentPage}
-                  setCurrentPage={handleChangeCurrentPage}
-                  descriptionTexts={getLanguageFromKey('list_component', language)}
-                />
-              </TableCell>
-            </TableRow>
-          </TableFooter>
-        )}
-      </Table>
+      <div style={{ overflow: 'auto' }}>
+        <ResponsiveTable config={config}></ResponsiveTable>
+      </div>
     </FormControl>
   );
 };

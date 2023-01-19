@@ -48,7 +48,7 @@ describe('Mobile', () => {
     cy.sendIn();
     likertPage.selectRequiredRadiosInMobile();
     cy.sendIn();
-    cy.get(dataListPage.tableBody).contains('Caroline').parent('td').parent('tr').click();
+    cy.get(dataListPage.tableBody).contains('Caroline').parent('div').parent('td').parent('tr').click();
     cy.contains(mui.button, texts.next).click();
     cy.sendIn();
 

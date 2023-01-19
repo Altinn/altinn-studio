@@ -873,12 +873,22 @@
       "type": "object",
       "properties": {
         "tableHeaders": {
-          "type": "array",
+          "type": "object",
+          "title": "Table Headers",
+          "examples": [
+            {
+              "productId": "product.id",
+              "description": "Beskrivelse av produkt"
+            }],
+          "description": "An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages."
+        },
+        "tableHeadersMobile":{
+          "type":"array",
           "items": {
             "type": "string"
           },
-          "title": "Table Headers",
-          "description": "An array of strings that is going to be headers of the table. Can be added to the resource files to change between languages"
+          "title": "Table Headers Mobile",
+          "description": "An array of strings representing the columns that is chosen to be shown in the mobile view."
         },
         "sortableColumns": {
           "type": "array",
@@ -886,7 +896,7 @@
             "type": "string"
           },
           "title": "Sortable Columns",
-          "description": "An array of the columns that is going to be sortable. The column has to be represented by the the headername that is written in tableHeaders"
+          "description": "An array of the columns that is going to be sortable. The column has to be represented by the the headername that is written in tableHeaders."
         },
         "pagination": {
           "title": "Pagination",
@@ -895,7 +905,7 @@
         "dataListId": {
           "type": "string",
           "title": "List ID",
-          "description": "The Id of the list. This id is used to retrive the datalist from the backend"
+          "description": "The Id of the list. This id is used to retrive the datalist from the backend."
         },
         "secure": {
           "type": "boolean",
@@ -909,7 +919,7 @@
         },
         "mapping": {
           "$ref": "#/definitions/mapping",
-          "description": "(Optional) Used to map data model paths to query parameters when fetching list data"
+          "description": "(Optional) Used to map data model paths to query parameters when fetching list data."
         }
       },
       "required": [
@@ -930,7 +940,7 @@
         "default": {
           "type": "number",
           "title": "Default",
-          "description": "The pagination size that is set to default"
+          "description": "The pagination size that is set to default."
         }
       },
       "required": [
