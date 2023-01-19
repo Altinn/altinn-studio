@@ -77,10 +77,6 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ModelMetadataModels" />
-  </ItemGroup>
-
   <Target Name="AfterPublishScript" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)Templates" Condition="!Exists('$(PublishDir)Templates')" />
     <MakeDir Directories="$(PublishDir)Testdata" Condition="!Exists('$(PublishDir)Testdata')" />

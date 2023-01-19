@@ -6,7 +6,6 @@ using System.Text;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Utils;
-using Altinn.Studio.Designer.Extensions;
 using Json.Schema;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory;
@@ -145,7 +144,7 @@ public static class MetamodelRestrictionUtils
                 valueBuilder.Append(';');
             }
 
-            valueBuilder.Append(@enum.AsString());
+            valueBuilder.Append(@enum?.ToString()?? string.Empty);
         }
 
         restrictions.TryAdd("enumeration", new Restriction() { Value = valueBuilder.ToString() });

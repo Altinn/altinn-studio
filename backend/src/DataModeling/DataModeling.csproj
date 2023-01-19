@@ -31,7 +31,6 @@
 
   <ItemGroup>
     <Folder Include="Converter\Csharp" />
-    <Folder Include="Converter\Metadata" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
