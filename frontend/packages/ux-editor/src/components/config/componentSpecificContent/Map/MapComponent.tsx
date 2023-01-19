@@ -155,6 +155,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 {t('ux_editor.map_layer')} {index + 1}
               </p>
               <Button
+                aria-label={t('general.delete')}
                 color={ButtonColor.Danger}
                 icon={<Delete />}
                 onClick={(): void => handleOnDeleteLayer(index)}

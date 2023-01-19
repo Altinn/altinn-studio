@@ -97,6 +97,7 @@ export const TextRow = ({
       </div>
       <div className={classes.rightCol}>
         <Button
+          aria-label="Slett"
           data-testid={'delete-button'}
           className={classes.deleteButton}
           onClick={handleDeleteClick}

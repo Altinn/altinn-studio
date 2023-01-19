@@ -513,18 +513,19 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   public renderHoverIcons = (): JSX.Element => (
     <>
       <Button
+        aria-label={this.props.language["general.delete"]}
         icon={<Delete />}
         onClick={this.handleContainerDelete}
         variant={ButtonVariant.Quiet}
       />
-      <Button icon={<Edit />} onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
+      <Button aria-label={this.props.language["general.edit"]} icon={<Edit />} onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
     </>
   );
 
   public renderEditIcons = (): JSX.Element => (
     <>
-      <Button icon={<Cancel />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
-      <Button icon={<Success />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button aria-label={this.props.language["general.cancel"]} icon={<Cancel />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button aria-label={this.props.language["general.save"]} icon={<Success />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
     </>
   );
 
