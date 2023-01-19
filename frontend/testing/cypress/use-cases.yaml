@@ -29,17 +29,13 @@ steps:
   condition: succeededOrFailed()
 
 - bash: |
-   yarn --immutable
-
-   yarn run cy:prunecache
-
-   yarn run cy:cachelist
-
-   yarn run cy:version
-
-   yarn run cy:verify
-
-   yarn run cy:run -s 'src/integration/usecase/usecase.js' -e environment=$(environment),useCaseUserPwd=$(userPassword)
+    yarn --immutable
+    npx cypress install
+    yarn run cy:prunecache
+    yarn run cy:cachelist
+    yarn run cy:version
+    yarn run cy:verify
+    yarn run cy:run -s 'src/integration/usecase/usecase.js' -e environment=$(environment),useCaseUserPwd=$(userPassword)
 
   workingDirectory: '$(cypressTestDir)'
   displayName: 'Studio Tests'

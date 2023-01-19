@@ -17,17 +17,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     public interface IRepository
     {
         /// <summary>
-        /// Creates the service model based on XSD.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="serviceMetadata">The <see cref="ModelMetadata"/> to generate the model based on.</param>
-        /// <param name="mainXsd">The main XSD for the current app</param>
-        /// <param name="fileName">The name of the model metadata file.</param>
-        /// <returns>A boolean indicating the result</returns>
-        bool CreateModel(string org, string app, ModelMetadata serviceMetadata, XDocument mainXsd, string fileName);
-
-        /// <summary>
         /// Method that creates service metadata for a new app
         /// </summary>
         /// <param name="serviceMetadata">The <see cref="ModelMetadata"/>.</param>

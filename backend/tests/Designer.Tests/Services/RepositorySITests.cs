@@ -316,9 +316,9 @@ namespace Designer.Tests.Services
             IOptions<GeneralSettings> generalSettings = Options.Create(
                 new GeneralSettings()
                 {
-                    TemplateLocation = @"../../../../../../src/studio/AppTemplates/AspNet",
-                    DeploymentLocation = @"../../../../../../src/studio/AppTemplates/AspNet/deployment",
-                    AppLocation = @"../../../../../../src/studio/AppTemplates/AspNet/App"
+                    TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
+                    DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
+                    AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
                 });
 
             RepositorySI service = new RepositorySI(

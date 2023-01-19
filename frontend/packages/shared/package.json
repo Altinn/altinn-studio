@@ -13,7 +13,7 @@
     "classnames": "2.3.2",
     "diff": "5.1.0",
     "dompurify": "2.4.3",
-    "marked": "4.2.5",
+    "marked": "4.2.12",
     "moment": "2.29.4",
     "monaco-editor": "0.34.1",
     "qs": "6.11.0",

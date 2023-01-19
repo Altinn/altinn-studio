@@ -64,6 +64,7 @@ export function EditContainer(props: IEditContainerProps) {
 
   const previewableComponents = [
     ComponentTypes.Checkboxes,
+    ComponentTypes.RadioButtons,
   ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
 
   const isPreviewable = previewableComponents.includes(component.type as ComponentTypes);
@@ -77,14 +78,11 @@ export function EditContainer(props: IEditContainerProps) {
     handleSaveChange(updatedComponent);
   };
 
-  const handleComponentDelete = (e: any): void => {
-    if (activeList.length > 1) {
-      dispatch(FormLayoutActions.deleteFormComponents({ components: activeList }));
-    } else {
-      dispatch(FormLayoutActions.deleteFormComponents({ components: [props.id] }));
-    }
+  const handleComponentDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    const componentsToDelete = activeList.length > 1 ? activeList : [props.id];
+    dispatch(FormLayoutActions.deleteFormComponents({ components: componentsToDelete }));
     dispatch(FormLayoutActions.deleteActiveList());
-    e.stopPropagation();
+    event.stopPropagation();
   };
 
   const handleOpenEdit = (): void => {

@@ -7,57 +7,10 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="~/designer/img/favicon.ico">
-
+    <link rel="icon" href="/designer/img/favicon.ico">
     <title>@ViewBag.Title</title>
-
-    <!-- Javascript -->
-    <script src="~/designer/js/lib/jquery.min.js" asp-append-version="true"></script>
     @RenderSection("scripts", required: false)
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="~/designer/css/bootstrap.min.css" asp-append-version="true">
-
     @RenderSection("styles", required: false)
-    <style>
-        html, body {
-          height: 100%;
-        }
-        ::-webkit-scrollbar {
-          width: 5px;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: darkgray;
-          border-radius: 5px;
-        }       
-
-        body {
-            font-family: Roboto, "San Fransisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
-        }
-
-        h1, h2, h3 {
-            letter-spacing: 2px;
-        }
-        .btn, .form-control, .list-group-item:last-child, .list-group-item:first-child, .card {
-            border-radius: 0;
-        }
-
-        #search ~ .fa-search {
-            float: right !important;
-            margin-right: 10px;
-            margin-top: -28px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .control-label {
-            margin-bottom: 0;
-        }
-
-        .errormsg {
-            color: red;
-        }
-    </style>
 </head>
 
 <body class="a-bgWhite flex-column d-flex">
@@ -66,40 +19,5 @@
     <div class="container-fluid flex-column d-flex media-body">
         @RenderBody()
     </div>
-
-    <script>
-        define('jquery', [], function () {
-            return jQuery;
-        });
-
-         //Toggle main menu active state and copy secondary nav
-        $(document).ready(function () {
-            updateSecondaryMenu(null);
-        });
-
-        function updateSecondaryMenu(menuPath) {
-            var loc = location.pathname + location.search + location.hash;
-
-            $(".navbar-nav .active").removeClass("active");
-
-            // cleanup
-            $(".secondary-nav .navbar-nav").replaceWith("<ul class=\"navbar-nav\"><li class=\"nav-items-placeholder\"></li></ul>");
-
-            //remove .find("i").remove().end() to keep icons in secondary nav
-            $(".secondary-nav .navbar-nav *").replaceWith(
-                $("#navbar-main .dropdown-menu a[href='" + loc + "']").closest("li").find(".dropdown-menu > *").clone().removeClass("dropdown-item").addClass("nav-link nav-item") //.find("i").remove().end()
-            );
-            $(".secondary-nav .dropdown-divider").removeClass("nav-link");
-            $(".secondary-nav .nav-link").attr("onclick", "updateSecondaryMenu(this.pathname + this.hash);");
-
-            $("#navbar-main .nav-item a[href='" + loc + "']").closest("li").addClass("active");
-            //$("#navbar-main .dropdown-menu a[href='" + loc + "']").addClass("active");
-            if (menuPath == null) {
-                $(".secondary-nav a[href='" + loc + "']").addClass("active");
-            } else {
-                $(".secondary-nav a[href='" + menuPath + "']").addClass("active");
-            }
-        }
-    </script>
 </body>
 </html>

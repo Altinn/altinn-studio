@@ -1,16 +1,130 @@
 @model IList<string>
 @{ViewBag.Title = "Tekster"; }
 @section scripts {
-  <script src="~/designer/js/lib/jsoneditor.js" asp-append-version="true"></script>
+  <script src="https://altinncdn.no/toolkits/jquery/3.5.1/jquery-3.5.1.min.js"></script>
+  <script src="https://altinncdn.no/toolkits/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="/designer/js/jsoneditor.js" asp-append-version="true"></script>
 }
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
   string app = ViewContext.RouteData.Values["app"] as string;
 }
 @section styles {
+  <link rel="stylesheet" href="https://altinncdn.no/toolkits/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
     #editor_holder > div > h3 {
       display: none;
+    }
+
+    html, body {
+        height: 100%;
+        font-family: Roboto, "San Fransisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    h1, h2, h3 {
+      letter-spacing: 2px;
+    }
+
+    .control-label {
+      margin-bottom: 0;
+    }
+
+    .errormsg {
+      color: red;
+    }
+
+    .tooltip-inner {
+      background-color: rgba(9, 160, 236, 1);
+      color: #fff;
+    }
+
+    .tooltip-arrow {
+      border-top-color: rgba(9, 160, 236, 1) !important;
+    }
+
+    .input-group-addon {
+      border: 0;
+      background-color: white;
+    }
+
+    .btn, .form-control, .input-group-addon, .list-group-item:last-child, .list-group-item:first-child, .card, .alert {
+      border-radius: 0;
+    }
+
+    #search ~ .fa-search {
+      float: right !important;
+      margin-right: 10px;
+      margin-top: -28px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* START Backport of Bootstrap 3 styles for JSON Editor */
+    .btn-default {
+      color: #373a3c;
+      background-color: #fff;
+      border-color: #ccc;
+    }
+
+      .btn-default:hover {
+        color: #373a3c;
+        background-color: #e6e6e6;
+        border-color: #adadad;
+      }
+
+    .json-editor-btn-delete {
+      color: #fff;
+      background-color: #d9534f;
+      border-color: #d9534f;
+    }
+
+      .json-editor-btn-delete:hover {
+        color: #fff;
+        background-color: #c9302c;
+        border-color: #c12e2a;
+      }
+
+    #editor_holder + .btn-primary {
+      margin-top: 1rem;
+    }
+    /* END Backport */
+
+    .loading:after {
+      content: " ";
+      background-color: rgba(255,255,255,.5);
+      background-image: url(/img/a-loader.svg);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-repeat: no-repeat;
+      background-position: center center;
+    }
+
+    .action-list-group > .list-group-item {
+      border-top-width: 0;
+    }
+
+    .list-group-item {
+      border-left: 0;
+      border-right: 0;
+    }
+
+    .action-list-group:first-child {
+      border-top: 1px solid #ddd;
+    }
+
+    .action-list-group .list-group-link {
+      display: block;
+      color: #555;
+      text-decoration: none;
+    }
+
+    .container {
+      padding-top: 2rem;
     }
   </style>
 }
@@ -217,7 +331,7 @@ $(document).ready(function () {
                 contentType: "application/json; charset=UTF-8",
                 data: jsonString,
                 headers: { "X-XSRF-TOKEN": getCookieValue("XSRF-TOKEN") },
-              success: function (data) {                
+              success: function (data) {
                     //$("#message").html(data.Message);
                     //$("#json").html(jsonString);
                     //$("#saveConfirmation").show();

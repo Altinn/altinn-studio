@@ -443,8 +443,11 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       })
     );
 
-    if (Object.keys(layoutsCopy).length > 1 && !isReceiptPage) {
-      const NavigationButtonComponent = {
+    // Check if keys are bigger than 2 because layout includes keys FormLayout and the FirstPage.
+    const hasFirstPage = Object.keys(layoutsCopy).length > 2;
+
+    if (hasFirstPage && !isReceiptPage) {
+      const navigationButtonComponent = {
         type: 'NavigationButtons',
         componentType: ComponentTypes.NavigationButtons,
         textResourceBindings: {
@@ -457,24 +460,27 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
 
       yield put(
         FormLayoutActions.addFormComponent({
-          component: { ...NavigationButtonComponent, id: uuidv4() },
+          component: { ...navigationButtonComponent, id: uuidv4() },
           position: 0,
           containerId: Object.keys(layoutsCopy[layout].containers)[0],
         })
       );
+
       const firstPageKey = layoutOrder[0];
       const firstPage = layouts[firstPageKey];
-      const hasNavigationButton = Object.keys(firstPage.components).some(
-        (component: string) => firstPage.components[component].type === 'NavigationButtons'
-      );
-      if (!hasNavigationButton) {
-        yield put(
-          FormLayoutActions.addFormComponent({
-            component: { ...NavigationButtonComponent, id: uuidv4() },
-            position: Object.keys(layoutsCopy[firstPageKey].components).length,
-            containerId: Object.keys(layoutsCopy[firstPageKey].containers)[0],
-          })
+      if (firstPage && firstPage.components) {
+        const hasNavigationButton = Object.keys(firstPage.components).some(
+          (component: string) => firstPage.components[component].type === 'NavigationButtons'
         );
+        if (!hasNavigationButton) {
+          yield put(
+            FormLayoutActions.addFormComponent({
+              component: { ...navigationButtonComponent, id: uuidv4() },
+              position: Object.keys(layoutsCopy[firstPageKey].components).length,
+              containerId: Object.keys(layoutsCopy[firstPageKey].containers)[0],
+            })
+          );
+        }
       }
     }
     yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout }));

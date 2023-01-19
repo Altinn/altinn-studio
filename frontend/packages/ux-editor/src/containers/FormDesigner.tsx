@@ -15,7 +15,7 @@ import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { Warning } from '@navikt/ds-icons';
 
-export function FormDesigner() {
+export const FormDesigner = (): JSX.Element =>  {
   const dispatch = useDispatch();
 
   const [codeEditorOpen, setCodeEditorOpen] = useState<boolean>(false);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { IOptions, } from '../../../types/global';
+import type { IOption, } from '../../../types/global';
 import { TextField } from '@altinn/altinn-design-system';
 import {
   Button,
@@ -28,7 +28,7 @@ export enum SelectedOptionsType {
   Unknown = '',
 }
 
-const getSelectedOptionsType = (codeListId: string, options: IOptions[]): SelectedOptionsType => {
+const getSelectedOptionsType = (codeListId: string, options: IOption[]): SelectedOptionsType => {
   if (codeListId) {
     return SelectedOptionsType.Codelist;
   }
