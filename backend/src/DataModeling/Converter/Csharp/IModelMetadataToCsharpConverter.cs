@@ -2,7 +2,7 @@
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
-    public interface IModelMetadataParser
+    public interface IModelMetadataToCsharpConverter
     {
         /// <summary>
         /// Create Model from ServiceMetadata object

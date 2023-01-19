@@ -45,7 +45,7 @@ public class CsharpModelConversionTestsBase<TTestType> : SchemasConversionTestsB
 
     protected TTestType CSharpClassesCreatedFromMetamodel()
     {
-        CSharpClasses = new JsonMetadataParser(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadata);
+        CSharpClasses = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadata);
         return this as TTestType;
     }
 

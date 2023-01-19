@@ -41,7 +41,7 @@ public class CsharpModelOldConversionTestsBase<TTestType> : CsharpModelConversio
 
     protected TTestType CSharpClassesCreatedFromMetamodelOld()
     {
-        CSharpClassesOld = new JsonMetadataParser(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadataOld);
+        CSharpClassesOld = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadataOld);
         return this as TTestType;
     }
 

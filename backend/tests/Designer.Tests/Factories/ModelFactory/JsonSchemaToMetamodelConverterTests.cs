@@ -109,7 +109,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
         private JsonSchemaToMetamodelConverterTests CSharpClassesCreatedFromMetamodel()
         {
-            _cSharpClasses = new JsonMetadataParser(new CSharpGenerationSettings()).CreateModelFromMetadata(_modelMetadata);
+            _cSharpClasses = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings()).CreateModelFromMetadata(_modelMetadata);
             return this;
         }
 

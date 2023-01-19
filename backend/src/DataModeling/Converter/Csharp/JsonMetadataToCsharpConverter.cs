@@ -11,10 +11,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     /// <summary>
     /// This class is responsible for building the metadata model from JSON
     /// </summary>
-    public class JsonMetadataParser : IModelMetadataParser
+    public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
     {
         private readonly CSharpGenerationSettings _generationSettings;
-        public JsonMetadataParser(CSharpGenerationSettings generationSettings)
+        public JsonMetadataToCsharpConverter(CSharpGenerationSettings generationSettings)
         {
             _generationSettings = generationSettings;
         }

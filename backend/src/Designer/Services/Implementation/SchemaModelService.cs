@@ -44,7 +44,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;
         private readonly IXmlSchemaToJsonSchemaConverter _xmlSchemaToJsonSchemaConverter;
         private readonly IJsonSchemaToXmlSchemaConverter _jsonSchemaToXmlSchemaConverter;
-        private readonly IModelMetadataParser _modelMetadataParser;
+        private readonly IModelMetadataToCsharpConverter _modelMetadataToCsharpConverter;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
@@ -63,21 +63,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Class for converting Xml schemas to Json schemas.</param>
         /// <param name="jsonSchemaToXmlSchemaConverter">
         /// Class for converting Json schemas to Xml schemas.</param>
-        /// <param name="modelMetadataParser">C# model generator</param>
+        /// <param name="modelMetadataToCsharpConverter">C# model generator</param>
         public SchemaModelService(
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             ILoggerFactory loggerFactory,
             IOptions<ServiceRepositorySettings> serviceRepositorySettings,
             IXmlSchemaToJsonSchemaConverter xmlSchemaToJsonSchemaConverter,
             IJsonSchemaToXmlSchemaConverter jsonSchemaToXmlSchemaConverter,
-            IModelMetadataParser modelMetadataParser)
+            IModelMetadataToCsharpConverter modelMetadataToCsharpConverter)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _loggerFactory = loggerFactory;
             _serviceRepositorySettings = serviceRepositorySettings;
             _xmlSchemaToJsonSchemaConverter = xmlSchemaToJsonSchemaConverter;
             _jsonSchemaToXmlSchemaConverter = jsonSchemaToXmlSchemaConverter;
-            _modelMetadataParser = modelMetadataParser;
+            _modelMetadataToCsharpConverter = modelMetadataToCsharpConverter;
         }
 
         /// <inheritdoc/>
@@ -419,7 +419,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)
         {
-            string classes = _modelMetadataParser.CreateModelFromMetadata(modelMetadata);
+            string classes = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
             await altinnAppGitRepository.SaveCSharpClasses(classes, schemaName);
         }
 

@@ -349,7 +349,7 @@ namespace Designer.Tests.Utils
 
         public static IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter => new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
-        public static IModelMetadataParser ModelMetadataParser => new JsonMetadataParser(new CSharpGenerationSettings());
+        public static IModelMetadataToCsharpConverter ModelMetadataToCsharpConverter => new JsonMetadataToCsharpConverter(new CSharpGenerationSettings());
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking

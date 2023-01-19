@@ -69,7 +69,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
         private static string GenerateCSharpClasses(ModelMetadata modelMetadata)
         {
-            JsonMetadataParser modelGenerator = new JsonMetadataParser(new CSharpGenerationSettings());
+            JsonMetadataToCsharpConverter modelGenerator = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings());
             string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
             return classes;
         }

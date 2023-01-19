@@ -60,7 +60,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IXmlSchemaToJsonSchemaConverter, XmlSchemaToJsonSchemaConverter>();
             services.AddTransient<IJsonSchemaToXmlSchemaConverter, JsonSchemaToXmlSchemaConverter>();
             services.AddTransient<IJsonSchemaNormalizer, JsonSchemaNormalizer>();
-            services.AddTransient<IModelMetadataParser, JsonMetadataParser>();
+            services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
             services.AddSingleton(_ =>
             {
                 var options = new CSharpGenerationSettings();
