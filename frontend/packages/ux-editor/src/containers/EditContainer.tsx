@@ -187,9 +187,8 @@ export function EditContainer(props: IEditContainerProps) {
         <div className={classes.buttons}>
           {(activeListIndex === 0 || activeList.length < 1) && (
             <Button
-              aria-label={t("general.delete")}
               color={ButtonColor.Secondary}
-              icon={<Delete/>}
+              icon={<Delete title={t('general.delete')}/>}
               onClick={handleComponentDelete}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -198,9 +197,8 @@ export function EditContainer(props: IEditContainerProps) {
           {(activeList.length < 1 ||
             (activeList.length === 1 && activeListIndex === 0)) && (
             <Button
-              aria-label={t('general.edit')}
               color={ButtonColor.Secondary}
-              icon={<Edit/>}
+              icon={<Edit title={t('general.edit')}/>}
               onClick={handleOpenEdit}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -208,9 +206,8 @@ export function EditContainer(props: IEditContainerProps) {
           )}
           {isPreviewable && (
             <Button
-              aria-label={t("general.preview")}
               color={ButtonColor.Secondary}
-              icon={<Monitor/>}
+              icon={<Monitor title={t('general.preview')}/>}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}
@@ -221,26 +218,23 @@ export function EditContainer(props: IEditContainerProps) {
       {isEditMode && (
         <div className={classes.buttons}>
           <Button
-            aria-label={t('general.cancel')}
             color={ButtonColor.Secondary}
-            icon={<Cancel/>}
+            icon={<Cancel title={t('general.cancel')}/>}
             onClick={handleDiscard}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
           />
           <Button
-            aria-label={t("general.save")}
             color={ButtonColor.Secondary}
-            icon={<Success/>}
+            icon={<Success title={t('general.save')}/>}
             onClick={handleSave}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
           />
           {isPreviewable && (
             <Button
-              aria-label={t("general.preview")}
               color={ButtonColor.Secondary}
-              icon={<Monitor/>}
+              icon={<Monitor title={t('general.preview')}/>}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}
