@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.DataModeling.Metamodel;
 using Xunit;
 
 namespace Designer.Tests.Assertions

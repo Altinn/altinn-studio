@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Altinn.Studio.Designer.ModelMetadatalModels
+namespace Altinn.Studio.DataModeling.Metamodel
 {
     /// <summary>
     /// Metadata for a given service element

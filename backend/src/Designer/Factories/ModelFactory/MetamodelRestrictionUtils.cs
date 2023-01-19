@@ -4,9 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using Altinn.Studio.DataModeling.Json.Keywords;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.Designer.Extensions;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 using Json.Schema;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory;

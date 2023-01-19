@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Xml.Linq;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 
 namespace Altinn.Studio.Designer.Extensions
 {

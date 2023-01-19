@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 
 using Manatee.Json;

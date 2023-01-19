@@ -4,9 +4,9 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 using Designer.Tests.Utils;
 
 namespace Designer.Tests.Factories.ModelFactory.BaseClasses;

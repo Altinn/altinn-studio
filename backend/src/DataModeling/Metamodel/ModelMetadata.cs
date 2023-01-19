@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 
-namespace Altinn.Studio.Designer.ModelMetadatalModels
+namespace Altinn.Studio.DataModeling.Metamodel
 {
     /// <summary>
     /// Class representation for the metadata for a service

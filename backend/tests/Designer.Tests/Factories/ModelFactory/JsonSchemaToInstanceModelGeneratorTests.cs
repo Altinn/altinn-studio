@@ -1,9 +1,8 @@
 using System;
 using System.IO;
 using System.Reflection;
-
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Factories.ModelFactory;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 using Designer.Tests.Utils;
 using Manatee.Json;
 using Manatee.Json.Schema;

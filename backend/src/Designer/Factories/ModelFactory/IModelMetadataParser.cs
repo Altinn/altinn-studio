@@ -1,4 +1,4 @@
-﻿using Altinn.Studio.Designer.ModelMetadatalModels;
+﻿using Altinn.Studio.DataModeling.Metamodel;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
 {

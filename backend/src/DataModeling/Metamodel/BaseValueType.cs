@@ -1,4 +1,4 @@
-namespace Altinn.Studio.Designer.ModelMetadatalModels
+namespace Altinn.Studio.DataModeling.Metamodel
 {
     /// <summary>
     /// Base value type, in XmlSchema
@@ -131,7 +131,7 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         Token,
 
         /// <summary>
-        /// Any uri type 
+        /// Any uri type
         /// </summary>
         AnyURI,
 

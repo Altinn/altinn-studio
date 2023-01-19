@@ -1,4 +1,4 @@
-namespace Altinn.Studio.Designer.ModelMetadatalModels
+namespace Altinn.Studio.DataModeling.Metamodel
 {
     /// <summary>
     /// Enumeration for the different type of service elements

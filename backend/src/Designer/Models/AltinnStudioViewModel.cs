@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 
 namespace Altinn.Studio.Designer.Models
 {

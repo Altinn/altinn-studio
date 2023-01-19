@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 using static Altinn.Studio.DataModeling.Utils.RestrictionsHelper;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
