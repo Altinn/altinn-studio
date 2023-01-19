@@ -2,13 +2,12 @@ import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
 import type { ComponentTypes } from '..';
-import { Divider } from 'app-shared/primitives';
 import { InformationColored } from '@navikt/ds-icons';
 import { Popover } from '@mui/material';
-import { SearchField } from '@altinn/altinn-design-system';
+
 import {
   getComponentHelperTextByComponentType,
-  getComponentTitleByComponentType
+  getComponentTitleByComponentType,
 } from '../../utils/language';
 
 export interface IInformationPanelProvidedProps {
@@ -26,7 +25,7 @@ export const InformationPanelComponent = ({
   language,
   onClose,
   selectedComponent,
-  thirdPartyLibrary
+  thirdPartyLibrary,
 }: IInformationPanelProvidedProps) => (
   <Popover
     anchorEl={anchorElement}
@@ -37,8 +36,6 @@ export const InformationPanelComponent = ({
     transformOrigin={{ vertical: 'top', horizontal: 'left' }}
     classes={{ paper: classNames(classes.informationPanel) }}
   >
-    <SearchField id={'component-search'} placeholder={'Søk'} />
-    <Divider />
     <div className={classNames(classes.informationPanelHeader)}>
       {getComponentTitleByComponentType(selectedComponent, language)}
     </div>
