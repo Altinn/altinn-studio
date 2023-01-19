@@ -113,6 +113,10 @@
       "name": "Litauisk"
     },
     {
+      "id": "smj",
+      "name": "Lulu-samisk"
+    },
+    {
       "id": "mk",
       "name": "Makedonsk"
     },
@@ -173,6 +177,10 @@
       "name": "Slovensk"
     },
     {
+      "id": "so",
+      "name": "Somali"
+    },
+    {
       "id": "sb",
       "name": "Sorbisk"
     },
@@ -189,8 +197,16 @@
       "name": "Svensk"
     },
     {
+      "id": "sma",
+      "name": "Sør-samisk"
+    },
+    {
       "id": "th",
       "name": "Thai"
+    },
+    {
+      "id": "ti",
+      "name": "Tigrinya"
     },
     {
       "id": "cs",
