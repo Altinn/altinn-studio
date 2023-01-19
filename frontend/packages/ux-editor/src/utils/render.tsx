@@ -71,7 +71,7 @@ export const renderSelectDataModelBinding = ({
   return (
     <div key={uniqueKey || ''}>
       <PropertyLabel
-        htmlFor='selectDataModelSelect'
+        htmlFor={`selectDataModelSelect-${label}`}
         textKey={
           label
             ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
@@ -79,7 +79,7 @@ export const renderSelectDataModelBinding = ({
         }
       />
       <SelectDataModelComponent
-        inputId='selectDataModelSelect'
+        inputId={`selectDataModelSelect-${label}`}
         selectedElement={dataModelBinding[key]}
         onDataModelChange={onDMChange}
         t={t}
