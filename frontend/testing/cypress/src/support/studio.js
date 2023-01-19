@@ -76,7 +76,8 @@ Cypress.Commands.add('deleteLocalChanges', (appId) => {
  * Search an app from dashboard and open app
  */
 Cypress.Commands.add('searchAndOpenApp', (appId) => {
-  var appName = appId.split('/')[1];
+  const [_, appName] = appId.split('/');
+  cy.visit('/dashboard');
   cy.get(dashboard.searchApp).type(appName);
   cy.contains(dashboard.apps.name, appName)
     .siblings(dashboard.apps.links)

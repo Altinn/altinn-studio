@@ -5,7 +5,7 @@ export const common = {
   gridRow: '.MuiDataGrid-row',
   button: 'button[class*="MuiButton-root"]',
   listItem: '.MuiListItem-root',
-  leftDrawer: '.MuiDrawer-paperAnchorLeft',
+  leftDrawer: "[data-testid='ux-editor.left-menu']",
   selectedDate: 'button[class*="MuiPickersDay-daySelected"]',
   buttonIcon: 'button[class*="MuiIconButton-root"]',
   tableBody: 'table > tbody',

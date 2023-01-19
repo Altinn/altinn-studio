@@ -7,22 +7,22 @@ import { common } from '../../pageobjects/common';
 
 context('Designer', () => {
   before(() => {
-    if (Cypress.env('environment') == 'local') {
-      cy.visit('/');
-      cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-      cy.getrepo(Cypress.env('designerApp'), Cypress.env('accessToken')).then((response) => {
-        if (response.status != 200)
-          cy.createapp(Cypress.env('appOwner'), Cypress.env('designerApp').split('/')[1]);
-      });
-      cy.visit('/');
-      cy.getrepo(Cypress.env('withoutDataModelApp'), Cypress.env('accessToken')).then(
-        (response) => {
-          if (response.status != 200)
-            cy.createapp(Cypress.env('appOwner'), Cypress.env('withoutDataModelApp').split('/')[1]);
-        }
-      );
-      cy.clearCookies();
-    }
+    cy.visit('/');
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.getrepo(Cypress.env('designerApp'), Cypress.env('accessToken')).then((response) => {
+      if (response.status !== 200) {
+        const [_, appName] = Cypress.env('designerApp').split('/');
+        cy.createapp('Testdepartementet', appName);
+      }
+    });
+    cy.visit('/');
+    cy.getrepo(Cypress.env('withoutDataModelApp'), Cypress.env('accessToken')).then((response) => {
+      if (response.status !== 200) {
+        const [_, appName] = Cypress.env('withoutDataModelApp').split('/');
+        cy.createapp('Testdepartementet', appName);
+      }
+    });
+    cy.clearCookies();
   });
   beforeEach(() => {
     cy.visit('/');
