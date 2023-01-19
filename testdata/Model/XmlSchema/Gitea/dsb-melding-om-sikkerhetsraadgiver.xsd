@@ -1,0 +1,31 @@
+﻿<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xsd:element name="Form" type="Form" />
+  <xsd:complexType name="Form">
+    <xsd:sequence>
+      <xsd:element minOccurs="1" maxOccurs="1" name="OrgNumber" type="xsd:string" />
+      <xsd:element minOccurs="1" maxOccurs="1" name="OrgName" type="xsd:string" />
+      <xsd:element minOccurs="1" maxOccurs="1" name="SafetyAdviserRequired" type="xsd:boolean" />
+      <xsd:element minOccurs="0" maxOccurs="1" name="TransportMethod" type="xsd:string" />
+      <xsd:element minOccurs="0" maxOccurs="10" name="SafetyAdvisers" type="SafetyAdviser" />
+      <xsd:element minOccurs="0" maxOccurs="1" name="TermsAccepted" type="xsd:string" />
+      <xsd:element minOccurs="0" maxOccurs="1" name="PrefillFailed" type="xsd:boolean" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="SafetyAdviser">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="1" name="Id" type="xsd:string" />
+      <xsd:element minOccurs="1" maxOccurs="1" name="IsNorwegianCitizen" type="xsd:boolean" />
+      <xsd:element minOccurs="0" maxOccurs="1" name="SocialSecurityNumber" type="xsd:string" />
+      <xsd:element minOccurs="1" maxOccurs="1" name="FirstName" type="xsd:string" />
+      <xsd:element minOccurs="1" maxOccurs="1" name="LastName" type="xsd:string" />
+      <xsd:element minOccurs="0" maxOccurs="1" name="Phone" type="xsd:string"/>
+      <xsd:element minOccurs="1" maxOccurs="1" name="Email" type="xsd:string">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:pattern value="^[a-zA-Z0-9ÆØÅæøå]+([-+.'][a-zA-Z0-9ÆØÅæøå]+)*@[a-zA-Z0-9ÆØÅæøå]+([-.][a-zA-Z0-9ÆØÅæøå]+)*\.[a-zA-Z0-9ÆØÅæøå]+([-.][a-zA-Z0-9ÆØÅæøå]+)*$" />
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

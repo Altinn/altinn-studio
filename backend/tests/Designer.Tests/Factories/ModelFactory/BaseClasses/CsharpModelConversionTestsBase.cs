@@ -9,6 +9,7 @@ using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Metamodel;
 using Designer.Tests.Utils;
 using Newtonsoft.Json;
+using SharedResources.Tests;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Designer.Tests.Factories.ModelFactory.BaseClasses;

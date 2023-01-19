@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Designer.Tests.Utils
+namespace SharedResources.Tests
 {
     public static class Compiler
     {

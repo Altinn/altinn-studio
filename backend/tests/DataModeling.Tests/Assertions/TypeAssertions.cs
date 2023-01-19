@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using Designer.Tests.Utils;
 using FluentAssertions;
+using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Assertions;
+namespace DataModeling.Tests.Assertions;
 
 [ExcludeFromCodeCoverage]
 public static class TypeAssertions
