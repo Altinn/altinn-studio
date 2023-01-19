@@ -15,6 +15,9 @@
         },
         "SelectedItemProfession": {
           "$ref": "#/definitions/Text"
+        },
+        "Search": {
+          "$ref": "#/definitions/Text"
         }
       },
       "required": [
