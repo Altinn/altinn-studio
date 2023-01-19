@@ -12,9 +12,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.26.0":
-  version: 0.26.0
-  resolution: "@altinn/altinn-design-system@npm:0.26.0"
+"@altinn/altinn-design-system@npm:0.26.1":
+  version: 0.26.1
+  resolution: "@altinn/altinn-design-system@npm:0.26.1"
   dependencies:
     "@altinn/figma-design-tokens": ^5.0.0
     "@navikt/ds-icons": ^2.0.0
@@ -25,7 +25,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: a38da2f82b5742f036a01422f922b098da977ee31f3ef54f3d38238f52f587bb9a6526bd498353132f7c77e2c54b25e9df2ea0af939aec80a83f58252d8f342c
+  checksum: fecd8403bfb47af59a400cae97577a0ee362b1f83a12571e76e788e3c136c6f89196990bff3a7d2a2b12ca05906f95829f409a88266ce0cd367357ec382ac587
   languageName: node
   linkType: hard
 
@@ -5232,7 +5232,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-frontend-react@workspace:."
   dependencies:
-    "@altinn/altinn-design-system": 0.26.0
+    "@altinn/altinn-design-system": 0.26.1
     "@babel/core": 7.20.12
     "@babel/polyfill": 7.12.1
     "@babel/preset-env": 7.20.2
