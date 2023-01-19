@@ -513,18 +513,18 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   public renderHoverIcons = (): JSX.Element => (
     <>
       <Button
-        icon={<Delete title={this.props.language["general.delete"]}/>}
+        icon={<Delete title={this.props.language['general.delete']}/>}
         onClick={this.handleContainerDelete}
         variant={ButtonVariant.Quiet}
       />
-      <Button icon={<Edit title={this.props.language["general.edit"]}/>} onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
+      <Button icon={<Edit title={this.props.language['general.edit']}/>} onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
     </>
   );
 
   public renderEditIcons = (): JSX.Element => (
     <>
-      <Button icon={<Cancel title={this.props.language["general.cancel"]} />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
-      <Button icon={<Success title={this.props.language["general.save"]} />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button icon={<Cancel title={this.props.language['general.cancel']} />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button icon={<Success title={this.props.language['general.save']} />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
     </>
   );
 
@@ -612,7 +612,7 @@ const makeMapStateToProps = () => {
   const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
   return (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
     const containers = GetContainersSelector(state);
-    const container = containers ? containers[props.id] : "";
+    const container = containers ? containers[props.id] : '';
     const itemOrder = GetLayoutContainerOrder(state, props.id);
     return {
       ...props,
