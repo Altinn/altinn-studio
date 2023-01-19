@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Designer.Tests.Utils;
@@ -40,7 +41,7 @@ public class CsharpModelOldConversionTestsBase<TTestType> : CsharpModelConversio
 
     protected TTestType CSharpClassesCreatedFromMetamodelOld()
     {
-        CSharpClassesOld = new JsonMetadataParser().CreateModelFromMetadata(ModelMetadataOld);
+        CSharpClassesOld = new JsonMetadataParser(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadataOld);
         return this as TTestType;
     }
 

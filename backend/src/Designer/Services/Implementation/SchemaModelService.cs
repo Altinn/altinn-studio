@@ -44,6 +44,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;
         private readonly IXmlSchemaToJsonSchemaConverter _xmlSchemaToJsonSchemaConverter;
         private readonly IJsonSchemaToXmlSchemaConverter _jsonSchemaToXmlSchemaConverter;
+        private readonly IModelMetadataParser _modelMetadataParser;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
@@ -62,18 +63,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Class for converting Xml schemas to Json schemas.</param>
         /// <param name="jsonSchemaToXmlSchemaConverter">
         /// Class for converting Json schemas to Xml schemas.</param>
+        /// <param name="modelMetadataParser">C# model generator</param>
         public SchemaModelService(
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             ILoggerFactory loggerFactory,
             IOptions<ServiceRepositorySettings> serviceRepositorySettings,
             IXmlSchemaToJsonSchemaConverter xmlSchemaToJsonSchemaConverter,
-            IJsonSchemaToXmlSchemaConverter jsonSchemaToXmlSchemaConverter)
+            IJsonSchemaToXmlSchemaConverter jsonSchemaToXmlSchemaConverter,
+            IModelMetadataParser modelMetadataParser)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _loggerFactory = loggerFactory;
             _serviceRepositorySettings = serviceRepositorySettings;
             _xmlSchemaToJsonSchemaConverter = xmlSchemaToJsonSchemaConverter;
             _jsonSchemaToXmlSchemaConverter = jsonSchemaToXmlSchemaConverter;
+            _modelMetadataParser = modelMetadataParser;
         }
 
         /// <inheritdoc/>
@@ -413,10 +417,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return jsonSchema.Properties().FirstOrDefault().Key;
         }
 
-        private static async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)
+        private async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)
         {
-            JsonMetadataParser modelGenerator = new JsonMetadataParser();
-            string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
+            string classes = _modelMetadataParser.CreateModelFromMetadata(modelMetadata);
             await altinnAppGitRepository.SaveCSharpClasses(classes, schemaName);
         }
 
