@@ -11,7 +11,7 @@
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Altinn.App.Core" Version="7.3.0"/>
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0"/>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
   </ItemGroup>
 
