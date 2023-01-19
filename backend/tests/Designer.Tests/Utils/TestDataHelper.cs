@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;

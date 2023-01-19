@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json.Keywords;

@@ -1,6 +1,6 @@
 ﻿using Altinn.Studio.DataModeling.Metamodel;
 
-namespace Altinn.Studio.Designer.Factories.ModelFactory
+namespace Altinn.Studio.DataModeling.Converter.Csharp
 {
     public interface IModelMetadataToCsharpConverter
     {

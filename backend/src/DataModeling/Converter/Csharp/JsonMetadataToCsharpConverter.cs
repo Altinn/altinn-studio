@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Altinn.Studio.DataModeling.Metamodel;
-using Altinn.Studio.Designer.Configuration;
 using static Altinn.Studio.DataModeling.Utils.RestrictionsHelper;
 
-namespace Altinn.Studio.Designer.Factories.ModelFactory
+namespace Altinn.Studio.DataModeling.Converter.Csharp
 {
     /// <summary>
     /// This class is responsible for building the metadata model from JSON

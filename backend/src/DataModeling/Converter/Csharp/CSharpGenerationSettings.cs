@@ -1,4 +1,4 @@
-﻿namespace Altinn.Studio.Designer.Configuration
+﻿namespace Altinn.Studio.DataModeling.Converter.Csharp
 {
     public class CSharpGenerationSettings
     {

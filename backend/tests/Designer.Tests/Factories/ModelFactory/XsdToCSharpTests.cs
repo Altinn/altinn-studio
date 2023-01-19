@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
