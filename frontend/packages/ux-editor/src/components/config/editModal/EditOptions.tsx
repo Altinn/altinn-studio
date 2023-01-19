@@ -92,7 +92,7 @@ export function EditOptions({
 
   const handleRemoveOption = (index: number) => {
     const options = [...component.options];
-    options.splice(index);
+    options.splice(index, 1);
     handleComponentChange({
       ...component,
       options,
