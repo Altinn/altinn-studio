@@ -29,10 +29,6 @@
       <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Converter\Csharp" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>bin\Release</OutputPath>
     <DocumentationFile>bin\Release\AltinnCore.DataModeling.xml</DocumentationFile>
