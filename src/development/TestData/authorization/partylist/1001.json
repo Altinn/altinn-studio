@@ -1,6 +1,6 @@
 [
     {
-      "partyId": "1001",
+      "partyId": "510001",
       "partyTypeName": 1,
       "ssn": "01899699552",
       "name": "Pengelens Partner",
@@ -11,4 +11,3 @@
       "childParties": null
     }
   ]
-  
