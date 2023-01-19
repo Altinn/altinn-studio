@@ -79,6 +79,7 @@ export const renderSelectDataModelBinding = ({
         }
       />
       <SelectDataModelComponent
+        inputId='selectDataModelSelect'
         selectedElement={dataModelBinding[key]}
         onDataModelChange={onDMChange}
         t={t}
@@ -96,9 +97,13 @@ export const renderSelectGroupDataModelBinding = (
   const t = useText();
   return (
     <div>
-      <PropertyLabel textKey={t('ux_editor.modal_properties_data_model_helper')} />
+      <PropertyLabel
+        textKey={t('ux_editor.modal_properties_data_model_helper')}
+        htmlFor='dataModalHelper'
+      />
 
       <SelectDataModelComponent
+        inputId='dataModalHelper'
         selectedElement={dataModelBinding[key]}
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
         t={t}
