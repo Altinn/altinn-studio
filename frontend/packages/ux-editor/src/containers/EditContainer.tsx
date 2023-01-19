@@ -188,7 +188,7 @@ export function EditContainer(props: IEditContainerProps) {
           {(activeListIndex === 0 || activeList.length < 1) && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Delete/>}
+              icon={<Delete title={t('general.delete')}/>}
               onClick={handleComponentDelete}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -198,8 +198,7 @@ export function EditContainer(props: IEditContainerProps) {
             (activeList.length === 1 && activeListIndex === 0)) && (
             <Button
               color={ButtonColor.Secondary}
-              data-testid='EditContainer-edit-button'
-              icon={<Edit/>}
+              icon={<Edit title={t('general.edit')}/>}
               onClick={handleOpenEdit}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -208,7 +207,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor/>}
+              icon={<Monitor title={t('general.preview')}/>}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}
@@ -220,14 +219,14 @@ export function EditContainer(props: IEditContainerProps) {
         <div className={classes.buttons}>
           <Button
             color={ButtonColor.Secondary}
-            icon={<Cancel/>}
+            icon={<Cancel title={t('general.cancel')}/>}
             onClick={handleDiscard}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
           />
           <Button
             color={ButtonColor.Secondary}
-            icon={<Success/>}
+            icon={<Success title={t('general.save')}/>}
             onClick={handleSave}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
@@ -235,7 +234,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor/>}
+              icon={<Monitor title={t('general.preview')}/>}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}

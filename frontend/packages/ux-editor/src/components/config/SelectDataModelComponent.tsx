@@ -9,6 +9,7 @@ export interface ISelectDataModelProps extends IProvidedProps {
 }
 
 export interface IProvidedProps {
+  inputId?: string;
   selectedElement: string;
   onDataModelChange: (dataModelField: string) => void;
   noOptionsMessage?: string;
@@ -93,6 +94,7 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
       }));
     return (
       <Select
+        inputId={this.props.inputId}
         styles={selectStyles}
         options={dataModelElementNames}
         defaultValue={{ value: selectedElement, label: selectedElement }}
@@ -106,7 +108,7 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
 const mapStateToProps = (
   state: IAppState,
   props: IProvidedProps
-): Omit<ISelectDataModelProps, 't'> => {
+): Omit<ISelectDataModelProps, 't' | 'inputId'> => {
   return {
     selectedElement: props.selectedElement,
     onDataModelChange: props.onDataModelChange,

@@ -71,6 +71,7 @@ export const renderSelectDataModelBinding = ({
   return (
     <div key={uniqueKey || ''}>
       <PropertyLabel
+        htmlFor={`selectDataModelSelect-${label}`}
         textKey={
           label
             ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
@@ -78,6 +79,7 @@ export const renderSelectDataModelBinding = ({
         }
       />
       <SelectDataModelComponent
+        inputId={`selectDataModelSelect-${label}`}
         selectedElement={dataModelBinding[key]}
         onDataModelChange={onDMChange}
         t={t}
@@ -95,9 +97,13 @@ export const renderSelectGroupDataModelBinding = (
   const t = useText();
   return (
     <div>
-      <PropertyLabel textKey={t('ux_editor.modal_properties_data_model_helper')} />
+      <PropertyLabel
+        textKey={t('ux_editor.modal_properties_data_model_helper')}
+        htmlFor='dataModalHelper'
+      />
 
       <SelectDataModelComponent
+        inputId='dataModalHelper'
         selectedElement={dataModelBinding[key]}
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
         t={t}
