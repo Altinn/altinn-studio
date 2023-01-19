@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json;
-using System.Security.Claims;
 using System.Xml;
 
 using Microsoft.AspNetCore.Authentication;
@@ -9,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 
-using AltinnCore.Authentication.Constants;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -86,12 +84,25 @@ namespace LocalTest.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            StartAppModel model = new StartAppModel();
+            StartAppModel model = new StartAppModel()
+            {
+                AppModeIsHttp = _localPlatformSettings.LocalAppMode == "http",
+                AppPath = _localPlatformSettings.AppRepositoryBasePath,
+                StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
+                LocalAppUrl = _localPlatformSettings.LocalAppUrl,
+                LocalFrontendUrl = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME],
+            };
+
             try
             {
                 model.TestApps = await GetAppsList();
+                if (model.AppModeIsHttp)
+                {
+                    model.Org = model.TestApps[0].Value?.Split("/").FirstOrDefault();
+                    model.App = model.TestApps[0].Value?.Split("/").LastOrDefault();
+                }
                 model.TestUsers = await GetTestUsersForList();
-                var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps) : 2;
+                var defaultAuthLevel = await GetAppAuthLevel(model.AppModeIsHttp, model.TestApps);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (HttpRequestException e)
@@ -99,11 +110,6 @@ namespace LocalTest.Controllers
                 model.HttpException = e;
             }
 
-            model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
-            model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
-            model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
-            model.AppModeIsHttp = _localPlatformSettings.LocalAppMode == "http";
-            model.LocalFrontendUrl = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
 
             if (!model.TestApps?.Any() ?? true)
             {
@@ -141,7 +147,7 @@ namespace LocalTest.Controllers
                 CreateJwtCookieAndAppendToResponse(token);
             }
 
-            if (startAppModel.AppPathSelection.Equals("accessmanagement"))
+            if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
             {
                 return Redirect($"/accessmanagement/ui/api-delegations");
             }
@@ -314,8 +320,12 @@ namespace LocalTest.Controllers
             return userItems;
         }
 
-        private async Task<int> GetAppAuthLevel(IEnumerable<SelectListItem> testApps)
+        private async Task<int> GetAppAuthLevel(bool isHttp, IEnumerable<SelectListItem> testApps)
         {
+            if(!isHttp)
+            {
+                return 2;
+            }
             try
             {
                 var appId = testApps.Single().Value;

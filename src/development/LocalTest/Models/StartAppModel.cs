@@ -83,7 +83,7 @@ namespace LocalTest.Models
         /// <summary>
         /// List of selectable Apps for dropdown
         /// </summary>
-        public IEnumerable<SelectListItem> TestApps { get; set; }
+        public List<SelectListItem> TestApps { get; set; }
 
         /// <summary>
         /// List of possible authentication levels
