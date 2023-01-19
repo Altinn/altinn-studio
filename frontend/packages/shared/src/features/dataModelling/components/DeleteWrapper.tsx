@@ -34,7 +34,7 @@ export function DeleteWrapper(props: IDeleteWrapper) {
         warning
         className={classes.root}
       >
-        {getLanguageFromKey('general.delete', props.language)}
+        {getLanguageFromKey('general.delete_data_model', props.language)}
       </TopToolbarButton>
       {deleteButtonAnchor && (
         <DeleteDialog

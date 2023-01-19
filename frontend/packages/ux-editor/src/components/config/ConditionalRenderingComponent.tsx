@@ -440,7 +440,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   className='a-btn a-btn-danger mr-2'
                   onClick={this.handleDeleteConnection}
                 >
-                  {this.props.language['general.delete']}
+                  {this.props.language['general.delete_data_model']}
                 </button>
               ) : null}
               <button className={'anchor'} onClick={this.props.cancelEdit}>
