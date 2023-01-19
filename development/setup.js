@@ -11,7 +11,7 @@ const startingDockerCompose = () => runCommand('docker compose up -d --remove-or
 const createAdminUser = (env) =>
   runCommand(
     [
-      `docker exec studio-repositories gitea admin user create`,
+      `docker exec studio-repos gitea admin user create`,
       `--username ${env.GITEA_ADMIN_USER}`,
       `--password ${env.GITEA_ADMIN_PASS}`,
       `--email ${env.GITEA_ADMIN_USER}@digdir.no`,
@@ -23,7 +23,7 @@ const createAdminUser = (env) =>
 const ensureAdminPassword = (env) =>
   runCommand(
     [
-      `docker exec studio-repositories gitea admin user change-password`,
+      `docker exec studio-repos gitea admin user change-password`,
       `--username ${env.GITEA_ADMIN_USER}`,
       `--password ${env.GITEA_ADMIN_PASS}`,
     ].join(' ')
@@ -210,7 +210,7 @@ const script = async () => {
     process.exit(0);
   } else {
     console.error(
-      "DNS entry for studio.localhost does not resolve to 127.0.0.1. Check that it is set in  /etc/hosts"
+      'DNS entry for studio.localhost does not resolve to 127.0.0.1. Check that it is set in  /etc/hosts'
     );
     process.exit(1);
   }
