@@ -71,6 +71,7 @@ export const renderSelectDataModelBinding = ({
   return (
     <div key={uniqueKey || ''}>
       <PropertyLabel
+        htmlFor='selectDataModelSelect'
         textKey={
           label
             ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`

@@ -93,6 +93,7 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
       }));
     return (
       <Select
+        inputId='selectDataModelSelect'
         styles={selectStyles}
         options={dataModelElementNames}
         defaultValue={{ value: selectedElement, label: selectedElement }}
