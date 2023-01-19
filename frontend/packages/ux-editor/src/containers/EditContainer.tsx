@@ -187,6 +187,7 @@ export function EditContainer(props: IEditContainerProps) {
         <div className={classes.buttons}>
           {(activeListIndex === 0 || activeList.length < 1) && (
             <Button
+              aria-label={t("general.delete")}
               color={ButtonColor.Secondary}
               icon={<Delete/>}
               onClick={handleComponentDelete}
@@ -197,8 +198,8 @@ export function EditContainer(props: IEditContainerProps) {
           {(activeList.length < 1 ||
             (activeList.length === 1 && activeListIndex === 0)) && (
             <Button
+              aria-label={t('general.edit')}
               color={ButtonColor.Secondary}
-              data-testid='EditContainer-edit-button'
               icon={<Edit/>}
               onClick={handleOpenEdit}
               tabIndex={0}
@@ -207,6 +208,7 @@ export function EditContainer(props: IEditContainerProps) {
           )}
           {isPreviewable && (
             <Button
+              aria-label={t("general.preview")}
               color={ButtonColor.Secondary}
               icon={<Monitor/>}
               onClick={() => setMode(EditContainerMode.Preview)}
@@ -219,6 +221,7 @@ export function EditContainer(props: IEditContainerProps) {
       {isEditMode && (
         <div className={classes.buttons}>
           <Button
+            aria-label={t('general.cancel')}
             color={ButtonColor.Secondary}
             icon={<Cancel/>}
             onClick={handleDiscard}
@@ -226,6 +229,7 @@ export function EditContainer(props: IEditContainerProps) {
             variant={ButtonVariant.Quiet}
           />
           <Button
+            aria-label={t("general.save")}
             color={ButtonColor.Secondary}
             icon={<Success/>}
             onClick={handleSave}
@@ -234,6 +238,7 @@ export function EditContainer(props: IEditContainerProps) {
           />
           {isPreviewable && (
             <Button
+              aria-label={t("general.preview")}
               color={ButtonColor.Secondary}
               icon={<Monitor/>}
               onClick={() => setMode(EditContainerMode.Preview)}
