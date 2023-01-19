@@ -1,1 +1,1 @@
-export type { TranslationKey } from '../../../../language/src/type';
+export type { TranslationKey } from '../../../../language/type';
