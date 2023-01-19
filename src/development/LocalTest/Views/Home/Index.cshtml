@@ -71,7 +71,7 @@
       @Html.AntiForgeryToken();
       <div class="form-group">
         <label for="exampleInputEmail1">Select test users</label>
-        @Html.DropDownListFor(model => model.UserId, Model.TestUsers, new { Class = "form-control" })
+        @Html.DropDownListFor(model => model.UserSelect, Model.TestUsers, new { Class = "form-control" })
       </div>
       @if(!Model.AppModeIsHttp)
       {
@@ -87,7 +87,7 @@
       @if(Model.AppModeIsHttp)
       {
         <div class="form-group">
-          <label for="prefill">Prefill xml. The first part of the filename must be "[orgnr]." or "[fnr]." (eg. "897069631.xml" or "897069631.TST-2345.xml")</label>
+          <label for="prefill">Prefill xml (use this to copy all the values from a <a href="/LocalPlatformStorage/blobs/@(Model.Org)/@(Model.App)">previous instance</a>)</label>
           <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
         </div>
       }
