@@ -13,10 +13,7 @@ import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react'
 import { RightMenu } from './RightMenu';
 import { getRandNumber } from './utils';
 import {
-  generateTextResourceFile,
   mapTextResources,
-  removeTextEntry,
-  updateTextEntryId,
   upsertTextEntry,
 } from './mutations';
 import { defaultLangCode } from './constants';
