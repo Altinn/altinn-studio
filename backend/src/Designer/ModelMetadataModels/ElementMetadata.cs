@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         public string ID { get; set; }
 
         /// <summary>
-        /// Gets or sets the ID of the parent element. If a 
+        /// Gets or sets the ID of the parent element. If a
         /// </summary>
         [JsonProperty(PropertyName = "parentElement")]
         public string ParentElement { get; set; }
@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         public string TypeName { get; set; }
 
         /// <summary>
-        /// Gets or sets the element name. The Name should not contain '-' 
+        /// Gets or sets the element name. The Name should not contain '-'
         /// </summary>
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
@@ -61,12 +61,6 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         /// </summary>
         [JsonProperty(PropertyName = "restrictions")]
         public Dictionary<string, Restriction> Restrictions { get; set; }
-
-        /// <summary>
-        /// Gets or sets the choices for this element
-        /// </summary>
-        [JsonProperty(PropertyName = "choices")]
-        public CultureDictionary Choices { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="ElementType"/>
@@ -107,7 +101,7 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         public int MinOccurs { get; set; }
 
         /// <summary>
-        /// Gets or sets the XName for this element. The XML name. 
+        /// Gets or sets the XName for this element. The XML name.
         /// </summary>
         [JsonProperty(PropertyName = "xName")]
         public string XName { get; set; }

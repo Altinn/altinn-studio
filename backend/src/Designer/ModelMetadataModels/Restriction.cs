@@ -19,11 +19,5 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         /// </summary>
         [JsonProperty(PropertyName = "value")]
         public string Value { get; set; }
-
-        /// <summary>
-        /// Gets or sets error texts
-        /// </summary>
-        [JsonProperty(PropertyName = "errortText")]
-        public string ErrortText { get; set; }
     }
 }
