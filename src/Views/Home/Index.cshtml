@@ -73,10 +73,13 @@
         <label for="exampleInputEmail1">Select test users</label>
         @Html.DropDownListFor(model => model.UserId, Model.TestUsers, new { Class = "form-control" })
       </div>
-      <div class="form-group">
-        <label for="exampleInputEmail1">Select app to test found in @Model.AppPath</label>
-        @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control" })
-      </div>
+      @if(!Model.AppModeIsHttp)
+      {
+        <div class="form-group">
+          <label for="exampleInputEmail1">Select app to test found in @Model.AppPath</label>
+          @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control" })
+        </div>
+      }
       <div class="form-group">
         <label for="exampleInputEmail1">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
