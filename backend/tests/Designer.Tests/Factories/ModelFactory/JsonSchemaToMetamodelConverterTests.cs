@@ -12,8 +12,6 @@ using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Metamodel;
-using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Factories.ModelFactory;
 using Designer.Tests.Assertions;
 using Designer.Tests.Utils;
 using FluentAssertions;

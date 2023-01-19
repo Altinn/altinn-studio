@@ -6,7 +6,6 @@ using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories;
-using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;

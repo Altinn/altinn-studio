@@ -59,16 +59,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<string> UpdateModelFilesFromJsonSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent);
 
         /// <summary>
-        /// Creates a JSON schema based on a XSD.
-        /// </summary>
-        /// <param name="org">Organization owning the repository identified by it's short name.</param>
-        /// <param name="repository">Repository name to search for schema files.</param>
-        /// <param name="developer">Developers short name</param>
-        /// <param name="relativeFilePath">Relative path to the file (where in the repository it should be stored).</param>
-        /// <param name="xsdStream">Stream representing the XSD.</param>
-        Task<string> CreateSchemaFromXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream);
-
-        /// <summary>
         /// Builds a JSON schema based on the uploaded XSD.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>

@@ -18,7 +18,6 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
-using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;

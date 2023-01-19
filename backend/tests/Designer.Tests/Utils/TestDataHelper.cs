@@ -11,10 +11,6 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Factories.ModelFactory;
-using Manatee.Json;
-using Manatee.Json.Schema;
-using Manatee.Json.Serialization;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,14 +19,6 @@ namespace Designer.Tests.Utils
 {
     public static class TestDataHelper
     {
-        public static JsonSchema LoadDataFromEmbeddedResourceAsJsonSchema(string resourceName)
-        {
-            var resourceStream = LoadDataFromEmbeddedResource(resourceName);
-
-            using StreamReader streamReader = new StreamReader(resourceStream);
-            JsonValue jsonValue = JsonValue.Parse(streamReader);
-            return new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
-        }
 
         public static string LoadDataFromEmbeddedResourceAsString(string resourceName)
         {

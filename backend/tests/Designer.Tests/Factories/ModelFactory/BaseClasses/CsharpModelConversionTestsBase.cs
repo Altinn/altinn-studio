@@ -7,9 +7,9 @@ using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Metamodel;
-using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Factories.ModelFactory;
 using Designer.Tests.Utils;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Designer.Tests.Factories.ModelFactory.BaseClasses;
 
@@ -41,7 +41,7 @@ public class CsharpModelConversionTestsBase<TTestType> : SchemasConversionTestsB
     protected TTestType MetamodelLoaded(string resourceName)
     {
         var metamodelString = TestDataHelper.LoadTestDataFromFileAsString(resourceName);
-        ModelMetadata = Newtonsoft.Json.JsonConvert.DeserializeObject<ModelMetadata>(metamodelString);
+        ModelMetadata = JsonConvert.DeserializeObject<ModelMetadata>(metamodelString);
         return this as TTestType;
     }
 
