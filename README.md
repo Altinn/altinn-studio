@@ -37,20 +37,34 @@ See deployment for notes on how to deploy the project on a live system.
 
 _NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/private/etc/hosts`_
 
-### Installing
+### Running the solution locally
 
-Clone [Altinn Studio repo][9] from github.
+The fastest way to get things running from scratch is to use our setup-script. This script will start docker and
+ensure that the setup is up todate. As we add more features this script will be updated. It can be run as follows:
 
-Run all parts of the solution in containers (Make sure docker is running)
+```bash
+node ./development/setup.js
+```
+
+More about that script and development in general, [can be found here](development/README.md).
+
+#### Docker Compose
+
+The development environment consist of several services defined in [docker-compose.yml](docker-compose.yml).
+
+- `studio-loadbalancer` which is a simple nginx-container using `nginx:alpine` directly, just used for development.
+- `studio-designer` which is the actual build artifact with the .NET backend and the react-apps.
+- `studio-repos` which is [gitea][20] with some custom config. More [here](gitea/README.md).
+- `studio-db` which is a postgres database used by both `studio-designer` and `studio-repos`.
+
+Run all parts of the solution in containers (Make sure docker is running), with docker compose as follows:
 
 ```bash
 docker-compose up -d --build
 ```
 
 The solution is now available locally at [studio.localhost](http://studio.localhost). (Just create a new user for testing. No email
-verification required)
-
-If you make changes and want to rebuild a specific project using docker-compose this can be done using
+verification required). If you make changes and want to rebuild a specific project using docker-compose this can be done using
 
 ```bash
 docker-compose up -d --build <container>
@@ -62,12 +76,11 @@ Example
 docker-compose up -d --build studio_designer
 ```
 
-### Running and developing solutions locally
-
+If using the script, the `.env`-file is generated and put at root, otherwise you will need to blace it there yourself.
 When starting `docker-compose` the solution should be running as it would in production. But you probably want to change
 parts of the solution. The loadbalancer is configured to route the traffic to the right place according to your
-particular usecase. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The content is as
-follows:
+particular usecase. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The load balancer
+is configured with the following variables.
 
 ```text
 DEVELOP_BACKEND=0
@@ -75,28 +88,20 @@ DEVELOP_DASHBOARD=0
 DEVELOP_APP_DEVELOPMENT=0
 ```
 
-#### Developing Backend
+## Developing Backend
 
-Navigate to the designer backend folder `cd backend/src/Designer`. The first time running, or after any package changes, get the latest packages.
+Navigate to the designer backend folder `cd backend/src/Designer`. The first time running, or after any package changes,
+get the latest packages.
 
 - On MacOS you need one extra step before running .NET:
-
   Change location where the application stores the DataProtectionKeys
-
   ```bash
   export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
   ```
 
-#### Developing Frontend
-
-Start the webpack dev server for the respective app you want to develop:
-
-```bash
-yarn --cwd "frontend" run start-app-development
-yarn --cwd "frontend" run start-dashboard
-```
-
-If you want to work on creating apps locally, [app-template-dotnet](https://github.com/Altinn/app-template-dotnet) repo should be cloned. If the templates repo is cloned in the same folder as altinn-studio, no changes needs to be done, otherwise it should be referenced in appsettings.Development.json.
+If you want to work on creating apps locally, [app-template-dotnet](https://github.com/Altinn/app-template-dotnet) repo
+should be cloned. If the templates repo is cloned in the same folder as altinn-studio, no changes needs to be done,
+otherwise it should be referenced in `appsettings.development.json`.
 
 ```
 {
@@ -114,7 +119,14 @@ Alternative to cloning app-templates-dotnet repo is to use following script to d
 wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip
 ```
 
-#### Building the React apps
+## Developing Frontend
+
+Start the webpack dev server for the respective app you want to develop:
+
+```bash
+yarn --cwd "frontend" run start-app-development
+yarn --cwd "frontend" run start-dashboard
+```
 
 If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating
 to `frontend` and then run the following build script, which will build app frontend apps.
@@ -126,27 +138,12 @@ yarn --cwd "frontend" run build
 Some React projects also have various other predefined scripts, which can be viewed in the `package.json` file
 which is located in the root folder of each react project, example `frontend/dashboard`.
 
-## Running the tests
+More about developing frontend [can be found here](frontend/README.md).
 
-### Lint checks
+## Cypress tests
 
-```bash
-yarn --cwd "frontend" --immutable
-yarn --cwd "frontend" run lint
-```
-
-### Unit tests
-
-```bash
-yarn --cwd "frontend" --immutable
-yarn --cwd "frontend" run test
-```
-
-## Running the tests
-
-### End to end tests
-
-[Integration tests](https://github.com/Altinn/altinn-studio/tree/master/frontend/testing/cypress) for local studio.
+There is created some [integration tests](https://github.com/Altinn/altinn-studio/tree/master/frontend/testing/cypress)
+for studio with cypress. More about these tests [can be found here](frontend/testing/cypress/README.md).
 
 ## Deployment
 
@@ -193,3 +190,4 @@ This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](L
 [17]: https://kubernetes.io/
 [18]: https://github.com/Altinn/altinn-studio/issues/new
 [19]: https://github.com/Altinn/altinn-studio/graphs/contributors
+[20]: https://gitea.io/
