@@ -88,4 +88,17 @@ describe('List component', () => {
     cy.get(dataListPage.sortButton).click().get(dataListPage.tableBody).first().first().contains('Hans');
     cy.get(dataListPage.sortButton).click().get(dataListPage.tableBody).first().first().contains('Petter');
   });
+  it('Search works with list as intended', () => {
+    cy.goto('datalist');
+    cy.get(dataListPage.searchInput).should('be.visible').type('Johanne');
+    cy.get(dataListPage.tableBody)
+      .contains('Johanne')
+      .parent('td')
+      .parent('tr')
+      .within(() => {
+        cy.get('td').eq(2).contains(27);
+        cy.get('td').eq(3).contains('Utvikler');
+      });
+    cy.get(dataListPage.tableBody).should('not.include.text', 'Kåre');
+  });
 });
