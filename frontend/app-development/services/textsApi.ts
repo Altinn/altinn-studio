@@ -134,15 +134,11 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
           await queryFulfilled;
         } catch {
           dispatch(textsApi.util.invalidateTags([{ type: Tags.Translations }]));
-          dispatch(languagesApi.util.invalidateTags([{ type: Tags.DefinedLanguages }]));
         }
       },
       invalidatesTags: () => [
         {
           type: Tags.Translations,
-        },
-        {
-          type: Tags.DefinedLanguages,
         },
       ],
     }),
