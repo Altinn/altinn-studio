@@ -1,25 +1,22 @@
 # Altinn Studio
 
-Altinn Studio is the next generation Altinn application development solution.
-Together with **Altinn Apps** and **Altinn Platform**, this is a complete application development and hosting platform (Altinn 3).
+[![Designer build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/designer-master?label=studio/designer)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
+[![Repos build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/repositories-master?label=studio/repos)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=28)
+
+Altinn Studio is the next generation Altinn application development solution. Together with **Altinn Apps** and
+**Altinn Platform**, this is a complete application development and hosting platform (Altinn 3).
 
 Altinn Studio is available at <https://altinn.studio>.
 
 Read the [Altinn Studio documentation](https://docs.altinn.studio/) to [get started](https://docs.altinn.studio/app/getting-started/).
 We've also created a [into course for app development](https://docs.altinn.studio/app/app-dev-course/) that you can follow at your own pace.
 
-![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg 'Altinn 3 - Concept')
+> **Note** Developing apps?
+> If you just want to quickly perform tests of your app on your development machine you can follow the instructions on
+> how to [run apps locally](docs/LOCALAPP.md). This repository is mainly the Designer-tool that deployed and used to build and
+> monitor apps.
 
-## Build status
-
-[![Designer build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/designer-master?label=studio/designer)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
-[![Repos build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/repositories-master?label=studio/repos)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=28)
-
-## Developing apps?
-
-If you just want to quickly perform tests of your app on your development machine you can follow the instructions on how to [run apps locally](docs/LOCALAPP.md).
-
-## Getting Started
+## Getting Started with developing Altinn Studio
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 See deployment for notes on how to deploy the project on a live system.
@@ -42,7 +39,7 @@ _NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/
 
 ### Installing
 
-Clone [Altinn Studio repo][9]
+Clone [Altinn Studio repo][9] from github.
 
 Run all parts of the solution in containers (Make sure docker is running)
 
@@ -100,6 +97,7 @@ yarn --cwd "frontend" run start-dashboard
 ```
 
 If you want to work on creating apps locally, [app-template-dotnet](https://github.com/Altinn/app-template-dotnet) repo should be cloned. If the templates repo is cloned in the same folder as altinn-studio, no changes needs to be done, otherwise it should be referenced in appsettings.Development.json.
+
 ```
 {
    "GeneralSettings": {
@@ -115,7 +113,6 @@ Alternative to cloning app-templates-dotnet repo is to use following script to d
 ```sh
 wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip
 ```
-
 
 #### Building the React apps
 
