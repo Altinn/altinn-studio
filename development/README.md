@@ -1,13 +1,5 @@
 # Development
 
-The development environment consist of several services defined in docker-compose at the
-root.
-
-- `studio-loadbalancer` which is a simple nginx-container using `nginx:alpine` directly, just used for development.
-- `studio-designer` which is the actual build artifact with the .NET backend and the react-apps.
-- `studio-repos` which is gitea with some custom config.
-- `studio-db` which is a postgres database used by both `studio-designer` and `studio-repos`.
-
 ## Setup script
 
 Run the setup script in this folder with node. This script should be immutable, so that it can be run multiple times
