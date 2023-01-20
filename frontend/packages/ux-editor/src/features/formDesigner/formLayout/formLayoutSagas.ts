@@ -159,6 +159,7 @@ function* deleteFormComponentsSaga({
   try {
     const { components } = payload;
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
+
     for (const id of components) {
       const component = currentLayout.components[id];
       if (component?.type === 'FileUpload') {
