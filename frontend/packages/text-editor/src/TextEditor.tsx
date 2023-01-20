@@ -12,10 +12,7 @@ import { SearchField } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { RightMenu } from './RightMenu';
 import { getRandNumber } from './utils';
-import {
-  mapTextResources,
-  upsertTextEntry,
-} from './mutations';
+import { mapTextResources, upsertTextEntry } from './mutations';
 import { defaultLangCode } from './constants';
 import { TextList } from './TextList';
 
@@ -76,7 +73,7 @@ export const TextEditor = ({
       onTextIdChange({ oldId: textId });
       setTextIds(mutatedIds);
     } catch (e: unknown) {
-      console.error('deleting text failed', e);
+      console.error('Deleting text failed:\n', e);
     }
   };
   const upsertEntry = (entry: TextResourceEntry) =>
@@ -89,7 +86,7 @@ export const TextEditor = ({
       onTextIdChange({ oldId, newId });
       setTextIds(mutatingIds);
     } catch (e: unknown) {
-      console.error('renaming text-id failed', e);
+      console.error('Renaming text-id failed:\n', e);
     }
   };
   const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
