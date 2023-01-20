@@ -28,7 +28,7 @@ public class AppTestDataModel
     {
         var org = Orgs.Select(o => (Organization)o).ToDictionary(o => o.OrgNumber);
         var party = GetParties();
-        var person = Persons.Select(p => (Person)p).ToDictionary(p => p.SSN);
+        var person = Persons.Select(p => (Person)p).Where(p=>!string.IsNullOrEmpty(p.SSN)).ToDictionary(p => p.SSN);
         return new TestDataRegister()
         {
             Org = org,
@@ -84,7 +84,7 @@ public class AppTestDataModel
                     .ToDictionary(p => p.PartyId.ToString());
     }
 
-
+    // Only used for debugging
     public static AppTestDataModel FromTestDataModel(TestDataModel localData)
     {
         int negativePartyId = -1;
@@ -117,6 +117,8 @@ public class AppTestDataModel
             }).ToList(),
             Persons = localData.Register.Person.Values.Select(p =>
             {
+                // TODO: Self identified users are not in the persons table, but should be in the AppTestDataModel.Persons
+                // We need a different way to find persons here, but as this is only for matching old and new model, this is fine.
                 var party = localData.Register.Party.Values.First(party => party.SSN == p.SSN);
                 var profile = localData.Profile.User.Values.First(user => user.PartyId == party.PartyId);
                 var customClaims = localData.Authorization.Claims.TryGetValue(profile.UserId.ToString(), out var v) ? v : new();
@@ -125,7 +127,6 @@ public class AppTestDataModel
 
                 return new AppTestPerson()
                 {
-
                     PartyId = party.PartyId,
                     AddressCity = p.AddressCity,
                     AddressHouseLetter = p.AddressHouseLetter,
