@@ -11,7 +11,7 @@ Altinn Studio is available at <https://altinn.studio>.
 Read the [Altinn Studio documentation](https://docs.altinn.studio/) to [get started](https://docs.altinn.studio/app/getting-started/).
 We've also created a [into course for app development](https://docs.altinn.studio/app/app-dev-course/) that you can follow at your own pace.
 
-> **Developing apps?**
+> **Note** Developing apps?
 > If you just want to quickly perform tests of your app on your development machine you can follow the instructions on
 > how to [run apps locally](docs/LOCALAPP.md). This repository is mainly the Designer-tool that deployed and used to build and
 > monitor apps.
