@@ -8,6 +8,9 @@
         "variant": "search",
         "dataModelBindings": {
           "simpleBinding": "Search"
+        },
+        "textResourceBindings": {
+          "title": "Søk"
         }
       },
       {
@@ -35,7 +38,7 @@
         "mapping": {
           "Search": "search"
         },
-        "required": "true"
+        "required": true
       },
       {
         "id": "toSummary",
