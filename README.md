@@ -39,6 +39,13 @@ _NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/
 
 ### Running the solution locally
 
+Clone the [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder.
+
+```bash
+git clone https://github.com/Altinn/altinn-studio
+cd altinn-studio
+```
+
 The fastest way to get things running from scratch is to use our setup-script. This script will start docker and
 ensure that the setup is up todate. As we add more features this script will be updated. It can be run as follows:
 
