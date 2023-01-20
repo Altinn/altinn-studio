@@ -5289,7 +5289,7 @@ __metadata:
     jest: 29.3.1
     jest-environment-jsdom: 29.3.1
     jest-junit: 15.0.0
-    jest-mock-axios: 4.7.0-beta2
+    jest-mock-axios: 4.7.0-beta3
     jsdom: 21.0.0
     jsonpointer: 5.0.1
     lint-staged: 13.1.0
@@ -10389,14 +10389,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-mock-axios@npm:4.7.0-beta2":
-  version: 4.7.0-beta2
-  resolution: "jest-mock-axios@npm:4.7.0-beta2"
+"jest-mock-axios@npm:4.7.0-beta3":
+  version: 4.7.0-beta3
+  resolution: "jest-mock-axios@npm:4.7.0-beta3"
   dependencies:
     "@jest/globals": ^29.3.1
     jest: ~29.3.1
     synchronous-promise: ^2.0.16
-  checksum: 4797929a2c3c3d333a1403a226de8edda40fac825908716663bc393fb982cb49b1940c278668fdd1e6270661e36075f0c768ea63299c28e82d7b2257182b938e
+  checksum: 5157423833aefe795f5bbad290cfaba871d877130844a7425c2f4f7fc8e69056decffb9f5f4f526a911756541063740c387ee20866d7cab7e4b6be14a5fd93e0
   languageName: node
   linkType: hard
 
