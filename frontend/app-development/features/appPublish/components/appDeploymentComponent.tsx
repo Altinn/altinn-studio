@@ -52,7 +52,6 @@ export const AppDeploymentComponent = ({
   orgName,
 }: IAppDeploymentComponentProps) => {
   const dispatch = useDispatch();
-  const [deployButtonDisabled, setDeployButtonDisabled] = useState(true);
   const [deployInProgress, setDeployInProgress] = useState(null);
   const [deploymentStatus, setDeploymentStatus] = useState(null);
   const [selectedImageTag, setSelectedImageTag] = useState(null);
@@ -76,10 +75,6 @@ export const AppDeploymentComponent = ({
       })
     );
   };
-
-  useEffect(() => {
-    setDeployButtonDisabled(selectedImageTag === null || deployInProgress === true);
-  }, [selectedImageTag, deployInProgress]);
 
   useEffect(() => {
     setSucceededDeployHistory(
@@ -165,7 +160,7 @@ export const AppDeploymentComponent = ({
               appDeployedVersion={appDeployedVersion}
               language={language}
               envName={envName}
-              disabled={deployButtonDisabled}
+              disabled={selectedImageTag === null || deployInProgress === true}
               deployHistoryEntry={deployHistory[0]}
               deploymentStatus={deploymentStatus}
               selectedImageTag={selectedImageTag}
