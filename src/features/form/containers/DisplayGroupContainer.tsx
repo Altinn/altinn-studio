@@ -75,7 +75,7 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
         >
           <Typography
             className={classes.groupTitle}
-            variant='body1'
+            variant='h2'
           >
             {title}
           </Typography>
