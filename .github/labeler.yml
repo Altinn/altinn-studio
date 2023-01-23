@@ -12,21 +12,12 @@ solution/apps:
 
 solution/studio/designer:
   - 'backend/**/*'
+  - 'frontend/**/*'
 
 solution/studio/repos:
   - 'gitea/**/*'
 
 # Labels for areas
-
-area/api-expose:
-  - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.Api/**/*'
-
-area/api-use:
-  - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.PlatformServices/**/*'
-
-area/authorization:
-  - 'src/Altinn.Common/Altinn.Common.AccessToken/**/*'
-  - 'src/Altinn.Common/Altinn.Common.PEP/**/*'
 
 area/app-deploy:
   - 'frontend/app-development/features/appPublish/**/*'
@@ -38,15 +29,23 @@ area/app-deploy:
 area/dashboard:
   - 'frontend/dashboard/**/*'
 
+area/data-modeling:
+  - 'frontend/packages/schema-editor/**/*'
+  - 'frontend/packages/schema-model/**/*'
+  - 'backend/src/DataModeling/**/*'
+
 area/pdf:
   - 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
 
 area/process:
-  - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.Common/Process/**/*'
-  - 'src/Altinn.Apps/AppTemplates/AspNet/App/config/process/**/*'
+  - 'src/Altinn.Apps/AppTemplates/ProcessTemplates/**/*'
 
 area/ui-editor:
   - 'frontend/packages/ux-editor/**/*'
 
 area/test:
   - 'src/test/**/*'
+
+area/text-editor:
+  - 'frontend/packages/text-editor/**'
+  - 'frontend/app-development/features/textEditor/**/*'

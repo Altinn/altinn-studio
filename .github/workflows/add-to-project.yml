@@ -1,0 +1,16 @@
+name: Add new issues to Team Studio project
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  add-to-project:
+    name: Add issue to Team Studio project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@main
+        with:
+          project-url: https://github.com/orgs/Altinn/projects/36
+          github-token: ${{ secrets.ASSIGN_PROJECT_TOKEN }}
