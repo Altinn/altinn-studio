@@ -6,8 +6,6 @@
   "dependencies": {
     "@mui/material": "5.11.4",
     "@reduxjs/toolkit": "1.9.1",
-    "altinn-designsystem": "4.2.0",
-    "app-shared": "0.1.0",
     "axios": "1.2.2",
     "classnames": "2.3.2",
     "react": "18.2.0",
