@@ -7,7 +7,7 @@ import { AltinnSpinner } from 'app-shared/components';
 import { Button } from '@digdir/design-system-react';
 import { CenterContainer } from '../common/components/CenterContainer';
 import { CreateService } from '../features/createService/CreateService';
-import { Dashboard } from '../features/dashboard/Dashboard';
+import { Dashboard } from '../pages/Dashboard';
 import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
 import { DataModellingContainer } from '../features/standaloneDataModelling/DataModelling';
 import { Route, Routes } from 'react-router-dom';
@@ -19,14 +19,14 @@ import { useGetOrganizationsQuery } from '../services/organizationApi';
 import { userHasAccessToSelectedContext } from '../common/utils';
 import AppHeader, {
   HeaderContext,
-  SelectedContextType,
+  SelectedContextType
 } from 'app-shared/navigation/main-header/Header';
 import {
   frontendLangPath,
   userCurrentPath,
   userLogoutAfterPath,
   userLogoutPath,
-  userReposPath,
+  userReposPath
 } from 'app-shared/api-paths';
 
 export const App = () => {
@@ -39,7 +39,7 @@ export const App = () => {
   const setSelectedContext = (newSelectedContext: SelectedContext) =>
     dispatch(
       DashboardActions.setSelectedContext({
-        selectedContext: newSelectedContext,
+        selectedContext: newSelectedContext
       })
     );
 
@@ -51,7 +51,7 @@ export const App = () => {
     selectableOrgs: orgs,
     selectedContext,
     setSelectedContext,
-    user,
+    user
   };
 
   useEffect(() => {
