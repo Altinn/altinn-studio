@@ -19,7 +19,7 @@ export const getParsedLanguageFromKey = (
   language: any,
   params?: any[],
   stringOutput?: boolean
-) => {
+): string => {
   const name = getLanguageFromKey(key, language);
   const paramParsed = params ? replaceParameters(name, params) : name;
 
