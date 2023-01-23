@@ -55,7 +55,7 @@ export const designer = {
     uiEditor: "[data-testid='leftMenu_ui-editor']",
     accessControl: "a[data-testid='leftMenu_accesscontrol']",
   },
-  dragToArea: '.col-12',
+  dragToArea: "[data-testid='droppable-draggable-container']",
   draggable: "div[draggable='true']",
   formComponents: {
     shortAnswer: "i[class^='fa fa-short-answer']",

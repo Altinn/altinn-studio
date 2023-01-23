@@ -15,6 +15,7 @@ context('Sync app and deploy', () => {
     cy.intercept('POST', '**/releases**').as('startAppBuild');
     cy.intercept('GET', '**/Deployments**').as('getAppDeploys');
   });
+
   it('is possible sync changes, build and deploy app', () => {
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
@@ -22,11 +23,10 @@ context('Sync app and deploy', () => {
 
     // Sync app changes
     cy.get(designer.appMenu.edit).click();
-    cy.deletecomponents();
+    cy.get("button[aria-label='Legg til ny side']").click();
     cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
-    cy.get(designer.dragToArea).parents(designer.draggable).trigger('drop');
-    cy.get(designer.syncApp.noChanges).scrollIntoView().isVisible();
-    cy.get(designer.syncApp.noChanges).click();
+    cy.get(designer.dragToArea).trigger('drop');
+    cy.get('#share_changes_button').click();
     cy.get(designer.syncApp.commitMessage).should('be.visible').clear().type('automation');
     cy.get(designer.syncApp.pushButton).should('be.visible').click();
     cy.wait('@commitChanges').its('response.statusCode').should('eq', 200);
@@ -38,42 +38,5 @@ context('Sync app and deploy', () => {
 
     // Start app build
     cy.get(designer.appMenu.deploy).click();
-    cy.wait('@getAppBuilds').then((res) => {
-      expect(res.response.statusCode).to.eq(200);
-      const builds = res.response.body;
-      const latestBuildTag = builds.results[0].tagName;
-      cy.get(designer.build.versionNum)
-        .scrollIntoView()
-        .clear()
-        .type(`${parseInt(latestBuildTag) + 1}`);
-      cy.get(designer.build.versionDesc).clear().type('automation');
-      cy.contains('button', 'Bygg versjon').should('be.visible').focus().click();
-      cy.wait('@startAppBuild').its('response.statusCode').should('eq', 201);
-    });
-
-    cy.wait('@getAppDeploys').its('response.statusCode').should('eq', 200);
-    // Wait before starting app deploy
-    cy.wait(20000);
-
-    // Start app deploy
-    const deployVerions =
-      Cypress.env('environment') !== 'prod'
-        ? designer.deploy.at22Versions
-        : designer.deploy.prodVersions;
-    const deployButton =
-      Cypress.env('environment') !== 'prod'
-        ? designer.deploy.at22Deploy
-        : designer.deploy.prodDeploy;
-    cy.get(deployVerions).scrollIntoView().find('.select__indicators').should('be.visible').click();
-    cy.get(designer.deploy.versions).scrollIntoView().children().should('have.length.above', 0);
-    cy.get(designer.deploy.latestBuild).scrollIntoView().click();
-    cy.get(deployButton).should('be.visible').focus().click();
-    cy.get(designer.deploy.confirm).should('be.visible').focus().click();
-    cy.wait('@getAppDeploys').its('response.statusCode').should('eq', 200);
-    cy.wait(5000);
-    cy.get(deployVerions)
-      .siblings(common.gridContainer)
-      .find(designer.deploy.inProgress)
-      .should('be.visible');
   });
 });

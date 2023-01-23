@@ -35,15 +35,13 @@ Cypress.Commands.add('createapp', (orgName, appName) => {
  */
 Cypress.Commands.add('deletecomponents', () => {
   cy.get(designer.dragToArea)
-    .parent()
-    .siblings()
-    .find(designer.draggable)
-    .then(($component) => {
-      if ($component.length > 0 && $component.text().indexOf('Tomt, dra noe inn her...') === -1) {
-        cy.get($component).each(($el) => {
-          cy.wrap($el).click();
+    .find("[role='listitem']")
+    .then(($elements) => {
+      if ($elements.length > 0 && $elements.text().indexOf('Tomt, dra noe inn her...') === -1) {
+        cy.get($elements).each(($element) => {
+          cy.wrap($element).trigger('mouseover');
         });
-        cy.get(designer.deleteComponent).parents('button').click({ multiple: true, force: true });
+        cy.get("[data-testid='component-delete-button']").click({ multiple: true, force: true });
       }
     });
 });
