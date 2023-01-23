@@ -7,6 +7,7 @@ import PartySelection from 'src/features/instantiate/containers/PartySelection';
 import UnknownError from 'src/features/instantiate/containers/UnknownError';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
+import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import ProcessWrapper from 'src/shared/containers/ProcessWrapper';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { get } from 'src/utils/network/networking';
@@ -24,6 +25,20 @@ export const App = () => {
 
   const allowAnonymousSelector = makeGetAllowAnonymousSelector();
   const allowAnonymous = useAppSelector(allowAnonymousSelector);
+
+  const appName = useAppSelector(selectAppName);
+  const appOwner = useAppSelector(selectAppOwner);
+
+  // Set the title of the app
+  React.useEffect(() => {
+    if (appName && appOwner) {
+      document.title = `${appName} • ${appOwner}`;
+    } else if (appName && !appOwner) {
+      document.title = appName;
+    } else if (!appName && appOwner) {
+      document.title = appOwner;
+    }
+  }, [appOwner, appName]);
 
   const [ready, setReady] = React.useState(false);
 
