@@ -6,7 +6,7 @@ import type { SelectedContext } from '../resources/fetchDashboardResources/dashb
 import { AltinnSpinner } from 'app-shared/components';
 import { Button } from '@digdir/design-system-react';
 import { CenterContainer } from '../common/components/CenterContainer';
-import { CreateService } from '../features/createService/CreateService';
+import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
 import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
 import { DataModellingContainer } from '../features/standaloneDataModelling/DataModelling';
