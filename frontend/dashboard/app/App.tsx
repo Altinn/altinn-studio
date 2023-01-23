@@ -9,7 +9,7 @@ import { CenterContainer } from '../common/components/CenterContainer';
 import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
 import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
-import { DataModellingContainer } from '../features/standaloneDataModelling/DataModelling';
+import { DataModellingContainer } from '../pages/DataModelling';
 import { Route, Routes } from 'react-router-dom';
 import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
 import { getLanguageFromKey } from 'app-shared/utils/language';
