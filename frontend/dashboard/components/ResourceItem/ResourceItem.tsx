@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from '../hooks';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import classes from './ResourceItem.module.css';
 
 export interface ResourceItemProps {

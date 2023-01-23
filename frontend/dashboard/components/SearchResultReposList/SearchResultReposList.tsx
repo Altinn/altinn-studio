@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import type { GridSortModel } from '@mui/x-data-grid';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
-import { useAppSelector } from '../../common/hooks';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { useGetUserStarredReposQuery } from '../../services/userApi';
 import { useGetSearchQuery } from '../../services/repoApi';
-import { RepoList } from '../../common/components/RepoList';
+import { RepoList } from '../../components/RepoList';
 
 const rowsPerPageOptions = [8];
 

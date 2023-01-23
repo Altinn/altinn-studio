@@ -4,7 +4,6 @@ import type { IRepository } from 'app-shared/types/global';
 import type { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
 import type { Organizations } from '../../services/organizationApi';
 
-
 type GetReposLabel = {
   selectedContext: SelectedContext;
   orgs: Organizations;
@@ -56,4 +55,9 @@ export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
         : false,
     };
   });
+};
+
+export const validateRepoName = (repoName: string) => {
+  const appNameRegex = /^(?!datamodels$)[a-z][a-z0-9-]{1,28}[a-z0-9]$/;
+  return appNameRegex.test(repoName);
 };

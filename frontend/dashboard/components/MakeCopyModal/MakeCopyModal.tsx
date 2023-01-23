@@ -8,8 +8,10 @@ import { DashboardActions } from '../../resources/fetchDashboardResources/dashbo
 import type { PopoverOrigin } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { validateRepoName } from '../utils';
-import { useAppDispatch, useAppSelector } from '../hooks';
+import { validateRepoName } from '../../utils/repoUtils';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { useAppSelector } from '../../hooks/useAppSelector';
+
 import { TextField } from '@altinn/altinn-design-system';
 import { copyAppPath, userReposPath } from 'app-shared/api-paths';
 import classes from './MakeCopyModal.module.css';

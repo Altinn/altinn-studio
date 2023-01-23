@@ -3,10 +3,10 @@ import { AltinnSpinner } from 'app-shared/components';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
-import { validateRepoName } from '../../common/utils';
-import { useAppSelector } from '../../common/hooks';
+import { validateRepoName } from '../../utils/repoUtils';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { DataModellingFormat, useAddRepoMutation } from '../../services/repoApi';
-import { applicationAboutPage } from '../../common/utils/urlUtils';
+import { applicationAboutPage } from '../../utils/urlUtils';
 import classes from './CreateService.module.css';
 import { Button, ButtonColor } from '@digdir/design-system-react';
 

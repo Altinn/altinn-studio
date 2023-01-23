@@ -6,14 +6,14 @@ import { SearchField } from '@altinn/altinn-design-system';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { Close } from '@navikt/ds-icons';
-import { CenterContainer } from '../../common/components/CenterContainer';
+import { CenterContainer } from '../../components/CenterContainer';
 import { DatamodelsReposList } from '../../components/DataModelsRepoList';
 import { OrgReposList } from '../../components/OrgRepoList';
 import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
-import { Footer } from '../../common/components/Footer';
+import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
-import { useAppSelector } from '../../common/hooks';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { useDebounce } from 'react-use';
 
 type DashboardProps = {

@@ -2,7 +2,9 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { DataModelling } from 'app-shared/features';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
-import { useAppDispatch, useAppSelector } from '../../common/hooks';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { useAppSelector } from '../../hooks/useAppSelector';
+
 
 export const DataModellingContainer = () => {
   const language = useAppSelector((state) => state.language.language);

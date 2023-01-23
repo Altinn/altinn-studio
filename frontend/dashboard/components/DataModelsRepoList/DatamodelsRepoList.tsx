@@ -1,9 +1,9 @@
 import React from 'react';
-import { RepoList } from '../../common/components/RepoList';
+import { RepoList } from '../../components/RepoList';
 import { getReposLabel } from '../../utils/repoUtils';
 import { getUidFilter } from '../../utils/filterUtils';
 
-import { useAppSelector } from '../../common/hooks';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred/useAugmentReposWithStarred';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useGetSearchQuery } from '../../services/repoApi';

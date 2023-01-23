@@ -1,7 +1,7 @@
 import React from 'react';
-import { RepoList } from '../../common/components/RepoList';
+import { RepoList } from '../../components/RepoList';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from '../../common/hooks';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { useGetUserStarredReposQuery } from '../../services/userApi';
 
 export const FavoriteReposList = () => {

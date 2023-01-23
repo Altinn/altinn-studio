@@ -5,7 +5,7 @@ import type { IGiteaOrganisation } from 'app-shared/types/global';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
-import { useAppSelector } from '../../common/hooks';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { Select } from '@digdir/design-system-react';
 
 const zIndex = {

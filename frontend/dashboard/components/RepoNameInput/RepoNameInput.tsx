@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from '../../common/hooks';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { TextField } from '@altinn/altinn-design-system';
 
 interface IRepoNameInputProps {

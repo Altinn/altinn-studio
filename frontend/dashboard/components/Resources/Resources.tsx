@@ -1,7 +1,7 @@
 import React from 'react';
-import { ResourceItem } from './ResourceItem';
+import { ResourceItem } from '../ResourceItem';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from '../hooks';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { Divider, SimpleContainer } from 'app-shared/primitives';
 import classes from './Resources.module.css';
 interface Resource {

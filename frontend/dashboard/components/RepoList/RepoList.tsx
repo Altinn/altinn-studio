@@ -12,11 +12,11 @@ import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 import cn from 'classnames';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
-import type { User } from '../../../resources/fetchDashboardResources/dashboardSlice';
-import { MakeCopyModal } from '../MakeCopyModal';
+import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
+import { MakeCopyModal } from '../../components/MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
-import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../../services/userApi';
-import { useAppSelector } from '../../hooks';
+import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../services/userApi';
+import { useAppSelector } from '../../hooks/useAppSelector';
 
 import classes from './RepoList.module.css';
 
