@@ -1,4 +1,4 @@
-import type { IAppState } from '../types/global';
+import type { IAppState, IDataModelFieldElement } from '../types/global';
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import { render, renderHook } from '@testing-library/react';
@@ -27,6 +27,24 @@ export const dataModelStateMock: IDataModelState = {
   fetching: false,
   fetched: true,
   error: null,
+}
+
+export const dataModelItemMock: IDataModelFieldElement = {
+    dataBindingName: '',
+    displayString: '',
+    id: '',
+    isReadOnly: false,
+    isTagContent: false,
+    jsonSchemaPointer: '',
+    maxOccurs: 0,
+    minOccurs: 0,
+    name: '',
+    parentElement: '',
+    restrictions: undefined,
+    texts: undefined,
+    type: '',
+    xmlSchemaXPath: '',
+    xPath: '',
 }
 
 export const languageStateMock: ILanguageState = {
