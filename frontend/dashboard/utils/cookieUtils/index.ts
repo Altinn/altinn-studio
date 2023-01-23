@@ -1,0 +1,1 @@
+export { getCookie } from './cookieUtils';

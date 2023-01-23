@@ -5,28 +5,29 @@ import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
 import type { SelectedContext } from '../resources/fetchDashboardResources/dashboardSlice';
 import { AltinnSpinner } from 'app-shared/components';
 import { Button } from '@digdir/design-system-react';
-import { CenterContainer } from '../common/components/CenterContainer';
-import { CreateService } from '../features/createService/CreateService';
-import { Dashboard } from '../features/dashboard/Dashboard';
+import { CenterContainer } from '../components/CenterContainer';
+import { CreateService } from '../pages/CreateService';
+import { Dashboard } from '../pages/Dashboard';
 import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
-import { DataModellingContainer } from '../features/standaloneDataModelling/DataModelling';
+import { DataModellingContainer } from '../pages/DataModelling';
 import { Route, Routes } from 'react-router-dom';
 import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
-import { useAppDispatch, useAppSelector } from '../common/hooks';
+import { useAppDispatch } from '../hooks/useAppDispatch';
+import { useAppSelector } from '../hooks/useAppSelector';
 import { useGetOrganizationsQuery } from '../services/organizationApi';
-import { userHasAccessToSelectedContext } from '../common/utils';
+import { userHasAccessToSelectedContext } from '../utils/userUtils';
 import AppHeader, {
   HeaderContext,
-  SelectedContextType,
+  SelectedContextType
 } from 'app-shared/navigation/main-header/Header';
 import {
   frontendLangPath,
   userCurrentPath,
   userLogoutAfterPath,
   userLogoutPath,
-  userReposPath,
+  userReposPath
 } from 'app-shared/api-paths';
 
 export const App = () => {
@@ -39,7 +40,7 @@ export const App = () => {
   const setSelectedContext = (newSelectedContext: SelectedContext) =>
     dispatch(
       DashboardActions.setSelectedContext({
-        selectedContext: newSelectedContext,
+        selectedContext: newSelectedContext
       })
     );
 
@@ -51,7 +52,7 @@ export const App = () => {
     selectableOrgs: orgs,
     selectedContext,
     setSelectedContext,
-    user,
+    user
   };
 
   useEffect(() => {
