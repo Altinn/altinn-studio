@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { ServiceOwnerSelector, RepoNameInput } from '../../components';
+import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
+import { RepoNameInput } from '../../components/RepoNameInput';
 import { validateRepoName } from '../../common/utils';
 import { useAppSelector } from '../../common/hooks';
 import { DataModellingFormat, useAddRepoMutation } from '../../services/repoApi';

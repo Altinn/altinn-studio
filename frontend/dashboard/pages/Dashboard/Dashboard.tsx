@@ -7,12 +7,10 @@ import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { Close } from '@navikt/ds-icons';
 import { CenterContainer } from '../../common/components/CenterContainer';
-import {
-  DatamodelsReposList,
-  OrgReposList,
-  SearchResultReposList,
-  FavoriteReposList
-} from '../../components';
+import { DatamodelsReposList } from '../../components/DataModelsRepoList';
+import { OrgReposList } from '../../components/OrgRepoList';
+import { SearchResultReposList } from '../../components/SearchResultReposList';
+import { FavoriteReposList } from '../../components/FavoriteReposList';
 import { Footer } from '../../common/components/Footer';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../../common/hooks';

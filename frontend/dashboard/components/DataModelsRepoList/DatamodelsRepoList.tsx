@@ -1,6 +1,8 @@
 import React from 'react';
 import { RepoList } from '../../common/components/RepoList';
-import { getUidFilter, getReposLabel } from '../../utils';
+import { getReposLabel } from '../../utils/repoUtils';
+import { getUidFilter } from '../../utils/filterUtils';
+
 import { useAppSelector } from '../../common/hooks';
 import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred/useAugmentReposWithStarred';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
@@ -19,12 +21,12 @@ export const DatamodelsReposList = () => {
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
     uid,
     keyword: '-datamodels',
-    page: 0,
+    page: 0
   });
 
   const reposWithStarred = useAugmentReposWithStarred({
     repos: repos?.data,
-    starredRepos,
+    starredRepos
   });
 
   if (!reposWithStarred.length) {

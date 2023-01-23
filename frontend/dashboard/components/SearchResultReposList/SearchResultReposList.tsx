@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { GridSortModel } from '@mui/x-data-grid';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAugmentReposWithStarred } from '../../hooks';
+import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
 import { useAppSelector } from '../../common/hooks';
 import { useGetUserStarredReposQuery } from '../../services/userApi';
 import { useGetSearchQuery } from '../../services/repoApi';

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { MergeReposProps } from '../../utils';
-import { mergeRepos } from '../../utils';
+import type { MergeReposProps } from '../../utils/repoUtils';
+import { mergeRepos } from '../../utils/repoUtils';
 import type { IRepository } from 'app-shared/types/global';
 
 export const useAugmentReposWithStarred = ({
