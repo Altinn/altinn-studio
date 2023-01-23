@@ -1,1 +1,1 @@
-export * from './useAugmentReposWithStarred';
+export { useAugmentReposWithStarred } from './useAugmentReposWithStarred';

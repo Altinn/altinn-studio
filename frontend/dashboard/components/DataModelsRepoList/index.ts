@@ -1,1 +1,1 @@
-export * from './DatamodelsRepoList';
+export { DatamodelsReposList } from './DatamodelsRepoList';

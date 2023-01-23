@@ -1,1 +1,1 @@
-export * from './MakeCopyModal';
+export { IMakeCopyModalProps, MakeCopyModal } from './MakeCopyModal';

@@ -1,1 +1,1 @@
-export * from './filterUtils';
+export { getUidFilter } from './filterUtils';

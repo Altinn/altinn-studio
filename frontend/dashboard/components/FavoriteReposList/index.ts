@@ -1,1 +1,1 @@
-export * from './FavoriteReposList';
+export { FavoriteReposList } from './FavoriteReposList';

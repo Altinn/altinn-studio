@@ -1,1 +1,1 @@
-export * from './OrgReposList';
+export { OrgReposList } from './OrgReposList';

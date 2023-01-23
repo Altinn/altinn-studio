@@ -1,1 +1,1 @@
-export * from './urlUtils';
+export { applicationAboutPage, getRepoEditUrl } from './urlUtils';

@@ -1,1 +1,1 @@
-export * from './RepoNameInput';
+export { RepoNameInput } from './RepoNameInput';

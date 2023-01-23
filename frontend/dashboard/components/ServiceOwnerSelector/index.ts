@@ -1,1 +1,1 @@
-export * from './ServiceOwnerSelector';
+export { ServiceOwnerSelector } from './ServiceOwnerSelector';

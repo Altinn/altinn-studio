@@ -1,1 +1,1 @@
-export * from './SearchResultReposList';
+export { SearchResultReposList } from './SearchResultReposList';
