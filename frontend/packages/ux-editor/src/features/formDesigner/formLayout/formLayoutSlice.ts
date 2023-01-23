@@ -217,7 +217,7 @@ const formLayoutSlice = createSlice({
             containerId = cId;
           }
         });
-        delete selectedLayout.components[id];
+
         selectedLayout.order[containerId].splice(selectedLayout.order[containerId].indexOf(id), 1);
         state.unSavedChanges = true;
         state.error = null;
