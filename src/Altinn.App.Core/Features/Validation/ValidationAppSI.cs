@@ -3,6 +3,7 @@ using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -183,6 +184,35 @@ namespace Altinn.App.Core.Features.Validation
                 };
                 messages.Add(message);
             }
+
+            if (dataType.EnableFileScan && dataElement.FileScanResult == FileScanResult.Infected)
+            {
+                ValidationIssue message = new ValidationIssue()
+                {
+                    InstanceId = instance.Id,
+                    DataElementId = dataElement.Id,
+                    Code = ValidationIssueCodes.DataElementCodes.DataElementFileInfected,
+                    Severity = ValidationIssueSeverity.Error,
+                    Description = ValidationIssueCodes.DataElementCodes.DataElementFileInfected,
+                    Field = dataType.Id
+                };
+                messages.Add(message);
+            }
+
+            //TODO: Awaits new property on pending file scans
+            //if (dataType.EnableFileScan && dataElement.ValidationErrorOnPendingFileScan && dataElement.FileScanResult == FileScanResult.Pending)
+            //{
+            //    ValidationIssue message = new ValidationIssue()
+            //    {
+            //        InstanceId = instance.Id,
+            //        DataElementId = dataElement.Id,
+            //        Code = ValidationIssueCodes.DataElementCodes.DataElementFileScanPending,
+            //        Severity = ValidationIssueSeverity.Error,
+            //        Description = ValidationIssueCodes.DataElementCodes.DataElementFileScanPending,
+            //        Field = dataType.Id
+            //    };
+            //    messages.Add(message);
+            //}
 
             if (dataType.AppLogic?.ClassRef != null)
             {
