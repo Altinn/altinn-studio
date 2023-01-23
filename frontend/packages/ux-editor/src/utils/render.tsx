@@ -49,46 +49,6 @@ export const PropertyLabel = ({ textKey, htmlFor }: IPropertyLabelProps) => {
   );
 };
 
-export interface IRenderSelectDataModelBinding {
-  dataModelBinding: IDataModelBindings;
-  onDataModelChange: any;
-  label?: string;
-  returnValue?: any;
-  key?: string;
-  uniqueKey?: any;
-}
-
-export const renderSelectDataModelBinding = ({
-  dataModelBinding,
-  onDataModelChange,
-  label,
-  returnValue,
-  key = 'simpleBinding',
-  uniqueKey,
-}: IRenderSelectDataModelBinding): JSX.Element => {
-  const t = useText();
-  const onDMChange = (dataModelField: any) => onDataModelChange(dataModelField, returnValue);
-  return (
-    <div key={uniqueKey || ''}>
-      <PropertyLabel
-        htmlFor={`selectDataModelSelect-${label}`}
-        textKey={
-          label
-            ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
-            : t('ux_editor.modal_properties_data_model_helper')
-        }
-      />
-      <SelectDataModelComponent
-        inputId={`selectDataModelSelect-${label}`}
-        selectedElement={dataModelBinding[key]}
-        onDataModelChange={onDMChange}
-        t={t}
-        noOptionsMessage={t('general.no_options')}
-      />
-    </div>
-  );
-};
-
 export const renderSelectGroupDataModelBinding = (
   dataModelBinding: IDataModelBindings,
   onDataModelChange: any,
