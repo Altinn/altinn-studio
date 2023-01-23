@@ -48,6 +48,7 @@ const AltinnAppTheme = {
   },
   typography: {
     htmlFontSize: 16,
+    // TODO: Change order when switching to 'Inter', that should be first
     fontFamily: [
       '-apple-system',
       'BlinkMacSystemFont',
