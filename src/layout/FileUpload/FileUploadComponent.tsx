@@ -169,9 +169,12 @@ export function FileUploadComponent({
       : getLanguageFromKey('general.loading', language);
 
     return uploaded ? (
-      <div aria-label={status}>
+      <div>
         {mobileView ? null : status}
         <i
+          aria-hidden={!mobileView}
+          aria-label={status}
+          role='img'
           className='ai ai-check-circle'
           style={mobileView ? { marginLeft: '10px' } : {}}
         />

@@ -106,6 +106,8 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
                   : undefined}
                 <i
                   className='ai ai-check-circle'
+                  role='img'
+                  aria-hidden={!props.mobileView}
                   aria-label={getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)}
                 />
               </div>

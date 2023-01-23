@@ -212,7 +212,12 @@ export function FileList(props: FileListProps): JSX.Element | null {
                                 {getLanguageFromKey('form_filler.file_uploader_mb', props.language)}
                                 <i
                                   className='ai ai-check-circle'
-                                  style={props.mobileView ? { marginLeft: '10px' } : {}}
+                                  role='img'
+                                  aria-label={getLanguageFromKey(
+                                    'form_filler.file_uploader_list_status_done',
+                                    props.language,
+                                  )}
+                                  style={{ marginLeft: '10px' }}
                                 />
                               </div>
                             ) : (

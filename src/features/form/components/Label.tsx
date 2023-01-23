@@ -34,6 +34,7 @@ export default function Label(props: IFormLabelProps) {
           className='a-form-label title-label'
           htmlFor={props.id}
           data-testid={`label-${props.id}`}
+          id={`label-${props.id}`}
         >
           {props.labelText}
           <RequiredIndicator
