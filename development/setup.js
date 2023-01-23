@@ -5,8 +5,6 @@ const ensureDotEnv = require('./utils/ensure-dot-env.js');
 const dnsIsOk = require('./utils/check-if-dns-is-correct.js');
 const createCypressEnvFile = require('./utils/create-cypress-env-file.js');
 const path = require('path');
-const fs = require('fs');
-const os = require('os');
 
 const startingDockerCompose = () => runCommand('docker compose up -d --remove-orphans');
 
@@ -98,8 +96,6 @@ const addUserToSomeTestDepTeams = async (env) => {
     });
   }
 };
-
-
 
 const addReleaseAndDeployTestDataToDb = async () =>
   runCommand(
