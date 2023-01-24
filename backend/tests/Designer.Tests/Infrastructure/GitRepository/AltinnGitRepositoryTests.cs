@@ -64,7 +64,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public void Constructor_InvalidPathParameters_ShouldThrowException()
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = Path.Combine(repositoriesRootDirectory, "..", "Model");
+            string repositoryDirectory = Path.Combine(repositoriesRootDirectory, "..", "Deployments");
 
             Assert.Throws<ArgumentException>(() => new AltinnGitRepository("ttd", "hvem-er-hvem", "testUser", repositoriesRootDirectory, repositoryDirectory));
         }

@@ -235,7 +235,7 @@ namespace Designer.Tests.Services
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter, TestDataHelper.ModelMetadataToCsharpConverter);
-                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.OED.xsd");
+                var xsdStream = SharedResourcesHelper.LoadTestData("Model/XmlSchema/Gitea/OED.xsd");
                 var schemaName = "OED_M";
                 var fileName = $"{schemaName}.xsd";
                 var relativeDirectory = "App/models";
