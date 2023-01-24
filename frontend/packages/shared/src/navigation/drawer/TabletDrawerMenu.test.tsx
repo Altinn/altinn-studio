@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ITabletDrawerMenuProps } from './TabletDrawerMenu';
 import TabletDrawerMenu from './TabletDrawerMenu';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -26,7 +26,7 @@ describe('TabletDrawerMenu', () => {
     const menuButton = screen.getByRole('button', {
       name: /meny/i,
     });
-    await user.click(menuButton);
+    await act(() => user.click(menuButton));
     expect(handleTabletDrawerMenu).toHaveBeenCalled();
   });
 });

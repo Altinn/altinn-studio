@@ -1,6 +1,6 @@
 import React from 'react';
 import { HandleMergeConflictAbort } from './HandleMergeConflictAbort';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import * as networking from 'app-shared/utils/networking';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event/setup/setup';
@@ -13,11 +13,11 @@ const renderHandleMergeConflictAbort = () => {
 
 // find and click the button that opens the popover
 const findAndClickOpenPopoverButton = (user: UserEvent) =>
-  user.click(
+  act(() => user.click(
     screen.getByRole('button', {
       name: 'handle_merge_conflict.abort_merge_button',
     })
-  );
+  ));
 
 afterEach(() => jest.restoreAllMocks());
 jest.mock('app-shared/utils/networking', () => ({
@@ -45,7 +45,7 @@ test('should handle successfully returned data from API', async () => {
     name: 'handle_merge_conflict.abort_merge_button_cancel',
   });
   expect(abortMergeButtonCancel).toBeDefined();
-  await user.click(abortMergeButtonCancel);
+  await act(() => user.click(abortMergeButtonCancel));
 
   // the popover should be closed at this point
   expect(screen.queryByRole('presentation')).toBeNull();
@@ -65,7 +65,7 @@ test('should handle successfully returned data from API', async () => {
   expect(mockGet).not.toHaveBeenCalled();
 
   // creating a mock for the return value
-  await user.click(abortMergeButtonConfirm);
+  await act(() => user.click(abortMergeButtonConfirm));
   // the mock get function should have been called
   expect(mockGet).toHaveBeenCalled();
 });
@@ -85,7 +85,7 @@ test('should handle unsuccessfully returned data from API', async () => {
     name: 'handle_merge_conflict.abort_merge_button_confirm',
   });
   // Click the confirm button
-  await user.click(abortMergeButtonConfirm);
+  await act(() => user.click(abortMergeButtonConfirm));
 
   // Expect functions to be called
   expect(mockGet).toHaveBeenCalled();
@@ -108,7 +108,7 @@ test('should catch error from networked function', async () => {
     name: 'handle_merge_conflict.abort_merge_button_confirm',
   });
   // Click the confirm button
-  await user.click(abortMergeButtonConfirm);
+  await act(() => user.click(abortMergeButtonConfirm));
   expect(mockGet).toHaveBeenCalled();
 
   // Expect console.error to be called.

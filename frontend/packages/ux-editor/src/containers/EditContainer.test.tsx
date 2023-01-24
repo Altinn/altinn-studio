@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { EditContainer } from './EditContainer';
@@ -20,7 +20,7 @@ describe('EditContainer', () => {
     expect(screen.queryByDisplayValue(id)).not.toBeInTheDocument();
 
     const editButton = screen.getByRole('button', { name: 'Endre' });
-    await user.click(editButton);
+    await act(() => user.click(editButton));
 
     expect(
       screen.getByText(/ux_editor\.modal_properties_component_change_id/i)
@@ -35,7 +35,7 @@ describe('EditContainer', () => {
     const editButton = screen.getByRole('button', { name: 'Endre' });
     expect(editButton).toBeInTheDocument();
 
-    await user.click(editButton);
+    await act(() => user.click(editButton));
     expect(screen.getByRole('button', { name: 'Avbryt' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Lagre' })).toBeInTheDocument();
   });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TextResourceFile } from './types';
 
@@ -55,7 +55,7 @@ describe('TextEditor', () => {
       name: /ny tekst/i,
     });
 
-    await user.click(addBtn);
+    await act(() => user.click(addBtn));
 
     expect(onTranslationChange).toHaveBeenCalledWith({
       language: 'nb',
@@ -76,7 +76,7 @@ describe('TextEditor', () => {
     });
     const deleteBtn = screen.getByTestId('delete-en');
 
-    await user.click(deleteBtn);
+    await act(() => user.click(deleteBtn));
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
   });
@@ -95,7 +95,7 @@ describe('TextEditor', () => {
     expect(norwegianRadio).toBeChecked();
     expect(englishRadio).not.toBeChecked();
 
-    await user.click(englishRadio);
+    await act(() => user.click(englishRadio));
 
     expect(setSelectedLangCode).toHaveBeenCalledWith('en');
   });

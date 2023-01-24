@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CheckboxComponent, CheckboxComponentProps } from './CheckboxComponent';
+import { act } from 'react-dom/test-utils';
 
 const renderCheckboxComponent = ({
   label,
@@ -46,7 +47,7 @@ test('should be able to toggle show icon and "onChangeKey" should be "showIcon"'
 
   const checkboxLabel = screen.getByLabelText('Should icon be displayed?');
 
-  await user.click(checkboxLabel);
+  await act(() => user.click(checkboxLabel));
   expect(checkboxLabel).toBeChecked();
   expect(onCheckboxChanged).toHaveBeenCalledWith({ showIcon: true });
 });

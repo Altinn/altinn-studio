@@ -2,7 +2,7 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { dataMock } from '../mockData';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event/dist/types/setup/setup';
 import { SchemaEditor, SchemaEditorTestIds } from './SchemaEditor';
@@ -64,10 +64,10 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
   return { store, user };
 };
 
-const clickMenuItem = (user: UserEvent, testId: string) => user.click(screen.getByTestId(testId));
+const clickMenuItem = (user: UserEvent, testId: string) => act(() => user.click(screen.getByTestId(testId)));
 
 const clickOpenContextMenuButton = (user: UserEvent) =>
-  user.click(screen.getAllByTestId('open-context-menu-button')[0]);
+  act(() => user.click(screen.getAllByTestId('open-context-menu-button')[0]));
 
 test('renders schema editor with populated schema in view mode', () => {
   renderEditor({}, false);
@@ -300,7 +300,7 @@ test('should only be possible to add a reference to a combination type', async (
 test('should trigger correct dispatch when changing tab', async () => {
   const { store, user } = renderEditor();
   const tab = screen.getByRole('tab', { name: 'types' });
-  await user.click(tab);
+  await act(() => user.click(tab));
   const lastAction = store.getActions().at(-1);
   expect(lastAction.type).toBe('schemaEditor/setSelectedTab');
   expect(lastAction.payload).toStrictEqual({ selectedTab: 'definitions' });

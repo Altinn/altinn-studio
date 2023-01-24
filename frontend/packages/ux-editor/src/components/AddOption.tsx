@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import classes from './AddOption.module.css';
 import { TextResource } from './TextResource';
-import { ButtonColor, ButtonVariant, TextField } from '@altinn/altinn-design-system';
-import { Button, FieldSet } from '@digdir/design-system-react';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  FieldSet,
+  TextField
+} from '@digdir/design-system-react';
 import { IGenericEditComponent } from './config/componentConfig';
 import {
   IFormGenericOptionsComponent,

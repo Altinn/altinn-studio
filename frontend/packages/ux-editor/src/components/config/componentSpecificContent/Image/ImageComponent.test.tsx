@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { IImageComponentProps } from './ImageComponent';
@@ -63,7 +63,7 @@ describe('ImageComponent', () => {
       name: /source/i,
     });
 
-    await user.type(srcInput, imgSrc);
+    await act(() => user.type(srcInput, imgSrc));
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
@@ -85,7 +85,7 @@ describe('ImageComponent', () => {
       name: /width/i,
     });
 
-    await user.type(widthInput, size);
+    await act(() => user.type(widthInput, size));
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
@@ -104,8 +104,8 @@ describe('ImageComponent', () => {
       name: /placement/i,
     });
 
-    await user.type(placementInput, 'L'); // Type something to trigger showing Select options
-    await user.click(screen.getByText('Left'));
+    await act(() => user.type(placementInput, 'L')); // Type something to trigger showing Select options
+    await act(() => user.click(screen.getByText('Left')));
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,

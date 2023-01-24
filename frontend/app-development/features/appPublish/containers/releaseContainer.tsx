@@ -18,7 +18,7 @@ import { frontendLangPath, gitCommitPath, repoStatusPath } from 'app-shared/api-
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useAppDispatch, useAppSelector, useMediaQuery } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
-import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { Upload, SuccessStroke } from '@navikt/ds-icons';
 
 export function ReleaseContainer() {

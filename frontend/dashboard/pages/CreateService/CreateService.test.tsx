@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { handlers, renderWithProviders, rest, setupServer } from '../../dashboardTestUtils';
@@ -43,7 +43,7 @@ describe('CreateService', () => {
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    await user.click(createBtn);
+    await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText('dashboard.field_cannot_be_empty');
     expect(emptyFieldErrors.length).toBe(2);
@@ -73,11 +73,11 @@ describe('CreateService', () => {
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
-    await user.click(screen.getByRole('option', { name: /user_full_name/i }));
-    await user.type(screen.getByRole('textbox'), 'this-app-name-is-longer-than-max');
+    await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
+    await act(() => user.type(screen.getByRole('textbox'), 'this-app-name-is-longer-than-max'));
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    await user.click(createBtn);
+    await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText('dashboard.service_name_is_too_long');
     expect(emptyFieldErrors.length).toBe(1);
@@ -89,11 +89,11 @@ describe('CreateService', () => {
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
-    await user.click(screen.getByRole('option', { name: /user_full_name/i }));
-    await user.type(screen.getByRole('textbox'), 'datamodels');
+    await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
+    await act(() => user.type(screen.getByRole('textbox'), 'datamodels'));
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    await user.click(createBtn);
+    await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText(
       'dashboard.service_name_has_illegal_characters'
@@ -113,11 +113,11 @@ describe('CreateService', () => {
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
-    await user.click(screen.getByRole('option', { name: /user_full_name/i }));
-    await user.type(screen.getByRole('textbox'), 'this-app-name-exists');
+    await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
+    await act(() => user.type(screen.getByRole('textbox'), 'this-app-name-exists'));
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    await user.click(createBtn);
+    await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText('dashboard.app_already_exist');
     expect(emptyFieldErrors.length).toBe(1);
@@ -135,11 +135,11 @@ describe('CreateService', () => {
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
-    await user.click(screen.getByRole('option', { name: /user_full_name/i }));
-    await user.type(screen.getByRole('textbox'), 'new-app');
+    await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
+    await act(() => user.type(screen.getByRole('textbox'), 'new-app'));
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    await user.click(createBtn);
+    await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText('dashboard.error_when_creating_app');
     expect(emptyFieldErrors.length).toBe(1);

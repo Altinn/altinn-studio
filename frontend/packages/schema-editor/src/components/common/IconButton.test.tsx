@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { IconImage } from './Icon';
 import type { IconButtonProps } from './IconButton';
 import { IconButton } from './IconButton';
@@ -28,7 +28,7 @@ test('Icon appears', () => {
 
 test('onCLick handler is called when button is clicked', async () => {
   renderIconButton();
-  await user.click(screen.getByRole('button'));
+  await act(() => user.click(screen.getByRole('button')));
   expect(onClick).toHaveBeenCalledTimes(1);
 });
 

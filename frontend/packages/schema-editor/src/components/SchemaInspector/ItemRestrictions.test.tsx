@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import type { ItemRestrictionsProps } from './ItemRestrictions';
 import { ItemRestrictions } from './ItemRestrictions';
@@ -25,7 +25,7 @@ const defaultProps: ItemRestrictionsProps = {
 test('item restrictions require checkbox to work', async () => {
   const selectedNode = createNode({ fieldType: FieldType.String });
   const { user, store } = renderItemRestrictions({ selectedNode });
-  await user.click(screen.getByRole('checkbox'));
+  await act(() => user.click(screen.getByRole('checkbox')));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');
   expect(action.payload.required).toBeTruthy();
@@ -34,7 +34,7 @@ test('item restrictions require checkbox to work', async () => {
 test('item restrictions tab require checkbox to decheck', async () => {
   const selectedNode = createNode({ fieldType: FieldType.String, isRequired: true });
   const { user, store } = renderItemRestrictions({ selectedNode });
-  await user.click(screen.getByRole('checkbox'));
+  await act(() => user.click(screen.getByRole('checkbox')));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');
   expect(action.payload.required).toBeFalsy();

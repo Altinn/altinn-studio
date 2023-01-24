@@ -1,6 +1,5 @@
 import React, { useId } from 'react';
-import { TextField } from '@altinn/altinn-design-system';
-import { ErrorMessage } from '@digdir/design-system-react';
+import { ErrorMessage, TextField } from '@digdir/design-system-react';
 import classes from './TextFieldWithValidation.module.css';
 import { Validation } from '../../utils/validationUtils';
 import { useValidation } from '../../hooks/useValidation';

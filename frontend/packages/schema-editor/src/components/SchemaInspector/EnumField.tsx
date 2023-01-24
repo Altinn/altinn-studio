@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { IconButton } from '../common/IconButton';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';
-import { TextField } from '@altinn/altinn-design-system';
+import { TextField } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { IconImage } from '../common/Icon';
