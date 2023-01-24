@@ -3,6 +3,7 @@
   "description": "studio tests",
   "version": "1.0.0",
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "axe-core": "4.6.2",
     "cypress": "12.3.0",
     "cypress-axe": "1.2.0",
@@ -12,8 +13,6 @@
   },
   "main": "index.js",
   "scripts": {
-    "after:all": "cypress run -b chrome -s 'src/integration/setup/after.js' -e environment=local",
-    "before:all": "cypress run -b chrome -s 'src/integration/setup/before.js' -e environment=local",
     "cy:cachelist": "cypress cache list",
     "cy:open": "cypress open -e environment=local",
     "cy:prunecache": "cypress cache prune",

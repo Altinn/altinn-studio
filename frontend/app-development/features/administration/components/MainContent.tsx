@@ -48,6 +48,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
           disabled={!props.editAppName}
         />
         <Button
+          data-testid={'administrationInputAppName_ChangeButton'}
           color={ButtonColor.Secondary}
           onClick={props.onEditAppNameClick}
           variant={ButtonVariant.Outline}

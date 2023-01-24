@@ -8,15 +8,17 @@ import * as texts from '../../fixtures/texts.json';
 
 context('New App', () => {
   beforeEach(() => {
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.get(dashboard.searchApp).should('be.visible');
   });
 
   it('is possible to start app creation and exits', () => {
+    cy.visit('/dashboard');
     cy.get(dashboard.newApp).should('be.visible').click();
     cy.get(dashboard.appOwners).should('be.visible').click();
-    cy.contains(dashboard.appOwnersList, Cypress.env('appOwner')).click();
+    cy.contains(dashboard.appOwnersList, Cypress.env('autoTestUser')).click();
     cy.get(dashboard.appName).should('be.visible').type('dashboard');
     cy.contains(dashboard.button, 'Avbryt').should('be.visible').click();
     cy.get(dashboard.searchApp).should('be.visible');
@@ -25,8 +27,8 @@ context('New App', () => {
   it('shows error on app creation with existing name', () => {
     cy.get(dashboard.newApp).should('be.visible').click();
     cy.get(dashboard.appOwners).should('be.visible').click();
-    var appName = Cypress.env('deployApp').split('/')[1];
-    cy.contains(dashboard.appOwnersList, Cypress.env('appOwner')).click();
+    const appName = Cypress.env('deployApp').split('/')[1];
+    cy.contains(dashboard.appOwnersList, 'Testdepartementet').click();
     cy.get(dashboard.appName).should('be.visible').type(appName);
     cy.intercept('POST', '**/designer/api/v1/repos/**').as('postCreateApp');
     cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
@@ -42,5 +44,8 @@ context('New App', () => {
     cy.get(gitea.deleteRepoModal).find(gitea.repoName).should('be.visible').type('new-app');
     cy.get(gitea.deleteRepoModal).find('button').should('be.visible').click();
     cy.get(gitea.success).should('be.visible');
+  });
+  after(() => {
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 });

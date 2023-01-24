@@ -35,23 +35,29 @@ export const LeftMenu = () => {
     setSearchParams({ ...deepCopy(searchParams), layout: name });
   }
 
-  return <div className={classes.leftMenu}>
-    <div className={classes.pagesHeader}>
-      <span>{t('left_menu.pages')}</span>
-      <Button
-        aria-label={t('left_menu.pages_add_alt')}
-        icon={<Add />}
-        onClick={handleAddPage}
-        variant={ButtonVariant.Quiet}
-        color={ButtonColor.Secondary}
-      />
+  return (
+    <div className={classes.leftMenu} data-testid={'ux-editor.left-menu'}>
+      <div className={classes.pagesHeader}>
+        <span>{t('left_menu.pages')}</span>
+        <Button
+          aria-label={t('left_menu.pages_add_alt')}
+          icon={<Add />}
+          onClick={handleAddPage}
+          variant={ButtonVariant.Quiet}
+          color={ButtonColor.Secondary}
+        />
+      </div>
+      <div className={classes.pagesList}>
+        <PagesContainer />
+      </div>
+      {!_useIsProdHack() && (
+        <div className={classes.receipt}>
+          <ReceiptPageElement />
+        </div>
+      )}
+      <div className={classes.toolbar}>
+        {receiptLayoutName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
+      </div>
     </div>
-    <div className={classes.pagesList}>
-      <PagesContainer />
-    </div>
-    {!_useIsProdHack() && <div className={classes.receipt}><ReceiptPageElement /></div>}
-    <div className={classes.toolbar}>
-      {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
-    </div>
-  </div>;
+  );
 };

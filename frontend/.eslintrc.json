@@ -26,7 +26,8 @@
   "plugins": [
     "@typescript-eslint",
     "import",
-    "simple-import-sort"
+    "simple-import-sort",
+    "cypress"
   ],
   "settings": {
     "import/extensions": [".js", ".jsx", ".ts", ".tsx"],

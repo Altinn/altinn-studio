@@ -8,7 +8,7 @@ const giteaBaseUrl = Cypress.config().baseUrl + '/repos/api/v1';
 Cypress.Commands.add('createorg', (orgName, accessToken) =>
   cy.request('POST', `${giteaBaseUrl}/orgs?token=${accessToken}`, {
     username: orgName,
-  }),
+  })
 );
 
 /**
@@ -22,21 +22,25 @@ Cypress.Commands.add('deleteorg', (orgName, accessToken) =>
       failOnStatusCode: false,
     })
     .then((response) => {
-      if (response.status === 200 && response.body.username === orgName) cy.request('DELETE', endpoint);
-    }),
+      if (response.status === 200 && response.body.username === orgName)
+        cy.request('DELETE', endpoint);
+    })
 );
 
 /**
  * delete all the apps of an org, authenticated using access token
  */
-Cypress.Commands.add('deleteallapps', (type, ownerName, accessToken) => {
-  let getReposEndpoint;
-  if (type === 'org') getReposEndpoint = `${giteaBaseUrl}/orgs/${ownerName}/repos?token=${accessToken}`;
-  if (type === 'user') getReposEndpoint = `${giteaBaseUrl}/user/repos?token=${accessToken}`;
+Cypress.Commands.add('deleteallapps', (ownerName, accessToken, isOrg) => {
+  const getReposEndpoint = isOrg
+    ? `${giteaBaseUrl}/orgs/${ownerName}/repos?token=${accessToken}`
+    : `${giteaBaseUrl}/users/${ownerName}/repos?token=${accessToken}`;
   cy.request('GET', getReposEndpoint).then((response) => {
     const repos = response.body;
     for (let i = 0; i < repos.length; i++) {
-      cy.request('DELETE', `${giteaBaseUrl}/repos/${ownerName}/${repos[i].name}?token=${accessToken}`);
+      cy.request(
+        'DELETE',
+        `${giteaBaseUrl}/repos/${ownerName}/${repos[i].name}?token=${accessToken}`
+      );
     }
   });
 });
@@ -45,15 +49,20 @@ Cypress.Commands.add('deleteallapps', (type, ownerName, accessToken) => {
  * make an user as the owner of an org's repo, authenticated using access token
  */
 Cypress.Commands.add('makeuserowner', (orgName, userName, accessToken) =>
-  cy.request('GET', `${giteaBaseUrl}/orgs/${orgName}/teams?token=${accessToken}`).then((response) => {
-    const teams = response.body;
-    for (let i = 0; i < teams.length; i++) {
-      if (teams[i].permission === 'owner') {
-        cy.request('PUT', `${giteaBaseUrl}/teams/${teams[i].id}/members/${userName}?token=${accessToken}`);
-        break;
+  cy
+    .request('GET', `${giteaBaseUrl}/orgs/${orgName}/teams?token=${accessToken}`)
+    .then((response) => {
+      const teams = response.body;
+      for (let i = 0; i < teams.length; i++) {
+        if (teams[i].permission === 'owner') {
+          cy.request(
+            'PUT',
+            `${giteaBaseUrl}/teams/${teams[i].id}/members/${userName}?token=${accessToken}`
+          );
+          break;
+        }
       }
-    }
-  }),
+    })
 );
 
 /**
@@ -84,5 +93,5 @@ Cypress.Commands.add('getrepo', (appId, accessToken) =>
     method: 'GET',
     url: `${giteaBaseUrl}/repos/${appId}?token=${accessToken}`,
     failOnStatusCode: false,
-  }),
+  })
 );
