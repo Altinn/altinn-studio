@@ -10,7 +10,7 @@ import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { ReceiptPageElement } from './ReceiptPageElement';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy } from 'app-shared/pure';
-import { useSearchParams } from 'react-router-dom';
+import {useParams, useSearchParams} from 'react-router-dom';
 import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
 
@@ -27,11 +27,13 @@ export const LeftMenu = () => {
   const layoutOrder = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
   );
+
   const t = useText();
+  const { org, app } = useParams();
 
   function handleAddPage() {
     const name = t('left_menu.page') + (layoutOrder.length + 1);
-    dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
+    dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
     setSearchParams({ ...deepCopy(searchParams), layout: name });
   }
 

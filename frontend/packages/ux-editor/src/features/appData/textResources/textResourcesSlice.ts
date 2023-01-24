@@ -45,6 +45,8 @@ export interface ITextResources {
 export interface IUpsertTextResources {
   language: string;
   textResources: { [id: string]: string };
+  org: string;
+  app: string;
 }
 
 export interface IUpsertTextResourcesFulfilled {

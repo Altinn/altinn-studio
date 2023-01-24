@@ -87,10 +87,9 @@ export function DataModelling({
       }
     }
   }, [metadataOptions, selectedOption, metadataLoadingState]);
-
   useEffect(() => {
     if (!schemaPathIsSame(prevFetchedOption?.current, selectedOption)) {
-      dispatch(fetchDataModel({ metadata: selectedOption }));
+      dispatch(fetchDataModel({ metadata: selectedOption, org, app: repo }));
       prevFetchedOption.current = selectedOption;
       if (selectedOption.value.fileName.endsWith('.xsd')) {
         const filename = selectedOption.value.fileName;
@@ -105,7 +104,7 @@ export function DataModelling({
 
   const handleSaveSchema = (schema: any) =>
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
-  const handleDeleteSchema = () => dispatch(deleteDataModel({ metadata: selectedOption }));
+  const handleDeleteSchema = () => dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
   const handleCreateNewFromLandingPage = () => setCreateNewOpen(true);
 
   const handleCreateSchema = (model: { name: string; relativeDirectory?: string }) => {
