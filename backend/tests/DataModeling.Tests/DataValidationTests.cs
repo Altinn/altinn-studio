@@ -9,14 +9,13 @@ using System.Text.Unicode;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using Designer.Tests.Factories.ModelFactory.BaseClasses;
-using Designer.Tests.Factories.ModelFactory.DataClasses;
-using Designer.Tests.Utils;
+using DataModeling.Tests.BaseClasses;
+using DataModeling.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Designer.Tests.Factories.ModelFactory;
+namespace DataModeling.Tests;
 
 public class DataValidationTests : CsharpModelConversionTestsBase<DataValidationTests>
 {
@@ -42,9 +41,9 @@ public class DataValidationTests : CsharpModelConversionTestsBase<DataValidation
     public void Data_ShouldValidateAgainstSchemas(string xsdSchemaPath)
     {
         Given.That.XsdSchemaLoaded(xsdSchemaPath)
-            .When.XsdSchemaConverted2JsonSchema()
-            .And.JsonSchemaConverted2Metamodel()
-            .And.CSharpClassesCreatedFromMetamodel()
+            .When.LoadedXsdSchemaConvertedToJsonSchema()
+            .And.ConvertedJsonSchemaConvertedToModelMetadata()
+            .And.ModelMetadataConvertedToCsharpClass()
             .And.CSharpClassesCompiledToAssembly()
             .Then.CompiledAssembly.Should().NotBeNull();
 
@@ -99,7 +98,7 @@ public class DataValidationTests : CsharpModelConversionTestsBase<DataValidation
         var xml = SerializeXml(RandomRepresentingObject);
         var document = new XmlDocument();
         document.Load(new StringReader(xml));
-        document.Schemas.Add(XsdSchema);
+        document.Schemas.Add(LoadedXsdSchema);
         ValidationEventHandler eventHandler = ValidationEventHandler;
         document.Validate(eventHandler);
         isValid.Should().BeTrue();
@@ -114,7 +113,7 @@ public class DataValidationTests : CsharpModelConversionTestsBase<DataValidation
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement)
         });
         var jsonNode = JsonNode.Parse(json);
-        var validationResults = JsonSchema.Validate(jsonNode);
+        var validationResults = ConvertedJsonSchema.Validate(jsonNode);
         validationResults.IsValid.Should().BeTrue();
     }
 }

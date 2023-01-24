@@ -11,7 +11,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\..\testdata\Seres\**\*.*" >
+    <EmbeddedResource Include="..\..\..\testdata\Seres\**\*.*">
       <LinkBase>TestData\Seres</LinkBase>
     </EmbeddedResource>
   </ItemGroup>

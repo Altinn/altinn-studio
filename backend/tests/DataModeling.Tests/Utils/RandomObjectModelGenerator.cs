@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Fare;
 
-namespace Designer.Tests.Utils;
+namespace DataModeling.Tests.Utils;
 
 /// <summary>
 /// Dynamically creates random object based on type, respecting restrictions added in annotation.

@@ -42,6 +42,20 @@ namespace DataModeling.Tests
             And.PropertyShouldHaveDefinedTypeAndContainAnnotation("Root", propertyName, expectedPropertyType, restrictionString);
         }
 
+        [Theory]
+        [InlineData("Model/JsonSchema/General/NonXsdContextSchema.json")]
+        public void JsonSchemaShouldConvertToXsdAndCSharp(string jsonSchemaPath)
+        {
+            Given.That.JsonSchemaLoaded(jsonSchemaPath)
+                .When.LoadedJsonSchemaConvertedToModelMetadata()
+                .And.ModelMetadataConvertedToCsharpClass()
+                .And.CSharpClassesCompiledToAssembly()
+                .Then.CompiledAssembly.Should().NotBeNull();
+
+            And.When.LoadedJsonSchemaConvertedToXsdSchema()
+                .Then.ConvertedXsdSchema.Should().NotBeNull();
+        }
+
         private void GeneratedClassesShouldBeEquivalentToExpected(string expectedCsharpClassPath)
         {
             string expectedClasses = SharedResourcesHelper.LoadTestDataAsString(expectedCsharpClassPath);
