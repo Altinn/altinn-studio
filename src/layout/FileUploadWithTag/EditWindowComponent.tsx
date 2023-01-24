@@ -1,10 +1,11 @@
 import * as React from 'react';
 
+import { Button } from '@altinn/altinn-design-system';
 import { Grid, IconButton, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 
 import { useAppDispatch } from 'src/common/hooks';
-import { AltinnButton, AltinnLoader } from 'src/components/shared';
+import { AltinnLoader } from 'src/components/shared';
 import { FileName } from 'src/layout/FileUpload/shared/render';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { AltinnAppTheme } from 'src/theme';
@@ -181,18 +182,13 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
                 }}
               />
             ) : (
-              <div
-                style={{
-                  marginTop: '-6px', // Adjust to be in line with dropdown
-                }}
+              <Button
+                onClick={() => props.onSave(props.attachment)}
+                id={`attachment-save-tag-button-${props.attachment.id}`}
+                disabled={saveIsDisabled}
               >
-                <AltinnButton
-                  btnText={getLanguageFromKey('general.save', props.language)}
-                  onClickFunction={() => props.onSave(props.attachment)}
-                  id={`attachment-save-tag-button-${props.attachment.id}`}
-                  disabled={saveIsDisabled}
-                />
-              </div>
+                {getLanguageFromKey('general.save', props.language)}
+              </Button>
             )}
           </Grid>
         </Grid>

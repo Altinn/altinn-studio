@@ -1,4 +1,3 @@
-export { default as AltinnButton } from '../AltinnButton';
 export { default as AltinnCheckBox } from '../AltinnCheckBox';
 export { default as AltinnCollapsableList } from '../AltinnCollapsableList';
 export { default as AltinnIcon } from '../AltinnIcon';

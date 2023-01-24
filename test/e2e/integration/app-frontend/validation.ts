@@ -52,7 +52,7 @@ describe('Validation', () => {
         cy.get(mui.selectedDate).should('be.visible').click();
       });
 
-    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
 
     cy.get(
       appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)),
@@ -120,9 +120,9 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').clear().type('test').blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
     cy.intercept('GET', '**/validate').as('validateData');
-    cy.get(mui.button).should('be.visible').scrollIntoView();
-    cy.get(mui.button).should('be.inViewport');
-    cy.get(mui.button).click();
+    cy.get(appFrontend.nextButton).should('be.visible').scrollIntoView();
+    cy.get(appFrontend.nextButton).should('be.inViewport');
+    cy.get(appFrontend.nextButton).click();
     cy.wait('@validateData');
     cy.get(appFrontend.errorReport)
       .should('exist')
@@ -200,7 +200,7 @@ describe('Validation', () => {
   it('Validations are removed for hidden fields', () => {
     // Init and add data to group
     cy.goto('group');
-    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.showGroupToContinue).should('be.visible').find('input').check();
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
     cy.get(appFrontend.group.currentValue).should('be.visible').type('123');

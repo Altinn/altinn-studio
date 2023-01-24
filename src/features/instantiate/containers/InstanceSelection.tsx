@@ -6,7 +6,6 @@ import { Edit as EditIcon } from '@navikt/ds-icons';
 
 import { useAppSelector } from 'src/common/hooks';
 import {
-  AltinnButton,
   AltinnMobileTable,
   AltinnTable,
   AltinnTableBody,
@@ -170,11 +169,12 @@ export default function InstanceSelection({ instances, onNewInstance }: IInstanc
           item
           style={marginTop12}
         >
-          <AltinnButton
-            btnText={getLanguageFromKey('instance_selection.new_instance', language)}
-            onClickFunction={onNewInstance}
+          <Button
+            onClick={onNewInstance}
             id='new-instance-button'
-          />
+          >
+            {getLanguageFromKey('instance_selection.new_instance', language)}
+          </Button>
         </Grid>
       </Grid>
       <ReadyForPrint />

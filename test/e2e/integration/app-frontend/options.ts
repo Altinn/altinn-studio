@@ -1,9 +1,6 @@
-import * as texts from 'test/e2e/fixtures/texts.json';
 import AppFrontend from 'test/e2e/pageobjects/app-frontend';
-import Common from 'test/e2e/pageobjects/common';
 
 const appFrontend = new AppFrontend();
-const mui = new Common();
 
 describe('Options', () => {
   it('is possible to retrieve options dynamically', () => {
@@ -31,7 +28,7 @@ describe('Options', () => {
   it('is possible to build options from repeating groups', () => {
     cy.goto('group');
     cy.get(appFrontend.navMenu).should('be.visible');
-    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     cy.addItemToGroup(1, 2, 'automation');
     cy.addItemToGroup(3, 4, 'altinn');

@@ -1,10 +1,10 @@
 import * as React from 'react';
 
+import { Button } from '@altinn/altinn-design-system';
 import { createStyles, createTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import type { PopoverProps } from '@material-ui/core';
 
-import { AltinnButton } from 'src/components/AltinnButton';
 import altinnTheme from 'src/theme/altinnAppTheme';
 
 export interface IAnchorOrigin {
@@ -126,10 +126,7 @@ const AltinnPopoverComponent = ({
           {children}
           {closeButton && (
             <div className={classNames(classes.button)}>
-              <AltinnButton
-                btnText={closeButtonText}
-                onClickFunction={handleClose}
-              />
+              <Button onClick={handleClose}>{closeButtonText}</Button>
             </div>
           )}
         </Grid>

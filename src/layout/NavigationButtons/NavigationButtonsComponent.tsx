@@ -1,9 +1,9 @@
 import * as React from 'react';
 
+import { Button } from '@altinn/altinn-design-system';
 import { Grid } from '@material-ui/core';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { AltinnButton } from 'src/components/shared';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { Triggers } from 'src/types';
@@ -17,8 +17,8 @@ export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 export function NavigationButtonsComponent(props: INavigationButtons) {
   const dispatch = useAppDispatch();
 
-  const refPrev = React.useRef<HTMLButtonElement>();
-  const refNext = React.useRef<HTMLButtonElement>();
+  const refPrev = React.useRef<HTMLButtonElement>(null);
+  const refNext = React.useRef<HTMLButtonElement>(null);
 
   const keepScrollPos = useAppSelector((state) => state.formLayout.uiConfig.keepScrollPos);
 
@@ -114,22 +114,24 @@ export function NavigationButtonsComponent(props: INavigationButtons) {
     >
       {!disableBack && props.showBackButton && (
         <Grid item>
-          <AltinnButton
+          <Button
             ref={refPrev}
-            btnText={getTextFromAppOrDefault(backTextKey, textResources, language, undefined, true)}
-            onClickFunction={onClickPrevious}
+            onClick={onClickPrevious}
             disabled={disableBack}
-          />
+          >
+            {getTextFromAppOrDefault(backTextKey, textResources, language, undefined, true)}
+          </Button>
         </Grid>
       )}
       {!disableNext && (
         <Grid item>
-          <AltinnButton
+          <Button
             ref={refNext}
-            btnText={getTextFromAppOrDefault(nextTextKey, textResources, language, undefined, true)}
-            onClickFunction={OnClickNext}
+            onClick={OnClickNext}
             disabled={disableNext}
-          />
+          >
+            {getTextFromAppOrDefault(nextTextKey, textResources, language, undefined, true)}
+          </Button>
         </Grid>
       )}
     </Grid>

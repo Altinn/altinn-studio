@@ -71,7 +71,7 @@ describe('Summary', () => {
             });
             cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('be.visible').select('address');
             cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).should('be.visible').click();
-            cy.contains(mui.button, texts.backToSummary).should('be.visible').click();
+            cy.get(appFrontend.backToSummaryButton).should('be.visible').click();
           });
       });
 
@@ -107,7 +107,7 @@ describe('Summary', () => {
           .click()
           .then(() => {
             cy.get(mui.selectedDate).parent().click();
-            cy.contains(mui.button, texts.backToSummary).should('be.visible').click();
+            cy.get(appFrontend.backToSummaryButton).should('be.visible').click();
           });
       });
 
@@ -241,7 +241,7 @@ describe('Summary', () => {
 
     cy.get(appFrontend.group.row(0).nestedGroup.saveBtn).click();
     cy.get(appFrontend.group.saveMainGroup).click();
-    cy.contains(mui.button, texts.backToSummary).click();
+    cy.get(appFrontend.backToSummaryButton).click();
 
     cy.get(appFrontend.group.mainGroupSummary)
       .should('be.visible')

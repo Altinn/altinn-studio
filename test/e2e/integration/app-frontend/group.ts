@@ -10,7 +10,7 @@ const mui = new Common();
 describe('Group', () => {
   const init = () => {
     cy.goto('group');
-    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
   };
 
@@ -223,11 +223,11 @@ describe('Group', () => {
     expectRows();
 
     function clickOnPrefills(...items: (keyof typeof appFrontend.group.prefill)[]) {
-      cy.contains(mui.button, texts.prev).click();
+      cy.get(appFrontend.prevButton).click();
       for (const item of items) {
         cy.get(appFrontend.group.prefill[item]).click().blur();
       }
-      cy.contains(mui.button, texts.next).click();
+      cy.get(appFrontend.nextButton).click();
     }
 
     clickOnPrefills('liten');
@@ -288,7 +288,7 @@ describe('Group', () => {
         cy.wrap(table).find(appFrontend.group.delete).should('be.visible').click();
       });
 
-    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.sendersName).should('exist');
   });
 

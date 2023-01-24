@@ -1,9 +1,7 @@
 import * as texts from 'test/e2e/fixtures/texts.json';
 import AppFrontend from 'test/e2e/pageobjects/app-frontend';
-import Common from 'test/e2e/pageobjects/common';
 
 const appFrontend = new AppFrontend();
-const mui = new Common();
 
 describe('Validation in anonymous stateless app', () => {
   beforeEach(() => {
@@ -13,7 +11,7 @@ describe('Validation in anonymous stateless app', () => {
 
   it('Should show validation message for missing name', () => {
     cy.get(appFrontend.stateless.name).invoke('val').should('be.empty');
-    cy.get(appFrontend.navButtons).contains(mui.button, 'next').click();
+    cy.get(appFrontend.navButtons).contains('button', 'next').click();
 
     const nameError = appFrontend.fieldValidationError.replace('field', appFrontend.stateless.name.substring(1));
 
@@ -29,7 +27,7 @@ describe('Validation in anonymous stateless app', () => {
     cy.get(nameError).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
 
-    cy.get(appFrontend.navButtons).contains(mui.button, 'next').click();
+    cy.get(appFrontend.navButtons).contains('button', 'next').click();
     cy.get(appFrontend.navButtons).should('not.exist');
   });
 });

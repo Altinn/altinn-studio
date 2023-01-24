@@ -13,6 +13,7 @@
   "infoMessage": "Dette er en infomelding",
   "missingRights": "Du mangler rettigheter for å se denne tjenesten",
   "prev": "Forrige",
+  "back": "Tilbake",
   "next": "Neste",
   "requiredField": "Feltet er påkrevd",
   "requiredFieldFromBackend": "Feltet er påkrevd (fra backend)",

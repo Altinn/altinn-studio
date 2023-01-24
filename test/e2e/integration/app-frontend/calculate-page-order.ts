@@ -1,11 +1,8 @@
-import * as texts from 'test/e2e/fixtures/texts.json';
 import AppFrontend from 'test/e2e/pageobjects/app-frontend';
-import Common from 'test/e2e/pageobjects/common';
 
 import { Triggers } from 'src/types';
 
 const appFrontend = new AppFrontend();
-const mui = new Common();
 
 describe('Calculate Page Order', () => {
   it('Testing combinations of old and new hidden pages functionalities', () => {
@@ -30,7 +27,7 @@ describe('Calculate Page Order', () => {
     cy.intercept('POST', '**/pages/order*').as('getPageOrder');
 
     cy.goto('group');
-    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
       cy.wrap(checkbox).should('be.visible').find('input').check();
     });
@@ -38,7 +35,7 @@ describe('Calculate Page Order', () => {
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
 
     cy.addItemToGroup(1, 11, 'automation');
-    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
     cy.wait('@getPageOrder');
 
     cy.get(appFrontend.navMenuButtons).should('have.length', 3);
@@ -50,7 +47,7 @@ describe('Calculate Page Order', () => {
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.newValue).clear().type('2');
 
-    cy.get(appFrontend.navButtons).contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
     cy.wait('@getPageOrder');
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
     cy.get(appFrontend.group.sendersName).should('exist');
@@ -58,21 +55,21 @@ describe('Calculate Page Order', () => {
 
     cy.get(appFrontend.navMenuButtons).should('contain.text', '1. prefill');
     cy.get(appFrontend.group.sendersName).type('hidePrefill');
-    cy.get(appFrontend.navButtons).contains(mui.button, texts.prev).click();
+    cy.get(appFrontend.prevButton).click();
     cy.get(appFrontend.navMenuButtons).should('have.length', 3);
     cy.get(appFrontend.navMenuCurrent).should('have.text', '1. repeating');
 
-    cy.get(appFrontend.navButtons).contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
 
     // Clicking previous here is expected to not have any effect, because the triggered action is rejected when
     // the 'repeating' page is supposed to be hidden by the change. Clicking too fast leads to a failure...
     cy.get(appFrontend.group.sendersName).clear().type('hideRepeating');
-    cy.get(appFrontend.navButtons).contains(mui.button, texts.prev).click();
+    cy.get(appFrontend.prevButton).click();
 
     // ...but clicking 'previous' after this point will have updated the components to know that the previous page
     // now is the 'prefill' page
     cy.get(appFrontend.navMenuButtons).should('have.length', 3);
-    cy.get(appFrontend.navButtons).contains(mui.button, texts.prev).click();
+    cy.get(appFrontend.prevButton).click();
 
     cy.get(appFrontend.navMenuCurrent).should('have.text', '1. prefill');
     cy.get(appFrontend.navMenuButtons).should('contain.text', '2. hide');
@@ -80,7 +77,7 @@ describe('Calculate Page Order', () => {
     const reproduceBug = JSON.parse('false');
     if (reproduceBug) {
       cy.get(appFrontend.group.prefill.liten).click();
-      cy.get(appFrontend.navButtons).contains(mui.button, texts.next).click();
+      cy.get(appFrontend.nextButton).click();
 
       // And this is, in essence, a bug. Navigating to the next page should consider what the next page is, even if
       // just-made-changes affects which page is the next one. Right now the component re-render loop needs to run
@@ -118,7 +115,7 @@ describe('Calculate Page Order', () => {
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
 
     cy.get(appFrontend.group.prefill.stor).click();
-    cy.get(appFrontend.navButtons).contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
 
     // Both pages the 'repeating' and 'hide' pages are now hidden
     cy.get(appFrontend.navMenuCurrent).should('have.text', '2. summary');

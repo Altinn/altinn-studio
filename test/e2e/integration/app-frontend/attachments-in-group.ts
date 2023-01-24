@@ -1,13 +1,11 @@
 import * as texts from 'test/e2e/fixtures/texts.json';
 import AppFrontend from 'test/e2e/pageobjects/app-frontend';
-import Common from 'test/e2e/pageobjects/common';
 import type { makeUploaderSelectors } from 'test/e2e/pageobjects/app-frontend';
 
 import { getInstanceIdRegExp } from 'src/utils';
 import type { IRuntimeState } from 'src/types';
 
 const appFrontend = new AppFrontend();
-const mui = new Common();
 
 interface IUploadFileArgs {
   item: ReturnType<typeof makeUploaderSelectors>;
@@ -38,7 +36,7 @@ describe('Repeating group attachments', () => {
 
   beforeEach(() => {
     cy.goto('group');
-    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
       cy.wrap(checkbox).should('be.visible').find('input').check();
     });
