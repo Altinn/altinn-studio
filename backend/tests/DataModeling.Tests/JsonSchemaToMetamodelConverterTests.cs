@@ -14,24 +14,7 @@ namespace DataModeling.Tests
 {
     public class JsonSchemaToMetamodelConverterTests : CsharpModelConversionTestsBase<JsonSchemaToMetamodelConverterTests>
     {
-        private readonly ITestOutputHelper _outputHelper;
-        public JsonSchemaToMetamodelConverterTests(ITestOutputHelper outputHelper)
-        {
-            _outputHelper = outputHelper;
-        }
-
-
         private ModelMetadata ExpectedModelMetadata { get; set; }
-
-        protected override void JsonToMetamodelKeywordProcessedHandler(object sender, KeywordProcessedEventArgs e)
-        {
-            _outputHelper.WriteLine($"Processed sub-schema at {e.Path.Source}");
-        }
-
-        protected override void JsonToMetamodelSubSchemaProcessedHandler(object sender, SubSchemaProcessedEventArgs e)
-        {
-            _outputHelper.WriteLine($"Processed sub-schema at {e.Path.Source}");
-        }
 
         [Theory]
         [InlineData("Seres/HvemErHvem.xsd", "Model/Metadata/HvemErHvem.metadata.json")]
