@@ -1,6 +1,11 @@
 import React from 'react';
-import { TextArea, TextField } from '@altinn/altinn-design-system';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  TextArea,
+  TextField
+} from '@digdir/design-system-react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import InformationPaper from 'app-shared/components/AltinnInformationPaper';

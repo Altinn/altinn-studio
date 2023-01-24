@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { TextField } from '@altinn/altinn-design-system';
+import { TextField } from '@digdir/design-system-react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import type { FormComponentType, IAppState } from '../../../types/global';

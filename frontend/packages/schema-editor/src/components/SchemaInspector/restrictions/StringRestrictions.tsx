@@ -4,7 +4,7 @@ import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
-import { TextField } from '@altinn/altinn-design-system';
+import { TextField } from '@digdir/design-system-react';
 import { Checkbox, FieldSet, Select } from '@digdir/design-system-react';
 import type { Dict } from '@altinn/schema-model';
 import { StringFormat, StrRestrictionKeys } from '@altinn/schema-model';

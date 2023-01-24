@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './RepoModal.module.css';
 import { AltinnSpinner } from 'app-shared/components';
-import { TextField } from '@altinn/altinn-design-system';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Button, ButtonColor, ButtonVariant, TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useAppSelector } from '../../../common/hooks';

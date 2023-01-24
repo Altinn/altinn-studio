@@ -6,7 +6,7 @@ import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoS
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
-import { TextField, TextArea, Button } from '@altinn/altinn-design-system';
+import { TextField, TextArea, Button } from '@digdir/design-system-react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
