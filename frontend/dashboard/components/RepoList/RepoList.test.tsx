@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IRepoListProps } from './RepoList';
 import * as userApi from '../../services/userApi';
@@ -59,7 +59,7 @@ describe('RepoList', () => {
     });
 
     const sortBtn = container.querySelector('button[aria-label="Sort"]');
-    await user.click(sortBtn);
+    await act(() => user.click(sortBtn));
 
     expect(handleSort).not.toHaveBeenCalled();
   });
@@ -73,7 +73,7 @@ describe('RepoList', () => {
     });
 
     const sortBtn = container.querySelector('button[aria-label="Sort"]');
-    await user.click(sortBtn);
+    await act(() => user.click(sortBtn));
 
     expect(handleSort).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
       reason: undefined,
@@ -90,7 +90,7 @@ describe('RepoList', () => {
     const favoriteBtn = screen.getByRole('menuitem', {
       name: /dashboard.star/i,
     });
-    await user.click(favoriteBtn);
+    await act(() => user.click(favoriteBtn));
 
     expect(useSetStarredRepoMutationSpy).toBeCalledWith(repos[0]);
   });
@@ -105,7 +105,7 @@ describe('RepoList', () => {
     const unFavoriteBtn = screen.getByRole('menuitem', {
       name: /dashboard.unstar/i,
     });
-    await user.click(unFavoriteBtn);
+    await act(() => user.click(unFavoriteBtn));
 
     expect(useUnsetStarredRepoMutationSpy).toBeCalledWith(repos[1]);
   });

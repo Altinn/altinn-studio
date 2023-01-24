@@ -3,7 +3,7 @@ import type { TextResourceMap } from './types';
 import userEvent from '@testing-library/user-event';
 import type { TextListProps } from './TextList';
 import { TextList } from './TextList';
-import { screen, render as rtlRender } from '@testing-library/react';
+import { screen, render as rtlRender, act } from '@testing-library/react';
 
 const renderTextList = (props: Partial<TextListProps> = {}) => {
   const texts: TextResourceMap = {
@@ -49,12 +49,12 @@ describe('TextList', () => {
     const idInputs = screen.getAllByRole('textbox', {
       name: /id/i,
     });
-    await user.dblClick(idInputs[0]);
-    await user.keyboard('a-updated{TAB}');
+    await act(() => user.dblClick(idInputs[0]));
+    await act(() => user.keyboard('a-updated{TAB}'));
     expect(updateEntryId).toHaveBeenCalledWith({ newId: 'a-updated', oldId: 'a' });
-    await user.keyboard('{TAB}{TAB}b-updated{TAB}');
+    await act(() => user.keyboard('{TAB}{TAB}b-updated{TAB}'));
     expect(updateEntryId).toHaveBeenCalledWith({ newId: 'b-updated', oldId: 'b' });
-    await user.keyboard('{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}e-updated{TAB}');
+    await act(() => user.keyboard('{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}e-updated{TAB}'));
     expect(updateEntryId).toHaveBeenCalledWith({ newId: 'e-updated', oldId: 'e' });
   });
   test('that the user is warned when an id already exists', async () => {
@@ -65,18 +65,18 @@ describe('TextList', () => {
       name: /id/i,
     });
     const errorMsg = 'Denne IDen finnes allerede';
-    await user.dblClick(idInputs[1]);
-    await user.keyboard('a');
+    await act(() => user.dblClick(idInputs[1]));
+    await act(() => user.keyboard('a'));
     const error = screen.getByRole('alertdialog');
     expect(error).toBeInTheDocument();
     expect(screen.queryByText(errorMsg)).not.toBeNull();
-    await user.keyboard('2');
+    await act(() => user.keyboard('2'));
     expect(screen.queryByText(errorMsg)).toBeNull();
-    await user.keyboard('{BACKSPACE}');
+    await act(() => user.keyboard('{BACKSPACE}'));
     expect(screen.getByText(errorMsg)).toBeInTheDocument();
-    await user.keyboard('{TAB}');
+    await act(() => user.keyboard('{TAB}'));
     expect(updateEntryId).not.toHaveBeenCalled();
-    await user.keyboard('{SHIFT>}{TAB}{/SHIFT}{END}2{TAB}');
+    await act(() => user.keyboard('{SHIFT>}{TAB}{/SHIFT}{END}2{TAB}'));
     expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'b', newId: 'a2' });
   });
 });

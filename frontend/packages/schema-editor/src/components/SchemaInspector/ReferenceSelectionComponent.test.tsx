@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import type { IReferenceSelectionProps } from './ReferenceSelectionComponent';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
@@ -85,13 +85,13 @@ test('Referenced type is selected if given', () => {
 
 test('onChange handler is called with correct parameters when value changes', async () => {
   renderReferenceSelectionComponent();
-  await user.click(screen.getByRole('option', { name: type1Name }));
+  await act(() => user.click(screen.getByRole('option', { name: type1Name })));
   expect(onChangeRef).toHaveBeenCalledTimes(1);
   expect(onChangeRef).toHaveBeenCalledWith(selectedNode.pointer, type1.pointer);
 });
 
 test('onGoToDefButtonClick handler is called when "go to type" button is clicked', async () => {
   renderReferenceSelectionComponent();
-  await user.click(screen.getByText(buttonText));
+  await act(() => user.click(screen.getByText(buttonText)));
   expect(onGoToDefButtonClick).toHaveBeenCalledTimes(1);
 });

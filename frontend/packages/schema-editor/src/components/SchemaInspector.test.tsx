@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
@@ -67,9 +67,9 @@ test('dispatches correctly when entering text in textboxes', async () => {
   const textboxes = screen.getAllByRole('textbox');
   let textboxIndex = 0;
   while (textboxes[textboxIndex]) {
-    await user.clear(textboxes[textboxIndex]);
-    await user.type(textboxes[textboxIndex], 'New value');
-    await user.tab();
+    await act(() => user.clear(textboxes[textboxIndex]));
+    await act(() => user.type(textboxes[textboxIndex], 'New value'));
+    await act(() => user.tab());
     textboxIndex++;
   }
   const actions = store.getActions();
@@ -121,9 +121,9 @@ test('Adds new object field when pressing the enter key', async () => {
   const childNode = createChildNode(parentNode, 'abc', false);
   testUiSchema.push(childNode);
   const { store, user } = renderSchemaInspector(testUiSchema, parentNode);
-  await user.click(screen.queryAllByRole('tab')[1]);
-  await user.click(screen.getByDisplayValue('abc'));
-  await user.keyboard('{Enter}');
+  await act(() => user.click(screen.queryAllByRole('tab')[1]));
+  await act(() => user.click(screen.getByDisplayValue('abc')));
+  await act(() => user.keyboard('{Enter}'));
   expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addProperty');
 });
 
@@ -134,8 +134,8 @@ test('Adds new valid value field when pressing the enter key', async () => {
   item.enum = ['valid value'];
   testUiSchema.push(item);
   const { store, user } = renderSchemaInspector(testUiSchema, item);
-  await user.click(screen.queryAllByRole('tab')[1]);
-  await user.click(screen.getByDisplayValue('valid value'));
-  await user.keyboard('{Enter}');
+  await act(() => user.click(screen.queryAllByRole('tab')[1]));
+  await act(() => user.click(screen.getByDisplayValue('valid value')));
+  await act(() => user.keyboard('{Enter}'));
   expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addEnum');
 });

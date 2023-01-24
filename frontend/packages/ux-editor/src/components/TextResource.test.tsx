@@ -6,7 +6,7 @@ import { ITextResource } from '../types/global';
 import { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import { TextResource, TextResourceProps } from './TextResource';
 import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../testing/mocks';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 
 const user = userEvent.setup();
 
@@ -44,7 +44,7 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange and dispatches correct actions when add button is clicked', async () => {
     const { store } = render();
-    await user.click(screen.getByLabelText(addText));
+    await act(() => user.click(screen.getByLabelText(addText)));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     const actions = store.getActions();
     expect(actions).toHaveLength(2);
@@ -102,7 +102,7 @@ describe('TextResource', () => {
     const value = 'Lorem ipsum dolor sit amet';
     const textResource: ITextResource = { id: textResourceId, value };
     const { store } = render({ textResourceId }, [textResource]);
-    await user.click(screen.getByLabelText(editText));
+    await act(() => user.click(screen.getByLabelText(editText)));
     expect(handleIdChange).toHaveBeenCalledTimes(0);
     const actions = store.getActions();
     expect(actions).toHaveLength(1);
@@ -140,30 +140,30 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange when selection in search section is changed', async () => {
     await renderAndOpenSearchSection();
-    await user.click(screen.getByLabelText(searchLabelText));
-    await user.click(screen.getByRole('option', { name: textResources[1].id }));
+    await act(() => user.click(screen.getByLabelText(searchLabelText)));
+    await act(() => user.click(screen.getByRole('option', { name: textResources[1].id })));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(textResources[1].id);
   });
 
   it('Calls handleIdChange with undefined when "none" is selected', async () => {
     await renderAndOpenSearchSection();
-    await user.click(screen.getByLabelText(searchLabelText));
-    await user.click(screen.getByRole('option', { name: noTextChosenText }));
+    await act(() => user.click(screen.getByLabelText(searchLabelText)));
+    await act(() => user.click(screen.getByRole('option', { name: noTextChosenText })));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(undefined);
   });
 
   it('Closes search section when close button is clicked', async () => {
     await renderAndOpenSearchSection();
-    await user.click(screen.getByLabelText(closeSearchText));
+    await act(() => user.click(screen.getByLabelText(closeSearchText)));
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 });
 
 const renderAndOpenSearchSection = async () => {
   render(undefined, textResources);
-  await user.click(screen.getByLabelText(searchText));
+  await act(() => user.click(screen.getByLabelText(searchText)));
 };
 
 const render = (props?: Partial<TextResourceProps>, resources?: ITextResource[]) => {

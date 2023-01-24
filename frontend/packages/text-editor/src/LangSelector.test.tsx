@@ -1,7 +1,7 @@
 import React from 'react';
 import { LangSelector } from './LangSelector';
 import type { ILangSelectorProps } from './LangSelector';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -31,11 +31,11 @@ it('fires onAddLang when add button is clicked', async () => {
   expect(addBtn).toBeDisabled();
   const select = screen.getByRole('combobox');
 
-  await user.type(select, 'nordsamisk');
-  await user.click(screen.getByText('nordsamisk'));
+  await act(() => user.type(select, 'nordsamisk'));
+  await act(() => user.click(screen.getByText('nordsamisk')));
 
   expect(addBtn).not.toBeDisabled();
-  await user.click(addBtn);
+  await act(() => user.click(addBtn));
 
   expect(handleAddLang).toHaveBeenCalledWith('se');
 });

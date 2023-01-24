@@ -1,7 +1,7 @@
 import React from 'react';
 import { FetchChangesButton } from './FetchChangesButton';
 import type { IFetchChangesComponentProps } from './FetchChangesButton';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -11,7 +11,7 @@ describe('fetchChanges', () => {
     const handleFetchChanges = jest.fn();
     render({ fetchChanges: handleFetchChanges });
     const syncButton = screen.getByTestId('fetch-changes-button');
-    await user.click(syncButton);
+    await act(() => user.click(syncButton));
     expect(handleFetchChanges).toHaveBeenCalled();
   });
 });

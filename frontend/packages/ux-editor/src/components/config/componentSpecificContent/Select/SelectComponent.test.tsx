@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SelectComponent, SelectComponentProps } from './SelectComponent';
 
@@ -36,7 +36,7 @@ test('should render SelectComponent with label and 3 options', async () => {
 
   expect(screen.getByLabelText('Choose variant')).toBeInTheDocument();
 
-  await user.click(screen.getByRole('combobox'));
+  await act(() => user.click(screen.getByRole('combobox')));
   expect(screen.getAllByRole('option')).toHaveLength(3);
 });
 
@@ -49,8 +49,8 @@ test('should be able to select option "small" and the "optionKey" should be "siz
     handleComponentChange: onSelectChange
   });
 
-  await user.click(screen.getByRole('combobox'));
-  await user.click(screen.getByRole('option', { name: 'small' }));
+  await act(() => user.click(screen.getByRole('combobox')));
+  await act(() => user.click(screen.getByRole('option', { name: 'small' })));
   expect(onSelectChange).toHaveBeenCalledWith({ size: 'small' });
 });
 

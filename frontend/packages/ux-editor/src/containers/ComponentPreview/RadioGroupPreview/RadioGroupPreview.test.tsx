@@ -1,7 +1,7 @@
 import React from 'react';
 import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { IFormRadioButtonComponent, IOption, ITextResource } from '../../../types/global';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { ITextResourcesState } from '../../../features/appData/textResources/textResourcesSlice';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { ILanguageState } from '../../../features/appData/language/languageSlice';
@@ -97,7 +97,7 @@ describe('RadioGroupPreview', () => {
   it('Calls handleComponentChange with new option when clicking the add option button', async () => {
     await renderAndOpenAddSection();
     const addOptionButton = last(screen.getAllByRole('button', { name: addText }));
-    await user.click(addOptionButton);
+    await act(() => user.click(addOptionButton));
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -115,7 +115,7 @@ describe('RadioGroupPreview', () => {
   it('Hides add section when clicking the cancel button', async () => {
     await renderAndOpenAddSection();
     const cancelButton = screen.getByRole('button', { name: cancelText });
-    await user.click(cancelButton);
+    await act(() => user.click(cancelButton));
     expect(screen.queryByText(cancelText)).toBeFalsy();
   });
 
@@ -128,7 +128,7 @@ describe('RadioGroupPreview', () => {
     await renderAndOpenAddSection();
     const valueInput = screen.getByLabelText(valueText);
     expect(valueInput).not.toHaveValue('');
-    await user.clear(valueInput);
+    await act(() => user.clear(valueInput));
     expect(screen.getByRole('alertdialog')).toHaveTextContent(emptyErrorText);
   });
 
@@ -136,8 +136,8 @@ describe('RadioGroupPreview', () => {
     await renderAndOpenAddSection();
     const valueInput = screen.getByLabelText(valueText);
     expect(valueInput).not.toHaveValue('');
-    await user.clear(valueInput);
-    await user.type(valueInput, option1Value);
+    await act(() => user.clear(valueInput));
+    await act(() => user.type(valueInput, option1Value));
     expect(screen.getByRole('alertdialog')).toHaveTextContent(duplicateErrorText);
   });
 });
@@ -173,5 +173,5 @@ const render = (props: Partial<RadioGroupPreviewProps> = {}) => {
 const renderAndOpenAddSection = async (props?: Partial<RadioGroupPreviewProps>) => {
   render(props);
   const openAddSectionButton = screen.getByRole('button', { name: addOptionText });
-  await user.click(openAddSectionButton);
+  await act(() => user.click(openAddSectionButton));
 };
