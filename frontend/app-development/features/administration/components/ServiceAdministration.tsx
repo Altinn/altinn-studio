@@ -4,7 +4,7 @@ import type { IRepository } from '../../../types/global';
 import { AltinnSpinner } from 'app-shared/components';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
-import { serviceConfigPath, serviceNamePath } from 'app-shared/api-paths';
+import { setServiceConfigPath, setServiceNamePath } from 'app-shared/api-paths';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
 
@@ -54,13 +54,13 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
     } else {
       dispatch(
         HandleServiceInformationActions.saveServiceName({
-          url: serviceNamePath(org, app),
+          url: setServiceNamePath(org, app),
           newServiceName: newName,
         })
       );
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
-          url: serviceConfigPath(org, app),
+          url: setServiceConfigPath(org, app),
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
@@ -79,7 +79,7 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
     if (editAppDescription) {
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
-          url: serviceConfigPath(org, app),
+          url: setServiceConfigPath(org, app),
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
@@ -98,7 +98,7 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
     if (editAppId) {
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
-          url: serviceConfigPath(org, app),
+          url: setServiceConfigPath(org, app),
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,

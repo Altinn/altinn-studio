@@ -598,18 +598,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="fileName">The filename so read from</param>
         /// <returns>Returns the json object as a string</returns>
-        public string GetRuleConfig(string org, string app)
+        public string GetJsonFile(string org, string app, string fileName)
         {
-            string filePath = _settings.GetRuleConfigPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string filePath;
+
+            if (fileName.Equals(_settings.GetRuleConfigFileName()))
+            {
+                filePath = _settings.GetRuleConfigPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            }
+            else
+            {
+                filePath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            }
+
+            string fileData = null;
 
             if (File.Exists(filePath))
             {
-                string fileData = File.ReadAllText(filePath, Encoding.UTF8);
-                return fileData;
+                fileData = File.ReadAllText(filePath, Encoding.UTF8);
             }
 
-            return "Rule configuration not found.";
+            return fileData;
         }
 
         /// <inheritdoc />
@@ -701,7 +712,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return fileData;
         }
 
-        /// <inheritdoc/> TODO: Remove
+        /// <inheritdoc/>
         public bool AddTextResources(string org, string app, List<TextResource> textResourcesList)
         {
             foreach (TextResource textResource in textResourcesList)
@@ -737,13 +748,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
+        /// Save the JSON file to disk
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="resource">The content of the resource file</param>
+        /// <param name="fileName">The filename</param>
+        /// <returns>A boolean indicating if saving was ok</returns>
+        public bool SaveJsonFile(string org, string app, string resource, string fileName)
+        {
+            string filePath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            new FileInfo(filePath).Directory.Create();
+            File.WriteAllText(filePath, resource, Encoding.UTF8);
+
+            return true;
+        }
+
+        /// <summary>
         /// Save the Rules configuration JSON file to disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveRuleConfig(string org, string app, string resource)
+        public bool SaveRuleConfigJson(string org, string app, string resource)
         {
             string filePath = _settings.GetRuleConfigPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 

@@ -1,5 +1,3 @@
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Altinn.Studio.Designer.Configuration;
@@ -18,12 +16,11 @@ using Newtonsoft.Json.Linq;
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
-    /// Controller exposing endpoints that handle datamodeling configs (all *.json files under /App/models) and metadata in config.json
+    /// Controller exposing
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/config")]
-    [Obsolete("ConfigController is deprecated.")]
+    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/[action]")]
     public class ConfigController : Controller
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
@@ -59,11 +56,24 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A View with update status</returns>
         [HttpPost]
         [Route("{configName}")]
-        [Obsolete("SaveConfig is deprecated, please use methods in Altinn.Studio.Designer.Controllers.ModelController instead.")]
-        public IActionResult SaveConfig([FromBody] dynamic jsonData, string org, string app, string configName)
+        public IActionResult SaveConfig([FromBody] dynamic jsonData, [FromRoute] string org, string app, string configName)
         {
             _repository.SaveConfiguration(org, app, configName + ".json", jsonData.ToString());
             return Ok("Config successfully saved.");
+        }
+
+        /// <summary>
+        /// Get the JSON schema
+        /// </summary>
+        /// <param name="schemaName">The name of schema</param>
+        /// <returns>JSON content</returns>
+        [HttpGet]
+        [Produces("application/json")]
+        [Route("{schemaName}")]
+        public IActionResult Schema(string schemaName)
+        {
+            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/{schemaName.AsFileName()}.json");
+            return Content(schema, "application/json", System.Text.Encoding.UTF8);
         }
 
         /// <summary>
@@ -75,8 +85,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The JSON config</returns>
         [HttpGet]
         [Route("{configName}")]
-        [Obsolete("GetConfig is deprecated, please use methods in Altinn.Studio.Designer.Controllers.ModelController instead.")]
-        public IActionResult GetConfig(string org, string app, string configName)
+        public IActionResult GetConfig([FromRoute] string org, string app, string configName)
         {
             string configJson = _repository.GetConfiguration(org, app, configName + ".json");
             if (string.IsNullOrWhiteSpace(configJson))
@@ -90,28 +99,13 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Get the JSON schema
-        /// </summary>
-        /// <param name="schemaName">The name of schema</param>
-        /// <returns>JSON content</returns>
-        [HttpGet]
-        [Produces("application/json")]
-        [Route("schema/{schemaName}")]
-        public IActionResult Schema(string schemaName)
-        {
-            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/{schemaName.AsFileName()}.json");
-            return Content(schema, "application/json", System.Text.Encoding.UTF8);
-        }
-
-        /// <summary>
         /// Method to retrieve the app description from the metadata file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service configuration</returns>
         [HttpGet]
-        [Route("service")]
-        public ServiceConfiguration GetServiceConfig(string org, string app)
+        public ServiceConfiguration GetServiceConfig([FromRoute] string org, string app)
         {
             string serviceConfigPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;
@@ -123,7 +117,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             watch.Stop();
-            Trace.Write($"Getserviceconfig - {watch.ElapsedMilliseconds}");
+            _logger.Log(LogLevel.Information, "Getserviceconfig - {0} ", watch.ElapsedMilliseconds);
             return serviceConfigurationObject;
         }
 
@@ -134,8 +128,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceConfig">the service config</param>
         [HttpPost]
-        [Route("service")]
-        public void SetServiceConfig(string org, string app, [FromBody] dynamic serviceConfig)
+        public void SetServiceConfig([FromRoute] string org, string app, [FromBody] dynamic serviceConfig)
         {
             string serviceConfigPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;

@@ -33,7 +33,7 @@ public class GetDatamodelsTests : ApiTestsBase<DatamodelsController, GetDatamode
     [Fact]
     public async Task GetDatamodels_NoInput_ShouldReturnAllModels()
     {
-        var url = $"{VersionPrefix}/ttd/hvem-er-hvem/datamodels/get-all-json";
+        var url = $"{VersionPrefix}/ttd/hvem-er-hvem/Datamodels/";
 
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 

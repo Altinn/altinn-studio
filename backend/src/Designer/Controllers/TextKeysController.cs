@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/text-keys")]
+    [Route("designer/api/v1/{org}/{repo}/keys")]
     public class TextKeysController : ControllerBase
     {
         private readonly ILanguagesService _languagesService;
@@ -49,25 +49,20 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<List<string>>> Get(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            IList<string> languages = _languagesService.GetLanguages(org, repo, developer);
 
             try
             {
-                IList<string> languages = _languagesService.GetLanguages(org, repo, developer);
                 List<string> keys = await _textsService.GetKeys(org, repo, developer, languages);
                 return Ok(keys);
             }
             catch (JsonException)
             {
-                return new ObjectResult(new
-                {
-                    errorMessage =
-                        "The format of one or more texts files that you tried to access might be invalid."
-                })
-                { StatusCode = 500 };
+                return new ObjectResult(new { errorMessage = "The format of one or more texts files that you tried to access might be invalid." }) { StatusCode = 500 };
             }
             catch (FileNotFoundException)
             {
-                return NotFound("The texts files needed to get the keys could not be found or does not exist.");
+                return NotFound("The texts files needed to add key could not be found or does not exist.");
             }
         }
 

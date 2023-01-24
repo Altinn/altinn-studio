@@ -18,7 +18,7 @@ namespace Designer.Tests.Controllers
 {
     public class SessionControllerTest : ApiTestsBase<SessionController, SessionControllerTest>
     {
-        private readonly string _versionPrefix = "/designer/api/session";
+        private readonly string _versionPrefix = "/designer/api/v1/session";
         private readonly Mock<IHttpContextAccessor> _contextAccessorMock = new Mock<IHttpContextAccessor>();
         private readonly IOptions<GeneralSettings> _generalSettings;
         private SessionController _controller;

@@ -35,7 +35,7 @@ public class GetTests : ApiTestsBase<DatamodelsController, GetTests>
         var org = "ttd";
         var repository = "hvem-er-hvem";
 
-        var url = $"{VersionPrefix}/{org}/{repository}/datamodels/datamodel?modelPath={modelPath}";
+        var url = $"{VersionPrefix}/{org}/{repository}/datamodels/{modelPath}";
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
         var response = await HttpClient.Value.SendAsync(httpRequestMessage);

@@ -6,7 +6,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';
-import { serviceConfigPath, serviceNamePath } from 'app-shared/api-paths';
+import { setServiceConfigPath, setServiceNamePath } from 'app-shared/api-paths';
 
 describe('Administration', () => {
   const mockService: IRepository = {
@@ -112,7 +112,7 @@ describe('Administration', () => {
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: serviceConfigPath('my-org', 'my-app'),
+          url: setServiceConfigPath('my-org', 'my-app'),
           newServiceName: mockEvent.target.value,
           newServiceId: mockServiceId,
           newServiceDescription: mockServiceDescription,
@@ -121,7 +121,7 @@ describe('Administration', () => {
       });
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: serviceNamePath('my-org', 'my-app'),
+          url: setServiceNamePath('my-org', 'my-app'),
           newServiceName: mockEvent.target.value,
         },
         type: 'handleServiceInformation/saveServiceName',
@@ -152,7 +152,7 @@ describe('Administration', () => {
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: serviceConfigPath('my-org', 'my-app'),
+          url: setServiceConfigPath('my-org', 'my-app'),
           newServiceName: mockServiceName,
           newServiceId: mockServiceId,
           newServiceDescription: mockEvent.target.value,
@@ -185,7 +185,7 @@ describe('Administration', () => {
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: serviceConfigPath('my-org', 'my-app'),
+          url: setServiceConfigPath('my-org', 'my-app'),
           newServiceName: mockServiceName,
           newServiceId: mockEvent.target.value,
           newServiceDescription: mockServiceDescription,

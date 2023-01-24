@@ -1,104 +1,83 @@
 import { stringify as s } from 'qs';
 
-// ApplicationMetaData
-export const appMetadataPath = (org, app) => `/designer/api/${org}/${app}/app-metadata`; // Get, Put, Post
-export const appMetadataAttachmentPath = (org, app) => `/designer/api/${org}/${app}/app-metadata/attachment-component`; // Post, Put, Delete
-
-// Config
-export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/config/service`; // Get, Post
-
-// Datamodel
-export const createDatamodelPath = (org, app) => `/designer/api/${org}/${app}/datamodels/new`; // Post
-export const datamodelPath = (org, app, modelPath) => `/designer/api/${org}/${app}/datamodels/datamodel?${s({modelPath})}`; // Get, Put, Delete
-export const datamodelsPath = (org, app) => `/designer/api/${org}/${app}/datamodels/get-all-json`; // Get
-export const datamodelsXsdPath = (org, app) => `/designer/api/${org}/${app}/datamodels/get-all-xsd`; // Get
-export const datamodelsUploadPath = (org, app) => `/designer/api/${org}/${app}/datamodels/upload`; // Post
-export const datamodelAddXsdFromRepoPath = (org, app, filePath) => `/designer/api/${org}/${app}/datamodels/xsd-from-repo?${s({filePath})}`; // Post
-
-// Deployment
-// See frontend/app-development/utils/urlHelper.ts Deployments
-
-// FormEditor
-export const ruleHandlerPath = (org, app) => `/designer/api/${org}/${app}/form-editor/rule-handler`; // Get
-export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/form-editor/rule-handler?${stageFile}`; // Get
-export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/form-editor/widget-settings`; // Get
-export const ruleConfigPath = (org, app) => `/designer/api/${org}/${app}/form-editor/rule-config`; // Get, Post
-export const layoutSettingsPath = (org, app) => `/designer/api/${org}/${app}/form-editor/layout-settings`; // Get, Post
-export const formLayoutsPath = (org, app) => `/designer/api/${org}/${app}/form-editor/form-layouts`; // Get
-export const formLayoutPath = (org, app, layout) => `/designer/api/${org}/${app}/form-editor/form-layout/${layout}`; // Post, Delete
-export const formLayoutNamePath = (org, app, layoutName) => `/designer/api/${org}/${app}/form-editor/form-layout-name/${layoutName}`; // Put
-
-// Frontend-language
+export const abortmergePath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/abortmerge`;
+export const createDatamodelPath = (owner, repo) =>
+  `/designer/api/${owner}/${repo}/datamodels/post`;
+export const datamodelAddXsdFromRepoPath = (owner, repo, modelPath) =>
+  `/designer/api/${owner}/${repo}/datamodels/xsd-from-repo?filePath=${modelPath}`;
+export const datamodelGetPath = (owner, repo, modelPath) =>
+  `/designer/api/${owner}/${repo}/datamodels${modelPath}`;
+export const datamodelPath = (owner, repo, modelPath) =>
+  `/designer/api/${owner}/${repo}/datamodels?${s({ modelPath })}`;
+export const datamodelXsdPath = (owner, repo) => `/designer/${owner}/${repo}/Model/GetXsd`;
+export const datamodelsPath = (owner, repo) => `/designer/api/${owner}/${repo}/datamodels`;
+export const datamodelsXsdPath = (owner, repo) => `/designer/api/${owner}/${repo}/datamodels/xsd`;
+export const datamodelsUploadPath = (owner, repo) =>
+  `/designer/api/${owner}/${repo}/datamodels/upload`;
+export const discardChangesPath = (owner, repo) =>
+  `/designer/api/v1/repos/${owner}/${repo}/discard`;
 export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.json`;
-
-// Gitea
-export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;
-export const repositoryGitPath = (org, app) => `/repos/${org}/${app}.git`;
-export const repositoryPath = (org, app) => `/repos/${org}/${app}`;
-export const repositoryOwnerPath = (org) => `/repos/${org}`;
-export const repositoryBasePath = () => '/repos';
-export const userLogoutPath = () => '/repos/user/logout';
-
-// Home
+export const gitCommitPath = (owner, repo, commitId) =>
+  `/repos/${owner}/${repo}/commit/${commitId}`;
+export const keepAlivePath = () => `/designer/api/v1/session/keepalive`;
+export const masterRepoStatusPath = (owner, repo) =>
+  `/designer/api/v1/repos/${owner}/${repo}/branches/branch?branch=master`;
+export const orgsListPath = () => '/designer/api/v1/orgs';
+export const remainingSessionTimePath = () => `/designer/api/v1/session/remaining`;
+export const repoCommitPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/commit`;
+export const repoDownloadPath = (owner, repo, full) =>
+  `/designer/api/v1/repos/${owner}/${repo}/contents.zip?${s({ full })}`;
+export const repoInitialCommitPath = (owner, repo) =>
+  `/designer/api/v1/repos/${owner}/${repo}/initialcommit`;
+export const repoMetaPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}`;
+export const repoPullPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/pull`;
+export const repoPushPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/push`;
+export const repoResetPAth = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/reset`;
+export const repoSearchPath = () => '/designer/api/v1/repos/search';
+export const repoStatusPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/status`;
+export const reposListPath = (owner) => `/designer/api/v1/repos/${owner}`;
+export const repositoryGitPath = (owner, repo) => `/repos/${owner}/${repo}.git`;
+export const serviceConfigPath = (owner, repo) =>
+  `/designer/${owner}/${repo}/Config/GetServiceConfig`;
+export const serviceNamePath = (owner, repo) => `/designer/${owner}/${repo}/Text/GetServiceName`;
+export const setServiceConfigPath = (owner, repo) =>
+  `/designer/${owner}/${repo}/Config/SetServiceConfig`;
+export const setServiceNamePath = (owner, repo) => `/designer/${owner}/${repo}/Text/SetServiceName`;
+export const textResourcesPath = (owner, repo, langcode) =>
+  `/designer/${owner}/${repo}/UIEditor/GetTextResources/${langcode}`;
+export const userCurrentPath = () => '/designer/api/v1/user/current';
 export const userLogoutAfterPath = () => '/Home/Logout';
+export const userLogoutPath = () => '/repos/user/logout';
+export const userReposPath = () => '/designer/api/v1/user/repos';
+export const userStarredListPath = () => '/designer/api/v1/user/starred';
+export const userStarredRepoPath = (owner, repo) =>
+  `/designer/api/v1/user/starred/${owner}/${repo}`;
+export const repositoryPath = (owner, repo) => `/repos/${owner}/${repo}`;
+export const repositoryOwnerPath = (owner) => `/repos/${owner}`;
+export const repositoryBasePath = () => '/repos';
+export const languagePath = (owner, repo) => `/designer/${owner}/${repo}/Text/GetLanguages`;
 
-// Languages - new text-format
-export const languagesPath = (org, app) => `/designer/api/${org}/${app}/languages`; // Get
+export const copyAppPath = (org, sourceRepository, targetRepository) =>
+  `/designer/api/v1/repos/copyapp?${s({
+    org,
+    sourceRepository,
+    targetRepository,
+  })}`;
 
-// Model
-export const datamodelCsharpPath = (org, app) => `/designer/api/${org}/${app}/model/get-csharp`; // Get
-export const datamodelJsonSchemaPath = (org, app) => `/designer/api/${org}/${app}/model/get-json-schema`; // Get
-export const datamodelMetadataPath = (org, app) => `/designer/api/${org}/${app}/model/get-metadata`; // Get
-export const datamodelXsdPath = (org, app) => `/designer/api/${org}/${app}/model/get-xsd`; // Get
+export const getServiceFilesPath = (owner, repo, fileEditorMode) =>
+  `/designer/${owner}/${repo}/ServiceDevelopment/GetServiceFiles?${s({
+    fileEditorMode,
+  })}`;
 
-// Organizations
-export const orgsListPath = () => '/designer/api/orgs'; // Get
+export const getServiceFilePath = (owner, repo, fileEditorMode, fileName) =>
+  `/designer/${owner}/${repo}/ServiceDevelopment/GetServiceFile?${s({
+    fileEditorMode,
+    fileName,
+  })}`;
 
-// Release
-// See frontend/app-development/utils/urlHelper.ts Releases
-
-// Repositories
-export const abortmergePath = (org, app) => `/designer/api/repos/repo/${org}/${app}/abort-merge`;
-export const cloneAppPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/clone`; // Get
-export const copyAppPath = (org, sourceRepository, targetRepository) => `/designer/api/repos/copy-app?${s({org, sourceRepository, targetRepository,})}`; // Post
-export const createRepoPath = () => `/designer/api/repos/create-app`; // Post
-export const discardChangesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/discard`; // Get
-export const discardFileChangesPath = (org, app, filename) => `/designer/api/repos/repo/${org}/${app}/discard/${filename}`; // Get
-export const masterRepoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches?branch=master`; // Get
-export const repoBranchesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches`; // Get
-export const repoBranchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches?branch=${branch}}`; // Get
-export const repoCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit`; // Post
-export const repoCommitPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit-and-push`; // Post
-export const repoDownloadPath = (org, app, full) => `/designer/api/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;
-export const repoInitialCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/initial-commit`; // Get
-export const repoLatestCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/latest-commit`; // Get
-export const repoLogPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/log`; // Get
-export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app}`; // Get
-export const repoPullPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/pull`; // Get
-export const repoPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/push`; // Post
-export const repoResetPAth = (org, app) => `/designer/api/repos/repo/${org}/${app}/reset`; // Get
-export const repoSearchPath = () => '/designer/api/repos/search'; // Get
-export const repoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/status`; // Get
-export const reposListPath = (org) => `/designer/api/repos/org/${org}`; // Get
-export const stageFilePath = (org, app, filename) => `/designer/api/repos/repo/${org}/${app}/stage/${filename}`; // Get
-
-// Session
-export const keepAlivePath = () => `/designer/api/session/keepalive`; // Get
-export const remainingSessionTimePath = () => `/designer/api/session/remaining`; // Get
-
-// Text - old
-export const textLanguagesPath = (org, app) => `/designer/api/${org}/${app}/text/languages`; // Get
-export const textResourcesPath = (org, app, langCode) => `/designer/api/${org}/${app}/text/language/${langCode}`; // Get, Post, Put, Delete
-export const textResourcesAddPath = (org, app) => `/designer/api/${org}/${app}/text/language/add-texts`; // Post
-export const serviceNamePath = (org, app) => `/designer/api/${org}/${app}/text/service-name`; // Get, Post
-
-// Text - new
-
-// User
-export const userCurrentPath = () => '/designer/api/user/current'; // Get
-export const userReposPath = () => '/designer/api/user/repos'; // Get
-export const userStarredListPath = () => '/designer/api/user/starred'; // Get
-export const userStarredRepoPath = (org, app) => `/designer/api/user/starred/${org}/${app}`; // Put, Delete
-
-// Deprecated
-export const getServiceFilesPath = (org, app, fileEditorMode) => `/designer/api/${org}/${app}/service-development/get-all?${s({fileEditorMode,})}`; // Get
+export const saveServiceFilePath = (owner, repo, fileEditorMode, fileName, stageFile) =>
+  `/designer/${owner}/${repo}/ServiceDevelopment/SaveServiceFile?${s({
+    fileEditorMode,
+    fileName,
+    stageFile,
+  })}`;
