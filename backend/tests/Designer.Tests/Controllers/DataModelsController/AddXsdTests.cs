@@ -11,6 +11,7 @@ using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
@@ -52,8 +53,8 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>, IDis
         CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
 
-        var fileStream = TestDataHelper.LoadDataFromEmbeddedResource(
-            "Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+        var fileStream = SharedResourcesHelper.LoadTestData(
+            "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
         var formData = new MultipartFormDataContent();
         var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
@@ -80,8 +81,8 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>, IDis
         CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
 
-        var fileStream = TestDataHelper.LoadDataFromEmbeddedResource(
-            "Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+        var fileStream = SharedResourcesHelper.LoadTestData(
+            "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
         var formData = new MultipartFormDataContent();
         var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
@@ -108,8 +109,8 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>, IDis
         CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
 
-        var fileStream = TestDataHelper.LoadDataFromEmbeddedResource(
-            "Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+        var fileStream = SharedResourcesHelper.LoadTestData(
+            "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
         var formData = new MultipartFormDataContent();
         var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");

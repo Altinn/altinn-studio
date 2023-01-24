@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using FluentAssertions;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Services
@@ -166,7 +167,7 @@ namespace Designer.Tests.Services
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter, TestDataHelper.ModelMetadataToCsharpConverter);
-                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.SimpleInvalidNonSeresSchema.xsd");
+                var xsdStream = SharedResourcesHelper.LoadTestData("Model/XmlSchema/General/SimpleInvalidNonSeresSchema.xsd");
                 var schemaName = "SimpleInvalidNonSeresSchema";
                 var fileName = $"{schemaName}.xsd";
 
@@ -197,7 +198,7 @@ namespace Designer.Tests.Services
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter, TestDataHelper.ModelMetadataToCsharpConverter);
-                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.SimpleValidNonSeresSchema.xsd");
+                var xsdStream = SharedResourcesHelper.LoadTestData("Model/XmlSchema/General/SimpleValidNonSeresSchema.xsd");
                 var schemaName = "SimpleValidNonSeresSchema";
                 var fileName = $"{schemaName}.xsd";
                 var relativeDirectory = "App/models";
