@@ -1,11 +1,11 @@
 using Altinn.Common.AccessTokenClient.Services;
+using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories;
-using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -60,7 +60,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IXmlSchemaToJsonSchemaConverter, XmlSchemaToJsonSchemaConverter>();
             services.AddTransient<IJsonSchemaToXmlSchemaConverter, JsonSchemaToXmlSchemaConverter>();
             services.AddTransient<IJsonSchemaNormalizer, JsonSchemaNormalizer>();
-            services.AddTransient<IModelMetadataParser, JsonMetadataParser>();
+            services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
             services.AddSingleton(_ =>
             {
                 var options = new CSharpGenerationSettings();

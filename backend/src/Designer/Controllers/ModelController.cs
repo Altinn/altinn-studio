@@ -1,12 +1,11 @@
+using System.Collections.Generic;
 using System.Text;
-
-using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -60,7 +59,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 ModelMetadata metadata = _repository.GetModelMetadata(org, app);
-                return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
+                return Json(metadata, new JsonSerializerSettings() { Formatting = Formatting.Indented });
             }
             catch
             {

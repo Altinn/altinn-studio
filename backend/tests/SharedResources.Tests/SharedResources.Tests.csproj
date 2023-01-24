@@ -6,23 +6,34 @@
     </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\..\testdata\**\*.*" />
+    <EmbeddedResource Include="..\..\..\testdata\Model\**\*.*">
+      <LinkBase>TestData\Model</LinkBase>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\testdata\Seres\**\*.*">
+      <LinkBase>TestData\Seres</LinkBase>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove="..\..\..\testdata\Model\CSharp\melding.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <EmbeddedResource Remove="..\..\..\testdata\AppTemplates\**" />
+    <Compile Remove="..\..\..\testdata\Model\CSharp\**" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\..\..\testdata\Model\CSharp\melding.cs">
-      <Link>Model\CSharp\melding.cs</Link>
+      <Link>TestData\Model\CSharp\melding.cs</Link>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Basic.Reference.Assemblies" />
     <PackageReference Include="JsonSchema.Net" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
 </Project>

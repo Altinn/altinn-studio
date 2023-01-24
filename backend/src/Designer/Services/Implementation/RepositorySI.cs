@@ -2,28 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
-
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-
-using Manatee.Json.Schema;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
 using Newtonsoft.Json;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
@@ -137,7 +130,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 PartyTypesAllowed = new PlatformStorageModels.PartyTypesAllowed()
             };
 
-            string metadata = JsonConvert.SerializeObject(appMetadata, Newtonsoft.Json.Formatting.Indented);
+            string metadata = JsonConvert.SerializeObject(appMetadata, Formatting.Indented);
             string filePath = _settings.GetAppMetadataFilePath(org, app, developer);
 
             // This creates metadata
@@ -147,7 +140,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public void UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata)
         {
-            string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Newtonsoft.Json.Formatting.Indented);
+            string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Formatting.Indented);
             string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             File.WriteAllText(filePath, applicationMetadataAsJson, Encoding.UTF8);
         }
@@ -171,7 +164,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
             existingApplicationMetadata.DataTypes.Add(formMetadata);
 
-            string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
+            string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Formatting.Indented);
             string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
@@ -220,7 +213,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     existingApplicationMetadata.DataTypes.Remove(removeForm);
                 }
 
-                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Formatting.Indented);
                 string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
@@ -499,7 +492,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     tr.Resources.Add(actualResource.Value);
                 }
 
-                string resourceString = JsonConvert.SerializeObject(tr, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented, NullValueHandling = NullValueHandling.Ignore });
+                string resourceString = JsonConvert.SerializeObject(tr, new JsonSerializerSettings { Formatting = Formatting.Indented, NullValueHandling = NullValueHandling.Ignore });
                 File.WriteAllText(resourcePath + $"/resource.{processedResource.Key}.json", resourceString);
             }
         }
@@ -919,7 +912,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
 
-            if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
+            if (repository != null && repository.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
                 if (Directory.Exists(repoPath))
                 {
@@ -970,7 +963,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 textResource.Resources.Add(new TextResourceElement() { Id = "receipt.title", Value = $"{serviceConfig.ServiceName} er nå sendt inn" });
                 var jsonSerializerSettings = new JsonSerializerSettings
                 {
-                    Formatting = Newtonsoft.Json.Formatting.Indented,
+                    Formatting = Formatting.Indented,
                     NullValueHandling = NullValueHandling.Ignore
                 };
                 string textResourceString = JsonConvert.SerializeObject(textResource, jsonSerializerSettings);
@@ -986,7 +979,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
 
-            if (repository == null || repository.RepositoryCreatedStatus != System.Net.HttpStatusCode.Created)
+            if (repository == null || repository.RepositoryCreatedStatus != HttpStatusCode.Created)
             {
                 return repository;
             }
@@ -1064,7 +1057,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
+        public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)
         {
             return await _gitea.CreateRepository(org, options);
         }
@@ -1388,7 +1381,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     existingApplicationMetadata.Title.Add("nb", applicationInformation.ServiceName);
                 }
 
-                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Formatting.Indented);
                 string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
@@ -1474,7 +1467,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static void Save(ResourceWrapper resourceWrapper)
         {
-            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Newtonsoft.Json.Formatting.Indented);
+            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Formatting.Indented);
             File.WriteAllText(resourceWrapper.FileName, textContent);
         }
 
