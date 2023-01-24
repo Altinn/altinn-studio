@@ -51,6 +51,8 @@ const initialStoreCall = {
       label: modelName,
       value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0],
     },
+    org: 'test-org',
+    app: 'test-repo'
   },
 };
 

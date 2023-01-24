@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("/designer/api/v1/{org}/{app}/[controller]")]
+    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments")]
     public class DeploymentsController : ControllerBase
     {
         private readonly IDeploymentService _deploymentService;
@@ -83,13 +83,14 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Creates a release
+        /// Creates a deployment
         /// </summary>
         /// <param name="createDeployment">Release model</param>
         /// <returns>Created release</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [Route("create-deployment")]
         public async Task<ActionResult<DeploymentEntity>> Create([FromBody] CreateDeploymentRequestViewModel createDeployment)
         {
             if (!ModelState.IsValid)

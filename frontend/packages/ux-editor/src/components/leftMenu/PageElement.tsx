@@ -11,7 +11,7 @@ import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLa
 import { deepCopy, removeKey } from 'app-shared/pure';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router-dom';
+import {useParams, useSearchParams} from 'react-router-dom';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 
 export interface IPageElementProps {
@@ -35,6 +35,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const [deleteAnchorEl, setDeleteAnchorEl] = useState<null | Element>(null);
   const disableUp = layoutOrder.indexOf(name) === 0;
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
+  const { org, app } = useParams();
 
   useEffect(() => {
     if (name !== selectedLayout) {
@@ -46,7 +47,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     if (invalid) {
       alert(`${name}: ${t('left_menu.pages.invalid_page_data')}`);
     } else if (selectedLayout !== name) {
-      dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
+      dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name, org, app }));
       setSearchParams({ ...deepCopy(searchParams), layout: name });
     }
   };
@@ -67,6 +68,8 @@ export function PageElement({ name, invalid }: IPageElementProps) {
         FormLayoutActions.updateLayoutOrder({
           layout: name,
           direction: action,
+          org,
+          app,
         })
       );
     }
@@ -76,7 +79,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const handleOnBlur = async (_event: any) => {
     setEditMode(false);
     if (!errorMessage && name !== newName) {
-      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName, org, app }));
       setSearchParams({ ...deepCopy(searchParams), layout: newName });
     }
   };
@@ -103,7 +106,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const handleKeyPress = async (event: any) => {
     if (event.key === 'Enter' && !errorMessage && name !== newName) {
-      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName, org, app }));
       setSearchParams({ ...deepCopy(searchParams), layout: newName });
       setEditMode(false);
     } else if (event.key === 'Escape') {
@@ -116,7 +119,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const handleConfirmDelete = () => {
     setDeleteAnchorEl(null);
-    dispatch(FormLayoutActions.deleteLayout({ layout: name }));
+    dispatch(FormLayoutActions.deleteLayout({ layout: name, org, app }));
     setSearchParams(removeKey(searchParams, 'layout'));
   };
 

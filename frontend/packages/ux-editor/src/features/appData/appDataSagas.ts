@@ -20,12 +20,6 @@ import {
   upsertTextResourcesRejected,
 } from './textResources/textResourcesSlice';
 import {
-  getAddTextResourcesUrl,
-  getFetchDataModelUrl,
-  getFetchRuleModelUrl,
-  getPutTextResourcesUrl,
-} from '../../utils/urlHelper';
-import {
   fetchDataModel,
   fetchDataModelFulfilled,
   fetchDataModelRejected,
@@ -42,11 +36,18 @@ import {
   fetchRuleModelRejected,
 } from './ruleModel/ruleModelSlice';
 import type { IDataModelFieldElement, IRuleModelFieldElement } from '../../types/global';
-import { frontendLangPath } from 'app-shared/api-paths';
+import {
+  textResourcesAddPath,
+  frontendLangPath,
+  textResourcesPath,
+  ruleHandlerPath,
+  datamodelMetadataPath
+} from 'app-shared/api-paths';
 
-function* fetchDataModelSaga(): SagaIterator {
+function* fetchDataModelSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+  const {org, app} = payload;
   try {
-    const url = getFetchDataModelUrl();
+    const url = datamodelMetadataPath(org, app);
     const dataModel: any = yield call(get, url);
     const dataModelFields: IDataModelFieldElement[] = [];
     Object.keys(dataModel.elements).forEach((dataModelField) => {
@@ -65,9 +66,10 @@ export function* watchFetchDataModelSaga(): SagaIterator {
   yield takeLatest(fetchDataModel, fetchDataModelSaga);
 }
 
-function* fetchRuleModelSaga(): SagaIterator {
+function* fetchRuleModelSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+  const {org, app} = payload;
   try {
-    const ruleModel = yield call(get, getFetchRuleModelUrl());
+    const ruleModel = yield call(get, ruleHandlerPath(org, app));
     const ruleModelFields: IRuleModelFieldElement[] = [];
     const scriptEle = window.document.createElement('script');
     scriptEle.innerHTML = ruleModel;
@@ -167,7 +169,7 @@ export function* watchFetchLanguageSaga(): SagaIterator {
 export function* addTextResourcesSaga({ payload }: any): SagaIterator {
   try {
     const { textResources } = payload;
-    const url = getAddTextResourcesUrl();
+    const url = textResourcesAddPath(payload.owner, payload.app);
     yield call(post, url, textResources);
     yield put(addTextResourcesFulfilled());
   } catch (error) {
@@ -184,7 +186,7 @@ export function* upsertTextResourcesSaga({
 }: PayloadAction<IUpsertTextResources>): SagaIterator {
   try {
     const { language, textResources } = payload;
-    yield call(restPut, getPutTextResourcesUrl(language), textResources);
+    yield call(restPut, textResourcesPath(payload.org, payload.app, language), textResources);
     yield put(upsertTextResourcesFulfilled());
   } catch (error) {
     yield put(upsertTextResourcesRejected({ error }));
