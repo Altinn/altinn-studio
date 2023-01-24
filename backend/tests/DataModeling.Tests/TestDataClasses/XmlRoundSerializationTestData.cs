@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DataModeling.Tests.TestDataClasses
 {
-    public class XmlRoundSerializationTestData: IEnumerable<object[]>
+    public class XmlRoundSerializationTestData : IEnumerable<object[]>
     {
         public IEnumerator<object[]> GetEnumerator()
         {

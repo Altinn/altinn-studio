@@ -111,9 +111,9 @@ namespace DataModeling.Tests
 
         private void SerializedJsonData_ShouldNotBeChanged()
         {
-            JObject result = ( JObject )JsonConvert.DeserializeObject( SerializedModelJson );
-            JObject expected = ( JObject )JsonConvert.DeserializeObject( JsonData );
-            Assert.True( JToken.DeepEquals( expected, result ) );
+            JObject result = (JObject)JsonConvert.DeserializeObject(SerializedModelJson);
+            JObject expected = (JObject)JsonConvert.DeserializeObject(JsonData);
+            Assert.True(JToken.DeepEquals(expected, result));
         }
 
         // Xml helper methods
@@ -140,7 +140,7 @@ namespace DataModeling.Tests
         {
             var expected = XDocument.Parse(SerializedModelXml);
             var result = XDocument.Parse(XmlData);
-            Assert.True(  XNode.DeepEquals( expected, result ) );
+            Assert.True(XNode.DeepEquals(expected, result));
         }
 
         // Json and xml comparison helper methods

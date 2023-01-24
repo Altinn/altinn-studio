@@ -144,7 +144,7 @@ public static class MetamodelRestrictionUtils
                 valueBuilder.Append(';');
             }
 
-            valueBuilder.Append(@enum?.ToString()?? string.Empty);
+            valueBuilder.Append(@enum?.ToString() ?? string.Empty);
         }
 
         restrictions.TryAdd("enumeration", new Restriction() { Value = valueBuilder.ToString() });

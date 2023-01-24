@@ -17,7 +17,7 @@ namespace DataModeling.Tests.Utils
             return obj;
         }
 
-       public static string SerializeXml(object o)
+        public static string SerializeXml(object o)
         {
             var xmlSerializer = new XmlSerializer(o.GetType());
             using var textWriter = new StringWriter();

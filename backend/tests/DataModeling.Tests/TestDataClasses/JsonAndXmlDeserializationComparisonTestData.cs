@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DataModeling.Tests.TestDataClasses
 {
-    public class JsonAndXmlDeserializationComparisonTestData: IEnumerable<object[]>
+    public class JsonAndXmlDeserializationComparisonTestData : IEnumerable<object[]>
     {
         public IEnumerator<object[]> GetEnumerator()
         {
