@@ -1,0 +1,109 @@
+{
+  "Org": "sandgrainone",
+  "ServiceName": "total-digits",
+  "RepositoryName": "total-digits",
+  "ServiceId": null,
+  "elements": {
+    "TotalDigitsTest.Name": {
+      "id": "TotalDigitsTest.Name",
+      "parentElement": "TotalDigitsTest",
+      "typeName": "Name",
+      "name": "Name",
+      "dataBindingName": "Name",
+      "xPath": "/TotalDigitsTest/Name",
+      "restrictions": {
+        "minLength": {
+          "value": "1",
+          "errortText": null
+        },
+        "maxLength": {
+          "value": "20",
+          "errortText": null
+        }
+      },
+      "choices": null,
+      "type": "Field",
+      "xsdValueType": "String",
+      "texts": {
+
+      },
+      "customProperties": {
+
+      },
+      "maxOccurs": 1,
+      "minOccurs": 1,
+      "xName": "Name",
+      "isTagContent": false,
+      "fixedValue": null,
+      "isReadOnly": false,
+      "xmlSchemaXPath": null,
+      "jsonSchemaPointer": "#/definitions/TotalDigitsTest/properties/Name",
+      "displayString": "TotalDigitsTest.Name : [1..1] Name"
+    },
+    "TotalDigitsTest.Value": {
+      "id": "TotalDigitsTest.Value",
+      "parentElement": "TotalDigitsTest",
+      "typeName": "Value",
+      "name": "Value",
+      "dataBindingName": "Value",
+      "xPath": "/TotalDigitsTest/Value",
+      "restrictions": {
+        "minimum": {
+          "value": "-7.766279631452242E+18",
+          "errortText": null
+        },
+        "maximum": {
+          "value": "7.766279631452242E+18",
+          "errortText": null
+        }
+      },
+      "choices": null,
+      "type": "Field",
+      "xsdValueType": "Integer",
+      "texts": {
+
+      },
+      "customProperties": {
+
+      },
+      "maxOccurs": 1,
+      "minOccurs": 1,
+      "xName": "Value",
+      "isTagContent": false,
+      "fixedValue": null,
+      "isReadOnly": false,
+      "xmlSchemaXPath": null,
+      "jsonSchemaPointer": "#/definitions/TotalDigitsTest/properties/Value",
+      "displayString": "TotalDigitsTest.Value : [1..1] Value"
+    },
+    "TotalDigitsTest": {
+      "id": "TotalDigitsTest",
+      "parentElement": null,
+      "typeName": "TotalDigitsTest",
+      "name": "TotalDigitsTest",
+      "dataBindingName": null,
+      "xPath": "/TotalDigitsTest",
+      "restrictions": {
+
+      },
+      "choices": null,
+      "type": "Group",
+      "xsdValueType": null,
+      "texts": {
+
+      },
+      "customProperties": {
+
+      },
+      "maxOccurs": 1,
+      "minOccurs": 0,
+      "xName": "TotalDigitsTest",
+      "isTagContent": false,
+      "fixedValue": null,
+      "isReadOnly": false,
+      "xmlSchemaXPath": null,
+      "jsonSchemaPointer": "#/properties/TotalDigitsTest",
+      "displayString": "TotalDigitsTest : [0..1] TotalDigitsTest"
+    }
+  }
+}

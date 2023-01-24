@@ -49,6 +49,15 @@ namespace DataModeling.Tests.BaseClasses
             return this as TTestType;
         }
 
+        protected TTestType ModelMetadataLoaded(string jsonSchemaPath)
+        {
+            string metamodelString = SharedResourcesHelper.LoadTestDataAsString(jsonSchemaPath);
+
+            // TODO: Move to System.Text.Json
+            ModelMetadata = Newtonsoft.Json.JsonConvert.DeserializeObject<ModelMetadata>(metamodelString);
+            return this as TTestType;
+        }
+
         protected TTestType ModelMetadataConvertedToCsharpClass()
         {
             CSharpClasses = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadata);
