@@ -15,6 +15,8 @@ export interface IDataModelActionPayload {
   schema?: IJsonSchema;
   repoType?: string;
   metadata?: IMetadataOption;
+  org: string;
+  app: string;
 }
 
 export interface IDataModelErrorActionPayload extends Action {
@@ -85,7 +87,7 @@ const dataModellingSlice = createSlice({
       state.saving = undefined;
       state.error = error;
     },
-    deleteDataModel(state, _) {
+    deleteDataModel(state, action: PayloadAction<{metadata, org, app}>) {
       state.saving = true;
     },
     deleteDataModelFulfilled(state) {

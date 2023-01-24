@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers;
 
 public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeysControllerTests>
 {
-    private readonly string _versionPrefix = "designer/api/v1";
+    private readonly string _versionPrefix = "designer/api";
 
     public TextKeysControllerTests(WebApplicationFactory<TextKeysController> factory) : base(factory)
     {
@@ -38,7 +38,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -61,7 +61,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "invalid-texts-format", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -81,7 +81,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "empty-app", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -101,11 +101,11 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=AlreadyExistingKey&newKey=ReplacedKey";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/text-keys?oldKey=AlreadyExistingKey&newKey=ReplacedKey";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
         HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
         string list = responseGetKeys.Content.ReadAsStringAsync().Result;
@@ -127,11 +127,11 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/text-keys?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
         HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
         string list = responseGetKeys.Content.ReadAsStringAsync().Result;
@@ -153,11 +153,11 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=AlreadyExistingKey&newKey=KeyOnlyDefinedInEnglish";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/text-keys?oldKey=AlreadyExistingKey&newKey=KeyOnlyDefinedInEnglish";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
         HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
         string list = responseGetKeys.Content.ReadAsStringAsync().Result;
@@ -179,11 +179,11 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=AlreadyExistingKey&newKey=";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/text-keys?oldKey=AlreadyExistingKey&newKey=";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
         HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
         string list = responseGetKeys.Content.ReadAsStringAsync().Result;
@@ -206,7 +206,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "empty-app", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/text-keys?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -226,7 +226,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?wrongQueryParam=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/text-keys?wrongQueryParam=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);

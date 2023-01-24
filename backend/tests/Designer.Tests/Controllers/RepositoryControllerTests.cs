@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers
 {
     public class RepositoryControllerTests : ApiTestsBase<RepositoryController, RepositoryControllerTests>
     {
-        private readonly string _versionPrefix = "/designer/api/v1";
+        private readonly string _versionPrefix = "/designer/api/repos";
         private readonly Mock<IRepository> _repositoryMock;
 
         public RepositoryControllerTests(WebApplicationFactory<RepositoryController> factory) : base(factory)
@@ -39,7 +39,7 @@ namespace Designer.Tests.Controllers
         public async Task Contents_ContentsReturned_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/repos/ttd/apps-test/contents";
+            string uri = $"{_versionPrefix}/repo/ttd/apps-test/contents";
 
             _repositoryMock
                 .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -69,7 +69,7 @@ namespace Designer.Tests.Controllers
         public async Task Contents_ContentsIsNull_BadRequest()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/repos/acn-sbuad/apps-test/contents?path=App";
+            string uri = $"{_versionPrefix}/repo/acn-sbuad/apps-test/contents?path=App";
 
             _repositoryMock
                 .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -90,7 +90,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_RepoHasCreatedStatus_DeleteRepositoryIsNotCalled()
         {
             // Arrange
-            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
+            string uri = $"{_versionPrefix}/repo/ttd/copy-app?sourceRepository=apps-test&targetRepository=cloned-app";
 
             _repositoryMock
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -110,7 +110,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_TargetRepoAlreadyExists_ConflictIsReturned()
         {
             // Arrange
-            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=existing-repo";
+            string uri = $"{_versionPrefix}/repo/ttd/copy-app?sourceRepository=apps-test&targetRepository=existing-repo";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
@@ -125,7 +125,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_GiteaTimeout_DeleteRepositoryIsCalled()
         {
             // Arrange
-            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
+            string uri = $"{_versionPrefix}/repo/ttd/copy-app?sourceRepository=apps-test&targetRepository=cloned-app";
 
             _repositoryMock
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -148,7 +148,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_ExceptionIsThrownByService_InternalServerError()
         {
             // Arrange
-            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
+            string uri = $"{_versionPrefix}/repo/ttd/copy-app?sourceRepository=apps-test&targetRepository=cloned-app";
 
             _repositoryMock
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -171,7 +171,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_InvalidTargetRepoName_BadRequest()
         {
             // Arrange
-            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=2022-cloned-app";
+            string uri = $"{_versionPrefix}/repo/ttd/copy-app?sourceRepository=apps-test&targetRepository=2022-cloned-app";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
@@ -186,7 +186,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_InvalidSourceRepoName_BadRequest()
         {
             // Arrange
-            string uri = "/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=ddd.git%3Furl%3D{herkanmannåfrittgjøreting}&targetRepository=cloned-target-app";
+            string uri = $"{_versionPrefix}/repo/ttd/copy-app?sourceRepository=ddd.git%3Furl%3D{{herkanmannåfrittgjøreting}}&targetRepository=cloned-target-app";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
@@ -203,7 +203,7 @@ namespace Designer.Tests.Controllers
         public async Task CreateApp_InvalidRepoName_BadRequest()
         {
             // Arrange
-            string uri = $"/designer/api/v1/repos/ttd&repository=2021-application";
+            string uri = $"{_versionPrefix}/create-app?org=ttd&repository=2021-application";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             // Act
@@ -217,7 +217,7 @@ namespace Designer.Tests.Controllers
         public async Task CreateApp_ValidRepoName_Created()
         {
             // Arrange
-            string uri = $"/designer/api/v1/repos/CreateApp?org=ttd&repository=test";
+            string uri = $"{_versionPrefix}/create-app?org=ttd&repository=test";
 
             _repositoryMock
                 .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))

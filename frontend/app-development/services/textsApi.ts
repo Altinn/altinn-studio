@@ -14,17 +14,12 @@ type OrgAppLangData = OrgAppLang & {
   data: TextResourceFile;
 };
 
-const languageFileUrl = ({ org, app, langCode }) =>
-  `/designer/${org}/${app}/Text/SaveResource/${langCode}`;
-
-const deleteLangPath = ({ org, app, langCode }) =>
-  `/designer/${org}/${app}/Text/DeleteLanguage/${langCode}`;
-
 export const textsApi = appDevelopmentApi.injectEndpoints({
   endpoints: (builder) => ({
     getAppTextsByLangCode: builder.query<TextResourceFile, OrgAppLang>({
       query: ({ org, app, langCode }) => ({
         url: textResourcesPath(org, app, langCode),
+        method: 'GET',
       }),
       providesTags: (result, error, arg) => [
         {
@@ -35,7 +30,7 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
     }),
     updateTranslationByLangCode: builder.mutation<void, OrgAppLangData>({
       query: ({ data, ...params }) => ({
-        url: languageFileUrl(params),
+        url: textResourcesPath(params.org, params.app, params.langCode),
         method: 'POST',
         data,
       }),
@@ -58,8 +53,8 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
       },
     }),
     deleteByLangCode: builder.mutation<void, OrgAppLang>({
-      query: (params) => ({
-        url: deleteLangPath(params),
+      query: ({ org, app, langCode }) => ({
+        url: textResourcesPath(org, app, langCode),
         method: 'DELETE',
       }),
       async onQueryStarted({ org, app, langCode: deletedLangCode }, { dispatch, queryFulfilled }) {
@@ -90,7 +85,7 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
 
     addByLangCode: builder.mutation<void, OrgAppLang & { resources: TextResourceEntry[] }>({
       query: (params) => ({
-        url: languageFileUrl(params),
+        url: textResourcesPath(params.org, params.app, params.langCode),
         method: 'POST',
         data: {
           language: params.langCode,

@@ -45,7 +45,7 @@ public class PostTests : ApiTestsBase<DatamodelsController, PostTests>
         var targetRepository = TestDataHelper.GenerateTestRepoName();
 
         await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-        var url = $"{VersionPrefix}/{org}/{targetRepository}/Datamodels/Post";
+        var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/new";
 
         var createViewModel = new CreateModelViewModel()
         { ModelName = "test", RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
@@ -91,7 +91,7 @@ public class PostTests : ApiTestsBase<DatamodelsController, PostTests>
     [InlineData("test/", "", false)]
     public async Task PostDatamodel_InvalidFormPost_ShouldReturnBadRequest(string modelName, string relativeDirectory, bool altinn2Compatible)
     {
-        var url = $"{VersionPrefix}/xyz/dummyRepo/Datamodels/Post";
+        var url = $"{VersionPrefix}/xyz/dummyRepo/datamodels/new";
 
         var createViewModel = new CreateModelViewModel()
         { ModelName = modelName, RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };

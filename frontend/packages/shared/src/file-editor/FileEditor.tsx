@@ -7,7 +7,11 @@ import AltinnButton from '../components/AltinnButton';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
-import { getServiceFilePath, getServiceFilesPath, saveServiceFilePath } from '../api-paths';
+import {
+  ruleHandlerPath,
+  getServiceFilesPath,
+  saveRuleHandlerPath
+} from '../api-paths';
 import classes from './FileEditor.module.css';
 
 export interface ICodeLanguageItem {
@@ -113,7 +117,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       isLoading: true,
     });
     const { org, app } = _useParamsClassCompHack();
-    get(getServiceFilePath(org, app, this.props.mode, fileName)).then((logicFileContent) => {
+    get(ruleHandlerPath(org, app)).then((logicFileContent) => {
       this.setState((prevState: IFileEditorState) => {
         return {
           ...prevState,
@@ -141,7 +145,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     }
     const { org, app } = _useParamsClassCompHack();
     const saveRes: any = await post(
-      saveServiceFilePath(org, app, this.props.mode, this.state.selectedFile, stageFile),
+      saveRuleHandlerPath(org, app, stageFile),
       this.state.value,
       {
         headers: {

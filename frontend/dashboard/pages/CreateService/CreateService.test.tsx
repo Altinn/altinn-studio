@@ -6,7 +6,7 @@ import { handlers, renderWithProviders, rest, setupServer } from '../../dashboar
 
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { CreateService } from './CreateService';
-import { orgsListPath } from 'app-shared/api-paths';
+import {orgsListPath, createRepoPath} from 'app-shared/api-paths';
 
 const server = setupServer(...handlers);
 
@@ -104,8 +104,10 @@ describe('CreateService', () => {
   it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
     server.use(
-      rest.post('http://localhost/designer/api/v1/repos/user_login', async (req, res, ctx) => {
-        return res(ctx.status(409));
+      rest.post(createRepoPath(), async (req, res, ctx) => {
+        const org = req.url.searchParams.get('user_login')
+        const repoName = req.url.searchParams.get('this-app-name-exists')
+        return res(ctx.status(409), ctx.json({org, repoName}));
       })
     );
 
@@ -126,8 +128,10 @@ describe('CreateService', () => {
   it('should show generic error message that app already exists when trying to create an app and something unknown went wrong', async () => {
     const user = userEvent.setup();
     server.use(
-      rest.post('http://localhost/designer/api/v1/repos/user_login', async (req, res, ctx) => {
-        return res(ctx.status(500));
+      rest.post(createRepoPath(), async (req, res, ctx) => {
+        const org = req.url.searchParams.get('user_login')
+        const repoName = req.url.searchParams.get('new-app')
+        return res(ctx.status(500), ctx.json({org, repoName}));
       })
     );
 

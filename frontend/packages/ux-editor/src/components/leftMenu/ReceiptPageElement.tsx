@@ -5,7 +5,7 @@ import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLa
 import { PageElement } from './PageElement';
 import { useDispatch, useSelector } from 'react-redux';
 import { deepCopy } from 'app-shared/pure';
-import { useSearchParams } from 'react-router-dom';
+import {useParams, useSearchParams} from 'react-router-dom';
 import classes from './ReceiptPageElement.module.css';
 
 export function ReceiptPageElement() {
@@ -14,8 +14,9 @@ export function ReceiptPageElement() {
   const receiptName = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.receiptLayoutName
   );
+  const { org, app } = useParams();
   const handleAddPage = () => {
-    dispatch(FormLayoutActions.addLayout({ layout: 'Kvittering', isReceiptPage: true }));
+    dispatch(FormLayoutActions.addLayout({ layout: 'Kvittering', isReceiptPage: true, org, app }));
     setSearchParams({ ...deepCopy(searchParams), layout: 'Kvittering' });
   };
   return receiptName ? (

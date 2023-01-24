@@ -34,7 +34,7 @@ public class NonAuthenticatedCallsTests : ApiTestsBase<DatamodelsController, Non
     [Fact]
     public async Task GetDatamodels_NotAuthenticated_ShouldReturn401()
     {
-        const string url = $"{VersionPrefix}/ttd/hvem-er-hvem/Datamodels/";
+        const string url = $"{VersionPrefix}/ttd/hvem-er-hvem/datamodels/datamodel";
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
         var response = await HttpClient.Value.SendAsync(httpRequestMessage);

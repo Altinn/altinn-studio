@@ -1,5 +1,6 @@
 import { appDevelopmentApi } from './appDevelopmentApi';
 import { Tags } from './tags';
+import { textLanguagesPath } from 'app-shared/api-paths';
 
 type LanguageList = string[];
 type OrgApp = {
@@ -11,7 +12,8 @@ export const languagesApi = appDevelopmentApi.injectEndpoints({
   endpoints: (builder) => ({
     getLanguages: builder.query<LanguageList, OrgApp>({
       query: ({ org, app }) => ({
-        url: `/designer/${org}/${app}/Text/GetLanguages`,
+        url: textLanguagesPath(org, app),
+        method: 'GET',
       }),
       providesTags: () => [
         {

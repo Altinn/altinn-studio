@@ -17,7 +17,8 @@ namespace Designer.Tests.Utils
 
             HttpResponseMessage loginResponse = await client.SendAsync(httpRequestMessageLogin);
 
-            string xsrfUrl = $"designer/api/v1/user/current";
+            string xsrfUrl = $"" +
+                             $"designer/api/user/current";
             HttpRequestMessage httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl)
             {
             };

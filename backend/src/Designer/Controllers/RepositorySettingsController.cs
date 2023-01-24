@@ -16,7 +16,7 @@ namespace Altinn.Studio.Designer.Controllers
     [AutoValidateAntiforgeryToken]
     [ApiController]
     [Authorize]
-    [Route("/designer/api/v1/{org}/{repository}/repositorysettings")]
+    [Route("/designer/api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/repository-settings")]
     public class RepositorySettingsController : ControllerBase
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
@@ -62,16 +62,14 @@ namespace Altinn.Studio.Designer.Controllers
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            if (ModelState.IsValid)
-            {
-                var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-                await altinnGitRepository.SaveAltinnStudioSettings(settings);
-                return Ok(settings);
-            }
-            else
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            await altinnGitRepository.SaveAltinnStudioSettings(settings);
+            return Ok(settings);
         }
     }
 }

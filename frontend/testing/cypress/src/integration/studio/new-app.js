@@ -28,7 +28,7 @@ context('New App', () => {
     var appName = Cypress.env('deployApp').split('/')[1];
     cy.contains(dashboard.appOwnersList, Cypress.env('appOwner')).click();
     cy.get(dashboard.appName).should('be.visible').type(appName);
-    cy.intercept('POST', '**/designer/api/v1/repos/**').as('postCreateApp');
+    cy.intercept('POST', '**/designer/api/repos/create-app/**').as('postCreateApp');
     cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
     cy.wait('@postCreateApp').its('response.statusCode').should('eq', 409);
     cy.contains('div', texts.appExists).should('be.visible');

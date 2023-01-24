@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
-using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -24,7 +23,7 @@ namespace Designer.Tests.Controllers
 {
     public class ReleasesControllerTests : ApiTestsBase<ReleasesController, ReleasesControllerTests>
     {
-        private readonly string _versionPrefix = "/designer/api/v1";
+        private readonly string _versionPrefix = "/designer/api";
         private readonly JsonSerializerOptions _options;
 
         private readonly Mock<IReleaseService> _releaseServiceMock;

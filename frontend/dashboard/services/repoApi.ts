@@ -1,6 +1,6 @@
 import { designerApi, TagTypes } from './designerApi';
 import type { IRepository } from 'app-shared/types/global';
-import { repoSearchPath, reposListPath } from 'app-shared/api-paths';
+import {createRepoPath, repoSearchPath } from 'app-shared/api-paths';
 
 type Filters = {
   uid?: number;
@@ -79,9 +79,10 @@ export const repoApi = designerApi.injectEndpoints({
     addRepo: builder.mutation<IRepository, AddQuery>({
       query: ({ owner, repoName, modelType }) => {
         return {
-          url: reposListPath(owner),
+          url: createRepoPath(),
           method: 'POST',
           params: {
+            org: owner,
             repository: repoName,
             datamodellingPreference: modelType,
           },

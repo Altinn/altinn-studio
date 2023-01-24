@@ -31,7 +31,7 @@ export const actions = {
   addFormContainer: createAction<IAddFormContainerAction>(`${moduleName}/addFormContainer`),
   addLayout: createAction<IAddLayoutAction>(`${moduleName}/addLayout`),
   addWidget: createAction<IAddWidgetAction>('formLayout/addWidget'),
-  deleteActiveList: createAction(`${moduleName}/deleteActiveList`),
+  deleteActiveList: createAction<{org, app}>(`${moduleName}/deleteActiveList`),
   deleteApplicationMetadata: createAction<IDeleteApplicationMetadataAction>(
     `${moduleName}/deleteApplicationMetadata`
   ),
@@ -41,7 +41,7 @@ export const actions = {
   deleteFormComponent: createAction<IDeleteComponentAction>(`${moduleName}/deleteFormComponent`),
   deleteFormContainer: createAction<IDeleteContainerAction>(`${moduleName}/deleteFormContainer`),
   deleteLayout: createAction<IDeleteLayoutAction>(`${moduleName}/deleteLayout`),
-  fetchLayoutSettings: createAction(`${moduleName}/fetchLayoutSettings`),
+  fetchLayoutSettings: createAction<{org, app}>(`${moduleName}/fetchLayoutSettings`),
   updateActiveList: createAction<IUpdateActiveListAction>(`${moduleName}/updateActiveList`),
   updateApplicationMetadata: createAction<IUpdateApplicationMetadaAction>(
     `${moduleName}/updateApplicationMetadata`

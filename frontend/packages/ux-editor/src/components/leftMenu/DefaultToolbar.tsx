@@ -10,6 +10,7 @@ import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../../u
 import { useDispatch, useSelector } from 'react-redux';
 
 import './DefaultToolbar.css';
+import { useParams } from 'react-router-dom';
 
 export function DefaultToolbar() {
   const dispatch = useDispatch();
@@ -27,17 +28,18 @@ export function DefaultToolbar() {
   const language: any = useSelector((state: IAppState) => state.appData.languageState.language);
   const order: any[] = useSelector(makeGetLayoutOrderSelector());
   const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);
-
+  const { org, app } = useParams();
+  const orgApp = { org, app };
   const componentList: IToolbarElement[] = schemaComponents.map((component) =>
-    mapComponentToToolbarElement(component, language, activeList, order, dispatch)
+    mapComponentToToolbarElement(component, language, activeList, order, dispatch, orgApp)
   );
 
   const textComponentList: IToolbarElement[] = textComponents.map((component) =>
-    mapComponentToToolbarElement(component, language, activeList, order, dispatch)
+    mapComponentToToolbarElement(component, language, activeList, order, dispatch, orgApp)
   );
 
   const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component) =>
-    mapComponentToToolbarElement(component, language, activeList, order, dispatch)
+    mapComponentToToolbarElement(component, language, activeList, order, dispatch, orgApp)
   );
 
   const widgetComponentsList: IToolbarElement[] = widgetsList.map((widget) =>

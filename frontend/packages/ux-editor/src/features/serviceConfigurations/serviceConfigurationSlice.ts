@@ -39,15 +39,13 @@ const serviceConfigurationSlice = createSlice({
         ...newConnection,
       };
     },
-    deleteConditionalRenderingConnnection: (state, action) => {
-      const { connectionId } = action.payload;
-      delete state.conditionalRendering[connectionId];
+    deleteConditionalRenderingConnnection: (state, action: PayloadAction<{ connectionId, org, app }>) => {
+      delete state.conditionalRendering[action.payload.connectionId];
     },
-    deleteRuleConnnection: (state, action) => {
-      const { connectionId } = action.payload;
-      delete state.ruleConnection[connectionId];
+    deleteRuleConnnection: (state, action: PayloadAction<{ connectionId, org, app }>) => {
+      delete state.ruleConnection[action.payload.connectionId];
     },
-    fetchServiceConfiguration: (state) => {
+    fetchServiceConfiguration: (state,  action: PayloadAction<{ org, app }>) => {
       state.manageServiceConfiguration.fetching = true;
     },
     fetchServiceConfigurationFulfilled: (state) => {
@@ -64,7 +62,7 @@ const serviceConfigurationSlice = createSlice({
       state.manageServiceConfiguration.fetched = false;
       state.manageServiceConfiguration.fetching = false;
     },
-    saveServiceConfiguration: (state) => {
+    saveServiceConfiguration: (state, action: PayloadAction<{ org, app }>) => {
       state.manageServiceConfiguration.saving = true;
     },
     saveServiceConfigurationFulfilled: (state) => {
