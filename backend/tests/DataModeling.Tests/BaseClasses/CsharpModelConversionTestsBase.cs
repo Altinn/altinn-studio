@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
@@ -62,9 +63,7 @@ namespace DataModeling.Tests.BaseClasses
         protected TTestType ModelMetadataLoaded(string jsonSchemaPath)
         {
             string metamodelString = SharedResourcesHelper.LoadTestDataAsString(jsonSchemaPath);
-
-            // TODO: Move to System.Text.Json
-            ModelMetadata = Newtonsoft.Json.JsonConvert.DeserializeObject<ModelMetadata>(metamodelString);
+            ModelMetadata = JsonSerializer.Deserialize<ModelMetadata>(metamodelString, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
             return this as TTestType;
         }
 
