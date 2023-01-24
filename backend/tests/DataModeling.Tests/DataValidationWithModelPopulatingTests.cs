@@ -17,11 +17,11 @@ using Xunit.Abstractions;
 
 namespace DataModeling.Tests;
 
-public class DataValidationTests : CsharpModelConversionTestsBase<DataValidationTests>
+public class DataValidationWithModelPopulatingTests : CsharpModelConversionTestsBase<DataValidationWithModelPopulatingTests>
 {
     private readonly ITestOutputHelper _testOutputHelper;
 
-    public DataValidationTests(ITestOutputHelper testOutputHelper)
+    public DataValidationWithModelPopulatingTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }
@@ -54,26 +54,26 @@ public class DataValidationTests : CsharpModelConversionTestsBase<DataValidation
             .And.RepresentingObject_ShouldValidateAgainstJsonSchema();
     }
 
-    private DataValidationTests RepresentingTypeFromLoadedFromAssembly()
+    private DataValidationWithModelPopulatingTests RepresentingTypeFromLoadedFromAssembly()
     {
         RepresentingType = CompiledAssembly.Types().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
         return this;
     }
 
-    private DataValidationTests RandomRepresentingObjectGenerated()
+    private DataValidationWithModelPopulatingTests RandomRepresentingObjectGenerated()
     {
         RandomRepresentingObject = RandomObjectModelGenerator.GenerateValidRandomObject(RepresentingType);
         return this;
     }
 
-    private DataValidationTests RepresentingObject_ShouldBeValid()
+    private DataValidationWithModelPopulatingTests RepresentingObject_ShouldBeValid()
     {
         var isValid = Validator.TryValidateObject(RandomRepresentingObject, new ValidationContext(RandomRepresentingObject), null, true);
         isValid.Should().BeTrue();
         return this;
     }
 
-    private DataValidationTests RepresentingObject_ShouldValidateAgainstXsdSchema()
+    private DataValidationWithModelPopulatingTests RepresentingObject_ShouldValidateAgainstXsdSchema()
     {
         static string SerializeXml(object o)
         {

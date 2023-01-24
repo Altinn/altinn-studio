@@ -1,0 +1,30 @@
+﻿<!-- Add XML Schema (XSD) Data -->
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="simple_keyvalues">
+    <xs:sequence>
+      <xs:element type="xs:string" name="key" />
+      <xs:element type="xs:double" name="doubleValue" />
+      <xs:element type="xs:integer" name="intValue" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="values_list">
+    <xs:sequence>
+      <xs:element name="simple_keyvalues" type="simple_keyvalues" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="dummy">
+    <xs:sequence>
+      <xs:element type="xs:string" name="name" />
+      <xs:element type="xs:string" name="tags" />
+      <xs:element name="simple_list" type="values_list" />
+      <xs:element type="xs:boolean" name="toggle" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Skjema">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="melding" type="dummy" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
