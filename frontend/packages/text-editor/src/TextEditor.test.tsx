@@ -20,14 +20,6 @@ describe('TextEditor', () => {
     ],
   };
 
-  beforeEach(() => {
-    jest.spyOn(global.Math, 'random').mockReturnValue(0);
-  });
-
-  afterEach(() => {
-    jest.spyOn(global.Math, 'random').mockRestore();
-  });
-
   const renderTextEditor = (props: Partial<TextEditorProps> = {}) => {
     const allProps = {
       availableLangCodes: ['nb', 'en'],
@@ -48,6 +40,8 @@ describe('TextEditor', () => {
   };
 
   it('fires onTranslationChange when Add new is clicked', async () => {
+    jest.spyOn(global.Math, 'random').mockReturnValue(0);
+
     const onTranslationChange = jest.fn();
     const { user } = renderTextEditor({
       onTranslationChange: onTranslationChange,
@@ -68,6 +62,7 @@ describe('TextEditor', () => {
         },
       ],
     });
+    jest.spyOn(global.Math, 'random').mockRestore();
   });
 
   it('fires onDeleteLang when Delete lang is clicked', async () => {
@@ -118,10 +113,12 @@ describe('TextEditor', () => {
       name: /norsk bokmål/i,
     });
     expect(translationsToChange).toHaveLength(2);
-    await user.tripleClick(translationsToChange[0]); // select all text
     const changedTranslations = [...norwegianTranslation.resources];
     changedTranslations[0].value = 'new translation';
-    await user.keyboard(`${changedTranslations[0].value}{TAB}`); // type new text and blur
+    await act(async () => {
+      await user.tripleClick(translationsToChange[0]); // select all text
+      await user.keyboard(`${changedTranslations[0].value}{TAB}`); // type new text and blur
+    });
     const mutatedTranslation = { ...norwegianTranslation, resources: changedTranslations };
     expect(onTranslationChange).toHaveBeenCalledWith(mutatedTranslation);
   });
@@ -135,7 +132,9 @@ describe('TextEditor', () => {
         name: /Slett textId/i,
       });
       expect(result).toHaveLength(2);
-      await user.click(result[0]);
+      await act(async () => {
+        await user.click(result[0]);
+      });
       expect(onTextIdChange).toHaveBeenCalledWith({ oldId: norwegianTranslation.resources[0].id });
     };
     const getInputs = (name: RegExp) => screen.getAllByRole('textbox', { name });
@@ -145,8 +144,10 @@ describe('TextEditor', () => {
       });
       const textIdInputs = getInputs(/ID/i);
       expect(textIdInputs).toHaveLength(2);
-      await user.tripleClick(textIdInputs[0]); // select all text
-      await user.keyboard('new-key{TAB}'); // type new text and blur
+      await act(async () => {
+        await user.tripleClick(textIdInputs[0]); // select all text
+        await user.keyboard('new-key{TAB}'); // type new text and blur
+      });
       expect(onTextIdChange).toHaveBeenCalledWith({
         oldId: norwegianTranslation.resources[0].id,
         newId: 'new-key',
@@ -160,19 +161,19 @@ describe('TextEditor', () => {
       });
       return { error, onTextIdChange };
     };
-    it('removes an entry from the rendered list of entries', async () => {
-      await deleteSomething();
-      const resultAfter = screen.getAllByRole('button', {
-        name: /Slett textId/i,
-      });
-      expect(resultAfter).toHaveLength(1);
-    });
     it('signals that a textId has changed', async () => {
       await makeChangesToTextIds();
       const textIdRefsAfter1 = screen.getAllByText(/textid/i);
       const textIdRefsAfter2 = screen.getAllByText(/new-key/i);
       expect(textIdRefsAfter1).toHaveLength(2); // The id is also on the delete button
       expect(textIdRefsAfter2).toHaveLength(2);
+    });
+    it('removes an entry from the rendered list of entries', async () => {
+      await deleteSomething();
+      const resultAfter = screen.getAllByRole('button', {
+        name: /Slett textId/i,
+      });
+      expect(resultAfter).toHaveLength(1);
     });
     it('reverts the text-id if there was an error on change', async () => {
       const { error, onTextIdChange } = setupError();
