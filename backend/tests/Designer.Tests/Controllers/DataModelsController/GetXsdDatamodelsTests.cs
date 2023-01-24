@@ -33,7 +33,7 @@ public class GetXsdDatamodelsTests : ApiTestsBase<DatamodelsController, GetXsdDa
     [Fact]
     public async Task GetXsdDatamodels_NoInput_ShouldReturnAllModels()
     {
-        var url = $"{VersionPrefix}/ttd/hvem-er-hvem/Datamodels/xsd";
+        var url = $"{VersionPrefix}/ttd/hvem-er-hvem/datamodels/get-all-xsd";
 
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 

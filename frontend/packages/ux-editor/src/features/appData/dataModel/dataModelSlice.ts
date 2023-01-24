@@ -24,7 +24,7 @@ const dataModelSlice = createSlice({
   name: 'dataModel',
   initialState,
   reducers: {
-    fetchDataModel: (state) => {
+    fetchDataModel: (state, action: PayloadAction<{org, app}>) => {
       state.fetched = false;
       state.fetching = true;
       state.error = null;

@@ -119,7 +119,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveRuleConfigJson(string org, string app, string resource);
+        bool SaveRuleConfig(string org, string app, string resource);
 
         /// <summary>
         /// Updates the serviceMetadata
@@ -376,7 +376,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         string GetWidgetSettings(string org, string app);
 
         /// <summary>
-        /// Adds text resources to existing language resource files
+        /// Adds text resources to existing language resource files TODO: Remove
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -385,23 +385,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool AddTextResources(string org, string app, List<TextResource> textResourcesList);
 
         /// <summary>
-        /// Save the JSON form layout to disk
+        /// Get the rule configuration from disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
-        /// <param name="fileName">the name of the file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveJsonFile(string org, string app, string resource, string fileName);
-
-        /// <summary>
-        /// Get the Json file from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="fileName">The file name</param>
         /// <returns>Returns the json object as a string</returns>
-        string GetJsonFile(string org, string app, string fileName);
+        string GetRuleConfig(string org, string app);
 
         /// <summary>
         /// update  metadata for attachment

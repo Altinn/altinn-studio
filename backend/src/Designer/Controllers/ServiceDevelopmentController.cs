@@ -18,7 +18,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/[action]")]
+    [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/service-development")]
+    [Obsolete("ServiceDevelopmentController is deprecated, please use a combination of Text-, FormEditor- and ModelController instead.")]
     public class ServiceDevelopmentController : Controller
     {
         private readonly IRepository _repository;
@@ -37,23 +38,15 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Default action for the designer.
-        /// </summary>
-        /// <returns>default view for the app builder.</returns>
-        [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
-        public IActionResult Index(string org, string app)
-        {
-            _sourceControl.VerifyCloneExists(org, app);
-            return View();
-        }
-
-        /// <summary>
         /// Gets all app files for specified mode.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileEditorMode">The mode for which files should be fetched.</param>
         /// <returns>A comma-separated list of all the files.</returns>
+        [HttpGet]
+        [Route("get-all")]
+        [Obsolete("GetServiceFiles is deprecated")]
         public IActionResult GetServiceFiles(string org, string app, FileEditorMode fileEditorMode)
         {
             switch (fileEditorMode)
@@ -79,6 +72,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="fileEditorMode">The mode for which files should be fetched.</param>
         /// <param name="fileName">The name of the file to fetch.</param>
         /// <returns>The content of the file.</returns>
+        [HttpGet]
+        [Route("get")]
+        [Obsolete("GetServiceFile is deprecated, use FormEditorController methods to get rulehandler and ModelController to get configuration/model-metadata instead. The other retrieved files are irrelevant.")]
         public IActionResult GetServiceFile(string org, string app, FileEditorMode fileEditorMode, string fileName)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
@@ -107,8 +103,6 @@ namespace Altinn.Studio.Designer.Controllers
                 case FileEditorMode.Root:
                     file = _repository.GetFileByRelativePath(org, app, fileName);
                     break;
-                default:
-                    break;
             }
 
             return Content(file, "text/plain", Encoding.UTF8);
@@ -124,6 +118,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="stageFile">true if the file needs to be staged</param>
         /// <returns>The content of the file.</returns>
         [HttpPost]
+        [Route("save")]
+        [Obsolete("SaveServiceFile is deprecated, use FormEditorController methods to set rulehandler and ModelController to set configuration/model-metadata instead. The other saved files are irrelevant.")]
         public IActionResult SaveServiceFile(string org, string app, FileEditorMode fileEditorMode, string fileName, bool stageFile)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
@@ -215,7 +211,7 @@ namespace Altinn.Studio.Designer.Controllers
             return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
-        private string GetCommaSeparatedFileList(List<AltinnCoreFile> files)
+        private static string GetCommaSeparatedFileList(List<AltinnCoreFile> files)
         {
             var fileList = new StringBuilder();
             foreach (AltinnCoreFile file in files)
