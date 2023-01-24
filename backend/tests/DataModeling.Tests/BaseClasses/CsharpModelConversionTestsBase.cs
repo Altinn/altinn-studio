@@ -19,10 +19,20 @@ namespace DataModeling.Tests.BaseClasses
 
         protected Assembly CompiledAssembly { get; set; }
 
+        protected virtual void JsonToMetamodelKeywordProcessedHandler(object sender, KeywordProcessedEventArgs e)
+        {
+        }
+
+        protected virtual void JsonToMetamodelSubSchemaProcessedHandler(object sender, SubSchemaProcessedEventArgs e)
+        {
+        }
+
         protected TTestType ConvertedJsonSchemaConvertedToModelMetadata()
         {
             var strategy = JsonSchemaConverterStrategyFactory.SelectStrategy(ConvertedJsonSchema);
             var metamodelConverter = new JsonSchemaToMetamodelConverter(strategy.GetAnalyzer());
+            metamodelConverter.KeywordProcessed += JsonToMetamodelKeywordProcessedHandler;
+            metamodelConverter.SubSchemaProcessed += JsonToMetamodelSubSchemaProcessedHandler;
 
             string jsonSchemaString = JsonSerializer.Serialize(ConvertedJsonSchema, new JsonSerializerOptions()
             {

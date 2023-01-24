@@ -1,18 +1,37 @@
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Metamodel;
 using DataModeling.Tests.BaseClasses;
 using Designer.Tests.Assertions;
 using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DataModeling.Tests
 {
     public class JsonSchemaToMetamodelConverterTests : CsharpModelConversionTestsBase<JsonSchemaToMetamodelConverterTests>
     {
+        private readonly ITestOutputHelper _outputHelper;
+        public JsonSchemaToMetamodelConverterTests(ITestOutputHelper outputHelper)
+        {
+            _outputHelper = outputHelper;
+        }
+
+
         private ModelMetadata ExpectedModelMetadata { get; set; }
+
+        protected override void JsonToMetamodelKeywordProcessedHandler(object sender, KeywordProcessedEventArgs e)
+        {
+            _outputHelper.WriteLine($"Processed sub-schema at {e.Path.Source}");
+        }
+
+        protected override void JsonToMetamodelSubSchemaProcessedHandler(object sender, SubSchemaProcessedEventArgs e)
+        {
+            _outputHelper.WriteLine($"Processed sub-schema at {e.Path.Source}");
+        }
 
         [Theory]
         [InlineData("Seres/HvemErHvem.xsd", "Model/Metadata/HvemErHvem.metadata.json")]
@@ -36,7 +55,7 @@ namespace DataModeling.Tests
                 .Then.CompiledAssembly.Should().NotBeNull();
         }
 
-        // Fluent methods
+        // Helper methods
         private JsonSchemaToMetamodelConverterTests ExpectedMetamodelLoaded(string expectedMetamodelPath)
         {
             string expectedMetamodelJson = SharedResourcesHelper.LoadTestDataAsString(expectedMetamodelPath);
