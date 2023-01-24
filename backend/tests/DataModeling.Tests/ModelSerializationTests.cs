@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Xml.Linq;
 using DataModeling.Tests.BaseClasses;
+using DataModeling.Tests.TestDataClasses;
 using DataModeling.Tests.Utils;
 using FluentAssertions;
 using Newtonsoft.Json;
@@ -25,8 +26,7 @@ namespace DataModeling.Tests
         private string SerializedModelXml { get; set; }
 
         [Theory]
-        [InlineData("Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.json")]
-        [InlineData("Model/XmlSchema/General/ReferenceArray.xsd", "Altinn.App.Models.Skjema", "Model/Json/General/ReferenceArray.json")]
+        [ClassData(typeof(JsonRoundSerializationTestData))]
         public void Round_DeserializeAndSerialize_To_ShouldNotChangeJsonData(string xsdSchemaPath, string typeName, string jsonPath)
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
@@ -45,8 +45,7 @@ namespace DataModeling.Tests
         }
 
         [Theory]
-        [InlineData("Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xml")]
-        [InlineData("Model/XmlSchema/General/ReferenceArray.xsd", "Altinn.App.Models.Skjema", "Model/Xml/General/ReferenceArray.xml")]
+        [ClassData(typeof(XmlRoundSerializationTestData))]
         public void Round_DeserializeAndSerialize_To_ShouldNotChangeXmlData(string xsdSchemaPath, string typeName, string jsonPath)
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
@@ -62,6 +61,26 @@ namespace DataModeling.Tests
                 .And.XmlDataDeserializedToModelObject()
                 .And.Then.ModelObjectSerializedToXml()
                 .Then.SerializedXmlData_ShouldNotBeChanged();
+        }
+
+        [Theory]
+        [ClassData(typeof(JsonAndXmlDeserializationComparisonTestData))]
+        public void XmlAndJsonData_ShouldDeserialize_ToEquivalentModel(string xsdSchemaPath, string typeName, string jsonPath, string xmlPath)
+        {
+            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+                .When.LoadedXsdSchemaConvertedToJsonSchema()
+                .And.ConvertedJsonSchemaConvertedToModelMetadata()
+                .And.ModelMetadataConvertedToCsharpClass()
+                .And.CSharpClassesCompiledToAssembly()
+                .Then
+                .CompiledAssembly.Should().NotBeNull();
+
+            And.When.TypeReadFromCompiledAssembly(typeName)
+                .And.XmlDataLoaded(xmlPath)
+                .And.JsonDataLoaded(jsonPath)
+                .And.XmlDataDeserializedToModelObject()
+                .And.JsonDataDeserializedToModelObject()
+                .Then.ModelObjects_ShouldBeEquivalent();
         }
 
 
@@ -122,6 +141,13 @@ namespace DataModeling.Tests
             var expected = XDocument.Parse(SerializedModelXml);
             var result = XDocument.Parse(XmlData);
             Assert.True(  XNode.DeepEquals( expected, result ) );
+        }
+
+        // Json and xml comparison helper methods
+
+        private void ModelObjects_ShouldBeEquivalent()
+        {
+            DeserializedJsonModelObject.Should().BeEquivalentTo(DeserializedXmlModelObject);
         }
     }
 }
