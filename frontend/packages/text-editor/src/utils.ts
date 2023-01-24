@@ -52,9 +52,9 @@ export const filterFunction = (
     return true;
   } else if (searchQuery.length < 1) {
     return true;
-  } else if (id?.includes(searchQuery)) {
+  } else if (id?.toLowerCase().includes(searchQuery.toLowerCase())) {
     return true;
-  } else if (value?.includes(searchQuery)) {
+  } else if (value?.toLowerCase().includes(searchQuery.toLowerCase())) {
     return true;
   } else {
     return false;
