@@ -3,7 +3,6 @@
 /// <reference types="../../support" />
 
 import { designer } from '../../pageobjects/designer';
-import { common } from '../../pageobjects/common';
 
 context('Sync app and deploy', () => {
   beforeEach(() => {

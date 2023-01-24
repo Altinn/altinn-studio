@@ -3,7 +3,6 @@
 
 import { designer } from '../../pageobjects/designer';
 import { header } from '../../pageobjects/header';
-import { common } from '../../pageobjects/common';
 
 context('Designer', () => {
   before(() => {
