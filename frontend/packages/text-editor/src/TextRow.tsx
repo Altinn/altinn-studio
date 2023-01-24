@@ -7,7 +7,7 @@ import {
   ButtonVariant,
   ErrorMessage,
   TextArea,
-  TextField
+  TextField,
 } from '@digdir/design-system-react';
 import { Variables } from './Variables';
 
