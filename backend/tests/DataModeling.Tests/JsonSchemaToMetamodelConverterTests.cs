@@ -16,8 +16,8 @@ namespace DataModeling.Tests
 
         [Theory]
         [InlineData("Seres/HvemErHvem.xsd", "Model/Metadata/HvemErHvem.metadata.json")]
-        [InlineData("MSeres/SeresBasicSchema.xsd", "Model/Metadata/SeresBasicSchema.metadata.json")]
-        [InlineData("MSeres/schema_5259_1_forms_9999_50000.xsd", "Model/Metadata/schema_5259_1_forms_9999_50000.metadata.json")]
+        [InlineData("Seres/SeresBasicSchema.xsd", "Model/Metadata/SeresBasicSchema.metadata.json")]
+        [InlineData("Seres/schema_5259_1_forms_9999_50000.xsd", "Model/Metadata/schema_5259_1_forms_9999_50000.metadata.json")]
         [InlineData("Seres/schema_5064_1_forms_5793_42882.xsd", "Model/Metadata/schema_5064_1_forms_5793_42882.metadata.json")]
         [InlineData("Seres/schema_5222_2_forms_5909_43507.xsd", "Model/Metadata/schema_5222_2_forms_5909_43507.metadata.json")]
         [InlineData("Seres/schema_4830_4000_forms_5524_41951.xsd", "Model/Metadata/schema_4830_4000_forms_5524_41951.metadata.json")]
