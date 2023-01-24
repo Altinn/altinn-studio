@@ -13,7 +13,6 @@ public static class SharedResourcesHelper
 
     public static string LoadTestDataAsString(string resourceName)
     {
-
         var resourceStream = LoadTestData(resourceName);
         using var reader = new StreamReader(resourceStream);
         return reader.ReadToEnd();
@@ -21,8 +20,8 @@ public static class SharedResourcesHelper
 
     public static Stream LoadTestData(string resourceName)
     {
-        var resourceNameEnding = resourceName.Replace('/', '.');
-        var embeddedResourceName = SharedResourcesAssembly.GetManifestResourceNames()
+        string resourceNameEnding = resourceName.Replace('/', '.');
+        string embeddedResourceName = SharedResourcesAssembly.GetManifestResourceNames()
             .Single(x => x.EndsWith(resourceNameEnding));
         return SharedResourcesAssembly.GetManifestResourceStream(embeddedResourceName);
     }
