@@ -3,9 +3,9 @@ using System.IO;
 using System.Text;
 using System.Xml.Serialization;
 
-namespace Designer.Tests.Utils
+namespace DataModeling.Tests.Utils
 {
-    public class SerializationHelper
+    public static class SerializationHelper
     {
         public static object Deserialize(string xml, Type type)
         {
@@ -15,6 +15,14 @@ namespace Designer.Tests.Utils
             var obj = serializer.Deserialize(stream);
 
             return obj;
+        }
+
+       public static string SerializeXml(object o)
+        {
+            var xmlSerializer = new XmlSerializer(o.GetType());
+            using var textWriter = new StringWriter();
+            xmlSerializer.Serialize(textWriter, o);
+            return textWriter.ToString();
         }
     }
 }

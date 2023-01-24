@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Xml.Linq;
 using DataModeling.Tests.BaseClasses;
+using DataModeling.Tests.Utils;
 using FluentAssertions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SharedResources.Tests;
 using Xunit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace DataModeling.Tests
 {
@@ -13,8 +17,12 @@ namespace DataModeling.Tests
         private Type ModelType { get; set; }
 
         private string JsonData { get; set; }
-        private object DeserializedModelObject { get; set; }
+        private object DeserializedJsonModelObject { get; set; }
         private string SerializedModelJson { get; set; }
+
+        private string XmlData { get; set; }
+        private object DeserializedXmlModelObject { get; set; }
+        private string SerializedModelXml { get; set; }
 
         [Theory]
         [InlineData("Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.json")]
@@ -36,6 +44,26 @@ namespace DataModeling.Tests
                 .Then.SerializedJsonData_ShouldNotBeChanged();
         }
 
+        [Theory]
+        [InlineData("Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xml")]
+        [InlineData("Model/XmlSchema/General/ReferenceArray.xsd", "Altinn.App.Models.Skjema", "Model/Xml/General/ReferenceArray.xml")]
+        public void Round_DeserializeAndSerialize_To_ShouldNotChangeXmlData(string xsdSchemaPath, string typeName, string jsonPath)
+        {
+            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+                .When.LoadedXsdSchemaConvertedToJsonSchema()
+                .And.ConvertedJsonSchemaConvertedToModelMetadata()
+                .And.ModelMetadataConvertedToCsharpClass()
+                .And.CSharpClassesCompiledToAssembly()
+                .Then
+                .CompiledAssembly.Should().NotBeNull();
+
+            And.When.TypeReadFromCompiledAssembly(typeName)
+                .And.XmlDataLoaded(jsonPath)
+                .And.XmlDataDeserializedToModelObject()
+                .And.Then.ModelObjectSerializedToXml()
+                .Then.SerializedXmlData_ShouldNotBeChanged();
+        }
+
 
         private ModelSerializationTests TypeReadFromCompiledAssembly(string typeName)
         {
@@ -43,6 +71,7 @@ namespace DataModeling.Tests
             return this;
         }
 
+        // Json helper methods
         private ModelSerializationTests JsonDataLoaded(string jsonPath)
         {
             JsonData = SharedResourcesHelper.LoadTestDataAsString(jsonPath);
@@ -51,22 +80,48 @@ namespace DataModeling.Tests
 
         private ModelSerializationTests JsonDataDeserializedToModelObject()
         {
-            DeserializedModelObject = System.Text.Json.JsonSerializer.Deserialize(JsonData, ModelType);
+            DeserializedJsonModelObject = JsonSerializer.Deserialize(JsonData, ModelType);
             return this;
         }
 
         private ModelSerializationTests ModelObjectSerializedToJson()
         {
-            SerializedModelJson = System.Text.Json.JsonSerializer.Serialize(DeserializedModelObject);
+            SerializedModelJson = JsonSerializer.Serialize(DeserializedJsonModelObject);
             return this;
         }
 
         private void SerializedJsonData_ShouldNotBeChanged()
         {
-            Newtonsoft.Json.Linq.JObject expected = ( Newtonsoft.Json.Linq.JObject )Newtonsoft.Json.JsonConvert.DeserializeObject( SerializedModelJson );
-            Newtonsoft.Json.Linq.JObject result = ( Newtonsoft.Json.Linq.JObject )Newtonsoft.Json.JsonConvert.DeserializeObject( JsonData );
-            Assert.True( Newtonsoft.Json.Linq.JToken.DeepEquals( result, expected ) );
+            JObject result = ( JObject )JsonConvert.DeserializeObject( SerializedModelJson );
+            JObject expected = ( JObject )JsonConvert.DeserializeObject( JsonData );
+            Assert.True( JToken.DeepEquals( expected, result ) );
+        }
 
+        // Xml helper methods
+
+        private ModelSerializationTests XmlDataLoaded(string xmlPath)
+        {
+            XmlData = SharedResourcesHelper.LoadTestDataAsString(xmlPath);
+            return this;
+        }
+
+        private ModelSerializationTests XmlDataDeserializedToModelObject()
+        {
+            DeserializedXmlModelObject = SerializationHelper.Deserialize(XmlData, ModelType);
+            return this;
+        }
+
+        private ModelSerializationTests ModelObjectSerializedToXml()
+        {
+            SerializedModelXml = SerializationHelper.SerializeXml(DeserializedXmlModelObject);
+            return this;
+        }
+
+        private void SerializedXmlData_ShouldNotBeChanged()
+        {
+            var expected = XDocument.Parse(SerializedModelXml);
+            var result = XDocument.Parse(XmlData);
+            Assert.True(  XNode.DeepEquals( expected, result ) );
         }
     }
 }
