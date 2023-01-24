@@ -21,6 +21,7 @@ describe('TextEditor', () => {
   };
 
   const renderTextEditor = (props: Partial<TextEditorProps> = {}) => {
+    const user = userEvent.setup();
     const allProps = {
       availableLangCodes: ['nb', 'en'],
       translations: norwegianTranslation,
@@ -34,7 +35,6 @@ describe('TextEditor', () => {
       onTextIdChange: jest.fn(),
       ...props,
     } as TextEditorProps;
-    const user = userEvent.setup();
     rtlRender(<TextEditor {...allProps} />);
     return { user };
   };
@@ -50,7 +50,7 @@ describe('TextEditor', () => {
       name: /ny tekst/i,
     });
 
-    await act(() => user.click(addBtn));
+    await act(async () => await user.click(addBtn));
 
     expect(onTranslationChange).toHaveBeenCalledWith({
       language: 'nb',
@@ -72,7 +72,7 @@ describe('TextEditor', () => {
     });
     const deleteBtn = screen.getByTestId('delete-en');
 
-    await act(() => user.click(deleteBtn));
+    await act(async () => await user.click(deleteBtn));
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
   });
@@ -91,7 +91,7 @@ describe('TextEditor', () => {
     expect(norwegianRadio).toBeChecked();
     expect(englishRadio).not.toBeChecked();
 
-    await act(() => user.click(englishRadio));
+    await act(async () => await user.click(englishRadio));
 
     expect(setSelectedLangCode).toHaveBeenCalledWith('en');
   });
