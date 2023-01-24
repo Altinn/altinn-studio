@@ -1,4 +1,5 @@
-export { LanguageTree as ILanguage } from 'app-shared/utils/language';
+import type { LanguageTree } from 'app-shared/utils/language';
+export type { LanguageTree as ILanguage };
 /** Interfaces */
 import type { UiSchemaNodes } from '@altinn/schema-model';
 export interface IJsonSchema {

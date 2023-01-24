@@ -17,7 +17,7 @@ import classes from './TextEditor.module.css';
 import { getLocalStorage, setLocalStorage } from 'app-shared/utils/localStorage';
 import type { LanguageTree } from 'app-shared/utils/language';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import {TextResourceIdMutation} from "@altinn/text-editor/src/types";
+import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
 
 interface TextEditorProps extends React.PropsWithChildren<any> {
   language: LanguageTree;
