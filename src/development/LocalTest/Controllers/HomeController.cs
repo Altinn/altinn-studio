@@ -152,7 +152,7 @@ namespace LocalTest.Controllers
 
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
             {
-                return Redirect($"/accessmanagement/ui/api-delegations");
+                return Redirect($"/accessmanagement/ui/given-api-delegations/overview");
             }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
