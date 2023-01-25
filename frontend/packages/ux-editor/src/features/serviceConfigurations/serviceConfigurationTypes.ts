@@ -18,8 +18,6 @@ export interface IConditionalRendering {
 
 export interface IAddConditionalRendering {
   newConnection: any;
-  org: string;
-  app: string;
 }
 
 export interface ISetConditionalRendering {
@@ -57,8 +55,6 @@ export interface IRuleParams {
 
 export interface IAddRuleConnection {
   newConnection: any;
-  org: string;
-  app: string;
 }
 
 export interface ISetRuleConnection {

@@ -1,4 +1,9 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,62 +11,70 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
-    /// Controller containing all actions related to preview - still under development
+    /// Controller containing all actions related to data modelling
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/api")]
+    [Route("preview/{org}/{app}")]
     public class PreviewController : Controller
     {
         private readonly IRepository _repository;
+        private readonly ISchemaModelService _schemaModelService;
+        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PreviewController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service.</param>
+        /// <param name="sourceControl">The source control service.</param>
+        /// <param name="altinnGitRepositoryFactory">
         /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
-        public PreviewController(IRepository repositoryService)
+        /// </param>
+        public PreviewController(
+            IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
             _repository = repositoryService;
+            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
         /// <summary>
-        /// Action for getting the application metadata
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A view with the React form builder</returns>
+        [Route("api/v1/applicationmetadata")]
         [HttpGet]
-        [Route("applicationmetadata")]
         public IActionResult ApplicationMetadata(string org, string app)
         {
             // var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             // var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+
             var applicationMetadata = _repository.GetApplication(org, app);
             return Ok(applicationMetadata);
         }
 
         /// <summary>
-        /// Action for mocking a response containing the application settings
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>200 Ok</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/v1/applicationsettings")]
         [HttpGet]
-        [Route("applicationsettings")]
         public IActionResult ApplicationSettings(string org, string app)
         {
             return Ok();
         }
 
         /// <summary>
-        /// Action for getting the layout sets
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>layoutsets example file</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/layoutsets")]
         [HttpGet]
-        [Route("layoutsets")]
         public IActionResult LayoutSets(string org, string app)
         {
             var layoutsets = _repository.GetFileByRelativePath(org, app, "/App/ui/layout-sets.json");
@@ -69,13 +82,13 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for getting an example datamodel json schema named bestilling.schema.json
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>datamodel jsonschema example file</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/jsonschema/bestilling")]
         [HttpGet]
-        [Route("jsonschema/bestilling")]
         public IActionResult JsonSchema(string org, string app)
         {
             var layoutsets = _repository.GetFileByRelativePath(org, app, "/App/models/bestilling.schema.json");
@@ -83,13 +96,13 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for getting a response from v1/data/anonymous
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Empty object</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("v1/data/anonymous")]
         [HttpGet]
-        [Route("data/anonymous")]
         public IActionResult DataModel(string org, string app)
         {
             string user = @"{}";
@@ -97,26 +110,26 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for responding to keepAlive
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>200 Ok</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/authentication/keepAlive")]
         [HttpGet]
-        [Route("authentication/keepAlive")]
         public IActionResult KeepAlive(string org, string app)
         {
             return Ok();
         }
 
         /// <summary>
-        /// Action for mocking a response to the profile user
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>An example user</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/v1/profile/user")]
         [HttpGet]
-        [Route("profile/user")]
         public IActionResult CurrentUser(string org, string app)
         {
             string user = @"{
@@ -138,13 +151,13 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for mocking a response to the current party
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>An example party</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/authorization/parties/current")]
         [HttpGet]
-        [Route("authorization/parties/current")]
         public IActionResult CurrentParty(string org, string app)
         {
             string party = @"{
@@ -164,26 +177,26 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for mocking a response to validate the instance
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>bool</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/v1/parties/validateInstantiation")]
         [HttpPost]
-        [Route("parties/validateInstantiation")]
         public IActionResult ValidateInstantiation(string org, string app)
         {
             return Content(@"{""valid"": true}");
         }
 
         /// <summary>
-        /// Action for providing an example response to the nb text resource file
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Nb text resource file</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/v1/texts/nb")]
         [HttpGet]
-        [Route("texts/nb")]
         public IActionResult Language(string org, string app)
         {
             var resources = _repository.GetFileByRelativePath(org, app, "/App/config/texts/resource.nb.json");
@@ -191,13 +204,13 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for mocking a response to getting all text resource files
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Single text resource file</returns>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/textresources")]
         [HttpGet]
-        [Route("textresources")]
         public IActionResult TextResources(string org, string app)
         {
             var resources = _repository.GetFileByRelativePath(org, app, "App/config/texts/resource.nb.json");
@@ -205,14 +218,13 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for getting the requested datamodel as jsonschema
+        /// The index action which will show the React form builder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="modelname">Modelname identifier which is unique within an organisation.</param>
-        /// <returns>datamodel as json schema</returns>
-        [HttpGet]
-        [Route("jsonschema/{modelname}")]
+        // <param name="modelname">Application identifier which is unique within an organisation.</param>
+        /// <returns>A view with the React form builder</returns>
+        [Route("api/jsonschema/{modelname}")]
         public IActionResult Datamodel(string org, string app, string modelname)
         {
             var resources = _repository.GetFileByRelativePath(org, app, $"/App/models/{modelname}.schema.json");

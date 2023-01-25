@@ -16,8 +16,6 @@ namespace Designer.Tests.Controllers
 {
     public class UserControllerTests : ApiTestsBase<UserController, UserControllerTests>
     {
-        private readonly string _versionPrefix = "designer/api/user";
-
         public UserControllerTests(WebApplicationFactory<UserController> webApplicationFactory) : base(webApplicationFactory)
         {
         }
@@ -32,7 +30,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task GetCurrentUser_ShouldReturnOk()
         {
-            string requestUrl = $"{_versionPrefix}/current";
+            string requestUrl = "/designer/api/v1/user/current";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -44,7 +42,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task GetUserStarredRepositories_ShouldReturnOk()
         {
-            string requestUrl = $"{_versionPrefix}/starred";
+            string requestUrl = "/designer/api/v1/user/starred";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -55,7 +53,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task PutUserStarredRepositories_ShouldReturnNoContent()
         {
-            string requestUrl = $"{_versionPrefix}/starred/tdd/reponametostar";
+            string requestUrl = "/designer/api/v1/user/starred/tdd/reponametostar";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUrl);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -66,7 +64,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task DeleteUserStarredRepositories_ShouldReturnNoContent()
         {
-            string requestUrl = $"{_versionPrefix}/starred/tdd/reponametounstar";
+            string requestUrl = "/designer/api/v1/user/starred/tdd/reponametounstar";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);

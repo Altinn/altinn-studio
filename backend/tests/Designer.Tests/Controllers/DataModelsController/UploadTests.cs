@@ -40,7 +40,7 @@ public class UploadTests : ApiTestsBase<DatamodelsController, UploadTests>
         var targetRepository = TestDataHelper.GenerateTestRepoName();
 
         await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-        var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
+        var url = $"{VersionPrefix}/{org}/{targetRepository}/Datamodels";
 
         var fileStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
         var formData = new MultipartFormDataContent();

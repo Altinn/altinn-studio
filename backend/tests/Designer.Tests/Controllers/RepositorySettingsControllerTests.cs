@@ -20,8 +20,6 @@ namespace Designer.Tests.Controllers
 {
     public class RepositorySettingsControllerTests : ApiTestsBase<RepositorySettingsController, RepositorySettingsControllerTests>
     {
-        private readonly string _versionPrefix = "/designer/api";
-
         public RepositorySettingsControllerTests(WebApplicationFactory<RepositorySettingsController> factory) : base(factory)
         {
         }
@@ -42,7 +40,7 @@ namespace Designer.Tests.Controllers
             var targetRepository = TestDataHelper.GenerateTestRepoName("-datamodels");
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
-            string requestUrl = $"{_versionPrefix}/{org}/{targetRepository}/repository-settings";
+            string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
             try
@@ -65,7 +63,7 @@ namespace Designer.Tests.Controllers
             var org = "ttd";
             var targetRepository = $"thisDoesNotExist-datamodels";
 
-            string requestUrl = $"{_versionPrefix}/{org}/{targetRepository}/repository-settings";
+            string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -82,7 +80,7 @@ namespace Designer.Tests.Controllers
             var targetRepository = TestDataHelper.GenerateTestRepoName("-datamodels");
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
-            string requestUrl = $"{_versionPrefix}/{org}/{targetRepository}/repository-settings";
+            string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";
             var requestBody = @"{""repoType"": ""Datamodels"", ""datamodelling.preference"": ""JsonSchema""}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUrl)
             {

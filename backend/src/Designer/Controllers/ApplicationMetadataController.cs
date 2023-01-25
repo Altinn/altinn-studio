@@ -12,7 +12,7 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-metadata")]
+    [Route("/designer/api/v1/{org}/{app}")]
     public class ApplicationMetadataController : ControllerBase
     {
         private readonly IRepository _repository;
@@ -27,12 +27,13 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets the application metadata, url GET "/designer/api/org/app/get-app-metadata"
+        /// Gets the application metadata, url GET "/designer/api/v1/org/app/"
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The application metadata</returns>
         [HttpGet]
+        [ActionName("ApplicationMetadata")]
         public ActionResult GetApplicationMetadata(string org, string app)
         {
             Application application = _repository.GetApplication(org, app);
@@ -45,13 +46,14 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Puts the application metadata, url PUT "/designer/api/org/app/update-app-metadata
+        /// Puts the application metadata, url PUT "/designer/api/v1/org/app/
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationMetadata">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
+        [ActionName("ApplicationMetadata")]
         public ActionResult UpdateApplicationMetadata(string org, string app, [FromBody] Application applicationMetadata)
         {
             _repository.UpdateApplication(org, app, applicationMetadata);
@@ -60,94 +62,30 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Create an application metadata, url POST "/designer/api/org/app/create-app-metadata"
+        /// Create an application metadata, url POST "/designer/api/v1/org/app"
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The created application metadata</returns>
         [HttpPost]
+        [ActionName("ApplicationMetadata")]
         public ActionResult CreateApplicationMetadata(string org, string app)
         {
             if (_repository.GetApplication(org, app) != null)
             {
-                return Conflict("ApplicationMetadata already exists.");
+                return Conflict("ApplicationMetadata allready exists.");
             }
+            else
+            {
+                // TO DO: Application title handling (issue #2053/#1725)
+                _repository.CreateApplicationMetadata(org, app, app);
+                Application createdApplication = _repository.GetApplication(org, app);
+                if (createdApplication == null)
+                {
+                    return StatusCode(500);
+                }
 
-            // TODO: Application title handling (issue #2053/#1725)
-            _repository.CreateApplicationMetadata(org, app, app);
-            Application createdApplication = _repository.GetApplication(org, app);
-            if (createdApplication == null)
-            {
-                return StatusCode(500);
-            }
-
-            return Created($"/designer/api/{org}/{app}", createdApplication);
-        }
-
-        /// <summary>
-        /// Adds the metadata for attachment
-        /// </summary>
-        /// <param name="applicationMetadata">the application meta data to be updated</param>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns></returns>
-        [HttpPost]
-        [Route("attachment-component")]
-        public IActionResult AddMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
-        {
-            try
-            {
-                _repository.AddMetadataForAttachment(org, app, applicationMetadata.ToString());
-                return Ok("Metadata saved");
-            }
-            catch
-            {
-                return BadRequest("Could not save metadata");
-            }
-        }
-
-        /// <summary>
-        /// Updates the metadata when changing the properties for attachment component
-        /// </summary>
-        /// <param name="applicationMetadata">the application meta data to be updated</param>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns></returns>
-        [HttpPut]
-        [Route("attachment-component")]
-        public IActionResult UpdateMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
-        {
-            try
-            {
-                _repository.UpdateMetadataForAttachment(org, app, applicationMetadata.ToString());
-                return Ok("Metadata updated");
-            }
-            catch
-            {
-                return BadRequest("Could not update metadata");
-            }
-        }
-
-        /// <summary>
-        /// Deletes the metadata for attachment
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">the id of the component</param>
-        /// <returns></returns>
-        /// <remarks>Not in use in FE as of 04.01.23, but should be used when deleting attachment component from form editor</remarks>
-        [HttpDelete]
-        [Route("attachment-component")]
-        public IActionResult DeleteMetadataForAttachment(string org, string app, string id)
-        {
-            try
-            {
-                _repository.DeleteMetadataForAttachment(org, app, id);
-                return Ok("Metadata deleted");
-            }
-            catch
-            {
-                return BadRequest("Could not delete metadata");
+                return Created($"/designer/api/v1/{org}/{app}", createdApplication);
             }
         }
     }

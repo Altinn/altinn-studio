@@ -7,7 +7,6 @@ import { CheckboxGroup, CheckboxGroupVariant } from '@digdir/design-system-react
 import classes from './AccessControlContainer.module.css';
 import type { RootState } from '../../../store';
 import { useAppSelector } from 'app-development/common/hooks';
-import {useParams} from "react-router-dom";
 
 export interface IAccessControlContainerProps {
   language: any;
@@ -35,7 +34,6 @@ export enum PartyTypes {
 export function AccessControlContainer({ language }: IAccessControlContainerProps) {
   const dispatch = useDispatch();
   const t = (key: string) => getLanguageFromKey(key, language);
-  const { org, app } = useParams();
 
   const [partyTypesAllowed, setPartyTypesAllowed] = useState<IPartyTypesAllowed>({
     bankruptcyEstate: false,
@@ -64,7 +62,7 @@ export function AccessControlContainer({ language }: IAccessControlContainerProp
   }, [applicationMetadata]);
 
   useEffect(() => {
-    dispatch(ApplicationMetadataActions.getApplicationMetadata({org, app}));
+    dispatch(ApplicationMetadataActions.getApplicationMetadata());
   }, [dispatch]);
 
   const handlePartyTypesAllowedChange = (partyTypes: string[]) => {

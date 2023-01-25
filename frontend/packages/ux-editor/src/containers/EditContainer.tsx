@@ -18,7 +18,6 @@ import { useText } from '../hooks';
 import { textSelector } from '../selectors/textSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { ComponentPreview } from './ComponentPreview';
-import {useParams} from "react-router-dom";
 
 export interface IEditContainerProps {
   component: IFormComponent;
@@ -41,7 +40,6 @@ enum EditContainerMode {
 export function EditContainer(props: IEditContainerProps) {
   const dispatch = useDispatch();
   const t = useText();
-  const { org, app } = useParams();
 
   const [component, setComponent] = useState<IFormComponent>({
     id: props.id,
@@ -79,7 +77,7 @@ export function EditContainer(props: IEditContainerProps) {
 
   const handleComponentDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
     const componentsToDelete = activeList.length > 1 ? activeList : [props.id];
-    dispatch(FormLayoutActions.deleteFormComponents({ components: componentsToDelete, org, app }));
+    dispatch(FormLayoutActions.deleteFormComponents({ components: componentsToDelete }));
     dispatch(FormLayoutActions.deleteActiveList());
     event.stopPropagation();
   };
@@ -113,8 +111,6 @@ export function EditContainer(props: IEditContainerProps) {
           FormLayoutActions.updateFormComponentId({
             newId: component.id,
             currentId: props.id,
-            org,
-            app
           })
         );
       }
@@ -135,8 +131,6 @@ export function EditContainer(props: IEditContainerProps) {
       FormLayoutActions.updateFormComponent({
         id: props.id,
         updatedComponent: callbackComponent,
-        org,
-        app,
       })
     );
   };

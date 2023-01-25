@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers
 {
     public class TextsControllerTests : ApiTestsBase<TextsController, TextsControllerTests>
     {
-        private readonly string _versionPrefix = "designer/api";
+        private readonly string _versionPrefix = "designer/api/v2";
 
         public TextsControllerTests(WebApplicationFactory<TextsController> factory) : base(factory)
         {
@@ -36,7 +36,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Get_ReturnsNbTexts()
         {
-            string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/language/nb";
+            string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -55,7 +55,7 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
-            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -73,7 +73,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Get_NonExistingFile_404NotFound()
         {
-            string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/language/uk";
+            string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/uk";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -87,7 +87,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Get_InvalidFile_500InternalServer()
         {
-            string dataPathWithData = $"{_versionPrefix}/ttd/invalid-texts-format/texts/language/en";
+            string dataPathWithData = $"{_versionPrefix}/ttd/invalid-texts-format/texts/en";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -104,7 +104,7 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
-            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new { new_key_1 = "new_value_1", new_key_2 = "new_value_2" });
 
@@ -125,7 +125,7 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
-            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new { markdown_key = "## This is a markdown text \n\n Here is a list \n - Item1 \n - Item2 \n - Item3 \n\n # HERE IS SOME IMPORTANT CODE \n `print(Hello world)`" });
 
@@ -167,7 +167,7 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
-            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new { valid_key = "valid_value", invalid_key = new { invalid_format = "invalid_format" } });
 
@@ -191,7 +191,7 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
-            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -214,7 +214,7 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
-            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);

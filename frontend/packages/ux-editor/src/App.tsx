@@ -14,7 +14,7 @@ import { fetchLanguage } from './features/appData/language/languageSlice';
 import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
 import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { textLanguagesPath, textResourcesPath } from 'app-shared/api-paths';
+import { languagePath, textResourcesPath } from 'app-shared/api-paths';
 import type { IAppState } from './types/global';
 import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -45,26 +45,26 @@ export function App() {
     }
     if (selectedLayout === 'default' && searchParams.has('layout')) {
       dispatch(
-        FormLayoutActions.updateSelectedLayout({ selectedLayout: searchParams.get('layout'), org, app })
+        FormLayoutActions.updateSelectedLayout({ selectedLayout: searchParams.get('layout') })
       );
     }
   }, [dispatch, layoutOrder, searchParams, setSearchParams, selectedLayout]);
 
   useEffect(() => {
     const fetchFiles = () => {
-      dispatch(fetchDataModel({org, app}));
-      dispatch(FormLayoutActions.fetchFormLayout({org, app}));
+      dispatch(fetchDataModel());
+      dispatch(FormLayoutActions.fetchFormLayout());
       dispatch(loadTextResources({
         textResourcesUrl: (langCode) => textResourcesPath(org, app, langCode),
-        languagesUrl: textLanguagesPath(org, app)
+        languagesUrl: languagePath(org, app)
       }));
-      dispatch(loadLanguages({ url: textLanguagesPath(org, app) }));
-      dispatch(fetchServiceConfiguration({org, app}));
-      dispatch(fetchRuleModel({org, app}));
+      dispatch(loadLanguages({ url: languagePath(org, app) }));
+      dispatch(fetchServiceConfiguration());
+      dispatch(fetchRuleModel());
       dispatch(fetchLanguage({ languageCode: DEFAULT_LANGUAGE }));
-      dispatch(fetchWidgetSettings({org, app}));
-      dispatch(FormLayoutActions.fetchLayoutSettings({org, app}));
-      dispatch(fetchWidgets({org, app}));
+      dispatch(fetchWidgetSettings());
+      dispatch(FormLayoutActions.fetchLayoutSettings());
+      dispatch(fetchWidgets());
     };
 
     const shouldRefetchFiles = (event: any) => {
@@ -84,7 +84,7 @@ export function App() {
   useEffect(() => {
     if (!selectedLayout) {
       const name = t('general.page') + (layoutOrder.length + 1);
-      dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
+      dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
     }
   }, [selectedLayout]);
 
