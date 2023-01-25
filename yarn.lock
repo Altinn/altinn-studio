@@ -5130,13 +5130,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"altinn-designsystem@npm:3.1.0":
-  version: 3.1.0
-  resolution: "altinn-designsystem@npm:3.1.0"
-  checksum: c4cd777da0ed428d6abd7d636575c272c882f126eee87bbf47e0a641cf25a874238228f074a1acab236982eec0ce58013e95fd8e31e3560579649fd04f5be517
-  languageName: node
-  linkType: hard
-
 "ansi-colors@npm:^4.1.1":
   version: 4.1.3
   resolution: "ansi-colors@npm:4.1.3"
@@ -5252,7 +5245,6 @@ __metadata:
     "@typescript-eslint/parser": 5.48.2
     ajv: 8.12.0
     ajv-formats: 2.1.1
-    altinn-designsystem: 3.1.0
     axe-core: 4.6.2
     axios: 1.2.2
     babel-jest: 29.3.1
