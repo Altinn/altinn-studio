@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </remarks>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/texts")]
+    [Route("designer/api/v2/{org}/{repo}/texts")]
     public class TextsController : ControllerBase
     {
         private readonly ITextsService _textsService;
@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Route("language/{languageCode}")]
+        [Route("{languageCode}")]
         public async Task<ActionResult<Dictionary<string, string>>> Get(string org, string repo, [FromRoute] string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -85,7 +85,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Route("language/{languageCode}")]
+        [Route("{languageCode}")]
         public async Task<ActionResult> Put(string org, string repo, string languageCode, [FromBody] Dictionary<string, string> jsonTexts)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -128,7 +128,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [Route("language/{languageCode}")]
+        [Route("{languageCode}")]
         public ActionResult<string> Delete(string org, string repo, [FromRoute] string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

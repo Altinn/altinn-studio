@@ -260,7 +260,7 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
-    fetchFormLayout: (state, action: PayloadAction<{ org, app }>) => {
+    fetchFormLayout: (state) => {
       state.fetching = true;
       state.fetched = false;
       state.error = null;
@@ -294,7 +294,7 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
-    saveFormLayout: (state, action: PayloadAction<{org, app}>) => {
+    saveFormLayout: (state) => {
       state.saving = true;
     },
     saveFormLayoutFulfilled: (state) => {

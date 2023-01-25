@@ -40,7 +40,7 @@ public class GetDatamodelTests : ApiTestsBase<DatamodelsController, GetDatamodel
     [Fact]
     public async Task Get_Datamodel_Ok()
     {
-        string dataPathWithData = $"{VersionPrefix}/ttd/ttd-datamodels/datamodels/do-not-use/getdatamodel?modelName=41111";
+        string dataPathWithData = $"{VersionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=41111";
 
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
@@ -58,7 +58,7 @@ public class GetDatamodelTests : ApiTestsBase<DatamodelsController, GetDatamodel
     {
         // Arrange
         string dataPathWithData =
-            $"{VersionPrefix}/ttd/ttd-datamodels/datamodels/do-not-use/getdatamodel?modelName=../App/models/41111";
+            $"{VersionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=../App/models/41111";
 
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
@@ -74,7 +74,7 @@ public class GetDatamodelTests : ApiTestsBase<DatamodelsController, GetDatamodel
     [Fact]
     public async Task Get_Datamodel_onlyXsd_Ok()
     {
-        string dataPathWithData = $"{VersionPrefix}/ttd/ttd-datamodels/datamodels/do-not-use/getdatamodel?modelName=35721";
+        string dataPathWithData = $"{VersionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?modelName=35721";
 
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 

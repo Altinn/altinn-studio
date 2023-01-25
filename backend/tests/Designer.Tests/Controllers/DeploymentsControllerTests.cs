@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers
 {
     public class DeploymentsControllerTests : ApiTestsBase<DeploymentsController, DeploymentsControllerTests>
     {
-        private readonly string _versionPrefix = "/designer/api";
+        private readonly string _versionPrefix = "/designer/api/v1";
         private readonly JsonSerializerOptions _options;
         private readonly Mock<IDeploymentService> _deploymentServiceMock;
         private readonly Mock<IPipelineService> _pipelineServiceMock;

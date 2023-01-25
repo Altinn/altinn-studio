@@ -14,7 +14,6 @@ import { deepCopy } from 'app-shared/pure';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { Warning } from '@navikt/ds-icons';
-import {useParams} from "react-router-dom";
 
 export const FormDesigner = (): JSX.Element =>  {
   const dispatch = useDispatch();
@@ -26,11 +25,10 @@ export const FormDesigner = (): JSX.Element =>  {
     (state: IAppState) => state.formDesigner.layout.selectedLayout
   );
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
-  const {org, app } = useParams();
 
   useEffect(() => {
-    dispatch(FormLayoutActions.fetchFormLayout({org, app}));
-    dispatch(fetchServiceConfiguration({org, app}));
+    dispatch(FormLayoutActions.fetchFormLayout());
+    dispatch(fetchServiceConfiguration());
   }, [dispatch]);
 
   const toggleCodeEditor = (mode?: LogicMode) => {

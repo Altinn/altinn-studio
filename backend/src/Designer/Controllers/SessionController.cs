@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller that exposes endpoints for handling everything related to the user's session in Altinn Studio.
     /// </summary>
     [ApiController]
-    [Route("/designer/api/session")]
+    [Route("/designer/api/v1/session")]
     [AutoValidateAntiforgeryToken]
     public class SessionController : ControllerBase
     {

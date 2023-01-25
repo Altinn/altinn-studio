@@ -47,8 +47,6 @@ describe('DataModelling', () => {
         label: modelName,
         value: initialState.dataModelsMetadataState.dataModelsMetadata[0],
       },
-      org: 'test-org',
-      app: 'test-repo'
     },
   };
 
@@ -63,7 +61,7 @@ describe('DataModelling', () => {
     const dispatch = jest.spyOn(initStore, 'dispatch').mockImplementation(jest.fn());
     renderWithProviders(
       <Routes>
-        <Route path='/' element={<Navigate to={'/test-org/test-repo'} replace />} />
+        <Route path='/' element={<Navigate to={'/org/repo'} replace />} />
         <Route path='/:org/:repoName' element={<DataModellingContainer />} />
       </Routes>,
       {

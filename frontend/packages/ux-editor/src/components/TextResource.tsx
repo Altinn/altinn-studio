@@ -14,7 +14,6 @@ import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { useText } from '../hooks';
 import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
-import { useParams } from "react-router-dom";
 
 export interface TextResourceProps {
   description?: string;
@@ -39,12 +38,10 @@ export const TextResource = ({
   const textResourceIds = useSelector(getAllTextResourceIds);
   const t = useText();
   const [isSearchMode, setIsSearchMode] = useState(false);
-  const { org, app } = useParams();
+
   const addTextResource = (id: string) => dispatch(upsertTextResources({
     language: DEFAULT_LANGUAGE,
-    textResources: { [id]: '' },
-    org,
-    app
+    textResources: { [id]: '' }
   }));
 
   const editId = useSelector(getCurrentEditId);

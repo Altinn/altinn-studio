@@ -14,7 +14,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/languages")]
+    [Route("designer/api/v1/{org}/{repo}/languages")]
     public class LanguagesController : ControllerBase
     {
         private readonly ILanguagesService _languagesService;

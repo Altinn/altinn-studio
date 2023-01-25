@@ -10,7 +10,6 @@ import {
   deleteRuleConnnection,
 } from '../../features/serviceConfigurations/serviceConfigurationSlice';
 import type { IAppState } from '../../types/global';
-import {useParams} from "react-router-dom";
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -18,7 +17,6 @@ export interface IRuleModalProps {
 }
 
 export function RuleModal(props: IRuleModalProps) {
-  const {org, app} = useParams();
   const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const ruleConnection = useSelector(
@@ -37,13 +35,13 @@ export function RuleModal(props: IRuleModalProps) {
   }
 
   function handleSaveChange(newConnection: string) {
-    dispatch(addRuleConnection({ newConnection, org, app }));
+    dispatch(addRuleConnection({ newConnection }));
     setSelectedConnectionId(null);
     props.handleClose();
   }
 
   function handleDeleteConnection(connectionId: string) {
-    dispatch(deleteRuleConnnection({ connectionId, org, app }));
+    dispatch(deleteRuleConnnection({ connectionId }));
     setSelectedConnectionId(null);
     props.handleClose();
   }

@@ -24,7 +24,7 @@ const ruleModelSlice = createSlice({
   name: 'ruleModel',
   initialState,
   reducers: {
-    fetchRuleModel: (state, action: PayloadAction<{org, app}>) => {
+    fetchRuleModel: (state) => {
       state.fetched = false;
       state.fetching = true;
       state.error = null;

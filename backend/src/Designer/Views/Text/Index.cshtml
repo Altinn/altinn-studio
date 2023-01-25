@@ -259,8 +259,8 @@ $(document).ready(function () {
 
         var dataCache;
         $.when(
-            $.ajax("/designer/api/@org/@app/text/json-schema"),
-            $.ajax("/designer/api/@org/@app/text/language/" + t))
+            $.ajax("/designer/@org/@app/Text/GetResourceSchema"),
+            $.ajax("/designer/@org/@app/Text/GetResource/" + t))
             .done(function (a1, a2) {
                 var defaultJson = { language: t, resources: [] };
                 _schema = a1[0];
@@ -279,7 +279,7 @@ $(document).ready(function () {
             //e.relatedTarget // previous active tab
             if (t != "new") {
                 $.ajax({
-                    url: "/designer/api/@org/@app/text/language/" + t,
+                    url: "/designer/@org/@app/Text/GetResource/" + t,
                     contentType: "application/json; charset=UTF-8",
                     success: function (data) {
                         if (_editor) _editor.destroy();
@@ -327,7 +327,7 @@ $(document).ready(function () {
             var jsonString = JSON.stringify(jsonData, null, 3);
 
             jQuery.post({
-                url: "/designer/api/@org/@app/text/language/" + t,
+                url: "/designer/@org/@app/Text/SaveResource/" + t,
                 contentType: "application/json; charset=UTF-8",
                 data: jsonString,
                 headers: { "X-XSRF-TOKEN": getCookieValue("XSRF-TOKEN") },
@@ -372,7 +372,7 @@ $(document).ready(function () {
         $("#" + code).tab("show");
 
         jQuery.post({
-            url: "/designer/api/@org/@app/text/language/" + code,
+            url: "/designer/@org/@app/Text/SaveResource/" + code,
             contentType: "application/json; charset=UTF-8",
             headers: { "X-XSRF-TOKEN": getCookieValue("XSRF-TOKEN") },
 
@@ -398,7 +398,7 @@ $(document).ready(function () {
         }
 
         $("#deleteConfirmation").text("Språk '" + currentTab.text() + "' er nå slettet.");
-        var deleteUrl = "/designer/api/@org/@app/text/language/" + t;
+        var deleteUrl = "/designer/@org/@app/Text/DeleteLanguage/" + t;
 
         newTab.click();
         currentTab.parent().hide();

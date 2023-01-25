@@ -9,7 +9,7 @@ module.exports = (req, res) => {
   const files = fs.readdirSync(directory);
   const out = [];
   files.forEach((fileName) => {
-    const repositoryRelativeUrl = fileName;
+    const repositoryRelativeUrl = '/App/models/' + fileName;
     const filePath = path.resolve(directory, fileName);
     out.push({
       filePath,
