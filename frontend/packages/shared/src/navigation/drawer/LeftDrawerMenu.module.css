@@ -12,7 +12,9 @@
   border-right: 1px solid #c9c9c9;
   box-sizing: border-box;
   height: 100%;
+  list-style-type: none;
   overflow-x: hidden;
+  padding-inline-start: 0;
   padding-top: 1rem;
   position: absolute;
   z-index: 1;

@@ -54,7 +54,7 @@ export function Header({ language }: HeaderProps) {
             {selectedContext !== SelectedContextType.All &&
               selectedContext !== SelectedContextType.Self && (
                 <Grid data-testid='Header-org-name'>
-                  <Typography sx={{ fontSize: '1.75rem' }}>
+                  <Typography sx={{ fontSize: '1rem' }}>
                     <span className={classes.divider}>/</span>
                     {getOrgNameById(selectedContext as number, selectableOrgs)}
                   </Typography>
