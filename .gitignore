@@ -378,7 +378,10 @@ nb-configuration.xml
 src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 *.iml
 
+
 ## Test repositories
+backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo-*/**
+backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
 backend/tests/Designer.Tests/_TestData/Repositories/*/*/test-repo_*/**
 backend/tests/Designer.Tests/_TestData/Remote/*/test-repo_*/**
 

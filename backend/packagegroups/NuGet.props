@@ -13,7 +13,6 @@
     <PackageReference Update="JWTCookieAuthentication" Version="2.4.2" />
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Update="LibGit2Sharp" Version="0.27.0-preview-0182" />
-    <PackageReference Update="Manatee.Json" Version="13.0.5" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="3.1.0" />
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
@@ -46,5 +45,8 @@
     <PackageReference Update="coverlet.collector" Version="3.2.0" />
     <PackageReference Update="Basic.Reference.Assemblies" Version="1.4.1" />
     <PackageReference Update="Fare" Version="2.2.1" />
+    <PackageReference Update="Basic.Reference.Assemblies" Version="1.4.1" />
+    <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.0.0" />
   </ItemGroup>
 </Project>
