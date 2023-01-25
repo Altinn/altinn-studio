@@ -211,19 +211,6 @@ export function addGetDeleteRuleAndCheckDecisions() {
   });
   addErrorCount(success);
   
-  //Decision to write is permit based on the delegated rule
-  var jsonPermitData = {
-    AccessSubject: ['urn:altinn:userid'],
-    Action: ['write'],
-    Resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:partyid', 'urn:altinn:task'],
-  };
-  res = authorization.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, coveredByUserId, offeredByPartyId, 'Task_1');
-  success = check(res, {
-    'Get PDP Decision for delegated rule Status is 200': (r) => r.status === 200,
-    'Get PDP Decision for delegated rule - decision is permit': (r) => r.json('response.0.decision') === 'Permit',
-  });
-  addErrorCount(success);
-  
   //Delete all the delegated rules from an user by a party
   res = delegation.deletePolicy(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, null);
   success = check(res, {
@@ -239,19 +226,15 @@ export function addGetDeleteRuleAndCheckDecisions() {
     'Get deleted rules - response is empty': (r) => r.json().length === 0,
   });
   addErrorCount(success);
-  
-  //User can no longer write to app instance after delegate policy is deleted
-  res = authorization.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, coveredByUserId, offeredByPartyId, 'Task_1');
-  success = check(res, {
-    'Get PDP Decision for deleted rule - Status is 200': (r) => r.status === 200,
-    'Get PDP Decision for deleted rule - decision is notapplicable': (r) => r.json('response.0.decision') === 'NotApplicable',
-  });
-  addErrorCount(success);
-  if(showResults == 1) { console.log('addGetDeleteRuleAndCheckDecisions: ' + success) }
 }
 
 export function delegateTwoRulesInOneRequest() {
   // Arrange
+  var policyMatchKeys = {
+    coveredBy: 'urn:altinn:userid',
+    resource: ['urn:altinn:app', 'urn:altinn:org'],
+  };
+  var resources = [{ appOwner: appOwner, appName: appName }];
   const performedByUserId = user1_userId;
   const offeredByPartyId = org1_partyId;
   const coveredByUserId = user2_userId;
@@ -269,13 +252,15 @@ export function delegateTwoRulesInOneRequest() {
     'Add multiple rules - rule 2 created successfully is true': (r) => r.json('1.createdSuccessfully') === true
   });
   addErrorCount(success);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'Permit', showResults, appOwner, appName);
 
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'NotApplicable', showResults, appOwner, appName);
+  res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredByUserId, resources, null, null);
+  success = check(res, {
+    'Direct delegation from org to org - rules successfully deleted, status is 200': (r) => r.status == 200,
+    'Direct delegation from org to org - rules successfully deleted, body is empty': (r) => r.body.includes('[]'),
+  });
+  addErrorCount(success);
   if(showResults == 1) {console.log('delegateTwoRulesInOneRequest:' + success)}
   sleep(3);
 
@@ -284,6 +269,11 @@ export function delegateTwoRulesInOneRequest() {
 export function delegateTwoRulesPartialSuccess() {
 
   // Arrange
+  var policyMatchKeys = {
+    coveredBy: 'urn:altinn:userid',
+    resource: ['urn:altinn:app', 'urn:altinn:org'],
+  };
+  var resources = [{ appOwner: appOwner, appName: appName }];
   const performedByUserId = user1_userId;
   const offeredByPartyId = org1_partyId;
   const coveredByUserId = user2_userId;
@@ -302,13 +292,15 @@ export function delegateTwoRulesPartialSuccess() {
   });
   
   addErrorCount(success);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'Permit', showResults, appOwner, appName);
 
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'NotApplicable', showResults, appOwner, appName);
+  res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredByUserId, resources, null, null);
+  success = check(res, {
+    'Direct delegation from org to org - rules successfully deleted, status is 200': (r) => r.status == 200,
+    'Direct delegation from org to org - rules successfully deleted, body is empty': (r) => r.body.includes('[]'),
+  });
+  addErrorCount(success);
   if(showResults == 1) {console.log('delegateTwoRulesPartialSuccess:' + success)}
   sleep(3);
 

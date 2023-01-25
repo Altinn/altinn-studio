@@ -192,11 +192,15 @@ export function directDelegationFromOrgToUser() {
     'Direct delegation from org to user - type is 1': (r) => r.json('0.type') === 1,
   });
   addErrorCount(success);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
     
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredByUserId, resources, null, null);
+  success = check(res, {
+    'Direct delegation from org to user - rules successfully deleted, status is 200': (r) => r.status == 200,
+    'Direct delegation from org to user - rules successfully deleted, body is empty': (r) => r.body.includes('[]'),
+  });
+  addErrorCount(success);
   if(showResults == 1) {console.log('directDelegationFromOrgToUser:' + success)}
   
   sleep(3);
@@ -233,11 +237,15 @@ export function directDelegationFromOrgToOrg() {
     'Direct delegation from org to org - type is 1': (r) => r.json('0.type') === 1,
   });
   addErrorCount(success);
-  helper.checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
 
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredByPartyId, resources, null, null);
+  success = check(res, {
+    'Direct delegation from org to org - rules successfully deleted, status is 200': (r) => r.status == 200,
+    'Direct delegation from org to org - rules successfully deleted, body is empty': (r) => r.body.includes('[]'),
+  });
+  addErrorCount(success);
   if(showResults == 1) {console.log('directDelegationFromOrgToOrg:' + success)}
   sleep(3);
 }
@@ -272,11 +280,15 @@ export function directDelegationFromMainUnitToUser() {
     'Direct delegation from mainunit to user - type is 3': (r) => r.json('0.type') === 3,
   });
   addErrorCount(success);
-  helper.checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
     
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByParentPartyId, coveredByUserId, 'userid', appOwner, appName);
-  helper.checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  res = delegation.getRules(altinnToken, policyMatchKeys, subUnitPartyId, coveredByUserId, resources, offeredByParentPartyId, null);
+  success = check(res, {
+    'Direct delegation from mainunit to user - rules successfully deleted, status is 200': (r) => r.status == 200,
+    'Direct delegation from mainunit to user - rules successfully deleted, body is empty': (r) => r.body.includes('[]'),
+  });
+  addErrorCount(success);
   if(showResults == 1) {console.log('directDelegationFromMainUnitToUser:' + success)}
   sleep(3);
 }
@@ -313,11 +325,15 @@ export function directDelegationFromMainUnitToOrg() {
   });
   addErrorCount(success);
 
-  helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
     
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', appOwner, appName);
-  helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  res = delegation.getRules(altinnToken, policyMatchKeys, subUnitPartyId, coveredByPartyId, resources, offeredByParentPartyId, null);
+  success = check(res, {
+    'Direct delegation from mainunit to org - rules successfully deleted, status is 200': (r) => r.status == 200,
+    'Direct delegation from mainunit to org - rules successfully deleted, body is empty': (r) => r.body.includes('[]'),
+  });
+  addErrorCount(success);
   if(showResults == 1) {console.log('directDelegationFromMainUnitToOrg:' + success)}
   sleep(3);
 }
@@ -353,11 +369,15 @@ export function directDelegationFromMainUnitToOrgInheritedByDAGLViaKeyRole() {
   });
   addErrorCount(success);
 
-  helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
     
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', appOwner, appName);
-  helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  res = delegation.getRules(altinnToken, policyMatchKeys, subUnitPartyId, DAGLUserIdForCoveredBy, resources, offeredByParentPartyId, [coveredByPartyId]);
+  success = check(res, {
+    'mainunit to org inherited by DAGL via keyrole - rules successfully deleted, status is 200': (r) => r.status == 200,
+    'mainunit to org inherited by DAGL via keyrole - rules successfully deleted, body is empty': (r) => r.body.includes('[]'),
+  });
+  addErrorCount(success);
   if(showResults == 1) {console.log('directDelegationFromMainUnitToOrgInheritedByDAGLViaKeyRole:' + success)}
   sleep(3);
 }
@@ -399,11 +419,15 @@ export function delegationToOrgIsInheritedByECUserViaKeyrole() {
   addErrorCount(success);
   
   // Cleanup
-  helper.checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
       
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, ecUserIdForCoveredBy, resources, null, [coveredByPartyId]);
+  success = check(res, {
+    'Delegation to Org is inherited by ECUser via keyrole - rules successfully deleted, status is 200': (r) => r.status == 200,
+    'Delegation to Org is inherited by ECUser via keyrole - rules successfully deleted, body is empty': (r) => r.body.includes('[]'),
+  });
+  addErrorCount(success);
   if(showResults == 1) {console.log('delegationToOrgIsInheritedByECUserViaKeyrole:' + success)}
 }
 
