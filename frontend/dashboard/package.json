@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.25.14",
+    "@altinn/altinn-design-system": "0.27.0",
     "@digdir/design-system-react": "0.3.1",
     "@mui/x-data-grid": "5.17.18",
     "@reduxjs/toolkit": "1.9.1",

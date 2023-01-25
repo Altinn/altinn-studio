@@ -44,19 +44,18 @@
 }
 
 .subHeaderLink {
-  border-bottom: 1px solid;
-  border-bottom-color: transparent; /* To mitigate the 1 pixel adjustment */
+  border-bottom: 1px solid transparent; /* To mitigate the 1 pixel adjustment */
+  color: #000;
+  font-weight: 400;
 }
 
 .subHeaderLink:hover, .subHeaderLinkActive:focus {
-  border-bottom: 1px solid;
-  border-bottom-color: #0062BA;
+  border-bottom: 1px solid #0062BA;
   color: #0062BA;
 }
 
 .subHeaderLinkActive {
-  border-bottom: 1px solid;
-  border-bottom-color: #0062BA;
+  border-bottom: 1px solid #0062BA;
   color: #0062BA;
   font-weight: 500;
 }
