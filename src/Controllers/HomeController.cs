@@ -66,6 +66,7 @@ namespace LocalTest.Controllers
             return Json(localData);
         }
 
+        //Debugging endpoint
         [AllowAnonymous]
         public async Task<IActionResult> LocalTestUsers()
         {
@@ -75,6 +76,7 @@ namespace LocalTest.Controllers
             return Json(constructedAppData);
         }
 
+        // Debugging endpoint
         [AllowAnonymous]
         public async Task<IActionResult> LocalTestUsersRoundTrip()
         {
@@ -187,7 +189,7 @@ namespace LocalTest.Controllers
                     var token = await _authenticationService.GenerateTokenForOrg(app.Id.Split("/")[0]);
                     var newInstance = await _localApp.Instantiate(app.Id, instance, content, xmlDataId, token);
 
-                    return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/#/instance/{newInstance.Id}");
+                    return Redirect($"/{app.Id}/#/instance/{newInstance.Id}");
                 }
             }
 
@@ -305,10 +307,6 @@ namespace LocalTest.Controllers
             {
                 var properProfile = await _userProfileService.GetUser(profile.UserId);
 
-                var group = new SelectListGroup()
-                {
-                    Name = properProfile.Party.Person.Name,
-                };
                 var userParties = await _partiesService.GetParties(properProfile.UserId);
 
                 if (userParties.Count == 1)
@@ -324,6 +322,10 @@ namespace LocalTest.Controllers
                 else
                 {
                     // When a user represents multiple parties, add it to a group, so that it stands out visually
+                    var group = new SelectListGroup()
+                    {
+                        Name = properProfile.Party.Name,
+                    };
                     foreach (var party in userParties)
                     {
                         userItems.Add(new()
