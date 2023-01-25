@@ -2,11 +2,14 @@ import { appDevelopmentApi } from './appDevelopmentApi';
 import type { TextResourceFile, TextResourceEntry } from '@altinn/text-editor';
 import { Tags } from './tags';
 import { languagesApi } from './languagesApi';
-import { textResourcesPath } from 'app-shared/api-paths';
+import {textResourceIdsPath, textResourcesPath} from 'app-shared/api-paths';
+import {TextResourceIdMutation} from "@altinn/text-editor/src/types";
 
-type OrgAppLang = {
+type OrgApp = {
   org: string;
   app: string;
+};
+type OrgAppLang = OrgApp & {
   langCode: string;
 };
 
@@ -120,6 +123,30 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
         },
       ],
     }),
+    updateTextId: builder.mutation<void, OrgApp & { mutations: TextResourceIdMutation[] }>({
+      query: (params) => ({
+        url: textResourceIdsPath(params.org, params.app),
+        method: 'PUT',
+        data: params.mutations,
+      }),
+      async onQueryStarted({ org, app }, { dispatch, queryFulfilled }) {
+        dispatch(
+          languagesApi.util.updateQueryData('getLanguages', { org, app }, (draft) =>
+            [...draft].sort()
+          )
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          dispatch(textsApi.util.invalidateTags([{ type: Tags.Translations }]));
+        }
+      },
+      invalidatesTags: () => [
+        {
+          type: Tags.Translations,
+        },
+      ],
+    }),
   }),
 });
 
@@ -128,4 +155,5 @@ export const {
   useUpdateTranslationByLangCodeMutation,
   useDeleteByLangCodeMutation,
   useAddByLangCodeMutation,
+  useUpdateTextIdMutation,
 } = textsApi;

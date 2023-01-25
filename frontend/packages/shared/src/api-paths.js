@@ -56,7 +56,7 @@ export const repositoryPath = (owner, repo) => `/repos/${owner}/${repo}`;
 export const repositoryOwnerPath = (owner) => `/repos/${owner}`;
 export const repositoryBasePath = () => '/repos';
 export const languagePath = (owner, repo) => `/designer/${owner}/${repo}/Text/GetLanguages`;
-
+export const textResourceIdsPath = (org, app) => `/designer/${org}/${app}/Text/UpdateKeyNames/keys`; // Put
 export const copyAppPath = (org, sourceRepository, targetRepository) =>
   `/designer/api/v1/repos/copyapp?${s({
     org,

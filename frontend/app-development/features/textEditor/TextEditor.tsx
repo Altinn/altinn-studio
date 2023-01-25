@@ -9,7 +9,7 @@ import { useGetLanguagesQuery } from '../../services/languagesApi';
 import {
   useAddByLangCodeMutation,
   useDeleteByLangCodeMutation,
-  useGetAppTextsByLangCodeQuery,
+  useGetAppTextsByLangCodeQuery, useUpdateTextIdMutation,
   useUpdateTranslationByLangCodeMutation,
 } from '../../services/textsApi';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -17,6 +17,7 @@ import classes from './TextEditor.module.css';
 import { getLocalStorage, setLocalStorage } from 'app-shared/utils/localStorage';
 import type { LanguageTree } from 'app-shared/utils/language';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
 
 interface TextEditorProps extends React.PropsWithChildren<any> {
   language: LanguageTree;
@@ -59,6 +60,7 @@ export const TextEditor = ({ language }: TextEditorProps) => {
   const [updateLang] = useUpdateTranslationByLangCodeMutation();
   const [deleteLanguage] = useDeleteByLangCodeMutation();
   const [addLanguage] = useAddByLangCodeMutation();
+  const [updateTextId] = useUpdateTextIdMutation();
 
   const t = (key: string) => getLanguageFromKey(key, language);
 
@@ -90,6 +92,11 @@ export const TextEditor = ({ language }: TextEditorProps) => {
       ...orgApp,
       langCode: selectedLangCode,
       data: translations,
+    });
+  const handleTextIdChange = (mutation: TextResourceIdMutation) =>
+    updateTextId({
+      ...orgApp,
+      mutations: [mutation],
     });
   const handleHideIntroPageButtonClick = () =>
     setHideIntroPage(setLocalStorage(storageGroupName, 'hideTextsIntroPage', true));
@@ -145,6 +152,7 @@ export const TextEditor = ({ language }: TextEditorProps) => {
         }
         isFetchingTranslations={isFetchingTranslations}
         onTranslationChange={handleTranslationChange}
+        onTextIdChange={handleTextIdChange}
         onAddLang={handleAddLanguage}
         onDeleteLang={handleDeleteLanguage}
       />
