@@ -35,6 +35,7 @@ export interface IRepeatingGroupsEditContainer {
 
 const useStyles = makeStyles({
   editContainer: {
+    backgroundColor: '#f1fbff',
     width: '100%',
     display: 'inline-block',
     padding: '12px 24px',
@@ -46,19 +47,19 @@ const useStyles = makeStyles({
     },
   },
   nestedEditContainer: {
+    backgroundColor: '#f1fbff',
     width: '100%',
     display: 'inline-block',
     padding: '12px 24px',
   },
-  deleteItem: {
-    paddingBottom: '0px !important',
-    paddingTop: '0px !important',
-  },
-  showAll: {
-    backgroundColor: '#f1fbff',
+  hideTable: {
     borderTop: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     marginBottom: '-2px',
+  },
+  nestedHideTable: {
+    borderRight: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+    borderLeft: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
   },
 });
 
@@ -85,8 +86,6 @@ export function RepeatingGroupsEditContainer({
   const group = useExpressionsForComponent(container, {
     rowIndex: editIndex,
   });
-
-  const hideSaveButton = forceHideSaveButton || group.edit?.saveButton === false;
 
   let nextIndex: number | null = null;
   if (filteredIndexes) {
@@ -117,48 +116,52 @@ export function RepeatingGroupsEditContainer({
   };
 
   const isNested = typeof group.baseComponentId === 'string';
-  const saveButtonVisible = !hideSaveButton || (group.edit?.saveAndNextButton === true && nextIndex === null);
-  const saveAndNextButtonVisible = group.edit?.saveAndNextButton === true && nextIndex !== null;
+  const saveButtonVisible =
+    !forceHideSaveButton &&
+    (group.edit?.saveButton !== false || (group.edit?.saveAndNextButton === true && nextIndex === null));
+  const saveAndNextButtonVisible = !forceHideSaveButton && group.edit?.saveAndNextButton === true && nextIndex !== null;
+
+  const hideTable = group.edit?.mode === 'hideTable' || group.edit?.mode === 'showAll';
 
   return (
     <div
       className={cn(
         isNested ? classes.nestedEditContainer : classes.editContainer,
-        { [classes.showAll]: group.edit?.mode === 'showAll' },
+        { [classes.hideTable]: hideTable, [classes.nestedHideTable]: hideTable && isNested },
         className,
       )}
+      style={{ marginBottom: isNested && group.edit?.mode === 'showAll' ? 15 : undefined }}
       data-testid='group-edit-container'
     >
+      {group.edit?.deleteButton !== false && group.edit?.mode === 'showAll' && (
+        <Grid
+          item={true}
+          container={true}
+          direction='column'
+          alignItems='flex-end'
+          spacing={3}
+        >
+          <Grid item={true}>
+            <Button
+              variant={ButtonVariant.Quiet}
+              color={ButtonColor.Danger}
+              icon={<DeleteIcon />}
+              iconPlacement='right'
+              disabled={deleting}
+              onClick={removeClicked}
+              data-testid='delete-button'
+            >
+              {getLanguageFromKey('general.delete', language)}
+            </Button>
+          </Grid>
+        </Grid>
+      )}
       <Grid
         container={true}
         item={true}
         direction='row'
         spacing={3}
       >
-        {group.edit?.deleteButton !== false && group.edit?.mode === 'showAll' && (
-          <Grid
-            item={true}
-            container={true}
-            direction='column'
-            alignItems='flex-end'
-            spacing={3}
-            className={classes.deleteItem}
-          >
-            <Grid item={true}>
-              <Button
-                variant={ButtonVariant.Quiet}
-                color={ButtonColor.Danger}
-                icon={<DeleteIcon />}
-                iconPlacement='right'
-                disabled={deleting}
-                onClick={removeClicked}
-                data-testid='delete-button'
-              >
-                {getLanguageFromKey('general.delete', language)}
-              </Button>
-            </Grid>
-          </Grid>
-        )}
         <Grid
           container={true}
           alignItems='flex-start'

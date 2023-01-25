@@ -105,7 +105,6 @@ const useStyles = makeStyles({
   editContainerRow: {
     borderTop: `1px solid ${theme.altinnPalette.primary.blueLight}`,
     borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    backgroundColor: '#f1fbff',
     '& > td > div': {
       margin: 0,
     },
