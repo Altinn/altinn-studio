@@ -15,15 +15,15 @@ namespace DataModeling.Tests
         private ModelMetadata ExpectedModelMetadata { get; set; }
 
         [Theory]
-        [InlineData("Seres/HvemErHvem.xsd", "Model/Metadata/HvemErHvem.metadata.json")]
-        [InlineData("Seres/SeresBasicSchema.xsd", "Model/Metadata/SeresBasicSchema.metadata.json")]
-        [InlineData("Seres/schema_5259_1_forms_9999_50000.xsd", "Model/Metadata/schema_5259_1_forms_9999_50000.metadata.json")]
-        [InlineData("Seres/schema_5064_1_forms_5793_42882.xsd", "Model/Metadata/schema_5064_1_forms_5793_42882.metadata.json")]
-        [InlineData("Seres/schema_5222_2_forms_5909_43507.xsd", "Model/Metadata/schema_5222_2_forms_5909_43507.metadata.json")]
-        [InlineData("Seres/schema_4830_4000_forms_5524_41951.xsd", "Model/Metadata/schema_4830_4000_forms_5524_41951.metadata.json")]
-        [InlineData("Seres/schema_4582_2000_forms_5244_42360.xsd", "Model/Metadata/schema_4582_2000_forms_5244_42360.metadata.json")]
-        [InlineData("Seres/schema_4741_4280_forms_5273_41269.xsd", "Model/Metadata/schema_4741_4280_forms_5273_41269.metadata.json")]
-        [InlineData("Seres/SchemaWithTargetNamespace.xsd", "Model/Metadata/SchemaWithTargetNamespace.metadata.json")]
+        [InlineData("Seres/HvemErHvem.xsd", "Model/Metadata/HvemErHvem.json")]
+        [InlineData("Seres/SeresBasicSchema.xsd", "Model/Metadata/SeresBasicSchema.json")]
+        [InlineData("Seres/schema_5259_1_forms_9999_50000.xsd", "Model/Metadata/schema_5259_1_forms_9999_50000.json")]
+        [InlineData("Seres/schema_5064_1_forms_5793_42882.xsd", "Model/Metadata/schema_5064_1_forms_5793_42882.json")]
+        [InlineData("Seres/schema_5222_2_forms_5909_43507.xsd", "Model/Metadata/schema_5222_2_forms_5909_43507.json")]
+        [InlineData("Seres/schema_4830_4000_forms_5524_41951.xsd", "Model/Metadata/schema_4830_4000_forms_5524_41951.json")]
+        [InlineData("Seres/schema_4582_2000_forms_5244_42360.xsd", "Model/Metadata/schema_4582_2000_forms_5244_42360.json")]
+        [InlineData("Seres/schema_4741_4280_forms_5273_41269.xsd", "Model/Metadata/schema_4741_4280_forms_5273_41269.json")]
+        [InlineData("Seres/SchemaWithTargetNamespace.xsd", "Model/Metadata/SchemaWithTargetNamespace.json")]
         public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath, string expectedMetamodelPath)
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
