@@ -33,18 +33,28 @@ const useStyles = makeStyles(() =>
 );
 
 const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
+  const { id, spinnerText, styleObj } = props;
   const classes = useStyles(props);
 
   return (
     <div
-      className={classNames(props.styleObj)}
+      className={classNames(styleObj)}
       data-testid='altinn-spinner'
     >
       <CircularProgress
+        role='progressbar'
         className={classNames(classes.spinner)}
-        id={props.id ? props.id : undefined}
+        id={id}
       />
-      {props.spinnerText && <Typography className={classNames(classes.spinnerText)}>{props.spinnerText}</Typography>}
+
+      <Typography
+        className={classNames(classes.spinnerText)}
+        role='alert'
+        aria-busy={true}
+        aria-label={spinnerText || 'Laster innhold'}
+      >
+        {spinnerText || ''}
+      </Typography>
     </div>
   );
 };

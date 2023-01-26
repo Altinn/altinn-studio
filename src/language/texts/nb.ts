@@ -10,7 +10,7 @@ export function nb() {
       simplified: 'Enkel',
       title_text_binding: 'Søk etter ledetekst for Adressekomponenten',
       zip_code: 'Postnr',
-      validation_error_zipcode: 'Postnummer er ugyldig',
+      validation_error_zipcode: 'Postnummer er ugyldig. Et postnummer består kun av 4 siffer.',
       validation_error_house_number: 'Bolignummer er ugyldig',
     },
     confirm: {
