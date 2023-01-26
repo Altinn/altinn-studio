@@ -47,6 +47,10 @@ const useStyles = makeStyles((theme) => ({
     '&:hover': {
       outline: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
     },
+    '&:focus': {
+      outline: 'var(--interactive_components-colors-focus_outline) solid var(--border_width-standard)',
+      outlineOffset: 'var(--border_width-standard)',
+    },
   },
   buttonSelected: {
     color: theme.altinnPalette.primary.white,

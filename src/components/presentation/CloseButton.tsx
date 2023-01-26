@@ -18,7 +18,8 @@ export const CloseButton = ({ handleClose }: CloseButtonProps) => {
     >
       <span className='ai-stack'>
         <i
-          className='ai-stack-1x ai ai-exit  a-modal-close-icon'
+          style={{ marginTop: -1, marginLeft: -1 }}
+          className='ai-stack-1x ai ai-exit a-modal-close-icon'
           aria-hidden='true'
         />
       </span>

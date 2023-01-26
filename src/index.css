@@ -248,7 +248,7 @@ select.disabled {
 .a-modal-back span.reg-stack,
 .a-modal-close span.ai-stack,
 .a-modal-close span.reg-stack {
-  outline: 1px solid #022f51;
+  border: 1px solid #022f51;
   border-radius: 50%;
   font-size: 2.2em;
 }

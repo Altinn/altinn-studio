@@ -40,6 +40,7 @@ const NavBar = (props: INavBarProps) => {
           >
             <span className='ai-stack'>
               <i
+                style={{ marginTop: -2, marginLeft: -1 }}
                 className={`ai-stack-1x ai ${theme.direction === 'rtl' ? 'ai-arrowright' : 'ai-back'}`}
                 aria-hidden='true'
               />

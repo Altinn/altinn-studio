@@ -14,6 +14,9 @@ const useStyles = makeStyles(() => ({
     },
     '&:focus': {
       borderBottom: '0px',
+      backgroundColor: 'transparent',
+      outline: 'var(--interactive_components-colors-focus_outline) solid var(--border_width-standard)',
+      outlineOffset: 'var(--border_width-standard)',
     },
     '&:active': {
       borderBottom: '0px',
