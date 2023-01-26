@@ -1,11 +1,9 @@
-import type { ChangeEvent, MouseEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AltinnSpinner } from 'app-shared/components';
 import type { IJsonSchema, ILanguage, ISchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
 import {
-  addRootItem,
   setJsonSchema,
   setSaveSchemaUrl,
   setSchemaName,
@@ -17,25 +15,18 @@ import { getTranslation } from '../utils/language';
 import { SchemaInspector } from './SchemaInspector';
 import { TopToolbar } from './TopToolbar';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { SchemaTreeView } from './TreeView/SchemaTreeView';
-import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import type { UiSchemaNodes } from '@altinn/schema-model';
 import {
-  CombinationKind,
-  FieldType,
   getChildNodesByPointer,
   getNodeByPointer,
   getParentNodeByPointer,
-  Keywords,
-  makePointer,
-  ObjectKind,
   pointerIsDefinition,
   ROOT_POINTER,
 } from '@altinn/schema-model';
-import { IconImage } from './common/Icon';
-import { ActionMenu } from './common/ActionMenu';
+
 import { createSelector } from '@reduxjs/toolkit';
-import { Button, ButtonVariant, Tabs } from '@digdir/design-system-react';
-import { Add } from '@navikt/ds-icons';
+import { Tabs } from '@digdir/design-system-react';
+import { ModelsPanel, TypesPanel } from './layout';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
@@ -110,7 +101,6 @@ export const SchemaEditor = ({
 
   const selectedEditorTab = useSelector((state: ISchemaState) => state.selectedEditorTab);
 
-  const selectedPropertyNodeId = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
   const selectedPropertyParent = useSelector((state: ISchemaState) =>
     getParentNodeByPointer(state.uiSchema, state.selectedPropertyNodeId)
   );
@@ -120,9 +110,6 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionNodeId = useSelector(
-    (state: ISchemaState) => state.selectedDefinitionNodeId
-  );
   const selectedDefinitionParent = useSelector((state: ISchemaState) =>
     getParentNodeByPointer(state.uiSchema, state.selectedDefinitionNodeId)
   );
@@ -132,45 +119,10 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
-  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
-    setExpandedPropNodes(nodeIds);
-
-  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
-    setExpandedDefNodes(nodeIds);
-
   const handleSaveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
 
   const handleTabChanged = (value: 'definitions' | 'properties') =>
     dispatch(setSelectedTab({ selectedTab: value }));
-
-  const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
-    const newNode: Partial<UiSchemaNode> = { objectKind };
-    if (objectKind === ObjectKind.Field) {
-      newNode.fieldType = fieldType ?? FieldType.Object;
-    }
-    if (objectKind === ObjectKind.Combination) {
-      newNode.fieldType = CombinationKind.AllOf;
-    }
-    newNode.ref = objectKind === ObjectKind.Reference ? '' : undefined;
-    dispatch(
-      addRootItem({
-        name: 'name',
-        location: makePointer(Keywords.Properties),
-        props: newNode,
-      })
-    );
-  };
-
-  const handleAddDefinition = (e: MouseEvent) => {
-    e.stopPropagation();
-    dispatch(
-      addRootItem({
-        name: 'name',
-        location: makePointer(Keywords.Definitions),
-        props: { fieldType: FieldType.Object },
-      })
-    );
-  };
 
   const loadingIndicator = loading ? (
     <AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />
@@ -196,90 +148,6 @@ export const SchemaEditor = ({
       : properties.push(rootNodeMap.get(childPointer))
   );
 
-  const modelsPanel = (
-    <>
-      {editMode && (
-        <ActionMenu
-          className={classes.addMenu}
-          items={[
-            {
-              action: () => handleAddProperty(ObjectKind.Field),
-              icon: IconImage.Object,
-              text: t('field'),
-              testId: SchemaEditorTestIds.menuAddField,
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Reference),
-              icon: IconImage.Reference,
-              text: t('reference'),
-              testId: SchemaEditorTestIds.menuAddReference,
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Combination),
-              icon: IconImage.Combination,
-              text: t('combination'),
-              testId: SchemaEditorTestIds.menuAddCombination,
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
-              className: classes.dividerAbove,
-              icon: IconImage.String,
-              text: t('string'),
-              testId: SchemaEditorTestIds.menuAddString,
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
-              icon: IconImage.Number,
-              text: t('integer'),
-              testId: SchemaEditorTestIds.menuAddInteger,
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
-              icon: IconImage.Number,
-              text: t('number'),
-              testId: SchemaEditorTestIds.menuAddNumber,
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
-              icon: IconImage.Boolean,
-              text: t('boolean'),
-              testId: SchemaEditorTestIds.menuAddBoolean,
-            },
-          ]}
-          openButtonText={t('add')}
-        />
-      )}
-      <SchemaTreeView
-        editMode={editMode}
-        expanded={expandedPropNodes}
-        items={properties}
-        translate={t}
-        onNodeToggle={handlePropertiesNodeExpanded}
-        selectedPointer={selectedPropertyNodeId}
-        isPropertiesView={true}
-      />
-    </>
-  );
-
-  const typesPanel = (
-    <>
-      {editMode && (
-        <Button icon={<Add />} onClick={handleAddDefinition} variant={ButtonVariant.Outline}>
-          {t('add_element')}
-        </Button>
-      )}
-      <SchemaTreeView
-        editMode={editMode}
-        expanded={expandedDefNodes}
-        items={definitions}
-        translate={t}
-        onNodeToggle={handleDefinitionsNodeExpanded}
-        selectedPointer={selectedDefinitionNodeId}
-        isPropertiesView={false}
-      />
-    </>
-  );
-
   return (
     <div className={classes.root}>
       <TopToolbar
@@ -298,12 +166,28 @@ export const SchemaEditor = ({
               items={[
                 {
                   name: t('model'),
-                  content: modelsPanel,
+                  content: (
+                    <ModelsPanel
+                      language={language}
+                      editMode={editMode}
+                      setExpandedPropNodes={setExpandedPropNodes}
+                      expandedPropNodes={expandedPropNodes}
+                      properties={properties}
+                    />
+                  ),
                   value: 'properties',
                 },
                 {
                   name: t('types'),
-                  content: typesPanel,
+                  content: (
+                    <TypesPanel
+                      language={language}
+                      editMode={editMode}
+                      definitions={definitions}
+                      setExpandedDefNodes={setExpandedDefNodes}
+                      expandedDefNodes={expandedDefNodes}
+                    />
+                  ),
                   value: 'definitions',
                 },
               ]}

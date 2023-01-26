@@ -28,6 +28,7 @@ const mockLanguage = {
   'schema_editor.reference': 'Referanse',
 };
 const uiSchema = buildUiSchema(dataMock);
+
 const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) => {
   const mockInitialState = {
     name: 'test',
@@ -64,7 +65,8 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
   return { store, user };
 };
 
-const clickMenuItem = (user: UserEvent, testId: string) => act(() => user.click(screen.getByTestId(testId)));
+const clickMenuItem = (user: UserEvent, testId: string) =>
+  act(() => user.click(screen.getByTestId(testId)));
 
 const clickOpenContextMenuButton = (user: UserEvent) =>
   act(() => user.click(screen.getAllByTestId('open-context-menu-button')[0]));
