@@ -50,6 +50,7 @@ export const RepeatingGroupsLikertContainer = ({
   const title = getText(textResourceBindings?.title);
   const description = getText(textResourceBindings?.description);
   const leftColumnHeader = getText(textResourceBindings?.leftColumnHeader);
+
   const titleId = `likert-title-${id}`;
   const descriptionId = `likert-description-${id}`;
 
@@ -128,7 +129,7 @@ export const RepeatingGroupsLikertContainer = ({
             padding={'dense'}
           >
             <AltinnTableRow>
-              <TableCell>{leftColumnHeader}</TableCell>
+              {leftColumnHeader ? <TableCell>{leftColumnHeader}</TableCell> : <td />}
               {calculatedOptions.map((option, index) => {
                 const colLabelId = `${id}-likert-columnheader-${index}`;
                 return (
