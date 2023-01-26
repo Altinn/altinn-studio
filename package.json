@@ -90,7 +90,7 @@
     "jest": "29.3.1",
     "jest-environment-jsdom": "29.3.1",
     "jest-junit": "15.0.0",
-    "jest-mock-axios": "4.7.0-beta3",
+    "jest-mock-axios": "4.7.0-beta4",
     "jsdom": "21.0.0",
     "lint-staged": "13.1.0",
     "mime": "3.0.0",
