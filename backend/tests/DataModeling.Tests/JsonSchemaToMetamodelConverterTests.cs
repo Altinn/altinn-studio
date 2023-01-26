@@ -14,7 +14,7 @@ namespace DataModeling.Tests
     {
         private ModelMetadata ExpectedModelMetadata { get; set; }
 
-        [Theory(Skip = "ubuntu-fail")]
+        [Theory]
         [InlineData("Seres/HvemErHvem.xsd", "Model/Metadata/HvemErHvem.metadata.json")]
         [InlineData("Seres/SeresBasicSchema.xsd", "Model/Metadata/SeresBasicSchema.metadata.json")]
         [InlineData("Seres/schema_5259_1_forms_9999_50000.xsd", "Model/Metadata/schema_5259_1_forms_9999_50000.metadata.json")]
