@@ -69,7 +69,7 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
   };
   if (selectedItem) {
     return (
-      <div key={selectedItem.pointer} className={classes.root} data-testid='schema-inspector'>
+      <div className={classes.root} data-testid='schema-inspector'>
         <Panel variant={PanelVariant.Warning} forceMobileLayout={true}>
           <span>{t('warning_under_development')}</span>
         </Panel>

@@ -42,15 +42,15 @@ const schemaEditorSlice = createSlice({
     addEnum(state, action: PayloadAction<{ path: string; value: string; oldValue?: string }>) {
       const { path, value, oldValue } = action.payload;
       const addToItem = getNodeByPointer(state.uiSchema, path);
-      addToItem.enum = addToItem.enum ?? [];
+      addToItem.enums = addToItem.enums ?? [];
       if (!oldValue) {
-        addToItem.enum.push(value);
+        addToItem.enums.push(value);
       }
-      if (oldValue && addToItem.enum.includes(oldValue)) {
-        addToItem.enum[addToItem.enum.indexOf(oldValue)] = value;
+      if (oldValue && addToItem.enums.includes(oldValue)) {
+        addToItem.enums[addToItem.enums.indexOf(oldValue)] = value;
       }
-      if (!addToItem.enum.includes(value)) {
-        addToItem.enum.push(value);
+      if (!addToItem.enums.includes(value)) {
+        addToItem.enums.push(value);
       }
     },
     addRootItem(
@@ -106,9 +106,9 @@ const schemaEditorSlice = createSlice({
     deleteEnum(state, action: PayloadAction<{ path: string; value: string }>) {
       const { path, value } = action.payload;
       const removeFromItem = getNodeByPointer(state.uiSchema, path);
-      const removeIndex = removeFromItem.enum?.findIndex((v: any) => v === value) ?? -1;
+      const removeIndex = removeFromItem.enums?.findIndex((v: any) => v === value) ?? -1;
       if (removeIndex >= 0) {
-        removeFromItem.enum?.splice(removeIndex, 1);
+        removeFromItem.enums?.splice(removeIndex, 1);
       }
     },
     promoteProperty(state, action: PayloadAction<{ path: string }>) {

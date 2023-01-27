@@ -67,7 +67,7 @@ test('dispatches correctly when entering text in textboxes', async () => {
   await act(async () => {
     for (const textbox of textboxes) {
       await user.clear(textbox);
-      await user.type(textbox, 'New value');
+      await user.type(textbox, 'newvalue');
       await user.tab();
     }
   });
@@ -130,7 +130,7 @@ test('Adds new valid value field when pressing the enter key', async () => {
   const testUiSchema = buildUiSchema({});
   const item = createNodeBase(Keywords.Properties, 'test');
   item.fieldType = FieldType.String;
-  item.enum = ['valid value'];
+  item.enums = ['valid value'];
   testUiSchema.push(item);
   const { store, user } = renderSchemaInspector(testUiSchema, item);
   await act(() => user.click(screen.queryAllByRole('tab')[1]));

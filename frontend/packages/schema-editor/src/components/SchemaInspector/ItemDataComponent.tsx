@@ -28,7 +28,7 @@ import {
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type { UiSchemaNode, CombinationKind } from '@altinn/schema-model';
+import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
 import {
   combinationIsNullable,
   FieldType,
@@ -40,39 +40,50 @@ import {
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
 
-export interface IItemDataComponentProps {
-  selectedItem: UiSchemaNode;
+export interface IItemDataComponentProps extends UiSchemaNode {
   language: ILanguage;
 }
 
-export function ItemDataComponent({ language, selectedItem }: IItemDataComponentProps) {
+export function ItemDataComponent(props: IItemDataComponentProps) {
+  const {
+    language,
+    fieldType,
+    pointer,
+    title,
+    description,
+    ref,
+    isCombinationItem,
+    objectKind,
+    isArray,
+  } = props;
   const dispatch = useDispatch();
 
-  const { fieldType, pointer: selectedNodePointer } = selectedItem;
-  const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer: selectedNodePointer }));
+  const [itemTitle, setItemItemTitle] = useState<string>(title || '');
+  const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
 
-  const [nameError, setNameError] = useState('');
-  const [description, setItemDescription] = useState<string>('');
-  const [title, setItemTitle] = useState<string>('');
+  const [nameError, setNameError] = useState(NameError.NoError);
+  const [itemDescription, setItemItemDescription] = useState<string>(description || '');
 
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
 
-  const childNodes = getChildNodesByPointer(uiSchema, selectedNodePointer);
-
-  useEffect(() => {
-    setNameError(NameError.NoError);
-    setItemTitle(selectedItem.title ?? '');
-    setItemDescription(selectedItem.description ?? '');
-  }, [selectedItem]);
-
-  useEffect(() => {
-    !isValidName(nodeName)
-      ? setNameError(NameError.InvalidCharacter)
-      : setNameError(NameError.NoError);
-    if (!nameError && hasNodePointer(uiSchema, nodeName)) {
+  const getChildNodes = () =>
+    pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(uiSchema, pointer) : [];
+  const softValidateName = (nodeName: string) => {
+    const error = !isValidName(nodeName) ? NameError.InvalidCharacter : NameError.NoError;
+    setNameError(error);
+    return error;
+  };
+  const hardValidateName = () => {
+    let error = softValidateName(nodeName);
+    if (!error && hasNodePointer(uiSchema, nodeName)) {
+      error = NameError.AlreadyInUse;
       setNameError(NameError.AlreadyInUse);
     }
-  }, [nodeName, nameError, setNameError, uiSchema]);
+    return error;
+  };
+  useEffect(() => {
+    softValidateName(nodeName);
+  }, [nodeName]);
   const onNameChange = ({ target }: ChangeEvent) => {
     const { value } = target as HTMLInputElement;
     setNodeName(value);
@@ -80,14 +91,14 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
-  const onChangeFieldType = (type: FieldType) =>
-    dispatch(setType({ path: selectedNodePointer, type }));
+  const onChangeFieldType = (pointer: string, type: FieldType) =>
+    dispatch(setType({ path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
     if (isChecked) {
       dispatch(
-        addCombinationItem({ pointer: selectedNodePointer, props: { fieldType: FieldType.Null } })
+        addCombinationItem({ pointer: pointer, props: { fieldType: FieldType.Null } })
       );
       return;
     }
@@ -99,33 +110,32 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
     });
   };
 
-  const onChangeTitle = () => dispatch(setTitle({ path: selectedNodePointer, title }));
+  const onChangeTitle = () => dispatch(setTitle({ path: pointer, title: itemTitle }));
 
   const onChangeDescription = () =>
-    dispatch(setDescription({ path: selectedNodePointer, description }));
+    dispatch(setDescription({ path: pointer, description: itemDescription }));
 
   const onGoToDefButtonClick = () => {
-    const ref = selectedItem.ref;
     if (ref !== undefined) {
       dispatch(navigateToType({ pointer: ref }));
     }
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
-    dispatch(setCombinationType({ path: selectedNodePointer, type: value }));
+    dispatch(setCombinationType({ path: pointer, type: value }));
 
-  const handleArrayPropertyToggle = () =>
-    dispatch(toggleArrayField({ pointer: selectedNodePointer }));
+  const handleArrayPropertyToggle = () => dispatch(toggleArrayField({ pointer }));
 
   const handleChangeNodeName = () => {
-    if (nameError) {
+    const error = hardValidateName();
+    if (error !== NameError.NoError) {
       return;
     }
-    const displayName = getNameFromPointer(selectedItem);
-    if (!nameError && displayName !== nodeName) {
+    const staleName = getNameFromPointer({ pointer });
+    if (!nameError && staleName !== nodeName) {
       dispatch(
         setPropertyName({
-          path: selectedNodePointer,
+          path: pointer,
           name: nodeName,
           navigate: true,
         })
@@ -134,11 +144,11 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const titleId = getDomFriendlyID(selectedNodePointer, { suffix: 'title' });
-  const descriptionId = getDomFriendlyID(selectedNodePointer, { suffix: 'description' });
+  const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
+  const descriptionId = getDomFriendlyID(pointer, { suffix: 'description' });
   return (
     <div className={classes.root}>
-      {!selectedItem.isCombinationItem && (
+      {!isCombinationItem && (
         <div>
           <TextField
             aria-describedby='Selected Item Name'
@@ -154,7 +164,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
           {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
         </div>
       )}
-      {selectedItem.objectKind === ObjectKind.Field && (
+      {objectKind === ObjectKind.Field && (
         <Select
           label={t('type')}
           onChange={(type: FieldType) => onChangeFieldType(type)}
@@ -162,44 +172,44 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
           value={fieldType as string}
         />
       )}
-      {selectedItem.objectKind === ObjectKind.Reference && (
+      {objectKind === ObjectKind.Reference && (
         <ReferenceSelectionComponent
           buttonText={t('go_to_type')}
           emptyOptionLabel={t('choose_type')}
           label={t('reference_to')}
           onChangeRef={onChangeRef}
           onGoToDefButtonClick={onGoToDefButtonClick}
-          selectedNode={selectedItem}
+          selectedNode={{ pointer, ref }}
         />
       )}
-      {selectedItem.objectKind !== ObjectKind.Combination && (
+      {objectKind !== ObjectKind.Combination && (
         <Checkbox
-          checked={selectedItem.isArray}
+          checked={isArray}
           label={t('multiple_answers')}
           name='checkedMultipleAnswers'
           onChange={handleArrayPropertyToggle}
         />
       )}
-      {selectedItem.objectKind === ObjectKind.Combination && (
+      {objectKind === ObjectKind.Combination && (
         <Select
           label={t('type')}
           onChange={(combination: string) =>
             onChangeCombinationType(combination as CombinationKind)
           }
           options={getCombinationOptions(t)}
-          value={selectedItem.fieldType}
+          value={fieldType}
         />
       )}
-      {selectedItem.objectKind === ObjectKind.Combination && (
+      {objectKind === ObjectKind.Combination && (
         <Checkbox
           checkboxId='multiple-answers-checkbox'
-          checked={combinationIsNullable(childNodes)}
+          checked={combinationIsNullable(getChildNodes())}
           label={t('nullable')}
           name='checkedNullable'
           onChange={onChangeNullable}
         />
       )}
-      <ItemRestrictions selectedNode={selectedItem} language={language} />
+      <ItemRestrictions {...props} />
       <Divider inMenu />
       <FieldSet legend={t('descriptive_fields')} className={classes.fieldSet}>
         <div>
@@ -207,8 +217,8 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
             id={titleId}
             label={t('title')}
             onBlur={onChangeTitle}
-            onChange={(e: ChangeEvent) => setItemTitle((e.target as HTMLInputElement)?.value)}
-            value={title}
+            onChange={(e: ChangeEvent) => setItemItemTitle((e.target as HTMLInputElement)?.value)}
+            value={itemTitle}
           />
         </div>
         <div>
@@ -217,10 +227,10 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
             label={t('description')}
             onBlur={onChangeDescription}
             onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-              setItemDescription(event.target.value)
+              setItemItemDescription(event.target.value)
             }
             style={{ height: 100 }}
-            value={description}
+            value={itemDescription}
           />
         </div>
       </FieldSet>

@@ -68,7 +68,7 @@ export interface UiSchemaNode {
   custom: Dict;
   children: string[];
   description?: string;
-  enum?: string[];
+  enums?: string[];
   isRequired: boolean;
   title?: string;
   value?: any;

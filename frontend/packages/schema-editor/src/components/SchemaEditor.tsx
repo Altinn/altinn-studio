@@ -199,7 +199,11 @@ export const SchemaEditor = ({
         )}
         {schema && editMode && (
           <aside className={classes.inspector}>
-            <SchemaInspector language={language} selectedItem={selectedItem} />
+            <SchemaInspector
+              language={language}
+              selectedItem={selectedItem}
+              key={selectedItem?.pointer || ''}
+            />
           </aside>
         )}
       </main>

@@ -13,7 +13,7 @@ export interface IReferenceSelectionProps {
   label: string;
   onChangeRef: (refPointer: string, value: string) => void;
   onGoToDefButtonClick: () => void;
-  selectedNode: UiSchemaNode;
+  selectedNode: { pointer: string; ref?: string };
 }
 
 export function ReferenceSelectionComponent({
