@@ -24,7 +24,7 @@ export interface ItemFieldsTabProps {
 }
 
 export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) => {
-  const readonly = selectedItem.ref !== undefined;
+  const readonly = selectedItem.reference !== undefined;
   const dispatch = useDispatch();
 
   const childNodes = useSelector((state: ISchemaState) =>

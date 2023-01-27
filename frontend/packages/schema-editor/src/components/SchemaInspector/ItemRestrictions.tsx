@@ -43,7 +43,7 @@ export interface ItemRestrictionsProps extends Omit<UiSchemaNode, 'children'> {
 export const ItemRestrictions = ({
   pointer,
   isRequired,
-  ref,
+  reference,
   isArray,
   ['enum']: enums,
   restrictions,
@@ -102,7 +102,7 @@ export const ItemRestrictions = ({
   const t = (key: string) => getTranslation(key, language);
   const restrictionProps: RestrictionItemProps = {
     restrictions: restrictions ?? {},
-    readonly: ref !== undefined,
+    readonly: reference !== undefined,
     path: pointer ?? '',
     onChangeRestrictionValue,
     onChangeRestrictions,
@@ -116,7 +116,7 @@ export const ItemRestrictions = ({
         name='checkedRequired'
         onChange={handleRequiredChanged}
       />
-      {ref === undefined &&
+      {reference === undefined &&
         {
           [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
           [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,

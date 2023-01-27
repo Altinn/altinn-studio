@@ -29,8 +29,8 @@ export const renameNodePointer = (
     if (pointerIsInBranch(uiNode.pointer, oldPointer)) {
       nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
     }
-    if (nodeCopy.ref === oldPointer) {
-      nodeCopy.ref = nodeCopy.ref.replace(oldPointer, newPointer);
+    if (nodeCopy.reference === oldPointer) {
+      nodeCopy.reference = nodeCopy.reference.replace(oldPointer, newPointer);
     }
     nodeCopy.children = uiNode.children.map((childPointer) =>
       pointerIsInBranch(childPointer, oldPointer)

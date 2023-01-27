@@ -42,7 +42,7 @@ export const ModelsPanel = ({
     if (objectKind === ObjectKind.Combination) {
       newNode.fieldType = CombinationKind.AllOf;
     }
-    newNode.ref = objectKind === ObjectKind.Reference ? '' : undefined;
+    newNode.reference = objectKind === ObjectKind.Reference ? '' : undefined;
     dispatch(
       addRootItem({
         name: 'name',

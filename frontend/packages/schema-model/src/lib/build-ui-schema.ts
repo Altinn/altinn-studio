@@ -37,7 +37,7 @@ const createUiNode = (schemaNode: Dict, uiNode: UiSchemaNode): UiSchemaNodes => 
 
     uiNode.fieldType = findUiFieldType(schemaNode);
     uiNode.implicitType = schemaNode[Keywords.Type] === undefined;
-    uiNode.ref = findReference(schemaNode[Keywords.Reference]);
+    uiNode.reference = findReference(schemaNode[Keywords.Reference]);
     Object.assign(uiNode.custom, findCustomAttributes(schemaNode));
     Object.assign(uiNode.restrictions, findRestrictionsOnNode(schemaNode));
     Object.assign(uiNode, findGenericKeywordsOnNode(schemaNode));
@@ -84,9 +84,9 @@ export const buildUiSchema = (jsonSchema: Dict): UiSchemaNodes => {
   const lookup = new Map();
   uiNodeMap.forEach((item) => lookup.set(item.pointer, item.fieldType));
   uiNodeMap.forEach((item) => {
-    if (typeof item.ref === 'string' && item.fieldType === undefined) {
+    if (typeof item.reference === 'string' && item.fieldType === undefined) {
       // just inherit the field type
-      item.fieldType = lookup.get(item.ref);
+      item.fieldType = lookup.get(item.reference);
     }
   });
 

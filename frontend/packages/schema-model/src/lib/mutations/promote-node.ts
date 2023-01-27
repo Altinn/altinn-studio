@@ -42,7 +42,7 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
   // Get the reference node in the same position as the previous node
   updatedUiSchemaNodes[uiNodeIndex] = Object.assign(createNodeBase(pointer), {
     objectKind: ObjectKind.Reference,
-    ref: promotedNodePointer,
+    reference: promotedNodePointer,
     isRequired: uiNode.isRequired,
   });
   // Add the promoted node back to the bottom of the stack.

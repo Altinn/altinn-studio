@@ -90,9 +90,9 @@ export const getReferredNodes = (uiSchemaNodes: UiSchemaNodes, ref: string) => {
     referredNodes.uiSchemaNodes = uiSchemaNodes;
     referredNodes.cache = new Map();
     uiSchemaNodes
-      .filter((node) => typeof node.ref === 'string')
+      .filter((node) => typeof node.reference === 'string')
       .forEach((node) =>
-        referredNodes.cache.set(node.ref ?? '_', [...(referredNodes.cache.get(ref) ?? []), node])
+        referredNodes.cache.set(node.reference ?? '_', [...(referredNodes.cache.get(ref) ?? []), node])
       );
   }
   return referredNodes.cache.get(ref) ?? [];

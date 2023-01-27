@@ -186,7 +186,7 @@ test('Inputs are disabled if the selected item is a reference', () => {
       selectedItem: {
         ...selectedItem,
         objectKind: ObjectKind.Reference,
-        ref: referencedNode.pointer,
+        reference: referencedNode.pointer,
       },
     },
     { uiSchema: [...uiSchema, referencedNode] }

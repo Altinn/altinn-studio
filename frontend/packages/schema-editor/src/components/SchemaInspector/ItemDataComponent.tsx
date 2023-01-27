@@ -52,7 +52,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     pointer,
     title,
     description,
-    ref,
+    reference,
     isCombinationItem,
     objectKind,
     isArray,
@@ -120,8 +120,8 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     dispatch(setDescription({ path: pointer, description: itemDescription }));
 
   const onGoToDefButtonClick = () => {
-    if (ref !== undefined) {
-      dispatch(navigateToType({ pointer: ref }));
+    if (reference !== undefined) {
+      dispatch(navigateToType({ pointer: reference }));
     }
   };
 
@@ -183,7 +183,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
           label={t('reference_to')}
           onChangeRef={onChangeRef}
           onGoToDefButtonClick={onGoToDefButtonClick}
-          selectedNode={{ pointer, ref }}
+          selectedNode={{ pointer, reference }}
         />
       )}
       {objectKind !== ObjectKind.Combination && (

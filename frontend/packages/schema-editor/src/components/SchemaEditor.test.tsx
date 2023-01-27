@@ -65,11 +65,11 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
   return { store, user };
 };
 
-const clickMenuItem = (user: UserEvent, testId: string) =>
-  act(() => user.click(screen.getByTestId(testId)));
+const clickMenuItem = async (user: UserEvent, testId: string) =>
+  act(async () => await user.click(screen.getByTestId(testId)));
 
-const clickOpenContextMenuButton = (user: UserEvent) =>
-  act(() => user.click(screen.getAllByTestId('open-context-menu-button')[0]));
+const clickOpenContextMenuButton = async (user: UserEvent) =>
+  act(async () => await user.click(screen.getAllByTestId('open-context-menu-button')[0]));
 
 test('renders schema editor with populated schema in view mode', () => {
   renderEditor({}, false);
@@ -108,7 +108,7 @@ test('should show context menu and trigger correct dispatch when adding a refere
   expect(lastAction.payload.name).toBe('name');
   expect(lastAction.payload.location).toBe('#/properties');
   expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Reference);
-  expect(lastAction.payload.props.ref).toBe('');
+  expect(lastAction.payload.props.reference).toBe('');
 });
 
 test('should show context menu and trigger correct dispatch when adding field on a specific node', async () => {
@@ -146,7 +146,7 @@ test('should show context menu and trigger correct dispatch when adding referenc
   expect(lastAction.type).toBe('schemaEditor/addProperty');
   expect(lastAction.payload.pointer).toBe('#/properties/mockItem');
   expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Reference);
-  expect(lastAction.payload.props.ref).toBe('');
+  expect(lastAction.payload.props.reference).toBe('');
 });
 
 test('should show context menu and trigger correct dispatch when deleting a specific node', async () => {
@@ -199,7 +199,7 @@ test('should not show add property or add reference buttons on a reference node 
    * This logic need to be implemented.
    */
   const mockItem = getNodeByPointer(uiSchema, '#/properties/mockItem');
-  mockItem.ref = '';
+  mockItem.reference = '';
   mockItem.objectKind = ObjectKind.Reference;
 
   const { user } = renderEditor({
@@ -272,7 +272,7 @@ test('should show context menu and trigger correct dispatch when adding a combin
     props: {
       objectKind: ObjectKind.Combination,
       fieldType: CombinationKind.AllOf,
-      ref: undefined,
+      reference: undefined,
     },
   });
 });
