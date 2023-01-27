@@ -136,7 +136,7 @@ test('Adds new valid value field when pressing the enter key', async () => {
   const testUiSchema = buildUiSchema({});
   const item = createNodeBase(Keywords.Properties, 'test');
   item.fieldType = FieldType.String;
-  item.enums = ['valid value'];
+  item.enum = ['valid value'];
   testUiSchema.push(item);
   const { store, user } = renderSchemaInspector(testUiSchema, item);
   await act(async () => {

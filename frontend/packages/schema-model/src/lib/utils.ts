@@ -16,7 +16,7 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => ({
   restrictions: [],
   implicitType: true,
   default: undefined,
-  enums: [],
+  enum: [],
 });
 
 export const makePointer = (...args: any[]) => {

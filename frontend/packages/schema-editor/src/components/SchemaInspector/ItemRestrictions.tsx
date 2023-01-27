@@ -45,7 +45,7 @@ export const ItemRestrictions = ({
   isRequired,
   ref,
   isArray,
-  enums,
+  ['enum']: enums,
   restrictions,
   fieldType,
   language,

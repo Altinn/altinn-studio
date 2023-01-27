@@ -284,19 +284,19 @@ describe('SchemaEditorSlice', () => {
     // add
     let nextState = reducer(state, addEnum(payload));
     let item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
-    expect(item.enums).toContainEqual('test');
+    expect(item.enum).toContainEqual('test');
     // rename
     payload.oldValue = 'test';
     payload.value = 'test2';
     nextState = reducer(nextState, addEnum(payload));
     item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
 
-    expect(item.enums).not.toContainEqual('test');
-    expect(item.enums).toContainEqual('test2');
+    expect(item.enum).not.toContainEqual('test');
+    expect(item.enum).toContainEqual('test2');
     // delete
     nextState = reducer(nextState, deleteEnum(payload));
     item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
-    expect(item.enums).not.toContainEqual('test2');
+    expect(item.enum).not.toContainEqual('test2');
   });
 
   it('handles updateJsonSchema', () => {
