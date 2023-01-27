@@ -36,6 +36,7 @@ import {
   getNameFromPointer,
   hasNodePointer,
   ObjectKind,
+  replaceLastPointerSegment,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
@@ -74,10 +75,13 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     return error;
   };
   const hardValidateName = () => {
-    let error = softValidateName(nodeName);
-    if (!error && hasNodePointer(uiSchema, nodeName)) {
-      error = NameError.AlreadyInUse;
+    const error = softValidateName(nodeName);
+    if (error !== NameError.NoError) {
+      return error;
+    }
+    if (hasNodePointer(uiSchema, replaceLastPointerSegment(pointer, nodeName))) {
       setNameError(NameError.AlreadyInUse);
+      return NameError.AlreadyInUse;
     }
     return error;
   };

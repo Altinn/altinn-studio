@@ -105,7 +105,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
         <div className={classes.addButtonCell}>
           <Button
             color={ButtonColor.Secondary}
-            icon={<Add/>}
+            icon={<Add />}
             onClick={onAddPropertyClicked}
             variant={ButtonVariant.Outline}
           >

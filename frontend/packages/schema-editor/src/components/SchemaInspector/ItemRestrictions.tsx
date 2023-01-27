@@ -37,7 +37,7 @@ export interface RestrictionItemProps {
   onChangeRestrictionValue: (id: string, key: string, value?: string) => void;
   onChangeRestrictions: (id: string, restrictions: Dict) => void;
 }
-export interface ItemRestrictionsProps extends UiSchemaNode {
+export interface ItemRestrictionsProps extends Omit<UiSchemaNode, 'children'> {
   language: ILanguage;
 }
 export const ItemRestrictions = ({
