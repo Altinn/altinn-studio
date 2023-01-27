@@ -16,9 +16,10 @@ import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type {
   BaseToActual,
   BaseValue,
-  ExprDefaultValues,
+  ExprConfig,
   Expression,
   ExprFunction,
+  ExprObjConfig,
   ExprResolved,
   FuncDef,
 } from 'src/features/expressions/types';
@@ -28,7 +29,7 @@ import type { IAltinnWindow } from 'src/types';
 import type { IInstanceContext } from 'src/types/shared';
 
 export interface EvalExprOptions {
-  defaultValue?: any;
+  config?: ExprConfig<BaseValue>;
   errorIntroText?: string;
 }
 
@@ -36,71 +37,110 @@ export interface EvalExprInObjArgs<T> {
   input: T;
   node: LayoutNode<any> | NodeNotFoundWithoutContext;
   dataSources: ContextDataSources;
-  defaults?: ExprDefaultValues<T>;
+  config?: ExprObjConfig<T>;
+  resolvingPerRow?: boolean;
+  deleteNonExpressions?: boolean;
 }
 
 /**
- * Magic key used to indicate a default value for all possible values in an object
+ * Magic key used to indicate a config value for all possible values in an object
  */
-export const DEFAULT_FOR_ALL_VALUES_IN_OBJ = '__default__';
+export const CONFIG_FOR_ALL_VALUES_IN_OBJ = '__default__';
 
 /**
- * This function is the brains behind the useExpressions() hook, as it will find any expressions inside a deep
- * object and resolve them.
- * @see useExpressions
+ * This function will find any expressions inside a deep object and resolve them
  */
 export function evalExprInObj<T>(args: EvalExprInObjArgs<T>): ExprResolved<T> {
   if (!args.input) {
     return args.input as ExprResolved<T>;
   }
 
-  return evalExprInObjectRecursive(args.input, args as Omit<EvalExprInObjArgs<T>, 'input'>, []);
-}
+  const out = evalExprInObjectRecursive<T>(args.input, args as Omit<EvalExprInObjArgs<T>, 'input'>, []);
 
-function getDefaultValueFor(path: string[], defaults: any) {
-  const pathString = path.join('.');
-  const pathStringAnyDefault = [...path.slice(0, path.length - 1), DEFAULT_FOR_ALL_VALUES_IN_OBJ].join('.');
-  const defaultValueSpecific = dot.pick(pathString, defaults);
-  const defaultValueGeneric = dot.pick(pathStringAnyDefault, defaults);
-
-  if (typeof defaultValueSpecific !== 'undefined') {
-    return defaultValueSpecific;
+  if (args.deleteNonExpressions && out === DELETE_LATER) {
+    return {} as any;
   }
 
-  return defaultValueGeneric;
+  return out;
 }
+
+export function getConfigFor(path: string[], config: ExprObjConfig<any>): ExprConfig<any> | undefined {
+  const pathString = path.join('.');
+  const pathStringAnyDefault = [...path.slice(0, path.length - 1), CONFIG_FOR_ALL_VALUES_IN_OBJ].join('.');
+  const configSpecific = dot.pick(pathString, config);
+  const configGeneric = dot.pick(pathStringAnyDefault, config);
+
+  if (typeof configSpecific !== 'undefined' && 'returnType' in configSpecific) {
+    return configSpecific;
+  }
+
+  if (typeof configGeneric !== 'undefined' && 'returnType' in configGeneric) {
+    return configGeneric;
+  }
+
+  return undefined;
+}
+
+const DELETE_LATER = '__DELETE_LATER__';
 
 /**
  * Recurse through an input object/array/any, finds expressions and evaluates them
  */
 function evalExprInObjectRecursive<T>(input: any, args: Omit<EvalExprInObjArgs<T>, 'input'>, path: string[]) {
   if (typeof input !== 'object' || input === null) {
+    if (args.deleteNonExpressions) {
+      return DELETE_LATER;
+    }
+
     return input;
   }
 
   if (Array.isArray(input)) {
+    let config: ExprConfig<any> | undefined = undefined;
     let evaluateAsExpression = false;
-    if (args.defaults) {
-      evaluateAsExpression = typeof getDefaultValueFor(path, args.defaults) !== 'undefined';
+    if (args.config) {
+      config = getConfigFor(path, args.config);
+      evaluateAsExpression = typeof config !== 'undefined';
     } else if (canBeExpression(input)) {
       evaluateAsExpression = true;
+    }
+
+    if (args.resolvingPerRow === false && config && config.resolvePerRow) {
+      // Leave some expressions deep inside objects alone. I.e., for Group components, some of the properties should
+      // only be evaluated in the context of each row (when the Group is repeating).
+      evaluateAsExpression = false;
     }
 
     if (evaluateAsExpression) {
       const expression = asExpression(input);
       if (expression) {
-        return evalExprInObjectCaller(expression, args, path);
+        return evalExprInObjectCaller<T>(expression, args, path);
       }
     }
 
     const newPath = [...path];
     const lastLeg = newPath.pop() || '';
-    return input.map((item, idx) => evalExprInObjectRecursive(item, args, [...newPath, `${lastLeg}[${idx}]`]));
+    const out = input
+      .map((item, idx) => evalExprInObjectRecursive<T>(item, args, [...newPath, `${lastLeg}[${idx}]`]))
+      .filter((item) => item !== DELETE_LATER);
+
+    if (args.deleteNonExpressions && out.length === 0) {
+      return DELETE_LATER;
+    }
+
+    return out;
   }
 
   const out = {};
   for (const key of Object.keys(input)) {
-    out[key] = evalExprInObjectRecursive(input[key], args, [...path, key]);
+    out[key] = evalExprInObjectRecursive<T>(input[key], args, [...path, key]);
+    if (out[key] === DELETE_LATER) {
+      delete out[key];
+    }
+  }
+
+  if (args.deleteNonExpressions && Object.keys(out).length === 0) {
+    return DELETE_LATER;
   }
 
   return out;
@@ -114,15 +154,9 @@ function evalExprInObjectCaller<T>(expr: Expression, args: Omit<EvalExprInObjArg
   const nodeId = args.node instanceof NodeNotFoundWithoutContext ? args.node.nodeId : args.node.item.id;
 
   const exprOptions: EvalExprOptions = {
+    config: args.config && getConfigFor(path, args.config),
     errorIntroText: `Evaluated expression for '${pathString}' in component '${nodeId}'`,
   };
-
-  if (args.defaults) {
-    const defaultValue = getDefaultValueFor(path, args.defaults);
-    if (typeof defaultValue !== 'undefined') {
-      exprOptions.defaultValue = defaultValue;
-    }
-  }
 
   return evalExpr(expr, args.node, args.dataSources, exprOptions);
 }
@@ -131,7 +165,6 @@ function evalExprInObjectCaller<T>(expr: Expression, args: Omit<EvalExprInObjArg
  * Run/evaluate an expression. You have to provide your own context containing functions for looking up external
  * values. If you need a more concrete implementation:
  * @see evalExprInObj
- * @see useExpressions
  */
 export function evalExpr(
   expr: Expression,
@@ -142,21 +175,19 @@ export function evalExpr(
   let ctx = ExprContext.withBlankPath(expr, node, dataSources);
   try {
     const result = innerEvalExpr(ctx);
-    if ((result === null || result === undefined) && options && 'defaultValue' in options) {
-      return options.defaultValue;
+    if ((result === null || result === undefined) && options && options.config) {
+      return options.config.defaultValue;
     }
 
     if (
       options &&
-      'defaultValue' in options &&
-      options.defaultValue !== null &&
-      typeof options.defaultValue !== typeof result
+      options.config &&
+      options.config.returnType !== 'any' &&
+      options.config.returnType !== typeof result
     ) {
       // If you have an expression that expects (for example) a true|false return value, and the actual returned result
-      // is "true" (as a string), it makes sense to finally cast the value to the proper return value type. Since the
-      // expected return type is not configured anywhere readable from this runtime, inferring it from the default value
-      // is the best we can do.
-      return castValue(result, typeof options.defaultValue as BaseValue, ctx);
+      // is "true" (as a string), it makes sense to finally cast the value to the proper return value type.
+      return castValue(result, options.config.returnType, ctx);
     }
 
     return result;
@@ -166,13 +197,13 @@ export function evalExpr(
     } else {
       throw err;
     }
-    if (options && 'defaultValue' in options) {
+    if (options && options.config) {
       // When we know of a default value, we can safely print it as an error to the console and safely recover
       ctx.trace(err, {
-        defaultValue: options.defaultValue,
+        config: options.config,
         ...(options.errorIntroText ? { introText: options.errorIntroText } : {}),
       });
-      return options.defaultValue;
+      return options.config.defaultValue;
     } else {
       // We cannot possibly know the expected default value here, so there are no safe ways to fail here except
       // throwing the exception to let everyone know we failed.
@@ -539,60 +570,133 @@ export const ExprTypes: {
  * meant to be performant, and will never get optimized in any way. In addition, it will spit out nice errors in the
  * console for app developers to understand. Use other alternatives in your code instead.
  *
- * @see useExpressions
- * @see useExpressionsForComponent
  * @see resolvedNodesInLayouts
  */
 (window as unknown as IAltinnWindow).evalExpression = (maybeExpression: any, forComponentId?: string) => {
-  const expr = asExpression(maybeExpression, null);
+  const config: ExprConfig<'any'> = {
+    returnType: 'any',
+    defaultValue: null,
+    resolvePerRow: false,
+  };
+
+  const expr = asExpression(maybeExpression, config);
   if (!expr) {
     return null;
   }
 
   const state = (window as unknown as IAltinnWindow).reduxStore.getState();
-  const nodes = nodesInLayouts(
-    state.formLayout.layouts,
-    state.formLayout.uiConfig.currentView,
-    state.formLayout.uiConfig.repeatingGroups,
-  );
-  let context: LayoutRootNode | LayoutNode = nodes.findLayout(state.formLayout.uiConfig.currentView);
+  const currentLayout = state.formLayout.uiConfig.currentView;
+  const nodes = nodesInLayouts(state.formLayout.layouts, currentLayout, state.formLayout.uiConfig.repeatingGroups);
+  let layout: LayoutRootNode | LayoutNode | undefined = nodes.findLayout(currentLayout);
+  if (!layout) {
+    console.error('Unable to find current page/layout:', currentLayout);
+    return;
+  }
+
   if (forComponentId) {
     const foundNode = nodes.findById(forComponentId);
     if (!foundNode) {
       console.error('Unable to find component with id', forComponentId);
       console.error(
         'Available components on the current page:',
-        context.flat(true).map((c) => c.item.id),
+        layout?.flat(true).map((c) => c.item.id),
       );
       return;
     }
-    context = foundNode;
+    layout = foundNode;
   }
 
   const dataSources = dataSourcesFromState(state);
-  return evalExpr(expr as Expression, context, dataSources, { defaultValue: null });
+  return evalExpr(expr as Expression, layout, dataSources, { config });
 };
 
-export const ExprDefaultsForComponent: ExprDefaultValues<ILayoutComponent> = {
-  readOnly: false,
-  required: false,
-  hidden: false,
+export const ExprConfigForComponent: ExprObjConfig<ILayoutComponent> = {
+  readOnly: {
+    returnType: 'boolean',
+    defaultValue: false,
+    resolvePerRow: false,
+  },
+  required: {
+    returnType: 'boolean',
+    defaultValue: false,
+    resolvePerRow: false,
+  },
+  hidden: {
+    returnType: 'boolean',
+    defaultValue: false,
+    resolvePerRow: false,
+  },
   textResourceBindings: {
-    [DEFAULT_FOR_ALL_VALUES_IN_OBJ]: '',
+    [CONFIG_FOR_ALL_VALUES_IN_OBJ]: {
+      returnType: 'string',
+      defaultValue: '',
+      resolvePerRow: false,
+    },
   },
   pageBreak: {
-    breakBefore: false,
-    breakAfter: false,
+    breakBefore: {
+      returnType: 'boolean',
+      defaultValue: false,
+      resolvePerRow: false,
+    },
+    breakAfter: {
+      returnType: 'boolean',
+      defaultValue: false,
+      resolvePerRow: false,
+    },
   },
 };
 
-export const ExprDefaultsForGroup: ExprDefaultValues<ILayoutGroup> = {
-  ...ExprDefaultsForComponent,
+export const ExprConfigForGroup: ExprObjConfig<ILayoutGroup> = {
+  ...ExprConfigForComponent,
+  textResourceBindings: {
+    ...ExprConfigForComponent.textResourceBindings,
+    save_and_next_button: {
+      returnType: 'string',
+      defaultValue: '',
+      resolvePerRow: true,
+    },
+    save_button: {
+      returnType: 'string',
+      defaultValue: '',
+      resolvePerRow: true,
+    },
+    edit_button_close: {
+      returnType: 'string',
+      defaultValue: '',
+      resolvePerRow: true,
+    },
+    edit_button_open: {
+      returnType: 'string',
+      defaultValue: '',
+      resolvePerRow: true,
+    },
+  },
   edit: {
-    addButton: true,
-    deleteButton: true,
-    saveButton: true,
-    alertOnDelete: false,
-    saveAndNextButton: false,
+    addButton: {
+      returnType: 'boolean',
+      defaultValue: true,
+      resolvePerRow: false,
+    },
+    deleteButton: {
+      returnType: 'boolean',
+      defaultValue: true,
+      resolvePerRow: true,
+    },
+    saveButton: {
+      returnType: 'boolean',
+      defaultValue: true,
+      resolvePerRow: true,
+    },
+    alertOnDelete: {
+      returnType: 'boolean',
+      defaultValue: false,
+      resolvePerRow: true,
+    },
+    saveAndNextButton: {
+      returnType: 'boolean',
+      defaultValue: false,
+      resolvePerRow: true,
+    },
   },
 };

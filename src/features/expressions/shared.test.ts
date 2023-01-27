@@ -77,6 +77,10 @@ describe('Expressions shared function tests', () => {
           const newHiddenFields = new Set<string>();
           for (const layoutKey of Object.keys(rootCollection.all())) {
             const layout = rootCollection.findLayout(layoutKey);
+            if (!layout) {
+              throw new Error('No layout found - check your test data!');
+            }
+
             for (const node of layout.flat(true)) {
               if (node.isHidden(dataSources.hiddenFields)) {
                 newHiddenFields.add(node.item.id);
@@ -143,14 +147,15 @@ describe('Expressions shared context tests', () => {
       for (const key of Object.keys(_layouts)) {
         const repeatingGroups = getRepeatingGroups(_layouts[key].data.layout, dataSources.formData);
         const nodes = nodesInLayouts({ FormLayout: _layouts[key].data.layout }, 'FormLayout', repeatingGroups);
+        const layout = nodes.current();
+        if (!layout) {
+          throw new Error('No layout found - check your test data!');
+        }
 
         foundContexts.push({
           component: key,
           currentLayout: key,
-          children: nodes
-            .current()
-            .children()
-            .map((child) => recurse(child, key)),
+          children: layout.children().map((child) => recurse(child, key)),
         });
       }
 

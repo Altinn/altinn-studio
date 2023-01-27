@@ -1069,14 +1069,19 @@ describe('utils > validation', () => {
       formLayout = mockLayout.FormLayout,
       hiddenFields = [],
       repeatingGroups = {},
-    }: Partial<RenderWith>) =>
-      validation.validateEmptyFieldsForNodes(
+    }: Partial<RenderWith>) => {
+      const layout = toCollection({ FormLayout: formLayout }, repeatingGroups).current();
+      if (!layout) {
+        throw new Error('No layout found - check your test data!');
+      }
+      return validation.validateEmptyFieldsForNodes(
         formData,
-        toCollection({ FormLayout: formLayout }, repeatingGroups).current(),
+        layout,
         mockLanguage.language,
         new Set(hiddenFields),
         mockTextResources,
       );
+    };
 
     const requiredFieldInSimpleGroup = 'required_in_group_simple';
     const requiredError = (name?: string) => {
@@ -1757,9 +1762,13 @@ describe('utils > validation', () => {
   describe('validation.mapToComponentValidations', () => {
     it('should map validation to correct component', () => {
       const validations = {};
+      const layout = toCollection(mockLayout).current();
+      if (!layout) {
+        throw new Error('No layout found - check your test data!');
+      }
       validation.mapToComponentValidationsGivenNode(
         'FormLayout',
-        toCollection(mockLayout).current(),
+        layout,
         'dataModelField_2',
         'some error',
         validations,
@@ -1778,14 +1787,18 @@ describe('utils > validation', () => {
 
     it('should map validation to correct component for component in a repeating group', () => {
       const validations = {};
+      const layout = toCollection(mockLayout, {
+        group1: {
+          index: 0,
+          editIndex: -1,
+        },
+      }).current();
+      if (!layout) {
+        throw new Error('No layout found - check your test data!');
+      }
       validation.mapToComponentValidationsGivenNode(
         'FormLayout',
-        toCollection(mockLayout, {
-          group1: {
-            index: 0,
-            editIndex: -1,
-          },
-        }).current(),
+        layout,
         'group_1[0].dataModelField_4',
         'some error',
         validations,
@@ -1804,18 +1817,22 @@ describe('utils > validation', () => {
 
     it('should map validation to correct component for component in a nested repeating group', () => {
       const validations = {};
+      const layout = toCollection(mockLayout, {
+        group1: {
+          index: 0,
+          editIndex: -1,
+        },
+        'group2-0': {
+          index: 0,
+          editIndex: -1,
+        },
+      }).current();
+      if (!layout) {
+        throw new Error('No layout found - check your test data!');
+      }
       validation.mapToComponentValidationsGivenNode(
         'FormLayout',
-        toCollection(mockLayout, {
-          group1: {
-            index: 0,
-            editIndex: -1,
-          },
-          'group2-0': {
-            index: 0,
-            editIndex: -1,
-          },
-        }).current(),
+        layout,
         'group_1[0].group_2[0].dataModelField_5',
         'some error',
         validations,

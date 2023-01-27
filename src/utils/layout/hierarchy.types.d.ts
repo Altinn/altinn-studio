@@ -1,6 +1,8 @@
+import type { DeepPartial } from 'utility-types';
+
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { IDataModelBindings, ILayoutComponent } from 'src/layout/layout';
+import type { ComponentExceptGroup, IDataModelBindings, ILayoutComponent } from 'src/layout/layout';
 import type { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
 
 export type NodeType =
@@ -9,9 +11,10 @@ export type NodeType =
   // Resolved nodes have their expressions resolved, leaving only the results
   | 'resolved';
 
-export type ComponentOf<NT extends NodeType> = NT extends 'unresolved'
-  ? ILayoutComponent
-  : ExprResolved<ILayoutComponent>;
+export type ComponentOf<
+  NT extends NodeType,
+  T extends ComponentExceptGroup = ComponentExceptGroup,
+> = NT extends 'unresolved' ? ILayoutComponent<T> : ExprResolved<ILayoutComponent<T>>;
 
 export type GroupOf<NT extends NodeType> = NT extends 'unresolved' ? ILayoutGroup : ExprResolved<ILayoutGroup>;
 
@@ -30,6 +33,10 @@ export type RepeatingGroupLayoutComponent<NT extends NodeType = 'unresolved'> = 
 export type RepeatingGroupHierarchyRow<NT extends NodeType = 'unresolved'> = {
   index: number;
   items: HierarchyWithRowsChildren<NT>[];
+
+  // If this object is present, it contains a subset of the Group layout object, where some expressions may be resolved
+  // in the context of the current repeating group row.
+  groupExpressions?: DeepPartial<ExprResolved<ILayoutGroup>>;
 };
 
 export type RepeatingGroupHierarchy<NT extends NodeType = 'unresolved'> = Omit<
@@ -37,7 +44,7 @@ export type RepeatingGroupHierarchy<NT extends NodeType = 'unresolved'> = Omit<
   'childComponents' | 'children'
 > &
   RepeatingGroupExtensions & {
-    rows: RepeatingGroupHierarchyRow<NT>[];
+    rows: (RepeatingGroupHierarchyRow<NT> | undefined)[];
   };
 
 /**

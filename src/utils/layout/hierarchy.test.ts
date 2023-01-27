@@ -553,15 +553,15 @@ describe('Hierarchical layout tools', () => {
     expect(uniqueHidden(group2ni?.parent.parent.children())).toEqual(plain);
     expect(uniqueHidden(group2?.flat(true))).toEqual(plain);
     expect(uniqueHidden(group2?.flat(false))).toEqual(plain);
-    expect(uniqueHidden(nodes.current().flat(true))).toEqual(plain);
-    expect(uniqueHidden(nodes.current().children())).toEqual(plain);
+    expect(uniqueHidden(nodes.current()?.flat(true))).toEqual(plain);
+    expect(uniqueHidden(nodes.current()?.children())).toEqual(plain);
 
     if (group2?.item.type === 'Group' && 'rows' in group2.item) {
-      expect(group2.item.rows[0].items[1].hidden).toEqual(true);
-      expect(group2.item.rows[0].items[2].hidden).toEqual(true);
-      const group2n = group2.item.rows[0].items[2];
-      if (group2n.type === 'Group' && 'rows' in group2n) {
-        expect(group2n.rows[0].items[1].hidden).toEqual(true);
+      expect(group2.item.rows[0]?.items[1].hidden).toEqual(true);
+      expect(group2.item.rows[0]?.items[2].hidden).toEqual(true);
+      const group2n = group2.item.rows[0]?.items[2];
+      if (group2n?.type === 'Group' && 'rows' in group2n) {
+        expect(group2n.rows[0]?.items[1].hidden).toEqual(true);
       } else {
         expect(false).toEqual(true);
       }
@@ -670,7 +670,7 @@ describe('Hierarchical layout tools', () => {
     expect(nested?.closest((i) => i.id === 'field3')?.item.id).toEqual('field3');
 
     // Using 'findById' on the wrong page
-    expect(resolved.findLayout('page2').findById('field3')?.item.id).toEqual('field3');
+    expect(resolved.findLayout('page2')?.findById('field3')?.item.id).toEqual('field3');
     expect(field3?.top.findAllById(components.group2i.id).map((i) => i.item.id)).toEqual([
       'group2_input-0',
       'group2_input-1',

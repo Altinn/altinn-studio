@@ -11,6 +11,7 @@ import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
 import { dataSourcesFromState, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
 import { selectNotNull } from 'src/utils/sagas';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
+import type { ExprConfig } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { ICheckIfConditionalRulesShouldRun, IConditionalRenderingRules } from 'src/features/form/dynamics';
 import type { IHiddenLayoutsExpressions, IRuntimeState, IUiConfig, IValidations } from 'src/types';
@@ -57,7 +58,7 @@ export function* checkIfConditionalRulesShouldRunSaga({
     }
 
     for (const layout of futureHiddenLayouts) {
-      for (const node of resolvedNodes.findLayout(layout).flat(true)) {
+      for (const node of resolvedNodes.findLayout(layout)?.flat(true) || []) {
         if (!futureHiddenFields.has(node.item.id)) {
           futureHiddenFields.add(node.item.id);
         }
@@ -85,7 +86,7 @@ export function* checkIfConditionalRulesShouldRunSaga({
           }
         }
         for (const componentId of newlyVisible) {
-          const node = layoutObj.findById(componentId);
+          const node = layoutObj?.findById(componentId) || resolvedNodes.findById(componentId);
           if (
             node &&
             node.item.dataModelBindings &&
@@ -143,13 +144,22 @@ function runExpressionsForLayouts(
   hiddenLayoutsExpr: IHiddenLayoutsExpressions,
   dataSources: ContextDataSources,
 ): Set<string> {
+  const config: ExprConfig<'boolean'> = {
+    returnType: 'boolean',
+    defaultValue: false,
+    resolvePerRow: false,
+  };
+
   const hiddenLayouts: Set<string> = new Set();
   for (const key of Object.keys(hiddenLayoutsExpr)) {
+    const layout = nodes.findLayout(key);
+    if (!layout) {
+      continue;
+    }
+
     let isHidden = hiddenLayoutsExpr[key];
     if (typeof isHidden === 'object' && isHidden !== null) {
-      isHidden = evalExpr(isHidden, nodes.findLayout(key), dataSources, {
-        defaultValue: false,
-      });
+      isHidden = evalExpr(isHidden, layout, dataSources, { config }) as boolean;
     }
     if (isHidden === true) {
       hiddenLayouts.add(key);

@@ -2,7 +2,6 @@ import React from 'react';
 
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { PreloadedState } from 'redux';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
@@ -54,9 +53,7 @@ describe('PanelGroupContainer', () => {
   ];
 
   const state: ILayoutState = {
-    layouts: {
-      FormLayout: [container, ...groupComponents],
-    },
+    layouts: null,
     uiConfig: {
       ...initialState.formLayout.uiConfig,
       hiddenFields: [],
@@ -194,7 +191,7 @@ describe('PanelGroupContainer', () => {
   });
 
   it('should display nothing if group is hidden', async () => {
-    const stateWithHidden: PreloadedState<RootState> = {
+    const stateWithHidden: Partial<RootState> = {
       formLayout: {
         ...state,
         uiConfig: {
@@ -242,18 +239,21 @@ describe('PanelGroupContainer', () => {
   });
 });
 
-const render = (props: Partial<IPanelGroupContainerProps> = {}, customState: PreloadedState<RootState> = {}) => {
+const render = (props: Partial<IPanelGroupContainerProps> = {}, customState: Partial<RootState> = {}) => {
   const allProps: IPanelGroupContainerProps = {
     ...({} as IPanelGroupContainerProps),
     ...props,
   };
 
-  const { container } = renderWithProviders(<PanelGroupContainer {...allProps} />, {
-    preloadedState: {
-      ...getInitialStateMock(),
-      ...customState,
-    },
-  });
+  let preloadedState = getInitialStateMock() as RootState;
+  preloadedState = {
+    ...preloadedState,
+    ...customState,
+  };
+  const formLayout = preloadedState.formLayout.layouts && preloadedState.formLayout.layouts['FormLayout'];
+  formLayout?.push(allProps.container, ...(allProps.components || []));
+
+  const { container } = renderWithProviders(<PanelGroupContainer {...allProps} />, { preloadedState });
 
   return container;
 };

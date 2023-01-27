@@ -7,8 +7,6 @@ import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { EditIconButton } from 'src/components/EditIconButton';
 import { SuccessIconButton } from 'src/components/SuccessIconButton';
-import { ExprDefaultsForGroup } from 'src/features/expressions';
-import { useExpressions } from 'src/features/expressions/useExpressions';
 import { FullWidthGroupWrapper } from 'src/features/form/components/FullWidthGroupWrapper';
 import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
 import { getVariant } from 'src/features/form/components/Panel';
@@ -18,6 +16,7 @@ import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextResource } from 'src/utils/formComponentUtils';
 import { createRepeatingGroupComponentsForIndex } from 'src/utils/formLayout';
 import { getLayoutComponentById } from 'src/utils/layout';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutComponent } from 'src/layout/layout';
@@ -67,10 +66,8 @@ export function PanelGroupContainer({ container, components }: IPanelGroupContai
   const hiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
   const hidden = useAppSelector((state) => GetHiddenSelector(state, { id: container.id }));
 
-  const textResourceBindings = useExpressions(container.textResourceBindings, {
-    forComponentId: container.id,
-    defaults: ExprDefaultsForGroup.textResourceBindings,
-  });
+  const node = useResolvedNode(container);
+  const textResourceBindings = node?.item.textResourceBindings;
 
   const title = useAppSelector(
     (state) =>

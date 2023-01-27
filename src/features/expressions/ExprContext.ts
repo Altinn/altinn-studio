@@ -2,7 +2,7 @@ import dot from 'dot-object';
 
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
-import type { Expression } from 'src/features/expressions/types';
+import type { BaseValue, ExprConfig, Expression } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { IApplicationSettings, IInstanceContext } from 'src/types/shared';
 import type { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
@@ -15,7 +15,7 @@ export interface ContextDataSources {
 }
 
 export interface PrettyErrorsOptions {
-  defaultValue?: any;
+  config?: ExprConfig<BaseValue>;
   introText?: string;
 }
 
@@ -104,7 +104,7 @@ export class ExprContext {
       const introText = options && 'introText' in options ? options.introText : 'Evaluated expression';
 
       const extra =
-        options && 'defaultValue' in options ? ['Using default value instead:', `  ${options.defaultValue}`] : [];
+        options && options.config ? ['Using default value instead:', `  ${options.config.defaultValue}`] : [];
 
       return [`${introText}:`, prettyPrinted, ...extra].join('\n');
     }
@@ -124,8 +124,8 @@ export class ExprContext {
       const introText = options && 'introText' in options ? options.introText : 'Evaluated expression:';
 
       const extra =
-        options && 'defaultValue' in options ? `\n%cUsing default value instead:\n  %c${options.defaultValue}%c` : '';
-      const extraCss = options && 'defaultValue' in options ? ['', 'color: red;', ''] : [];
+        options && options.config ? `\n%cUsing default value instead:\n  %c${options.config.defaultValue}%c` : '';
+      const extraCss = options && options.config ? ['', 'color: red;', ''] : [];
 
       return [`${introText}:\n${prettyPrinted.lines}${extra}`, ...prettyPrinted.css, ...extraCss];
     }

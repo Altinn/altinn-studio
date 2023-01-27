@@ -16,10 +16,10 @@ import { Delete as DeleteIcon, Edit as EditIcon, Warning as WarningIcon } from '
 import cn from 'classnames';
 
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
-import { ExprDefaultsForGroup } from 'src/features/expressions';
-import { useExpressions } from 'src/features/expressions/useExpressions';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import theme from 'src/theme/altinnStudioTheme';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ITextResourceBindings } from 'src/types';
 import type { ILanguage, ITextResource } from 'src/types/shared';
@@ -157,16 +157,21 @@ export default function AltinnMobileTableItem({
     onOpenChange,
   } = deleteFunctionality || {};
 
-  const textResourceBindings = useExpressions(container?.textResourceBindings, {
-    forComponentId: container?.id,
-    rowIndex: tableItemIndex,
-  });
+  const node = useResolvedNode(container);
+  const expressionsForRow =
+    node?.item.type === 'Group' && 'rows' in node.item && node.item.rows[tableItemIndex]?.groupExpressions
+      ? node.item.rows[tableItemIndex]?.groupExpressions
+      : undefined;
 
-  const edit = useExpressions(container?.edit, {
-    forComponentId: container?.id,
-    rowIndex: tableItemIndex,
-    defaults: ExprDefaultsForGroup.edit,
-  });
+  const textResourceBindings = {
+    ...node?.item.textResourceBindings,
+    ...expressionsForRow?.textResourceBindings,
+  } as ITextResourceBindings;
+
+  const edit = {
+    ...(node?.item.type === 'Group' && node.item.edit),
+    ...expressionsForRow?.edit,
+  } as ExprResolved<ILayoutGroup['edit']>;
 
   if (textResources && getEditButtonText && container && language) {
     const editButtonTextFromTextResources = !valid

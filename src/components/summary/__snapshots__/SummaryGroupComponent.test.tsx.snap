@@ -38,9 +38,6 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
             />
           </p>
         </span>
-        <span
-          class="MuiTouchRipple-root"
-        />
       </button>
     </div>
     <div

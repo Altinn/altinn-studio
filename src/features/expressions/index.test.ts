@@ -1,9 +1,16 @@
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
-import { DEFAULT_FOR_ALL_VALUES_IN_OBJ, evalExpr, evalExprInObj } from 'src/features/expressions/index';
+import { CONFIG_FOR_ALL_VALUES_IN_OBJ, evalExpr, evalExprInObj } from 'src/features/expressions/index';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
+import type { ExprConfig } from 'src/features/expressions/types';
 
 describe('Expressions', () => {
   it('should return default value if expression evaluates to null', () => {
+    const config: ExprConfig<'string'> = {
+      returnType: 'string',
+      defaultValue: 'hello world',
+      resolvePerRow: false,
+    };
+
     expect(
       evalExpr(
         ['frontendSettings', 'whatever'],
@@ -11,9 +18,7 @@ describe('Expressions', () => {
         {
           applicationSettings: {},
         } as ContextDataSources,
-        {
-          defaultValue: 'hello world',
-        },
+        { config },
       ),
     ).toEqual('hello world');
   });
@@ -44,7 +49,7 @@ describe('Expressions', () => {
       evalExprInObj({
         ...options,
         input: { obj: ['instanceContext', 'whatever'] },
-        defaults: {},
+        config: {},
       }),
     ).toEqual({ obj: ['instanceContext', 'whatever'] });
 
@@ -53,7 +58,18 @@ describe('Expressions', () => {
       evalExprInObj({
         ...options,
         input: { obj: ['instanceContext', 'whatever1'], other: ['instanceContext', 'whatever2'] },
-        defaults: { [DEFAULT_FOR_ALL_VALUES_IN_OBJ]: 'some-default-result', obj: 'default-for-this-one' },
+        config: {
+          [CONFIG_FOR_ALL_VALUES_IN_OBJ]: {
+            returnType: 'string',
+            defaultValue: 'some-default-result',
+            resolvePerRow: false,
+          },
+          obj: {
+            returnType: 'string',
+            defaultValue: 'default-for-this-one',
+            resolvePerRow: false,
+          },
+        },
       }),
     ).toEqual({ obj: 'default-for-this-one', other: 'some-default-result' });
 

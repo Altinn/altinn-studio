@@ -40,8 +40,6 @@ export const App = () => {
     }
   }, [appOwner, appName]);
 
-  const [ready, setReady] = React.useState(false);
-
   React.useEffect(() => {
     function setUpEventListeners() {
       window.addEventListener('mousemove', refreshJwtToken);
@@ -72,11 +70,6 @@ export const App = () => {
       }
     }
 
-    if (allowAnonymous !== undefined) {
-      // Page is ready to be rendered once allowAnonymous value has been determined
-      setReady(true);
-    }
-
     if (allowAnonymous === false) {
       refreshJwtToken();
       dispatch(QueueActions.startInitialUserTaskQueue());
@@ -96,6 +89,8 @@ export const App = () => {
     return <UnknownError />;
   }
 
+  // Page is ready to be rendered once allowAnonymous value has been determined
+  const ready = allowAnonymous !== undefined;
   if (!ready) {
     return null;
   }

@@ -1,14 +1,20 @@
-import dot from 'dot-object';
-
 import {
   argTypeAt,
-  ExprDefaultsForComponent,
-  ExprDefaultsForGroup,
+  ExprConfigForComponent,
+  ExprConfigForGroup,
   ExprFunctions,
   ExprTypes,
+  getConfigFor,
 } from 'src/features/expressions';
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
-import type { BaseValue, Expression, ExprFunction, FuncDef } from 'src/features/expressions/types';
+import type {
+  BaseValue,
+  ExprConfig,
+  Expression,
+  ExprFunction,
+  ExprObjConfig,
+  FuncDef,
+} from 'src/features/expressions/types';
 import type { ILayout } from 'src/layout/layout';
 
 enum ValidationErrorMessage {
@@ -200,14 +206,10 @@ export function canBeExpression(expr: any): expr is [] {
  * parsed expression (ready to pass to evalExpr()), or undefined (if not a valid expression).
  *
  * @param obj Input, can be anything
- * @param defaultValue Default value (returned if the expression fails to validate)
+ * @param config Configuration and default value (the default is returned if the expression fails to validate)
  * @param errorText Error intro text used when printing to console or throwing an error
  */
-export function asExpression(
-  obj: any,
-  defaultValue: any = undefined,
-  errorText = 'Invalid expression',
-): Expression | undefined {
+export function asExpression(obj: any, config?: ExprConfig, errorText = 'Invalid expression'): Expression | undefined {
   if (typeof obj !== 'object' || obj === null || !Array.isArray(obj)) {
     return undefined;
   }
@@ -216,7 +218,7 @@ export function asExpression(
   validateRecursively(obj, ctx, []);
 
   if (Object.keys(ctx.errors).length) {
-    if (typeof defaultValue !== 'undefined') {
+    if (typeof config !== 'undefined') {
       const prettyPrinted = prettyErrorsToConsole({
         input: obj,
         errors: ctx.errors,
@@ -230,13 +232,13 @@ export function asExpression(
           `${errorText}:`,
           prettyPrinted.lines,
           '%cUsing default value instead:',
-          `  %c${defaultValue === null ? 'null' : defaultValue.toString()}%c`,
+          `  %c${config.defaultValue === null ? 'null' : (config.defaultValue as any).toString()}%c`,
         ].join('\n'),
         ...prettyPrinted.css,
         ...['', 'color: red;', ''],
       );
 
-      return defaultValue;
+      return config.defaultValue;
     }
 
     const pretty = prettyErrors({
@@ -250,17 +252,18 @@ export function asExpression(
   return obj as unknown as Expression;
 }
 
-export function preProcessItem(
-  input: any,
-  defaults: Record<string, any>,
+export function preProcessItem<T>(
+  input: T,
+  config: ExprObjConfig<any>,
   componentPath: string[],
   componentId: string,
 ): any {
   const pathStr = componentPath.join('.');
-  if (pathStr in defaults) {
+  const cfg = getConfigFor(componentPath, config);
+  if (cfg) {
     if (typeof input === 'object' && input !== null) {
       const errText = `Invalid expression when parsing ${pathStr} for "${componentId}"`;
-      return asExpression(input, defaults[pathStr], errText);
+      return asExpression(input, cfg, errText);
     }
 
     return input;
@@ -268,7 +271,7 @@ export function preProcessItem(
 
   if (typeof input === 'object' && !Array.isArray(input) && input !== null) {
     for (const property of Object.keys(input)) {
-      input[property] = preProcessItem(input[property], defaults, [...componentPath, property], componentId);
+      input[property] = preProcessItem(input[property], config, [...componentPath, property], componentId);
     }
   }
 
@@ -285,12 +288,12 @@ export function preProcessItem(
  * Please note: This mutates the layout array passed to the function, and returns nothing.
  */
 export function preProcessLayout(layout: ILayout) {
-  const defaults = dot.dot({
-    ...ExprDefaultsForComponent,
-    ...ExprDefaultsForGroup,
-  });
+  const config = {
+    ...ExprConfigForComponent,
+    ...ExprConfigForGroup,
+  };
 
   for (const comp of layout) {
-    preProcessItem(comp, defaults, [], comp.id);
+    preProcessItem(comp, config, [], comp.id);
   }
 }

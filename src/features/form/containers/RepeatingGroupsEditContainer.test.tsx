@@ -4,12 +4,14 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getMultiPageGroupMock } from 'src/__mocks__/formLayoutGroupMock';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import { renderWithProviders } from 'src/testUtils';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import type { IRepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponent, ISelectionComponentProps } from 'src/layout/layout';
+import type { RootState } from 'src/store';
 import type { IOption } from 'src/types';
 import type { ILanguage, ITextResource } from 'src/types/shared';
 
@@ -118,6 +120,11 @@ describe('RepeatingGroupsEditContainer', () => {
       ...props,
     };
 
-    renderWithProviders(<RepeatingGroupsEditContainer {...allProps} />);
+    const preloadedState = getInitialStateMock() as RootState;
+    preloadedState.formLayout.layouts = { FormLayout: layout };
+    preloadedState.language.language = language;
+    preloadedState.textResources.resources = textResources;
+
+    renderWithProviders(<RepeatingGroupsEditContainer {...allProps} />, { preloadedState });
   };
 });

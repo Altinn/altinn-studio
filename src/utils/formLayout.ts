@@ -78,6 +78,12 @@ const getMaxIndexInKeys = (keys: string[], nested = false) => {
   );
 };
 
+/**
+ * @deprecated Note: This functionality may not be present in the layout hierarchy, but prefer implementing it there
+ *   over continued usage of this functionality.
+ * @see useExprContext
+ * @see useResolvedNode
+ */
 export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const repeatingGroups: IRepeatingGroups = {};
 
@@ -183,6 +189,12 @@ export function mapFileUploadersWithTag(formLayout: ILayout, attachmentState: IA
   return fileUploaders;
 }
 
+/**
+ * @deprecated Note: This functionality may not be present in the layout hierarchy, but prefer implementing it there
+ *   over continued usage of this functionality.
+ * @see useExprContext
+ * @see useResolvedNode
+ */
 function getIndexForNestedRepeatingGroup(
   formData: any,
   groupBinding: string | undefined,
@@ -267,6 +279,11 @@ export const getRepeatingGroupStartStopIndex = (
   return { startIndex, stopIndex };
 };
 
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ */
 export function createRepeatingGroupComponents(
   container: ILayoutGroup,
   renderComponents: (ILayoutComponent | ILayoutGroup)[],
@@ -298,6 +315,11 @@ interface ICreateRepeatingGroupComponentsForIndexProps {
   hiddenFields?: string[];
 }
 
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ */
 export function createRepeatingGroupComponentsForIndex({
   container,
   renderComponents,
@@ -348,6 +370,11 @@ export function createRepeatingGroupComponentsForIndex({
   });
 }
 
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ */
 export function setMappingForRepeatingGroupComponent(mapping: IMapping | undefined, index: number | undefined) {
   if (mapping) {
     const indexedMapping: IMapping = {
@@ -368,6 +395,11 @@ export function setMappingForRepeatingGroupComponent(mapping: IMapping | undefin
   }
 }
 
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ */
 export function getVariableTextKeysForRepeatingGroupComponent(
   textResources: ITextResource[],
   textResourceBindings: ITextResourceBindings | undefined,
@@ -391,6 +423,9 @@ export function getVariableTextKeysForRepeatingGroupComponent(
 /**
  * Checks if there are required fields in this layout (or fields that potentially can be marked as required if some
  * dynamic behaviour dictates it).
+ * @deprecated The 'required' property for components can be adjusted dynamically using expressions, so this function
+ *   is no longer reliable. Rewrite to look at the 'readOnly' property in resolved nodes instead.
+ * @see useExprContext
  */
 export function hasRequiredFields(layout: ILayout): boolean {
   return !!layout.find((c: ILayoutComponent) => c.required === true || Array.isArray(c.required));
@@ -404,7 +439,9 @@ export function hasRequiredFields(layout: ILayout): boolean {
  * @param options.matching Function which should return true for every component to be included in the returned list.
  *    If not provided, all components are returned.
  * @param options.rootGroupId Component id for a group to use as root, instead of iterating the entire layout.
- * @deprecated Use nodesInLayout() instead. TODO: Rewrite usages
+ * @deprecated Use LayoutNode instead. TODO: Rewrite usages
+ * @see useExprContext
+ * @see useResolvedNode
  */
 export function findChildren(
   layout: ILayout,
@@ -460,6 +497,9 @@ export function findChildren(
 /**
  * Takes a layout and removes the components in it that belong to groups. This returns
  * only the top-level layout components.
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
  */
 export function topLevelComponents(layout: ILayout) {
   const inGroup = new Set<string>();
@@ -509,13 +549,14 @@ export function behavesLikeDataTask(task: string | null | undefined, layoutSets:
 }
 
 /**
- * (Deprecate this function) Returns the filtered indices of a repeating group.
+ * Returns the filtered indices of a repeating group.
  * This is a buggy implementation, but is used for backward compatibility until a new major version is released.
  * @see https://github.com/Altinn/app-frontend-react/issues/339#issuecomment-1286624933
  * @param formData IFormData
  * @param filter IGroupEditProperties.filter or undefined.
  * @returns a list of indices for repeating group elements after applying filters, or null if no filters are provided or if no elements match.
- * @deprecated
+ * @deprecated Refrain from using this function, prefer implementing filtering based on expressions instead
+ * @see https://github.com/Altinn/app-frontend-react/issues/584
  */
 export function getRepeatingGroupFilteredIndices(formData: IFormData, filter?: IGroupFilter[]): number[] | null {
   if (filter && filter.length > 0) {

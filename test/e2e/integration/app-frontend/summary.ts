@@ -267,32 +267,33 @@ describe('Summary', () => {
         .then((row) => {
           for (const item of Object.keys(items)) {
             const shouldExist = items[item];
+            const id = item.replace(/\[idx]/, `${groupRow}`);
             cy.wrap(row)
-              .find(`[data-testid="summary-${item}"]`)
+              .find(`[data-testid="summary-${id}"]`)
               .should(shouldExist ? 'be.visible' : 'not.exist');
           }
         });
     }
 
     const regularRow = {
-      'currentValue-summary': true,
-      'newValue-summary': true,
-      'mainUploaderSingle-summary': true,
-      'mainUploaderMulti-summary': true,
-      'subGroup-summary-group': true,
+      'currentValue-[idx]-summary': true,
+      'newValue-[idx]-summary': true,
+      'mainUploaderSingle-[idx]-summary': true,
+      'mainUploaderMulti-[idx]-summary': true,
+      'subGroup-[idx]-summary-group': true,
     };
 
     // Rows that come from prefill have their uploaders removed, so these should be hidden
     const prefillRow = {
       ...regularRow,
-      'mainUploaderSingle-summary': false,
-      'mainUploaderMulti-summary': false,
+      'mainUploaderSingle-[idx]-summary': false,
+      'mainUploaderMulti-[idx]-summary': false,
     };
 
     // Rows that come from prefill AND have a 'currentValue' above 100 have their subGroup removed
     const prefillRowAbove100 = {
       ...prefillRow,
-      'subGroup-summary-group': false,
+      'subGroup-[idx]-summary-group': false,
     };
 
     cy.get(appFrontend.group.mainGroupSummary).should('have.length', 4);
@@ -308,32 +309,32 @@ describe('Summary', () => {
     cy.get(appFrontend.group.saveSubGroup).click();
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.navMenu).find('li > button').last().click();
-    cy.get('#mainGroup-4-summary > [data-testid=summary-currentValue-summary] > div')
+    cy.get('#mainGroup-4-summary > [data-testid=summary-currentValue-4-summary] > div')
       .children()
       .last()
       .should('exist')
       .and('be.visible')
       .and('contain.text', 'Du har ikke lagt inn informasjon her');
-    cy.get('#mainGroup-4-summary > [data-testid=summary-newValue-summary] > div')
+    cy.get('#mainGroup-4-summary > [data-testid=summary-newValue-4-summary] > div')
       .children()
       .last()
       .should('exist')
       .and('be.visible')
       .and('contain.text', 'Du har ikke lagt inn informasjon her');
-    cy.get('#mainGroup-4-summary > [data-testid=summary-mainUploaderSingle-summary] > div')
+    cy.get('#mainGroup-4-summary > [data-testid=summary-mainUploaderSingle-4-summary] > div')
       .children()
       .last()
       .should('exist')
       .and('be.visible')
       .and('contain.text', 'Du har ikke lagt inn informasjon her');
-    cy.get('#mainGroup-4-summary > [data-testid=summary-mainUploaderMulti-summary] > div')
+    cy.get('#mainGroup-4-summary > [data-testid=summary-mainUploaderMulti-4-summary] > div')
       .children()
       .last()
       .should('exist')
       .and('be.visible')
       .and('contain.text', 'Du har ikke lagt inn informasjon her');
     cy.get(
-      '#mainGroup-4-summary > [data-testid=summary-subGroup-summary-group] > div > [data-testid=summary-group-component]',
+      '#mainGroup-4-summary > [data-testid=summary-subGroup-4-summary-group] > div > [data-testid=summary-group-component]',
     )
       .children()
       .last()
@@ -345,13 +346,13 @@ describe('Summary', () => {
       .and('contain.text', 'Vis tillegg : Du har ikke lagt inn informasjon her')
       .and('contain.text', 'Referanse : Du har ikke lagt inn informasjon her')
       .and('contain.text', 'Skjul kommentar felt : Du har ikke lagt inn informasjon her');
-    cy.get('#mainGroup-4-summary > [data-testid=summary-source-summary] > div')
+    cy.get('#mainGroup-4-summary > [data-testid=summary-source-4-summary] > div')
       .children()
       .last()
       .should('exist')
       .and('be.visible')
       .and('contain.text', 'Du har ikke lagt inn informasjon her');
-    cy.get('#mainGroup-4-summary > [data-testid=summary-reference-summary] > div')
+    cy.get('#mainGroup-4-summary > [data-testid=summary-reference-4-summary] > div')
       .children()
       .last()
       .should('exist')

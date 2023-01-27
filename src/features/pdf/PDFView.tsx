@@ -10,6 +10,7 @@ import CustomPDFLayout from 'src/features/pdf/CustomPDFLayout';
 import css from 'src/features/pdf/PDFView.module.css';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
+import { useExprContext } from 'src/utils/layout/ExprContext';
 import { get } from 'src/utils/network/networking';
 import { getPdfFormatUrl } from 'src/utils/urls/appUrlHelper';
 
@@ -40,6 +41,7 @@ const PDFView = ({ appName, appOwner }: PDFViewProps) => {
   const instance = useAppSelector((state) => state.instanceData.instance);
   const allOrgs = useAppSelector((state) => state.organisationMetaData.allOrgs);
   const profile = useAppSelector((state) => state.profile.profile);
+  const nodeLayouts = useExprContext();
 
   // Custom pdf layout
   const pdfLayout = pdfLayoutName && layouts ? layouts[pdfLayoutName] : undefined;
@@ -83,7 +85,8 @@ const PDFView = ({ appName, appOwner }: PDFViewProps) => {
     !allOrgs ||
     !profile ||
     !pageOrder ||
-    (!pdfFormat && !pdfLayout)
+    (!pdfFormat && !pdfLayout) ||
+    !nodeLayouts
   ) {
     return null;
   }
@@ -103,10 +106,10 @@ const PDFView = ({ appName, appOwner }: PDFViewProps) => {
         <CustomPDFLayout layout={pdfLayout} />
       ) : (
         <AutomaticPDFLayout
-          pdfFormat={pdfFormat as IPdfFormat}
+          pdfFormat={pdfFormat}
           pageOrder={pageOrder}
           hidden={hidden}
-          layouts={layouts}
+          layouts={nodeLayouts}
         />
       )}
       <ReadyForPrint />

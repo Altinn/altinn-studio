@@ -5,7 +5,6 @@ import { Grid, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { useExpressionsForComponent } from 'src/features/expressions/useExpressions';
 import Description from 'src/features/form/components/Description';
 import Label from 'src/features/form/components/Label';
 import Legend from 'src/features/form/components/Legend';
@@ -24,6 +23,7 @@ import {
   isComponentValid,
   selectComponentTexts,
 } from 'src/utils/formComponentUtils';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -36,6 +36,7 @@ import type {
   ILayoutCompBase,
   ILayoutComponent,
 } from 'src/layout/layout';
+import type { LayoutComponent } from 'src/layout/LayoutComponent';
 import type { ILabelSettings, LayoutStyle } from 'src/types';
 
 export interface IGenericComponentProps {
@@ -97,15 +98,18 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
-  _props: IActualGenericComponentProps<Type>,
+  passedProps: IActualGenericComponentProps<Type>,
 ) {
-  const props = useExpressionsForComponent(_props as ILayoutComponent) as ExprResolved<
-    IActualGenericComponentProps<Type>
-  > & {
+  const evaluatedProps = useResolvedNode(passedProps as ILayoutComponent)?.item;
+
+  const props = {
+    ...passedProps,
+    ...evaluatedProps,
+  } as ExprResolved<IActualGenericComponentProps<Type>> & {
     type: Type;
   };
 
-  const { id, ...passThroughProps } = props;
+  const id = props.id;
   const dispatch = useAppDispatch();
   const classes = useStyles(props);
   const gridRef = React.useRef<HTMLDivElement>(null);
@@ -202,7 +206,7 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
     );
   };
 
-  const layoutComponent = getLayoutComponentObject(_props.type);
+  const layoutComponent = getLayoutComponentObject(props.type) as LayoutComponent<Type> | undefined;
   if (!layoutComponent) {
     return (
       <div>
@@ -273,13 +277,12 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
     formData,
     isValid,
     language,
-    id,
     shouldFocus,
     text: texts.title,
     label: RenderLabel,
     legend: RenderLegend,
     componentValidations,
-    ...passThroughProps,
+    ...props,
   } as unknown as PropsFromGenericComponent<Type>;
 
   const showValidationMessages = hasValidationMessages && layoutComponent.renderDefaultValidations();

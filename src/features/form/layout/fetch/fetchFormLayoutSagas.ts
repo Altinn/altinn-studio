@@ -9,6 +9,7 @@ import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
 import { get } from 'src/utils/network/networking';
 import { getLayoutSetsUrl, getLayoutSettingsUrl, getLayoutsUrl } from 'src/utils/urls/appUrlHelper';
+import type { ExpressionOr, ExprObjConfig } from 'src/features/expressions/types';
 import type { ComponentTypes, ILayout, ILayouts } from 'src/layout/layout';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IHiddenLayoutsExpressions, ILayoutSets, ILayoutSettings, IRuntimeState } from 'src/types';
@@ -86,8 +87,16 @@ export function* fetchLayoutSaga(): SagaIterator {
       });
     }
 
+    const config: ExprObjConfig<{ hidden: ExpressionOr<'boolean'> }> = {
+      hidden: {
+        returnType: 'boolean',
+        defaultValue: false,
+        resolvePerRow: false,
+      },
+    };
+
     for (const key of Object.keys(hiddenLayoutsExpressions)) {
-      hiddenLayoutsExpressions[key] = preProcessItem(hiddenLayoutsExpressions[key], { hidden: false }, ['hidden'], key);
+      hiddenLayoutsExpressions[key] = preProcessItem(hiddenLayoutsExpressions[key], config, ['hidden'], key);
     }
 
     yield put(

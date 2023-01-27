@@ -83,11 +83,13 @@ function render({ container = mockContainer }: IRender = {}) {
     layouts: {
       FormLayout: [
         getFormLayoutGroupMock({
+          ...(container.id === 'container-closed-id' ? container : undefined),
           dataModelBindings: {
             group: 'Group',
           },
         }),
         getFormLayoutGroupMock({
+          ...(container.id === 'container-in-edit-mode-id' ? container : undefined),
           id: 'container-in-edit-mode-id',
           dataModelBindings: {
             group: 'Group',

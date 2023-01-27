@@ -1,5 +1,5 @@
 import React from 'react';
-import { Provider } from 'react-redux';
+import { Provider as ReduxProvider } from 'react-redux';
 import { MemoryRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
@@ -9,6 +9,7 @@ import type { PreloadedState } from 'redux';
 
 import { setupStore } from 'src/store';
 import { AltinnAppTheme } from 'src/theme';
+import { ExprContextWrapper } from 'src/utils/layout/ExprContext';
 import type { IComponentProps } from 'src/layout';
 import type { AppStore, RootState } from 'src/store';
 
@@ -26,7 +27,9 @@ export const renderWithProviders = (
 
     return (
       <MuiThemeProvider theme={theme}>
-        <Provider store={store}>{children}</Provider>
+        <ReduxProvider store={store}>
+          <ExprContextWrapper>{children}</ExprContextWrapper>
+        </ReduxProvider>
       </MuiThemeProvider>
     );
   }

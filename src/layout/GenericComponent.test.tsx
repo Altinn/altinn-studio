@@ -21,6 +21,7 @@ const render = (props: Partial<IActualGenericComponentProps<any>> = {}) => {
     layouts: {
       FormLayout: [
         {
+          ...mockComponentProps,
           type: 'Input',
           id: 'mockId',
           dataModelBindings: {
@@ -45,6 +46,7 @@ const render = (props: Partial<IActualGenericComponentProps<any>> = {}) => {
               xl: 3,
             },
           },
+          ...props,
         },
       ],
     },

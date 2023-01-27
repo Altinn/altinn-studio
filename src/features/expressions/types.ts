@@ -158,19 +158,37 @@ type OmitEmptyObjects<T> = T extends Record<string, never> ? never : T;
 type OmitNeverArrays<T> = T extends never[] ? never : T;
 
 /**
+ * Expression configuration. This configuration object needs to be set on every layout property which can be resolved
+ * as an expression, and it is the configuration passed to the expression evaluator.
+ */
+export interface ExprConfig<BT extends BaseValue = BaseValue> {
+  returnType: BT;
+  defaultValue: BaseToActualStrict<BT>;
+
+  // Setting this to true means that if there are such expressions on a repeating 'Group' layout component, they will
+  // be evaluated separately for each row in the group. This means you can have a property like edit.deleteButton which
+  // hides the delete button, and this behaviour may differ for each row.
+  resolvePerRow: boolean;
+}
+
+/**
  * This is the heavy lifter used by ExprDefaultValues to recursively iterate types
  */
-type ReplaceDistributive<T, Iterations extends Prev[number]> = [T] extends [ExpressionOr<infer BT>]
-  ? BaseToActualStrict<BT>
+type ReplaceDistributive<T, Iterations extends Prev[number]> = [T] extends [
+  string | number | boolean | null | undefined,
+]
+  ? never
+  : [T] extends [ExpressionOr<infer BT>]
+  ? ExprConfig<BT>
   : [T] extends [object]
-  ? OmitEmptyObjects<ExprDefaultValues<T, Prev[Iterations]>>
+  ? OmitEmptyObjects<ExprObjConfig<T, Prev[Iterations]>>
   : never;
 
 /**
  * This type looks through an object recursively, finds any expressions, and requires you to provide a default
  * value for them (i.e. a fallback value should the expression evaluation fail).
  */
-export type ExprDefaultValues<
+export type ExprObjConfig<
   T,
   Iterations extends Prev[number] = 1, // <-- Recursion depth limited to 2 levels by default
 > = [Iterations] extends [never]

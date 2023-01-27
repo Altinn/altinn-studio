@@ -8,7 +8,7 @@ import { AttachmentSummaryComponent } from 'src/layout/FileUpload/AttachmentSumm
 import { AttachmentWithTagSummaryComponent } from 'src/layout/FileUploadWithTag/AttachmentWithTagSummaryComponent';
 import HeaderSummary from 'src/layout/Header/HeaderSummary';
 import MapComponentSummary from 'src/layout/Map/MapComponentSummary';
-import type { ExprResolved } from 'src/features/expressions/types';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutComponent } from 'src/layout/layout';
 import type { ILayoutCompSummary } from 'src/layout/Summary/types';
@@ -18,15 +18,13 @@ export interface ISummaryComponentSwitch extends Omit<ILayoutCompSummary, 'type'
     onChangeClick: () => void;
     changeText: string | null;
   };
-  formComponent?: ExprResolved<ILayoutComponent | ILayoutGroup>;
+  formComponent?: ILayoutComponent | ILayoutGroup;
   hasValidationMessages?: boolean;
   label?: JSX.Element | JSX.Element[] | null | undefined;
   formData?: any;
   groupProps?: {
-    parentGroup?: string;
     pageRef?: string;
     largeGroup?: boolean;
-    index?: number;
   };
 }
 
@@ -41,6 +39,8 @@ export default function SummaryComponentSwitch({
   groupProps = {},
   display,
 }: ISummaryComponentSwitch) {
+  const resolved = useResolvedNode(formComponent)?.item;
+
   if (!formComponent) {
     return null;
   }
@@ -96,7 +96,7 @@ export default function SummaryComponentSwitch({
         label={label}
         hasValidationMessages={!!hasValidationMessages}
         formData={formData}
-        readOnlyComponent={formComponent.readOnly}
+        readOnlyComponent={resolved?.readOnly}
         display={display}
       />
     );
@@ -134,7 +134,7 @@ export default function SummaryComponentSwitch({
       label={label}
       hasValidationMessages={!!hasValidationMessages}
       formData={formData}
-      readOnlyComponent={formComponent.readOnly}
+      readOnlyComponent={resolved?.readOnly}
       display={display}
     />
   );

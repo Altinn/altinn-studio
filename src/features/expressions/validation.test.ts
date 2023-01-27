@@ -1,4 +1,4 @@
-import { evalExprInObj, ExprDefaultsForComponent, ExprDefaultsForGroup } from 'src/features/expressions/index';
+import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions/index';
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression, preProcessLayout } from 'src/features/expressions/validation';
 import { nodesInLayouts } from 'src/utils/layout/hierarchy';
@@ -48,9 +48,9 @@ function evalAllExpressions(layouts: Layouts) {
       evalExprInObj({
         input: node.item,
         node,
-        defaults: {
-          ...ExprDefaultsForComponent,
-          ...ExprDefaultsForGroup,
+        config: {
+          ...ExprConfigForComponent,
+          ...ExprConfigForGroup,
         },
         dataSources: {
           formData: {},

@@ -10,6 +10,7 @@ import ErrorBoundary from 'src/components/ErrorBoundary';
 import { ThemeWrapper } from 'src/components/ThemeWrapper';
 import { initSagas } from 'src/sagas';
 import { store } from 'src/store';
+import { ExprContextWrapper } from 'src/utils/layout/ExprContext';
 
 import 'src/index.css';
 
@@ -23,7 +24,9 @@ root?.render(
       <AppWrapper>
         <ThemeWrapper>
           <ErrorBoundary>
-            <App />
+            <ExprContextWrapper>
+              <App />
+            </ExprContextWrapper>
           </ErrorBoundary>
         </ThemeWrapper>
       </AppWrapper>
