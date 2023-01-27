@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import type { FormComponentType } from '../../../types/global';
 import { TextField, Popover, Button } from '@digdir/design-system-react';
-import { useText } from '../../../hooks';
 
 const getLastWord = (value: string) => value.split(' ').pop();
 const stdAutocompleteOpts = [
@@ -82,13 +81,11 @@ export const EditAutoComplete = ({ component, handleComponentChange }: Props) =>
     setValue(parts.join(' '));
   };
 
-  const handleChange = () => {
-    console.log('triggered');
+  const handleChange = () =>
     handleComponentChange({
       ...component,
       autocomplete: value,
     });
-  };
 
   return (
     <div>
