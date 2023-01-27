@@ -24,7 +24,7 @@ import {
   FieldSet,
   Select,
   TextArea,
-  TextField
+  TextField,
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
@@ -33,7 +33,7 @@ import {
   combinationIsNullable,
   FieldType,
   getChildNodesByPointer,
-  getNodeDisplayName,
+  getNameFromPointer,
   hasNodePointer,
   ObjectKind,
 } from '@altinn/schema-model';
@@ -47,42 +47,47 @@ export interface IItemDataComponentProps {
 
 export function ItemDataComponent({ language, selectedItem }: IItemDataComponentProps) {
   const dispatch = useDispatch();
-  const selectedNodePointer = selectedItem.pointer;
+
+  const { fieldType, pointer: selectedNodePointer } = selectedItem;
+  const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer: selectedNodePointer }));
+
   const [nameError, setNameError] = useState('');
-  const [nodeName, setNodeName] = useState('');
   const [description, setItemDescription] = useState<string>('');
   const [title, setItemTitle] = useState<string>('');
-  const { fieldType } = selectedItem;
 
-  const childNodes = useSelector((state: ISchemaState) =>
-    getChildNodesByPointer(state.uiSchema, selectedItem.pointer)
-  );
+  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+
+  const childNodes = getChildNodesByPointer(uiSchema, selectedNodePointer);
 
   useEffect(() => {
-    setNodeName(getNodeDisplayName(selectedItem));
     setNameError(NameError.NoError);
     setItemTitle(selectedItem.title ?? '');
     setItemDescription(selectedItem.description ?? '');
   }, [selectedItem]);
 
+  useEffect(() => {
+    !isValidName(nodeName)
+      ? setNameError(NameError.InvalidCharacter)
+      : setNameError(NameError.NoError);
+    if (!nameError && hasNodePointer(uiSchema, nodeName)) {
+      setNameError(NameError.AlreadyInUse);
+    }
+  }, [nodeName, nameError, setNameError, uiSchema]);
   const onNameChange = ({ target }: ChangeEvent) => {
     const { value } = target as HTMLInputElement;
     setNodeName(value);
-    !isValidName(value)
-      ? setNameError(NameError.InvalidCharacter)
-      : setNameError(NameError.NoError);
   };
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
   const onChangeFieldType = (type: FieldType) =>
-    dispatch(setType({ path: selectedItem.pointer, type }));
+    dispatch(setType({ path: selectedNodePointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
     if (isChecked) {
       dispatch(
-        addCombinationItem({ pointer: selectedItem.pointer, props: { fieldType: FieldType.Null } })
+        addCombinationItem({ pointer: selectedNodePointer, props: { fieldType: FieldType.Null } })
       );
       return;
     }
@@ -107,22 +112,20 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
-    dispatch(setCombinationType({ path: selectedItem.pointer, type: value }));
+    dispatch(setCombinationType({ path: selectedNodePointer, type: value }));
 
   const handleArrayPropertyToggle = () =>
-    dispatch(toggleArrayField({ pointer: selectedItem.pointer }));
+    dispatch(toggleArrayField({ pointer: selectedNodePointer }));
 
-  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const handleChangeNodeName = () => {
-    if (hasNodePointer(uiSchema, nodeName)) {
-      setNameError(NameError.AlreadyInUse);
+    if (nameError) {
       return;
     }
-    const displayName = getNodeDisplayName(selectedItem);
+    const displayName = getNameFromPointer(selectedItem);
     if (!nameError && displayName !== nodeName) {
       dispatch(
         setPropertyName({
-          path: selectedItem.pointer,
+          path: selectedNodePointer,
           name: nodeName,
           navigate: true,
         })
@@ -141,7 +144,6 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
             aria-describedby='Selected Item Name'
             aria-errormessage={t(nameError)}
             aria-placeholder='Name'
-            autoFocus
             id='selectedItemName'
             label={t('name')}
             onBlur={handleChangeNodeName}

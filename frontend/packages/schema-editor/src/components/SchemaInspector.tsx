@@ -67,15 +67,17 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
       setActiveTab(tabValue);
     }
   };
-
-  return selectedItem ? (
-    <div className={classes.root} data-testid='schema-inspector'>
-      <Panel variant={PanelVariant.Warning} forceMobileLayout={true}>
-        <span>{t('warning_under_development')}</span>
-      </Panel>
-      <Tabs activeTab={activeTab} items={tabItems} onChange={switchTab} />
-    </div>
-  ) : (
+  if (selectedItem) {
+    return (
+      <div key={selectedItem.pointer} className={classes.root} data-testid='schema-inspector'>
+        <Panel variant={PanelVariant.Warning} forceMobileLayout={true}>
+          <span>{t('warning_under_development')}</span>
+        </Panel>
+        <Tabs activeTab={activeTab} items={tabItems} onChange={switchTab} />
+      </div>
+    );
+  }
+  return (
     <div>
       <p className={classes.noItem} id='no-item-paragraph'>
         {t('no_item_selected')}

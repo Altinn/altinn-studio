@@ -11,7 +11,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
 import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
-import { getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model';
+import { getChildNodesByPointer, getNameFromPointer } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { usePrevious } from '../../hooks/usePrevious';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
@@ -98,7 +98,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
           readOnly={readonly}
           required={childNode.isRequired}
           type={childNode.fieldType as FieldType}
-          value={getNodeDisplayName(childNode)}
+          value={getNameFromPointer(childNode)}
         />
       ))}
       {!readonly && (

@@ -8,7 +8,7 @@ import {
   CombinationKind,
   FieldType,
   getCapabilities,
-  getNodeDisplayName,
+  getNameFromPointer,
   Keywords,
   ObjectKind,
   pointerIsDefinition,
@@ -113,7 +113,7 @@ export const SchemaItemLabel = ({
         <span className={classes.iconContainer}>
           <i className={`fa ${icon}`} />
         </span>{' '}
-        <span>{getNodeDisplayName(selectedNode)}</span>
+        <span>{getNameFromPointer(selectedNode)}</span>
         {selectedNode.isRequired && <span> *</span>}
         {hasReferredNodes && <span className={classes.greenDot}> ●</span>}
         {refNode && (

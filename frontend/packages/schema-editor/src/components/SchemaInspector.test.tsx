@@ -58,20 +58,19 @@ test('dispatches correctly when entering text in textboxes', async () => {
     mockUiSchema,
     getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
   );
-  expect(screen.getByTestId('schema-inspector')).toBeDefined();
   const tablist = screen.getByRole('tablist');
   expect(tablist).toBeDefined();
   const tabpanel = screen.getByRole('tabpanel');
   expect(tabpanel).toBeDefined();
   expect(screen.getAllByRole('tab')).toHaveLength(1);
   const textboxes = screen.getAllByRole('textbox');
-  let textboxIndex = 0;
-  while (textboxes[textboxIndex]) {
-    await act(() => user.clear(textboxes[textboxIndex]));
-    await act(() => user.type(textboxes[textboxIndex], 'New value'));
-    await act(() => user.tab());
-    textboxIndex++;
-  }
+  await act(async () => {
+    for (const textbox of textboxes) {
+      await user.clear(textbox);
+      await user.type(textbox, 'New value');
+      await user.tab();
+    }
+  });
   const actions = store.getActions();
   expect(actions.length).toBeGreaterThanOrEqual(1);
   const actionTypes = actions.map((a) => a.type);
