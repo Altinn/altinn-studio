@@ -19,6 +19,7 @@ export function InputComponent({
   variant,
   textResourceBindings,
   saveWhileTyping,
+  autocomplete,
 }: IInputProps) {
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,
@@ -51,6 +52,7 @@ export function InputComponent({
           value={value}
           aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
           formatting={formatting as IInputFormatting}
+          autoComplete={autocomplete}
         />
       )}
     </>

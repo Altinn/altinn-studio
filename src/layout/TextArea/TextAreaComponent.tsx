@@ -15,6 +15,7 @@ export function TextAreaComponent({
   handleDataChange,
   textResourceBindings,
   saveWhileTyping,
+  autocomplete,
 }: ITextAreaProps) {
   const suppliedValue = formData?.simpleBinding;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
@@ -39,6 +40,7 @@ export function TextAreaComponent({
         value={value}
         data-testid={id}
         aria-describedby={textResourceBindings ? `description-${id}` : undefined}
+        autoComplete={autocomplete}
       />
     </div>
   );
