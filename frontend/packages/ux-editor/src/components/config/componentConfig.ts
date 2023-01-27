@@ -9,6 +9,7 @@ import { EditPreselectedIndex } from './editModal/EditPreselectedIndex';
 import { EditReadOnly } from './editModal/EditReadOnly';
 import { EditRequired } from './editModal/EditRequired';
 import { EditTitle } from './editModal/EditTitle';
+import { EditAutoComplete } from './editModal/EditAutoComplete';
 
 export interface IGenericEditComponent {
   component: FormComponentType;
@@ -25,6 +26,7 @@ export enum EditSettings {
   Options = 'options',
   CodeList = 'codelist',
   PreselectedIndex = 'preselectedIndex',
+  AutoComplete = 'autocomplete',
 }
 
 export const editBoilerPlate = [
@@ -45,8 +47,8 @@ interface IConfigComponents {
 
 export const componentSpecificEditConfig: IComponentEditConfig = {
   [ComponentTypes.Header]: [EditSettings.Title, EditSettings.Size],
-  [ComponentTypes.Input]: [...editBoilerPlate],
-  [ComponentTypes.TextArea]: [...editBoilerPlate],
+  [ComponentTypes.Input]: [...editBoilerPlate, EditSettings.AutoComplete],
+  [ComponentTypes.TextArea]: [...editBoilerPlate, EditSettings.AutoComplete],
   [ComponentTypes.Datepicker]: [...editBoilerPlate],
   [ComponentTypes.Paragraph]: [EditSettings.Title],
   [ComponentTypes.AttachmentList]: [EditSettings.Title],
@@ -65,6 +67,7 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
     ...editBoilerPlate,
     EditSettings.CodeList,
     EditSettings.PreselectedIndex,
+    EditSettings.AutoComplete,
   ],
   [ComponentTypes.AddressComponent]: [EditSettings.Title],
   [ComponentTypes.FileUploadWithTag]: [EditSettings.Title, EditSettings.Description],
@@ -82,4 +85,5 @@ export const configComponents: IConfigComponents = {
   [EditSettings.Options]: EditOptions,
   [EditSettings.CodeList]: EditCodeList,
   [EditSettings.PreselectedIndex]: EditPreselectedIndex,
+  [EditSettings.AutoComplete]: EditAutoComplete,
 };
