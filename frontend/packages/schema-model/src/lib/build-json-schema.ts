@@ -19,7 +19,13 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
     !rootNode.implicitType ? rootNode.fieldType : undefined
   );
   JSONPointer.set(out, `/${Keywords.Required}`, findRequiredProps(nodes, rootNode.pointer));
-
+  const assignRootIfDefined = (keyword: Keywords) => {
+    const value = rootNode[keyword];
+    if (value !== undefined) {
+      JSONPointer.set(out, `/${keyword}`, value);
+    }
+  };
+  assignRootIfDefined(Keywords.Description);
   const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
   sortedUiSchemaNodes
