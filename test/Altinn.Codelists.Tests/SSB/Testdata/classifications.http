@@ -1,8 +1,19 @@
 ###
 # Oversikt: https://www.ssb.no/klass/
+GET http://data.ssb.no/api/klass/v1/classifications
 
+###
+# Søk etter klassifikasjon
+GET http://data.ssb.no/api/klass/v1/classifications/search?query=land
+
+###
+# Land (ISO alfa 3)
+GET http://data.ssb.no/api/klass/v1/classifications/552/codes?from=2022-07-10&language=nb
+Accept: application/json;charset=utf-8
+
+###
 # Fylker
-GET http://data.ssb.no/api/klass/v1/classifications/104/codes?from=2022-07-10
+GET http://data.ssb.no/api/klass/v1/classifications/104/codes?from=1980-07-10
 Accept: application/json;charset=utf-8
 
 ###

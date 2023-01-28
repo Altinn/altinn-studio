@@ -8,14 +8,18 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <CodeAnalysisRuleSet />
+    <WarningLevel>7</WarningLevel>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <CodeAnalysisRuleSet />
+    <WarningLevel>7</WarningLevel>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Countries\Data\countries.json" />
+    <None Remove="RestCountries\Data\countries.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,11 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Countries\Data\countries.json" />
+    <EmbeddedResource Include="RestCountries\Data\countries.json" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="SSB\MaritalStatus\" />
-  </ItemGroup>
-
 </Project>

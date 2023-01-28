@@ -8,15 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="AdministrativeUnits\Testdata\fylke46_kommuner.json" />
-    <None Remove="AdministrativeUnits\Testdata\fylker.json" />
-    <None Remove="AdministrativeUnits\Testdata\kommuner.json" />
+    <None Remove="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
+    <None Remove="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
+    <None Remove="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="AdministrativeUnits\Testdata\fylke46_kommuner.json" />
-    <EmbeddedResource Include="AdministrativeUnits\Testdata\fylker.json" />
-    <EmbeddedResource Include="AdministrativeUnits\Testdata\kommuner.json" />
+    <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
+    <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
+    <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
   </ItemGroup>
 
   <ItemGroup>

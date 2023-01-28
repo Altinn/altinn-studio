@@ -1,10 +1,15 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Altinn.Codelists.SSB.Models
+namespace Altinn.Codelists.SSB.Models;
+
+/// <summary>
+/// List of classification codes from a specified classification.
+/// </summary>
+public class ClassificationCodes
 {
-    public class ClassificationCodes
-    {
-        [JsonPropertyName("codes")]
-        public List<ClassificationCode> Codes { get; set; } = new List<ClassificationCode>();
-    }
+    /// <summary>
+    /// List of codes for a given classification.
+    /// </summary>
+    [JsonPropertyName("codes")]
+    public List<ClassificationCode> Codes { get; set; } = new List<ClassificationCode>();
 }

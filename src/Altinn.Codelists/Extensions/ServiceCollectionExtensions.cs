@@ -1,21 +1,22 @@
-﻿using Altinn.Codelists.AdministrativeUnits.Extensions;
+﻿using Altinn.Codelists.Kartverket.AdministrativeUnits.Extensions;
+using Altinn.Codelists.SSB.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.Codelists.Extensions
+namespace Altinn.Codelists.Extensions;
+
+/// <summary>
+/// Extends the <see cref="IServiceCollection"/>.
+/// </summary>
+public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Extends the <see cref="IServiceCollection"/>.
+    /// Registers the services required to get support for all codelists.
     /// </summary>
-    public static class ServiceCollectionExtensions
+    public static IServiceCollection AddAltinnCodelists(this IServiceCollection services)
     {
-        /// <summary>
-        /// Registers the services required to get support for all codelists.
-        /// </summary>
-        public static IServiceCollection AddAltinnCodelists(this IServiceCollection services)
-        {
-            services.AddAdministrativeUnits();
+        services.AddKartverketAdministrativeUnits();
+        services.AddSSBClassifications();
 
-            return services;
-        }
+        return services;
     }
 }
