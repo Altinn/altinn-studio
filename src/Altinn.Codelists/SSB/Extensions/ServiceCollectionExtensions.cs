@@ -1,4 +1,7 @@
-﻿using Altinn.Codelists.SSB.Clients;
+﻿using Altinn.App.Core.Features;
+using Altinn.Codelists.Kartverket.AdministrativeUnits.Clients;
+using Altinn.Codelists.Kartverket.AdministrativeUnits;
+using Altinn.Codelists.SSB.Clients;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Codelists.SSB.Extensions;
@@ -14,6 +17,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSSBClassifications(this IServiceCollection services)
     {   
         services.AddOptions<ClassificationOptions>();
+        services.AddHttpClient<IClassificationsClient, ClassificationsHttpClient>();
+        services.AddTransient<IAppOptionsProvider, MaritalStatusCodelistProvider>();
 
         return services;
     }
