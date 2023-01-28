@@ -5,8 +5,7 @@ namespace Altinn.Codelists.Tests.SSB.Clients;
 
 public class ClassificationsHttpClientTests
 {
-    //[Fact(Skip = "This actually calls out to the api and is primarily used to test during development.")]
-    [Fact]
+    [Fact(Skip = "This actually calls out to the api and is primarily used to test during development.")]
     public async Task GetClassificationCodes_MaritalStats_ShouldReturnAllClassificationCodes()
     {
         var options = Options.Create(new ClassificationOptions());

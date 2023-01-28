@@ -11,12 +11,14 @@
     <None Remove="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
     <None Remove="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
     <None Remove="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
+    <None Remove="SSB\Testdata\maritalStatus.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
+    <EmbeddedResource Include="SSB\Testdata\maritalStatus.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,10 +39,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Altinn.Codelists\Altinn.Codelists.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="SSB\Mocks\" />
-    <Folder Include="SSB\Testdata\" />
   </ItemGroup>
 </Project>

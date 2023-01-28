@@ -4,9 +4,9 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Codelists.SSB.Clients;
 
 /// <summary>
-/// Http client to get information on norways offical administrative units for counties and communes.
+/// Http client to get classification codes from SSB.
 /// </summary>
-public class ClassificationsHttpClient
+public class ClassificationsHttpClient : IClassificationsClient
 {
     private readonly HttpClient _httpClient;
 

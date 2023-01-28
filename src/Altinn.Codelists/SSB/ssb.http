@@ -1,1 +1,5 @@
-﻿GET http://data.ssb.no/api/klass/v1/classifications?size=150
+﻿GET http://data.ssb.no/api/klass/v1/classifications?size=150&language=en
+
+###
+
+GET http://data.ssb.no/api/klass/v1/classifications/19

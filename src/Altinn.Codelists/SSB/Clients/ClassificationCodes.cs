@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Altinn.Codelists.SSB.Models;
+namespace Altinn.Codelists.SSB.Clients;
 
 /// <summary>
 /// List of classification codes from a specified classification.
