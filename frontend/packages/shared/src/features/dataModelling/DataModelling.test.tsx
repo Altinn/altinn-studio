@@ -218,7 +218,7 @@ describe('DataModelling', () => {
   it('Should show start dialog when no models are present and intro page is closed', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
-    render();
+    render({ dataModelling: { schema: undefined }});
     expect(screen.queryByText('Dialog header')).toBeInTheDocument();
   });
 
