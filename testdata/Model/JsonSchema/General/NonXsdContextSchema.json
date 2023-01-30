@@ -51,7 +51,7 @@
   "$defs": {
     "objectType": {
       "type": "object",
-      "required": [ "prop1", "prop2" ],
+      "required": ["prop1", "prop2"],
       "properties": {
         "prop1": {
           "type": "string",
