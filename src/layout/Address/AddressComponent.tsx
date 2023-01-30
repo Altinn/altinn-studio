@@ -260,7 +260,7 @@ export function AddressComponent({
           onPaste={() => onAddressPaste()}
           readOnly={readOnly}
           required={required}
-          autoComplete={`${id} street-address`}
+          autoComplete={simplified ? 'street-address' : 'address-line1'}
         />
         {allValidations?.[AddressKeys.address]
           ? renderValidationMessagesForComponent(allValidations[AddressKeys.address], `${id}_${AddressKeys.address}`)
@@ -285,7 +285,7 @@ export function AddressComponent({
             onBlur={updateField.bind(null, AddressKeys.careOf, true)}
             onPaste={() => onCareOfPaste()}
             readOnly={readOnly}
-            autoComplete={`${id} address-line1`}
+            autoComplete='address-line2'
           />
           {allValidations?.[AddressKeys.careOf]
             ? renderValidationMessagesForComponent(allValidations[AddressKeys.careOf], `${id}_${AddressKeys.careOf}`)
@@ -314,7 +314,7 @@ export function AddressComponent({
               readOnly={readOnly}
               required={required}
               inputMode='numeric'
-              autoComplete={`${id} postal-code`}
+              autoComplete='postal-code'
             />
           </div>
           {allValidations?.[AddressKeys.careOf]
@@ -337,7 +337,7 @@ export function AddressComponent({
             value={postPlace}
             readOnly={true}
             required={required}
-            autoComplete={`${id} address-level1`}
+            autoComplete='address-level1'
           />
           {allValidations?.[AddressKeys.postPlace]
             ? renderValidationMessagesForComponent(
@@ -368,7 +368,7 @@ export function AddressComponent({
               onBlur={updateField.bind(null, AddressKeys.houseNumber, true)}
               onPaste={() => onHouseNumberPaste()}
               readOnly={readOnly}
-              autoComplete={`${id} address-line2`}
+              autoComplete='address-line3'
             />
           </div>
           {allValidations?.[AddressKeys.houseNumber]
