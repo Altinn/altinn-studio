@@ -188,14 +188,6 @@ describe('DataModelling', () => {
     expect(dialogHeader).toBeInTheDocument();
   });
 
-  it('Should show info dialog by default when loading the page', () => {
-    // make sure setting to turn off info dialog is cleared
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-    render();
-    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
-    expect(dialogHeader).toBeInTheDocument();
-  });
-
   it('should display no data-models message when schema is undefined and loadState is loaded', async () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     render({
