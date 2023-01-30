@@ -52,6 +52,21 @@ namespace LocalTest.Services.Register.Implementation
             return party?.PartyId ?? -1;
         }
 
+        /// <inheritdoc />
+        public async Task<List<Party>> GetPartyList(List<int> partyIds)
+        {
+            var data = await _testDataService.GetTestData();
+            List<Party> filteredList = new List<Party>();
+            foreach (int partyId in partyIds.Distinct())
+            {
+                Party? party = data.Register.Party.TryGetValue(partyId.ToString()!, out var value) ? value : null;
+                await AddPersonOrOrganization(party);
+                filteredList.Add(party);
+            }
+
+            return filteredList;
+        }
+
         private async Task<Party?> FindParty(string lookupValue)
         {
             var data = await _testDataService.GetTestData();

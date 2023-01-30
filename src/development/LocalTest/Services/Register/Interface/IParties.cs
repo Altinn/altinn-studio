@@ -16,6 +16,13 @@ namespace LocalTest.Services.Register.Interface
         Task<Party?> GetParty(int partyId);
 
         /// <summary>
+        /// Method that fetches  party list based on list of party ids
+        /// </summary>
+        /// <param name="partyIds">The party id list</param>
+        /// <returns></returns>
+        Task<List<Party?>> GetPartyList(List<int> partyIds);
+
+        /// <summary>
         /// Method that looks up a party id based on social security number or organisation number.
         /// </summary>
         /// <param name="lookupValue">SSN or org number</param>

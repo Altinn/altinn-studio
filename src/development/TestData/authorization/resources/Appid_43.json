@@ -13,7 +13,11 @@
 	"validFrom": "2020-03-04T18:04:27.27",
 	"identifier": "appid-43",
 	"isComplete": false,
-	"description": null,
+	"description": {
+		"en": "Aa-registeret OTP API",
+		"nb": "Aa-registeret OTP API",
+		"nn": "Aa-registeret OTP API"
+	},
 	"resourceType": "MaskinportenSchema",
 	"thematicArea": null,
 	"isPublicService": true,
