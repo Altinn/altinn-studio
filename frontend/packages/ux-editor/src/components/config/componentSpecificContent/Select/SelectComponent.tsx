@@ -10,7 +10,7 @@ type Option = {
 export interface SelectComponentProps extends IGenericEditComponent {
   label: string;
   optionKey: string;
-  options: string[];
+  options: Option[];
   defaultValue?: string;
 }
 export const SelectComponent = ({
@@ -19,25 +19,15 @@ export const SelectComponent = ({
   optionKey,
   options,
   defaultValue,
-  handleComponentChange
+  handleComponentChange,
 }: SelectComponentProps): JSX.Element => {
-  const mappedOptions: Option[] = options.map((option) => ({
-    label: option,
-    value: option
-  }));
-
   const handleSelectChange = (value: string): void => {
     handleComponentChange({ ...component, [optionKey]: value });
   };
 
   return (
     <FieldSet>
-      <Select
-        label={label}
-        options={mappedOptions}
-        onChange={handleSelectChange}
-        value={defaultValue}
-      />
+      <Select label={label} options={options} onChange={handleSelectChange} value={defaultValue} />
     </FieldSet>
   );
 };
