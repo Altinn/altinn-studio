@@ -64,46 +64,52 @@ export interface Props {
   component: FormComponentType;
 }
 
+export const getAutocompleteOptions = (phrase: string) => {
+  const lastWord = getLastWord(phrase);
+  return stdAutocompleteOpts.includes(lastWord) || lastWord === ''
+    ? []
+    : stdAutocompleteOpts.filter((alternative) => alternative.includes(lastWord)).slice(0, 6);
+};
+
 export const EditAutoComplete = ({ component, handleComponentChange }: Props) => {
   const [value, setValue] = useState<string>(component?.autocomplete || '');
-  const handleIdChange = (event: any) => setValue(event.target.value);
-
-  const lastWord = getLastWord(value);
-
-  const alternativesToShow =
-    stdAutocompleteOpts.includes(lastWord) || lastWord === ''
-      ? []
-      : stdAutocompleteOpts.filter((alternative) => alternative.includes(lastWord)).slice(0, 6);
 
   const handleWordClick = (word: string) => {
     const parts = value.split(' ');
     parts[parts.length - 1] = word;
-    setValue(parts.join(' '));
+    const newValue = parts.join(' ');
+    setValue(newValue);
+    handleComponentChange({
+      ...component,
+      autocomplete: newValue,
+    });
   };
 
-  const handleChange = () =>
+  const persistChange = () =>
     handleComponentChange({
       ...component,
       autocomplete: value,
     });
 
+  const handleChange = (event: any) => setValue(event.target.value);
+  const options = getAutocompleteOptions(value);
   return (
     <div>
       <TextField
         id={`component-id-input${component.id}`}
         label='Autocomplete (WCAG)'
-        onBlur={handleChange}
-        onChange={handleIdChange}
+        onBlur={persistChange}
+        onChange={handleChange}
         value={value}
       />
       <Popover
         variant='default'
-        open={alternativesToShow.length > 0}
+        open={options.length > 0}
         placement='bottom-start'
         arrow={false}
         trigger={<div />}
       >
-        {alternativesToShow.map((word) => (
+        {options.map((word) => (
           <Button
             size='small'
             color='inverted'
