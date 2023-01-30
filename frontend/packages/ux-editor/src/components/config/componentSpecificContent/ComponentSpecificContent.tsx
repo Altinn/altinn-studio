@@ -58,7 +58,20 @@ export function ComponentSpecificContent({
             label={t('ux_editor.choose_variant')}
             defaultValue={t('ux_editor.info')}
             optionKey='variant'
-            options={[t('ux_editor.info'), t('ux_editor.warning'), t('ux_editor.success')]}
+            options={[
+              {
+                label: t('ux_editor.info'),
+                value: 'info',
+              },
+              {
+                label: t('ux_editor.warning'),
+                value: 'warning',
+              },
+              {
+                label: t('ux_editor.success'),
+                value: 'success',
+              },
+            ]}
             component={component}
             handleComponentChange={handleComponentChange}
           />
@@ -67,12 +80,7 @@ export function ComponentSpecificContent({
     }
 
     case ComponentTypes.Map: {
-      return (
-        <MapComponent
-          component={component}
-          handleComponentChange={handleComponentChange}
-        />
-      );
+      return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
     }
     default: {
       return null;
