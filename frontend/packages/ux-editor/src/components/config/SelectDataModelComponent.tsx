@@ -1,7 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import { UseText } from '../../hooks';
 import type { IAppState, IDataModelFieldElement } from '../../types/global';
 
 export interface ISelectDataModelProps extends IProvidedProps {
@@ -14,7 +13,7 @@ export interface IProvidedProps {
   onDataModelChange: (dataModelField: string) => void;
   noOptionsMessage?: string;
   hideRestrictions?: boolean;
-  t: UseText;
+  language: any;
   selectGroup?: boolean;
 }
 
@@ -51,7 +50,7 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
         <li className='a-dotted'>
           <div className='row'>
             <div className='col-12'>
-              {this.props.t('ux_editor.modal_restrictions_helper')}
+              {this.props.language['ux_editor.modal_restrictions_helper']}
             </div>
           </div>
         </li>
@@ -63,7 +62,7 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
     return Object.keys(selected.restrictions).length === 0 ? (
       <li className='a-dotted'>
         <div className='row'>
-          <div className='col-12'>{this.props.t('ux_editor.modal_restrictions_empty')}</div>
+          <div className='col-12'>{this.props.language['ux_editor.modal_restrictions_empty']}</div>
         </div>
       </li>
     ) : (
@@ -113,7 +112,8 @@ const mapStateToProps = (
     selectedElement: props.selectedElement,
     onDataModelChange: props.onDataModelChange,
     noOptionsMessage: props.noOptionsMessage,
-    dataModelElements: state.appData.dataModel.model
+    dataModelElements: state.appData.dataModel.model,
+    language: state.appData.languageState.language,
   };
 };
 

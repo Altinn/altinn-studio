@@ -442,7 +442,8 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             {renderSelectGroupDataModelBinding(
               tmpContainer.dataModelBindings,
               this.handleDataModelGroupChange,
-              'group'
+              'group',
+              language
             )}
             <div>
               <TextField
