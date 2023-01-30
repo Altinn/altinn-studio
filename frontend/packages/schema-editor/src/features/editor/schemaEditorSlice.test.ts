@@ -223,9 +223,8 @@ describe('SchemaEditorSlice', () => {
       );
     });
     nextState = reducer(nextState, deleteProperty(payload));
-    expect(() => {
-      getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
-    }).toThrowError();
+    const node = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
+    expect(node).toBeUndefined();
 
     expect(hasNodePointer(nextState.uiSchema, '#/$defs/Kontaktperson')).toBeFalsy();
   });

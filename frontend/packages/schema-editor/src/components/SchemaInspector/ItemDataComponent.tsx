@@ -75,21 +75,23 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
-  const onChangeFieldType = (pointer: string, type: FieldType) =>
+  const onChangeFieldType = (type: FieldType) =>
     dispatch(setType({ path: selectedItem.pointer, type }));
 
-  const onChangeNullable = (event: ChangeEvent) => {
-    if ((event.target as HTMLInputElement)?.checked) {
+  const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
+    const isChecked = event.target.checked;
+    if (isChecked) {
       dispatch(
         addCombinationItem({ pointer: selectedItem.pointer, props: { fieldType: FieldType.Null } })
       );
-    } else {
-      childNodes.forEach((childNode: UiSchemaNode) => {
-        if (childNode.fieldType === FieldType.Null) {
-          dispatch(deleteCombinationItem({ path: childNode.pointer }));
-        }
-      });
+      return;
     }
+
+    childNodes.forEach((childNode: UiSchemaNode) => {
+      if (childNode.fieldType === FieldType.Null) {
+        dispatch(deleteCombinationItem({ path: childNode.pointer }));
+      }
+    });
   };
 
   const onChangeTitle = () => dispatch(setTitle({ path: selectedNodePointer, title }));
@@ -153,7 +155,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       {selectedItem.objectKind === ObjectKind.Field && (
         <Select
           label={t('type')}
-          onChange={(type: string) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
+          onChange={(type: FieldType) => onChangeFieldType(type)}
           options={getTypeOptions(t)}
           value={fieldType as string}
         />
