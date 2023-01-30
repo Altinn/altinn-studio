@@ -40,13 +40,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Gets releases based on a query
         /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
         /// <param name="query">Document query model</param>
         /// <returns>SearchResults of type ReleaseEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<ReleaseEntity>> Get([FromQuery] DocumentQueryModel query)
+        public async Task<SearchResults<ReleaseEntity>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
         {
-            SearchResults<ReleaseEntity> releases = await _releaseService.GetAsync(query);
+            SearchResults<ReleaseEntity> releases = await _releaseService.GetAsync(org, app, query);
 
             List<ReleaseEntity> laggingReleases = releases.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(10) < DateTime.UtcNow).ToList();
 
@@ -61,19 +63,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Creates a release
         /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
         /// <param name="createRelease">Release model</param>
         /// <returns>Created release</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult<ReleaseEntity>> Create([FromBody] CreateReleaseRequestViewModel createRelease)
+        public async Task<ActionResult<ReleaseEntity>> Create(string org, string app, [FromBody] CreateReleaseRequestViewModel createRelease)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            return Created(string.Empty, await _releaseService.CreateAsync(createRelease.ToEntityModel()));
+            return Created(string.Empty, await _releaseService.CreateAsync(org, app, createRelease.ToEntityModel()));
         }
     }
 }

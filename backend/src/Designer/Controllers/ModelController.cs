@@ -6,7 +6,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Controllers

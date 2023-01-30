@@ -69,9 +69,9 @@ export const copyAppPath = (org, sourceRepository, targetRepository) =>
 export const createRepoPath = () => `/designer/api/repos/create-app`; // Post
 export const discardChangesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/discard`; // Get
 export const discardFileChangesPath = (org, app, filename) => `/designer/api/repos/repo/${org}/${app}/discard/${filename}`; // Get
-export const masterRepoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches?branch=master`; // Get
+export const masterRepoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=master`; // Get
 export const repoBranchesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches`; // Get
-export const repoBranchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches?branch=${branch}}`; // Get
+export const repoBranchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=${branch}}`; // Get
 export const repoCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit`; // Post
 export const repoCommitPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit-and-push`; // Post
 export const repoDownloadPath = (org, app, full) => `/designer/api/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;

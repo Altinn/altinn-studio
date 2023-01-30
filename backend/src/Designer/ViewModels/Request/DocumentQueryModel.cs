@@ -26,14 +26,5 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         [JsonConverter(typeof(StringEnumConverter))]
         public SortDirection SortDirection { get; set; }
 
-        /// <summary>
-        /// Organisation
-        /// </summary>
-        internal string Org { get; set; }
-
-        /// <summary>
-        /// Application
-        /// </summary>
-        internal string App { get; set; }
     }
 }

@@ -21,9 +21,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets releases based on a query
         /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
         /// <param name="query">ReleaseQueryModel</param>
         /// <returns>SearchResults of type ReleaseEntity</returns>
-        Task<SearchResults<ReleaseEntity>> GetAsync(DocumentQueryModel query);
+        Task<SearchResults<ReleaseEntity>> GetAsync(string org, string app, DocumentQueryModel query);
 
         /// <summary>
         /// Updates a release document

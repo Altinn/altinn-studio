@@ -274,6 +274,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return Ok(mutationHasOccured ? $"The IDs were updated." : $"Nothing was changed.");
+        }
 
         /// <summary>
         /// Deletes a language resource file

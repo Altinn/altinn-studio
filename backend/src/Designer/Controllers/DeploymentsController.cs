@@ -45,13 +45,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Gets deployments based on a query
         /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
         /// <param name="query">Document query model</param>
         /// <returns>SearchResults of type DeploymentEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<DeploymentEntity>> Get([FromQuery] DocumentQueryModel query)
+        public async Task<SearchResults<DeploymentEntity>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
         {
-            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(query);
+            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query);
             List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
 
             foreach (DeploymentEntity deployment in laggingDeployments)

@@ -29,8 +29,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly IReleaseRepository _releaseRepository;
         private readonly HttpContext _httpContext;
-        private readonly string _org;
-        private readonly string _app;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -52,15 +50,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _releaseRepository = releaseRepository;
             _httpContext = httpContextAccessor.HttpContext;
-            _org = _httpContext.GetRouteValue("org")?.ToString();
-            _app = _httpContext.GetRouteValue("app")?.ToString();
             _logger = logger;
         }
 
         /// <inheritdoc/>
         public async Task<ReleaseEntity> CreateAsync(ReleaseEntity release)
         {
-            release.PopulateBaseProperties(_org, _app, _httpContext);
+            release.PopulateBaseProperties(release.Org, release.App, _httpContext);
 
             await ValidateUniquenessOfRelease(release);
 
@@ -88,12 +84,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<SearchResults<ReleaseEntity>> GetAsync(DocumentQueryModel query)
+        public async Task<SearchResults<ReleaseEntity>> GetAsync(string org, string app, DocumentQueryModel query)
         {
-            query.Org = _org;
-            query.App = _app;
 
-            IEnumerable<ReleaseEntity> results = await _releaseRepository.Get(query);
+            IEnumerable<ReleaseEntity> results = await _releaseRepository.Get(org, app, query);
             return new SearchResults<ReleaseEntity>
             {
                 Results = results

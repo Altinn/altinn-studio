@@ -349,7 +349,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="branch">Name of branch</param>
         /// <returns>The branch info</returns>
         [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
         public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
             => await _giteaApi.GetBranch(org, repository, branch);
 

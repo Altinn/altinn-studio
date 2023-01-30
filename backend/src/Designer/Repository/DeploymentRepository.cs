@@ -68,7 +68,7 @@ namespace Altinn.Studio.Designer.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<DeploymentEntity>> Get(DocumentQueryModel query)
+        public async Task<IEnumerable<DeploymentEntity>> Get(string app, string org, DocumentQueryModel query)
         {
             List<DeploymentEntity> searchResult = new List<DeploymentEntity>();
 
@@ -78,8 +78,8 @@ namespace Altinn.Studio.Designer.Repository
                 await conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getDeploymentsSql, conn);
-                pgcom.Parameters.AddWithValue("_org", NpgsqlDbType.Varchar, query.Org);
-                pgcom.Parameters.AddWithValue("_app", NpgsqlDbType.Varchar, query.App);
+                pgcom.Parameters.AddWithValue("_org", NpgsqlDbType.Varchar, org);
+                pgcom.Parameters.AddWithValue("_app", NpgsqlDbType.Varchar, app);
                 pgcom.Parameters.AddWithValue("_limit", NpgsqlDbType.Integer, query.Top ?? int.MaxValue);
                 pgcom.Parameters.AddWithValue("_order_asc_desc", NpgsqlDbType.Varchar, query.SortDirection == SortDirection.Ascending ? "asc" : "desc");
 
