@@ -13,7 +13,11 @@
 	"validFrom": "2020-03-06T09:41:15.817",
 	"identifier": "appid-123",
 	"isComplete": false,
-	"description": null,
+	"description": {
+		"en": "Automation Regression",
+		"nb": "Automation Regression",
+		"nn": "Automation Regression"
+	},
 	"resourceType": "MaskinportenSchema",
 	"thematicArea": null,
 	"isPublicService": true,
@@ -51,6 +55,11 @@
 	],
 	"hasCompetentAuthority": {
 		"orgcode": "SKD",
-		"organization": "974761076"
+		"organization": "974761076",
+		"name": {
+		  "en": "Accenture Norway",
+		  "nb-no": "Accenture Norge",
+		  "nn-no": "Accenture Norge"
+		}
 	}
 }

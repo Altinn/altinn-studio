@@ -71,5 +71,33 @@ namespace Altinn.Platform.Register.Controllers
 
             return Ok(party);
         }
+
+        /// <summary>
+        /// Gets the party list for the given user.
+        /// </summary>
+        /// <param name="partyIds">List of partyIds for parties to retrieve.</param>
+        /// <returns>List of parties based on the partyIds.</returns>
+        [HttpPost("partylist")]
+        public async Task<ActionResult<List<Party>>> GetPartyListForPartyIds([FromBody] List<int> partyIds)
+        {
+
+            List<Party> parties;
+
+            try
+            {
+                parties = await _partiesWrapper.GetPartyList(partyIds);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
+            if (parties == null || parties.Count < 1)
+            {
+                return NotFound();
+            }
+
+            return Ok(parties);
+        }
     }
 }
