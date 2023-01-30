@@ -144,7 +144,7 @@ export function DataModelling({
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
-  const shouldDisplayLandingPage = landingDialogState === LandingDialogState.DialogIsVisible;
+  const shouldDisplayLandingPage = landingDialogState === LandingDialogState.DialogIsVisible || jsonSchema === undefined;
 
   const [hideIntroPage, setHideIntroPage] = useState(
     () => getLocalStorageItem('hideIntroPage') ?? false

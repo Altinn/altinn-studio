@@ -1,5 +1,6 @@
 import React from 'react';
 import configureStore from 'redux-mock-store';
+import { userEvent } from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { DataModelling, shouldSelectFirstEntry } from './DataModelling';
 import { LoadingState } from './sagas/metadata';
@@ -17,8 +18,8 @@ Object.defineProperty(window, 'matchMedia', {
     removeListener: jest.fn(), // deprecated
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
+    dispatchEvent: jest.fn()
+  }))
 });
 
 const modelName = 'some-existing-model';
@@ -29,34 +30,34 @@ const defaultInitialState = {
       {
         repositoryRelativeUrl: `/App/models/${modelName}.schema.json`,
         fileName: `${modelName}.schema.json`,
-        fileType: '.json',
+        fileType: '.json'
       },
       {
         repositoryRelativeUrl: `/App/models/${modelName2}.schema.json`,
         fileName: `${modelName2}.schema.json`,
-        fileType: '.json',
-      },
+        fileType: '.json'
+      }
     ],
-    loadState: LoadingState.ModelsLoaded,
+    loadState: LoadingState.ModelsLoaded
   },
   dataModelling: {
     schema: {},
-    saving: false,
-  },
+    saving: false
+  }
 };
 const initialStoreCall = {
   type: 'dataModelling/fetchDataModel',
   payload: {
     metadata: {
       label: modelName,
-      value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0],
-    },
-  },
+      value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0]
+    }
+  }
 };
 
 const render = (
   state: {
-    [K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]>;
+    [K in keyof typeof defaultInitialState]?: Partial<(typeof defaultInitialState)[K]>;
   } = {}
 ) => {
   const dataModelsMetadataState = state?.dataModelsMetadataState;
@@ -65,12 +66,12 @@ const render = (
   const initialState = {
     dataModelsMetadataState: {
       ...defaultInitialState.dataModelsMetadataState,
-      ...dataModelsMetadataState,
+      ...dataModelsMetadataState
     },
     dataModelling: {
       ...defaultInitialState.dataModelling,
-      ...dataModelling,
-    },
+      ...dataModelling
+    }
   };
 
   const store = configureStore()(initialState);
@@ -82,7 +83,7 @@ const render = (
         language={{
           'administration.first': 'some text',
           'administration.second': 'other text',
-          'app_data_modelling.landing_dialog_header': 'Dialog header',
+          'app_data_modelling.landing_dialog_header': 'Dialog header'
         }}
         org='test-org'
         repo='test-repo'
@@ -110,12 +111,12 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
-                fileType: '.xsd',
-              },
-            },
+                fileType: '.xsd'
+              }
+            }
           ],
           selectedOption: undefined,
-          metadataLoadingState: LoadingState.ModelsLoaded,
+          metadataLoadingState: LoadingState.ModelsLoaded
         })
       ).toBe(true);
     });
@@ -129,14 +130,14 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
-                fileType: '.xsd',
-              },
-            },
+                fileType: '.xsd'
+              }
+            }
           ],
           selectedOption: {
-            label: 'some-label',
+            label: 'some-label'
           },
-          metadataLoadingState: LoadingState.ModelsLoaded,
+          metadataLoadingState: LoadingState.ModelsLoaded
         })
       ).toBe(false);
     });
@@ -150,12 +151,12 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
-                fileType: '.xsd',
-              },
-            },
+                fileType: '.xsd'
+              }
+            }
           ],
           selectedOption: undefined,
-          metadataLoadingState: LoadingState.LoadingModels,
+          metadataLoadingState: LoadingState.LoadingModels
         })
       ).toBe(false);
     });
@@ -164,7 +165,7 @@ describe('DataModelling', () => {
       expect(
         shouldSelectFirstEntry({
           selectedOption: undefined,
-          metadataLoadingState: LoadingState.ModelsLoaded,
+          metadataLoadingState: LoadingState.ModelsLoaded
         })
       ).toBe(false);
     });
@@ -174,7 +175,7 @@ describe('DataModelling', () => {
         shouldSelectFirstEntry({
           metadataOptions: [],
           selectedOption: undefined,
-          metadataLoadingState: LoadingState.ModelsLoaded,
+          metadataLoadingState: LoadingState.ModelsLoaded
         })
       ).toBe(false);
     });
@@ -184,6 +185,24 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is cleared
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     render();
+    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
+    expect(dialogHeader).toBeInTheDocument();
+  });
+
+  it('Should show info dialog by default when loading the page', () => {
+    // make sure setting to turn off info dialog is cleared
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    render();
+    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
+    expect(dialogHeader).toBeInTheDocument();
+  });
+
+  it('should display no data-models message when schema is undefined and loadState is loaded', async () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    render({
+      dataModelling: { schema: undefined },
+      dataModelsMetadataState: { loadState: LoadingState.ModelsLoaded }
+    });
     const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
     expect(dialogHeader).toBeInTheDocument();
   });
@@ -207,7 +226,7 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
     render({
-      dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
+      dataModelsMetadataState: { loadState: LoadingState.LoadingModels }
     });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
@@ -216,7 +235,7 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
     render({
-      dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
+      dataModelsMetadataState: { loadState: LoadingState.LoadingModels }
     });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
@@ -226,7 +245,7 @@ describe('DataModelling', () => {
     setLocalStorageItem('hideIntroPage', true);
     const schema = {
       properties: { SomeSchema: { $ref: '#/$defs/Something' } },
-      $defs: { Something: { type: 'string' } },
+      $defs: { Something: { type: 'string' } }
     };
     render({ dataModelling: { schema } });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
