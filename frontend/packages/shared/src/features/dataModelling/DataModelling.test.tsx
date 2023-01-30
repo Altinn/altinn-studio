@@ -17,7 +17,7 @@ Object.defineProperty(window, 'matchMedia', {
     removeListener: jest.fn(), // deprecated
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn()
+    dispatchEvent: jest.fn(),
   }))
 });
 
@@ -29,12 +29,12 @@ const defaultInitialState = {
       {
         repositoryRelativeUrl: `/App/models/${modelName}.schema.json`,
         fileName: `${modelName}.schema.json`,
-        fileType: '.json'
+        fileType: '.json',
       },
       {
         repositoryRelativeUrl: `/App/models/${modelName2}.schema.json`,
         fileName: `${modelName2}.schema.json`,
-        fileType: '.json'
+        fileType: '.json',
       }
     ],
     loadState: LoadingState.ModelsLoaded
@@ -49,7 +49,7 @@ const initialStoreCall = {
   payload: {
     metadata: {
       label: modelName,
-      value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0]
+      value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0],
     }
   }
 };
@@ -65,7 +65,7 @@ const render = (
   const initialState = {
     dataModelsMetadataState: {
       ...defaultInitialState.dataModelsMetadataState,
-      ...dataModelsMetadataState
+      ...dataModelsMetadataState,
     },
     dataModelling: {
       ...defaultInitialState.dataModelling,
@@ -82,7 +82,7 @@ const render = (
         language={{
           'administration.first': 'some text',
           'administration.second': 'other text',
-          'app_data_modelling.landing_dialog_header': 'Dialog header'
+          'app_data_modelling.landing_dialog_header': 'Dialog header',
         }}
         org='test-org'
         repo='test-repo'
@@ -110,12 +110,12 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
-                fileType: '.xsd'
+                fileType: '.xsd',
               }
             }
           ],
           selectedOption: undefined,
-          metadataLoadingState: LoadingState.ModelsLoaded
+          metadataLoadingState: LoadingState.ModelsLoaded,
         })
       ).toBe(true);
     });
@@ -129,14 +129,14 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
-                fileType: '.xsd'
+                fileType: '.xsd',
               }
             }
           ],
           selectedOption: {
-            label: 'some-label'
+            label: 'some-label',
           },
-          metadataLoadingState: LoadingState.ModelsLoaded
+          metadataLoadingState: LoadingState.ModelsLoaded,
         })
       ).toBe(false);
     });
@@ -150,12 +150,12 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
-                fileType: '.xsd'
+                fileType: '.xsd',
               }
             }
           ],
           selectedOption: undefined,
-          metadataLoadingState: LoadingState.LoadingModels
+          metadataLoadingState: LoadingState.LoadingModels,
         })
       ).toBe(false);
     });
@@ -164,7 +164,7 @@ describe('DataModelling', () => {
       expect(
         shouldSelectFirstEntry({
           selectedOption: undefined,
-          metadataLoadingState: LoadingState.ModelsLoaded
+          metadataLoadingState: LoadingState.ModelsLoaded,
         })
       ).toBe(false);
     });
@@ -174,7 +174,7 @@ describe('DataModelling', () => {
         shouldSelectFirstEntry({
           metadataOptions: [],
           selectedOption: undefined,
-          metadataLoadingState: LoadingState.ModelsLoaded
+          metadataLoadingState: LoadingState.ModelsLoaded,
         })
       ).toBe(false);
     });
@@ -225,7 +225,7 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
     render({
-      dataModelsMetadataState: { loadState: LoadingState.LoadingModels }
+      dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
     });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
@@ -234,7 +234,7 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
     render({
-      dataModelsMetadataState: { loadState: LoadingState.LoadingModels }
+      dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
     });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
@@ -244,7 +244,7 @@ describe('DataModelling', () => {
     setLocalStorageItem('hideIntroPage', true);
     const schema = {
       properties: { SomeSchema: { $ref: '#/$defs/Something' } },
-      $defs: { Something: { type: 'string' } }
+      $defs: { Something: { type: 'string' } },
     };
     render({ dataModelling: { schema } });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
