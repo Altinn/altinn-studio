@@ -35,14 +35,14 @@ const defaultInitialState = {
         repositoryRelativeUrl: `/App/models/${modelName2}.schema.json`,
         fileName: `${modelName2}.schema.json`,
         fileType: '.json',
-      }
+      },
     ],
     loadState: LoadingState.ModelsLoaded,
   },
   dataModelling: {
     schema: {},
     saving: false,
-  }
+  },
 };
 const initialStoreCall = {
   type: 'dataModelling/fetchDataModel',
@@ -69,8 +69,8 @@ const render = (
     },
     dataModelling: {
       ...defaultInitialState.dataModelling,
-      ...dataModelling
-    }
+      ...dataModelling,
+    },
   };
 
   const store = configureStore()(initialState);
