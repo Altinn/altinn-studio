@@ -18,7 +18,7 @@ Object.defineProperty(window, 'matchMedia', {
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
-  }))
+  })),
 });
 
 const modelName = 'some-existing-model';
@@ -37,11 +37,11 @@ const defaultInitialState = {
         fileType: '.json',
       }
     ],
-    loadState: LoadingState.ModelsLoaded
+    loadState: LoadingState.ModelsLoaded,
   },
   dataModelling: {
     schema: {},
-    saving: false
+    saving: false,
   }
 };
 const initialStoreCall = {
@@ -50,8 +50,8 @@ const initialStoreCall = {
     metadata: {
       label: modelName,
       value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0],
-    }
-  }
+    },
+  },
 };
 
 const render = (
@@ -111,8 +111,8 @@ describe('DataModelling', () => {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
                 fileType: '.xsd',
-              }
-            }
+              },
+            },
           ],
           selectedOption: undefined,
           metadataLoadingState: LoadingState.ModelsLoaded,
@@ -130,8 +130,8 @@ describe('DataModelling', () => {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
                 fileType: '.xsd',
-              }
-            }
+              },
+            },
           ],
           selectedOption: {
             label: 'some-label',
@@ -151,8 +151,8 @@ describe('DataModelling', () => {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
                 fileType: '.xsd',
-              }
-            }
+              },
+            },
           ],
           selectedOption: undefined,
           metadataLoadingState: LoadingState.LoadingModels,
@@ -200,7 +200,7 @@ describe('DataModelling', () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     render({
       dataModelling: { schema: undefined },
-      dataModelsMetadataState: { loadState: LoadingState.ModelsLoaded }
+      dataModelsMetadataState: { loadState: LoadingState.ModelsLoaded },
     });
     const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
     expect(dialogHeader).toBeInTheDocument();
