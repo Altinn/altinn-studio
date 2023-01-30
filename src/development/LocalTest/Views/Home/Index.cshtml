@@ -87,7 +87,10 @@
       @if(Model.AppModeIsHttp)
       {
         <div class="form-group">
-          <label for="prefill">Prefill xml (use this to copy all the values from a <a href="/LocalPlatformStorage/blobs/@(Model.Org)/@(Model.App)">previous instance</a>)</label>
+          <label for="prefill">
+            Prefill xml (use this to copy all the values from a <a href="/LocalPlatformStorage/blobs/@(Model.Org)/@(Model.App)">previous instance</a>)<br />
+            A token autenticated as <strong>@Model.Org</strong> will be used for for instantiation
+          </label>
           <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
         </div>
       }
