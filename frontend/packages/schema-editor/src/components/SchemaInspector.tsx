@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { Tabs } from '@digdir/design-system-react';
 import type { TabItem } from '@digdir/design-system-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -63,9 +62,6 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
 
   return selectedItem ? (
     <div className={classes.root} data-testid='schema-inspector'>
-      <Panel variant={PanelVariant.Warning} forceMobileLayout={true}>
-        <span>{t('warning_under_development')}</span>
-      </Panel>
       <Tabs
         activeTab={activeTab}
         items={tabItems}
