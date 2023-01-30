@@ -10,7 +10,7 @@
     "jest": "29.3.1"
   },
   "peerDependencies": {
-    "@altinn/altinn-design-system": "0.27.0",
+    "@altinn/altinn-design-system": "0.27.1",
     "@digdir/design-system-react": "0.3.1",
     "@mui/material": "5.11.4",
     "@reduxjs/toolkit": "1.9.1",
