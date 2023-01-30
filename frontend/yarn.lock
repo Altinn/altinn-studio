@@ -73,7 +73,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/schema-editor@workspace:packages/schema-editor"
   dependencies:
-    "@mui/lab": 5.0.0-alpha.115
+    "@mui/lab": 5.0.0-alpha.117
     jest: 29.3.1
     jsonpointer: 5.0.1
   peerDependencies:
@@ -2228,6 +2228,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/base@npm:5.0.0-alpha.115":
+  version: 5.0.0-alpha.115
+  resolution: "@mui/base@npm:5.0.0-alpha.115"
+  dependencies:
+    "@babel/runtime": ^7.20.7
+    "@emotion/is-prop-valid": ^1.2.0
+    "@mui/types": ^7.2.3
+    "@mui/utils": ^5.11.2
+    "@popperjs/core": ^2.11.6
+    clsx: ^1.2.1
+    prop-types: ^15.8.1
+    react-is: ^18.2.0
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10ac89f3cbcb3d2fdf9fb560c07e3b0b0acb3b6f71e261de8a0513342e03a999d2036b434ff40559bc9e7f7110d3f487c1f77b8371d4dfbf79487dfb17a1a5a8
+  languageName: node
+  linkType: hard
+
 "@mui/core-downloads-tracker@npm:^5.11.4":
   version: 5.11.5
   resolution: "@mui/core-downloads-tracker@npm:5.11.5"
@@ -2235,13 +2258,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/lab@npm:5.0.0-alpha.115":
-  version: 5.0.0-alpha.115
-  resolution: "@mui/lab@npm:5.0.0-alpha.115"
+"@mui/lab@npm:5.0.0-alpha.117":
+  version: 5.0.0-alpha.117
+  resolution: "@mui/lab@npm:5.0.0-alpha.117"
   dependencies:
     "@babel/runtime": ^7.20.7
-    "@mui/base": 5.0.0-alpha.113
-    "@mui/system": ^5.11.4
+    "@mui/base": 5.0.0-alpha.115
+    "@mui/system": ^5.11.5
     "@mui/types": ^7.2.3
     "@mui/utils": ^5.11.2
     clsx: ^1.2.1
@@ -2261,7 +2284,7 @@ __metadata:
       optional: true
     "@types/react":
       optional: true
-  checksum: 042641a756f0085fe143a24d99ad11028eb3c5cf5511dc2ef3f0ee9faf585db3a23a094bfb71d5868fa195a6638f868abbdfc3e74ca479eaca2fab16ca60f9af
+  checksum: 9db5507e19a4d3afc726df3f7403bb46f5d97df1129a12b00360c9cda7cf50f4249eb1195eeeca508045cd8b56b0a84fb4a447fc6a62cc161db903f2e8d26c67
   languageName: node
   linkType: hard
 
@@ -2336,7 +2359,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/system@npm:^5.11.4":
+"@mui/system@npm:^5.11.4, @mui/system@npm:^5.11.5":
   version: 5.11.5
   resolution: "@mui/system@npm:5.11.5"
   dependencies:
