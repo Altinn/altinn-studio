@@ -44,17 +44,15 @@ test('that we can getRootNode', () => {
   expect(rootNode.pointer).toBe(ROOT_POINTER);
 });
 
-test('that getNodeByPointer throws at undefined pointer', () => {
+test('should return undefined if getNodeByPointer cannot find node by pointer', () => {
   const uiSchemaNodes = buildUiSchema(testSchema);
-  expect(() => {
-    getNodeByPointer(uiSchemaNodes, makePointer('jibberish'));
-  }).toThrow();
+  const pointer = makePointer('badPointer');
+  const node = getNodeByPointer(uiSchemaNodes, pointer);
+  expect(node).toBeUndefined();
 });
 
-test('that getRootNode throws at undefined pointer', () => {
-  expect(() => {
-    getRootNode([]);
-  }).toThrow();
+test('should return undefined if getRootNode cannot find node by pointer', () => {
+  expect(getRootNode([])).toBeUndefined();
 });
 
 test('that we can get referred nodes', () => {

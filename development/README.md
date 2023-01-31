@@ -53,5 +53,5 @@ This is
 To format the nginx-file if needed.
 
 ```bash
-npx nginxbeautifier -i nginx.conf.conf
+npx nginxbeautifier -i ./load-balancer/nginx.conf.conf
 ```

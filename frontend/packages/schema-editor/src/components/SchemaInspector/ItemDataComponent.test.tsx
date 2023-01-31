@@ -45,7 +45,7 @@ const renderItemDataComponent = (
   return renderWithRedux(
     <ItemDataComponent
       language={mockLanguage}
-      selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]}
+      {...uiSchemaNodes[selectedItemIndex ?? 0]}
       {...props}
     />,
     { uiSchema: uiSchemaNodes }

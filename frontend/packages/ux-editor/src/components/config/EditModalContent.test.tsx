@@ -20,7 +20,7 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(rendered.container.querySelectorAll('input').length).toBe(4);
+    expect(rendered.container.querySelectorAll('input').length).toBe(5);
   });
 
   it('should return header specific content when type header', () => {
