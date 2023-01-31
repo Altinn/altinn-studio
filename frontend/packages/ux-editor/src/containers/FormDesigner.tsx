@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,8 +14,9 @@ import { deepCopy } from 'app-shared/pure';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { Warning } from '@navikt/ds-icons';
+import { useText } from '@altinn/ux-editor';
 
-export const FormDesigner = (): JSX.Element =>  {
+export const FormDesigner = (): JSX.Element => {
   const dispatch = useDispatch();
 
   const [codeEditorOpen, setCodeEditorOpen] = useState<boolean>(false);
@@ -26,10 +27,21 @@ export const FormDesigner = (): JSX.Element =>  {
   );
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
 
+  const isManageServiceConfigurationFetched = useSelector(
+    (state: IAppState) => state.serviceConfigurations.manageServiceConfiguration.fetched
+  );
+  const isFormLayoutFetched = useSelector((state: IAppState) => state.formDesigner.layout.fetched);
+  const isReadyToRenderDesigner = isManageServiceConfigurationFetched && isFormLayoutFetched;
+
   useEffect(() => {
     dispatch(FormLayoutActions.fetchFormLayout());
-    dispatch(fetchServiceConfiguration());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isFormLayoutFetched && !isManageServiceConfigurationFetched) {
+      dispatch(fetchServiceConfiguration());
+    }
+  }, [isManageServiceConfigurationFetched])
 
   const toggleCodeEditor = (mode?: LogicMode) => {
     setCodeEditorOpen(!codeEditorOpen);
@@ -71,18 +83,54 @@ export const FormDesigner = (): JSX.Element =>  {
 
   const order = useSelector(makeGetLayoutOrderSelector());
 
+  useEffect(( )=> {
+    console.log({
+      isFormLayoutFetched,
+      isManageServiceConfigurationFetched,
+      selectedLayout
+    })
+  }, [isFormLayoutFetched, isManageServiceConfigurationFetched, selectedLayout])
+
+  if (isReadyToRenderDesigner) {
+    return (
+      <DesignerView
+        activeList={activeList}
+        layoutOrder={layoutOrder}
+        order={order}
+        selectedLayout={selectedLayout}
+      />
+    );
+  }
+
+  return <div>Laster Designer</div>;
+};
+
+const DesignerView = ({ activeList, layoutOrder, order, selectedLayout }: any): JSX.Element => {
+  const dispatch = useDispatch();
+
+  const addInitialPage = useCallback((): void => {
+    const name = 'Side 1';
+    dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
+  }, []);
+
+  useEffect((): void => {
+    if (selectedLayout === 'default') {
+      addInitialPage();
+    }
+  }, [selectedLayout]);
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={classes.root}>
         <div className={classes.container} id='formFillerGrid'>
           <div className={classes.leftContent + ' ' + classes.item}>
-            <LeftMenu/>
+            <LeftMenu />
           </div>
           <div className={classes.mainContent + ' ' + classes.item}>
             <h1 className={classes.pageHeader}>{selectedLayout}</h1>
             {selectedLayout === 'Kvittering' && (
               <p className={classes.warningMessage}>
-                <Warning/> Denne funksjonaliteten er ennå ikke implementert i appene.
+                <Warning /> Denne funksjonaliteten er ennå ikke implementert i appene.
               </p>
             )}
             <DesignView
@@ -91,13 +139,13 @@ export const FormDesigner = (): JSX.Element =>  {
               isDragging={false}
               layoutOrder={layoutOrder}
             />
-            {codeEditorOpen ? renderLogicEditor() : null}
+            {/* {codeEditorOpen ? renderLogicEditor() : null} */}
           </div>
           <div className={classes.rightContent + ' ' + classes.item}>
-            <RightMenu toggleFileEditor={toggleCodeEditor} />
+            <RightMenu toggleFileEditor={() => {}} />
           </div>
         </div>
       </div>
     </DndProvider>
   );
-}
+};

@@ -271,11 +271,12 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
 
 function* saveFormLayoutSaga(): SagaIterator {
   try {
-    yield delay(200);
-    const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
     const selectedLayout = yield select(
       (state: IAppState) => state.formDesigner.layout.selectedLayout
     );
+    console.log('saga', { selectedLayout })
+    yield delay(250);
+    const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
     const convertedLayout = {
       $schema: layoutSchemaUrl(),
       data: {

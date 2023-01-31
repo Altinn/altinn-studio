@@ -75,6 +75,7 @@ export function topLevelComponents(layout: any[]) {
 }
 
 export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[] {
+  console.log({ internalFormat })
   const { components, containers, order } = JSON.parse(
     JSON.stringify(internalFormat)
   ) as IFormLayout;

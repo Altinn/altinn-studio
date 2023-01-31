@@ -53,12 +53,12 @@ export function App() {
   useEffect(() => {
     const fetchFiles = () => {
       dispatch(fetchDataModel());
-      dispatch(FormLayoutActions.fetchFormLayout());
+      // dispatch(FormLayoutActions.fetchFormLayout());
       dispatch(loadTextResources({
         textResourcesUrl: (langCode) => textResourcesPath(org, app, langCode),
         languagesUrl: languagePath(org, app)
       }));
-      dispatch(loadLanguages({ url: languagePath(org, app) }));
+      // dispatch(loadLanguages({ url: languagePath(org, app) }));
       dispatch(fetchServiceConfiguration());
       dispatch(fetchRuleModel());
       dispatch(fetchLanguage({ languageCode: DEFAULT_LANGUAGE }));
@@ -87,6 +87,8 @@ export function App() {
       dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
     }
   }, [selectedLayout]);
+
+
 
   return (
     <div>
