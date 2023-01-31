@@ -23,6 +23,12 @@ namespace Altinn.App.Core.Implementation
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
         private Application? _application;
+        private static readonly JsonSerializerOptions DESERIALIZER_OPTIONS = new()
+        {
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            PropertyNameCaseInsensitive = true,
+        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
@@ -86,8 +92,7 @@ namespace Altinn.App.Core.Implementation
 
             using (FileStream fileStream = new(fullFileName, FileMode.Open, FileAccess.Read))
             {
-                JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                TextResource textResource = (await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, options))!;
+                TextResource textResource = (await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, DESERIALIZER_OPTIONS))!;
                 textResource.Id = $"{org}-{app}-{language}";
                 textResource.Org = org;
                 textResource.Language = language;
@@ -326,7 +331,7 @@ namespace Altinn.App.Core.Implementation
             string? layoutSetsString = GetLayoutSets();
             if (layoutSetsString is not null)
             {
-                return System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                return System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, DESERIALIZER_OPTIONS);
             }
             return null;
         }
@@ -373,7 +378,7 @@ namespace Altinn.App.Core.Implementation
                 var pageBytes = File.ReadAllBytes(Path.Join(folder, page + ".json"));
                 // Set the PageName using AsyncLocal before deserializing.
                 PageComponentConverter.SetAsyncLocalPageName(page);
-                layoutModel.Pages[page] = System.Text.Json.JsonSerializer.Deserialize<PageComponent>(pageBytes.RemoveBom(), new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? throw new InvalidDataException(page + ".json is \"null\"");
+                layoutModel.Pages[page] = System.Text.Json.JsonSerializer.Deserialize<PageComponent>(pageBytes.RemoveBom(), DESERIALIZER_OPTIONS) ?? throw new InvalidDataException(page + ".json is \"null\"");
             }
 
             return layoutModel;
