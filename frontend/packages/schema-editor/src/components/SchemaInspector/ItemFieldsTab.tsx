@@ -74,11 +74,10 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const hasFieldNodes = !!fieldNodes.length;
 
   return (
     <div className={classes.root}>
-      {hasFieldNodes && (
+      {fieldNodes.length > 0 && (
         <>
           <div>{t('field_name')}</div>
           <div>{t('type')}</div>
