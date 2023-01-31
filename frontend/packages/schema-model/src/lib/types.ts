@@ -64,7 +64,7 @@ export interface UiSchemaNode {
   isCombinationItem: boolean;
   isArray: boolean;
   pointer: string;
-  ref?: string;
+  reference?: string;
   custom: Dict;
   children: string[];
   description?: string;

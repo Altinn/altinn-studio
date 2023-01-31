@@ -62,7 +62,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
       JSONPointer.set(
         out,
         [jsonPointer, Keywords.Reference].join('/'),
-        typeof node.ref === 'string' ? node.ref : undefined
+        typeof node.reference === 'string' ? node.reference : undefined
       );
 
       // Setting Type for fields

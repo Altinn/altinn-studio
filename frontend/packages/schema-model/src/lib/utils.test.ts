@@ -1,7 +1,7 @@
 import {
   combinationIsNullable,
   createNodeBase,
-  getNodeDisplayName,
+  getNameFromPointer,
   getUniqueNodePath,
   makePointer,
   replaceLastPointerSegment,
@@ -34,10 +34,10 @@ test('that we can check if combination is nullable', () => {
   expect(combinationIsNullable([regularChild, nullableChild])).toBeTruthy();
 });
 
-test('that we can getNodeDisplayName', () => {
+test('that we can getNameFromPointer', () => {
   const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
   const uiSchemaNode = getNodeByPointer(uiSchemaNodes, makePointer(Keywords.Properties, 'hello'));
-  expect(getNodeDisplayName(uiSchemaNode)).toBe('hello');
+  expect(getNameFromPointer(uiSchemaNode)).toBe('hello');
 });
 
 test('that we can getUniqueNodePath', () => {

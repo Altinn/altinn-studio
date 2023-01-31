@@ -16,6 +16,6 @@ export const ItemPropertiesTab = ({ language, selectedItem }: ItemPropertiesTabP
   } else if (selectedItem.pointer === ROOT_POINTER) {
     return <>root</>;
   } else {
-    return <ItemDataComponent selectedItem={selectedItem} language={language} />;
+    return <ItemDataComponent {...selectedItem} language={language} />;
   }
 };
