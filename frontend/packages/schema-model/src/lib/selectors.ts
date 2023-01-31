@@ -12,12 +12,13 @@ export const getRootNodes = (uiSchemaNodes: UiSchemaNodes, defs: boolean): UiSch
   }
   return rootNodes;
 };
+
 export const getRootNode = (uiSchemaNodes: UiSchemaNodes): UiSchemaNode =>
   getNodeByPointer(uiSchemaNodes, ROOT_POINTER);
 
 const nodePointers: { uiSchemaNodes: UiSchemaNodes; cache: Map<string, UiSchemaNode> } = {
   uiSchemaNodes: [],
-  cache: new Map(),
+  cache: new Map<string, UiSchemaNode>(),
 };
 
 const getNodePointerCache = (uiSchemaNodes: UiSchemaNodes): Map<string, UiSchemaNode> => {
@@ -35,13 +36,9 @@ const getNodePointerCache = (uiSchemaNodes: UiSchemaNodes): Map<string, UiSchema
 export const hasNodePointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
   getNodePointerCache(uiSchemaNodes).has(pointer);
 
-export const getNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode => {
+export const getNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode | undefined => {
   const uiSchemaNode = getNodePointerCache(uiSchemaNodes).get(pointer);
-  if (uiSchemaNode) {
-    return uiSchemaNode;
-  } else {
-    throw new Error(`Can't find node with pointer ${pointer}`);
-  }
+  return uiSchemaNode;
 };
 
 /**
@@ -63,6 +60,8 @@ export const getChildNodesByPointer = (
   pointer: string
 ): UiSchemaNode[] => {
   const parentNode = getNodeByPointer(uiSchemaNodes, pointer);
+  if (!parentNode) return [];
+
   return parentNode.children.map((childPointer) => getNodeByPointer(uiSchemaNodes, childPointer));
 };
 
