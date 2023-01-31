@@ -95,7 +95,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
-  const onChangeFieldType = (pointer: string, type: FieldType) =>
+  const onChangeFieldType = (type: FieldType) =>
     dispatch(setType({ path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -171,7 +171,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
       {objectKind === ObjectKind.Field && (
         <Select
           label={t('type')}
-          onChange={(type: FieldType) => onChangeFieldType(pointer, type)}
+          onChange={(type: FieldType) => onChangeFieldType(type)}
           options={getTypeOptions(t)}
           value={fieldType as string}
         />
