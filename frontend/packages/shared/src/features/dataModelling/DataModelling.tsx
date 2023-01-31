@@ -34,12 +34,6 @@ type shouldSelectFirstEntryProps = {
   metadataLoadingState: LoadingState;
 };
 
-enum LandingDialogState {
-  DatamodelsNotLoaded = 'DATAMODELS_NOT_LOADED',
-  DialogIsVisible = 'DIALOG_IS_VISIBLE',
-  DialogShouldNotBeShown = 'DIALOG_SHOULD_NOT_BE_SHOWN',
-}
-
 export const shouldSelectFirstEntry = ({
   metadataOptions,
   selectedOption,
@@ -56,7 +50,7 @@ export function DataModelling({
   language,
   org,
   repo,
-  createPathOption,
+  createPathOption = false,
 }: IDataModellingContainerProps): JSX.Element {
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
@@ -78,7 +72,7 @@ export function DataModelling({
       shouldSelectFirstEntry({
         metadataOptions,
         selectedOption,
-        metadataLoadingState,
+        metadataLoadingState
       })
     ) {
       setSelectedOption(metadataOptions[0].options[0]);
@@ -109,22 +103,6 @@ export function DataModelling({
     }
   }, [selectedOption, dispatch]);
 
-  const [landingDialogState, setLandingDialogState] = useState<LandingDialogState>(
-    LandingDialogState.DatamodelsNotLoaded
-  );
-
-  const closeLandingPage = () => setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
-
-  useEffect(() => {
-    if (metadataLoadingState === LoadingState.ModelsLoaded) {
-      if (jsonSchema && Object.keys(jsonSchema).length) {
-        setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
-      } else if (landingDialogState === LandingDialogState.DatamodelsNotLoaded) {
-        setLandingDialogState(LandingDialogState.DialogIsVisible);
-      }
-    }
-  }, [jsonSchema, landingDialogState, metadataLoadingState]);
-
   const handleSaveSchema = (schema: any) =>
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
   const handleDeleteSchema = () => dispatch(deleteDataModel({ metadata: selectedOption }));
@@ -144,8 +122,6 @@ export function DataModelling({
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
-  const shouldDisplayLandingPage = landingDialogState === LandingDialogState.DialogIsVisible;
-
   const [hideIntroPage, setHideIntroPage] = useState(
     () => getLocalStorageItem('hideIntroPage') ?? false
   );
@@ -156,6 +132,8 @@ export function DataModelling({
   const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
 
   const t = (key: string) => getLanguageFromKey(key, language);
+
+  const shouldDisplayLandingPage = !jsonSchema && hideIntroPage;
 
   return (
     <>
@@ -208,7 +186,6 @@ export function DataModelling({
               repo={repo}
               handleXSDUploaded={handleXSDUploaded}
               handleCreateModelClick={handleCreateNewFromLandingPage}
-              closeLandingPage={closeLandingPage}
             />
           )
         }
@@ -243,7 +220,3 @@ export function DataModelling({
     </>
   );
 }
-
-DataModelling.defaultProps = {
-  createPathOption: false,
-};
