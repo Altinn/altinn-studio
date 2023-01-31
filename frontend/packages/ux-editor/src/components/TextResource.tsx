@@ -96,45 +96,46 @@ export const TextResource = ({
         </span>
       )}
       <span className={classes.textResource}>
-        {textResource?.value ? (
-          <>
-            <span>{textResource.value}</span>
+        {textResource?.value
+          ? <span>{textResource.value}</span>
+          : <span className={classes.placeholder}>{placeholder}</span>}
+        <span className={classes.buttonsWrapper}>
+          <span className={classes.buttons}>
+            {textResource?.value ? (
+              <Button
+                aria-label={t('general.edit')}
+                className={classes.button}
+                color={ButtonColor.Secondary}
+                disabled={isEditing}
+                icon={<Edit/>}
+                onClick={handleEditButtonClick}
+                title={t('general.edit')}
+                variant={ButtonVariant.Quiet}
+              />
+            ) : (
+              <Button
+                aria-label={t('general.add')}
+                className={classes.button}
+                color={ButtonColor.Secondary}
+                disabled={isEditing}
+                icon={<Add />}
+                onClick={handleEditButtonClick}
+                title={t('general.add')}
+                variant={ButtonVariant.Quiet}
+              />
+            )}
             <Button
-              aria-label={t('general.edit')}
+              aria-label={t('general.search')}
               className={classes.button}
               color={ButtonColor.Secondary}
-              disabled={isEditing}
-              icon={<Edit/>}
-              onClick={handleEditButtonClick}
-              title={t('general.edit')}
+              disabled={isSearchMode}
+              icon={<Search />}
+              onClick={() => setIsSearchMode(true)}
+              title={t('general.search')}
               variant={ButtonVariant.Quiet}
             />
-          </>
-        ) : (
-          <>
-            <span className={classes.placeholder}>{placeholder}</span>
-            <Button
-              aria-label={t('general.add')}
-              className={classes.button}
-              color={ButtonColor.Secondary}
-              disabled={isEditing}
-              icon={<Add />}
-              onClick={handleEditButtonClick}
-              title={t('general.add')}
-              variant={ButtonVariant.Quiet}
-            />
-          </>
-        )}
-        <Button
-          aria-label={t('general.search')}
-          className={classes.button}
-          color={ButtonColor.Secondary}
-          disabled={isSearchMode}
-          icon={<Search />}
-          onClick={() => setIsSearchMode(true)}
-          title={t('general.search')}
-          variant={ButtonVariant.Quiet}
-        />
+          </span>
+        </span>
       </span>
     </span>
   );

@@ -27,4 +27,5 @@
 
 .addButton {
   margin-left: calc(var(--component-button-space-padding-x-small) * -2 / 3); /* Align button icon with the checkboxes or radio buttons above */
+  margin-top: calc((var(--component-button-size-icon-small) - var(--component-button-size-height-small)) / 2); /* Compensate for the additional spacing caused by the button padding, so that the spacing between the icon and the options becomes equal to the spacing between the options themselves */
 }
