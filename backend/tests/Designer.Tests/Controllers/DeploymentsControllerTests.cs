@@ -27,6 +27,8 @@ namespace Designer.Tests.Controllers
         private readonly JsonSerializerOptions _options;
         private readonly Mock<IDeploymentService> _deploymentServiceMock;
         private readonly Mock<IPipelineService> _pipelineServiceMock;
+        private readonly string _org = "ttd";
+        private readonly string _app = "issue-6094";
 
         public DeploymentsControllerTests(WebApplicationFactory<DeploymentsController> factory) : base(factory)
         {
@@ -47,11 +49,11 @@ namespace Designer.Tests.Controllers
         public async Task GetDeployments_NoLaggingDeployments_PipelineServiceNotCalled()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/issue-6094/deployments?sortDirection=Descending";
+            string uri = $"{_versionPrefix}/{_org}/{_app}/deployments?sortDirection=Descending";
             List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
 
             _deploymentServiceMock
-                .Setup(rs => rs.GetAsync(It.IsAny<DocumentQueryModel>()))
+                .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -67,14 +69,14 @@ namespace Designer.Tests.Controllers
             Assert.Equal(8, actual.Count());
             Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
             _pipelineServiceMock.Verify(p => p.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            _deploymentServiceMock.Verify(r => r.GetAsync(It.IsAny<DocumentQueryModel>()), Times.Once);
+            _deploymentServiceMock.Verify(r => r.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
         [Fact]
         public async Task GetDeployments_SingleLaggingDeployments_PipelineServiceCalled()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/issue-6094/deployments?sortDirection=Descending";
+            string uri = $"{_versionPrefix}/{_org}/{_app}/deployments?sortDirection=Descending";
             List<DeploymentEntity> completedDeployments = GetDeploymentsList("singleLaggingDeployment.json");
 
             _pipelineServiceMock
@@ -82,7 +84,7 @@ namespace Designer.Tests.Controllers
                 .Returns(Task.CompletedTask);
 
             _deploymentServiceMock
-                .Setup(rs => rs.GetAsync(It.IsAny<DocumentQueryModel>()))
+                .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -98,7 +100,7 @@ namespace Designer.Tests.Controllers
             Assert.Equal(8, actual.Count());
             Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
             _pipelineServiceMock.Verify(p => p.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            _deploymentServiceMock.Verify(r => r.GetAsync(It.IsAny<DocumentQueryModel>()), Times.Once);
+            _deploymentServiceMock.Verify(r => r.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
         private List<DeploymentEntity> GetDeploymentsList(string filename)

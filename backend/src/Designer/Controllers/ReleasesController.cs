@@ -72,12 +72,16 @@ namespace Altinn.Studio.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult<ReleaseEntity>> Create(string org, string app, [FromBody] CreateReleaseRequestViewModel createRelease)
         {
+            ReleaseEntity release = createRelease.ToEntityModel();
+            release.Org = org;
+            release.App = app;
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            return Created(string.Empty, await _releaseService.CreateAsync(org, app, createRelease.ToEntityModel()));
+            return Created(string.Empty, await _releaseService.CreateAsync(release));
         }
     }
 }

@@ -1,8 +1,8 @@
 import { stringify as s } from 'qs';
 
 // ApplicationMetaData
-export const appMetadataPath = (org, app) => `/designer/api/${org}/${app}/app-metadata`; // Get, Put, Post
-export const appMetadataAttachmentPath = (org, app) => `/designer/api/${org}/${app}/app-metadata/attachment-component`; // Post, Put, Delete
+export const appMetadataPath = (org, app) => `/designer/api/${org}/${app}/metadata`; // Get, Put, Post
+export const appMetadataAttachmentPath = (org, app) => `/designer/api/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
 
 // Config
 export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/config/service`; // Get, Post

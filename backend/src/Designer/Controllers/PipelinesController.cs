@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Gets a build status from Azure DevOps and updates a specific entity
         /// </summary>
-        [HttpPost("checkdeploymentbuildstatus")]
+        [HttpPost]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         [Route("check-deployment-build-status")]
         public async Task<IActionResult> CheckDeploymentStatus([FromBody] AzureDevOpsWebHookEventModel model)

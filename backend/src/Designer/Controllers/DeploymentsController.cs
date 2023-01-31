@@ -87,20 +87,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Creates a deployment
         /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
         /// <param name="createDeployment">Release model</param>
         /// <returns>Created release</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        [Route("create-deployment")]
-        public async Task<ActionResult<DeploymentEntity>> Create([FromBody] CreateDeploymentRequestViewModel createDeployment)
+        public async Task<ActionResult<DeploymentEntity>> Create(string org, string app, [FromBody] CreateDeploymentRequestViewModel createDeployment)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            return Created(string.Empty, await _deploymentService.CreateAsync(createDeployment.ToDomainModel()));
+            return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel()));
         }
     }
 }
