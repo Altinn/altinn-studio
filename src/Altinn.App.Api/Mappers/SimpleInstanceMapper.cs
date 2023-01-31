@@ -1,4 +1,6 @@
+#nullable enable
 using System.Collections.Generic;
+using System.Linq;
 
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -36,8 +38,8 @@ namespace Altinn.App.Api.Mappers
             List<SimpleInstance> simpleInstances = new List<SimpleInstance>();
             foreach (Instance instance in instances)
             {
-                string lastChangedByName = userDictionary.ContainsKey(instance.LastChangedBy ?? string.Empty) ? userDictionary[instance.LastChangedBy] : string.Empty;
-                simpleInstances.Add(MapInstanceToSimpleInstance(instance, lastChangedByName));
+                userDictionary.TryGetValue(instance.LastChangedBy ?? string.Empty, out string? lastChangedByName);
+                simpleInstances.Add(MapInstanceToSimpleInstance(instance, lastChangedByName ?? string.Empty));
             }
 
             return simpleInstances;

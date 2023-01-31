@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -135,7 +136,7 @@ namespace Altinn.App.Api.Controllers
                 Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
-                string userOrgClaim = User.GetOrg();
+                string? userOrgClaim = User.GetOrg();
 
                 if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -195,7 +196,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Error when reading content: {JsonConvert.SerializeObject(parsedRequest.Errors)}");
             }
 
-            Instance instanceTemplate = await ExtractInstanceTemplate(parsedRequest);
+            Instance? instanceTemplate = await ExtractInstanceTemplate(parsedRequest);
 
             if (!instanceOwnerPartyId.HasValue && instanceTemplate == null)
             {
@@ -241,10 +242,8 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception partyLookupException)
             {
-                if (partyLookupException is ServiceException)
+                if (partyLookupException is ServiceException sexp)
                 {
-                    ServiceException sexp = partyLookupException as ServiceException;
-
                     if (sexp.StatusCode.Equals(HttpStatusCode.Unauthorized))
                     {
                         return StatusCode((int)HttpStatusCode.Forbidden);
@@ -284,7 +283,7 @@ namespace Altinn.App.Api.Controllers
                 processChangeContext = await _processEngine.StartProcess(processChangeContext);
                 processResult = processChangeContext.ProcessStateChange;
 
-                string userOrgClaim = User.GetOrg();
+                string? userOrgClaim = User.GetOrg();
 
                 if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -379,10 +378,8 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception partyLookupException)
             {
-                if (partyLookupException is ServiceException)
+                if (partyLookupException is ServiceException sexp)
                 {
-                    ServiceException sexp = partyLookupException as ServiceException;
-
                     if (sexp.StatusCode.Equals(HttpStatusCode.Unauthorized))
                     {
                         return StatusCode((int)HttpStatusCode.Forbidden);
@@ -436,7 +433,7 @@ namespace Altinn.App.Api.Controllers
                 processChangeContext = await _processEngine.StartProcess(processChangeContext);
                 processResult = processChangeContext.ProcessStateChange;
 
-                string userOrgClaim = User.GetOrg();
+                string? userOrgClaim = User.GetOrg();
 
                 if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -444,7 +441,7 @@ namespace Altinn.App.Api.Controllers
                     instanceTemplate.Status.ReadStatus = ReadStatus.Read;
                 }
 
-                Instance source = null;
+                Instance? source = null;
 
                 if (copySourceInstance)
                 {
@@ -536,7 +533,7 @@ namespace Altinn.App.Api.Controllers
                     }
 
                     await _prefillService.PrefillDataModel(instanceOwnerPartyId.ToString(), dt.Id, data);
-                    
+
                     await _instantiationProcessor.DataCreation(targetInstance, data, null);
 
                     await _dataClient.InsertFormData(
@@ -614,7 +611,7 @@ namespace Altinn.App.Api.Controllers
 
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
-            string orgClaim = User.GetOrg();
+            string? orgClaim = User.GetOrg();
             if (!instance.Org.Equals(orgClaim))
             {
                 return Forbid();
@@ -692,25 +689,31 @@ namespace Altinn.App.Api.Controllers
                 return Ok(new List<SimpleInstance>());
             }
 
-            List<string> userAndOrgIds = activeInstances.Where(i => !string.IsNullOrWhiteSpace(i.LastChangedBy)).Select(i => i.LastChangedBy).Distinct().ToList();
+            var lastChangedByValues = activeInstances.Select(i => i.LastChangedBy).Distinct();
 
             Dictionary<string, string> userAndOrgLookup = new Dictionary<string, string>();
 
-            foreach (string userOrOrgId in userAndOrgIds)
+            foreach (string lastChangedBy in lastChangedByValues)
             {
-                if (userOrOrgId.Length == 9)
+                if (lastChangedBy?.Length == 9)
                 {
-                    Organization organization = await _registerClient.ER.GetOrganization(userOrOrgId);
-                    userAndOrgLookup.Add(userOrOrgId, organization.Name);
+                    Organization? organization = await _registerClient.ER.GetOrganization(lastChangedBy);
+                    if(organization is not null && !string.IsNullOrEmpty(organization.Name))
+                    {
+                        userAndOrgLookup.Add(lastChangedBy, organization.Name);
+                    }
                 }
-                else
+                else if (int.TryParse(lastChangedBy, out int lastChangedByInt))
                 {
-                    UserProfile user = await _profileClientClient.GetUserProfile(int.Parse(userOrOrgId));
-                    userAndOrgLookup.Add(userOrOrgId, user.Party.Name);
+                    UserProfile? user = await _profileClientClient.GetUserProfile(lastChangedByInt);
+                    if(user is not null && user.Party is not null && !string.IsNullOrEmpty(user.Party.Name))
+                    {
+                        userAndOrgLookup.Add(lastChangedBy, user.Party.Name);
+                    }
                 }
             }
 
-            return SimpleInstanceMapper.MapInstanceListToSimpleInstanceList(activeInstances, userAndOrgLookup);
+            return Ok(SimpleInstanceMapper.MapInstanceListToSimpleInstanceList(activeInstances, userAndOrgLookup));
         }
 
         private ActionResult ExceptionResponse(Exception exception, string message)
@@ -837,10 +840,10 @@ namespace Altinn.App.Api.Controllers
 
             foreach (RequestPart part in parts)
             {
-                DataType dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
+                DataType? dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
 
                 DataElement dataElement;
-                if (dataType.AppLogic?.ClassRef != null)
+                if (dataType?.AppLogic?.ClassRef != null)
                 {
                     _logger.LogInformation($"Storing part {part.Name}");
 
@@ -855,7 +858,7 @@ namespace Altinn.App.Api.Controllers
                     }
 
                     ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
-                    object data = await deserializer.DeserializeAsync(part.Stream, part.ContentType);
+                    object? data = await deserializer.DeserializeAsync(part.Stream, part.ContentType);
 
                     if (!string.IsNullOrEmpty(deserializer.Error))
                     {
@@ -863,7 +866,7 @@ namespace Altinn.App.Api.Controllers
                     }
 
                     await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
-                    
+
                     await _instantiationProcessor.DataCreation(instance, data, null);
 
                     dataElement = await _dataClient.InsertFormData(
@@ -895,11 +898,11 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="reader">multipart reader object</param>
         /// <returns>the instance template or null if none is found</returns>
-        private static async Task<Instance> ExtractInstanceTemplate(MultipartRequestReader reader)
+        private static async Task<Instance?> ExtractInstanceTemplate(MultipartRequestReader reader)
         {
-            Instance instanceTemplate = null;
+            Instance? instanceTemplate = null;
 
-            RequestPart instancePart = reader.Parts.Find(part => part.Name == "instance");
+            RequestPart? instancePart = reader.Parts.Find(part => part.Name == "instance");
 
             // assume that first part with no name is an instanceTemplate
             if (instancePart == null && reader.Parts.Count == 1 && reader.Parts[0].ContentType.Contains("application/json") && reader.Parts[0].Name == null)
