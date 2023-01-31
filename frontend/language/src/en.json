@@ -748,6 +748,7 @@
   "ux_editor.component_container": "Container",
   "ux_editor.component_datepicker": "Datepicker",
   "ux_editor.component_dropdown": "Drop-down-list",
+  "ux_editor.component_dropdown_set_preselected": "Set pre-selected value in dropdown list",
   "ux_editor.component_file_upload": "Attachment",
   "ux_editor.component_group": "Group",
   "ux_editor.component_header": "Title",

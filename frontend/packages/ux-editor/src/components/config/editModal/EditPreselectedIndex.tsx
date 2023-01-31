@@ -1,9 +1,7 @@
 import React from 'react';
-import type {
-  IFormGenericOptionsComponent,
-} from '../../../types/global';
+import type { IFormGenericOptionsComponent } from '../../../types/global';
 import { TextField } from '@digdir/design-system-react';
-import { IGenericEditComponent } from '../componentConfig';
+import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 
 export function EditPreselectedIndex({ component, handleComponentChange }: IGenericEditComponent) {
@@ -16,20 +14,28 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
     });
   };
 
+  function textSwitch(param) {
+    switch (param) {
+      case 'Checkboxes':
+        return t('ux_editor.modal_check_box_set_preselected');
+      case 'RadioButtons':
+        return t('ux_editor.modal_radio_button_set_preselected');
+      case 'Dropdown':
+        return t('ux_editor.component_dropdown_set_preselected');
+      default:
+        return 'Unknown component';
+    }
+  }
+
   return (
     <div>
       <TextField
         defaultValue={(component as IFormGenericOptionsComponent).preselectedOptionIndex}
         formatting={{ number: {} }}
-        label={
-          component.type === 'Checkboxes'
-            ? t('ux_editor.modal_check_box_set_preselected')
-            : t('ux_editor.modal_radio_button_set_preselected')
-        }
+        label={textSwitch(component.type)}
         onChange={handlePreselectedOptionChange}
         placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
       />
     </div>
-
   );
 }

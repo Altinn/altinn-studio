@@ -779,6 +779,7 @@
   "ux_editor.component_container": "Container",
   "ux_editor.component_datepicker": "Dato",
   "ux_editor.component_dropdown": "Nedtrekksliste",
+  "ux_editor.component_dropdown_set_preselected": "Sett forhåndsvalgt verdi for nedtrekksliste",
   "ux_editor.component_file_upload": "Vedlegg",
   "ux_editor.component_file_upload_with_tag": "Vedlegg med merking",
   "ux_editor.component_group": "Gruppe",
