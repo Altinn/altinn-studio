@@ -107,7 +107,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
       return;
     }
 
-    childNodes.forEach((childNode: UiSchemaNode) => {
+    getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (childNode.fieldType === FieldType.Null) {
         dispatch(deleteCombinationItem({ path: childNode.pointer }));
       }
@@ -171,7 +171,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
       {objectKind === ObjectKind.Field && (
         <Select
           label={t('type')}
-          onChange={(type: FieldType) => onChangeFieldType(type)}
+          onChange={(type: FieldType) => onChangeFieldType(pointer, type)}
           options={getTypeOptions(t)}
           value={fieldType as string}
         />
