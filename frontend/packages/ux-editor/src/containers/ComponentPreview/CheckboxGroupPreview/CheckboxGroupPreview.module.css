@@ -2,7 +2,7 @@
   align-items: flex-start;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--component-checkbox-group-space-gap-y-small);
 }
 
 .addCheckbox {
