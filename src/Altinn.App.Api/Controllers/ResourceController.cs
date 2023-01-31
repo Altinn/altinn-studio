@@ -1,9 +1,11 @@
 using System;
 using System.Globalization;
 using System.IO;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -12,14 +14,17 @@ namespace Altinn.App.Api.Controllers
     /// </summary>
     public class ResourceController : ControllerBase
     {
+        private readonly AppSettings _appSettings;
         private readonly IAppResources _appResourceService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ResourceController"/> class
         /// </summary>
+        /// <param name="appSettings">App settings</param>
         /// <param name="appResourcesService">The execution service</param>
-        public ResourceController(IAppResources appResourcesService)
+        public ResourceController(IOptions<AppSettings> appSettings, IAppResources appResourcesService)
         {
+            _appSettings = appSettings.Value;
             _appResourceService = appResourcesService;
         }
 
@@ -35,7 +40,7 @@ namespace Altinn.App.Api.Controllers
         [HttpGet]
         public IActionResult Index(string org, string app, string id)
         {
-            if (id == "FormLayout.json")
+            if (id == _appSettings.FormLayoutJSONFileName)
             {
                 return GetLayouts(org, app);
             }
@@ -47,7 +52,12 @@ namespace Altinn.App.Api.Controllers
                 return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
             }
 
-            return StatusCode(404);
+            if (id == _appSettings.RuleConfigurationJSONFileName || id == _appSettings.RuleHandlerFileName)
+            {
+                return NoContent();
+            }
+
+            return NotFound();
         }
 
         /// <summary>
@@ -218,7 +228,7 @@ namespace Altinn.App.Api.Controllers
                 return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".ts"));
             }
 
-            return StatusCode(404);
+            return NoContent();
         }
 
         /// <summary>
@@ -235,8 +245,7 @@ namespace Altinn.App.Api.Controllers
             byte[] fileContent = _appResourceService.GetRuleConfigurationForSet(id);
             if (fileContent == null)
             {
-                // frontend will fail witout content
-                fileContent = new byte[0];
+                return NoContent();
             }
 
             return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".json"));

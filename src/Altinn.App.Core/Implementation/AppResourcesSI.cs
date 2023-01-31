@@ -56,11 +56,6 @@ namespace Altinn.App.Core.Implementation
             else if (resource == _settings.RuleConfigurationJSONFileName)
             {
                 fileContent = ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.UiFolder, resource);
-
-                if (fileContent == null)
-                {
-                    fileContent = new byte[0];
-                }
             }
             else
             {
