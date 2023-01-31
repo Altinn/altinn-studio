@@ -4,5 +4,5 @@
     "lib": ["es6", "dom", "es7", "esnext"],
     "types": ["cypress", "node"]
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "**/*.js"]
 }
