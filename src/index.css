@@ -260,8 +260,8 @@ select.disabled {
   outline: 1px solid #022f51;
 }
 
-.a-modal-back[type='button']:focus,
-.a-modal-close[type='button']:focus {
+.a-modal-back[type='button']:focus-visible,
+.a-modal-close[type='button']:focus-visible {
   outline: var(--interactive_components-colors-focus_outline) solid var(--border_width-standard);
   outline-offset: var(--border_width-standard);
 }
