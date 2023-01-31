@@ -12,6 +12,8 @@ import {
 } from 'src/features/form/components/FullWidthWrapper';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import { RepeatingGroupTableRow } from 'src/features/form/containers/RepeatingGroupTableRow';
+import { ComponentType } from 'src/layout';
+import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import altinnAppTheme from 'src/theme/altinnAppTheme';
 import { getTextResource } from 'src/utils/formComponentUtils';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
@@ -22,7 +24,7 @@ import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompInput } from 'src/layout/Input/types';
-import type { ComponentInGroup, ILayout, ILayoutComponent } from 'src/layout/layout';
+import type { ComponentExceptGroupAndSummary, ComponentInGroup, ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IOptions, IRepeatingGroups, ITextResource, ITextResourceBindings, IValidations } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
@@ -193,6 +195,10 @@ export function RepeatingGroupTable({
 
   const componentsDeepCopy: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
   const tableComponents = componentsDeepCopy.filter((component) => {
+    const layoutComponent = getLayoutComponentObject(component.type as ComponentExceptGroupAndSummary);
+    if (layoutComponent?.getComponentType() !== ComponentType.Form) {
+      return false;
+    }
     const childId = component.baseComponentId || component.id;
     return tableHeaderComponentIds.includes(childId);
   });
