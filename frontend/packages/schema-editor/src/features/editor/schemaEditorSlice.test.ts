@@ -128,7 +128,7 @@ describe('SchemaEditorSlice', () => {
       nextState.uiSchema,
       '#/$defs/Kontaktperson/properties/navn'
     );
-    expect(item.ref).toEqual('#/$defs/Tekst_25');
+    expect(item.reference).toEqual('#/$defs/Tekst_25');
   });
 
   it('handles setSelectedId', () => {
@@ -379,7 +379,7 @@ describe('SchemaEditorSlice', () => {
     };
     nextState = reducer(nextState, promoteProperty(payload));
     const ref = getNodeByPointer(nextState.uiSchema, '#/properties/melding/properties/name');
-    expect(ref.ref).toBe('#/$defs/name');
+    expect(ref.reference).toBe('#/$defs/name');
     const item = getNodeByPointer(nextState.uiSchema, '#/$defs/name');
     expect(item.fieldType).toBe(FieldType.String);
 
@@ -389,14 +389,14 @@ describe('SchemaEditorSlice', () => {
     };
     nextState = reducer(nextState, promoteProperty(payload2));
     const item2 = getNodeByPointer(nextState.uiSchema, '#/properties/melding');
-    expect(item2.ref).toBe('#/$defs/melding');
+    expect(item2.reference).toBe('#/$defs/melding');
   });
 
   it('handles setting combination type', () => {
     // verify initial state => type is allOf
     let item = getNodeByPointer(state.uiSchema, '#/$defs/allOfTest');
     const childNodes = getChildNodesByPointer(state.uiSchema, '#/$defs/allOfTest');
-    expect(childNodes[0].ref).toBe('#/$defs/Tekst_50');
+    expect(childNodes[0].reference).toBe('#/$defs/Tekst_50');
     expect(childNodes[0].pointer).toBe('#/$defs/allOfTest/allOf/0');
     expect(item.objectKind).toBe(ObjectKind.Combination);
     expect(item.fieldType).toEqual(CombinationKind.AllOf);

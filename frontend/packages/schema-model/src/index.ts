@@ -17,7 +17,7 @@ export {
   pointerIsDefinition,
   combinationIsNullable,
   splitPointerInBaseAndName,
-  getNodeDisplayName,
+  getNameFromPointer,
   getUniqueNodePath,
 } from './lib/utils';
 export { createChildNode } from './lib/mutations/create-node';

@@ -46,19 +46,16 @@ export const schemaTypeIncludes = (schemaNodeType: string | string[], type: Fiel
 export const schemaTypeIsNillable = (schemaNodeType: string | string[]): boolean =>
   schemaNodeType !== FieldType.Null && schemaTypeIncludes(schemaNodeType, FieldType.Null);
 
-export const replaceLastPointerSegment = (pointer: string, newLastSegment: string): string => {
-  const parts = pointer.split('/');
-  parts.pop();
-  parts.push(newLastSegment);
-  return parts.join('/');
-};
-
 export const splitPointerInBaseAndName = (pointer: string) => {
   const parts = pointer.split('/');
   return {
     name: parts.pop(),
     base: parts.join('/'),
   };
+};
+export const replaceLastPointerSegment = (pointer: string, newLastSegment: string): string => {
+  const { base } = splitPointerInBaseAndName(pointer);
+  return [base, newLastSegment].join('/');
 };
 
 export const pointerIsDefinition = (pointer: string) =>
@@ -67,8 +64,8 @@ export const pointerIsDefinition = (pointer: string) =>
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
   childNodes.some((child) => child.fieldType === FieldType.Null);
 
-export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) =>
-  uiSchemaNode.pointer.split('/').pop() ?? '';
+export const getNameFromPointer = ({ pointer }: { pointer: string }) =>
+  pointer.split('/').pop() ?? '';
 
 export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: string): string => {
   let newPointer = targetPointer;

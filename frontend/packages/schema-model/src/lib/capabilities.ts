@@ -25,7 +25,7 @@ export const getCapabilities = (node: UiSchemaNode): Capabilites[] => {
     output.push(Capabilites.CanBeConvertedToArray);
   }
   if (
-    (objectKind === ObjectKind.Reference && node.ref) ||
+    (objectKind === ObjectKind.Reference && node.reference) ||
     (isArray && !hasRestrictions) ||
     (objectKind === ObjectKind.Combination && !hasChildren)
   ) {

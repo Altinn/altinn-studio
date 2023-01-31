@@ -164,17 +164,17 @@ const schemaEditorSlice = createSlice({
     },
     setRef(state, action: PayloadAction<{ path: string; ref: string }>) {
       const { path, ref } = action.payload;
-      const referedNode = getNodeByPointer(state.uiSchema, ref);
+      const referredNode = getNodeByPointer(state.uiSchema, ref);
       const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
-      uiSchemaNode.ref = ref;
+      uiSchemaNode.reference = ref;
       uiSchemaNode.objectKind = ObjectKind.Reference;
-      uiSchemaNode.fieldType = referedNode.fieldType;
+      uiSchemaNode.fieldType = referredNode.fieldType;
       uiSchemaNode.implicitType = true;
     },
     setType(state, action: PayloadAction<{ path: string; type: FieldType }>) {
       const { path, type } = action.payload;
       const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
-      uiSchemaNode.ref = undefined;
+      uiSchemaNode.reference = undefined;
       uiSchemaNode.children = [];
       uiSchemaNode.fieldType = type;
       uiSchemaNode.implicitType = false;

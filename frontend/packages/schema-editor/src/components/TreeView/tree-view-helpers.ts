@@ -3,7 +3,7 @@ import { FieldType, ObjectKind } from '@altinn/schema-model';
 
 export const getIconStr = (item: UiSchemaNode) => {
   const { fieldType, isArray } = item;
-  if (!isArray && item.ref !== undefined) {
+  if (!isArray && item.reference !== undefined) {
     return 'fa-datamodel-ref';
   } else if (item.objectKind === ObjectKind.Combination) {
     return 'fa-group';
