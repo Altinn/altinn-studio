@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { FormComponentType } from '../../../types/global';
+import type { IGenericEditComponent } from '../componentConfig';
 import { TextField, Popover, Button } from '@digdir/design-system-react';
 
 const getLastWord = (value: string) => value.split(' ').pop();
@@ -59,11 +59,6 @@ const stdAutocompleteOpts = [
   'photo',
 ];
 
-export interface Props {
-  handleComponentChange: (component: FormComponentType) => void;
-  component: FormComponentType;
-}
-
 export const getAutocompleteOptions = (phrase: string) => {
   const lastWord = getLastWord(phrase);
   return stdAutocompleteOpts.includes(lastWord) || lastWord === ''
@@ -71,7 +66,7 @@ export const getAutocompleteOptions = (phrase: string) => {
     : stdAutocompleteOpts.filter((alternative) => alternative.includes(lastWord)).slice(0, 6);
 };
 
-export const EditAutoComplete = ({ component, handleComponentChange }: Props) => {
+export const EditAutoComplete = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const [value, setValue] = useState<string>(component?.autocomplete || '');
 
   const handleWordClick = (word: string) => {
