@@ -7,7 +7,7 @@
     "iso-639-1": "2.1.15"
   },
   "devDependencies": {
-    "jest": "29.3.1",
+    "jest": "29.4.1",
     "ts-jest": "29.0.5"
   },
   "license": "MIT",
