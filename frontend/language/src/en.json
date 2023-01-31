@@ -652,7 +652,6 @@
   "schema_editor.uniqueItems": "Unique elements only",
   "schema_editor.value": "Value",
   "schema_editor.view_mode": "View",
-  "schema_editor.warning_under_development": "Functionality for create/edit data models is still under development.",
   "session.expires": "You will soon be signed out",
   "session.inactive": "You have been inactive for too long and will soon be signed out. Press \"continue\" if you wish to stay signed in.",
   "shared.header_all": "All",

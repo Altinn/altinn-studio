@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Panel, PanelVariant } from '@altinn/altinn-design-system';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Tabs } from '@digdir/design-system-react';
 import type { TabItem } from '@digdir/design-system-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -20,7 +19,7 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
   const t = useCallback((key: string) => getTranslation(key, language), [language]);
   enum TabValue {
     Properties = 'properties',
-    Fields = 'fields',
+    Fields = 'fields'
   }
   const [tabsFor, setTabsFor] = useState<string>(undefined);
   const [activeTab, setActiveTab] = useState<string>(TabValue.Properties);
@@ -28,8 +27,8 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
     {
       name: t(TabValue.Properties),
       content: null,
-      value: TabValue.Properties,
-    },
+      value: TabValue.Properties
+    }
   ]);
 
   useEffect(() => {
@@ -39,8 +38,8 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
       {
         name: t(TabValue.Properties),
         content: <ItemPropertiesTab selectedItem={selectedItem} language={language} />,
-        value: TabValue.Properties,
-      },
+        value: TabValue.Properties
+      }
     ];
     if (
       selectedItem?.fieldType === FieldType.Object &&
@@ -50,7 +49,7 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
       tabs.push({
         name: t(TabValue.Fields),
         content: <ItemFieldsTab selectedItem={selectedItem} language={language} />,
-        value: TabValue.Fields,
+        value: TabValue.Fields
       });
     }
     setTabsFor(selectedItem.pointer);
@@ -67,16 +66,15 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
       setActiveTab(tabValue);
     }
   };
+
   if (selectedItem) {
     return (
       <div className={classes.root} data-testid='schema-inspector'>
-        <Panel variant={PanelVariant.Warning} forceMobileLayout={true}>
-          <span>{t('warning_under_development')}</span>
-        </Panel>
         <Tabs activeTab={activeTab} items={tabItems} onChange={switchTab} />
       </div>
     );
   }
+
   return (
     <div>
       <p className={classes.noItem} id='no-item-paragraph'>
