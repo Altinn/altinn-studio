@@ -1,5 +1,5 @@
 .root {
-  align-items: flex-start;
+  align-items: stretch;
   display: flex;
   flex-direction: column;
   gap: var(--component-checkbox-group-space-gap-y-small);
