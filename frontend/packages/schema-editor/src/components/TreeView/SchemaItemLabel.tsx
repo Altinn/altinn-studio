@@ -8,7 +8,7 @@ import {
   CombinationKind,
   FieldType,
   getCapabilities,
-  getNodeDisplayName,
+  getNameFromPointer,
   Keywords,
   ObjectKind,
   pointerIsDefinition,
@@ -62,7 +62,7 @@ export const SchemaItemLabel = ({
     };
   };
 
-  const handleGoToType = wrapper(() => dispatch(navigateToType({ pointer: selectedNode.ref })));
+  const handleGoToType = wrapper(() => dispatch(navigateToType({ pointer: selectedNode.reference })));
   const handleConvertToReference = wrapper(() =>
     dispatch(promoteProperty({ path: selectedNode.pointer }))
   );
@@ -84,7 +84,7 @@ export const SchemaItemLabel = ({
         [ObjectKind.Combination]: CombinationKind.AllOf,
         [ObjectKind.Reference]: undefined,
       }[objectKind],
-      ref: objectKind === ObjectKind.Reference ? '' : undefined,
+      reference: objectKind === ObjectKind.Reference ? '' : undefined,
     };
     const { pointer } = selectedNode;
     selectedNode.objectKind === ObjectKind.Combination
@@ -113,7 +113,7 @@ export const SchemaItemLabel = ({
         <span className={classes.iconContainer}>
           <i className={`fa ${icon}`} />
         </span>{' '}
-        <span>{getNodeDisplayName(selectedNode)}</span>
+        <span>{getNameFromPointer(selectedNode)}</span>
         {selectedNode.isRequired && <span> *</span>}
         {hasReferredNodes && <span className={classes.greenDot}> ●</span>}
         {refNode && (

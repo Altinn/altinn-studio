@@ -18,7 +18,7 @@ const onGoToDefButtonClick = jest.fn();
 const selectedNode: UiSchemaNode = {
   ...createNodeBase(Keywords.Reference, 'test'),
   objectKind: ObjectKind.Reference,
-  ref: '',
+  reference: '',
 };
 const type1Name = 'type1';
 const type2Name = 'type2';
@@ -79,7 +79,9 @@ test('Empty option is selected by default', () => {
 });
 
 test('Referenced type is selected if given', () => {
-  renderReferenceSelectionComponent({ selectedNode: { ...selectedNode, ref: type1.pointer } });
+  renderReferenceSelectionComponent({
+    selectedNode: { ...selectedNode, reference: type1.pointer },
+  });
   expect(screen.getByRole('combobox')).toHaveValue(type1.pointer);
 });
 

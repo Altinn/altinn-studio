@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
@@ -58,20 +58,19 @@ test('dispatches correctly when entering text in textboxes', async () => {
     mockUiSchema,
     getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
   );
-  expect(screen.getByTestId('schema-inspector')).toBeDefined();
   const tablist = screen.getByRole('tablist');
   expect(tablist).toBeDefined();
   const tabpanel = screen.getByRole('tabpanel');
   expect(tabpanel).toBeDefined();
   expect(screen.getAllByRole('tab')).toHaveLength(1);
   const textboxes = screen.getAllByRole('textbox');
-  let textboxIndex = 0;
-  while (textboxes[textboxIndex]) {
-    await act(() => user.clear(textboxes[textboxIndex]));
-    await act(() => user.type(textboxes[textboxIndex], 'New value'));
-    await act(() => user.tab());
-    textboxIndex++;
-  }
+  await act(async () => {
+    for (const textbox of textboxes) {
+      await user.clear(textbox);
+      await user.type(textbox, 'New value');
+      await user.tab();
+    }
+  });
   const actions = store.getActions();
   expect(actions.length).toBeGreaterThanOrEqual(1);
   const actionTypes = actions.map((a) => a.type);
@@ -86,7 +85,7 @@ test('renders no item if nothing is selected', () => {
   expect(textboxes).toHaveLength(0);
 });
 
-test('dispatches correctly when changing restriction value', () => {
+test('dispatches correctly when changing restriction value', async () => {
   const { store } = renderSchemaInspector(
     mockUiSchema,
     getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
@@ -95,11 +94,15 @@ test('dispatches correctly when changing restriction value', () => {
   const minLength = '100';
   const maxLength = '666';
 
-  const minLengthTextField = screen.getByLabelText(language['schema_editor.minLength']);
+  const minLengthTextField = await waitFor(() =>
+    screen.getByLabelText(language['schema_editor.minLength'])
+  );
   fireEvent.change(minLengthTextField, { target: { value: minLength } });
   fireEvent.blur(minLengthTextField);
 
-  const maxLengthTextField = screen.getByLabelText(language['schema_editor.maxLength']);
+  const maxLengthTextField = await waitFor(() =>
+    screen.getByLabelText(language['schema_editor.maxLength'])
+  );
   fireEvent.change(maxLengthTextField, { target: { value: maxLength } });
   fireEvent.blur(maxLengthTextField);
 
@@ -121,9 +124,11 @@ test('Adds new object field when pressing the enter key', async () => {
   const childNode = createChildNode(parentNode, 'abc', false);
   testUiSchema.push(childNode);
   const { store, user } = renderSchemaInspector(testUiSchema, parentNode);
-  await act(() => user.click(screen.queryAllByRole('tab')[1]));
-  await act(() => user.click(screen.getByDisplayValue('abc')));
-  await act(() => user.keyboard('{Enter}'));
+  await act(async () => {
+    await user.click(screen.queryAllByRole('tab')[1]);
+    await user.click(screen.getByDisplayValue('abc'));
+    await user.keyboard('{Enter}');
+  });
   expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addProperty');
 });
 
@@ -134,8 +139,10 @@ test('Adds new valid value field when pressing the enter key', async () => {
   item.enum = ['valid value'];
   testUiSchema.push(item);
   const { store, user } = renderSchemaInspector(testUiSchema, item);
-  await act(() => user.click(screen.queryAllByRole('tab')[1]));
-  await act(() => user.click(screen.getByDisplayValue('valid value')));
-  await act(() => user.keyboard('{Enter}'));
+  await act(async () => {
+    await user.click(screen.queryAllByRole('tab')[1]);
+    await user.click(screen.getByDisplayValue('valid value'));
+    await user.keyboard('{Enter}');
+  });
   expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addEnum');
 });

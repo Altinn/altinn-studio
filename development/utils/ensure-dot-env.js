@@ -40,6 +40,6 @@ module.exports = () => {
   const newEnv = [];
   Object.keys(envData).forEach((key) => newEnv.push([key, envData[key]].join('=')));
   fs.writeFileSync(fd, newEnv.join(os.EOL), 'utf-8');
-  console.log('Done ensuring .env variables at:', dotenvLocations);
+  console.log('Ensuring .env variables at:', dotenvLocations);
   return envData;
 };

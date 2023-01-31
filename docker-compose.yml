@@ -16,13 +16,14 @@ services:
     ports:
       - "80:80"
     environment:
-      - NGINX_HOST=localhost
-      - NGINX_PORT=80
-      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
-      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
+      - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
-      - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+      - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
     depends_on:
       - studio_repositories
     extra_hosts:

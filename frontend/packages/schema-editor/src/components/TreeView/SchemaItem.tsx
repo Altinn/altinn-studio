@@ -42,8 +42,8 @@ export function SchemaItem({
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
   const refNode = useSelector((state: ISchemaState) =>
-    selectedNode.objectKind === ObjectKind.Reference && selectedNode.ref
-      ? getNodeByPointer(state.uiSchema, selectedNode.ref)
+    selectedNode.objectKind === ObjectKind.Reference && selectedNode.reference
+      ? getNodeByPointer(state.uiSchema, selectedNode.reference)
       : undefined
   );
   const childNodes = useSelector((state: ISchemaState) =>

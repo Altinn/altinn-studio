@@ -19,12 +19,12 @@ const mockLanguage = {
 const mockSelectedNode = createNodeBase(Keywords.Properties, 'test');
 const defaultProps: ItemRestrictionsProps = {
   language: mockLanguage,
-  selectedNode: mockSelectedNode,
+  ...mockSelectedNode,
 };
 
 test('item restrictions require checkbox to work', async () => {
   const selectedNode = createNode({ fieldType: FieldType.String });
-  const { user, store } = renderItemRestrictions({ selectedNode });
+  const { user, store } = renderItemRestrictions(selectedNode);
   await act(() => user.click(screen.getByRole('checkbox')));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');
@@ -33,7 +33,7 @@ test('item restrictions require checkbox to work', async () => {
 
 test('item restrictions tab require checkbox to decheck', async () => {
   const selectedNode = createNode({ fieldType: FieldType.String, isRequired: true });
-  const { user, store } = renderItemRestrictions({ selectedNode });
+  const { user, store } = renderItemRestrictions(selectedNode);
   await act(() => user.click(screen.getByRole('checkbox')));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');
@@ -44,9 +44,9 @@ test('Enum list should only appear for strings and numbers, as well as arrays of
   (Object.values(FieldType) as (FieldType | CombinationKind)[])
     .concat(Object.values(CombinationKind))
     .forEach((fieldType) => {
-      const primitiveProps = { selectedNode: createNode({ fieldType }) };
+      const primitiveProps = { ...createNode({ fieldType }) };
       const arrayProps = {
-        selectedNode: createNode({
+        ...createNode({
           isArray: true,
           fieldType,
           objectKind: ObjectKind.Field,

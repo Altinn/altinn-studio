@@ -1,20 +1,14 @@
-import React from 'react';
-import { connect } from 'react-redux';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import Select from 'react-select';
-import { UseText } from '../../hooks';
-import type { IAppState, IDataModelFieldElement } from '../../types/global';
+import type { IAppState } from '../../types/global';
 
-export interface ISelectDataModelProps extends IProvidedProps {
-  dataModelElements: IDataModelFieldElement[];
-}
-
-export interface IProvidedProps {
+export interface ISelectDataModelProps {
   inputId?: string;
   selectedElement: string;
   onDataModelChange: (dataModelField: string) => void;
   noOptionsMessage?: string;
   hideRestrictions?: boolean;
-  t: UseText;
   selectGroup?: boolean;
 }
 
@@ -29,92 +23,41 @@ const selectStyles = {
   }),
 };
 
-export class SelectDataModel extends React.Component<ISelectDataModelProps, ISelectDataModelState> {
-  constructor(props: ISelectDataModelProps) {
-    super(props);
+export const SelectDataModelComponent = ({
+  inputId,
+  selectedElement,
+  onDataModelChange,
+  noOptionsMessage,
+  hideRestrictions,
+  selectGroup,
+}: ISelectDataModelProps) => {
+  const [selectedBinding, setSelectedBinding] = useState(selectedElement);
+  const dataModelElements = useSelector((state: IAppState) => state.appData.dataModel.model);
 
-    this.state = {
-      selectedElement: props.selectedElement,
-    };
+  const onChangeSelectedBinding = (e: any) => {
+    setSelectedBinding(e.value);
+    onDataModelChange(e.value);
+  };
 
-    this.onDataModelChange = this.onDataModelChange.bind(this);
-  }
+  const dataModelElementNames = dataModelElements
+    .filter(
+      (element) =>
+        element.dataBindingName &&
+        ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1))
+    )
+    .map((element) => ({
+      value: element.dataBindingName,
+      label: element.dataBindingName,
+    }));
 
-  public onDataModelChange(e: any) {
-    this.setState({ selectedElement: e.value });
-    this.props.onDataModelChange(e.value);
-  }
-
-  public getRestrictions(selectedId: string): any {
-    if (!selectedId) {
-      return (
-        <li className='a-dotted'>
-          <div className='row'>
-            <div className='col-12'>
-              {this.props.t('ux_editor.modal_restrictions_helper')}
-            </div>
-          </div>
-        </li>
-      );
-    }
-    const selected = this.props.dataModelElements.find(
-      (modelBinding) => modelBinding.dataBindingName === selectedId
-    );
-    return Object.keys(selected.restrictions).length === 0 ? (
-      <li className='a-dotted'>
-        <div className='row'>
-          <div className='col-12'>{this.props.t('ux_editor.modal_restrictions_empty')}</div>
-        </div>
-      </li>
-    ) : (
-      Object.keys(selected.restrictions).map(
-        (key: string): React.ReactNode => (
-          <li key={key} className='a-dotted'>
-            <div className='row'>
-              <div className='col-4'>{key}</div>
-              <div className='col-8'>{selected.restrictions[key].Value}</div>
-            </div>
-          </li>
-        )
-      )
-    );
-  }
-
-  public render() {
-    const { dataModelElements, selectGroup, selectedElement, noOptionsMessage } = this.props;
-    const dataModelElementNames = dataModelElements
-      .filter(
-        (element) =>
-          element.dataBindingName &&
-          ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1))
-      )
-      .map((element) => ({
-        value: element.dataBindingName,
-        label: element.displayString,
-      }));
     return (
       <Select
-        inputId={this.props.inputId}
+        inputId={inputId}
         styles={selectStyles}
         options={dataModelElementNames}
-        defaultValue={{ value: selectedElement, label: selectedElement }}
-        onChange={this.onDataModelChange}
+        defaultValue={{ value: selectedBinding, label: selectedBinding }}
+        onChange={onChangeSelectedBinding}
         noOptionsMessage={(): string => noOptionsMessage}
       />
     );
-  }
 }
-
-const mapStateToProps = (
-  state: IAppState,
-  props: IProvidedProps
-): Omit<ISelectDataModelProps, 't' | 'inputId'> => {
-  return {
-    selectedElement: props.selectedElement,
-    onDataModelChange: props.onDataModelChange,
-    noOptionsMessage: props.noOptionsMessage,
-    dataModelElements: state.appData.dataModel.model
-  };
-};
-
-export const SelectDataModelComponent = connect(mapStateToProps)(SelectDataModel);

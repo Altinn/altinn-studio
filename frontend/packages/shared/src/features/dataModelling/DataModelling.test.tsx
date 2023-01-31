@@ -56,7 +56,7 @@ const initialStoreCall = {
 
 const render = (
   state: {
-    [K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]>;
+    [K in keyof typeof defaultInitialState]?: Partial<(typeof defaultInitialState)[K]>;
   } = {}
 ) => {
   const dataModelsMetadataState = state?.dataModelsMetadataState;
@@ -188,6 +188,16 @@ describe('DataModelling', () => {
     expect(dialogHeader).toBeInTheDocument();
   });
 
+  it('should display no data-models message when schema is undefined and loadState is loaded', async () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    render({
+      dataModelling: { schema: undefined },
+      dataModelsMetadataState: { loadState: LoadingState.ModelsLoaded },
+    });
+    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
+    expect(dialogHeader).toBeInTheDocument();
+  });
+
   it('Should not show info dialog when loading the page if user has asked to not show it again', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
@@ -199,7 +209,7 @@ describe('DataModelling', () => {
   it('Should show start dialog when no models are present and intro page is closed', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
-    render();
+    render({ dataModelling: { schema: undefined }});
     expect(screen.queryByText('Dialog header')).toBeInTheDocument();
   });
 
