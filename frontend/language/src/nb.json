@@ -677,7 +677,6 @@
   "schema_editor.uniqueItems": "Bare unike elementer",
   "schema_editor.value": "Verdi",
   "schema_editor.view_mode": "Vis",
-  "schema_editor.warning_under_development": "Funksjonalitet for å lage/redigere datamodeller er fortsatt under utvikling.",
   "session.expires": "Du blir snart logget ut",
   "session.inactive": "Du har vært innaktiv for lenge og vil snart bli logget ut. Trykk “fortsett” om du ønsker å jobbe videre med appen.",
   "shared.header_all": "Alle",
