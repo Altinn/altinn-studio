@@ -16,11 +16,11 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
 
   function textSwitch(param) {
     switch (param) {
-      case 'Checkboxes':
+      case ComponentTypes.Checkboxes:
         return t('ux_editor.modal_check_box_set_preselected');
-      case 'RadioButtons':
+      case ComponentTypes.RadioButtons:
         return t('ux_editor.modal_radio_button_set_preselected');
-      case 'Dropdown':
+      case ComponentTypes.Dropdown:
         return t('ux_editor.component_dropdown_set_preselected');
       default:
         return 'Unknown component';
