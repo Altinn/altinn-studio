@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { ComponentType } from 'src/layout';
 import { LayoutComponent } from 'src/layout/LayoutComponent';
 import { PanelComponent } from 'src/layout/Panel/PanelComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -11,5 +12,9 @@ export class Panel extends LayoutComponent<'Panel'> {
 
   renderWithLabel(): boolean {
     return false;
+  }
+
+  getComponentType(): ComponentType {
+    return ComponentType.Presentation;
   }
 }

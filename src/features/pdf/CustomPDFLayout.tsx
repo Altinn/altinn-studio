@@ -4,17 +4,19 @@ import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
 import { mapGroupComponents } from 'src/features/form/containers/formUtils';
 import css from 'src/features/pdf/PDFView.module.css';
+import { ComponentType } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import { topLevelComponents } from 'src/utils/formLayout';
-import type { ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
+import type { ComponentExceptGroupAndSummary, ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
 
 interface ICustomPDFLayout {
   layout: ILayout;
 }
 
-const presentationComponents = new Set(['Header', 'Paragraph', 'Image', 'Panel', 'InstanceInformation']);
-
 const CustomPDFSummaryComponent = ({ component, layout }: { component: ILayoutComponentOrGroup; layout: ILayout }) => {
+  const layoutComponent = getLayoutComponentObject(component.type as ComponentExceptGroupAndSummary);
+
   if (component.type === 'Group') {
     return (
       <DisplayGroupContainer
@@ -37,7 +39,7 @@ const CustomPDFSummaryComponent = ({ component, layout }: { component: ILayoutCo
         grid={{ xs: 12 }}
       />
     );
-  } else if (presentationComponents.has(component.type)) {
+  } else if (layoutComponent?.getComponentType() === ComponentType.Presentation) {
     return (
       <GenericComponent
         {...component}

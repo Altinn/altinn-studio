@@ -4,32 +4,12 @@ import type { IPdfFormat } from '.';
 
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import css from 'src/features/pdf/PDFView.module.css';
+import { ComponentType } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import type { ILayoutCompInstanceInformation } from 'src/layout/InstanceInformation/types';
-import type { RenderableGenericComponent } from 'src/layout/layout';
+import type { ComponentExceptGroupAndSummary, RenderableGenericComponent } from 'src/layout/layout';
 import type { LayoutNode, LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
-
-const summaryComponents = new Set([
-  'AddressComponent',
-  'AttachmentList',
-  'Checkboxes',
-  'Custom',
-  'DatePicker',
-  'Dropdown',
-  'FileUpload',
-  'FileUploadWithTag',
-  'Group',
-  'Input',
-  'List',
-  'Map',
-  'MultipleSelect',
-  'RadioButtons',
-  'TextArea',
-]);
-
-const presentationComponents = new Set(['Header', 'Paragraph', 'Image', 'Panel']);
-
-const renderComponents = new Set([...summaryComponents, ...presentationComponents]);
 
 interface IAutomaticPDFLayout {
   layouts: LayoutRootNodeCollection<'resolved'>;
@@ -47,7 +27,9 @@ const AutomaticPDFSummaryComponent = ({
   pageRef: string;
   excludedChildren: string[];
 }) => {
-  if (summaryComponents.has(node.item.type)) {
+  const layoutComponent = getLayoutComponentObject(node.item.type as ComponentExceptGroupAndSummary);
+
+  if (node.item.type === 'Group' || layoutComponent?.getComponentType() === ComponentType.Form) {
     return (
       <SummaryComponent
         id={`__pdf__${node.item.id}`}
@@ -59,7 +41,7 @@ const AutomaticPDFSummaryComponent = ({
       />
     );
   }
-  if (presentationComponents.has(node.item.type)) {
+  if (layoutComponent?.getComponentType() === ComponentType.Presentation) {
     return (
       <GenericComponent
         {...(node.item as RenderableGenericComponent)}
@@ -102,7 +84,7 @@ const AutomaticPDFLayout = ({ layouts, pdfFormat, pageOrder, hidden }: IAutomati
       </div>
       {pdfLayouts.map(([pageRef, layout]) => {
         return layout.children().map((node) => {
-          if (excludedComponents.has(node.item.id) || !renderComponents.has(node.item.type)) {
+          if (excludedComponents.has(node.item.id)) {
             return null;
           }
 

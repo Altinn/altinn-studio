@@ -9,6 +9,8 @@ import { EditButton } from 'src/components/summary/EditButton';
 import { GroupInputSummary } from 'src/components/summary/GroupInputSummary';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
+import { ComponentType } from 'src/layout';
+import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import appTheme from 'src/theme/altinnAppTheme';
 import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
@@ -16,7 +18,7 @@ import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ComponentFromSummary } from 'src/features/form/containers/DisplayGroupContainer';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutComponent } from 'src/layout/layout';
+import type { ComponentExceptGroupAndSummary, ILayoutComponent } from 'src/layout/layout';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
 import type { IRuntimeState } from 'src/types';
 import type { AnyNode } from 'src/utils/layout/hierarchy.types';
@@ -140,6 +142,11 @@ function SummaryGroupComponent({
       const childSummaryComponents = node
         .children(undefined, row.index)
         .filter(removeExcludedChildren)
+        .filter(
+          (node) =>
+            getLayoutComponentObject(node.item.type as ComponentExceptGroupAndSummary)?.getComponentType() ===
+            ComponentType.Form,
+        )
         .map((n) => {
           if (n.isHidden(hiddenFields)) {
             return;

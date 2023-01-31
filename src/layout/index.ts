@@ -99,4 +99,14 @@ export const FormComponentContext = createContext<IFormComponentContext>({
   baseComponentId: undefined,
 });
 
+/**
+ * This enum is used to distinguish purly presentational components
+ * from interactive form components that can have formData etc.
+ */
+export enum ComponentType {
+  Presentation = 'presentation',
+  Form = 'form',
+  Button = 'button',
+}
+
 export default components;

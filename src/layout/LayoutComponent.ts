@@ -1,4 +1,4 @@
-import components from 'src/layout/index';
+import components, { ComponentType } from 'src/layout/index';
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { ComponentExceptGroupAndSummary } from 'src/layout/layout';
 
@@ -31,6 +31,14 @@ export abstract class LayoutComponent<Type extends ComponentExceptGroupAndSummar
    */
   renderDefaultValidations(): boolean {
     return true;
+  }
+
+  /**
+   * Is this a form component that has formData and should be displayed differently in summary/pdf?
+   * Purly presentational components with no interaction should override and return ComponentType.Presentation.
+   */
+  getComponentType(): ComponentType {
+    return ComponentType.Form;
   }
 }
 

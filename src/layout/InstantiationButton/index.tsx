@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { ComponentType } from 'src/layout';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { LayoutComponent } from 'src/layout/LayoutComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -11,5 +12,9 @@ export class InstantiationButton extends LayoutComponent<'InstantiationButton'> 
 
   renderWithLabel(): boolean {
     return false;
+  }
+
+  getComponentType(): ComponentType {
+    return ComponentType.Button;
   }
 }
