@@ -45,9 +45,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.27.1":
-  version: 0.27.1
-  resolution: "@altinn/altinn-design-system@npm:0.27.1"
+"@altinn/altinn-design-system@npm:0.27.2":
+  version: 0.27.2
+  resolution: "@altinn/altinn-design-system@npm:0.27.2"
   dependencies:
     "@altinn/figma-design-tokens": ^5.0.0
     "@navikt/ds-icons": ^2.0.0
@@ -58,7 +58,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 3ec6bac96858df9d8202e4a037baeaa1764790c484b14f4bce288c770b6fd54e2e0c920f561bb26d67c6d3715cf9df720236979ce81b843e7cbd7b6376d94f29
+  checksum: b904178f3d15fa5c163cfa0843ff06e292dbc5cde1ee5542b5c7bd161e236370e26878615381856f79251fd6b061322a7e7a12fd640983a5e8bacc58b576315c
   languageName: node
   linkType: hard
 
@@ -77,18 +77,18 @@ __metadata:
     jest: 29.4.1
     jsonpointer: 5.0.1
   peerDependencies:
-    "@altinn/altinn-design-system": 0.27.1
-    "@digdir/design-system-react": 0.3.1
+    "@altinn/altinn-design-system": 0.27.2
+    "@digdir/design-system-react": 0.4.2
     "@mui/material": 5.11.6
-    "@reduxjs/toolkit": 1.9.1
-    axios: 1.2.5
+    "@reduxjs/toolkit": 1.9.2
+    axios: 1.2.6
     classnames: 2.3.2
     react: 18.2.0
     react-dnd: 16.0.1
     react-dnd-html5-backend: 16.0.1
     react-dom: 18.2.0
     react-redux: 8.0.5
-    redux: 4.2.0
+    redux: 4.2.1
     redux-saga: 1.2.2
   languageName: unknown
   linkType: soft
@@ -106,8 +106,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.1
-    "@digdir/design-system-react": 0.3.1
+    "@altinn/altinn-design-system": 0.27.2
+    "@digdir/design-system-react": 0.4.2
     iso-639-1: 2.1.15
     jest: 29.4.1
     ts-jest: 29.0.5
@@ -115,7 +115,7 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     react-select: 5.7.0
-    typescript: 4.9.4
+    typescript: 4.9.5
   languageName: unknown
   linkType: soft
 
@@ -1565,13 +1565,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.3.1":
-  version: 0.3.1
-  resolution: "@digdir/design-system-react@npm:0.3.1"
+"@digdir/design-system-react@npm:0.4.2":
+  version: 0.4.2
+  resolution: "@digdir/design-system-react@npm:0.4.2"
   peerDependencies:
     react: ^18.1.0
     react-dom: ^18.0.0
-  checksum: fd39d1172b9b1eb48ee1700f5ffae77fdefce45e2fc8afbfed21b09d862b65f9fa6b0e343fffafb13b2daba505fe897206be45d4e410fa88d2c1b5abca8c07a9
+  checksum: c93e25327b8ab4721040f84d05f5ac9a94e14e0ff4edeb4243c40956235e7718a7862ef3e53e0e52f279e57870060a1a9a7422830862db1f3d26e62ce0a00cf3
   languageName: node
   linkType: hard
 
@@ -1754,7 +1754,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@faker-js/faker@npm:^7.6.0":
+"@faker-js/faker@npm:7.6.0":
   version: 7.6.0
   resolution: "@faker-js/faker@npm:7.6.0"
   checksum: 942af6221774e8c98a0eb6bc75265e05fb81a941170377666c3439aab9495dd321d6beedc5406f07e6ad44262b3e43c20961f666d116ad150b78e7437dd1bb2b
@@ -2882,9 +2882,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reduxjs/toolkit@npm:1.9.1":
-  version: 1.9.1
-  resolution: "@reduxjs/toolkit@npm:1.9.1"
+"@reduxjs/toolkit@npm:1.9.2":
+  version: 1.9.2
+  resolution: "@reduxjs/toolkit@npm:1.9.2"
   dependencies:
     immer: ^9.0.16
     redux: ^4.2.0
@@ -2898,7 +2898,7 @@ __metadata:
       optional: true
     react-redux:
       optional: true
-  checksum: e6700a0d45198ab525c96ff0425fa0125fbdc37ce514f0c77c30225837113279ceec9190ac3da35cb20e77553e56342021788bbf17465819068c4db34cb3d87f
+  checksum: 8eac4fb65aa5ef969545e4d72a81c5a7679935d08df8cc4dd955362beb0b0b8d3cb1e2252df256a50bbe0c887b797a0e2e271656d6b50cbec5d26f61da3a80d4
   languageName: node
   linkType: hard
 
@@ -3097,90 +3097,90 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-darwin-arm64@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-darwin-arm64@npm:1.3.29"
+"@swc/core-darwin-arm64@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-darwin-arm64@npm:1.3.31"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@swc/core-darwin-x64@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-darwin-x64@npm:1.3.29"
+"@swc/core-darwin-x64@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-darwin-x64@npm:1.3.31"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@swc/core-linux-arm-gnueabihf@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.3.29"
+"@swc/core-linux-arm-gnueabihf@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.3.31"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@swc/core-linux-arm64-gnu@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-linux-arm64-gnu@npm:1.3.29"
+"@swc/core-linux-arm64-gnu@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-linux-arm64-gnu@npm:1.3.31"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@swc/core-linux-arm64-musl@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-linux-arm64-musl@npm:1.3.29"
+"@swc/core-linux-arm64-musl@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-linux-arm64-musl@npm:1.3.31"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@swc/core-linux-x64-gnu@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-linux-x64-gnu@npm:1.3.29"
+"@swc/core-linux-x64-gnu@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-linux-x64-gnu@npm:1.3.31"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@swc/core-linux-x64-musl@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-linux-x64-musl@npm:1.3.29"
+"@swc/core-linux-x64-musl@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-linux-x64-musl@npm:1.3.31"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@swc/core-win32-arm64-msvc@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-win32-arm64-msvc@npm:1.3.29"
+"@swc/core-win32-arm64-msvc@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-win32-arm64-msvc@npm:1.3.31"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@swc/core-win32-ia32-msvc@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-win32-ia32-msvc@npm:1.3.29"
+"@swc/core-win32-ia32-msvc@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-win32-ia32-msvc@npm:1.3.31"
   conditions: os=win32 & cpu=ia32
   languageName: node
   linkType: hard
 
-"@swc/core-win32-x64-msvc@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core-win32-x64-msvc@npm:1.3.29"
+"@swc/core-win32-x64-msvc@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core-win32-x64-msvc@npm:1.3.31"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@swc/core@npm:1.3.29":
-  version: 1.3.29
-  resolution: "@swc/core@npm:1.3.29"
+"@swc/core@npm:1.3.31":
+  version: 1.3.31
+  resolution: "@swc/core@npm:1.3.31"
   dependencies:
-    "@swc/core-darwin-arm64": 1.3.29
-    "@swc/core-darwin-x64": 1.3.29
-    "@swc/core-linux-arm-gnueabihf": 1.3.29
-    "@swc/core-linux-arm64-gnu": 1.3.29
-    "@swc/core-linux-arm64-musl": 1.3.29
-    "@swc/core-linux-x64-gnu": 1.3.29
-    "@swc/core-linux-x64-musl": 1.3.29
-    "@swc/core-win32-arm64-msvc": 1.3.29
-    "@swc/core-win32-ia32-msvc": 1.3.29
-    "@swc/core-win32-x64-msvc": 1.3.29
+    "@swc/core-darwin-arm64": 1.3.31
+    "@swc/core-darwin-x64": 1.3.31
+    "@swc/core-linux-arm-gnueabihf": 1.3.31
+    "@swc/core-linux-arm64-gnu": 1.3.31
+    "@swc/core-linux-arm64-musl": 1.3.31
+    "@swc/core-linux-x64-gnu": 1.3.31
+    "@swc/core-linux-x64-musl": 1.3.31
+    "@swc/core-win32-arm64-msvc": 1.3.31
+    "@swc/core-win32-ia32-msvc": 1.3.31
+    "@swc/core-win32-x64-msvc": 1.3.31
   dependenciesMeta:
     "@swc/core-darwin-arm64":
       optional: true
@@ -3202,7 +3202,7 @@ __metadata:
       optional: true
     "@swc/core-win32-x64-msvc":
       optional: true
-  checksum: 4f95e8f02c79e36be9dc8825e0343274c0df6d37e8593361227fad65d86b2208fb6564857493ee2cfcc3ba3d45c873c2f7304a0c74108a4b0d6bb78adde6ec8e
+  checksum: 3846440fdfa68dfc260657584b460dd21bb65efec6b54881e8b4257e7d71655f44a37170e3edf14c3ddacb7120a9740f3a9e3a7f55ec4799402028e1fcfc21a2
   languageName: node
   linkType: hard
 
@@ -4398,7 +4398,7 @@ __metadata:
     "@redux-saga/is": 1.1.3
     "@redux-saga/symbols": 1.1.3
     "@svgr/webpack": 6.5.1
-    "@swc/core": 1.3.29
+    "@swc/core": 1.3.31
     "@swc/jest": 0.2.24
     "@testing-library/dom": 8.19.0
     "@testing-library/jest-dom": 5.16.5
@@ -4415,14 +4415,14 @@ __metadata:
     "@typescript-eslint/parser": 5.49.0
     cross-env: 7.0.3
     css-loader: 6.7.3
-    eslint: 8.32.0
+    eslint: 8.33.0
     eslint-config-prettier: 8.6.0
     eslint-plugin-import: 2.27.5
     eslint-plugin-jsx-a11y: 6.7.1
     eslint-plugin-prettier: 4.2.1
-    eslint-plugin-react: 7.32.1
+    eslint-plugin-react: 7.32.2
     eslint-plugin-react-hooks: 4.6.0
-    eslint-plugin-simple-import-sort: 8.0.0
+    eslint-plugin-simple-import-sort: 10.0.0
     eslint-plugin-sonarjs: 0.18.0
     glob: 8.1.0
     jest: 29.4.1
@@ -4432,7 +4432,7 @@ __metadata:
     mini-css-extract-plugin: 2.7.2
     monaco-editor: 0.34.1
     monaco-editor-webpack-plugin: 7.0.1
-    msw: 0.49.3
+    msw: 1.0.0
     prettier: 2.8.3
     react: 18.2.0
     react-dom: 18.2.0
@@ -4440,7 +4440,6 @@ __metadata:
     redux-mock-store: 1.5.4
     redux-saga: 1.2.2
     redux-saga-test-plan: 4.0.6
-    rimraf: 3.0.2
     source-map-loader: 4.0.1
     style-loader: 3.3.1
     svg-inline-loader: 0.8.2
@@ -4448,7 +4447,7 @@ __metadata:
     terser-webpack-plugin: 5.3.6
     ts-morph: 17.0.1
     tsc: 2.0.4
-    typescript: 4.9.4
+    typescript: 4.9.5
     webpack: 5.75.0
     webpack-cli: 5.0.1
     webpack-dev-server: 4.11.1
@@ -4527,11 +4526,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.1
-    "@digdir/design-system-react": 0.3.1
+    "@altinn/altinn-design-system": 0.27.2
+    "@digdir/design-system-react": 0.4.2
     "@mui/material": 5.11.6
-    "@reduxjs/toolkit": 1.9.1
-    axios: 1.2.5
+    "@reduxjs/toolkit": 1.9.2
+    axios: 1.2.6
     classnames: 2.3.2
     cross-env: 7.0.3
     history: 5.3.0
@@ -4542,11 +4541,11 @@ __metadata:
     react-redux: 8.0.5
     react-router-dom: 6.8.0
     react-select: 5.7.0
-    redux: 4.2.0
+    redux: 4.2.1
     redux-saga: 1.2.2
     reselect: 4.1.7
     tsc: 2.0.4
-    typescript: 4.9.4
+    typescript: 4.9.5
     webpack: 5.75.0
     webpack-dev-server: 4.11.1
   languageName: unknown
@@ -4556,9 +4555,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:app-preview"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.1
-    "@digdir/design-system-react": 0.3.1
-    axios: 1.2.5
+    "@altinn/altinn-design-system": 0.27.2
+    "@digdir/design-system-react": 0.4.2
+    axios: 1.2.6
     classnames: 2.3.2
     cross-env: 7.0.3
     jest: 29.4.1
@@ -4567,7 +4566,7 @@ __metadata:
     react-dom: 18.2.0
     react-redux: 8.0.5
     react-router-dom: 6.8.0
-    typescript: 4.9.4
+    typescript: 4.9.5
     webpack: 5.75.0
     webpack-dev-server: 4.11.1
   languageName: unknown
@@ -4578,13 +4577,13 @@ __metadata:
   resolution: "app-shared@workspace:packages/shared"
   dependencies:
     3: 2.1.0
-    "@altinn/altinn-design-system": 0.27.1
+    "@altinn/altinn-design-system": 0.27.2
     "@altinn/schema-editor": 0.1.0
-    "@digdir/design-system-react": 0.3.1
+    "@digdir/design-system-react": 0.4.2
     "@mui/material": 5.11.6
-    "@reduxjs/toolkit": 1.9.1
+    "@reduxjs/toolkit": 1.9.2
     "@types/react": 18.0.27
-    axios: 1.2.5
+    axios: 1.2.6
     classnames: 2.3.2
     diff: 5.1.0
     dompurify: 2.4.3
@@ -4605,9 +4604,9 @@ __metadata:
     react-select: 5.7.0
     redux-saga: 1.2.2
     tsc: 2.0.4
-    typescript: 4.9.4
+    typescript: 4.9.5
   peerDependencies:
-    redux: 4.2.0
+    redux: 4.2.1
   languageName: unknown
   linkType: soft
 
@@ -4832,14 +4831,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.2.5":
-  version: 1.2.5
-  resolution: "axios@npm:1.2.5"
+"axios@npm:1.2.6":
+  version: 1.2.6
+  resolution: "axios@npm:1.2.6"
   dependencies:
     follow-redirects: ^1.15.0
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 3d7a3b029b9f46fb296bcecf84fbe4be32b09511aba2256d44fc5c1a75824f364d2ce22fd0ea61adfd564e1c353c6d2000b4cc340c65b27102528101557dd9db
+  checksum: cbd19be3e07d2fbb6a0b126e49880cecdd44c1f68496ae0e7d21e7dc1c31fd59703a8eec51c9fd69034344f519cc1cdc22c22153131063657c4cef50195f0c00
   languageName: node
   linkType: hard
 
@@ -5883,12 +5882,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "cypress-studio@workspace:testing/cypress"
   dependencies:
-    "@faker-js/faker": ^7.6.0
+    "@faker-js/faker": 7.6.0
     axe-core: 4.6.3
     cypress: 12.4.1
     cypress-axe: 1.3.0
     cypress-plugin-tab: 1.0.5
-    eslint: 8.32.0
+    eslint: 8.33.0
     eslint-plugin-cypress: 2.12.1
   languageName: unknown
   linkType: soft
@@ -5956,10 +5955,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:dashboard"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.1
-    "@digdir/design-system-react": 0.3.1
+    "@altinn/altinn-design-system": 0.27.2
+    "@digdir/design-system-react": 0.4.2
     "@mui/x-data-grid": 5.17.21
-    "@reduxjs/toolkit": 1.9.1
+    "@reduxjs/toolkit": 1.9.2
     cross-env: 7.0.3
     jest: 29.4.1
     lodash-es: 4.17.21
@@ -5968,7 +5967,7 @@ __metadata:
     react-redux: 8.0.5
     react-router-dom: 6.8.0
     react-use: 17.4.0
-    redux: 4.2.0
+    redux: 4.2.1
     redux-saga: 1.2.2
     tsc: 2.0.4
     webpack: 5.75.0
@@ -6789,9 +6788,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:7.32.1":
-  version: 7.32.1
-  resolution: "eslint-plugin-react@npm:7.32.1"
+"eslint-plugin-react@npm:7.32.2":
+  version: 7.32.2
+  resolution: "eslint-plugin-react@npm:7.32.2"
   dependencies:
     array-includes: ^3.1.6
     array.prototype.flatmap: ^1.3.1
@@ -6810,16 +6809,16 @@ __metadata:
     string.prototype.matchall: ^4.0.8
   peerDependencies:
     eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8
-  checksum: e20eab61161a3db6211c2bd1eb9be3e407fd14e72c06c5f39a078b6ac37427b2af6056ee70e3954249bca0a04088ae797a0c8ba909fb8802e29712de2a41262d
+  checksum: 2232b3b8945aa50b7773919c15cd96892acf35d2f82503667a79e2f55def90f728ed4f0e496f0f157acbe1bd4397c5615b676ae7428fe84488a544ca53feb944
   languageName: node
   linkType: hard
 
-"eslint-plugin-simple-import-sort@npm:8.0.0":
-  version: 8.0.0
-  resolution: "eslint-plugin-simple-import-sort@npm:8.0.0"
+"eslint-plugin-simple-import-sort@npm:10.0.0":
+  version: 10.0.0
+  resolution: "eslint-plugin-simple-import-sort@npm:10.0.0"
   peerDependencies:
     eslint: ">=5.0.0"
-  checksum: d2a92a7d148803ee9ad4f081892a8d03820198c36a0f4f16a97d9f686a714edc9c9a9e51cc79cb0ba1afff76a1fde6a5eae50e9e3754928068227c92a2db5d6b
+  checksum: 23221ff63f80f9c52da807d388ee8a51bc36a3b73345f60ec886e7973c28d75eb1d1e47f7f2916a7c1f94a1b5037b1450356a64a8fbd58096fd6bee57c6e3e48
   languageName: node
   linkType: hard
 
@@ -6877,9 +6876,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:8.32.0":
-  version: 8.32.0
-  resolution: "eslint@npm:8.32.0"
+"eslint@npm:8.33.0":
+  version: 8.33.0
+  resolution: "eslint@npm:8.33.0"
   dependencies:
     "@eslint/eslintrc": ^1.4.1
     "@humanwhocodes/config-array": ^0.11.8
@@ -6922,7 +6921,7 @@ __metadata:
     text-table: ^0.2.0
   bin:
     eslint: bin/eslint.js
-  checksum: 23c8fb3c57291eecd9c1448faf603226a8f885022a2cd96e303459bf72e39b7f54987c6fb948f0f9eecaf7085600e6eb0663482a35ea83da12e9f9141a22b91e
+  checksum: 727e63ab8b7acf281442323c5971f6afdd5b656fbcebc4476cf54e35af51b2f180617433fc5e1952f0449ca3f43a905527f9407ea4b8a7ea7562fc9c3f278d4c
   languageName: node
   linkType: hard
 
@@ -10085,9 +10084,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:0.49.3":
-  version: 0.49.3
-  resolution: "msw@npm:0.49.3"
+"msw@npm:1.0.0":
+  version: 1.0.0
+  resolution: "msw@npm:1.0.0"
   dependencies:
     "@mswjs/cookies": ^0.2.2
     "@mswjs/interceptors": ^0.17.5
@@ -10115,7 +10114,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 8322cd42cd69f289c05517d02bde22fc2f10e86fc2d0d209d9df54bd03d10b8123723c5587a2654dcd2cd0f314a016f9eccac88cffa30fafd1f9fead16db639e
+  checksum: fa1e7abb0f3acfb70723ad5e2717bf9d6168f853100a2ac83473804a9181a36641fc9a8e98e792f6440be7935982847063be378d7555397206b877ecee474446
   languageName: node
   linkType: hard
 
@@ -11457,7 +11456,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux@npm:4.2.0, redux@npm:^4.0.0, redux@npm:^4.0.4, redux@npm:^4.0.5, redux@npm:^4.2.0":
+"redux@npm:4.2.1":
+  version: 4.2.1
+  resolution: "redux@npm:4.2.1"
+  dependencies:
+    "@babel/runtime": ^7.9.2
+  checksum: f63b9060c3a1d930ae775252bb6e579b42415aee7a23c4114e21a0b4ba7ec12f0ec76936c00f546893f06e139819f0e2855e0d55ebfce34ca9c026241a6950dd
+  languageName: node
+  linkType: hard
+
+"redux@npm:^4.0.0, redux@npm:^4.0.4, redux@npm:^4.0.5, redux@npm:^4.2.0":
   version: 4.2.0
   resolution: "redux@npm:4.2.0"
   dependencies:
@@ -11712,7 +11720,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:3.0.2, rimraf@npm:^3.0.0, rimraf@npm:^3.0.2":
+"rimraf@npm:^3.0.0, rimraf@npm:^3.0.2":
   version: 3.0.2
   resolution: "rimraf@npm:3.0.2"
   dependencies:
@@ -12939,23 +12947,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.9.4":
-  version: 4.9.4
-  resolution: "typescript@npm:4.9.4"
+"typescript@npm:4.9.5":
+  version: 4.9.5
+  resolution: "typescript@npm:4.9.5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: e782fb9e0031cb258a80000f6c13530288c6d63f1177ed43f770533fdc15740d271554cdae86701c1dd2c83b082cea808b07e97fd68b38a172a83dbf9e0d0ef9
+  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@4.9.4#~builtin<compat/typescript>":
-  version: 4.9.4
-  resolution: "typescript@patch:typescript@npm%3A4.9.4#~builtin<compat/typescript>::version=4.9.4&hash=ad5954"
+"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>":
+  version: 4.9.5
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=ad5954"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 1caaea6cb7f813e64345190fddc4e6c924d0b698ab81189b503763c4a18f7f5501c69362979d36e19c042d89d936443e768a78b0675690b35eb663d19e0eae71
+  checksum: 8f6260acc86b56bfdda6004bc53f32ea548f543e8baef7071c8e34d29d292f3e375c8416556c8de10b24deef6933cd1c16a8233dc84a3dd43a13a13265d0faab
   languageName: node
   linkType: hard
 
@@ -13183,8 +13191,8 @@ __metadata:
   resolution: "ux-editor@workspace:packages/ux-editor"
   dependencies:
     "@mui/material": 5.11.6
-    "@reduxjs/toolkit": 1.9.1
-    axios: 1.2.5
+    "@reduxjs/toolkit": 1.9.2
+    axios: 1.2.6
     classnames: 2.3.2
     jest: 29.4.1
     react: 18.2.0
@@ -13194,11 +13202,11 @@ __metadata:
     react-modal: 3.16.1
     react-redux: 8.0.5
     react-select: 5.7.0
-    redux: 4.2.0
+    redux: 4.2.1
     redux-devtools-extension: 2.13.9
     redux-saga: 1.2.2
     reselect: 4.1.7
-    typescript: 4.9.4
+    typescript: 4.9.5
     uuid: 9.0.0
   peerDependencies:
     webpack: 5.75.0
