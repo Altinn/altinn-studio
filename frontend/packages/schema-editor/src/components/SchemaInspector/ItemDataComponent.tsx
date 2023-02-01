@@ -69,6 +69,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(uiSchema, pointer) : [];
+
   const softValidateName = (nodeName: string) => {
     const error = !isValidName(nodeName) ? NameError.InvalidCharacter : NameError.NoError;
     setNameError(error);
@@ -95,7 +96,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
-  const onChangeFieldType = (pointer: string, type: FieldType) =>
+  const onChangeFieldType = (type: FieldType) =>
     dispatch(setType({ path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -107,7 +108,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
       return;
     }
 
-    childNodes.forEach((childNode: UiSchemaNode) => {
+    getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (childNode.fieldType === FieldType.Null) {
         dispatch(deleteCombinationItem({ path: childNode.pointer }));
       }

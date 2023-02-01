@@ -5969,7 +5969,7 @@ __metadata:
     react-use: 17.4.0
     redux: 4.2.1
     redux-saga: 1.2.2
-    tsc: 2.0.4
+    typescript: 4.9.5
     webpack: 5.75.0
     webpack-dev-server: 4.11.1
   languageName: unknown

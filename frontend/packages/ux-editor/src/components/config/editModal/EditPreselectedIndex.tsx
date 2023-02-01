@@ -33,7 +33,7 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
       <TextField
         defaultValue={(component as IFormGenericOptionsComponent).preselectedOptionIndex}
         formatting={{ number: {} }}
-        label={mapComponentTypeToText(component.type)}
+        label={mapComponentTypeToText(component.type as ComponentTypes)}
         onChange={handlePreselectedOptionChange}
         placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
       />

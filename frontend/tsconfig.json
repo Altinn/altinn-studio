@@ -15,6 +15,7 @@
     "noUnusedLocals": true,
     "esModuleInterop": true,
     "baseUrl": ".",
+    "skipLibCheck": true,
     "paths": {
       "app-shared/*": ["./packages/shared/src/*"],
       "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],

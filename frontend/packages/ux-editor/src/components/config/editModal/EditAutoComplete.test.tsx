@@ -2,6 +2,8 @@ import React from 'react';
 import { EditAutoComplete, getAutocompleteOptions } from './EditAutoComplete';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { FormComponentType } from '../../../types/global';
+
 
 test('should give options', () => {
   const options = getAutocompleteOptions('nam');
@@ -27,7 +29,7 @@ test('that is renders', async () => {
       unobserve: jest.fn(),
     }));
   const handleComponentChange = jest.fn();
-  const component = {};
+  const component = {} as FormComponentType;
   userEvent.setup();
   render(<EditAutoComplete handleComponentChange={handleComponentChange} component={component} />);
   const textbox = screen.getByRole('textbox');

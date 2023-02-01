@@ -25,7 +25,7 @@ export const OrgReposList = () => {
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'name', sort: 'asc' }]);
   const { data: starredRepos, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
-    uid,
+    uid: uid as number,
     page: page,
     sortby: sortModel?.[0]?.field,
     order: sortModel?.[0]?.sort,
