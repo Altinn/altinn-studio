@@ -31,34 +31,51 @@ export function App() {
   const t = useText();
   const { org, app } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const layoutOrder = useSelector(
+  const layoutPagesOrder = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
   );
+  const layoutOrder = useSelector(
+    (state: IAppState) =>
+      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order
+  );
+
   const selectedLayout = useSelector(
     (state: IAppState) => state.formDesigner.layout.selectedLayout
   );
 
+  const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
+  const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
+
+  const isLayoutSettingsFetched = useSelector(
+    (state: IAppState) => state.formDesigner.layout.isLayoutSettingsFetched
+  );
+  const isLayoutFetched = useSelector((state: IAppState) => state.formDesigner.layout.fetched);
+  const isWidgetFetched = useSelector((state: IAppState) => state.widgets.fetched);
+  const componentIsReady = isLayoutFetched && isWidgetFetched && isLayoutSettingsFetched;
+
   // Set Layout to first layout in the page set if none is selected.
   useEffect(() => {
-    if (!searchParams.has('layout') && layoutOrder[0]) {
-      setSearchParams({ ...deepCopy(searchParams), layout: layoutOrder[0] });
+    if (!searchParams.has('layout') && layoutPagesOrder[0]) {
+      setSearchParams({ ...deepCopy(searchParams), layout: layoutPagesOrder[0] });
     }
     if (selectedLayout === 'default' && searchParams.has('layout')) {
       dispatch(
         FormLayoutActions.updateSelectedLayout({ selectedLayout: searchParams.get('layout') })
       );
     }
-  }, [dispatch, layoutOrder, searchParams, setSearchParams, selectedLayout]);
+  }, [dispatch, layoutPagesOrder, searchParams, setSearchParams, selectedLayout]);
 
   useEffect(() => {
     const fetchFiles = () => {
       dispatch(fetchDataModel());
-      // dispatch(FormLayoutActions.fetchFormLayout());
-      dispatch(loadTextResources({
-        textResourcesUrl: (langCode) => textResourcesPath(org, app, langCode),
-        languagesUrl: languagePath(org, app)
-      }));
-      // dispatch(loadLanguages({ url: languagePath(org, app) }));
+      dispatch(FormLayoutActions.fetchFormLayout());
+      dispatch(
+        loadTextResources({
+          textResourcesUrl: (langCode) => textResourcesPath(org, app, langCode),
+          languagesUrl: languagePath(org, app)
+        })
+      );
+      dispatch(loadLanguages({ url: languagePath(org, app) }));
       dispatch(fetchServiceConfiguration());
       dispatch(fetchRuleModel());
       dispatch(fetchLanguage({ languageCode: DEFAULT_LANGUAGE }));
@@ -83,17 +100,23 @@ export function App() {
   // Make sure to create a new page when the last one is deleted!
   useEffect(() => {
     if (!selectedLayout) {
-      const name = t('general.page') + (layoutOrder.length + 1);
+      const name = t('general.page') + (layoutPagesOrder.length + 1);
       dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
     }
   }, [selectedLayout]);
 
-
-
-  return (
-    <div>
-      <ErrorMessageComponent />
-      <FormDesigner />
-    </div>
-  );
+  if (componentIsReady) {
+    return (
+      <div>
+        <ErrorMessageComponent />
+        <FormDesigner
+          activeList={activeList}
+          dataModel={dataModel}
+          layoutOrder={layoutOrder}
+          selectedLayout={selectedLayout}
+        />
+      </div>
+    );
+  }
+  return <h2>loading</h2>;
 }

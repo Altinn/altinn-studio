@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,42 +6,42 @@ import FileEditor from 'app-shared/file-editor/FileEditor';
 import { RightMenu } from '../components/rightMenu/RightMenu';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
 import { DesignView } from './DesignView';
-import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
+import type { IDataModelFieldElement, IFormLayoutOrder, LogicMode } from '../types/global';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import type { IAppState, IDataModelFieldElement, LogicMode } from '../types/global';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { deepCopy } from 'app-shared/pure';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { Warning } from '@navikt/ds-icons';
-import { useText } from '@altinn/ux-editor';
 
-export const FormDesigner = (): JSX.Element => {
+type FormDesignerProps = {
+  selectedLayout: string;
+  dataModel: IDataModelFieldElement[];
+  activeList: any;
+  layoutOrder: IFormLayoutOrder;
+};
+export const FormDesigner = ({
+  activeList,
+  layoutOrder,
+  selectedLayout,
+  dataModel
+}: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
-
   const [codeEditorOpen, setCodeEditorOpen] = useState<boolean>(false);
   const [codeEditorMode, setCodeEditorMode] = useState<LogicMode>(null);
+  const order = useSelector(makeGetLayoutOrderSelector());
+  const layoutOrderCopy = deepCopy(layoutOrder || {});
 
-  const selectedLayout: string = useSelector(
-    (state: IAppState) => state.formDesigner.layout.selectedLayout
-  );
-  const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
+  const addInitialPage = useCallback((): void => {
+    const name = 'Side 1';
+    dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
+  }, []);
 
-  const isManageServiceConfigurationFetched = useSelector(
-    (state: IAppState) => state.serviceConfigurations.manageServiceConfiguration.fetched
-  );
-  const isFormLayoutFetched = useSelector((state: IAppState) => state.formDesigner.layout.fetched);
-  const isReadyToRenderDesigner = isManageServiceConfigurationFetched && isFormLayoutFetched;
-
-  useEffect(() => {
-    dispatch(FormLayoutActions.fetchFormLayout());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (isFormLayoutFetched && !isManageServiceConfigurationFetched) {
-      dispatch(fetchServiceConfiguration());
+  useEffect((): void => {
+    if (selectedLayout === 'default') {
+      addInitialPage();
     }
-  }, [isManageServiceConfigurationFetched])
+  }, [selectedLayout]);
 
   const toggleCodeEditor = (mode?: LogicMode) => {
     setCodeEditorOpen(!codeEditorOpen);
@@ -74,51 +74,6 @@ export const FormDesigner = (): JSX.Element => {
     );
   };
 
-  const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const layoutOrder = useSelector((state: IAppState) =>
-    deepCopy(
-      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order || {}
-    )
-  );
-
-  const order = useSelector(makeGetLayoutOrderSelector());
-
-  useEffect(( )=> {
-    console.log({
-      isFormLayoutFetched,
-      isManageServiceConfigurationFetched,
-      selectedLayout
-    })
-  }, [isFormLayoutFetched, isManageServiceConfigurationFetched, selectedLayout])
-
-  if (isReadyToRenderDesigner) {
-    return (
-      <DesignerView
-        activeList={activeList}
-        layoutOrder={layoutOrder}
-        order={order}
-        selectedLayout={selectedLayout}
-      />
-    );
-  }
-
-  return <div>Laster Designer</div>;
-};
-
-const DesignerView = ({ activeList, layoutOrder, order, selectedLayout }: any): JSX.Element => {
-  const dispatch = useDispatch();
-
-  const addInitialPage = useCallback((): void => {
-    const name = 'Side 1';
-    dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
-  }, []);
-
-  useEffect((): void => {
-    if (selectedLayout === 'default') {
-      addInitialPage();
-    }
-  }, [selectedLayout]);
-
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={classes.root}>
@@ -137,12 +92,12 @@ const DesignerView = ({ activeList, layoutOrder, order, selectedLayout }: any): 
               order={order}
               activeList={activeList}
               isDragging={false}
-              layoutOrder={layoutOrder}
+              layoutOrder={layoutOrderCopy}
             />
-            {/* {codeEditorOpen ? renderLogicEditor() : null} */}
+            {codeEditorOpen ? renderLogicEditor() : null}
           </div>
           <div className={classes.rightContent + ' ' + classes.item}>
-            <RightMenu toggleFileEditor={() => {}} />
+            <RightMenu toggleFileEditor={toggleCodeEditor} />
           </div>
         </div>
       </div>

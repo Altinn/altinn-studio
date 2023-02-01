@@ -528,7 +528,7 @@ export function* fetchFormLayoutSettingSaga(): SagaIterator {
 
 export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
   yield takeEvery(
-    [FormLayoutActions.fetchFormLayoutFulfilled, FormLayoutActions.fetchLayoutSettings],
+    [FormLayoutActions.fetchLayoutSettings],
     fetchFormLayoutSettingSaga
   );
 }
