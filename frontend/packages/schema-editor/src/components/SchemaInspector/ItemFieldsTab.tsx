@@ -27,25 +27,25 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
   const readonly = selectedItem.reference !== undefined;
   const dispatch = useDispatch();
 
-  const childNodes = useSelector((state: ISchemaState) =>
+  const fieldNodes = useSelector((state: ISchemaState) =>
     getChildNodesByPointer(state.uiSchema, selectedItem.pointer).map((node) => ({
       ...node,
       domId: getDomFriendlyID(node.pointer),
     }))
   );
 
-  const numberOfChildNodes = childNodes.length;
+  const numberOfChildNodes = fieldNodes.length;
   const prevNumberOfChildNodes = usePrevious<number>(numberOfChildNodes) ?? 0;
 
   useEffect(() => {
     // If the number of fields has increased, a new field has been added and should get focus
     if (numberOfChildNodes > prevNumberOfChildNodes) {
-      const newNodeId = childNodes[childNodes.length - 1].domId;
+      const newNodeId = fieldNodes[fieldNodes.length - 1].domId;
       const newNodeInput = document.getElementById(newNodeId) as HTMLInputElement;
       newNodeInput?.focus();
       newNodeInput?.select();
     }
-  }, [numberOfChildNodes, prevNumberOfChildNodes, childNodes]);
+  }, [numberOfChildNodes, prevNumberOfChildNodes, fieldNodes]);
 
   const onChangePropertyName = (path: string, value: string) =>
     dispatch(
@@ -77,7 +77,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
 
   return (
     <div className={classes.root}>
-      {childNodes.length && (
+      {fieldNodes.length > 0 && (
         <>
           <div>{t('field_name')}</div>
           <div>{t('type')}</div>
@@ -85,20 +85,20 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
           <div>{t('delete')}</div>
         </>
       )}
-      {childNodes.map((childNode) => (
+      {fieldNodes.map((fieldNode) => (
         <PropertyItem
-          fullPath={childNode.pointer}
-          inputId={childNode.domId}
-          key={childNode.pointer}
+          fullPath={fieldNode.pointer}
+          inputId={fieldNode.domId}
+          key={fieldNode.pointer}
           language={language}
           onChangeType={onChangeType}
           onChangeValue={onChangePropertyName}
           onDeleteField={onDeleteObjectClick}
           onEnterKeyPress={dispatchAddProperty}
           readOnly={readonly}
-          required={childNode.isRequired}
-          type={childNode.fieldType as FieldType}
-          value={getNameFromPointer(childNode)}
+          required={fieldNode.isRequired}
+          type={fieldNode.fieldType as FieldType}
+          value={getNameFromPointer(fieldNode)}
         />
       ))}
       {!readonly && (

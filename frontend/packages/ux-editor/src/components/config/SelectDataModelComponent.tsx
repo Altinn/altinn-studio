@@ -28,7 +28,6 @@ export const SelectDataModelComponent = ({
   selectedElement,
   onDataModelChange,
   noOptionsMessage,
-  hideRestrictions,
   selectGroup,
 }: ISelectDataModelProps) => {
   const [selectedBinding, setSelectedBinding] = useState(selectedElement);

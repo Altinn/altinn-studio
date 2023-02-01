@@ -1,8 +1,8 @@
 .root {
-  align-items: flex-start;
+  align-items: stretch;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--component-checkbox-group-space-gap-y-small);
 }
 
 .addCheckbox {

@@ -21,7 +21,7 @@
 }
 
 .appReleaseHistoryTitle {
-  font-size: 1.8rem;
+  font-size: 1.2rem;
   font-weight: 500;
   padding: 2rem 1.2rem 2rem 1.2rem;
 }
@@ -33,7 +33,7 @@
 .appCreateReleaseTitle {
   padding: 1.2rem;
   font-weight: 500;
-  font-size: 1.8rem;
+  font-size: 1.2rem;
 }
 
 .appCreateReleaseStatusIcon {

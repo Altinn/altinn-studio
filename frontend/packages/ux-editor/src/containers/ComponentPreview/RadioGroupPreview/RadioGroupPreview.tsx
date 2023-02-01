@@ -12,6 +12,7 @@ import {
   changeTitleBinding,
 } from '../../../utils/component';
 import { AddOption } from '../../../components/AddOption';
+import { TranslationKey } from 'language/type';
 
 export interface RadioGroupPreviewProps extends IGenericEditComponent {
   component: IFormRadioButtonComponent;
@@ -22,7 +23,7 @@ export const RadioGroupPreview = ({
   handleComponentChange,
 }: RadioGroupPreviewProps) => {
   const t = useText();
-  const tRadios = (key: string) => t(`ux_editor.radios_${key}`);
+  const tRadios = (key: string) => t((`ux_editor.radios_${key}`) as TranslationKey);
 
   const radioGroupName = useRef(generateRandomId(12));
 

@@ -31,16 +31,33 @@
 }
 
 .textResource {
+  align-items: stretch;
   display: inline-flex;
-  align-items: center;
-  gap: 1rem;
+}
+
+.buttonsWrapper {
+  display: inline-block;
+  position: relative;
+}
+
+.buttons {
+  display: inline-flex;
+  gap: 0.5rem;
+  left: 0;
+  margin-left: 1rem;
+  position: relative;
+  top: 0;
+}
+
+.previewMode .buttons {
+  position: absolute;
 }
 
 .button {
   --icon-size: 1em;
-  height: 1.5em;
-  width: 1.5em;
+  height: 1.5em !important;
   padding: 0.25em !important;
+  width: 1.5em;
 }
 
 .placeholder {

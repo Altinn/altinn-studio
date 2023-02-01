@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { TextField, Popover, Button } from '@digdir/design-system-react';
+import { TextField, Popover, PopoverVariant, Button, ButtonSize, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 
 const getLastWord = (value: string) => value.split(' ').pop();
 const stdAutocompleteOpts = [
@@ -98,7 +98,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
         value={value}
       />
       <Popover
-        variant='default'
+        variant={PopoverVariant.Default}
         open={options.length > 0}
         placement='bottom-start'
         arrow={false}
@@ -106,9 +106,9 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
       >
         {options.map((word) => (
           <Button
-            size='small'
-            color='inverted'
-            variant='quiet'
+            size={ButtonSize.Small}
+            color={ButtonColor.Inverted}
+            variant={ButtonVariant.Quiet}
             key={word}
             style={{ float: 'left' }}
             onClick={() => handleWordClick(word)}

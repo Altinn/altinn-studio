@@ -5,7 +5,6 @@ import userEvent from '@testing-library/user-event';
 
 const renderHandleMergeConflictFileList = (mockRepostatus?: any) => {
   const user = userEvent.setup();
-  const mockClasses: any = {};
   const mockLanguage: any = {};
   const repoStatus = mockRepostatus ?? {
     behindBy: 1,
@@ -31,7 +30,6 @@ const renderHandleMergeConflictFileList = (mockRepostatus?: any) => {
   const container = render(
     <HandleMergeConflictFileList
       changeSelectedFile={changeSelectedFile}
-      classes={mockClasses}
       language={mockLanguage}
       repoStatus={repoStatus}
     />

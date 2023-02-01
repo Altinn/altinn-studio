@@ -19,7 +19,7 @@ export const DatamodelsReposList = () => {
   const { data: starredRepos, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
 
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
-    uid,
+    uid: uid as number,
     keyword: '-datamodels',
     page: 0
   });

@@ -130,12 +130,14 @@ export const AppDeploymentComponent = ({
             t('app_deploy.deployed_version_unavailable')}
         </div>
         <div className={classes.gridItem}>
-          <AltinnLink
-            url={urlToApp}
-            linkTxt={urlToAppLinkTxt}
-            shouldShowIcon={false}
-            openInNewTab={true}
-          />
+          {appDeployedVersion && (
+            <AltinnLink
+              url={urlToApp}
+              linkTxt={urlToAppLinkTxt}
+              shouldShowIcon={false}
+              openInNewTab={true}
+            />
+          )}
         </div>
       </div>
       <div className={classes.bodyContainer}>
