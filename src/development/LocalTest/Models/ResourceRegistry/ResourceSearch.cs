@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#nullable enable
 using Altinn.ResourceRegistry.Core.Enums;
 
 namespace Altinn.ResourceRegistry.Core.Models
@@ -36,7 +32,7 @@ namespace Altinn.ResourceRegistry.Core.Models
         /// Keywords
         /// </summary>
         public string? Keyword { get; set; }
-        
+
         /// <summary>
         /// Include Expired
         /// </summary>

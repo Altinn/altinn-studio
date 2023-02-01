@@ -26,7 +26,7 @@ namespace ResourceRegistryTest.Mocks
             return await Task.FromResult<ServiceResource>(null);
         }
 
-        public async Task<ServiceResource> DeleteResource(string id)
+        public Task<ServiceResource> DeleteResource(string id)
         {
             throw new NotImplementedException();
         }
@@ -43,7 +43,7 @@ namespace ResourceRegistryTest.Mocks
             return null;
         }
 
-        public async Task<List<ServiceResource>> Search(ResourceSearch resourceSearch)
+        public Task<List<ServiceResource>> Search(ResourceSearch resourceSearch)
         {
             List<ServiceResource> resources = new List<ServiceResource>();
             string[] files =  Directory.GetFiles(GetResourcePath());
@@ -54,7 +54,7 @@ namespace ResourceRegistryTest.Mocks
                     try
                     {
                         string content = System.IO.File.ReadAllText(file);
-                        ServiceResource? resource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(content, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }) as ServiceResource;
+                        var resource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(content, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }) as ServiceResource;
                         if (resourceSearch.Id == null)
                         {
                             resources.Add(resource);
@@ -75,7 +75,7 @@ namespace ResourceRegistryTest.Mocks
                 }
             }
 
-            return resources;
+            return Task.FromResult(resources);
         }
 
         private string GetResourcePath(string id)
