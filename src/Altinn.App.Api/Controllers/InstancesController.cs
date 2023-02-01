@@ -698,7 +698,7 @@ namespace Altinn.App.Api.Controllers
                 if (lastChangedBy?.Length == 9)
                 {
                     Organization? organization = await _registerClient.ER.GetOrganization(lastChangedBy);
-                    if(organization is not null && !string.IsNullOrEmpty(organization.Name))
+                    if (organization is not null && !string.IsNullOrEmpty(organization.Name))
                     {
                         userAndOrgLookup.Add(lastChangedBy, organization.Name);
                     }
@@ -706,7 +706,7 @@ namespace Altinn.App.Api.Controllers
                 else if (int.TryParse(lastChangedBy, out int lastChangedByInt))
                 {
                     UserProfile? user = await _profileClientClient.GetUserProfile(lastChangedByInt);
-                    if(user is not null && user.Party is not null && !string.IsNullOrEmpty(user.Party.Name))
+                    if (user is not null && user.Party is not null && !string.IsNullOrEmpty(user.Party.Name))
                     {
                         userAndOrgLookup.Add(lastChangedBy, user.Party.Name);
                     }

@@ -20,6 +20,7 @@ namespace Altinn.App.Api.Mappers
             return new SimpleInstance
             {
                 Id = instance.Id,
+                DueBefore = instance.DueBefore,
                 PresentationTexts = instance.PresentationTexts,
                 LastChanged = instance.LastChanged,
                 LastChangedBy = lastChangedByName

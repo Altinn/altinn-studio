@@ -106,6 +106,7 @@ public class InstancesController_ActiveInstancesTest
             new()
             {
                 Id = $"{1234}/{Guid.NewGuid()}",
+                DueBefore = DateTime.Today.AddDays(20),
                 LastChanged = DateTime.Now,
                 LastChangedBy = "12345",
                 PresentationTexts = new()
@@ -117,6 +118,7 @@ public class InstancesController_ActiveInstancesTest
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            DueBefore = i.DueBefore,
             PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
@@ -169,6 +171,7 @@ public class InstancesController_ActiveInstancesTest
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            DueBefore = i.DueBefore,
             PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
@@ -216,6 +219,7 @@ public class InstancesController_ActiveInstancesTest
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            DueBefore = i.DueBefore,
             PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
@@ -268,6 +272,7 @@ public class InstancesController_ActiveInstancesTest
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            DueBefore = i.DueBefore,
             PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
@@ -315,6 +320,7 @@ public class InstancesController_ActiveInstancesTest
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            DueBefore = i.DueBefore,
             PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch

@@ -17,6 +17,11 @@ public class SimpleInstance
     public Dictionary<string, string>? PresentationTexts { get; set; }
 
     /// <summary>
+    /// Gets or sets the due date to submit the instance to application owner.
+    /// </summary>
+    public DateTime? DueBefore { get; set; }
+
+    /// <summary>
     /// Last changed date time in UTC format.
     /// </summary>
     public DateTime? LastChanged { get; set; }
