@@ -3,7 +3,7 @@ import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHac
 const { org, app } = _useParamsClassCompHack();
 const basePath = `${window.location.origin}/designer/api/${org}/${app}`;
 
-// Aure paths
+// Azure paths
 export const getReleaseBuildPipelineLink = (buildId: string) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
 export const getAzureDevopsBuildResultUrl = (buildId: string | number) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
 

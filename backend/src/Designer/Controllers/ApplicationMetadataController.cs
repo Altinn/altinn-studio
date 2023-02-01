@@ -98,11 +98,11 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 _repository.AddMetadataForAttachment(org, app, applicationMetadata.ToString());
-                return Ok("Metadata saved");
+                return Created("Metadata saved");
             }
-            catch
+            catch (Exception e)
             {
-                return BadRequest("Could not save metadata");
+                return BadRequest("Could not save metadata: ", e);
             }
         }
 
@@ -122,9 +122,9 @@ namespace Altinn.Studio.Designer.Controllers
                 _repository.UpdateMetadataForAttachment(org, app, applicationMetadata.ToString());
                 return Ok("Metadata updated");
             }
-            catch
+            catch (Exception e)
             {
-                return BadRequest("Could not update metadata");
+                return BadRequest("Could not update metadata.", e);
             }
         }
 
@@ -135,7 +135,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">the id of the component</param>
         /// <returns></returns>
-        /// <remarks>Not in use in FE as of 04.01.23, but should be used when deleting attachment component from form editor</remarks>
         [HttpDelete]
         [Route("attachment-component")]
         public IActionResult DeleteMetadataForAttachment(string org, string app, string id)
@@ -145,9 +144,9 @@ namespace Altinn.Studio.Designer.Controllers
                 _repository.DeleteMetadataForAttachment(org, app, id);
                 return Ok("Metadata deleted");
             }
-            catch
+            catch (Exception e)
             {
-                return BadRequest("Could not delete metadata");
+                return BadRequest("Could not delete metadata.", e);
             }
         }
     }

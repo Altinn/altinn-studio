@@ -131,9 +131,9 @@ namespace Altinn.Studio.Designer.Controllers
 
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return new ObjectResult(new { HttpStatusCode.InternalServerError });
+                return BadRequest("Could not save rule handler.", e);
             }
         }
 

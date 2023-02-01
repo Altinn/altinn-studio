@@ -12,6 +12,7 @@ import {
   removeArrayElement,
   swapArrayElements,
 } from 'app-shared/pure/array-functions';
+import { useParams } from 'react-router-dom';
 
 export interface DesignViewProps {
   activeList: any[];
@@ -128,6 +129,7 @@ export const DesignView = ({
     beforeDrag && setState({ layoutOrder: beforeDrag, isDragging: false });
   };
   const dispatch = useDispatch();
+  const { org, app } = useParams();
   const onDropItem = (reset?: boolean) => {
     if (reset) {
       resetState();
@@ -135,6 +137,8 @@ export const DesignView = ({
       dispatch(
         FormLayoutActions.updateFormComponentOrder({
           updatedOrder: state.layoutOrder,
+          org,
+          app,
         })
       );
       setState({ ...state, isDragging: false });

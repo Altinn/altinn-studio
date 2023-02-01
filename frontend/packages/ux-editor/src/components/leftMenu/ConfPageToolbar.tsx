@@ -8,6 +8,7 @@ import { getComponentTitleByComponentType } from '../../utils/language';
 import { makeGetLayoutOrderSelector } from '../../selectors/getLayoutData';
 import { mapComponentToToolbarElement } from '../../utils/formLayout';
 import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 
 export const ConfPageToolbar = () => {
   const dispatch = useDispatch();
@@ -16,8 +17,9 @@ export const ConfPageToolbar = () => {
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const language: any = useSelector((state: IAppState) => state.appData.languageState.language);
   const order: any[] = useSelector(makeGetLayoutOrderSelector());
+  const { app, org } = useParams();
   const componentList: IToolbarElement[] = confOnScreenComponents.map((component) =>
-    mapComponentToToolbarElement(component, language, activeList, order, dispatch)
+    mapComponentToToolbarElement(component, language, activeList, order, dispatch, { app, org })
   );
   const handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
     setCompSelForInfoPanel(component);
