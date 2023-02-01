@@ -115,10 +115,10 @@
               "xs": 12
             }
           ]
+        },
+        "pageBreak": {
+          "$ref": "#/definitions/pageBreak"
         }
-      },
-      "pageBreak": {
-        "$ref": "#/definitions/pageBreak"
       },
       "required": ["id", "type"],
       "allOf": [
