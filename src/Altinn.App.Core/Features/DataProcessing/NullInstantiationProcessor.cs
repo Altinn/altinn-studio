@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Features.DataProcessing;
 public class NullInstantiationProcessor: IInstantiationProcessor
 {
     /// <inheritdoc />
-    public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
+    public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
     {
         await Task.CompletedTask;
     }

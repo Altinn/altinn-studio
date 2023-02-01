@@ -16,5 +16,5 @@ public interface IInstantiationProcessor
     /// <param name="instance">Instance information</param>
     /// <param name="data">The data object created</param>
     /// <param name="prefill">External prefill available under instansiation if supplied</param>
-    public Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill);
+    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill);
 }

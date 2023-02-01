@@ -1,6 +1,4 @@
 #nullable enable
-using System.Collections.Generic;
-using System.Linq;
 
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -22,6 +20,7 @@ namespace Altinn.App.Api.Mappers
             return new SimpleInstance
             {
                 Id = instance.Id,
+                PresentationTexts = instance.PresentationTexts,
                 LastChanged = instance.LastChanged,
                 LastChangedBy = lastChangedByName
             };

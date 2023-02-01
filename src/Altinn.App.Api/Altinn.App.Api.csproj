@@ -13,6 +13,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Altinn/app-lib-dotnet</RepositoryUrl>
     <IsPackable>true</IsPackable>
+    <ImplicitUsings>true</ImplicitUsings>
 
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}</ProjectGuid>

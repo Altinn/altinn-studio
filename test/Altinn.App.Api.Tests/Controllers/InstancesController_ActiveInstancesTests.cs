@@ -108,11 +108,16 @@ public class InstancesController_ActiveInstancesTest
                 Id = $"{1234}/{Guid.NewGuid()}",
                 LastChanged = DateTime.Now,
                 LastChangedBy = "12345",
+                PresentationTexts = new()
+                {
+                    {"periode","1. halvår 2023"}
+                }
             }
         };
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
             {
@@ -154,11 +159,17 @@ public class InstancesController_ActiveInstancesTest
                 Id = $"{1234}/{Guid.NewGuid()}",
                 LastChanged = DateTime.Now,
                 LastChangedBy = "12345",
+                PresentationTexts = new()
+                {
+                    {"periode","1. halvår 2023"},
+                    {"kontaktperson","Eirk Blodøks"}
+                }
             }
         };
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
             {
@@ -205,6 +216,7 @@ public class InstancesController_ActiveInstancesTest
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
             {
@@ -256,6 +268,7 @@ public class InstancesController_ActiveInstancesTest
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
             {
@@ -266,7 +279,7 @@ public class InstancesController_ActiveInstancesTest
         });
 
         _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
-        _registrer.Setup(r=>r.ER.GetOrganization("123456789")).ReturnsAsync(default(Organization));
+        _registrer.Setup(r => r.ER.GetOrganization("123456789")).ReturnsAsync(default(Organization));
 
         // Act
         var controller = SUT;
@@ -302,6 +315,7 @@ public class InstancesController_ActiveInstancesTest
         var expected = instances.Select(i => new SimpleInstance()
         {
             Id = i.Id,
+            PresentationTexts = i.PresentationTexts,
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
             {
@@ -311,7 +325,7 @@ public class InstancesController_ActiveInstancesTest
         });
 
         _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
-        _registrer.Setup(r=>r.ER.GetOrganization("123456789")).ReturnsAsync(new Organization
+        _registrer.Setup(r => r.ER.GetOrganization("123456789")).ReturnsAsync(new Organization
         {
             Name = "Testdepartementet"
         });
