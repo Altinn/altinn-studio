@@ -10,6 +10,7 @@ import { ComponentTypes } from '../..';
 import { useText } from '../../../hooks';
 import type { IFormImageComponent } from '../../../types/global';
 import { MapComponent } from './Map';
+import { EditTextResourceBinding } from '../editModal/EditTextResourceBinding';
 
 export function ComponentSpecificContent({
   component,
@@ -47,6 +48,12 @@ export function ComponentSpecificContent({
     case ComponentTypes.Panel: {
       return (
         <>
+          <EditTextResourceBinding
+            component={component}
+            handleComponentChange={handleComponentChange}
+            textKey='body'
+            labelKey='ux_editor.modal_text_resource_body'
+          />
           <CheckboxComponent
             label={t('ux_editor.show_icon')}
             defaultValue={true}
