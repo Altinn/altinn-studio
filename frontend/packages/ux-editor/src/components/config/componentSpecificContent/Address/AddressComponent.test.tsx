@@ -3,9 +3,11 @@ import { IGenericEditComponent } from '../../componentConfig';
 import { IFormAddressComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { AddressComponent } from './AddressComponent';
+import { ComponentTypes } from '../../../';
 
 // Test data:
 const component: IFormAddressComponent = {
+  type: ComponentTypes.AddressComponent,
   dataModelBindings: {
     test: 'test'
   },

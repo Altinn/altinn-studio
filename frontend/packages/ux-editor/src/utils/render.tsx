@@ -66,7 +66,6 @@ export const renderSelectGroupDataModelBinding = (
         inputId='dataModalHelper'
         selectedElement={dataModelBinding[key]}
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
-        t={t}
         selectGroup={true}
         noOptionsMessage={t('general.no_options')}
       />
