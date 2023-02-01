@@ -6,16 +6,18 @@ import type { IImageComponentProps } from './ImageComponent';
 import { ImageComponent } from './ImageComponent';
 import { appDataMock, renderWithMockStore } from '../../../../testing/mocks';
 import { IAppDataState } from '../../../../features/appData/appDataReducers';
+import type { IFormImageComponent } from '../../../../types/global';
+import { ComponentTypes } from '../../../';
 
 const user = userEvent.setup();
 
-const componentData = {
+const componentData: IFormImageComponent = {
   id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
   textResourceBindings: {},
-  type: 'Image',
+  type: ComponentTypes.Image,
   image: {
-    src: {},
-  },
+    src: {}
+  }
 };
 const texts = {
   'ux_editor.modal_properties_image_src_value_label': 'Source',
@@ -24,13 +26,13 @@ const texts = {
   'ux_editor.modal_properties_image_width_label': 'Width',
   'ux_editor.modal_properties_image_placement_left': 'Left',
   'ux_editor.modal_properties_image_placement_center': 'Center',
-  'ux_editor.modal_properties_image_placement_right': 'Right',
+  'ux_editor.modal_properties_image_placement_right': 'Right'
 };
 const render = (props: Partial<IImageComponentProps> = {}) => {
   const allProps: IImageComponentProps = {
     component: componentData,
     handleComponentUpdate: jest.fn(),
-    ...props,
+    ...props
   };
 
   const appData: IAppDataState = {
@@ -40,14 +42,14 @@ const render = (props: Partial<IImageComponentProps> = {}) => {
       resources: {
         nb: [
           { id: 'altTextImg', value: 'Alternative text' },
-          { id: 'altTextImg2', value: 'Alternative text 2' },
+          { id: 'altTextImg2', value: 'Alternative text 2' }
         ]
       }
     },
     languageState: {
       ...appDataMock.languageState,
-      language: texts,
-    },
+      language: texts
+    }
   };
 
   return renderWithMockStore({ appData })(<ImageComponent {...allProps} />);
@@ -60,7 +62,7 @@ describe('ImageComponent', () => {
     render({ handleComponentUpdate: handleUpdate });
 
     const srcInput = screen.getByRole('textbox', {
-      name: /source/i,
+      name: /source/i
     });
 
     await act(() => user.type(srcInput, imgSrc));
@@ -70,9 +72,9 @@ describe('ImageComponent', () => {
       image: {
         ...componentData.image,
         src: {
-          nb: imgSrc,
-        },
-      },
+          nb: imgSrc
+        }
+      }
     });
   });
 
@@ -82,7 +84,7 @@ describe('ImageComponent', () => {
     render({ handleComponentUpdate: handleUpdate });
 
     const widthInput = screen.getByRole('textbox', {
-      name: /width/i,
+      name: /width/i
     });
 
     await act(() => user.type(widthInput, size));
@@ -91,8 +93,8 @@ describe('ImageComponent', () => {
       ...componentData,
       image: {
         ...componentData.image,
-        width: size,
-      },
+        width: size
+      }
     });
   });
 
@@ -101,7 +103,7 @@ describe('ImageComponent', () => {
     render({ handleComponentUpdate: handleUpdate });
 
     const placementInput = screen.getByRole('combobox', {
-      name: /placement/i,
+      name: /placement/i
     });
 
     await act(() => user.type(placementInput, 'L')); // Type something to trigger showing Select options
@@ -111,8 +113,8 @@ describe('ImageComponent', () => {
       ...componentData,
       image: {
         ...componentData.image,
-        align: 'flex-start',
-      },
+        align: 'flex-start'
+      }
     });
   });
 });

@@ -112,7 +112,11 @@ export function CreateReleaseComponent() {
           />
         </div>
         <div className={classes.createReleaseFormItem}>
-          <Button ref={ref} onClick={handleBuildVersionClick}>
+          <Button
+            ref={ref}
+            onClick={handleBuildVersionClick}
+            disabled={!versionNameValid() || !tagName}
+          >
             {getLanguageFromKey('app_create_release.build_version', language)}
           </Button>
         </div>

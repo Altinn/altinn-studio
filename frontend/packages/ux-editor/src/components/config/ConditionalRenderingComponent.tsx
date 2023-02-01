@@ -330,7 +330,6 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                             onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
                             selectedElement={this.state.conditionalRendering.inputParams[paramName]}
                             hideRestrictions={true}
-                            language={this.props.language}
                           />
                         </div>
                       </div>

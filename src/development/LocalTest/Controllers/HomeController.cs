@@ -107,6 +107,7 @@ namespace LocalTest.Controllers
                     model.App = model.TestApps[0].Value?.Split("/").LastOrDefault();
                 }
                 model.TestUsers = await GetTestUsersForList();
+                model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
                 var defaultAuthLevel = await GetAppAuthLevel(model.AppModeIsHttp, model.TestApps);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
@@ -149,7 +150,7 @@ namespace LocalTest.Controllers
                 int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
                 string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
-                CreateJwtCookieAndAppendToResponse(token, startAppModel.PartyId);
+                CreateJwtCookieAndAppendToResponse(token, startAppModel.PartyId, startAppModel.UserSelect);
             }
 
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
@@ -424,7 +425,7 @@ namespace LocalTest.Controllers
         /// Creates a session cookie meant to be used to hold the generated JSON Web Token and appends it to the response.
         /// </summary>
         /// <param name="cookieValue">The cookie value.</param>
-        private void CreateJwtCookieAndAppendToResponse(string identityCookie, int altinnPartyId)
+        private void CreateJwtCookieAndAppendToResponse(string identityCookie, int altinnPartyId, string userSelect)
         {
             ICookieManager cookieManager = new ChunkingCookieManager();
 
@@ -463,6 +464,24 @@ namespace LocalTest.Controllers
                 partyCookieBuilder.Name,
                 altinnPartyId.ToString(),
                 partyCookieOptions);
+
+            // Add cookie about users selection (for preselecting in the dropdown)
+            CookieBuilder userSelectCookieBuilder = new RequestPathBaseCookieBuilder
+            {
+                Name = "Localtest_User.Party_Select",
+                SameSite = SameSiteMode.Lax,
+                HttpOnly = false,
+                SecurePolicy = CookieSecurePolicy.None,
+                IsEssential = true,
+                Domain = _generalSettings.Hostname,
+                Expiration = TimeSpan.MaxValue,
+            };
+            CookieOptions userSelectCookieOptions = cookieBuilder.Build(HttpContext);
+            cookieManager.AppendResponseCookie(
+                HttpContext,
+                userSelectCookieBuilder.Name,
+                userSelect,
+                userSelectCookieOptions);
         }
     }
 }
