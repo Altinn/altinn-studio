@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShareChangesButton } from './ShareChangesButton';
 import type { IShareChangesComponentProps } from './ShareChangesButton';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -14,7 +14,7 @@ describe('shareChanges', () => {
     const shareButton = screen.getByRole('button', {
       name: /sync_header\.changes_to_share/i,
     });
-    await user.click(shareButton);
+    await act(() => user.click(shareButton));
 
     expect(handleShareChanges).toHaveBeenCalled();
   });

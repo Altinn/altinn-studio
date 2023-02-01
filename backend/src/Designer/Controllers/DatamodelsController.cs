@@ -1,23 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Schema;
-using Altinn.Studio.Designer.Factories.ModelFactory;
-using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
-using Manatee.Json;
-using Manatee.Json.Schema;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,30 +37,6 @@ namespace Altinn.Studio.Designer.Controllers
         {
             _repository = repository;
             _schemaModelService = schemaModelService;
-        }
-
-        /// <summary>
-        /// Post action that is used when uploading a XSD and secondary XSD. TODO: To be removed?
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">Application identifier which is unique within an organisation.</param>
-        /// <param name="xsdFile">The main XSD</param>
-        /// <returns>Return JSON of the generated model</returns>
-        [HttpPost]
-        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile xsdFile)
-        {
-            Guard.AssertArgumentNotNull(xsdFile, nameof(xsdFile));
-
-            string mainFileName = GetFileNameFromUploadedFile(xsdFile);
-            Guard.AssertFileExtensionIsOfType(mainFileName, ".xsd");
-
-            MemoryStream fileMemoryStream = CopyFileStream(xsdFile);
-
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            var jsonSchema = await _schemaModelService.CreateSchemaFromXsd(org, repository, developer, mainFileName, fileMemoryStream);
-
-            return Created(mainFileName, jsonSchema);
         }
 
         /// <summary>
@@ -232,67 +199,12 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("{*modelPath}")]
         public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromRoute] string modelPath)
         {
-            var decodedPath = System.Uri.UnescapeDataString(modelPath);
+            var decodedPath = Uri.UnescapeDataString(modelPath);
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var json = await _schemaModelService.GetSchema(org, repository, developer, decodedPath);
 
             return Ok(json);
-        }
-
-        /// <summary>
-        /// Returns datamodel
-        /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="repository">the repository</param>
-        /// <param name="modelName">The name of the data model.</param>
-        /// <returns></returns>
-        [HttpGet]
-        [Route("getdatamodel")]
-        public async Task<IActionResult> GetDatamodel(string org, string repository, string modelName)
-        {
-            try
-            {
-                modelName = modelName.AsFileName();
-            }
-            catch
-            {
-                return BadRequest("Invalid model name value.");
-            }
-
-            string filePath = $"App/models/{modelName}";
-            try
-            {
-                using (Stream dataStream = await _repository.ReadData(org, repository, $"{filePath}.schema.json"))
-                {
-                    TextReader textReader = new StreamReader(dataStream);
-                    JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
-                    return Ok(jsonValue.ToString());
-                }
-            }
-            catch
-            {
-                // Will fallback to checking for XSD. See below
-            }
-
-            try
-            {
-                using (Stream dataStream = await _repository.ReadData(org, repository, $"{filePath}.xsd"))
-                {
-                    XmlReader xsdReader = XmlReader.Create(dataStream);
-                    XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xsdReader);
-                    JsonSchema convertedSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-                    Manatee.Json.Serialization.JsonSerializer serializer = new Manatee.Json.Serialization.JsonSerializer();
-                    JsonValue serializedConvertedSchema = serializer.Serialize(convertedSchema);
-
-                    return Ok(serializedConvertedSchema.ToString());
-                }
-            }
-            catch
-            {
-                return NotFound();
-            }
         }
 
         /// <summary>

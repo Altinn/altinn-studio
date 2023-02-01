@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from '../types/global';
-import { TextArea } from '@altinn/altinn-design-system';
-import { Button, ButtonColor, ButtonVariant, FieldSet } from '@digdir/design-system-react';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  FieldSet,
+  TextArea,
+} from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
 import { getAllTextResources, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId, upsertTextResources } from '../features/appData/textResources/textResourcesSlice';

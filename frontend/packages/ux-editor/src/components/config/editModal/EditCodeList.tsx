@@ -1,6 +1,6 @@
 import React from 'react';
 import type { IFormGenericOptionsComponent } from '../../../types/global';
-import { TextField } from '@altinn/altinn-design-system';
+import { TextField } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 

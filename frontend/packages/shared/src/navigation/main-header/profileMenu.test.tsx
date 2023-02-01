@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IProfileMenuComponentProps } from './profileMenu';
 import { ProfileMenu } from './profileMenu';
@@ -41,7 +41,7 @@ describe('ProfileMenu', () => {
     expect(screen.queryByRole('menuitem', { name: /logout/i })).not.toBeInTheDocument();
 
     const profileBtn = screen.getByRole('button', { name: /profilikon knapp/i });
-    await user.click(profileBtn);
+    await act(() => user.click(profileBtn));
 
     expect(screen.queryByRole('menuitem', { name: /dokumentasjon/i })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: /åpne repository/i })).toBeInTheDocument();
@@ -72,7 +72,7 @@ describe('ProfileMenu', () => {
     const profileBtn = screen.getByRole('button', {
       name: /profilikon knapp/i,
     });
-    await user.click(profileBtn);
+    await act(() => user.click(profileBtn));
 
     expect(
       screen.getByRole('link', {

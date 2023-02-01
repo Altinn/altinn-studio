@@ -5,7 +5,7 @@ import type { ITextResources, ITextResourcesState } from '../features/appData/te
 import userEvent from '@testing-library/user-event';
 import { TextResourceEdit } from './TextResourceEdit';
 import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../testing/mocks';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 
 const user = userEvent.setup();
 
@@ -61,8 +61,8 @@ describe('TextResourceEdit', () => {
     const resources = { nb: [{ id, value }] };
     const { store } = render(resources, id);
     const textBox = screen.getByLabelText(nbText);
-    await user.type(textBox, additionalValue);
-    await user.tab();
+    await act(() => user.type(textBox, additionalValue));
+    await act(() => user.tab());
     const actions = store.getActions();
     expect(actions).toHaveLength(1);
     expect(actions[0].type).toBe('textResources/upsertTextResources');
@@ -76,7 +76,7 @@ describe('TextResourceEdit', () => {
     const value = 'Lorem';
     const resources = { nb: [{ id, value }] };
     const { store } = render(resources, id);
-    await user.click(screen.getByRole('button', { name: closeText }));
+    await act(() => user.click(screen.getByRole('button', { name: closeText })));
     const actions = store.getActions();
     expect(actions).toHaveLength(1);
     expect(actions[0].type).toBe('textResources/setCurrentEditId');

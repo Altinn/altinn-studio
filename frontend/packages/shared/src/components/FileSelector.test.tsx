@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IFileSelectorProps } from './FileSelector';
 import FileSelector from './FileSelector';
@@ -30,7 +30,7 @@ describe('FileSelector', () => {
     render({ submitHandler: handleSubmit });
 
     const fileInput = screen.getByTestId('FileSelector-input');
-    await user.upload(fileInput, null);
+    await act(() => user.upload(fileInput, null));
 
     expect(handleSubmit).not.toHaveBeenCalled();
   });
@@ -41,7 +41,7 @@ describe('FileSelector', () => {
     render({ submitHandler: handleSubmit });
 
     const fileInput = screen.getByTestId('FileSelector-input');
-    await user.upload(fileInput, file);
+    await act(() => user.upload(fileInput, file));
 
     expect(handleSubmit).toHaveBeenCalledWith(expect.any(FormData), 'hello.png');
   });
@@ -61,7 +61,7 @@ describe('FileSelector', () => {
     const button = screen.getByText('Upload button text');
     const fileInput = screen.getByTestId('FileSelector-input');
     fileInput.onclick = jest.fn();
-    await user.click(button);
+    await act(() => user.click(button));
     expect(fileInput.onclick).toHaveBeenCalled();
   });
 
@@ -70,7 +70,7 @@ describe('FileSelector', () => {
     const button = screen.getByText('Lorem ipsum');
     const fileInput = screen.getByTestId('FileSelector-input');
     fileInput.onclick = jest.fn();
-    await user.click(button);
+    await act(() => user.click(button));
     expect(fileInput.onclick).toHaveBeenCalled();
   });
 });

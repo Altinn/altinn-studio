@@ -1,5 +1,3 @@
-@import '~altinn-designsystem/dist/css/style.dist.tjenester3.min';
-
 .fa,
 .fa-stack {
   font-size: 2.25em;
@@ -14,18 +12,18 @@
   font-size: 1.85em;
 }
 
-input:checked+.slider {
-  background-color: #1EAEF7;
+input:checked + .slider {
+  background-color: #1eaef7;
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
   -webkit-transform: translateX(26px);
   -ms-transform: translateX(26px);
   transform: translateX(26px);
 }
 
-input:focus+.slider {
-  box-shadow: 0 0 1px #1EAEF7;
+input:focus + .slider {
+  box-shadow: 0 0 1px #1eaef7;
 }
 
 option {
@@ -38,7 +36,6 @@ option {
   line-height: 2.4rem;
 }
 
-
 .a-form-label.title-label {
   font-weight: 500;
   margin-bottom: 1.1rem;
@@ -47,7 +44,7 @@ option {
 .a-form-label.title-label .label-optional {
   font-size: 1.4rem;
   font-weight: 400;
-  color: #6A6A6A;
+  color: #6a6a6a;
   padding-left: 0.6rem;
 }
 
@@ -87,21 +84,21 @@ option {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #F3F3F3;
-  -webkit-transition: .4s;
-  transition: .4s;
+  background-color: #f3f3f3;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
 
 .slider:before {
   position: absolute;
-  content: "";
+  content: '';
   height: 26px;
   width: 26px;
   left: 4px;
   bottom: 4px;
   background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
 
 .switch {

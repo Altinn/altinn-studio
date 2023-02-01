@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import type { ItemRestrictionsProps } from './ItemRestrictions';
 import { ItemRestrictions } from './ItemRestrictions';
@@ -19,13 +19,13 @@ const mockLanguage = {
 const mockSelectedNode = createNodeBase(Keywords.Properties, 'test');
 const defaultProps: ItemRestrictionsProps = {
   language: mockLanguage,
-  selectedNode: mockSelectedNode,
+  ...mockSelectedNode,
 };
 
 test('item restrictions require checkbox to work', async () => {
   const selectedNode = createNode({ fieldType: FieldType.String });
-  const { user, store } = renderItemRestrictions({ selectedNode });
-  await user.click(screen.getByRole('checkbox'));
+  const { user, store } = renderItemRestrictions(selectedNode);
+  await act(() => user.click(screen.getByRole('checkbox')));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');
   expect(action.payload.required).toBeTruthy();
@@ -33,8 +33,8 @@ test('item restrictions require checkbox to work', async () => {
 
 test('item restrictions tab require checkbox to decheck', async () => {
   const selectedNode = createNode({ fieldType: FieldType.String, isRequired: true });
-  const { user, store } = renderItemRestrictions({ selectedNode });
-  await user.click(screen.getByRole('checkbox'));
+  const { user, store } = renderItemRestrictions(selectedNode);
+  await act(() => user.click(screen.getByRole('checkbox')));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');
   expect(action.payload.required).toBeFalsy();
@@ -44,9 +44,9 @@ test('Enum list should only appear for strings and numbers, as well as arrays of
   (Object.values(FieldType) as (FieldType | CombinationKind)[])
     .concat(Object.values(CombinationKind))
     .forEach((fieldType) => {
-      const primitiveProps = { selectedNode: createNode({ fieldType }) };
+      const primitiveProps = { ...createNode({ fieldType }) };
       const arrayProps = {
-        selectedNode: createNode({
+        ...createNode({
           isArray: true,
           fieldType,
           objectKind: ObjectKind.Field,

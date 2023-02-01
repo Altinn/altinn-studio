@@ -4,7 +4,6 @@ import MonacoEditor from 'react-monaco-editor';
 import classes from './MonacoEditorComponent.module.css';
 
 export interface IMonacoEditorComponentProps {
-  classes: any;
   createCompletionSuggestions?: (monaco: any, filterText: string) => any[];
   escRef: any;
   heightPx?: any;

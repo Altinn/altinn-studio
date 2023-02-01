@@ -34,7 +34,7 @@ test('handles a click on the save button', async () => {
   expect(topToolbar).toBeDefined();
   const saveButton = screen.getByTestId('save-model-button');
   expect(saveButton).toBeDefined();
-  await user.click(saveButton);
+  await act(() => user.click(saveButton));
   expect(saveAction).toBeCalledTimes(1);
 });
 
@@ -44,6 +44,6 @@ test('handles a click on the toggle edit mode button', async () => {
   expect(topToolbar).toBeDefined();
   const toggleEditModeButton = screen.getByText('edit_mode');
   expect(toggleEditModeButton).toBeDefined();
-  await user.click(toggleEditModeButton);
+  await act(() => user.click(toggleEditModeButton));
   expect(toggleEditMode).toBeCalledTimes(1);
 });

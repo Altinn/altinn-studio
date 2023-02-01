@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Models
@@ -20,5 +21,20 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         [JsonProperty(PropertyName = "resources")]
         public List<TextResourceElement> Resources { get; set; }
+    }
+    /// <summary>
+    /// TextId mutation.
+    /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+    public class TextIdMutation
+    {
+        /// <summary>
+        /// The original id in the mutating text-resource.
+        /// </summary>
+        [JsonProperty(PropertyName = "oldId")] public readonly string OldId;
+        /// <summary>
+        /// The id to change to .
+        /// </summary>
+        [JsonProperty(PropertyName = "newId")] public readonly Optional<string> NewId;
     }
 }

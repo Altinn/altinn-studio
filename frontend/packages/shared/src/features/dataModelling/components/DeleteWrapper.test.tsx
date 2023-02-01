@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { IDeleteWrapper } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
@@ -33,7 +33,7 @@ describe('DeleteWrapper', () => {
     const deleteButton = screen.getByRole('button', {
       name: /general\.delete/i,
     });
-    await userWithNoPointerEventCheck.click(deleteButton);
+    await act(() => userWithNoPointerEventCheck.click(deleteButton));
 
     expect(
       screen.queryByRole('heading', {
@@ -53,7 +53,7 @@ describe('DeleteWrapper', () => {
     const deleteButton = screen.getByRole('button', {
       name: /general\.delete/i,
     });
-    await user.click(deleteButton);
+    await act(() => user.click(deleteButton));
 
     expect(
       screen.getByRole('heading', {
@@ -72,12 +72,12 @@ describe('DeleteWrapper', () => {
     const deleteButton = screen.getByRole('button', {
       name: /general\.delete/i,
     });
-    await user.click(deleteButton);
+    await act(() => user.click(deleteButton));
 
     const continueButton = screen.getByRole('button', {
       name: /general\.continue/i,
     });
-    await user.click(continueButton);
+    await act(() => user.click(continueButton));
 
     expect(handleDelete).toHaveBeenCalled();
     expect(
@@ -98,7 +98,7 @@ describe('DeleteWrapper', () => {
     const deleteButton = screen.getByRole('button', {
       name: /general\.delete/i,
     });
-    await user.click(deleteButton);
+    await act(() => user.click(deleteButton));
 
     expect(
       screen.getByRole('heading', {
@@ -109,7 +109,7 @@ describe('DeleteWrapper', () => {
     const cancelButton = screen.getByRole('button', {
       name: /general\.cancel/i,
     });
-    await user.click(cancelButton);
+    await act(() => user.click(cancelButton));
 
     expect(
       screen.queryByRole('heading', {

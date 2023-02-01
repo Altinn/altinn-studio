@@ -15,6 +15,7 @@
     "noUnusedLocals": true,
     "esModuleInterop": true,
     "baseUrl": ".",
+    "skipLibCheck": true,
     "paths": {
       "app-shared/*": ["./packages/shared/src/*"],
       "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
@@ -25,5 +26,5 @@
   },
   "files": ["declaration.d.ts"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "tmp"]
+  "exclude": ["node_modules", "tmp", "./testing/cypress/**"]
 }

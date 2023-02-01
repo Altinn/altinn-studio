@@ -20,9 +20,10 @@ Cypress.Commands.add('studiologin', (userName, userPwd) => {
  * create an app in studio with user logged in and in dashboard
  */
 Cypress.Commands.add('createapp', (orgName, appName) => {
+  cy.visit('/dashboard');
   cy.get(dashboard.newApp).should('be.visible').click();
   cy.get(dashboard.appOwners).should('be.visible').click();
-  cy.contains(dashboard.appOwnersList, 'Testdepartementet').click();
+  cy.contains(dashboard.appOwnersList, orgName).click();
   cy.get(dashboard.appName).should('be.visible').type(appName);
   cy.intercept('POST', '**/designer/api/v1/repos/**').as('postCreateApp');
   cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
@@ -34,15 +35,13 @@ Cypress.Commands.add('createapp', (orgName, appName) => {
  */
 Cypress.Commands.add('deletecomponents', () => {
   cy.get(designer.dragToArea)
-    .parent()
-    .siblings()
-    .find(designer.draggable)
-    .then(($component) => {
-      if ($component.length > 0 && $component.text().indexOf('Tomt, dra noe inn her...') === -1) {
-        cy.get($component).each(($el) => {
-          cy.wrap($el).click();
+    .find("[role='listitem']")
+    .then(($elements) => {
+      if ($elements.length > 0 && $elements.text().indexOf('Tomt, dra noe inn her...') === -1) {
+        cy.get($elements).each(($element) => {
+          cy.wrap($element).trigger('mouseover');
         });
-        cy.get(designer.deleteComponent).parents('button').click({ multiple: true, force: true });
+        cy.get("[data-testid='component-delete-button']").click({ multiple: true, force: true });
       }
     });
 });
@@ -72,17 +71,11 @@ Cypress.Commands.add('deleteLocalChanges', (appId) => {
 });
 
 /**
- * Get body of an iframe document
- */
-Cypress.Commands.add('getIframeBody', () => {
-  return cy.get('iframe').its('0.contentDocument.body').should('not.be.empty').then(cy.wrap);
-});
-
-/**
  * Search an app from dashboard and open app
  */
 Cypress.Commands.add('searchAndOpenApp', (appId) => {
-  var appName = appId.split('/')[1];
+  const [_, appName] = appId.split('/');
+  cy.visit('/dashboard');
   cy.get(dashboard.searchApp).type(appName);
   cy.contains(dashboard.apps.name, appName)
     .siblings(dashboard.apps.links)

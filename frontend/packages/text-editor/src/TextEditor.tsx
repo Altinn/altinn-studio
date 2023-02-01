@@ -12,13 +12,7 @@ import { SearchField } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { RightMenu } from './RightMenu';
 import { getRandNumber } from './utils';
-import {
-  generateTextResourceFile,
-  mapTextResources,
-  removeTextEntry,
-  updateTextEntryId,
-  upsertTextEntry,
-} from './mutations';
+import { mapTextResources, upsertTextEntry } from './mutations';
 import { defaultLangCode } from './constants';
 import { TextList } from './TextList';
 
@@ -26,6 +20,7 @@ export interface TextEditorProps {
   translations: TextResourceFile;
   isFetchingTranslations: boolean;
   onTranslationChange: (translations: TextResourceFile) => void;
+  onTextIdChange: (mutation: TextResourceIdMutation) => void;
   selectedLangCode: string;
   searchQuery: string;
   setSelectedLangCode: (langCode: LangCode) => void;
@@ -40,6 +35,7 @@ export const TextEditor = ({
   selectedLangCode,
   searchQuery,
   onTranslationChange,
+  onTextIdChange,
   isFetchingTranslations,
   setSelectedLangCode,
   setSearchQuery,
@@ -73,20 +69,25 @@ export const TextEditor = ({
   };
   const removeEntry = ({ textId }: TextResourceEntryDeletion) => {
     const mutatedIds = textIds.filter((v) => v !== textId);
-    const mutatedEntries = removeTextEntry(texts, textId);
-    onTranslationChange(
-      generateTextResourceFile(translations.language, mutatedIds, mutatedEntries)
-    );
-    setTextIds(mutatedIds);
+    try {
+      onTextIdChange({ oldId: textId });
+      setTextIds(mutatedIds);
+    } catch (e: unknown) {
+      console.error('Deleting text failed:\n', e);
+    }
   };
   const upsertEntry = (entry: TextResourceEntry) =>
     onTranslationChange(upsertTextEntry(translations, entry));
   const updateEntryId = ({ oldId, newId }: TextResourceIdMutation) => {
-    onTranslationChange(updateTextEntryId(translations, oldId, newId));
     const mutatingIds = [...textIds];
     const idx = mutatingIds.findIndex((v) => v === oldId);
     mutatingIds[idx] = newId;
-    setTextIds(mutatingIds);
+    try {
+      onTextIdChange({ oldId, newId });
+      setTextIds(mutatingIds);
+    } catch (e: unknown) {
+      console.error('Renaming text-id failed:\n', e);
+    }
   };
   const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
   return (

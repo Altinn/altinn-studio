@@ -66,6 +66,7 @@ namespace LocalTest.Controllers
             return Json(localData);
         }
 
+        //Debugging endpoint
         [AllowAnonymous]
         public async Task<IActionResult> LocalTestUsers()
         {
@@ -75,6 +76,7 @@ namespace LocalTest.Controllers
             return Json(constructedAppData);
         }
 
+        // Debugging endpoint
         [AllowAnonymous]
         public async Task<IActionResult> LocalTestUsersRoundTrip()
         {
@@ -105,6 +107,7 @@ namespace LocalTest.Controllers
                     model.App = model.TestApps[0].Value?.Split("/").LastOrDefault();
                 }
                 model.TestUsers = await GetTestUsersForList();
+                model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
                 var defaultAuthLevel = await GetAppAuthLevel(model.AppModeIsHttp, model.TestApps);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
@@ -147,12 +150,12 @@ namespace LocalTest.Controllers
                 int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
                 string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
-                CreateJwtCookieAndAppendToResponse(token, startAppModel.PartyId);
+                CreateJwtCookieAndAppendToResponse(token, startAppModel.PartyId, startAppModel.UserSelect);
             }
 
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
             {
-                return Redirect($"/accessmanagement/ui/api-delegations");
+                return Redirect($"/accessmanagement/ui/given-api-delegations/overview");
             }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
@@ -187,7 +190,7 @@ namespace LocalTest.Controllers
                     var token = await _authenticationService.GenerateTokenForOrg(app.Id.Split("/")[0]);
                     var newInstance = await _localApp.Instantiate(app.Id, instance, content, xmlDataId, token);
 
-                    return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/#/instance/{newInstance.Id}");
+                    return Redirect($"/{app.Id}/#/instance/{newInstance.Id}");
                 }
             }
 
@@ -305,10 +308,6 @@ namespace LocalTest.Controllers
             {
                 var properProfile = await _userProfileService.GetUser(profile.UserId);
 
-                var group = new SelectListGroup()
-                {
-                    Name = properProfile.Party.Person.Name,
-                };
                 var userParties = await _partiesService.GetParties(properProfile.UserId);
 
                 if (userParties.Count == 1)
@@ -324,6 +323,10 @@ namespace LocalTest.Controllers
                 else
                 {
                     // When a user represents multiple parties, add it to a group, so that it stands out visually
+                    var group = new SelectListGroup()
+                    {
+                        Name = properProfile.Party.Name,
+                    };
                     foreach (var party in userParties)
                     {
                         userItems.Add(new()
@@ -422,7 +425,7 @@ namespace LocalTest.Controllers
         /// Creates a session cookie meant to be used to hold the generated JSON Web Token and appends it to the response.
         /// </summary>
         /// <param name="cookieValue">The cookie value.</param>
-        private void CreateJwtCookieAndAppendToResponse(string identityCookie, int altinnPartyId)
+        private void CreateJwtCookieAndAppendToResponse(string identityCookie, int altinnPartyId, string userSelect)
         {
             ICookieManager cookieManager = new ChunkingCookieManager();
 
@@ -461,6 +464,24 @@ namespace LocalTest.Controllers
                 partyCookieBuilder.Name,
                 altinnPartyId.ToString(),
                 partyCookieOptions);
+
+            // Add cookie about users selection (for preselecting in the dropdown)
+            CookieBuilder userSelectCookieBuilder = new RequestPathBaseCookieBuilder
+            {
+                Name = "Localtest_User.Party_Select",
+                SameSite = SameSiteMode.Lax,
+                HttpOnly = false,
+                SecurePolicy = CookieSecurePolicy.None,
+                IsEssential = true,
+                Domain = _generalSettings.Hostname,
+                Expiration = TimeSpan.MaxValue,
+            };
+            CookieOptions userSelectCookieOptions = cookieBuilder.Build(HttpContext);
+            cookieManager.AppendResponseCookie(
+                HttpContext,
+                userSelectCookieBuilder.Name,
+                userSelect,
+                userSelectCookieOptions);
         }
     }
 }

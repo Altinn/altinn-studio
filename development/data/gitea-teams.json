@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Deploy-AT21",
+    "permission": "write",
+    "description": "Deploy til AT21",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "Deploy-AT22",
+    "permission": "write",
+    "description": "Deploy til AT22",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "Deploy-AT23",
+    "permission": "write",
+    "description": "Deploy til AT23",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "Deploy-AT24",
+    "permission": "write",
+    "description": "Deploy til AT24",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "Deploy-TT02",
+    "permission": "write",
+    "description": "Deploy til TT02",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "Deploy-YT01",
+    "permission": "write",
+    "description": "Deploy til YT01",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "Devs",
+    "permission": "write",
+    "description": "All application developers",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "KunLes",
+    "permission": "read",
+    "description": "Test av kun lesetilgang",
+    "includes_all_repositories": true
+  }
+]

@@ -1,11 +1,10 @@
 import React from 'react';
 import { HandleMergeConflictFileList } from './HandleMergeConflictFileList';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const renderHandleMergeConflictFileList = (mockRepostatus?: any) => {
   const user = userEvent.setup();
-  const mockClasses: any = {};
   const mockLanguage: any = {};
   const repoStatus = mockRepostatus ?? {
     behindBy: 1,
@@ -31,7 +30,6 @@ const renderHandleMergeConflictFileList = (mockRepostatus?: any) => {
   const container = render(
     <HandleMergeConflictFileList
       changeSelectedFile={changeSelectedFile}
-      classes={mockClasses}
       language={mockLanguage}
       repoStatus={repoStatus}
     />
@@ -67,7 +65,7 @@ test('should show correct icons', () => {
 test('should trigger handleListItemClick() when listItem is clicked', async () => {
   const { user, changeSelectedFile } = renderHandleMergeConflictFileList();
   const listitems = screen.getAllByRole('listitem');
-  await user.click(listitems[0]);
+  await act(() => user.click(listitems[0]));
   expect(changeSelectedFile).toHaveBeenCalled();
 });
 

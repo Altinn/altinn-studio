@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<Skjema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <melding>
+        <name>testName</name>
+        <tags>testTags</tags>
+        <simple_list>
+            <simple_keyvalues>
+                <key>test</key>
+                <doubleValue>2.1</doubleValue>
+                <intValue>2</intValue>
+            </simple_keyvalues>
+            <simple_keyvalues>
+                <key>test2</key>
+                <doubleValue>3.1</doubleValue>
+                <intValue>3</intValue>
+            </simple_keyvalues>
+        </simple_list>
+        <toggle>true</toggle>
+    </melding>
+</Skjema>

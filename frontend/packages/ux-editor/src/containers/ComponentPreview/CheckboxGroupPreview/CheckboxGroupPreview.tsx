@@ -11,6 +11,7 @@ import {
   changeTitleBinding
 } from '../../../utils/component';
 import { AddOption } from '../../../components/AddOption';
+import { TranslationKey } from 'language/type';
 
 export interface CheckboxGroupPreviewProps extends IGenericEditComponent {
   component: IFormCheckboxComponent;
@@ -21,7 +22,7 @@ export const CheckboxGroupPreview = ({
   handleComponentChange,
 }: CheckboxGroupPreviewProps) => {
   const t = useText();
-  const tCheckboxes = (key: string) => t(`ux_editor.checkboxes_${key}`);
+  const tCheckboxes = (key: string) => t((`ux_editor.checkboxes_${key}`) as TranslationKey);
 
   const changeOptionLabel = (value: string, label: string) =>
     handleComponentChange(changeComponentOptionLabel(component, value, label));

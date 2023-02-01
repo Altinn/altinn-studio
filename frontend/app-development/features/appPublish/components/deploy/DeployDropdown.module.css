@@ -1,0 +1,12 @@
+.deployButton {
+  margin-top: 2.6rem;
+}
+
+.select {
+  max-width: 34rem;
+  z-index: 900;
+}
+
+.paperProps {
+  background-color: #f9cad3;
+}

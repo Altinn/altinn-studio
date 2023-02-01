@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { Panel, PanelVariant } from '@altinn/altinn-design-system';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Tabs } from '@digdir/design-system-react';
 import type { TabItem } from '@digdir/design-system-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -17,28 +16,31 @@ export interface ISchemaInspectorProps {
 }
 
 export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProps) => {
-  const t = (key: string) => getTranslation(key, language);
+  const t = useCallback((key: string) => getTranslation(key, language), [language]);
   enum TabValue {
     Properties = 'properties',
     Fields = 'fields'
   }
+  const [tabsFor, setTabsFor] = useState<string>(undefined);
   const [activeTab, setActiveTab] = useState<string>(TabValue.Properties);
   const [tabItems, setTabItems] = useState<TabItem[]>([
     {
       name: t(TabValue.Properties),
       content: null,
-      value: TabValue.Properties,
+      value: TabValue.Properties
     }
   ]);
 
   useEffect(() => {
-    setActiveTab(TabValue.Properties);
     if (!selectedItem) return;
-    const tabs = [{
-      name: t(TabValue.Properties),
-      content: <ItemPropertiesTab selectedItem={selectedItem} language={language} />,
-      value: TabValue.Properties,
-    }];
+    if (tabsFor !== selectedItem.pointer) setActiveTab(TabValue.Properties);
+    const tabs = [
+      {
+        name: t(TabValue.Properties),
+        content: <ItemPropertiesTab selectedItem={selectedItem} language={language} />,
+        value: TabValue.Properties
+      }
+    ];
     if (
       selectedItem?.fieldType === FieldType.Object &&
       selectedItem.objectKind !== ObjectKind.Combination &&
@@ -47,32 +49,33 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
       tabs.push({
         name: t(TabValue.Fields),
         content: <ItemFieldsTab selectedItem={selectedItem} language={language} />,
-        value: TabValue.Fields,
+        value: TabValue.Fields
       });
     }
+    setTabsFor(selectedItem.pointer);
     setTabItems(tabs);
-  }, [selectedItem]);
+  }, [activeTab, TabValue.Fields, TabValue.Properties, language, selectedItem, t, tabsFor]);
 
   const switchTab = (tabValue: string) => {
-    if ((tabValue === TabValue.Fields.toString() && selectedItem.fieldType !== FieldType.Object) || !selectedItem) {
+    if (
+      (tabValue === TabValue.Fields.toString() && selectedItem.fieldType !== FieldType.Object) ||
+      !selectedItem
+    ) {
       setActiveTab(TabValue.Properties);
     } else {
       setActiveTab(tabValue);
     }
   };
 
-  return selectedItem ? (
-    <div className={classes.root} data-testid='schema-inspector'>
-      <Panel variant={PanelVariant.Warning} forceMobileLayout={true}>
-        <span>{t('warning_under_development')}</span>
-      </Panel>
-      <Tabs
-        activeTab={activeTab}
-        items={tabItems}
-        onChange={switchTab}
-      />
-    </div>
-  ) : (
+  if (selectedItem) {
+    return (
+      <div className={classes.root} data-testid='schema-inspector'>
+        <Tabs activeTab={activeTab} items={tabItems} onChange={switchTab} />
+      </div>
+    );
+  }
+
+  return (
     <div>
       <p className={classes.noItem} id='no-item-paragraph'>
         {t('no_item_selected')}

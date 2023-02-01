@@ -5,7 +5,7 @@ exports[`ProfileMenu should match snapshot 1`] = `
   <button
     aria-haspopup="true"
     aria-label="profilikon knapp"
-    class="Button-module_button__2ZuB7 Button-module_button--small__pcER7 Button-module_button--quiet__AEmi2 Button-module_button--quiet--primary__-Omoa Button-module_button--only-icon__-Qpvj"
+    class="Button-module_button__2ZuB7 Button-module_small__l39oh Button-module_quiet__1KlhF Button-module_primary__s1sM6 Button-module_onlyIcon__lENu3"
     type="button"
   >
     <svg
@@ -35,7 +35,7 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
   <button
     aria-haspopup="true"
     aria-label="profilikon knapp"
-    class="Button-module_button__2ZuB7 Button-module_button--small__pcER7 Button-module_button--quiet__AEmi2 Button-module_button--quiet--primary__-Omoa Button-module_button--only-icon__-Qpvj"
+    class="Button-module_button__2ZuB7 Button-module_small__l39oh Button-module_quiet__1KlhF Button-module_primary__s1sM6 Button-module_onlyIcon__lENu3"
     type="button"
   >
     <svg

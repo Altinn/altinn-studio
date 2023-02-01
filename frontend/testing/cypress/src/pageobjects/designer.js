@@ -32,7 +32,7 @@ export const designer = {
   aboutApp: {
     appName: '#administrationInputAppName_textField',
     appDescription: '#administrationInputDescription_textField',
-    appHeader: '#altinn-column-layout-header',
+    appHeader: "[data-testid='administration-container'] h1",
     repoName: '#administrationInputReponame',
   },
   syncApp: {
@@ -55,7 +55,7 @@ export const designer = {
     uiEditor: "[data-testid='leftMenu_ui-editor']",
     accessControl: "a[data-testid='leftMenu_accesscontrol']",
   },
-  dragToArea: '.col-12',
+  dragToArea: "[data-testid='droppable-draggable-container']",
   draggable: "div[draggable='true']",
   formComponents: {
     shortAnswer: "i[class^='fa fa-short-answer']",

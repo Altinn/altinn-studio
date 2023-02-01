@@ -13,7 +13,7 @@ export interface IReferenceSelectionProps {
   label: string;
   onChangeRef: (refPointer: string, value: string) => void;
   onGoToDefButtonClick: () => void;
-  selectedNode: UiSchemaNode;
+  selectedNode: { pointer: string; reference?: string };
 }
 
 export function ReferenceSelectionComponent({
@@ -42,7 +42,7 @@ export function ReferenceSelectionComponent({
             label: pointer.replace(`#/${Keywords.Definitions}/`, ''),
           })),
         ]}
-        value={selectedNode.ref || ''}
+        value={selectedNode.reference || ''}
       />
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>
         {buttonText}

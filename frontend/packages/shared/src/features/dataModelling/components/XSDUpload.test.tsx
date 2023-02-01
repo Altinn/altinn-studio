@@ -2,7 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import type { IXSDUploadProps } from './XSDUpload';
 import { XSDUpload } from './XSDUpload';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -12,7 +12,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const clickUploadButton = async () => {
   const btn = screen.getByText('app_data_modelling.upload_xsd');
-  await user.click(btn);
+  await act(() => user.click(btn));
 };
 
 const render = (props: Partial<IXSDUploadProps> = {}) => {
@@ -54,7 +54,7 @@ describe('XSDUpload', () => {
 
     const fileInput = screen.getByTestId('FileSelector-input');
 
-    await user.upload(fileInput, file);
+    await act(() => user.upload(fileInput, file));
 
     expect(
       screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)
@@ -71,7 +71,7 @@ describe('XSDUpload', () => {
 
     const fileInput = screen.getByTestId('FileSelector-input');
 
-    await user.upload(fileInput, file);
+    await act(() => user.upload(fileInput, file));
 
     expect(handleUpload).toHaveBeenCalledWith('hello.xsd');
   });

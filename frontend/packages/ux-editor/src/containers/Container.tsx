@@ -27,7 +27,6 @@ import type {
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 import type { EditorDndEvents } from './helpers/dnd-types';
-import { TextField } from '@altinn/altinn-design-system';
 import {
   Button,
   ButtonColor,
@@ -35,6 +34,7 @@ import {
   Checkbox,
   CheckboxGroup,
   FieldSet,
+  TextField,
 } from '@digdir/design-system-react';
 import classes from './Container.module.css';
 import cn from 'classnames';
@@ -397,17 +397,16 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
           </div>
         )}
         {expanded &&
-             components && (
-          itemOrder?.length
+          components &&
+          (itemOrder?.length
             ? itemOrder.map((id: string, index: number) => {
-              const component = components[id];
-              if (component) {
-                return this.renderFormComponent(id, index);
-              }
-              return containers[id] && this.renderContainer(id, index);
-            })
-            : this.renderContainerPlaceholder()
-        )}
+                const component = components[id];
+                if (component) {
+                  return this.renderFormComponent(id, index);
+                }
+                return containers[id] && this.renderContainer(id, index);
+              })
+            : this.renderContainerPlaceholder())}
       </div>
     );
   };
@@ -443,7 +442,8 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             {renderSelectGroupDataModelBinding(
               tmpContainer.dataModelBindings,
               this.handleDataModelGroupChange,
-              'group'
+              'group',
+              language
             )}
             <div>
               <TextField
@@ -499,32 +499,45 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public renderEditMode = (): JSX.Element => (
-    <div>
-      <div className={classes.editModeWrapper}>
-        <div className={classes.editModeSectionWithHandle}>
-          <div className={classes.editModeHandle} ref={this.props.dragHandleRef}><DragHandle /></div>
-          <div className={classes.editModeSection}>{this.renderEditSection()}</div>
+    <div className={classes.editModeWrapper} role={'listitem'}>
+      <div className={classes.editModeSectionWithHandle}>
+        <div className={classes.editModeHandle} ref={this.props.dragHandleRef}>
+          <DragHandle />
         </div>
-        <div className={classes.editModeButtons}>{this.renderEditIcons()}</div>
+        <div className={classes.editModeSection}>{this.renderEditSection()}</div>
       </div>
+      <div className={classes.editModeButtons}>{this.renderEditIcons()}</div>
     </div>
   );
 
   public renderHoverIcons = (): JSX.Element => (
     <>
       <Button
-        icon={<Delete title={this.props.language['general.delete']}/>}
+        data-testid='delete-component'
+        icon={<Delete title={this.props.language['general.delete']} />}
         onClick={this.handleContainerDelete}
         variant={ButtonVariant.Quiet}
       />
-      <Button icon={<Edit title={this.props.language['general.edit']}/>} onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
+      <Button
+        icon={<Edit title={this.props.language['general.edit']} />}
+        onClick={this.handleEditMode}
+        variant={ButtonVariant.Quiet}
+      />
     </>
   );
 
   public renderEditIcons = (): JSX.Element => (
     <>
-      <Button icon={<Cancel title={this.props.language['general.cancel']} />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
-      <Button icon={<Success title={this.props.language['general.save']} />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button
+        icon={<Cancel title={this.props.language['general.cancel']} />}
+        onClick={this.handleDiscard}
+        variant={ButtonVariant.Quiet}
+      />
+      <Button
+        icon={<Success title={this.props.language['general.save']} />}
+        onClick={this.handleDiscard}
+        variant={ButtonVariant.Quiet}
+      />
     </>
   );
 
@@ -599,9 +612,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
     );
   };
 
-  public changeActiveFormContainer = (e: any) => {
-    e.stopPropagation();
-  };
+  public changeActiveFormContainer = (e: any) => e.stopPropagation();
 }
 
 const makeMapStateToProps = () => {

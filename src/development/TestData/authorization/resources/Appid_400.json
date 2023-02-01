@@ -13,7 +13,11 @@
 	"validFrom": "2020-03-04T18:04:27.27",
 	"identifier": "appid-400",
 	"isComplete": false,
-	"description": null,
+	"description": {
+		"en": "Humbug Registry",
+		"nb": "Tulleregisteret",
+		"nn": "Tulleregisteret"
+	},
 	"resourceType": "MaskinportenSchema",
 	"thematicArea": null,
 	"isPublicService": true,

@@ -19,7 +19,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
     !rootNode.implicitType ? rootNode.fieldType : undefined
   );
   JSONPointer.set(out, `/${Keywords.Required}`, findRequiredProps(nodes, rootNode.pointer));
-
+  JSONPointer.set(out, `/${Keywords.Description}`, rootNode.description);
   const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
   sortedUiSchemaNodes
@@ -62,7 +62,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
       JSONPointer.set(
         out,
         [jsonPointer, Keywords.Reference].join('/'),
-        typeof node.ref === 'string' ? node.ref : undefined
+        typeof node.reference === 'string' ? node.reference : undefined
       );
 
       // Setting Type for fields

@@ -51,13 +51,13 @@ test('renders a warning button', () => {
 
 test('reacts to being clicked', async () => {
   const { handleClick, user } = renderButton('delete', 'text');
-  await user.click(screen.getByRole('button'));
+  await act(() => user.click(screen.getByRole('button')));
   expect(handleClick).toBeCalledTimes(1);
 });
 
 test('reacts to being clicked (icon button)', async () => {
   const { handleClick, user } = renderButton('delete', 'icon');
-  await user.click(screen.getByRole('button'));
+  await act(() => user.click(screen.getByRole('button')));
   expect(handleClick).toBeCalledTimes(1);
 });
 

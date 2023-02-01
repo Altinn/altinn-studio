@@ -11,7 +11,7 @@ import classes from './EditContainer.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { Cancel, Delete, Edit, Monitor, Success } from '@navikt/ds-icons';
 import cn from 'classnames';
-import { ConnectDragSource } from 'react-dnd';
+import type { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useText } from '../hooks';
@@ -62,10 +62,7 @@ export function EditContainer(props: IEditContainerProps) {
   const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
   const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
 
-  const previewableComponents = [
-    ComponentTypes.Checkboxes,
-    ComponentTypes.RadioButtons,
-  ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
+  const previewableComponents = [ComponentTypes.Checkboxes, ComponentTypes.RadioButtons]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
 
   const isPreviewable = previewableComponents.includes(component.type as ComponentTypes);
 
@@ -146,10 +143,10 @@ export function EditContainer(props: IEditContainerProps) {
 
   const activeListIndex = activeList.findIndex((item: any) => item.id === props.id);
   return (
-    <div className={cn(classes.wrapper, isPreviewMode && classes.previewMode)}>
+    <div className={cn(classes.wrapper, isPreviewMode && classes.previewMode)} role='listitem'>
       <div className={classes.formComponentWithHandle}>
         <div ref={props.dragHandleRef} className={classes.dragHandle}>
-          <DragHandle/>
+          <DragHandle />
         </div>
         <div
           className={classes.formComponent}
@@ -171,14 +168,11 @@ export function EditContainer(props: IEditContainerProps) {
           )}
           {(mode === EditContainerMode.Closed || !component) && (
             <div className={classes.formComponentTitle}>
-              <i className={componentIcons[component.type] || 'fa fa-help-circle'}/>
+              <i className={componentIcons[component.type] || 'fa fa-help-circle'} />
               {component.textResourceBindings?.title
-                ? truncate(
-                  getTextResource(component.textResourceBindings.title, textResources),
-                  80
-                )
+                ? truncate(getTextResource(component.textResourceBindings.title, textResources), 80)
                 : getComponentTitleByComponentType(component.type, language) ||
-                t('ux_editor.component_unknown')}
+                  t('ux_editor.component_unknown')}
             </div>
           )}
         </div>
@@ -187,18 +181,18 @@ export function EditContainer(props: IEditContainerProps) {
         <div className={classes.buttons}>
           {(activeListIndex === 0 || activeList.length < 1) && (
             <Button
+              data-testid='component-delete-button'
               color={ButtonColor.Secondary}
-              icon={<Delete title={t('general.delete')}/>}
+              icon={<Delete title={t('general.delete')} />}
               onClick={handleComponentDelete}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
             />
           )}
-          {(activeList.length < 1 ||
-            (activeList.length === 1 && activeListIndex === 0)) && (
+          {(activeList.length < 1 || (activeList.length === 1 && activeListIndex === 0)) && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Edit title={t('general.edit')}/>}
+              icon={<Edit title={t('general.edit')} />}
               onClick={handleOpenEdit}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -207,7 +201,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor title={t('general.preview')}/>}
+              icon={<Monitor title={t('general.preview')} />}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}
@@ -219,14 +213,14 @@ export function EditContainer(props: IEditContainerProps) {
         <div className={classes.buttons}>
           <Button
             color={ButtonColor.Secondary}
-            icon={<Cancel title={t('general.cancel')}/>}
+            icon={<Cancel title={t('general.cancel')} />}
             onClick={handleDiscard}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
           />
           <Button
             color={ButtonColor.Secondary}
-            icon={<Success title={t('general.save')}/>}
+            icon={<Success title={t('general.save')} />}
             onClick={handleSave}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
@@ -234,7 +228,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor title={t('general.preview')}/>}
+              icon={<Monitor title={t('general.preview')} />}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}

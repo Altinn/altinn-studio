@@ -1,7 +1,7 @@
 import React from 'react';
 import * as networking from 'app-shared/utils/networking';
 import HandleMergeConflictDiscardChanges from './HandleMergeConflictDiscardChanges';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const renderHandleMergeConflictDiscardChanges = () => {
@@ -27,14 +27,14 @@ test('should handle successfully returned data from API', async () => {
 
   // Expect this button to open the popup
   expect(screen.queryAllByRole('presentation')).toHaveLength(0);
-  await user.click(discardMergeChangesBtn);
+  await act(() => user.click(discardMergeChangesBtn));
   expect(screen.getByRole('presentation')).toBeDefined();
 
   const discardMergeChangesConfirmBtn = screen.getByRole('button', {
     name: 'handle_merge_conflict.discard_changes_button_confirm',
   });
   expect(discardMergeChangesConfirmBtn).toBeDefined();
-  await user.click(discardMergeChangesConfirmBtn);
+  await act(() => user.click(discardMergeChangesConfirmBtn));
   expect(mockGet).toHaveBeenCalled();
 });
 
@@ -47,13 +47,13 @@ test('should handle unsuccessfully returned data from API', async () => {
     name: 'handle_merge_conflict.discard_changes_button',
   });
 
-  await user.click(discardMergeChangesBtn);
+  await act(() => user.click(discardMergeChangesBtn));
 
   const discardMergeChangesConfirmBtn = screen.getByRole('button', {
     name: 'handle_merge_conflict.discard_changes_button_confirm',
   });
 
-  await user.click(discardMergeChangesConfirmBtn);
+  await act(() => user.click(discardMergeChangesConfirmBtn));
   expect(mockGet).toHaveBeenCalled();
   expect(consoleError).toHaveBeenCalled();
 });

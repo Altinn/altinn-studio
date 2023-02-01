@@ -1,24 +1,11 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using System.Xml;
-using System.Xml.Linq;
-
-using Altinn.Studio.Designer.Factories.ModelFactory;
-using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-
-using Manatee.Json.Schema;
-
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Net.Http.Headers;
-
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -106,7 +93,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 ModelMetadata metadata = _repository.GetModelMetadata(org, app);
-                return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
+                return Json(metadata, new JsonSerializerSettings() { Formatting = Formatting.Indented });
             }
             catch
             {

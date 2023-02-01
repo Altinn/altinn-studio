@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
@@ -87,8 +87,8 @@ test('setPropertyName action is called with correct payload when a name is chang
   const { user, store } = renderItemFieldsTab();
   const suffix = 'Duck';
   for (const fieldName of fieldNames) {
-    await user.type(screen.getByDisplayValue(fieldName), suffix);
-    await user.tab();
+    await act(() => user.type(screen.getByDisplayValue(fieldName), suffix));
+    await act(() => user.tab());
   }
   const setPropertyNameActions = store
     .getActions()
@@ -104,8 +104,8 @@ test('setType action is called with correct payload when a type is changed', asy
   const { user, store } = renderItemFieldsTab();
   const newType = FieldType.Integer;
   for (const i in fieldNames) {
-    await user.click(screen.getAllByRole('combobox')[i]);
-    await user.click(screen.getAllByRole('option', { name: fieldTypeNames[newType] })[i]);
+    await act(() => user.click(screen.getAllByRole('combobox')[i]));
+    await act(() => user.click(screen.getAllByRole('option', { name: fieldTypeNames[newType] })[i]));
   }
   const setPropertyNameActions = store
     .getActions()
@@ -119,7 +119,7 @@ test('setType action is called with correct payload when a type is changed', asy
 
 test('addProperty action is called with correct payload when the "Add field" button is clicked', async () => {
   const { user, store } = renderItemFieldsTab();
-  await user.click(screen.getByText(textAdd));
+  await act(() => user.click(screen.getByText(textAdd)));
   const addPropertyActions = store
     .getActions()
     .filter((action) => action.type === 'schemaEditor/addProperty');
@@ -129,8 +129,8 @@ test('addProperty action is called with correct payload when the "Add field" but
 
 test('addProperty action is calledd with correct payload when a field is focused and the Enter key is clicked', async () => {
   const { user, store } = renderItemFieldsTab();
-  await user.click(screen.getAllByRole('textbox')[0]);
-  await user.keyboard('{Enter}');
+  await act(() => user.click(screen.getAllByRole('textbox')[0]));
+  await act(() => user.keyboard('{Enter}'));
   const addPropertyActions = store
     .getActions()
     .filter((action) => action.type === 'schemaEditor/addProperty');
@@ -141,7 +141,7 @@ test('addProperty action is calledd with correct payload when a field is focused
 test('deleteProperty action is called with correct payload when delete button is clicked', async () => {
   const { user, store } = renderItemFieldsTab();
   for (const i in fieldNames) {
-    await user.click(screen.queryAllByLabelText(textDeleteField)[i]);
+    await act(() => user.click(screen.queryAllByLabelText(textDeleteField)[i]));
   }
   const setPropertyNameActions = store
     .getActions()
@@ -168,7 +168,7 @@ test('Newly added field gets focus and its text becomes selected', async () => {
     uiSchema: newUiSchema,
   });
   expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
-  await user.keyboard('a'); // Should replace the current value since the text should be selected
+  await act(() => user.keyboard('a')); // Should replace the current value since the text should be selected
   expect(screen.getByDisplayValue('a')).toBeDefined();
   expect(screen.queryByDisplayValue(newChildNodeName)).toBeFalsy();
 });
@@ -186,7 +186,7 @@ test('Inputs are disabled if the selected item is a reference', () => {
       selectedItem: {
         ...selectedItem,
         objectKind: ObjectKind.Reference,
-        ref: referencedNode.pointer,
+        reference: referencedNode.pointer,
       },
     },
     { uiSchema: [...uiSchema, referencedNode] }

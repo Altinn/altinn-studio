@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { ICreateNewWrapper } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
@@ -21,7 +21,7 @@ describe('CreateNewWrapper', () => {
       })
     ).not.toBeInTheDocument();
 
-    await user.click(newButton);
+    await act(() => user.click(newButton));
 
     expect(
       screen.queryByRole('button', {
@@ -45,14 +45,14 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await user.click(newButton);
+      await act(() => user.click(newButton));
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
       });
-      await user.type(textInput, 'new-model');
-      await user.click(okButton);
+      await act(() => user.type(textInput, 'new-model'));
+      await act(() => user.click(okButton));
       expect(handleChange).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -66,12 +66,12 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await user.click(newButton);
+      await act(() => user.click(newButton));
 
       const textInput = screen.getByRole('textbox');
 
-      await user.type(textInput, 'new-model');
-      await user.keyboard('{Enter}');
+      await act(() => user.type(textInput, 'new-model'));
+      await act(() => user.keyboard('{Enter}'));
       expect(handleChange).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -85,14 +85,14 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await user.click(newButton);
+      await act(() => user.click(newButton));
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
       });
-      await user.type(textInput, 'new-model');
-      await user.click(okButton);
+      await act(() => user.type(textInput, 'new-model'));
+      await act(() => user.click(okButton));
       expect(handleChange).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: '',
@@ -108,17 +108,17 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await user.click(newButton);
+      await act(() => user.click(newButton));
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
       });
 
-      await user.type(textInput, modelName);
+      await act(() => user.type(textInput, modelName));
       expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
 
-      await user.click(okButton);
+      await act(() => user.click(okButton));
 
       expect(handleChange).not.toHaveBeenCalled();
       expect(screen.getByText(errMessage)).toBeInTheDocument();
@@ -135,13 +135,13 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await userWithNoPointerEventCheck.click(newButton);
+      await act(() => userWithNoPointerEventCheck.click(newButton));
 
       const okButton = screen.getByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
       });
 
-      await userWithNoPointerEventCheck.click(okButton);
+      await act(() => userWithNoPointerEventCheck.click(okButton));
 
       expect(handleChange).not.toHaveBeenCalled();
     });
