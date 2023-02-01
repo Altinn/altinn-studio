@@ -2,7 +2,6 @@ import React from 'react';
 import { Typography } from '@mui/material';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
 import type { IDataModelBindings } from '../types/global';
-import { useText } from '../hooks';
 
 export const styles = {
   inputHelper: {
@@ -52,13 +51,13 @@ export const PropertyLabel = ({ textKey, htmlFor }: IPropertyLabelProps) => {
 export const renderSelectGroupDataModelBinding = (
   dataModelBinding: IDataModelBindings,
   onDataModelChange: any,
-  key = 'simpleBinding'
+  key = 'simpleBinding',
+  language: any
 ): JSX.Element => {
-  const t = useText();
   return (
     <div>
       <PropertyLabel
-        textKey={t('ux_editor.modal_properties_data_model_helper')}
+        textKey={language['ux_editor.modal_properties_data_model_helper']}
         htmlFor='dataModalHelper'
       />
 
@@ -67,7 +66,7 @@ export const renderSelectGroupDataModelBinding = (
         selectedElement={dataModelBinding[key]}
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
         selectGroup={true}
-        noOptionsMessage={t('general.no_options')}
+        noOptionsMessage={language['general.no_options']}
       />
     </div>
   );
