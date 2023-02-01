@@ -115,7 +115,7 @@ export function CreateReleaseComponent() {
           <Button
             ref={ref}
             onClick={handleBuildVersionClick}
-            disabled={!versionNameValid() || tagName === ''}
+            disabled={!versionNameValid() || !tagName}
           >
             {getLanguageFromKey('app_create_release.build_version', language)}
           </Button>
