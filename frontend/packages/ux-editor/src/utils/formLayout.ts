@@ -3,7 +3,6 @@ import type { IComponent /*, IThirdPartyComponentDefinition*/ } from '../compone
 import { ComponentTypes } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { LayoutItemType } from '../types/global';
-// import { addTextResources } from '../features/appData/textResources/textResourcesSlice';
 import { getComponentTitleByComponentType } from './language';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { v4 as uuidv4 } from 'uuid';
@@ -167,44 +166,6 @@ export function extractChildrenFromGroup(group: any, components: any[], converte
     }
   });
 }
-
-/* This code seemed to be unused
-export const mapThirdPartyComponentToToolbarElement = (
-  component: IThirdPartyComponentDefinition,
-  activeList: any,
-  order: any,
-  language: any,
-  dispatch: Dispatch
-): IToolbarElement => {
-  const { textResourceBindings, ...rest } = JSON.parse(
-    JSON.stringify(component.componentDefinition)
-  );
-  return {
-    label: getLanguageFromKey(component.displayName, language),
-    icon: 'fa fa-3rd-party-alt',
-    type: ComponentTypes.ThirdParty,
-    actionMethod: (containerId: string, position: number) => {
-      dispatch(
-        addFormComponent({
-          component: {
-            type: ComponentTypes.ThirdParty,
-            itemType: LayoutItemType.Component,
-            textResourceBindings: textResourceBindings || {
-              title: getLanguageFromKey(component.displayName, language),
-            },
-            dataModelBindings: {},
-            ...rest,
-          },
-          position,
-          containerId,
-        })
-      );
-      dispatch(addTextResources({ textResources: component.texts }));
-      dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
-    },
-  };
-};
-*/
 
 export const mapWidgetToToolbarElement = (
   widget: IWidget,

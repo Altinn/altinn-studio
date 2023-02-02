@@ -11,12 +11,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
-    /// Controller containing all react-ions
+    /// Controller containing actions that concerns app-development
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/form-editor")]
-    public class FormEditorController : Controller
+    [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-development")]
+    public class AppDevelopmentController : Controller
     {
         private readonly IRepository _repository;
         private readonly ISourceControl _sourceControl;
@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
-        public FormEditorController(IRepository repositoryService, ISourceControl sourceControl)
+        public AppDevelopmentController(IRepository repositoryService, ISourceControl sourceControl)
         {
             _repository = repositoryService;
             _sourceControl = sourceControl;
@@ -131,9 +131,9 @@ namespace Altinn.Studio.Designer.Controllers
 
                 return NoContent();
             }
-            catch (Exception e)
+            catch (IOException)
             {
-                return BadRequest("Could not save rule handler.", e);
+                return BadRequest("Could not save rule handler");
             }
         }
 

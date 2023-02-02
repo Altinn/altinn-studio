@@ -19,14 +19,14 @@ export const datamodelAddXsdFromRepoPath = (org, app, filePath) => `/designer/ap
 // See frontend/app-development/utils/urlHelper.ts Deployments
 
 // FormEditor
-export const ruleHandlerPath = (org, app) => `/designer/api/${org}/${app}/form-editor/rule-handler`; // Get
-export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/form-editor/rule-handler?${stageFile}`; // Get
-export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/form-editor/widget-settings`; // Get
-export const ruleConfigPath = (org, app) => `/designer/api/${org}/${app}/form-editor/rule-config`; // Get, Post
-export const layoutSettingsPath = (org, app) => `/designer/api/${org}/${app}/form-editor/layout-settings`; // Get, Post
-export const formLayoutsPath = (org, app) => `/designer/api/${org}/${app}/form-editor/form-layouts`; // Get
-export const formLayoutPath = (org, app, layout) => `/designer/api/${org}/${app}/form-editor/form-layout/${layout}`; // Post, Delete
-export const formLayoutNamePath = (org, app, layoutName) => `/designer/api/${org}/${app}/form-editor/form-layout-name/${layoutName}`; // Put
+export const ruleHandlerPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-handler`; // Get
+export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Get
+export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/widget-settings`; // Get
+export const ruleConfigPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-config`; // Get, Post
+export const layoutSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/layout-settings`; // Get, Post
+export const formLayoutsPath = (org, app) => `/designer/api/${org}/${app}/app-development/form-layouts`; // Get
+export const formLayoutPath = (org, app, layout) => `/designer/api/${org}/${app}/app-development/form-layout/${layout}`; // Post, Delete
+export const formLayoutNamePath = (org, app, layoutName) => `/designer/api/${org}/${app}/app-development/form-layout-name/${layoutName}`; // Put
 
 // Frontend-language
 export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.json`;

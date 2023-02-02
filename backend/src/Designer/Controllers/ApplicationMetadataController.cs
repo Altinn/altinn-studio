@@ -1,3 +1,4 @@
+using System.IO;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
@@ -98,11 +99,11 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 _repository.AddMetadataForAttachment(org, app, applicationMetadata.ToString());
-                return Created("Metadata saved");
+                return Ok("Metadata saved");
             }
-            catch (Exception e)
+            catch (IOException)
             {
-                return BadRequest("Could not save metadata: ", e);
+                return BadRequest("Could not save metadata");
             }
         }
 
@@ -122,9 +123,9 @@ namespace Altinn.Studio.Designer.Controllers
                 _repository.UpdateMetadataForAttachment(org, app, applicationMetadata.ToString());
                 return Ok("Metadata updated");
             }
-            catch (Exception e)
+            catch (IOException)
             {
-                return BadRequest("Could not update metadata.", e);
+                return BadRequest("Could not update metadata");
             }
         }
 
@@ -144,9 +145,9 @@ namespace Altinn.Studio.Designer.Controllers
                 _repository.DeleteMetadataForAttachment(org, app, id);
                 return Ok("Metadata deleted");
             }
-            catch (Exception e)
+            catch (IOException)
             {
-                return BadRequest("Could not delete metadata.", e);
+                return BadRequest("Could not delete metadata");
             }
         }
     }

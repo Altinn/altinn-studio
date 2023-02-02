@@ -122,8 +122,6 @@ namespace Altinn.Studio.Designer.Controllers
                 serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
             }
 
-            watch.Stop();
-            Trace.Write($"Getserviceconfig - {watch.ElapsedMilliseconds}");
             return serviceConfigurationObject;
         }
 
