@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { applicationMetadataMock, getInstanceDataStateMock } from 'src/__mocks__/mocks';
-import { type Props as IConfirmPage, ConfirmPage } from 'src/features/confirm/containers/ConfirmPage';
+import { ConfirmPage, type Props as IConfirmPage } from 'src/features/confirm/containers/ConfirmPage';
 import { nb } from 'src/language/texts/nb';
 import { renderWithProviders } from 'src/testUtils';
 import type { IInstance } from 'src/types/shared';
