@@ -12,4 +12,4 @@ src/Altinn.Platform
 src/Altinn.Apps
 src/test
 !src/Altinn.Platform/Altinn.Platform.Receipt
-
+development

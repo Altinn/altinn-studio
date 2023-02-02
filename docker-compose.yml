@@ -9,6 +9,14 @@ volumes:
   pgdata:
 
 services:
+  studio_azure_mock:
+    image: studio-azure-mock:${COMMIT:-latest}
+    container_name: studio-azure-mock
+    build:
+      context: ./development/azure-devops-mock
+    ports:
+      - "6161:6161"
+
   studio_loadbalancer:
     image: nginx:alpine
     container_name: studio-loadbalancer
@@ -69,7 +77,6 @@ services:
       - studio_repositories
     build:
       context: .
-      dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -108,7 +115,6 @@ services:
       - "222:22"
     build:
       context: ./gitea/
-      dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
