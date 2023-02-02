@@ -172,10 +172,10 @@ export function ReleaseContainer() {
       return null;
     }
     if (!!latestRelease && latestRelease.targetCommitish === repoStatus.branch.master.commit.id) {
-      return t('app_create_release.local_changes_can_build');
+      return t('app_create_release.local_changes_cant_build');
     }
     if (handleMergeConflict.repoStatus.contentStatus) {
-      return t('app_create_release.local_changes_cant_build');
+      return t('app_create_release.local_changes_can_build');
     }
     return null;
   }
