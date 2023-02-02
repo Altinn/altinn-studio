@@ -888,6 +888,7 @@
   "ux_editor.modal_text": "Text",
   "ux_editor.modal_text_input": "Choose text",
   "ux_editor.modal_text_key": "Text key",
+  "ux_editor.modal_text_resource_body": "Text content",
   "ux_editor.radios_description_add": "Add descrption",
   "ux_editor.radios_description_placeholder": "No description",
   "ux_editor.radios_legend_add": "Add title",
