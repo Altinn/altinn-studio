@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -17,6 +18,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         private readonly HttpClient _httpClient;
         private readonly GeneralSettings _generalSettings;
         private readonly ISourceControl _sourceControl;
+        private readonly ILogger<AzureDevOpsBuildClient> _logger;
 
         /// <summary>
         /// Constructor
@@ -27,11 +29,13 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         public AzureDevOpsBuildClient(
             HttpClient httpClient,
             IOptionsMonitor<GeneralSettings> generalSettingsOptions,
-            ISourceControl sourceControl)
+            ISourceControl sourceControl,
+            ILogger<AzureDevOpsBuildClient> logger)
         {
             _generalSettings = generalSettingsOptions.CurrentValue;
             _httpClient = httpClient;
             _sourceControl = sourceControl;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -50,7 +54,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         /// <inheritdoc/>
         public async Task<Build> Get(string buildId)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"{buildId}?api-version=5.1");
+            string requestUri = $"{buildId}?api-version=5.1";
+            _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
             return await response.Content.ReadAsAsync<Build>();
         }
 
@@ -75,7 +81,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         {
             string requestBody = JsonConvert.SerializeObject(queueBuildRequest);
             using StringContent httpContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _httpClient.PostAsync("?api-version=5.1", httpContent);
+            string requestUri = "?api-version=5.1";
+            _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
+
+            HttpResponseMessage response = await _httpClient.PostAsync(requestUri, httpContent);
             return await response.Content.ReadAsAsync<Build>();
         }
     }

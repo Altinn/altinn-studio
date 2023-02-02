@@ -34,6 +34,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<IActionResult> CheckReleaseStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
+            _logger.LogInformation("checkreleasebuildstatus was with BuildNumber {BuildNumber} and ResourceOwner {ResourceOwner}", model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             await _pipelineService.UpdateReleaseStatus(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             return Ok();
         }

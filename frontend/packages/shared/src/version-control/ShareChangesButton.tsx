@@ -14,10 +14,9 @@ export interface IShareChangesComponentProps {
 }
 
 export const ShareChangesButton = (props: IShareChangesComponentProps) => {
-  const shareChangesHandler = (event: any) => {
-    const noChanges = !props.changesInLocalRepo;
-    props.shareChanges(event.currentTarget, noChanges);
-  };
+  const shareChangesHandler = (event: any) =>
+    props.shareChanges(event.currentTarget, !props.changesInLocalRepo);
+
   const renderCorrectText = () => {
     if (props.hasMergeConflict) {
       return getLanguageFromKey('sync_header.merge_conflict', props.language);

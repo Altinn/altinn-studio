@@ -62,6 +62,7 @@ services:
       - ServiceRepositorySettings:RepositoryBaseURL=http://studio-repositories:3000
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
+      - Integrations:AzureDevOpsSettings:BaseUri=http://host.docker.internal:6161/_apis/
     ports:
       - "6000:6000"
     depends_on:

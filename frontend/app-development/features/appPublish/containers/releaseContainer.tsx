@@ -1,48 +1,45 @@
-import type { KeyboardEvent, MouseEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import classes from './releaseContainer.module.css';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
-import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
-import type { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
-import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
+import type { IHandleMergeConflict } from '../../handleMergeConflict/handleMergeConflictSlice';
 import type { IRelease } from '../../../sharedResources/appRelease/types';
-import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
-import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import type { KeyboardEvent, MouseEvent } from 'react';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
-import { CircularProgress, Popover } from '@mui/material';
+import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
+import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
+import { Button, ButtonSize, ButtonVariant, Popover } from '@digdir/design-system-react';
+import { CircularProgress } from '@mui/material';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
-import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
-import { frontendLangPath, gitCommitPath, repoStatusPath } from 'app-shared/api-paths';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
+import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { Upload, SuccessStroke } from '@navikt/ds-icons';
+import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
+import { getParsedLanguageFromKey } from 'app-shared/utils/language';
+import { gitCommitPath, repoStatusPath } from 'app-shared/api-paths';
 import { useAppDispatch, useAppSelector, useMediaQuery } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
-import { Upload, SuccessStroke } from '@navikt/ds-icons';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
   const dispatch = useAppDispatch();
 
   const [anchorElement, setAchorElement] = useState<Element>();
-
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
   const appReleases: IAppReleaseState = useAppSelector((state) => state.appReleases);
+  const latestRelease: IRelease = appReleases.releases[0] ? appReleases.releases[0] : null;
   const repoStatus: IRepoStatusState = useAppSelector((state) => state.repoStatus);
-  const handleMergeConflict: IHandleMergeConflictState = useAppSelector(
-    (state) => state.handleMergeConflict
-  );
+  const handleMergeConflict: IHandleMergeConflict = useAppSelector((s) => s.handleMergeConflict);
+
   const language: any = useAppSelector((state) => state.languageState.language);
+  const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
+
   const { org, app } = useParams();
 
   useEffect(() => {
     dispatch(AppReleaseActions.getAppReleaseStartInterval());
-    if (!language) {
-      dispatch(fetchLanguage({ url: frontendLangPath('nb') }));
-    }
     dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
     dispatch(
       fetchRepoStatus({
@@ -94,12 +91,10 @@ export function ReleaseContainer() {
         )}
         <div>
           <div className={classes.cannotCreateReleaseTitle}>
-            {getParsedLanguageFromKey('app_create_release_errors.fetch_release_failed', language, [
-              'mailto:tjenesteeier@altinn.no',
-            ])}
+            {t('app_create_release_errors.fetch_release_failed', ['mailto:tjenesteeier@altinn.no'])}
           </div>
           <div className={classes.cannotCreateReleaseSubTitle}>
-            {getLanguageFromKey('app_create_release_errors.technical_error_code', language)}
+            {t('app_create_release_errors.technical_error_code')}
             &nbsp;
             {appReleases.errors.fetchReleaseErrorCode}
           </div>
@@ -118,31 +113,29 @@ export function ReleaseContainer() {
           <div>
             <CircularProgress style={{ color: '#1EAEF7' }} />
           </div>
-          <div style={{ padding: '1.2rem' }}>
-            {getLanguageFromKey('app_create_release.check_status', language)}
-          </div>
+          <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
         </div>
       );
     }
     if (appReleases.errors.fetchReleaseErrorCode !== null) {
       return null;
     }
-    if (!appReleases.releases || !appReleases.releases.length) {
+    if (!latestRelease) {
       return <CreateReleaseComponent />;
     }
-    if (!handleMergeConflict.repoStatus || !repoStatus.branch.master) {
+    if (!repoStatus.branch.master || !handleMergeConflict.repoStatus) {
       return null;
     }
     // Check if latest
     if (
-      !!appReleases.releases[0] &&
-      appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
-      appReleases.releases[0].build.status === BuildStatus.completed &&
-      appReleases.releases[0].build.result === BuildResult.succeeded
+      !!latestRelease &&
+      latestRelease.targetCommitish === repoStatus.branch.master.commit.id &&
+      latestRelease.build.status === BuildStatus.completed &&
+      latestRelease.build.result === BuildResult.succeeded
     ) {
       return null;
     }
-    if (appReleases.releases[0].build.status !== BuildStatus.completed) {
+    if (latestRelease.build.status !== BuildStatus.completed) {
       return null;
     }
     return <CreateReleaseComponent />;
@@ -169,22 +162,20 @@ export function ReleaseContainer() {
   function renderStatusMessage() {
     if (
       !repoStatus.branch.master ||
-      !appReleases.releases ||
-      !handleMergeConflict.repoStatus.contentStatus
+      !handleMergeConflict.repoStatus.contentStatus ||
+      !handleMergeConflict.repoStatus.contentStatus.length ||
+      !appReleases.releases.length
     ) {
-      return null;
+      return 'Ok';
     }
     if (!appReleases.releases || !appReleases.releases.length) {
       return null;
     }
-    if (
-      !!appReleases.releases[0] &&
-      repoStatus.branch.master.commit.id === appReleases.releases[0].targetCommitish
-    ) {
-      return getLanguageFromKey('app_create_release.local_changes_cant_build', language);
+    if (!!latestRelease && latestRelease.targetCommitish === repoStatus.branch.master.commit.id) {
+      return t('app_create_release.local_changes_can_build');
     }
     if (handleMergeConflict.repoStatus.contentStatus) {
-      return getLanguageFromKey('app_create_release.local_changes_can_build', language);
+      return t('app_create_release.local_changes_cant_build');
     }
     return null;
   }
@@ -197,7 +188,7 @@ export function ReleaseContainer() {
     ) {
       return null;
     }
-    const latestRelease: IRelease = appReleases.releases[0] ? appReleases.releases[0] : null;
+
     if (
       !latestRelease ||
       latestRelease.targetCommitish !== repoStatus.branch.master.commit.id ||
@@ -205,14 +196,14 @@ export function ReleaseContainer() {
     ) {
       return (
         <>
-          {getLanguageFromKey('app_release.release_title', language)} &nbsp;
+          {t('app_release.release_title')} &nbsp;
           {repoStatus.branch.master ? (
             <a
               href={gitCommitPath(org, app, repoStatus.branch.master.commit.id)}
               target='_blank'
               rel='noopener noreferrer'
             >
-              {getLanguageFromKey('app_release.release_title_link', language)}
+              {t('app_release.release_title_link')}
             </a>
           ) : null}
         </>
@@ -221,14 +212,14 @@ export function ReleaseContainer() {
     if (latestRelease.targetCommitish === repoStatus.branch.master.commit.id) {
       return (
         <>
-          {getLanguageFromKey('general.version', language)}
+          {t('general.version')}
           &nbsp;
-          {appReleases.releases[0].tagName}
+          {latestRelease.tagName}
           &nbsp;
-          {getLanguageFromKey('general.contains', language)}
+          {t('general.contains')}
           &nbsp;
           <a href={gitCommitPath(org, app, repoStatus.branch.master.commit.id)}>
-            {getLanguageFromKey('app_release.release_title_link', language)}
+            {t('app_release.release_title_link')}
           </a>
         </>
       );
@@ -240,28 +231,32 @@ export function ReleaseContainer() {
     <>
       <div className={classes.appReleaseWrapper}>
         <div className={classes.versionHeader}>
-          <div className={classes.versionHeaderTitle}>
-            {getLanguageFromKey('app_release.release_tab_versions', language)}
-          </div>
+          <div className={classes.versionHeaderTitle}>{t('app_release.release_tab_versions')}</div>
         </div>
         <div className={classes.versionSubHeader}>
           <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-          <Button
-            className={classes.appCreateReleaseStatusIcon}
-            onClick={handlePopoverOpenClicked}
-            onMouseOver={handlePopoverOpenHover}
-            onMouseLeave={handlePopoverClose}
-            tabIndex={0}
-            onKeyPress={handlePopoverKeyPress}
-            icon={renderStatusIcon()}
-            size={ButtonSize.Small}
-            variant={ButtonVariant.Quiet}
-          />
+          <Popover
+            className={classes.popover}
+            open={popoverOpenClick || popoverOpenHover}
+            trigger={
+              <Button
+                className={classes.appCreateReleaseStatusButton}
+                onClick={handlePopoverOpenClicked}
+                onMouseOver={handlePopoverOpenHover}
+                onMouseLeave={handlePopoverClose}
+                tabIndex={0}
+                onKeyPress={handlePopoverKeyPress}
+                icon={renderStatusIcon()}
+                size={ButtonSize.Small}
+                variant={ButtonVariant.Quiet}
+              />
+            }
+          >
+            {renderStatusMessage()}
+          </Popover>
         </div>
         <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
-        <div className={classes.appReleaseHistoryTitle}>
-          {getLanguageFromKey('app_release.earlier_releases', language)}
-        </div>
+        <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
         <div className={classes.appReleaseHistory}>
           {!!appReleases.releases.length &&
             appReleases.releases.map((release: IRelease, index: number) => (
@@ -269,17 +264,6 @@ export function ReleaseContainer() {
             ))}
         </div>
       </div>
-      <Popover
-        className={classes.popover}
-        classes={{ paper: classes.popoverPaper }}
-        anchorEl={anchorElement}
-        open={popoverOpenClick || popoverOpenHover}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        onClose={handlePopoverClose}
-      >
-        {renderStatusMessage()}
-      </Popover>
     </>
   );
 }
