@@ -1,5 +1,4 @@
 import { useSelector } from 'react-redux';
-import { PropertyLabel } from '../../../utils/render';
 import type { IAppState } from '../../../types/global';
 import type { IGenericEditComponent } from '../componentConfig';
 import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
@@ -7,6 +6,7 @@ import { ComponentTypes } from '../../index';
 import React from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
+import { Label } from '@altinn/schema-editor/components/common/Label';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -43,14 +43,13 @@ export const EditDataModelBindings = ({
   const { uniqueKey, key, label } = renderOptions || {};
   return (
      <div key={uniqueKey || ''}>
-      <PropertyLabel
-        htmlFor={`selectDataModelSelect-${label}`}
-        textKey={
+      <Label htmlFor={`selectDataModelSelect-${label}`}>
+        {
           label
             ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
             : t('ux_editor.modal_properties_data_model_helper')
         }
-      />
+      </Label>
       <SelectDataModelComponent
         inputId={`selectDataModelSelect-${label}`}
         selectedElement={component.dataModelBindings[key || 'simpleBinding']}
