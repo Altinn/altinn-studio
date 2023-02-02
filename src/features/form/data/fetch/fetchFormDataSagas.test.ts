@@ -1,6 +1,6 @@
 import { call, select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
-import type { AxiosError } from 'axios';
+import type { AxiosError, AxiosRequestHeaders } from 'axios';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import {
@@ -66,7 +66,6 @@ describe('fetchFormDataSagas', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
     const error: AxiosError = {
-      config: {},
       isAxiosError: true,
       message: 'error',
       name: 'error',
@@ -74,9 +73,9 @@ describe('fetchFormDataSagas', () => {
         return {};
       },
       response: {
-        config: {},
+        config: { headers: {} as AxiosRequestHeaders },
+        headers: {} as AxiosRequestHeaders,
         data: null,
-        headers: {},
         status: 500,
         statusText: 'error',
       },
@@ -116,7 +115,6 @@ describe('fetchFormDataSagas', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
     const error: AxiosError = {
-      config: {},
       isAxiosError: true,
       message: 'error',
       name: 'error',
@@ -124,9 +122,9 @@ describe('fetchFormDataSagas', () => {
         return {};
       },
       response: {
-        config: {},
+        config: { headers: {} as AxiosRequestHeaders },
+        headers: {} as AxiosRequestHeaders,
         data: null,
-        headers: {},
         status: 500,
         statusText: 'error',
       },
@@ -232,7 +230,6 @@ describe('fetchFormDataSagas', () => {
     };
 
     const error: AxiosError = {
-      config: {},
       isAxiosError: true,
       message: 'error',
       name: 'error',
@@ -240,9 +237,9 @@ describe('fetchFormDataSagas', () => {
         return {};
       },
       response: {
-        config: {},
+        config: { headers: {} as AxiosRequestHeaders },
+        headers: {} as AxiosRequestHeaders,
         data: null,
-        headers: {},
         status: 500,
         statusText: 'error',
       },
@@ -281,7 +278,6 @@ describe('fetchFormDataSagas', () => {
     };
 
     const error: AxiosError = {
-      config: {},
       isAxiosError: true,
       message: 'error',
       name: 'error',
@@ -289,9 +285,9 @@ describe('fetchFormDataSagas', () => {
         return {};
       },
       response: {
-        config: {},
+        config: { headers: {} as AxiosRequestHeaders },
+        headers: {} as AxiosRequestHeaders,
         data: null,
-        headers: {},
         status: 403,
         statusText: 'error',
       },
