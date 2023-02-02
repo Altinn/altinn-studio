@@ -20,3 +20,11 @@ Webhooks are defined [here](../../backend/src/Designer/Controllers/PipelinesCont
 
 All build statuses are here:
 https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get?view=azure-devops-rest-5.1#buildstatus
+
+### Restart / rebuild this docker service
+
+```bash
+docker rm --force studio-azure-mock
+docker image prune -a --force
+docker compose -f ../../docker-compose.yml up -d
+```

@@ -26,6 +26,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
         /// <param name="generalSettingsOptions">IOptionsMonitor of Type GeneralSettings</param>
         /// <param name="sourceControl">ISourceControl</param>
+        /// <param name="logger">ILogger</param>
         public AzureDevOpsBuildClient(
             HttpClient httpClient,
             IOptionsMonitor<GeneralSettings> generalSettingsOptions,

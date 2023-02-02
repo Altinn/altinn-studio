@@ -16,6 +16,8 @@ services:
       context: ./development/azure-devops-mock
     ports:
       - "6161:6161"
+    environment:
+      - DESIGNER_HOST=studio-loadbalancer
 
   studio_loadbalancer:
     image: nginx:alpine
