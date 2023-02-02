@@ -21,7 +21,7 @@
   "administration.datamodels_info2": "Choose \"Open repository\" from the user menu (click the user icon on the top right of the screen to see all data model files.",
   "administration.datamodels_info3": "Documentation for data modeling tool",
   "administration.datamodels_info_link": "can be found here.",
-  "administration.delete_model_confirm": "Are you sure you want to delete {0} ?",
+  "administration.delete_model_confirm": "Are you sure you want to delete {0}?",
   "administration.download_repo": "Download all changes as zip file",
   "administration.download_repo_changes": "Download only changed files as zip file",
   "administration.download_repo_full": "Download full copy of server changes as zip file",

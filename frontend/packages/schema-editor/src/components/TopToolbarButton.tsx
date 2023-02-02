@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import React from 'react';
+import React, { forwardRef, Ref } from 'react';
 import { Button, IconButton } from '@mui/material';
 import classNames from 'classnames';
 import classes from './TopToolbarButton.module.css';
@@ -15,7 +15,7 @@ interface TopToolbarButtonProps extends PropsWithChildren<any> {
   id: string;
 }
 
-export function TopToolbarButton({
+export const TopToolbarButton = forwardRef(({
   onClick,
   disabled,
   faIcon,
@@ -25,7 +25,7 @@ export function TopToolbarButton({
   iconSize,
   className,
   id,
-}: TopToolbarButtonProps) {
+}: TopToolbarButtonProps, ref: Ref<HTMLButtonElement>) => {
   const computedClasses = classNames([
     classes.toolbarButton,
     hideText && classes.iconButton,
@@ -38,11 +38,12 @@ export function TopToolbarButton({
   if (hideText) {
     return (
       <IconButton
-        className={computedClasses}
-        onClick={onClick}
-        disabled={disabled}
-        color='primary'
         aria-label={children}
+        className={computedClasses}
+        color='primary'
+        disabled={disabled}
+        onClick={onClick}
+        ref={ref}
       >
         {icon}
       </IconButton>
@@ -50,18 +51,20 @@ export function TopToolbarButton({
   }
   return (
     <Button
-      data-testid={id}
-      id={id}
       className={computedClasses}
-      onClick={onClick}
-      variant='text'
+      data-testid={id}
       disabled={disabled}
+      id={id}
+      onClick={onClick}
+      ref={ref}
       startIcon={icon}
+      variant='text'
     >
       {children}
     </Button>
   );
-}
+});
+
 TopToolbarButton.defaultProps = {
   disabled: false,
   hideText: false,

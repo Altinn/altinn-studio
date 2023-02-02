@@ -11,40 +11,34 @@ export interface IDeleteWrapper {
 }
 
 export function DeleteWrapper(props: IDeleteWrapper) {
-  const [deleteButtonAnchor, setDeleteButtonAnchor] = React.useState(null);
-  const onDeleteClick = (event: any) => {
-    setDeleteButtonAnchor(event.currentTarget);
-  };
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const onDeleteClick = () => setDialogOpen(true);
   const onDeleteConfirmClick = () => {
     props.deleteAction();
-    setDeleteButtonAnchor(null);
+    setDialogOpen(false);
   };
-  const onCancelDelete = () => {
-    setDeleteButtonAnchor(null);
-  };
+  const onCancelDelete = () => setDialogOpen(false);
 
   return (
-    <>
-      <TopToolbarButton
-        id='delete-model-button'
-        disabled={!props.schemaName}
-        faIcon='ai ai-trash'
-        iconSize={24}
-        onClick={onDeleteClick}
-        warning
-        className={classes.root}
-      >
-        {getLanguageFromKey('general.delete_data_model', props.language)}
-      </TopToolbarButton>
-      {deleteButtonAnchor && (
-        <DeleteDialog
-          anchor={deleteButtonAnchor}
-          language={props.language}
-          schemaName={props.schemaName}
-          onConfirm={onDeleteConfirmClick}
-          onCancel={onCancelDelete}
-        />
+    <DeleteDialog
+      trigger={(
+        <TopToolbarButton
+          id='delete-model-button'
+          disabled={!props.schemaName}
+          faIcon='ai ai-trash'
+          iconSize={24}
+          onClick={onDeleteClick}
+          warning
+          className={classes.root}
+        >
+          {getLanguageFromKey('general.delete_data_model', props.language)}
+        </TopToolbarButton>
       )}
-    </>
+      language={props.language}
+      schemaName={props.schemaName}
+      onConfirm={onDeleteConfirmClick}
+      onCancel={onCancelDelete}
+      open={dialogOpen}
+    />
   );
 }

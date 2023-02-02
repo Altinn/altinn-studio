@@ -21,3 +21,13 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: jest.fn(),
   })),
 });
+
+// ResizeObserver must be mocked because it is used by the Popover component from the design system, but it is not supported by React Testing Library.
+class ResizeObserver {
+  observe = jest.fn();
+  unobserve = jest.fn();
+  disconnect = jest.fn();
+}
+window.ResizeObserver = ResizeObserver;
+
+jest.setTimeout(30000);

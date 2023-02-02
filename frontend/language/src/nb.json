@@ -21,7 +21,7 @@
   "administration.datamodels_info2": "Velg \"Åpne repository\" fra bruker-menyen (trykk på brukerikoned øverst til høyre) for å se alle datamodell-filer.",
   "administration.datamodels_info3": "Dokumentasjon for datamodellering",
   "administration.datamodels_info_link": "finner du her.",
-  "administration.delete_model_confirm": "Er du sikker på at du vil slette {0} ?",
+  "administration.delete_model_confirm": "Er du sikker på at du vil slette {0}?",
   "administration.download_repo": "Last ned alle endringer som zip fil",
   "administration.download_repo_changes": "Last ned en zip fil med bare filene som har blitt endret",
   "administration.download_repo_full": "Last ned en full kopi av endret repo som zip fil",
