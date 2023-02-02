@@ -10,7 +10,7 @@
     <PackageReference Update="JsonSchema.Net" Version="3.3.2" />
     <PackageReference Update="CompilerAttributes" Version="1.1.2" />
     <PackageReference Update="ini-parser-netstandard" Version="2.5.2" />
-    <PackageReference Update="JWTCookieAuthentication" Version="3.0.0" />
+    <PackageReference Update="JWTCookieAuthentication" Version="2.4.2" />
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Update="LibGit2Sharp" Version="0.27.0-preview-0182" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
