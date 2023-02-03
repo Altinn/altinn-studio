@@ -6,7 +6,7 @@ import { FieldSet, TextField } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
-import { Label } from '@altinn/schema-editor/components/common/Label';
+import { Label } from 'app-shared/components/Label';
 
 export interface IImageComponentProps {
   component: IFormImageComponent;

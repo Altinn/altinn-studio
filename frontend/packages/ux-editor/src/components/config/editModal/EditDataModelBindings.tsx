@@ -6,7 +6,7 @@ import { ComponentTypes } from '../../index';
 import React from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
-import { Label } from '@altinn/schema-editor/components/common/Label';
+import { Label } from 'app-shared/components/Label';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {

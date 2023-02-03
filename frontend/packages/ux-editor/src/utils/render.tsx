@@ -1,7 +1,7 @@
 import React from 'react';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
 import type { IDataModelBindings } from '../types/global';
-import { Label } from '@altinn/schema-editor/components/common/Label';
+import { Label } from 'app-shared/components/Label';
 import { useText } from '../hooks';
 
 export const selectStyles = {

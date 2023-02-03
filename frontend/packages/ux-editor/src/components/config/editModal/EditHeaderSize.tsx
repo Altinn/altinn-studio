@@ -3,7 +3,7 @@ import React from 'react';
 import { selectStyles } from '../../../utils/render';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
-import { Label } from '@altinn/schema-editor/components/common/Label';
+import { Label } from 'app-shared/components/Label';
 
 enum HeaderSize {
   S = 'h4',
