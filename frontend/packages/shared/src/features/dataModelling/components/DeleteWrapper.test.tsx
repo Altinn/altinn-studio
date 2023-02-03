@@ -6,115 +6,67 @@ import { DeleteWrapper } from './DeleteWrapper';
 
 const user = userEvent.setup();
 
-const render = (props: Partial<IDeleteWrapper> = {}) => {
-  const allProps = {
-    language: { 'administration.delete_model_confirm': 'Delete {0}?' },
-    deleteAction: jest.fn(),
-    schemaName: 'deletable-model',
-    ...props,
-  } as IDeleteWrapper;
-
-  return rtlRender(<DeleteWrapper {...allProps} />);
+// Test data:
+const deleteText = 'Delete';
+const continueText = 'Continue';
+const cancelText = 'Cancel';
+const language = {
+  'administration.delete_model_confirm': 'Delete {0}?',
+  'general.delete_data_model': deleteText,
+  'general.continue': continueText,
+  'general.cancel': cancelText,
+};
+const deleteAction = jest.fn();
+const schemaName = 'some-name';
+const defaultProps: IDeleteWrapper = {
+  language,
+  deleteAction,
+  schemaName
 };
 
+const render = (props: Partial<IDeleteWrapper> = {}) =>
+  rtlRender(<DeleteWrapper {...defaultProps} {...props} />);
+
 describe('DeleteWrapper', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should not be able to open the delete dialog if no schemaName is set', async () => {
     const userWithNoPointerEventCheck = userEvent.setup({
       pointerEventsCheck: PointerEventsCheckLevel.Never,
     });
     render({ schemaName: undefined });
-
-    expect(
-      screen.queryByRole('heading', {
-        name: /delete some-name\?/i,
-      })
-    ).not.toBeInTheDocument();
-
-    const deleteButton = screen.getByRole('button', {
-      name: /general\.delete/i,
-    });
-    await act(() => userWithNoPointerEventCheck.click(deleteButton));
-
-    expect(
-      screen.queryByRole('heading', {
-        name: /delete some-name\?/i,
-      })
-    ).not.toBeInTheDocument();
+    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    await act(() => userWithNoPointerEventCheck.click(getDeleteButton()));
+    expect(queryDeleteMessage()).not.toBeInTheDocument();
   });
 
   it('should open the delete dialog when clicking delete button and schemaName is set', async () => {
-    render({ schemaName: 'some-name' });
-
-    expect(
-      screen.queryByRole('heading', {
-        name: /delete some-name\?/i,
-      })
-    ).not.toBeInTheDocument();
-    const deleteButton = screen.getByRole('button', {
-      name: /general\.delete/i,
-    });
-    await act(() => user.click(deleteButton));
-
-    expect(
-      screen.getByRole('heading', {
-        name: /delete some-name\?/i,
-      })
-    ).toBeInTheDocument();
+    render();
+    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    await act(() => user.click(getDeleteButton()));
+    expect(getDeleteMessage()).toBeInTheDocument();
   });
 
   it('should call deleteAction callback and close dialog when clicking continue button', async () => {
-    const handleDelete = jest.fn();
-    render({
-      schemaName: 'some-name',
-      deleteAction: handleDelete,
-    });
-
-    const deleteButton = screen.getByRole('button', {
-      name: /general\.delete/i,
-    });
-    await act(() => user.click(deleteButton));
-
-    const continueButton = screen.getByRole('button', {
-      name: /general\.continue/i,
-    });
-    await act(() => user.click(continueButton));
-
-    expect(handleDelete).toHaveBeenCalled();
-    expect(
-      screen.queryByRole('heading', {
-        name: /delete some-name\?/i,
-      })
-    ).not.toBeInTheDocument();
+    render();
+    await act(() => user.click(getDeleteButton()));
+    await act(() => user.click(getContinueButton()));
+    expect(deleteAction).toHaveBeenCalledTimes(1);
+    expect(queryDeleteMessage()).not.toBeInTheDocument();
   });
 
   it('should close the delete dialog when clicking cancel', async () => {
-    render({ schemaName: 'some-name' });
-
-    expect(
-      screen.queryByRole('heading', {
-        name: /delete some-name\?/i,
-      })
-    ).not.toBeInTheDocument();
-    const deleteButton = screen.getByRole('button', {
-      name: /general\.delete/i,
-    });
-    await act(() => user.click(deleteButton));
-
-    expect(
-      screen.getByRole('heading', {
-        name: /delete some-name\?/i,
-      })
-    ).toBeInTheDocument();
-
-    const cancelButton = screen.getByRole('button', {
-      name: /general\.cancel/i,
-    });
-    await act(() => user.click(cancelButton));
-
-    expect(
-      screen.queryByRole('heading', {
-        name: /delete some-name\?/i,
-      })
-    ).not.toBeInTheDocument();
+    render();
+    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    await act(() => user.click(getDeleteButton()));
+    expect(getDeleteMessage()).toBeInTheDocument();
+    await act(() => user.click(getCancelButton()));
+    expect(queryDeleteMessage()).not.toBeInTheDocument();
   });
 });
+
+const getDeleteButton = () => screen.getByRole('button', { name: deleteText });
+const getContinueButton = () => screen.getByRole('button', { name: continueText });
+const getCancelButton = () => screen.getByRole('button', { name: cancelText });
+const getDeleteMessage = () => screen.getByText(`Delete ${schemaName}?`);
+const queryDeleteMessage = () => screen.queryByText(`Delete ${schemaName}?`);

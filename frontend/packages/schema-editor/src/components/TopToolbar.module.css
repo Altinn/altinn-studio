@@ -9,7 +9,7 @@
   margin-right: 1rem;
 }
 
-.toolbar button {
+.toolbar :global(.MuiButton-root) {
   color: #0062ba;
   transition: none;
 }
