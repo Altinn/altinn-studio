@@ -36,7 +36,7 @@ public class DeleteDatamodelTests : ApiTestsBase<DatamodelsController, DeleteDat
     [Fact]
     public async Task Delete_Datamodel_Ok()
     {
-        string dataPathWithData = $"{VersionPrefix}/ttd/ttd-datamodels/Datamodels/DeleteDatamodel?modelName=41111";
+        string dataPathWithData = $"{VersionPrefix}/ttd/ttd-datamodels/datamodels/do-not-use/deletedatamodel?modelName=41111";
 
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 

@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers
 {
     public class LanguagesControllerTests : ApiTestsBase<LanguagesController, LanguagesControllerTests>
     {
-        private readonly string _versionPrefix = "designer/api/v1";
+        private readonly string _versionPrefix = "designer/api";
 
         public LanguagesControllerTests(WebApplicationFactory<LanguagesController> factory) : base(factory)
         {

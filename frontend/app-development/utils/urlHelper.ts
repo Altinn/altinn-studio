@@ -1,16 +1,16 @@
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 const { org, app } = _useParamsClassCompHack();
-const desingerApi = `${window.location.origin}/designer/api`;
+const basePath = `${window.location.origin}/designer/api/${org}/${app}`;
 
-export const appDeploymentsUrl = `${desingerApi}/v1/${org}/${app}/Deployments`;
-export const fetchDeployPermissionsUrl = `${desingerApi}/v1/${org}/${app}/deployments/permissions`;
-export const releasesPostUrl = `${desingerApi}/v1/${org}/${app}/releases`;
-export const releasesGetUrl = `${releasesPostUrl}?sortDirection=Descending`;
-export const applicationMetadataUrl = `${window.location.origin}/designer/api/v1/${org}/${app}`;
+// Azure paths
+export const getReleaseBuildPipelineLink = (buildId: string) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
+export const getAzureDevopsBuildResultUrl = (buildId: string | number) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
 
-export const getReleaseBuildPipelineLink = (buildId: string) =>
-  `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
+// Deployments
+export const appDeploymentsUrl = `${basePath}/deployments`; // Get, Post
+export const fetchDeployPermissionsUrl = `${basePath}/deployments/permissions`; // Get
 
-export const getAzureDevopsBuildResultUrl = (buildId: string | number) =>
-  `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
+// Releases
+export const releasesPostUrl = `${basePath}/releases`; // Get, Post
+export const releasesGetUrl = `${basePath}/releases?sortDirection=Descending`; // Get

@@ -22,6 +22,8 @@ export interface IAddApplicationMetadataAction {
   minFiles: number;
   maxSize: number;
   fileType: string;
+  org :string;
+  app: string;
 }
 
 export interface IAddFormComponentAction {
@@ -29,6 +31,8 @@ export interface IAddFormComponentAction {
   position: number;
   containerId?: string;
   callback?: (...args: any[]) => any;
+  org: string;
+  app: string;
 }
 
 export interface IAddFormComponentActionFulfilled {
@@ -61,6 +65,8 @@ export interface IAddFormContainerAction {
   activeContainerId?: string;
   callback?: (...args: any[]) => any;
   destinationIndex?: number;
+  org: string;
+  app: string;
 }
 
 export interface IAddFormContainerActionFulfilled {
@@ -76,11 +82,15 @@ export interface IAddFormContainerActionFulfilled {
 export interface IAddLayoutAction {
   layout: string;
   isReceiptPage?: boolean;
+  org: string;
+  app: string;
 }
 
 export interface IAddLayoutFulfilledAction {
   layouts: IFormLayouts;
   layoutOrder: string[];
+  org: string;
+  app: string;
 }
 
 export interface IAddWidgetAction {
@@ -99,25 +109,35 @@ export interface IAddWidgetActionFulfilled {
 
 export interface IDeleteApplicationMetadataAction {
   id: string;
+  org: string;
+  app: string;
 }
 
 export interface IDeleteComponentsAction {
   components: string[];
+  org: string;
+  app: string;
 }
 
 export interface IDeleteComponentAction {
   id: string;
   containerId: string;
+  org: string;
+  app: string;
 }
 
 export interface IDeleteContainerAction {
   id: string;
   index?: number;
   parentContainerId?: string;
+  org: string;
+  app: string;
 }
 
 export interface IDeleteLayoutAction {
   layout: string;
+  org: string;
+  app: string;
 }
 
 export interface IFetchFormLayoutFulfilledAction {
@@ -132,6 +152,8 @@ export interface IFetchLayoutSettingsFulfilledAction {
 export interface IUpdateActiveListAction {
   listItem: any;
   containerList: any;
+  org: string;
+  app: string;
 }
 
 export interface IUpdateActiveListActionFulfilled {
@@ -149,52 +171,74 @@ export interface IUpdateApplicationMetadaAction {
   minFiles: number;
   maxSize: number;
   fileType: string;
+  org: string;
+  app: string;
 }
 
 export interface IUpdateContainerIdFulfilled {
   currentId: string;
   newId: string;
+  org: string;
+  app: string;
 }
 
 export interface IUpdateFormComponentAction {
   updatedComponent: IFormComponent;
   id: string;
   activeContainer?: string;
+  org: string;
+  app: string;
 }
 
 export interface IUpdateFormComponentActionFulfilled {
   updatedComponent: IFormComponent;
   id: string;
+  org: string;
+  app: string;
 }
 
 export interface IUpdateFormComponentIdAction {
   currentId: string;
   newId: string;
+  org: string;
+  app: string;
 }
 
 export interface IUpdateFormComponentOrderAction {
   updatedOrder: any;
+  org: string;
+  app: string;
 }
 
 export interface IUpdateFormContainerAction {
   updatedContainer: any;
   id: string;
+  org: string;
+  app: string;
 }
 
 export interface IUpdateLayoutNameAction {
   oldName: string;
   newName: string;
+  org: string;
+  app: string;
 }
 
 export interface IUpdateLayoutOrderAction {
   layout: string;
   direction: 'up' | 'down';
+  org : string;
+  app: string;
 }
 
 export interface IUpdateSelectedLayoutAction {
   selectedLayout: string;
+  org : string;
+  app: string;
 }
 
 export interface IUpdateReceiptLayoutNameAction {
   receiptLayoutName: string;
+  org : string;
+  app: string;
 }

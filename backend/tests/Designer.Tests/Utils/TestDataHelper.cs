@@ -116,7 +116,7 @@ namespace Designer.Tests.Utils
         public static string GetTestDataRemoteRepositoryRootDirectory()
         {
             var unitTestFolder = GetTestDataDirectory();
-            return Path.Combine(unitTestFolder, $"Remote");
+            return Path.Combine(unitTestFolder, "Remote");
         }
 
         public static string GetTestDataRemoteRepository(string org, string repository)
@@ -130,7 +130,7 @@ namespace Designer.Tests.Utils
         /// </summary>
         /// <param name="suffix">If provided appends suffix to test repo.</param>
         /// <returns>Test repository name.</returns>
-        public static string GenerateTestRepoName(string suffix = null) => $"test-repo_{Guid.NewGuid()}{suffix}";
+        public static string GenerateTestRepoName(string suffix = null) => $"test-repo-{Guid.NewGuid()}{suffix}".Substring(0, 28);
 
         public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {

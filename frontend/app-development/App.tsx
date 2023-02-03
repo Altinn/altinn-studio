@@ -58,7 +58,7 @@ export function App() {
     );
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
     if (repositoryType === RepositoryType.App) {
-      dispatch(ApplicationMetadataActions.getApplicationMetadata());
+      dispatch(ApplicationMetadataActions.getApplicationMetadata({ org, app }));
     }
   }, [dispatch, repositoryType]);
 

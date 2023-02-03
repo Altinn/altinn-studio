@@ -15,16 +15,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Starts a deployment in the pipeline
         /// Creates a document in document db
         /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
         /// <param name="deployment">Release containing data from client</param>
         /// <returns>The created document in db</returns>
-        Task<DeploymentEntity> CreateAsync(DeploymentModel deployment);
+        Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment);
 
         /// <summary>
         /// Gets deployments
         /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
         /// <param name="query">DcumentQueryModel</param>
         /// <returns>SearchResults of type DeploymentEntity</returns>
-        Task<SearchResults<DeploymentEntity>> GetAsync(DocumentQueryModel query);
+        Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query);
 
         /// <summary>
         /// Updates a deployment entity
