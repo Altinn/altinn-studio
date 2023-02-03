@@ -18,7 +18,7 @@
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
     <PackageReference Update="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.13" />
+    <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.2" />
     <PackageReference Update="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Update="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Update="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
