@@ -9,8 +9,8 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.27.2",
-    "@digdir/design-system-react": "0.4.2",
+    "@altinn/altinn-design-system": "0.27.4",
+    "@digdir/design-system-react": "0.4.3",
     "axios": "1.2.6",
     "classnames": "2.3.2",
     "qs": "6.11.0",
