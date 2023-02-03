@@ -1,11 +1,11 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAction, createSlice } from '@reduxjs/toolkit';
 
-export interface IHandleMergeConflictState {
+export interface IHandleMergeConflict {
   repoStatus: any;
 }
 
-const initialState: IHandleMergeConflictState = {
+const initialState: IHandleMergeConflict = {
   repoStatus: {
     hasMergeConflict: null,
   },

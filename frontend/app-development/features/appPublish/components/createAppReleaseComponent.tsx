@@ -5,10 +5,10 @@ import type { IAppReleaseState } from '../../../sharedResources/appRelease/appRe
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
-import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import { TextField, TextArea, Button } from '@digdir/design-system-react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { versionNameValid } from './utils';
 
 export function CreateReleaseComponent() {
   const dispatch = useAppDispatch();
@@ -18,7 +18,7 @@ export function CreateReleaseComponent() {
 
   const releaseState: IAppReleaseState = useAppSelector((state) => state.appReleases);
   const createReleaseErrorCode: number = useAppSelector(
-    (state) => state.appReleases.errors.createReleaseErrorCode
+    (s) => s.appReleases.errors.createReleaseErrorCode
   );
   const repoStatus: IRepoStatusState = useAppSelector((state) => state.repoStatus);
   const language: any = useAppSelector((state) => state.languageState.language);
@@ -34,35 +34,13 @@ export function CreateReleaseComponent() {
     }
   }, [createReleaseErrorCode]);
 
-  function versionNameValid(): boolean {
-    for (const release of releaseState.releases) {
-      if (
-        release.tagName.toLowerCase() === tagName.trim() &&
-        (release.build.result === BuildResult.succeeded ||
-          release.build.status === BuildStatus.inProgress)
-      ) {
-        return false;
-      }
-    }
-    if (tagName[0] === '.' || tagName[0] === '-') {
-      return false;
-    }
-    if (!tagName.match(new RegExp('^[a-z0-9.-]*$'))) {
-      return false;
-    }
-    return tagName.length <= 128;
-  }
+  const handleTagNameChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setTagName(e.currentTarget.value.toLowerCase());
 
-  function handleTagNameChange(event: ChangeEvent<HTMLInputElement>) {
-    setTagName(event.currentTarget.value.toLowerCase());
-  }
-
-  function handleBodyChange(event: ChangeEvent<HTMLTextAreaElement>) {
-    setBody(event.currentTarget.value);
-  }
+  const handleBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.currentTarget.value);
 
   function handleBuildVersionClick() {
-    if (versionNameValid() && tagName !== '') {
+    if (versionNameValid(releaseState.releases, tagName) && tagName !== '') {
       dispatch(
         AppReleaseActions.createAppRelease({
           tagName,
@@ -77,9 +55,7 @@ export function CreateReleaseComponent() {
     handlePopoverClose();
   }
 
-  function handlePopoverClose() {
-    setOpenErrorPopover(false);
-  }
+  const handlePopoverClose = () => setOpenErrorPopover(false);
 
   if (releaseState.creatingRelease) {
     return null;
@@ -89,7 +65,7 @@ export function CreateReleaseComponent() {
     <>
       <div>
         <div className={classes.createReleaseFormItem}>
-          {!versionNameValid() ? (
+          {!versionNameValid(releaseState.releases, tagName) ? (
             <div className={classes.createReleaseInvalidTagName}>
               {getLanguageFromKey('app_create_release.release_versionnumber_validation', language)}
             </div>
@@ -99,7 +75,7 @@ export function CreateReleaseComponent() {
               label={getLanguageFromKey('app_create_release.release_versionnumber', language)}
               onChange={handleTagNameChange}
               value={tagName}
-              isValid={versionNameValid()}
+              isValid={versionNameValid(releaseState.releases, tagName)}
             />
           </div>
         </div>
@@ -115,7 +91,7 @@ export function CreateReleaseComponent() {
           <Button
             ref={ref}
             onClick={handleBuildVersionClick}
-            disabled={!versionNameValid() || !tagName}
+            disabled={!versionNameValid(releaseState.releases, tagName) || !tagName}
           >
             {getLanguageFromKey('app_create_release.build_version', language)}
           </Button>

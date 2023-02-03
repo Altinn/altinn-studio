@@ -25,12 +25,12 @@
     },
     "AltinnStudioOsX": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "http://studio.localhost/",
+      "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ServiceRepositorySettings__RepositoryLocation": "/tmp/altinn/repos/",
-        "ALTINN_KEYS_DIRECTORY": "/tmp/altinn/keys/"
+        "ALTINN_KEYS_DIRECTORY": "/tmp/altinn/keys/",
+        "DOTNET_ROLL_FORWARD": "Major"
       }
     }
   }
