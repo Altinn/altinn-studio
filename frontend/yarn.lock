@@ -45,11 +45,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.27.2":
-  version: 0.27.2
-  resolution: "@altinn/altinn-design-system@npm:0.27.2"
+"@altinn/altinn-design-system@npm:0.27.4":
+  version: 0.27.4
+  resolution: "@altinn/altinn-design-system@npm:0.27.4"
   dependencies:
-    "@altinn/figma-design-tokens": ^5.0.0
+    "@altinn/figma-design-tokens": ^6.0.1
     "@navikt/ds-icons": ^2.0.0
     "@radix-ui/react-popover": ^1.0.0
     leaflet: ^1.8.0
@@ -58,14 +58,14 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: b904178f3d15fa5c163cfa0843ff06e292dbc5cde1ee5542b5c7bd161e236370e26878615381856f79251fd6b061322a7e7a12fd640983a5e8bacc58b576315c
+  checksum: 399299b4cabaa516d9c09a8943b0b2e3f1cf923026c220eb01afde192c8b6c32220beb7cbfb5c15aae8d15c742185355a5ca578c203db881d4894f1d6730e8ee
   languageName: node
   linkType: hard
 
-"@altinn/figma-design-tokens@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "@altinn/figma-design-tokens@npm:5.0.0"
-  checksum: faf2405a088bc993e63e3cf0f790f343c75c34cdd0c8616ca8d0d43e8c512e8d267fe91890eeb9f6ea78ba043f472e0568529d4ae567c5fe5cf58ec397cabf72
+"@altinn/figma-design-tokens@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "@altinn/figma-design-tokens@npm:6.0.1"
+  checksum: f87abb0d8e2c070987f7d37eddfc40a6f206ef307d7edc108eeb79cb3f734fcae434b28a89111d23d4c2d85d386d4cd0fc001175a70f773d3f3de7b943804afd
   languageName: node
   linkType: hard
 
@@ -77,8 +77,8 @@ __metadata:
     jest: 29.4.1
     jsonpointer: 5.0.1
   peerDependencies:
-    "@altinn/altinn-design-system": 0.27.2
-    "@digdir/design-system-react": 0.4.2
+    "@altinn/altinn-design-system": 0.27.4
+    "@digdir/design-system-react": 0.4.3
     "@mui/material": 5.11.6
     "@reduxjs/toolkit": 1.9.2
     axios: 1.2.6
@@ -106,8 +106,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.2
-    "@digdir/design-system-react": 0.4.2
+    "@altinn/altinn-design-system": 0.27.4
+    "@digdir/design-system-react": 0.4.3
     iso-639-1: 2.1.15
     jest: 29.4.1
     ts-jest: 29.0.5
@@ -1565,13 +1565,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.4.2":
-  version: 0.4.2
-  resolution: "@digdir/design-system-react@npm:0.4.2"
+"@digdir/design-system-react@npm:0.4.3":
+  version: 0.4.3
+  resolution: "@digdir/design-system-react@npm:0.4.3"
   peerDependencies:
     react: ^18.1.0
     react-dom: ^18.0.0
-  checksum: c93e25327b8ab4721040f84d05f5ac9a94e14e0ff4edeb4243c40956235e7718a7862ef3e53e0e52f279e57870060a1a9a7422830862db1f3d26e62ce0a00cf3
+  checksum: e06738722b5e2063d7163438522b34769941f4f1356ec1b15a72c6c63971cca93ef4c615e0fda590344ae8c8bc658d5d07a77b596547ac75c5b140067f47ab3b
   languageName: node
   linkType: hard
 
@@ -4526,8 +4526,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.2
-    "@digdir/design-system-react": 0.4.2
+    "@altinn/altinn-design-system": 0.27.4
+    "@digdir/design-system-react": 0.4.3
     "@mui/material": 5.11.6
     "@reduxjs/toolkit": 1.9.2
     axios: 1.2.6
@@ -4555,8 +4555,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:app-preview"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.2
-    "@digdir/design-system-react": 0.4.2
+    "@altinn/altinn-design-system": 0.27.4
+    "@digdir/design-system-react": 0.4.3
     axios: 1.2.6
     classnames: 2.3.2
     cross-env: 7.0.3
@@ -4577,9 +4577,9 @@ __metadata:
   resolution: "app-shared@workspace:packages/shared"
   dependencies:
     3: 2.1.0
-    "@altinn/altinn-design-system": 0.27.2
+    "@altinn/altinn-design-system": 0.27.4
     "@altinn/schema-editor": 0.1.0
-    "@digdir/design-system-react": 0.4.2
+    "@digdir/design-system-react": 0.4.3
     "@mui/material": 5.11.6
     "@reduxjs/toolkit": 1.9.2
     "@types/react": 18.0.27
@@ -5955,8 +5955,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:dashboard"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.2
-    "@digdir/design-system-react": 0.4.2
+    "@altinn/altinn-design-system": 0.27.4
+    "@digdir/design-system-react": 0.4.3
     "@mui/x-data-grid": 5.17.21
     "@reduxjs/toolkit": 1.9.2
     cross-env: 7.0.3
