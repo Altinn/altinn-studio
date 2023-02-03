@@ -6,7 +6,7 @@ import { handlers, renderWithProviders, rest, setupServer } from '../../dashboar
 
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { CreateService } from './CreateService';
-import {orgsListPath, createRepoPath} from 'app-shared/api-paths';
+import { orgsListPath, createRepoPath } from 'app-shared/api-paths';
 
 const server = setupServer(...handlers);
 

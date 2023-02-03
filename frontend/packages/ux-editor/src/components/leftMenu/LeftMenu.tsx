@@ -10,7 +10,7 @@ import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { ReceiptPageElement } from './ReceiptPageElement';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy } from 'app-shared/pure';
-import {useParams, useSearchParams} from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
 

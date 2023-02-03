@@ -43,7 +43,7 @@ import { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
 import { TextResource } from '../components/TextResource';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import {useParams} from "react-router-dom";
+import { useParams } from 'react-router-dom';
 
 export interface IProvidedContainerProps {
   isBaseContainer?: boolean;
@@ -151,7 +151,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    const {org, app} = useParams();
+    const { org, app } = useParams();
     const { dispatch } = this.props;
     event.stopPropagation();
     dispatch(
@@ -180,7 +180,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     const { dispatch } = this.props;
-    const {org, app} = useParams();
+    const { org, app } = useParams();
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
       if (idExists(this.state.tmpId, this.props.components, this.props.containers)) {
         this.setState(() => ({

@@ -18,7 +18,7 @@ import { useText } from '../hooks';
 import { textSelector } from '../selectors/textSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { ComponentPreview } from './ComponentPreview';
-import {useParams} from "react-router-dom";
+import { useParams } from 'react-router-dom';
 
 export interface IEditContainerProps {
   component: IFormComponent;

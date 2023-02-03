@@ -17,7 +17,7 @@ import PageHeader from './layout/PageHeader';
 
 import './App.css';
 import LeftMenu from './layout/LeftMenu';
-import {matchPath, useLocation} from 'react-router-dom';
+import { matchPath, useLocation } from 'react-router-dom';
 
 import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from './common/hooks';
@@ -58,7 +58,7 @@ export function App() {
     );
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
     if (repositoryType === RepositoryType.App) {
-      dispatch(ApplicationMetadataActions.getApplicationMetadata({org, app}));
+      dispatch(ApplicationMetadataActions.getApplicationMetadata({ org, app }));
     }
   }, [dispatch, repositoryType]);
 

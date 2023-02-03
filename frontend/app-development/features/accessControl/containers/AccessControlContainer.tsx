@@ -7,7 +7,7 @@ import { CheckboxGroup, CheckboxGroupVariant } from '@digdir/design-system-react
 import classes from './AccessControlContainer.module.css';
 import type { RootState } from '../../../store';
 import { useAppSelector } from 'app-development/common/hooks';
-import {useParams} from "react-router-dom";
+import { useParams } from 'react-router-dom';
 
 export interface IAccessControlContainerProps {
   language: any;
@@ -64,7 +64,7 @@ export function AccessControlContainer({ language }: IAccessControlContainerProp
   }, [applicationMetadata]);
 
   useEffect(() => {
-    dispatch(ApplicationMetadataActions.getApplicationMetadata({org, app}));
+    dispatch(ApplicationMetadataActions.getApplicationMetadata({ org, app }));
   }, [dispatch]);
 
   const handlePartyTypesAllowedChange = (partyTypes: string[]) => {

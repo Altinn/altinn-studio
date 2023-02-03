@@ -19,7 +19,7 @@ import type { IServiceConfigurationState } from '../serviceConfigurationTypes';
 import { get, post } from 'app-shared/utils/networking';
 import { ruleConfigPath } from 'app-shared/api-paths';
 import type { IAppState } from '../../../types/global';
-import {PayloadAction} from "@reduxjs/toolkit";
+import { PayloadAction } from '@reduxjs/toolkit';
 
 const selectServiceConfiguration = (state: IAppState): IServiceConfigurationState =>
   state.serviceConfigurations;
@@ -29,7 +29,7 @@ export function* watchFetchServiceConfigurationSaga(): SagaIterator {
 }
 
 export function* fetchJsonFileSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
-  const {org, app} = payload;
+  const { org, app } = payload;
   try {
     const serviceConfiguration: any = yield call(get, ruleConfigPath(org, app));
     yield put(fetchServiceConfigurationFulfilled());

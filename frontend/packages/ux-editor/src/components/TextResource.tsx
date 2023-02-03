@@ -14,7 +14,7 @@ import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { useText } from '../hooks';
 import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
-import { useParams } from "react-router-dom";
+import { useParams } from 'react-router-dom';
 
 export interface TextResourceProps {
   description?: string;

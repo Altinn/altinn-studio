@@ -294,7 +294,7 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
-    saveFormLayout: (state, action: PayloadAction<{org, app}>) => {
+    saveFormLayout: (state, action: PayloadAction<{ org, app }>) => {
       state.saving = true;
     },
     saveFormLayoutFulfilled: (state) => {

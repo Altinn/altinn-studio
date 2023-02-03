@@ -52,19 +52,19 @@ export function App() {
 
   useEffect(() => {
     const fetchFiles = () => {
-      dispatch(fetchDataModel({org, app}));
-      dispatch(FormLayoutActions.fetchFormLayout({org, app}));
+      dispatch(fetchDataModel({ org, app }));
+      dispatch(FormLayoutActions.fetchFormLayout({ org, app }));
       dispatch(loadTextResources({
         textResourcesUrl: (langCode) => textResourcesPath(org, app, langCode),
         languagesUrl: textLanguagesPath(org, app)
       }));
       dispatch(loadLanguages({ url: textLanguagesPath(org, app) }));
-      dispatch(fetchServiceConfiguration({org, app}));
-      dispatch(fetchRuleModel({org, app}));
+      dispatch(fetchServiceConfiguration({ org, app }));
+      dispatch(fetchRuleModel({ org, app }));
       dispatch(fetchLanguage({ languageCode: DEFAULT_LANGUAGE }));
-      dispatch(fetchWidgetSettings({org, app}));
-      dispatch(FormLayoutActions.fetchLayoutSettings({org, app}));
-      dispatch(fetchWidgets({org, app}));
+      dispatch(fetchWidgetSettings({ org, app }));
+      dispatch(FormLayoutActions.fetchLayoutSettings({ org, app }));
+      dispatch(fetchWidgets({ org, app }));
     };
 
     const shouldRefetchFiles = (event: any) => {

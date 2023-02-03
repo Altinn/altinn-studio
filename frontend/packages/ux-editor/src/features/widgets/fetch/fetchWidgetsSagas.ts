@@ -11,7 +11,7 @@ import {
 } from '../widgetsSlice';
 import { widgetSettingsPath } from 'app-shared/api-paths';
 import type { IAppState, IWidget } from '../../../types/global';
-import {PayloadAction} from "@reduxjs/toolkit";
+import { PayloadAction } from '@reduxjs/toolkit';
 
 const widgetUrlsSelector = (state: IAppState) => state.widgets.urls;
 

@@ -1,11 +1,11 @@
 import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get, post } from 'app-shared/utils/networking';
-import {appMetadataPath} from "app-shared/api-paths";
+import { appMetadataPath } from 'app-shared/api-paths';
 import { ApplicationMetadataActions } from '../applicationMetadataSlice';
-import {PayloadAction} from "@reduxjs/toolkit";
+import type { PayloadAction } from '@reduxjs/toolkit';
 
-function* getApplicationMetadataSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+function* getApplicationMetadataSaga({ payload }: PayloadAction<{ org, app }>): SagaIterator {
   const { org, app } = payload;
   try {
     const result = yield call(get, appMetadataPath(org, app));

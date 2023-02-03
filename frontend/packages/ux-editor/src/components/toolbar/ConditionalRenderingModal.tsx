@@ -10,7 +10,7 @@ import {
   deleteConditionalRenderingConnnection,
 } from '../../features/serviceConfigurations/serviceConfigurationSlice';
 import type { IAppState } from '../../types/global';
-import {useParams} from "react-router-dom";
+import { useParams } from 'react-router-dom';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -18,7 +18,7 @@ export interface IConditionalRenderingModalProps {
 }
 
 export function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
-  const {org, app} = useParams();
+  const { org, app } = useParams();
   const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const conditionalRendering = useSelector(

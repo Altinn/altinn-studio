@@ -37,7 +37,13 @@ import type {
 import { upsertTextResources } from '../../appData/textResources/textResourcesSlice';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import {appMetadataAttachmentPath, layoutSettingsPath, formLayoutsPath, formLayoutPath, formLayoutNamePath} from "app-shared/api-paths";
+import {
+  appMetadataAttachmentPath,
+  layoutSettingsPath,
+  formLayoutsPath,
+  formLayoutPath,
+  formLayoutNamePath,
+} from 'app-shared/api-paths';
 
 const selectCurrentLayout = (state: IAppState): IFormLayout =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
@@ -87,7 +93,7 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
         callback,
       })
     );
-    yield put(FormLayoutActions.saveFormLayout({org, app}));
+    yield put(FormLayoutActions.saveFormLayout({ org, app }));
 
     if (component.type === 'FileUpload') {
       const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
@@ -137,7 +143,7 @@ function* addFormContainerSaga({ payload }: PayloadAction<IAddFormContainerActio
         callback,
       })
     );
-    yield put(FormLayoutActions.saveFormLayout({org, app}));
+    yield put(FormLayoutActions.saveFormLayout({ org, app }));
   } catch (error) {
     yield put(FormLayoutActions.addFormContainerRejected({ error }));
   }
@@ -160,7 +166,7 @@ function* deleteFormComponentsSaga({
         yield put(FormLayoutActions.deleteApplicationMetadata({ id, org, app }));
       }
     }
-    yield put(FormLayoutActions.saveFormLayout({org, app}));
+    yield put(FormLayoutActions.saveFormLayout({ org, app }));
   } catch (error) {
     console.error(error);
     yield put(FormLayoutActions.deleteFormComponentRejected({ error }));
@@ -214,7 +220,7 @@ function* deleteFormContainerSaga({
         app,
       })
     );
-    yield put(FormLayoutActions.saveFormLayout({org, app}));
+    yield put(FormLayoutActions.saveFormLayout({ org, app }));
   } catch (error) {
     yield put(FormLayoutActions.deleteFormContainerRejected({ error }));
   }

@@ -11,7 +11,7 @@ import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLa
 import { deepCopy, removeKey } from 'app-shared/pure';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
-import {useParams, useSearchParams} from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 
 export interface IPageElementProps {
