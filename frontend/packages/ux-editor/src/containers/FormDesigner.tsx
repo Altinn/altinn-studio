@@ -13,6 +13,7 @@ import { deepCopy } from 'app-shared/pure';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { Warning } from '@navikt/ds-icons';
+import { useText } from '../hooks';
 
 type FormDesignerProps = {
   selectedLayout: string;
@@ -31,9 +32,10 @@ export const FormDesigner = ({
   const [codeEditorMode, setCodeEditorMode] = useState<LogicMode>(null);
   const order = useSelector(makeGetLayoutOrderSelector());
   const layoutOrderCopy = deepCopy(layoutOrder || {});
+  const t = useText();
 
   const addInitialPage = useCallback((): void => {
-    const name = 'Side 1';
+    const name = `${t('general.page')} 1`
     dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
   }, []);
 
