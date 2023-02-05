@@ -75,13 +75,17 @@ export function topLevelComponents(layout: any[]) {
 }
 
 export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[] {
-  console.log({ internalFormat })
+  const formLayout: any[] = [];
+
+  if (!internalFormat) {
+    return formLayout;
+  }
+
   const { components, containers, order } = JSON.parse(
     JSON.stringify(internalFormat)
   ) as IFormLayout;
 
   const baseContainerId = Object.keys(internalFormat.containers)[0];
-  const formLayout: any[] = [];
   let groupChildren: string[] = [];
   Object.keys(order).forEach((groupKey: string) => {
     if (groupKey !== baseContainerId) {

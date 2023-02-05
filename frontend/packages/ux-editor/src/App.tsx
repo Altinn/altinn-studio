@@ -19,6 +19,7 @@ import type { IAppState } from './types/global';
 import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useText } from './hooks';
+import { PageSpinner } from './components/PageSpinner';
 
 /**
  * This is the main React component responsible for controlling
@@ -118,5 +119,5 @@ export function App() {
       </div>
     );
   }
-  return <h2>loading</h2>;
+  return <PageSpinner text={t('general.loading')} />;
 }
