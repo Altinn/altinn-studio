@@ -274,7 +274,7 @@ function* saveFormLayoutSaga(): SagaIterator {
     const selectedLayout = yield select(
       (state: IAppState) => state.formDesigner.layout.selectedLayout
     );
-    console.log('saga', { selectedLayout })
+
     yield delay(250);
     const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
     const convertedLayout = {
