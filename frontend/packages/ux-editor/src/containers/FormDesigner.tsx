@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,12 +34,12 @@ export const FormDesigner = ({
   const layoutOrderCopy = deepCopy(layoutOrder || {});
   const t = useText();
 
-  const addInitialPage = useCallback((): void => {
-    const name = `${t('general.page')} 1`
-    dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
-  }, []);
-
   useEffect((): void => {
+    const addInitialPage = (): void => {
+      const name = `${t('general.page')} 1`;
+      dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
+    };
+
     if (selectedLayout === 'default') {
       addInitialPage();
     }
