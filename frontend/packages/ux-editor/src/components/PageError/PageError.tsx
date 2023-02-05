@@ -1,5 +1,5 @@
-import { InfoCard } from 'app-development/features/appPublish/pages/InfoCard';
 import React from 'react';
+import { InfoCard } from 'app-development/features/appPublish/pages/InfoCard';
 
 type ErrorPageProps = {
   error: Error;
