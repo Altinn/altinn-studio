@@ -20,7 +20,7 @@ import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useText } from './hooks';
 import { PageSpinner } from './components/PageSpinner';
-import { PageError } from './components/PageError/PageError';
+import { ErrorPage } from './components/PageError';
 
 /**
  * This is the main React component responsible for controlling
@@ -127,7 +127,7 @@ export function App() {
   }, [selectedLayout]);
 
   if (componentHasError) {
-    return <PageError error={mappedErrorToErrorObject()} />;
+    return <ErrorPage error={mappedErrorToErrorObject()} />;
   }
 
   if (componentIsReady) {
