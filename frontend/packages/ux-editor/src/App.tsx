@@ -20,6 +20,7 @@ import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useText } from './hooks';
 import { PageSpinner } from './components/PageSpinner';
+import { PageError } from './components/PageError/PageError';
 
 /**
  * This is the main React component responsible for controlling
@@ -47,12 +48,31 @@ export function App() {
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
 
+  const isDataModelFetched = useSelector((state: IAppState) => state.appData.dataModel.fetched);
   const isLayoutSettingsFetched = useSelector(
     (state: IAppState) => state.formDesigner.layout.isLayoutSettingsFetched
   );
   const isLayoutFetched = useSelector((state: IAppState) => state.formDesigner.layout.fetched);
   const isWidgetFetched = useSelector((state: IAppState) => state.widgets.fetched);
-  const componentIsReady = isLayoutFetched && isWidgetFetched && isLayoutSettingsFetched;
+
+  const isDataModelFetchedError = useSelector((state: IAppState) => state.appData.dataModel.error);
+  const isLayoutFetchedError = useSelector((state: IAppState) => state.formDesigner.layout.error);
+  const isWidgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
+
+  const componentIsReady =
+    isLayoutFetched && isWidgetFetched && isLayoutSettingsFetched && isDataModelFetched;
+  const componentHasError = isDataModelFetchedError || isLayoutFetchedError || isWidgetFetchedError;
+
+  const mappedErrorToErrorObject = (): Error => {
+    if (isDataModelFetchedError) return isDataModelFetchedError;
+    if (isLayoutFetchedError) return isLayoutFetchedError;
+    if (isWidgetFetchedError) return isWidgetFetchedError;
+
+    return {
+      name: 'Unknown error',
+      message: 'Uknown Error Occured'
+    };
+  };
 
   // Set Layout to first layout in the page set if none is selected.
   useEffect(() => {
@@ -106,9 +126,13 @@ export function App() {
     }
   }, [selectedLayout]);
 
+  if (componentHasError) {
+    return <PageError error={mappedErrorToErrorObject()} />;
+  }
+
   if (componentIsReady) {
     return (
-      <div>
+      <>
         <ErrorMessageComponent />
         <FormDesigner
           activeList={activeList}
@@ -116,7 +140,7 @@ export function App() {
           layoutOrder={layoutOrder}
           selectedLayout={selectedLayout}
         />
-      </div>
+      </>
     );
   }
   return <PageSpinner text={t('general.loading')} />;
