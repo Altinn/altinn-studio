@@ -76,7 +76,7 @@
     "test:ci": "jest --ci --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder)"
   },
   "lint-staged": {
-    "packages/*/src/**": "eslint --fix"
+    "packages/**": "eslint --fix"
   },
   "syncpack": {
     "semverRange": ""
