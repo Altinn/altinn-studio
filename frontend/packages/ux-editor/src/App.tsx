@@ -20,7 +20,7 @@ import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useText } from './hooks';
 import { PageSpinner } from './components/PageSpinner';
-import { ErrorPage } from './components/PageError';
+import { ErrorPage } from './components/ErrorPage';
 
 /**
  * This is the main React component responsible for controlling
@@ -54,23 +54,58 @@ export function App() {
   );
   const isLayoutFetched = useSelector((state: IAppState) => state.formDesigner.layout.fetched);
   const isWidgetFetched = useSelector((state: IAppState) => state.widgets.fetched);
+  const isLanguageFetched = useSelector((state: IAppState) => state.appData.languageState.fetched);
 
-  const isDataModelFetchedError = useSelector((state: IAppState) => state.appData.dataModel.error);
-  const isLayoutFetchedError = useSelector((state: IAppState) => state.formDesigner.layout.error);
-  const isWidgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
+  const dataModelFetchedError = useSelector((state: IAppState) => state.appData.dataModel.error);
+  const layoutFetchedError = useSelector((state: IAppState) => state.formDesigner.layout.error);
+  const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
+  const languageFetchedError = useSelector((state: IAppState) => state.appData.languageState.error);
 
   const componentIsReady =
-    isLayoutFetched && isWidgetFetched && isLayoutSettingsFetched && isDataModelFetched;
-  const componentHasError = isDataModelFetchedError || isLayoutFetchedError || isWidgetFetchedError;
+    isLayoutFetched &&
+    isWidgetFetched &&
+    isLayoutSettingsFetched &&
+    isDataModelFetched &&
+    isLanguageFetched;
 
-  const mappedErrorToErrorObject = (): Error => {
-    if (isDataModelFetchedError) return isDataModelFetchedError;
-    if (isLayoutFetchedError) return isLayoutFetchedError;
-    if (isWidgetFetchedError) return isWidgetFetchedError;
+  const componentHasError =
+    dataModelFetchedError || layoutFetchedError || widgetFetchedError || languageFetchedError;
+
+  const mapErrorToDisplayError = (): { title: string; message: string; error?: Error } => {
+    const defaultTitle = t('general.fetch_error_title');
+    const defaultMessage = t('general.fetch_error_message');
+    if (dataModelFetchedError) {
+      return {
+        title: `${defaultTitle} ${t('general.dataModel')}`,
+        message: defaultMessage,
+        error: dataModelFetchedError
+      };
+    }
+    if (layoutFetchedError) {
+      return {
+        title: `${defaultTitle} ${t('general.layout')}`,
+        message: defaultMessage,
+        error: layoutFetchedError
+      };
+    }
+    if (widgetFetchedError) {
+      return {
+        title: `${defaultTitle} ${t('general.widget')}`,
+        message: defaultMessage,
+        error: widgetFetchedError
+      };
+    }
+    if (languageFetchedError) {
+      return {
+        title: `${defaultTitle} ${t('general.language')}`,
+        message: defaultMessage,
+        error: languageFetchedError
+      };
+    }
 
     return {
-      name: 'Unknown error',
-      message: 'Uknown Error Occured'
+      title: t('general.unknown_error'),
+      message: defaultMessage
     };
   };
 
@@ -127,7 +162,14 @@ export function App() {
   }, [selectedLayout]);
 
   if (componentHasError) {
-    return <ErrorPage error={mappedErrorToErrorObject()} />;
+    const mappedError = mapErrorToDisplayError();
+    return (
+      <ErrorPage
+        title={mappedError.title}
+        message={mappedError.message}
+        error={mappedError.error}
+      />
+    );
   }
 
   if (componentIsReady) {

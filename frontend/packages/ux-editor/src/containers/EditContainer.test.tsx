@@ -46,6 +46,7 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
   const initialState: IAppState = {
     appData: {
       languageState: {
+        fetched: false,
         language: {
           'ux_editor.modal_properties_data_model_helper': 'Lenke til datamodell',
           'general.for': 'for',
@@ -113,6 +114,7 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
         fetched: true,
         fetching: false,
         invalidLayouts: [],
+        isLayoutSettingsFetched: false,
         layoutSettings: null,
         saving: false,
         unSavedChanges: false
