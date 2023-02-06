@@ -50,6 +50,11 @@
         },
         "pdfLayoutName": {
           "$ref": "#/definitions/pdfLayoutName"
+        },
+        "showProgress": {
+          "type": "boolean",
+          "title": "Show progress indicator",
+          "description": "Enables a progress indicator in the upper right corner of the app"
         }
       }
     },
