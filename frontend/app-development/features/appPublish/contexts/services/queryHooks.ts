@@ -10,14 +10,15 @@ enum CacheKey {
   OrgList = 'ORG_LIST',
   FrontendLang = 'FRONTEND_LANG',
   DeploymentPermissions = 'DEPLOYMENT_PERMISSIONS',
+  AppReleases = 'APP_RELEASES',
 }
 interface IOrgsState {
   orgs: any;
 }
-export const useRepoStatus = (app, owner): UseQueryResult<IRepoStatusState> => {
+export const useRepoStatus = (owner, app): UseQueryResult<IRepoStatusState> => {
   const { getRepoStatus } = useServicesContext();
-  return useQuery<IRepoStatusState>([CacheKey.RepoStatus, app, owner], () =>
-    getRepoStatus(app, owner)
+  return useQuery<IRepoStatusState>([CacheKey.RepoStatus, owner, app], () =>
+    getRepoStatus(owner, app)
   );
 };
 export const useOrgList = (): UseQueryResult<IOrgsState> => {
@@ -30,9 +31,16 @@ export const useFrontendLang = (locale: string): UseQueryResult<ILanguage> => {
   return useQuery<ILanguage>([CacheKey.FrontendLang, locale], () => getFrontendLang(locale));
 };
 
-export const useDeploymentPermissions = (org, app): UseQueryResult<IAppReleaseState[]> => {
+export const useDeploymentPermissions = (owner, app): UseQueryResult<IAppReleaseState[]> => {
   const { getDeployPermissions } = useServicesContext();
-  return useQuery<IAppReleaseState[]>([CacheKey.DeploymentPermissions, org, app], () =>
-    getDeployPermissions(org, app)
+  return useQuery<IAppReleaseState[]>([CacheKey.DeploymentPermissions, owner, app], () =>
+    getDeployPermissions(owner, app)
+  );
+};
+
+export const useAppReleases = (owner, app): UseQueryResult<IAppReleaseState[]> => {
+  const { getAppreleases } = useServicesContext();
+  return useQuery<IAppReleaseState[]>([CacheKey.AppReleases, owner, app], () =>
+    getAppreleases(owner, app)
   );
 };

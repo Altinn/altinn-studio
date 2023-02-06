@@ -3,7 +3,6 @@ import classes from './deployContainer.module.css';
 import moment from 'moment';
 import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
 import type { IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import type { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
 import type { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
@@ -17,7 +16,7 @@ import {
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
 } from '../../../sharedResources/appCluster/appClusterSlice';
-import { useFrontendLang, useOrgList } from '../contexts/services/queryHooks';
+import { useAppReleases, useFrontendLang, useOrgList } from '../contexts/services/queryHooks';
 
 export const DeployContainerComponent = () => {
   const { org, app } = useParams();
@@ -31,9 +30,9 @@ export const DeployContainerComponent = () => {
   const createAppDeploymentErrors: any = useAppSelector(
     (state) => state.appDeployments.createAppDeploymentErrors
   );
-  const deployableImages: IAppReleaseState = useAppSelector((state) => state.appReleases);
-  const configuration: IConfigurationState = useAppSelector((state) => state.configuration);
 
+  const configuration: IConfigurationState = useAppSelector((state) => state.configuration);
+  const { data: releases } = useAppReleases(org, app);
   const { data: orgs = { orgs: {} } } = useOrgList();
   const { data: language = {} } = useFrontendLang('nb');
   const deployPermissions: string[] = useAppSelector(
@@ -83,7 +82,7 @@ export const DeployContainerComponent = () => {
   }, [environments, dispatch, appDeployments]);
 
   useEffect(() => {
-    const tempImages = deployableImages.releases
+    const tempImages = releases
       .filter((image) => image.build.result === BuildResult.succeeded)
       .map((image) => {
         const releaseTime = moment(new Date(image.created)).format('DD.MM.YY [kl.] HH:mm');
@@ -93,7 +92,7 @@ export const DeployContainerComponent = () => {
         };
       });
     setImageOptions(tempImages);
-  }, [deployableImages]);
+  }, [releases]);
 
   const isLoading = (): boolean => {
     return !environments.length || !appDeployments.deployments || !deployableImages || !language;

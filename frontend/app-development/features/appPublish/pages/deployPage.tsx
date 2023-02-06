@@ -9,12 +9,11 @@ import { useFrontendLang, useOrgList } from '../contexts/services/queryHooks';
 import { useParams } from 'react-router-dom';
 
 export function DeployPage() {
-  const { data: orgs = { orgs: {} } } = useOrgList();
-  const { data: language = {} } = useFrontendLang('nb');
+  const { data: orgs = { orgs: {} }, isLoading: isLoadingOrgs } = useOrgList();
+  const { data: language = {}, isLoading: isLoadingLang } = useFrontendLang('nb');
   const t = (key: string) => getLanguageFromKey(key, language);
-  const isLoading = (): boolean => !orgs.orgs || !language;
   const { org } = useParams();
-  if (isLoading()) {
+  if (isLoadingOrgs || isLoadingLang) {
     return (
       <div style={{ height: 'calc(100% - 111px)' }}>
         <AltinnContentLoader width={1200} height={600}>
