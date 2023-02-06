@@ -71,42 +71,29 @@ export function App() {
   const componentHasError =
     dataModelFetchedError || layoutFetchedError || widgetFetchedError || languageFetchedError;
 
-  const mapErrorToDisplayError = (): { title: string; message: string; error?: Error } => {
+  const mapErrorToDisplayError = (): { title: string; message: string } => {
+    const createErrorMessage = (resource: string): { title: string; message: string } => ({
+      title: `${defaultTitle} ${resource}`,
+      message: defaultMessage
+    });
+
     const defaultTitle = t('general.fetch_error_title');
     const defaultMessage = t('general.fetch_error_message');
+
     if (dataModelFetchedError) {
-      return {
-        title: `${defaultTitle} ${t('general.dataModel')}`,
-        message: defaultMessage,
-        error: dataModelFetchedError
-      };
+      return createErrorMessage(t('general.dataModel'));
     }
     if (layoutFetchedError) {
-      return {
-        title: `${defaultTitle} ${t('general.layout')}`,
-        message: defaultMessage,
-        error: layoutFetchedError
-      };
+      return createErrorMessage(t('general.layout'));
     }
     if (widgetFetchedError) {
-      return {
-        title: `${defaultTitle} ${t('general.widget')}`,
-        message: defaultMessage,
-        error: widgetFetchedError
-      };
+      return createErrorMessage(t('general.widget'));
     }
     if (languageFetchedError) {
-      return {
-        title: `${defaultTitle} ${t('general.language')}`,
-        message: defaultMessage,
-        error: languageFetchedError
-      };
+      return createErrorMessage(t('general.language'));
     }
 
-    return {
-      title: t('general.unknown_error'),
-      message: defaultMessage
-    };
+    return createErrorMessage(t('general.unknown_error'));
   };
 
   // Set Layout to first layout in the page set if none is selected.
@@ -163,13 +150,7 @@ export function App() {
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
-    return (
-      <ErrorPage
-        title={mappedError.title}
-        message={mappedError.message}
-        error={mappedError.error}
-      />
-    );
+    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
   }
 
   if (componentIsReady) {
