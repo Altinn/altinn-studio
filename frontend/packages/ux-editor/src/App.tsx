@@ -72,13 +72,13 @@ export function App() {
     dataModelFetchedError || layoutFetchedError || widgetFetchedError || languageFetchedError;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
+    const defaultTitle = t('general.fetch_error_title');
+    const defaultMessage = t('general.fetch_error_message');
+
     const createErrorMessage = (resource: string): { title: string; message: string } => ({
       title: `${defaultTitle} ${resource}`,
       message: defaultMessage
     });
-
-    const defaultTitle = t('general.fetch_error_title');
-    const defaultMessage = t('general.fetch_error_message');
 
     if (dataModelFetchedError) {
       return createErrorMessage(t('general.dataModel'));
