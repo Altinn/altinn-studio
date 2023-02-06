@@ -9,7 +9,7 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import type { FormComponentType, IAppState, IFormComponent } from '../types/global';
 import classes from './EditContainer.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Cancel, Delete, Edit as EditIcon, Monitor, Success } from '@navikt/ds-icons';
+import { Cancel, Delete, Edit, Monitor, Success } from '@navikt/ds-icons';
 import cn from 'classnames';
 import type { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';

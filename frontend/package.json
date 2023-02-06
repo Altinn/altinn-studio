@@ -78,7 +78,7 @@
     "prepare": "husky install"
   },
   "lint-staged": {
-    "**/**": "eslint --fix"
+    "**": "eslint --fix"
   },
   "syncpack": {
     "semverRange": ""
