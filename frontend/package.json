@@ -59,7 +59,8 @@
     "webpack": "5.75.0",
     "webpack-cli": "5.0.1",
     "webpack-dev-server": "4.11.1",
-    "whatwg-fetch": "3.6.2"
+    "whatwg-fetch": "3.6.2",
+    "husky": "^8.0.0"
   },
   "packageManager": "yarn@3.3.1",
   "private": true,
@@ -73,7 +74,8 @@
     "stats": "node stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50%",
-    "test:ci": "jest --ci --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder)"
+    "test:ci": "jest --ci --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder)",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "**": "eslint --fix"
