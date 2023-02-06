@@ -39,5 +39,10 @@ namespace Altinn.Platform.Authorization.Constants
         /// xacml string that represents role
         /// </summary>
         public const string RoleAttribute = "urn:altinn:rolecode";
+
+        /// <summary>
+        /// xacml string that represents resource
+        /// </summary>
+        public const string ResourceRegistryAttribute = "urn:altinn:resourceregistry";
     }
 }
