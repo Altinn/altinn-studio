@@ -14,6 +14,7 @@ import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { Warning } from '@navikt/ds-icons';
 import { useText } from '../hooks';
+import { useParams } from 'react-router-dom';
 
 type FormDesignerProps = {
   selectedLayout: string;
@@ -28,6 +29,7 @@ export const FormDesigner = ({
   dataModel
 }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
+  const { org, app } = useParams();
   const [codeEditorOpen, setCodeEditorOpen] = useState<boolean>(false);
   const [codeEditorMode, setCodeEditorMode] = useState<LogicMode>(null);
   const order = useSelector(makeGetLayoutOrderSelector());
@@ -37,7 +39,7 @@ export const FormDesigner = ({
   useEffect((): void => {
     const addInitialPage = (): void => {
       const name = `${t('general.page')} 1`;
-      dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
+      dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
     };
 
     if (selectedLayout === 'default') {

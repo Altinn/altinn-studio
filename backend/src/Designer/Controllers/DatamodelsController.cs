@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/{org}/{repository}/datamodels")]
+    [Route("designer/api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/datamodels")]
     public class DatamodelsController : ControllerBase
     {
         private readonly IRepository _repository;
@@ -40,6 +40,59 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Method that returns the JSON contents of a specific datamodel.
+        /// </summary>
+        /// <param name="org">the org owning the models repo</param>
+        /// <param name="repository">the model repos</param>
+        /// <param name="modelPath">The path to the file to get.</param>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Route("datamodel")]
+        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromQuery] string modelPath)
+        {
+            var decodedPath = System.Uri.UnescapeDataString(modelPath);
+
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var json = await _schemaModelService.GetSchema(org, repository, developer, decodedPath);
+
+            return Ok(json);
+        }
+
+        /// <summary>
+        /// Method that returns all JSON schema datamodels within repository.
+        /// </summary>
+        /// <param name="org">the org owning the models repo</param>
+        /// <param name="repository">the model repos</param>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [Route("all-json")]
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
+
+            return Ok(schemaFiles);
+        }
+
+        /// <summary>
+        /// Method that returns all xsd models within repository.
+        /// </summary>
+        /// <param name="org">the org owning the models repo</param>
+        /// <param name="repository">the model repos</param>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [Route("all-xsd")]
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDatamodels(string org, string repository)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
+
+            return Ok(schemaFiles);
+        }
+
+        /// <summary>
         /// Upload an XSD.
         /// </summary>
         /// <remarks>
@@ -49,7 +102,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">The short name of the application owner.</param>
         /// <param name="repository">The name of the repository to which the file is being added.</param>
         /// <param name="thefile">The XSD file being uploaded.</param>
-        [HttpPost("upload")]
+        [HttpPost]
+        [Route("upload")]
         public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
@@ -65,6 +119,40 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Creates a new model in the repository.
+        /// </summary>
+        /// <param name="org">The org owning the repository.</param>
+        /// <param name="repository">The repository name</param>
+        /// <param name="createModel">View model containing the data required to create the initial model.</param>
+        [Produces("application/json")]
+        [HttpPost]
+        [Route("new")]
+        public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
+
+            // Sets the location header and content-type manually instead of using CreatedAtAction
+            // because the latter overrides the content type and sets it to text/plain.
+            var baseUrl = GetBaseUrl();
+            var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
+            Response.Headers.Add("Location", locationUrl);
+            Response.StatusCode = (int)HttpStatusCode.Created;
+
+            return Content(model, "application/json");
+        }
+
+        private string GetBaseUrl()
+        {
+            return $"{Request.Scheme}{(Request.IsHttps ? "s" : string.Empty)}://{Request.Host}";
+        }
+
+        /// <summary>
         /// Generates model files from existing XSD in (datamodelling) repo
         /// </summary>
         /// <remarks>
@@ -73,7 +161,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">The short name of the application owner.</param>
         /// <param name="repository">The name of the repository to which the file is being added.</param>
         /// <param name="filePath">The path to the XSD to use</param>
-        [HttpPost("xsd-from-repo")]
+        [HttpPost]
+        [Route("xsd-from-repo")]
         public async Task<IActionResult> UseXsdFromRepo(string org, string repository, string filePath)
         {
             Guard.AssertArgumentNotNull(filePath, nameof(filePath));
@@ -88,40 +177,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Creates a new model in the repository.
-        /// </summary>
-        /// <param name="org">The org owning the repository.</param>
-        /// <param name="repository">The repository name</param>
-        /// <param name="createModel">View model containing the data required to create the initial model.</param>
-        [Produces("application/json")]
-        [HttpPost]
-        [Route("post")]
-        public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
-
-            // Sets the location header and content-type manually instead of using CreatedAtAction
-            // because the latter overrides the content type and sets it to text/plain.
-            var baseUrl = GetBaseUrl();
-            var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/{relativePath}";
-            Response.Headers.Add("Location", locationUrl);
-            Response.StatusCode = (int)HttpStatusCode.Created;
-
-            return Content(model, "application/json");
-        }
-
-        private string GetBaseUrl()
-        {
-            return $"{Request.Scheme}{(Request.IsHttps ? "s" : string.Empty)}://{Request.Host}";
-        }
-
-        /// <summary>
         /// Updates the specified datamodel in the git repository.
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
@@ -130,6 +185,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="saveOnly">Flag indicating if the model should ONLY be saved (no conversion) </param>
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [Route("datamodel")]
         public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -148,6 +204,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="modelPath">The path to the file to be deleted.</param>
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [Route("datamodel")]
         public async Task<IActionResult> Delete(string org, string repository, [FromQuery] string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -157,64 +214,14 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that returns all JSON schema datamodels within repository.
-        /// </summary>
-        /// <param name="org">the org owning the models repo</param>
-        /// <param name="repository">the model repos</param>
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status302Found)]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
-        {
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
-
-            return Ok(schemaFiles);
-        }
-
-        /// <summary>
-        /// Method that returns all xsd models within repository.
-        /// </summary>
-        /// <param name="org">the org owning the models repo</param>
-        /// <param name="repository">the model repos</param>
-        [HttpGet("xsd")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status302Found)]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDatamodels(string org, string repository)
-        {
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
-
-            return Ok(schemaFiles);
-        }
-
-        /// <summary>
-        /// Method that returns the JSON contents of a specific datamodel.
-        /// </summary>
-        /// <param name="org">the org owning the models repo</param>
-        /// <param name="repository">the model repos</param>
-        /// <param name="modelPath">The path to the file to get.</param>
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [Route("{*modelPath}")]
-        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromRoute] string modelPath)
-        {
-            var decodedPath = Uri.UnescapeDataString(modelPath);
-
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var json = await _schemaModelService.GetSchema(org, repository, developer, decodedPath);
-
-            return Ok(json);
-        }
-
-        /// <summary>
         /// Deletes datamodel by name
         /// </summary>
         /// <param name="org">The org</param>
         /// <param name="repository">the repository</param>
         /// <param name="modelName">The name of the data model.</param>
         [HttpDelete]
-        [Route("deletedatamodel")]
+        [Route("do-not-use/deletedatamodel")]
+        [Obsolete]
         public IActionResult DeleteDatamodel(string org, string repository, string modelName)
         {
             try

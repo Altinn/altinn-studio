@@ -9,8 +9,9 @@ import {
   fetchWidgetSettingsFulfilled,
   fetchWidgetSettingsRejected,
 } from '../widgetsSlice';
-import { getWidgetsSettingsUrl } from '../../../utils/urlHelper';
+import { widgetSettingsPath } from 'app-shared/api-paths';
 import type { IAppState, IWidget } from '../../../types/global';
+import { PayloadAction } from '@reduxjs/toolkit';
 
 const widgetUrlsSelector = (state: IAppState) => state.widgets.urls;
 
@@ -34,9 +35,10 @@ export function* watchFetchWidgetsSaga(): SagaIterator {
   yield call(fetchWidgetsSaga);
 }
 
-export function* fetchWidgetSettingsSaga(): SagaIterator {
+export function* fetchWidgetSettingsSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+  const {org, app} = payload;
   try {
-    const url = getWidgetsSettingsUrl();
+    const url = widgetSettingsPath(org, app);
     const widgetSettings = yield call(get, url);
     yield put(
       fetchWidgetSettingsFulfilled({

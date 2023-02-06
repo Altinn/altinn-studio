@@ -27,8 +27,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
         private readonly IApplicationInformationService _applicationInformationService;
-        private readonly string _app;
-        private readonly string _org;
 
         /// <summary>
         /// Constructor
@@ -47,22 +45,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _applicationInformationService = applicationInformationService;
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _httpContext = httpContextAccessor.HttpContext;
-            _org = _httpContext.GetRouteValue("org")?.ToString();
-            _app = _httpContext.GetRouteValue("app")?.ToString();
         }
 
         /// <inheritdoc/>
-        public async Task<DeploymentEntity> CreateAsync(DeploymentModel deployment)
+        public async Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment)
         {
             DeploymentEntity deploymentEntity = new DeploymentEntity();
-            deploymentEntity.PopulateBaseProperties(_org, _app, _httpContext);
+            deploymentEntity.PopulateBaseProperties(org, app, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvironmentName = deployment.Environment.Name;
 
-            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(deploymentEntity.Org, deploymentEntity.App, deploymentEntity.TagName);
+            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(org, app, deploymentEntity.TagName);
 
             await _applicationInformationService
-                .UpdateApplicationInformationAsync(_org, _app, release.TargetCommitish, deployment.Environment);
+                .UpdateApplicationInformationAsync(org, app, release.TargetCommitish, deployment.Environment);
             Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.Environment.Hostname);
 
             deploymentEntity.Build = new BuildEntity
@@ -76,11 +72,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<SearchResults<DeploymentEntity>> GetAsync(DocumentQueryModel query)
+        public async Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query)
         {
-            query.App = _app;
-            query.Org = _org;
-            IEnumerable<DeploymentEntity> results = await _deploymentRepository.Get(query);
+            IEnumerable<DeploymentEntity> results = await _deploymentRepository.Get(org, app, query);
             return new SearchResults<DeploymentEntity>
             {
                 Results = results

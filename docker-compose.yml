@@ -9,6 +9,16 @@ volumes:
   pgdata:
 
 services:
+  studio_azure_mock:
+    image: studio-azure-mock:${COMMIT:-latest}
+    container_name: studio-azure-mock
+    build:
+      context: ./development/azure-devops-mock
+    ports:
+      - "6161:6161"
+    environment:
+      - DESIGNER_HOST=studio-loadbalancer
+
   studio_loadbalancer:
     image: nginx:alpine
     container_name: studio-loadbalancer
@@ -62,13 +72,13 @@ services:
       - ServiceRepositorySettings:RepositoryBaseURL=http://studio-repositories:3000
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
+      - Integrations:AzureDevOpsSettings:BaseUri=http://host.docker.internal:6161/_apis/
     ports:
       - "6000:6000"
     depends_on:
       - studio_repositories
     build:
       context: .
-      dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -107,7 +117,6 @@ services:
       - "222:22"
     build:
       context: ./gitea/
-      dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

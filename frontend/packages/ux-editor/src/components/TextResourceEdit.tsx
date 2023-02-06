@@ -13,9 +13,9 @@ import { getAllTextResources, getCurrentEditId } from '../selectors/textResource
 import { setCurrentEditId, upsertTextResources } from '../features/appData/textResources/textResourcesSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useText } from '../hooks';
+import { useParams } from 'react-router-dom';
 
 export const TextResourceEdit = () => {
-
   const dispatch = useDispatch();
   const editId = useSelector(getCurrentEditId);
   const textResources = useSelector(getAllTextResources);
@@ -64,9 +64,10 @@ interface TextBoxProps {
 const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) => {
 
   const dispatch = useDispatch();
+  const { org, app } = useParams();
 
   const updateTextResource = (text: string) => {
-    dispatch(upsertTextResources({ language, textResources: { [textResourceId]: text } }));
+    dispatch(upsertTextResources({ language, textResources: { [textResourceId]: text }, org, app }));
   }
 
   const [value, setValue] = useState<string>(textResource?.value || '');

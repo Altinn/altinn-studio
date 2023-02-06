@@ -26,7 +26,7 @@ const widgetsSlice = createSlice({
   initialState,
   reducers: {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    fetchWidgets: () => {},
+    fetchWidgets: (state, action: PayloadAction<{org, app}>) => {},
     fetchWidgetsFulfilled: (state, action: PayloadAction<IFetchWidgetFulfilled>) => {
       const { widgets } = action.payload;
       state.widgets = widgets;
@@ -39,7 +39,7 @@ const widgetsSlice = createSlice({
       state.error = error;
     },
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    fetchWidgetSettings: () => {},
+    fetchWidgetSettings: (state, action: PayloadAction<{org, app}>) => {},
     fetchWidgetSettingsFulfilled: (state, action) => {
       const { widgetUrls } = action.payload;
       state.urls = state.urls.concat(widgetUrls);

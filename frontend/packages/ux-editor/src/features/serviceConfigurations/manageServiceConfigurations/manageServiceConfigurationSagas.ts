@@ -17,8 +17,9 @@ import {
 } from '../serviceConfigurationSlice';
 import type { IServiceConfigurationState } from '../serviceConfigurationTypes';
 import { get, post } from 'app-shared/utils/networking';
-import { getFetchRuleConfigurationUrl, getSveSerConfUrl } from '../../../utils/urlHelper';
+import { ruleConfigPath } from 'app-shared/api-paths';
 import type { IAppState } from '../../../types/global';
+import { PayloadAction } from '@reduxjs/toolkit';
 
 const selectServiceConfiguration = (state: IAppState): IServiceConfigurationState =>
   state.serviceConfigurations;
@@ -27,9 +28,10 @@ export function* watchFetchServiceConfigurationSaga(): SagaIterator {
   yield takeLatest(fetchServiceConfiguration, fetchJsonFileSaga);
 }
 
-export function* fetchJsonFileSaga(): SagaIterator {
+export function* fetchJsonFileSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+  const { org, app } = payload;
   try {
-    const serviceConfiguration: any = yield call(get, getFetchRuleConfigurationUrl());
+    const serviceConfiguration: any = yield call(get, ruleConfigPath(org, app));
     yield put(fetchServiceConfigurationFulfilled());
     yield put(
       setConditionalRenderingConnections({
@@ -59,7 +61,8 @@ export function* watchSaveServiceConfigurationSaga(): SagaIterator {
   );
 }
 
-export function* saveServiceConfigurationSaga(): SagaIterator {
+export function* saveServiceConfigurationSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+  const {org, app } = payload;
   try {
     delay(200);
     const serviceConfigurationState: IServiceConfigurationState = yield select(
@@ -74,7 +77,7 @@ export function* saveServiceConfigurationSaga(): SagaIterator {
         return acc;
       }, {});
 
-    yield call(post, getSveSerConfUrl(), {
+    yield call(post, ruleConfigPath(org, app), {
       data: {
         ...newServiceConfigurationsObj,
       },

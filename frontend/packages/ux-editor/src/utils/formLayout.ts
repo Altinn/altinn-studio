@@ -1,9 +1,8 @@
 import type { Dispatch } from 'redux';
-import type { IComponent, IThirdPartyComponentDefinition } from '../components';
+import type { IComponent } from '../components';
 import { ComponentTypes } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { LayoutItemType } from '../types/global';
-import { addTextResources } from '../features/appData/textResources/textResourcesSlice';
 import { getComponentTitleByComponentType } from './language';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { v4 as uuidv4 } from 'uuid';
@@ -173,42 +172,6 @@ export function extractChildrenFromGroup(group: any, components: any[], converte
   });
 }
 
-export const mapThirdPartyComponentToToolbarElement = (
-  component: IThirdPartyComponentDefinition,
-  activeList: any,
-  order: any,
-  language: any,
-  dispatch: Dispatch
-): IToolbarElement => {
-  const { textResourceBindings, ...rest } = JSON.parse(
-    JSON.stringify(component.componentDefinition)
-  );
-  return {
-    label: getLanguageFromKey(component.displayName, language),
-    icon: 'fa fa-3rd-party-alt',
-    type: ComponentTypes.ThirdParty,
-    actionMethod: (containerId: string, position: number) => {
-      dispatch(
-        addFormComponent({
-          component: {
-            type: ComponentTypes.ThirdParty,
-            itemType: LayoutItemType.Component,
-            textResourceBindings: textResourceBindings || {
-              title: getLanguageFromKey(component.displayName, language),
-            },
-            dataModelBindings: {},
-            ...rest,
-          },
-          position,
-          containerId,
-        })
-      );
-      dispatch(addTextResources({ textResources: component.texts }));
-      dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
-    },
-  };
-};
-
 export const mapWidgetToToolbarElement = (
   widget: IWidget,
   activeList: any,
@@ -238,7 +201,8 @@ export const mapComponentToToolbarElement = (
   language: any,
   activeList: any,
   order: any[],
-  dispatch: Dispatch
+  dispatch: Dispatch,
+  { org, app }: { org: string; app: string }
 ): IToolbarElement => {
   const customProperties = c.customProperties || {};
   let actionMethod = (containerId: string, position: number) => {
@@ -258,6 +222,8 @@ export const mapComponentToToolbarElement = (
         },
         position,
         containerId,
+        org,
+        app,
       })
     );
     dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
@@ -276,6 +242,8 @@ export const mapComponentToToolbarElement = (
           addToId: containerId,
           callback: null,
           destinationIndex: index,
+          org,
+          app,
         })
       );
     };

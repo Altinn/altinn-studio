@@ -97,17 +97,19 @@ export const AddOption = <T extends IFormGenericOptionsComponent>({
       </FieldSet>
     </div>
   ) : (
-    <Button
-      className={classes.addButton}
-      onClick={() => setIsAddMode(true)}
-      color={ButtonColor.Success}
-      title={t('ux_editor.add_option')}
-      variant={ButtonVariant.Quiet}
-    >
+    <div>
+      <Button
+        className={classes.addButton}
+        onClick={() => setIsAddMode(true)}
+        color={ButtonColor.Success}
+        title={t('ux_editor.add_option')}
+        variant={ButtonVariant.Quiet}
+      >
       <span className={addButtonClass}>
         <Add/>
       </span>
-      {t('ux_editor.add_option')}
-    </Button>
+        {t('ux_editor.add_option')}
+      </Button>
+    </div>
   );
 };

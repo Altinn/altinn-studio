@@ -14,23 +14,20 @@ namespace Altinn.Studio.Designer.Controllers
     /// API controller for User functionality
     /// </summary>
     [Authorize]
-    [Route("designer/api/v1/user")]
+    [Route("designer/api/user")]
     public class UserController : ControllerBase
     {
         private readonly IGitea _giteaApi;
-        private readonly ServiceRepositorySettings _settings;
         private readonly IAntiforgery _antiforgery;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserController"/> class.
         /// </summary>
         /// <param name="giteaWrapper">the gitea wrapper</param>
-        /// <param name="repositorySettings">Settings for repository</param>
         /// <param name="antiforgery">Access to the antiforgery system in .NET Core</param>
-        public UserController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, IAntiforgery antiforgery)
+        public UserController(IGitea giteaWrapper, IAntiforgery antiforgery)
         {
             _giteaApi = giteaWrapper;
-            _settings = repositorySettings.Value;
             _antiforgery = antiforgery;
         }
 
@@ -50,6 +47,17 @@ namespace Altinn.Studio.Designer.Controllers
             });
 
             return await _giteaApi.GetCurrentUser();
+        }
+
+        /// <summary>
+        /// List the repos that the authenticated user owns or has access to
+        /// </summary>
+        /// <returns>List of repos</returns>
+        [HttpGet]
+        [Route("repos")]
+        public Task<IList<RepositoryClient.Model.Repository>> UserRepos()
+        {
+            return _giteaApi.GetUserRepos();
         }
 
         /// <summary>

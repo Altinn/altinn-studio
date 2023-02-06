@@ -28,10 +28,10 @@ namespace Designer.Tests.Services
     public class ReleaseServiceTest
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
-
         private readonly Mock<IReleaseRepository> _releaseRepository;
-
         private readonly Mock<ILogger<ReleaseService>> _releaseLogger;
+        private readonly string _org = "udi";
+        private readonly string _app = "kjaerestebesok";
 
         public ReleaseServiceTest()
         {
@@ -135,7 +135,7 @@ namespace Designer.Tests.Services
         public async Task GetAsync_OK()
         {
             // Arrange
-            _releaseRepository.Setup(r => r.Get(It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetReleases("completedReleases.json"));
+            _releaseRepository.Setup(r => r.Get(_org, _app, It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetReleases("completedReleases.json"));
 
             ReleaseService releaseService = new ReleaseService(
                 _httpContextAccessor.Object,
@@ -145,11 +145,11 @@ namespace Designer.Tests.Services
                 _releaseLogger.Object);
 
             // Act
-            SearchResults<ReleaseEntity> results = await releaseService.GetAsync(new DocumentQueryModel());
+            SearchResults<ReleaseEntity> results = await releaseService.GetAsync(_org, _app, new DocumentQueryModel());
 
             // Assert
             Assert.Equal(5, results.Results.Count());
-            _releaseRepository.Verify(r => r.Get(It.IsAny<DocumentQueryModel>()), Times.Once);
+            _releaseRepository.Verify(r => r.Get(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
         [Fact]

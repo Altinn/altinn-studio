@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Repository
         /// <summary>
         /// Calls a procedure to retrieve release entities based on query params
         /// </summary>
-        Task<IEnumerable<ReleaseEntity>> Get(DocumentQueryModel query);
+        Task<IEnumerable<ReleaseEntity>> Get(string org, string app, DocumentQueryModel query);
 
         /// <summary>
         /// Calls a procedure to retrieve release entities based on buildId

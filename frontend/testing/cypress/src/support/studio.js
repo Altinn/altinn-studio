@@ -25,7 +25,7 @@ Cypress.Commands.add('createapp', (orgName, appName) => {
   cy.get(dashboard.appOwners).should('be.visible').click();
   cy.contains(dashboard.appOwnersList, orgName).click();
   cy.get(dashboard.appName).should('be.visible').type(appName);
-  cy.intercept('POST', '**/designer/api/v1/repos/**').as('postCreateApp');
+  cy.intercept('POST', '**/designer/api/repos/**').as('postCreateApp');
   cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
   cy.wait('@postCreateApp', { timeout: 30000 }).its('response.statusCode').should('eq', 201);
 });

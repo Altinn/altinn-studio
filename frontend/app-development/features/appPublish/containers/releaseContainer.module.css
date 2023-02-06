@@ -31,16 +31,13 @@
 }
 
 .appCreateReleaseTitle {
-  padding: 1.2rem;
   font-weight: 500;
   font-size: 1.2rem;
+  line-height: 2.2rem;
 }
 
-.appCreateReleaseStatusIcon {
+.appCreateReleaseStatusButton {
   color: #1eaef7;
-  height: 48px;
-  padding-top: 1.2rem;
-  width: 48px;
 }
 
 .popover {
@@ -87,4 +84,6 @@
 
 .versionSubHeader {
   display: flex;
+  padding: 1.2rem;
+  justify-content: space-between;
 }

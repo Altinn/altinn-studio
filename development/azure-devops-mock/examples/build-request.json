@@ -1,0 +1,4 @@
+{
+  "definition": { "id": 69 },
+  "parameters": "{\"APP_OWNER\":\"ttd\",\"APP_REPO\":\"autodeploy-v3\",\"APP_DEPLOY_TOKEN\":\"93d89b7335f8b7f80c2e12de915064ae49e2c4f7\",\"GITEA_ENVIRONMENT\":\"studio.localhost/repos\",\"APP_COMMIT_ID\":\"8d70b229cc3e97c54d28b8bec8f63b8763f2cc41\",\"TAGNAME\":\"dsaf\",\"ALTINN_STUDIO_HOSTNAME\":\"studio.localhost\"}"
+}

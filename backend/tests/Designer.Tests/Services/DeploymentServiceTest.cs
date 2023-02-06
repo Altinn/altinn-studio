@@ -89,7 +89,7 @@ namespace Designer.Tests.Services
                 _applicationInformationService.Object);
 
             // Act
-            DeploymentEntity deploymentEntity = await deploymentService.CreateAsync(deploymentModel);
+            DeploymentEntity deploymentEntity = await deploymentService.CreateAsync("ttd", "apps-test-tba", deploymentModel);
 
             // Assert
             Assert.NotNull(deploymentEntity);
@@ -111,7 +111,7 @@ namespace Designer.Tests.Services
         public async Task GetAsync()
         {
             // Arrange
-            _deploymentRepository.Setup(r => r.Get(It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
+            _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
 
             DeploymentService deploymentService = new DeploymentService(
                 new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
@@ -122,11 +122,11 @@ namespace Designer.Tests.Services
                 _applicationInformationService.Object);
 
             // Act
-            SearchResults<DeploymentEntity> results = await deploymentService.GetAsync(new DocumentQueryModel());
+            SearchResults<DeploymentEntity> results = await deploymentService.GetAsync("ttd", "issue-6094", new DocumentQueryModel());
 
             // Assert
             Assert.Equal(8, results.Results.Count());
-            _deploymentRepository.Verify(r => r.Get(It.IsAny<DocumentQueryModel>()), Times.Once);
+            _deploymentRepository.Verify(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
         [Fact]

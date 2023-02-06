@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("/designer/api/v1/{org}/{app}/[controller]")]
+    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments")]
     public class DeploymentsController : ControllerBase
     {
         private readonly IDeploymentService _deploymentService;
@@ -45,13 +45,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Gets deployments based on a query
         /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
         /// <param name="query">Document query model</param>
         /// <returns>SearchResults of type DeploymentEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<DeploymentEntity>> Get([FromQuery] DocumentQueryModel query)
+        public async Task<SearchResults<DeploymentEntity>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
         {
-            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(query);
+            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query);
             List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
 
             foreach (DeploymentEntity deployment in laggingDeployments)
@@ -83,21 +85,23 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Creates a release
+        /// Creates a deployment
         /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
         /// <param name="createDeployment">Release model</param>
         /// <returns>Created release</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult<DeploymentEntity>> Create([FromBody] CreateDeploymentRequestViewModel createDeployment)
+        public async Task<ActionResult<DeploymentEntity>> Create(string org, string app, [FromBody] CreateDeploymentRequestViewModel createDeployment)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            return Created(string.Empty, await _deploymentService.CreateAsync(createDeployment.ToDomainModel()));
+            return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel()));
         }
     }
 }

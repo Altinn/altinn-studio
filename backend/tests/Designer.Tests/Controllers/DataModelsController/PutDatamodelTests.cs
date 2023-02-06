@@ -79,7 +79,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
     [InlineData("App%2Fmodels%2FtestModel.schema.json")]
     public async Task ValidInput_ShouldReturn_NoContent_And_Create_Files(string modelPath)
     {
-        var url = $"{VersionPrefix}/{TestOrg}/{TargetTestRepository}/Datamodels/?modelPath={modelPath}";
+        var url = $"{VersionPrefix}/{TestOrg}/{TargetTestRepository}/datamodels/datamodel?modelPath={modelPath}";
         var fileName = Path.GetFileName(HttpUtility.UrlDecode(modelPath));
         var modelName = fileName.Remove(fileName.Length - ".schema.json".Length);
 

@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller for pipelines
     /// </summary>
     [ApiController]
-    [Route("/designer/api/v1/")]
+    [Route("/designer/api/")]
     public class PipelinesController : ControllerBase
     {
         private readonly IPipelineService _pipelineService;
@@ -30,10 +30,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Gets a build status from Azure DevOps and updates a specific entity
         /// </summary>
-        [HttpPost("checkreleasebuildstatus")]
+        [HttpPost]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [Route("check-release-build-status")]
         public async Task<IActionResult> CheckReleaseStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
+            _logger.LogInformation("checkreleasebuildstatus was with BuildNumber {BuildNumber} and ResourceOwner {ResourceOwner}", model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             await _pipelineService.UpdateReleaseStatus(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             return Ok();
         }
@@ -41,8 +43,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Gets a build status from Azure DevOps and updates a specific entity
         /// </summary>
-        [HttpPost("checkdeploymentbuildstatus")]
+        [HttpPost]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        [Route("check-deployment-build-status")]
         public async Task<IActionResult> CheckDeploymentStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
             await _pipelineService.UpdateDeploymentStatus(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);

@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
-using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -24,11 +23,13 @@ namespace Designer.Tests.Controllers
 {
     public class ReleasesControllerTests : ApiTestsBase<ReleasesController, ReleasesControllerTests>
     {
-        private readonly string _versionPrefix = "/designer/api/v1";
+        private readonly string _versionPrefix = "/designer/api";
         private readonly JsonSerializerOptions _options;
 
         private readonly Mock<IReleaseService> _releaseServiceMock;
         private readonly Mock<IPipelineService> _pipelineServiceMock;
+        private readonly string _org = "udi";
+        private readonly string _app = "kjaerestebesok";
 
         public ReleasesControllerTests(WebApplicationFactory<ReleasesController> factory) : base(factory)
         {
@@ -49,11 +50,11 @@ namespace Designer.Tests.Controllers
         public async Task GetReleases_NoLaggingReleases_PipelineServiceNotCalled()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/udi/kjaerestebesok/releases?sortDirection=Descending";
+            string uri = $"{_versionPrefix}/{_org}/{_app}/releases?sortDirection=Descending";
             List<ReleaseEntity> completedReleases = GetReleasesList("completedReleases.json");
 
             _releaseServiceMock
-                .Setup(rs => rs.GetAsync(It.IsAny<DocumentQueryModel>()))
+                .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<ReleaseEntity> { Results = completedReleases });
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -76,7 +77,7 @@ namespace Designer.Tests.Controllers
         public async Task GetReleases_SingleLaggingRelease_PipelineServiceCalled()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/udi/kjaerestebesok/releases?sortDirection=Descending";
+            string uri = $"{_versionPrefix}/{_org}/{_app}/releases?sortDirection=Descending";
             List<ReleaseEntity> completedReleases = GetReleasesList("singleLaggingRelease.json");
 
             _pipelineServiceMock
@@ -84,7 +85,7 @@ namespace Designer.Tests.Controllers
                 .Returns(Task.CompletedTask);
 
             _releaseServiceMock
-                .Setup(rs => rs.GetAsync(It.IsAny<DocumentQueryModel>()))
+                .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<ReleaseEntity> { Results = completedReleases });
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);

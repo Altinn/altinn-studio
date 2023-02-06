@@ -6,6 +6,7 @@ import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import type { FormComponentType, IAppState, IDataModelFieldElement } from '../types/global';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { useParams } from 'react-router-dom';
 
 /**
  * Properties defined for input for wrapper
@@ -37,15 +38,18 @@ const FormComponent = (props: IFormElementProps) => {
   const [wrapperRef, setWrapperRef] = React.useState(null);
   const dispatch = useDispatch();
   const { sendListToParent, activeList } = props;
+  const { org, app } = useParams();
   const handleActiveListChange = useCallback(
     (obj: any) => {
       if (Object.keys(obj).length === 0 && obj.constructor === Object) {
-        dispatch(FormLayoutActions.deleteActiveList());
+        dispatch(FormLayoutActions.deleteActiveList({ org, app }));
       } else {
         dispatch(
           FormLayoutActions.updateActiveList({
             listItem: obj,
             containerList: activeList,
+            org,
+            app
           })
         );
       }
