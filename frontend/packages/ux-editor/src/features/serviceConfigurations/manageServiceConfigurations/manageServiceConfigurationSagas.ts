@@ -62,7 +62,7 @@ export function* watchSaveServiceConfigurationSaga(): SagaIterator {
 }
 
 export function* saveServiceConfigurationSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
-  const {org, app } = payload;
+  const { org, app } = payload;
   try {
     delay(200);
     const serviceConfigurationState: IServiceConfigurationState = yield select(

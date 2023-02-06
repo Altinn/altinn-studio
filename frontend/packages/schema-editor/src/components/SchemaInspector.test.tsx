@@ -94,15 +94,11 @@ test('dispatches correctly when changing restriction value', async () => {
   const minLength = '100';
   const maxLength = '666';
 
-  const minLengthTextField = await waitFor(() =>
-    screen.getByLabelText(language['schema_editor.minLength'])
-  );
+  const minLengthTextField = await screen.findByLabelText(language['schema_editor.minLength']);
   fireEvent.change(minLengthTextField, { target: { value: minLength } });
   fireEvent.blur(minLengthTextField);
 
-  const maxLengthTextField = await waitFor(() =>
-    screen.getByLabelText(language['schema_editor.maxLength'])
-  );
+  const maxLengthTextField = await screen.findByLabelText(language['schema_editor.maxLength']);
   fireEvent.change(maxLengthTextField, { target: { value: maxLength } });
   fireEvent.blur(maxLengthTextField);
 

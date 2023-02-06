@@ -17,7 +17,7 @@
     "prefer-const": "error",
     "object-curly-spacing": ["error", "always"],
     "@typescript-eslint/no-use-before-define": "off",
-    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-explicit-any": "off",
     "no-nested-ternary": "off"
   },
 

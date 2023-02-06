@@ -39,7 +39,7 @@ describe('Dashboard > index', () => {
   it('displays FavoriteReposList and OrgReposList when selected context is an organization', async () => {
     const organizationId = 1;
     render(organizationId);
-    await waitFor(() => expect(screen.getByText('test-org dashboard.apps')).toBeInTheDocument());
+    await screen.findByText('test-org dashboard.apps');
 
     expect(screen.getByText('test-org dashboard.apps')).toBeInTheDocument();
 

@@ -67,7 +67,7 @@ describe('ComponentPreview', () => {
     ComponentTypes.TextArea,
     ComponentTypes.ThirdParty,
   ])('Renders error text when component type is %s', (type: ComponentTypes) => {
-    render({ component: {...component, type} });
+    render({ component: { ...component, type } });
     expect(screen.getByText('Forhåndsvisning er ikke implementert for denne komponenten.')).toBeInTheDocument();
   });
 });

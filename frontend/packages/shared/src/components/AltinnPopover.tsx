@@ -69,8 +69,7 @@ const AltinnPopoverComponent = (props: any) => {
   };
 
   return (
-    <>
-      <Popover
+    <Popover
         open={!!props.anchorEl}
         anchorEl={props.anchorEl}
         onClose={handleClose}
@@ -136,7 +135,6 @@ const AltinnPopoverComponent = (props: any) => {
           </div>
         </Grid>
       </Popover>
-    </>
   );
 };
 
