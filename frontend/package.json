@@ -32,6 +32,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-testing-library": "^5.10.0",
     "glob": "8.1.0",
+    "husky": "^8.0.0",
     "jest": "29.4.1",
     "jest-environment-jsdom": "29.4.1",
     "jest-fail-on-console": "3.0.2",
@@ -59,8 +60,7 @@
     "webpack": "5.75.0",
     "webpack-cli": "5.0.1",
     "webpack-dev-server": "4.11.1",
-    "whatwg-fetch": "3.6.2",
-    "husky": "^8.0.0"
+    "whatwg-fetch": "3.6.2"
   },
   "packageManager": "yarn@3.3.1",
   "private": true,
