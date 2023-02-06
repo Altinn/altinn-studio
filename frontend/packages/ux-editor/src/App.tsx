@@ -48,7 +48,7 @@ export function App() {
         FormLayoutActions.updateSelectedLayout({ selectedLayout: searchParams.get('layout'), org, app })
       );
     }
-  }, [dispatch, layoutOrder, searchParams, setSearchParams, selectedLayout, org, app]);
+  }, [dispatch, searchParams, setSearchParams, selectedLayout, org, app]);
 
   useEffect(() => {
     const fetchFiles = () => {
