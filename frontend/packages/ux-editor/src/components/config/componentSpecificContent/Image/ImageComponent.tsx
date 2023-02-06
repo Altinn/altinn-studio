@@ -1,11 +1,12 @@
 import React from 'react';
 import Select from 'react-select';
-import { PropertyLabel, selectStyles } from '../../../../utils/render';
+import { selectStyles } from '../../../../utils/render';
 import type { FormComponentType, IFormImageComponent } from '../../../../types/global';
 import { FieldSet, TextField } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
+import { Label } from 'app-shared/components/Label';
 
 export interface IImageComponentProps {
   component: IFormImageComponent;
@@ -90,10 +91,9 @@ export const ImageComponent = ({
           />
         </div>
         <div className={classes.placementContainer}>
-          <PropertyLabel
-            textKey={t('ux_editor.modal_properties_image_placement_label')}
-            htmlFor={placementSelectId}
-          />
+          <Label htmlFor={placementSelectId}>
+            {t('ux_editor.modal_properties_image_placement_label')}
+          </Label>
           <Select
             styles={selectStyles}
             options={alignOptions}

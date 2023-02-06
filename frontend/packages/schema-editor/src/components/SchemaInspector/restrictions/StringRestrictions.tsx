@@ -8,7 +8,7 @@ import { Checkbox, FieldSet, Select, TextField } from '@digdir/design-system-rea
 import type { Dict } from '@altinn/schema-model';
 import { StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
-import { Label } from '../../common/Label';
+import { Label } from 'app-shared/components/Label';
 import { getDomFriendlyID } from '../../../utils/ui-schema-utils';
 import type { StringRestrictionsReducerAction } from './StringRestrictionsReducer';
 import {
