@@ -60,7 +60,7 @@ export function App() {
     if (repositoryType === RepositoryType.App) {
       dispatch(ApplicationMetadataActions.getApplicationMetadata({ org, app }));
     }
-  }, [dispatch, repositoryType]);
+  }, [app, dispatch, org, repositoryType]);
 
   useEffect(() => {
     dispatch(fetchRemainingSession());

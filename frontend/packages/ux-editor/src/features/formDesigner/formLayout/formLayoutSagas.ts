@@ -50,8 +50,8 @@ const selectCurrentLayout = (state: IAppState): IFormLayout =>
 
 function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentAction>): SagaIterator {
   try {
-    let { position, containerId, org, app } = payload;
-    const { component, callback } = payload;
+    let { containerId, position } = payload;
+    const { org, app, component, callback } = payload;
     const id: string = uuidv4();
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
 
@@ -230,7 +230,7 @@ export function* watchDeleteFormContainerSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.deleteFormContainer, deleteFormContainerSaga);
 }
 
-function* fetchFormLayoutSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+function* fetchFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIterator {
   const { org, app } = payload;
   let formLayouts: any;
   try {
@@ -276,7 +276,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.fetchFormLayout, fetchFormLayoutSaga);
 }
 
-function* saveFormLayoutSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+function* saveFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIterator {
   const { org, app } = payload;
   try {
     yield delay(200);
@@ -532,7 +532,9 @@ export function* watchUpdateLayoutNameSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.updateLayoutName, updateLayoutNameSaga);
 }
 
-export function* fetchFormLayoutSettingSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+export function* fetchFormLayoutSettingSaga({
+  payload,
+}: PayloadAction<{ org; app }>): SagaIterator {
   const { org, app } = payload;
   try {
     const settings: ILayoutSettings = yield call(get, layoutSettingsPath(org, app));
@@ -551,7 +553,7 @@ export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
   );
 }
 
-export function* saveFormLayoutSettingSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
+export function* saveFormLayoutSettingSaga({ payload }: PayloadAction<{ org; app }>): SagaIterator {
   const { org, app } = payload;
   try {
     const layoutSettings = yield select(

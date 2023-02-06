@@ -9,7 +9,7 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import type { FormComponentType, IAppState, IFormComponent } from '../types/global';
 import classes from './EditContainer.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Cancel, Delete, Edit, Monitor, Success } from '@navikt/ds-icons';
+import { Cancel, Delete, Edit as EditIcon, Monitor, Success } from '@navikt/ds-icons';
 import cn from 'classnames';
 import type { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
@@ -198,7 +198,7 @@ export function EditContainer(props: IEditContainerProps) {
           {(activeList.length < 1 || (activeList.length === 1 && activeListIndex === 0)) && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Edit title={t('general.edit')} />}
+              icon={<EditIcon title={t('general.edit')} />}
               onClick={handleOpenEdit}
               tabIndex={0}
               variant={ButtonVariant.Quiet}

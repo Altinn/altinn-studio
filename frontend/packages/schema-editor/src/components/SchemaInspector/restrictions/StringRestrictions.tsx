@@ -50,8 +50,8 @@ export function StringRestrictions({
     ),
   });
 
-  const changeCallback = (restrictions: Dict) => {
-    onChangeRestrictions(path, restrictions);
+  const changeCallback = (changedRestrictions: Dict) => {
+    onChangeRestrictions(path, changedRestrictions);
   };
 
   const setRestriction = (restriction: StrRestrictionKeys, value: string) =>

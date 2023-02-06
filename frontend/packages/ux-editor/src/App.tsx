@@ -48,7 +48,7 @@ export function App() {
         FormLayoutActions.updateSelectedLayout({ selectedLayout: searchParams.get('layout'), org, app })
       );
     }
-  }, [dispatch, layoutOrder, searchParams, setSearchParams, selectedLayout]);
+  }, [dispatch, layoutOrder, searchParams, setSearchParams, selectedLayout, org, app]);
 
   useEffect(() => {
     const fetchFiles = () => {
@@ -86,7 +86,7 @@ export function App() {
       const name = t('general.page') + (layoutOrder.length + 1);
       dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
     }
-  }, [selectedLayout]);
+  }, [app, dispatch, layoutOrder.length, org, selectedLayout, t]);
 
   return (
     <div>

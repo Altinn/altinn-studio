@@ -55,7 +55,7 @@ const FormComponent = (props: IFormElementProps) => {
       }
       sendListToParent(activeList);
     },
-    [dispatch, sendListToParent, activeList]
+    [sendListToParent, activeList, dispatch, org, app]
   );
 
   /*

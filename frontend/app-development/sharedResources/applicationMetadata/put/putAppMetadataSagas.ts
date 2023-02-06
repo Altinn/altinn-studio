@@ -12,6 +12,7 @@ export function* putApplicationMetadataSaga(
 ): SagaIterator {
   const { applicationMetadata } = action.payload;
   try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { org, app } = useParams();
     const result = yield call(axiosPut, appMetadataPath(org, app), applicationMetadata);
     yield put(

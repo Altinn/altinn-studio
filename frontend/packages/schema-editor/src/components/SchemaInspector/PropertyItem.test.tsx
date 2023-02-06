@@ -53,9 +53,9 @@ test('Text input field appears', () => {
 });
 
 test('Text input field has the value given in the "value" prop', () => {
-  const value = 'Lorem ipsum';
-  renderPropertyItem({ value });
-  expect(screen.getByRole('textbox')).toHaveValue(value);
+  const inputValue = 'Lorem ipsum';
+  renderPropertyItem({ value: inputValue });
+  expect(screen.getByRole('textbox')).toHaveValue(inputValue);
 });
 
 test('Text input field is not disabled by default', () => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import type { IOption, } from '../../../types/global';
 import {
   Button,
@@ -46,15 +46,7 @@ export function EditOptions({
     useState(getSelectedOptionsType(component.optionsId, component.options));
   const t = useText();
 
-  useEffect(() => {
-    resetPrevOptionsType();
-  }, [selectedOptionsType]);
-
-  const handleOptionsTypeChange = (value) => {
-    setSelectedOptionsType(value);
-  };
-
-  const resetPrevOptionsType = () => {
+  const resetPrevOptionsType = useCallback(() => {
     if (selectedOptionsType === SelectedOptionsType.Unknown) {
       return;
     }
@@ -70,6 +62,14 @@ export function EditOptions({
         optionsId: null,
       });
     }
+  }, [component, handleComponentChange, selectedOptionsType]);
+
+  useEffect(() => {
+    resetPrevOptionsType();
+  }, [resetPrevOptionsType, selectedOptionsType]);
+
+  const handleOptionsTypeChange = (value) => {
+    setSelectedOptionsType(value);
   };
 
   const handleUpdateOptionLabel = (index: number) => (id: string) => {

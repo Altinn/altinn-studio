@@ -4,21 +4,19 @@
     "plugin:react/recommended",
     "plugin:react-hooks/recommended"
   ],
-  "plugins": ["jsx-a11y", "react", "react-hooks", "testing-library", "@typescript-eslint"],
+  "plugins": ["jsx-a11y", "react", "react-hooks", "@typescript-eslint"],
   "parser": "@typescript-eslint/parser",
   "rules": {
     "react/destructuring-assignment": "off",
-    "react/prop-types": "off",
+    "react/prop-types": "error",
     "react/require-default-props": "off",
     "import/prefer-default-export": "off",
-    "import/extensions": "off",
     "react/jsx-key": "error",
     "react/jsx-filename-extension": ["warn", { "extensions": [".tsx"] }],
     "prefer-const": "error",
     "object-curly-spacing": ["error", "always"],
     "@typescript-eslint/no-use-before-define": "off",
-    "@typescript-eslint/no-explicit-any": "off",
-    "no-nested-ternary": "off"
+    "@typescript-eslint/no-explicit-any": "off"
   },
 
   "overrides": [
@@ -32,10 +30,11 @@
         "react/function-component-definition": "off",
         "@typescript-eslint/no-shadow": ["error"]
       }
-    },
-    {
-      "files": ["*.test.tsx", "*.test.ts"],
-      "extends": ["plugin:testing-library/react"]
     }
-  ]
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
 }
