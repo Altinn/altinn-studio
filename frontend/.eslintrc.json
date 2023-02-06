@@ -1,4 +1,5 @@
 {
+  "ignorePatterns": ["yarn/**", "yarn.lock"],
   "extends": [
     "plugin:import/typescript",
     "plugin:react/recommended",
