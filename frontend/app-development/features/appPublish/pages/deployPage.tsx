@@ -1,30 +1,19 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import classes from './deployPage.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
-import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 import { DeployContainerComponent } from '../containers/deployContainer';
-import { InfoCard } from './InfoCard';
+import { InfoCard } from '../components/InfoCard';
 import { ReleaseContainer } from '../containers/releaseContainer';
-import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
-import { getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { useFrontendLang, useOrgList } from '../contexts/services/queryHooks';
 import { useParams } from 'react-router-dom';
 
 export function DeployPage() {
+  const { data: orgs = { orgs: {} } } = useOrgList();
+  const { data: language = {} } = useFrontendLang('nb');
+  const t = (key: string) => getLanguageFromKey(key, language);
+  const isLoading = (): boolean => !orgs.orgs || !language;
   const { org } = useParams();
-  const dispatch = useAppDispatch();
-  const orgs: any = useAppSelector((state) => state.configuration.orgs);
-  const language: any = useAppSelector((state) => state.languageState.language);
-
-  useEffect(() => {
-    dispatch(ConfigurationActions.getOrgs());
-    dispatch(fetchDeployPermissions());
-  }, [dispatch]);
-
-  const isLoading = (): boolean => {
-    return !orgs.allOrgs || !language;
-  };
-
   if (isLoading()) {
     return (
       <div style={{ height: 'calc(100% - 111px)' }}>
@@ -38,32 +27,19 @@ export function DeployPage() {
   }
 
   // If org isn't listed, or doesn't have any environments
-  if (
-    !orgs.allOrgs[org] ||
-    !orgs.allOrgs[org].environments ||
-    !orgs.allOrgs[org].environments.length
-  ) {
+  if (!orgs.orgs[org] || !orgs.orgs[org].environments || !orgs.orgs[org].environments.length) {
     return (
-      <InfoCard
-        headerText={getParsedLanguageFromKey('app_publish.no_env_title', language, [])}
-        shadow={true}
-      >
-        <div>{getParsedLanguageFromKey('app_publish.no_env_1', language, [])}</div>
-        <div style={{ paddingTop: '2.4rem' }}>
-          {getParsedLanguageFromKey('app_publish.no_env_2', language, [])}
-        </div>
+      <InfoCard headerText={t('app_publish.no_env_title')} shadow={true}>
+        <div>{t('app_publish.no_env_1')}</div>
+        <div style={{ paddingTop: '2.4rem' }}>{t('app_publish.no_env_2')}</div>
       </InfoCard>
     );
   }
 
   return (
     <div className={classes.container} style={{ height: 'calc(100% - 111px)' }}>
-      <div>
-        <DeployContainerComponent />
-      </div>
-      <div>
-        <ReleaseContainer />
-      </div>
+      <DeployContainerComponent />
+      <ReleaseContainer />
     </div>
   );
 }

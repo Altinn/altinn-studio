@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import classes from './deployContainer.module.css';
 import moment from 'moment';
 import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
@@ -17,6 +17,7 @@ import {
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
 } from '../../../sharedResources/appCluster/appClusterSlice';
+import { useFrontendLang, useOrgList } from '../contexts/services/queryHooks';
 
 export const DeployContainerComponent = () => {
   const { org, app } = useParams();
@@ -32,18 +33,19 @@ export const DeployContainerComponent = () => {
   );
   const deployableImages: IAppReleaseState = useAppSelector((state) => state.appReleases);
   const configuration: IConfigurationState = useAppSelector((state) => state.configuration);
-  const language: any = useAppSelector((state) => state.languageState.language);
-  const orgs: any = useAppSelector((state) => state.configuration.orgs);
+
+  const { data: orgs = { orgs: {} } } = useOrgList();
+  const { data: language = {} } = useFrontendLang('nb');
   const deployPermissions: string[] = useAppSelector(
     (state) => state.userState.permissions.deploy.environments
   );
-  const orgName: string = useAppSelector((state) => {
+  const orgName: string = useMemo(() => {
     let name = '';
-    if (state.configuration.orgs.allOrgs && state.configuration.orgs.allOrgs[org]) {
-      name = state.configuration.orgs.allOrgs[org].name.nb;
+    if (orgs.orgs && orgs.orgs[org]) {
+      name = orgs.orgs[org].name.nb;
     }
     return name;
-  });
+  }, [org, orgs]);
 
   useEffect(() => {
     dispatch(ConfigurationActions.getEnvironments());
@@ -57,13 +59,13 @@ export const DeployContainerComponent = () => {
 
   useEffect(() => {
     if (
-      !!orgs.allOrgs &&
-      !!orgs.allOrgs[org] &&
-      !!orgs.allOrgs[org].environments &&
+      !!orgs.orgs &&
+      !!orgs.orgs[org] &&
+      !!orgs.orgs[org].environments &&
       !!configuration.environments.result
     ) {
       setEnvironments(
-        orgs.allOrgs[org].environments
+        orgs.orgs[org].environments
           .map((envName: string) =>
             configuration.environments.result.find((env: any) => env.name === envName)
           )

@@ -2,10 +2,10 @@ import { SubApp } from '../../packages/ux-editor/src/SubApp';
 import { AccessControlContainer } from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import { TextEditor } from '../features/textEditor';
-import { DeployPage } from '../features/appPublish/pages/deployPage';
 import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
+import { AppPublishFeature } from '../features/appPublish/AppPublishFeature';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -72,7 +72,7 @@ const routes: IRoute[] = [
     activeSubHeaderSelection: TopBarMenu.Deploy,
     activeLeftMenuSelection: '',
     menu: 'deploy',
-    subapp: DeployPage,
+    subapp: AppPublishFeature,
   },
   {
     path: '/:org/:app/mergeconflict',
