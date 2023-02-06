@@ -279,6 +279,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
 function* saveFormLayoutSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
   const { org, app } = payload;
   try {
+    // Without this delay the selectedLayout is not set with the correct value.
     yield delay(200);
     const selectedLayout = yield select(
       (state: IAppState) => state.formDesigner.layout.selectedLayout
