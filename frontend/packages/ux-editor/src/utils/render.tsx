@@ -1,24 +1,8 @@
 import React from 'react';
-import { Typography } from '@mui/material';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
 import type { IDataModelBindings } from '../types/global';
-
-export const styles = {
-  inputHelper: {
-    fontSize: '1.6rem',
-    lineHeight: 'auto',
-    color: '#000000',
-  },
-  optional: {
-    marginTop: '2.4rem',
-    marginLeft: '0.4rem',
-    color: '#6A6A6A',
-    fontSize: '1.4rem',
-  },
-  description: {
-    fontSize: '1.4rem',
-  },
-};
+import { Label } from 'app-shared/components/Label';
+import { useText } from '../hooks';
 
 export const selectStyles = {
   control: (base: any) => ({
@@ -31,42 +15,29 @@ export const selectStyles = {
   }),
 };
 
-export interface IPropertyLabelProps {
-  textKey: string;
-  htmlFor?: string;
+interface SelectDataModelBindingProps {
+  dataModelBinding: IDataModelBindings;
+  onDataModelChange: (dataBindingName: string, key: string) => void;
+  key: string;
 }
 
-export const PropertyLabel = ({ textKey, htmlFor }: IPropertyLabelProps) => {
-  return (
-    <Typography
-      style={styles.inputHelper}
-      component='label'
-      htmlFor={htmlFor}
-    >
-      {textKey}
-    </Typography>
-  );
-};
-
-export const renderSelectGroupDataModelBinding = (
-  dataModelBinding: IDataModelBindings,
-  onDataModelChange: any,
+export const SelectGroupDataModelBinding = ({
+  dataModelBinding,
+  onDataModelChange,
   key = 'simpleBinding',
-  language: any
-): JSX.Element => {
+}: SelectDataModelBindingProps): JSX.Element => {
+  const t = useText();
   return (
     <div>
-      <PropertyLabel
-        textKey={language['ux_editor.modal_properties_data_model_helper']}
-        htmlFor='dataModalHelper'
-      />
-
+      <Label htmlFor='dataModalHelper'>
+        {t('ux_editor.modal_properties_data_model_helper')}
+      </Label>
       <SelectDataModelComponent
         inputId='dataModalHelper'
         selectedElement={dataModelBinding[key]}
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
         selectGroup={true}
-        noOptionsMessage={language['general.no_options']}
+        noOptionsMessage={t('general.no_options')}
       />
     </div>
   );

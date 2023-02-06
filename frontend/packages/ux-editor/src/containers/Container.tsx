@@ -11,7 +11,7 @@ import {
   makeGetLayoutContainerOrder,
   makeGetLayoutContainersSelector,
 } from '../selectors/getLayoutData';
-import { renderSelectGroupDataModelBinding } from '../utils/render';
+import { SelectGroupDataModelBinding } from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayout';
@@ -453,12 +453,11 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         />
         {tmpContainer.maxCount > 1 && (
           <>
-            {renderSelectGroupDataModelBinding(
-              tmpContainer.dataModelBindings,
-              this.handleDataModelGroupChange,
-              'group',
-              language
-            )}
+            <SelectGroupDataModelBinding
+              dataModelBinding={tmpContainer.dataModelBindings}
+              onDataModelChange={this.handleDataModelGroupChange}
+              key='group'
+            />
             <div>
               <TextField
                 disabled={!!tmpContainer.dataModelBindings.group}
