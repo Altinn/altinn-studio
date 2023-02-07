@@ -16,7 +16,12 @@ import {
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
 } from '../../../sharedResources/appCluster/appClusterSlice';
-import { useAppReleases, useFrontendLang, useOrgList } from '../contexts/services/queryHooks';
+import {
+  useAppDeployments,
+  useAppReleases,
+  useFrontendLang,
+  useOrgList,
+} from '../hooks/query-hooks';
 
 export const DeployContainerComponent = () => {
   const { org, app } = useParams();
@@ -25,8 +30,10 @@ export const DeployContainerComponent = () => {
   const [environments, setEnvironments] = useState([]);
   const [imageOptions, setImageOptions] = useState([]);
 
+  const { data: appDeployments } = useAppDeployments(org, app);
+
   const appCluster: IAppClusterState = useAppSelector((state) => state.appCluster);
-  const appDeployments: IAppDeploymentState = useAppSelector((state) => state.appDeployments);
+
   const createAppDeploymentErrors: any = useAppSelector(
     (state) => state.appDeployments.createAppDeploymentErrors
   );

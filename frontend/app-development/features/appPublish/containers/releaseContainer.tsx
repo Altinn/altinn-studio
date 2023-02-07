@@ -19,35 +19,31 @@ import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { gitCommitPath, repoStatusPath } from 'app-shared/api-paths';
 import { useAppDispatch, useAppSelector, useMediaQuery } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
+import { useAppReleases, useFrontendLang, useRepoStatus } from '../hooks/query-hooks';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
   const dispatch = useAppDispatch();
-
+  const { org, app } = useParams();
   const [anchorElement, setAchorElement] = useState<Element>();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
-  const appReleases: IAppReleaseState = useAppSelector((state) => state.appReleases);
-  const latestRelease: IRelease = appReleases.releases[0] ? appReleases.releases[0] : null;
-  const repoStatus: IRepoStatusState = useAppSelector((state) => state.repoStatus);
-  const handleMergeConflict: IHandleMergeConflict = useAppSelector((s) => s.handleMergeConflict);
+  const { data: appReleases } = useAppReleases(org, app);
+  const { data: repoStatus } = useRepoStatus(org, app);
+  const { data: language } = useFrontendLang('nb');
 
-  const language: any = useAppSelector((state) => state.languageState.language);
+  const handleMergeConflict: IHandleMergeConflict = useAppSelector(
+    (state) => state.handleMergeConflict
+  );
+
+  const latestRelease: IRelease = appReleases[0] ? appReleases[0] : null;
+
   const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
-
-  const { org, app } = useParams();
 
   useEffect(() => {
     dispatch(AppReleaseActions.getAppReleaseStartInterval());
     dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
-    dispatch(
-      fetchRepoStatus({
-        url: repoStatusPath(org, app),
-        org,
-        repo: app,
-      })
-    );
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
@@ -229,39 +225,39 @@ export function ReleaseContainer() {
 
   return (
     <div className={classes.appReleaseWrapper}>
-        <div className={classes.versionHeader}>
-          <div className={classes.versionHeaderTitle}>{t('app_release.release_tab_versions')}</div>
-        </div>
-        <div className={classes.versionSubHeader}>
-          <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-          <Popover
-            className={classes.popover}
-            open={popoverOpenClick || popoverOpenHover}
-            trigger={
-              <Button
-                className={classes.appCreateReleaseStatusButton}
-                onClick={handlePopoverOpenClicked}
-                onMouseOver={handlePopoverOpenHover}
-                onMouseLeave={handlePopoverClose}
-                tabIndex={0}
-                onKeyPress={handlePopoverKeyPress}
-                icon={renderStatusIcon()}
-                size={ButtonSize.Small}
-                variant={ButtonVariant.Quiet}
-              />
-            }
-          >
-            {renderStatusMessage()}
-          </Popover>
-        </div>
-        <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
-        <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
-        <div className={classes.appReleaseHistory}>
-          {!!appReleases.releases.length &&
-            appReleases.releases.map((release: IRelease, index: number) => (
-              <ReleaseComponent key={index} release={release} />
-            ))}
-        </div>
+      <div className={classes.versionHeader}>
+        <div className={classes.versionHeaderTitle}>{t('app_release.release_tab_versions')}</div>
       </div>
+      <div className={classes.versionSubHeader}>
+        <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
+        <Popover
+          className={classes.popover}
+          open={popoverOpenClick || popoverOpenHover}
+          trigger={
+            <Button
+              className={classes.appCreateReleaseStatusButton}
+              onClick={handlePopoverOpenClicked}
+              onMouseOver={handlePopoverOpenHover}
+              onMouseLeave={handlePopoverClose}
+              tabIndex={0}
+              onKeyPress={handlePopoverKeyPress}
+              icon={renderStatusIcon()}
+              size={ButtonSize.Small}
+              variant={ButtonVariant.Quiet}
+            />
+          }
+        >
+          {renderStatusMessage()}
+        </Popover>
+      </div>
+      <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
+      <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
+      <div className={classes.appReleaseHistory}>
+        {!!appReleases.releases.length &&
+          appReleases.releases.map((release: IRelease, index: number) => (
+            <ReleaseComponent key={index} release={release} />
+          ))}
+      </div>
+    </div>
   );
 }

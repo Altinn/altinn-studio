@@ -5,7 +5,7 @@ import { DeployContainerComponent } from '../containers/deployContainer';
 import { InfoCard } from '../components/InfoCard';
 import { ReleaseContainer } from '../containers/releaseContainer';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useFrontendLang, useOrgList } from '../contexts/services/queryHooks';
+import { useFrontendLang, useOrgList } from '../hooks/query-hooks';
 import { useParams } from 'react-router-dom';
 
 export function DeployPage() {
