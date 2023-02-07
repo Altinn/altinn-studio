@@ -88,8 +88,9 @@ careful not to commit developer specific changes back to the repository.
    - Change other settings as needed.
    - Save the file.
 
-Finally, start the local platform services (make sure you are in the LocalTest folder)
-```shell
+Finally, start the local platform services (make sure you are in the `/src` folder)
+```bash
+cd /src
 dotnet run
 ```
 
@@ -99,6 +100,7 @@ In some cases your application might differ from the default setup and require c
 This section contains the most common changes.
 
 #### Adjust authentication level of logged in test user
+
 This would be required if your app requires a higher than default authentication level. You can also use this to give the user a lower authentication level if you want to test the app behaviour for those.
 1. Open the `src/Controllers/HomeController.cs` in your preffered text editor or IDE.
 2. Find the function `LogInTestUser`
