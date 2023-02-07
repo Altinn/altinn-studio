@@ -139,6 +139,7 @@ export function RepeatingGroupsEditContainer({
 
   return (
     <div
+      id={`group-edit-container-${id}-${editIndex}`}
       className={cn(
         isNested ? classes.nestedEditContainer : classes.editContainer,
         { [classes.hideTable]: hideTable, [classes.nestedHideTable]: hideTable && isNested },
