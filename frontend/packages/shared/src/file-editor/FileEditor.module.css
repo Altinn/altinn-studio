@@ -1,13 +1,7 @@
-.temp {
-  background: blue;
-}
-
-.fileHeader {
-  background: #FFF;
-  border-bottom: 1px solid #C9C9C9;
-  margin-bottom: 0.1rem;
-  min-height: 4.4rem;
-  padding-left: 1.3rem;
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .boxShadow {
@@ -15,50 +9,25 @@
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
 }
 
+.header {
+  align-items: center;
+  display: flex;
+  gap: .5rem;
+  padding: .5rem;
+}
+
+.select {
+  flex: 1;
+}
+
 .codeEditorContent {
-  min-height: 100%;
+  border-color: #c9c9c9;
+  border-style: solid;
+  border-width: 1px 0;
+  flex: 1;
 }
 
-.selectFile {
-  border-bottom: 1px solid #0062BA;
-  color: #022F51;
-  font-size: 1.6rem;
-}
-
-.file {
-  color: #022F51;
-  font-size: 1.6rem;
-}
-
-.fileMenuItem {
-  font-size: 1.6rem;
-}
-
-.selectMenu {
-  padding-right: 0;
-}
-
-.hideIcon {
-  display: none;
-}
-
-.formComponentsBtn {
-  fill: #1EAEF7;
-  font-size: 0.85em;
-  margin-top: 0.1em;
-  outline: none !important;
-  padding-left: 0;
-}
-
-.formComponentsBtn:hover {
-  background: none;
-}
-
-.specialBtn {
-  font-size: 0.6em !important;
-}
-
-.footerContent {
+.footer {
   color: #6A6A6A;
   min-height: 3em;
   padding-bottom: 1.2em;

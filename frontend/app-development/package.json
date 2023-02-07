@@ -10,7 +10,7 @@
   ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.27.4",
-    "@digdir/design-system-react": "0.4.3",
+    "@digdir/design-system-react": "0.5.0",
     "@mui/material": "5.11.6",
     "@reduxjs/toolkit": "1.9.2",
     "axios": "1.2.6",
@@ -43,7 +43,7 @@
     "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
     "start": "yarn typeCheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
     "test": "jest --maxWorkers=50%",
-    "typeCheck:watch": "tsc --noEmit -w",
-    "typeCheck:once": "tsc --noEmit"
+    "typeCheck:once": "tsc --noEmit",
+    "typeCheck:watch": "tsc --noEmit -w"
   }
 }

@@ -78,7 +78,7 @@ __metadata:
     jsonpointer: 5.0.1
   peerDependencies:
     "@altinn/altinn-design-system": 0.27.4
-    "@digdir/design-system-react": 0.4.3
+    "@digdir/design-system-react": 0.5.0
     "@mui/material": 5.11.6
     "@reduxjs/toolkit": 1.9.2
     axios: 1.2.6
@@ -107,7 +107,7 @@ __metadata:
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
     "@altinn/altinn-design-system": 0.27.4
-    "@digdir/design-system-react": 0.4.3
+    "@digdir/design-system-react": 0.5.0
     iso-639-1: 2.1.15
     jest: 29.4.1
     ts-jest: 29.0.5
@@ -1565,13 +1565,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.4.3":
-  version: 0.4.3
-  resolution: "@digdir/design-system-react@npm:0.4.3"
+"@digdir/design-system-react@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@digdir/design-system-react@npm:0.5.0"
   peerDependencies:
     react: ^18.1.0
     react-dom: ^18.0.0
-  checksum: e06738722b5e2063d7163438522b34769941f4f1356ec1b15a72c6c63971cca93ef4c615e0fda590344ae8c8bc658d5d07a77b596547ac75c5b140067f47ab3b
+  checksum: 3374bfc9a95fcc611fd4667d47ecd6f48124187087b8f5b6fffcfbb69b2f88bc3136d3c2fa2f1b458f0fae641d11e23711406a1c5fc564189bc130e6852bc7f3
   languageName: node
   linkType: hard
 
@@ -4481,11 +4481,11 @@ __metadata:
     eslint: 8.33.0
     eslint-config-prettier: 8.6.0
     eslint-plugin-import: 2.27.5
-    eslint-plugin-jsx-a11y: ^6.7.1
+    eslint-plugin-jsx-a11y: 6.7.1
     eslint-plugin-prettier: 4.2.1
-    eslint-plugin-react: ^7.32.2
-    eslint-plugin-react-hooks: ^4.6.0
-    eslint-plugin-testing-library: ^5.10.0
+    eslint-plugin-react: 7.32.2
+    eslint-plugin-react-hooks: 4.6.0
+    eslint-plugin-testing-library: 5.10.0
     glob: 8.1.0
     jest: 29.4.1
     jest-environment-jsdom: 29.4.1
@@ -4589,7 +4589,7 @@ __metadata:
   resolution: "app-development@workspace:app-development"
   dependencies:
     "@altinn/altinn-design-system": 0.27.4
-    "@digdir/design-system-react": 0.4.3
+    "@digdir/design-system-react": 0.5.0
     "@mui/material": 5.11.6
     "@reduxjs/toolkit": 1.9.2
     axios: 1.2.6
@@ -4618,7 +4618,7 @@ __metadata:
   resolution: "app-preview@workspace:app-preview"
   dependencies:
     "@altinn/altinn-design-system": 0.27.4
-    "@digdir/design-system-react": 0.4.3
+    "@digdir/design-system-react": 0.5.0
     axios: 1.2.6
     classnames: 2.3.2
     cross-env: 7.0.3
@@ -4641,7 +4641,7 @@ __metadata:
     3: 2.1.0
     "@altinn/altinn-design-system": 0.27.4
     "@altinn/schema-editor": 0.1.0
-    "@digdir/design-system-react": 0.4.3
+    "@digdir/design-system-react": 0.5.0
     "@mui/material": 5.11.6
     "@reduxjs/toolkit": 1.9.2
     "@types/react": 18.0.27
@@ -6018,7 +6018,7 @@ __metadata:
   resolution: "dashboard@workspace:dashboard"
   dependencies:
     "@altinn/altinn-design-system": 0.27.4
-    "@digdir/design-system-react": 0.4.3
+    "@digdir/design-system-react": 0.5.0
     "@mui/x-data-grid": 5.17.21
     "@reduxjs/toolkit": 1.9.2
     cross-env: 7.0.3
@@ -6800,7 +6800,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsx-a11y@npm:^6.7.1":
+"eslint-plugin-jsx-a11y@npm:6.7.1":
   version: 6.7.1
   resolution: "eslint-plugin-jsx-a11y@npm:6.7.1"
   dependencies:
@@ -6841,7 +6841,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react-hooks@npm:^4.6.0":
+"eslint-plugin-react-hooks@npm:4.6.0":
   version: 4.6.0
   resolution: "eslint-plugin-react-hooks@npm:4.6.0"
   peerDependencies:
@@ -6850,7 +6850,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:^7.32.2":
+"eslint-plugin-react@npm:7.32.2":
   version: 7.32.2
   resolution: "eslint-plugin-react@npm:7.32.2"
   dependencies:
@@ -6875,7 +6875,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-testing-library@npm:^5.10.0":
+"eslint-plugin-testing-library@npm:5.10.0":
   version: 5.10.0
   resolution: "eslint-plugin-testing-library@npm:5.10.0"
   dependencies:

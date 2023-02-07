@@ -1,18 +1,14 @@
-import React from 'react';
-import { Grid, IconButton, MenuItem, Select } from '@mui/material';
+import React, { Fragment } from 'react';
 import classNames from 'classnames';
 import { diffChars } from 'diff';
 import MonacoEditorComponent from './MonacoEditorComponent';
-import AltinnButton from '../components/AltinnButton';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
-import {
-  ruleHandlerPath,
-  getServiceFilesPath,
-  saveRuleHandlerPath
-} from '../api-paths';
+import { getServiceFilesPath, ruleHandlerPath, saveRuleHandlerPath } from '../api-paths';
 import classes from './FileEditor.module.css';
+import { Button, ButtonVariant, Select } from '@digdir/design-system-react';
+import { Cancel, Next, Success } from '@navikt/ds-icons';
 
 export interface ICodeLanguageItem {
   name: string;
@@ -130,12 +126,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     });
   };
 
-  public switchFile = (e: any) => {
-    const fileName = e.target.value;
-    this.loadFileContent(fileName);
-  };
-
-  public saveFile = async (_e: any) => {
+  public saveFile = async () => {
     let stageFile = false;
     if (
       this.props.stageAfterSaveFile === true &&
@@ -216,49 +207,36 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     return { name: null, displayName: null };
   };
 
-  public renderCloseButton = (): JSX.Element => {
-    return (
-      <Grid item={true} xs={1} className={classes.fileHeader}>
-        <IconButton
-          type='button'
-          className={`${classes.formComponentsBtn} ${classes.specialBtn}`}
-          onClick={this.props.closeFileEditor}
-          tabIndex={0}
-        >
-          <i
-            className='fa fa-circlecancel'
-            ref={this.state.fileEditorCancelRef}
-            id='fileEditorCancel'
-          />
-        </IconButton>
-        <IconButton
-          type='button'
-          className={`${classes.formComponentsBtn} ${classes.specialBtn}`}
-          onClick={this.saveFile}
-          tabIndex={0}
-        >
-          <i className='fa fa-circlecheck' id='fileEditorCheck' />
-        </IconButton>
-      </Grid>
-    );
-  };
+  public renderCloseButton = (): JSX.Element =>  (
+    <>
+      <Button
+        onClick={this.props.closeFileEditor}
+        variant={ButtonVariant.Quiet}
+        title='Lukk'
+      >
+        <Cancel/>
+      </Button>
+      <Button
+        onClick={this.saveFile}
+        variant={ButtonVariant.Quiet}
+        title='Lagre'
+      >
+        <Success/>
+      </Button>
+    </>
+  );
 
-  public renderSaveButton = (): JSX.Element => {
-    return (
-      <Grid item={true} xs={true} container={true} justifyContent='flex-end' alignItems='center'>
-        <Grid item={true}>
-          <div ref={this.state.fileEditorSaveRef}>
-            <AltinnButton
-              btnText='Lagre fil'
-              disabled={!this.state.valueDiff}
-              onClickFunction={this.saveFile}
-              secondaryButton={true}
-            />
-          </div>
-        </Grid>
-      </Grid>
-    );
-  };
+  public renderSaveButton = (): JSX.Element => (
+    <div ref={this.state.fileEditorSaveRef}>
+      <Button
+        disabled={!this.state.valueDiff}
+        onClick={this.saveFile}
+        title='Lagre fil'
+      >
+        <Success/>
+      </Button>
+    </div>
+  );
 
   public valueHasNoMergeConflictTags = (value: string) => {
     const match =
@@ -272,90 +250,55 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const { mode } = this.props;
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
     return (
-      <Grid
-        container={true}
-        className={classNames(classes.codeEditorContent, {
+      <div
+        className={classNames(classes.root, {
           [classes.boxShadow]: this.props.boxShadow,
         })}
       >
-        <Grid
-          item={true}
-          xs={true}
-          container={true}
-          justifyContent='flex-start'
-          alignItems='center'
-          className={classes.fileHeader}
-        >
-          <Grid item={true} xs={true}>
-            <span>
-              {/* If this.props.loadFile is present,
-               * if loadFile contains directories then split and show,
-               * else show the 'mode' location from 'foldertext'.
-               */}
-              {this.props.loadFile ? (
-                this.props.loadFile.split('/').map((folder, index) => {
-                  {
-                    /* If one or last element, return without expand icon */
-                  }
-                  if (this.props.loadFile.split('/').length === index + 1) {
-                    return (
-                      <React.Fragment key={index}>
-                        <span className={classes.file}>{folder}</span>
-                      </React.Fragment>
-                    );
-                  }
-                  {
-                    /* Return folder with expand icon */
-                  }
-                  return (
-                    <React.Fragment key={index}>
-                      {folder} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
-                    </React.Fragment>
-                  );
-                })
-              ) : (
-                <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
-              )}
+        <div className={classes.header}>
+          {/* If this.props.loadFile is present,
+           * if loadFile contains directories then split and show,
+           * else show the 'mode' location from 'foldertext'.
+           */}
+          {this.props.loadFile ? (
+            this.props.loadFile.split('/').map((folder, index) => {
+              /* If one or last element, return without expand icon */
+              if (this.props.loadFile.split('/').length === index + 1) {
+                return (
+                  <Fragment key={index}>
+                    <span className={classes.file}>{folder}</span>
+                  </Fragment>
+                );
+              }
+              /* Return folder with expand icon */
+              return (
+                <Fragment key={index}>
+                  {folder} <Next/>
+                </Fragment>
+              );
+            })
+          ) : <Next/>}
 
-              {/* If not Loadfile, show select*/}
-              {!this.props.loadFile ? (
-                <React.Fragment>
-                  {mode} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
-                  <Select
-                    value={this.state.selectedFile}
-                    classes={{
-                      select: classes.selectFile,
-                      icon: classes.hideIcon,
-                    }}
-                    MenuProps={{
-                      classes: {
-                        root: classes.selectMenu,
-                      },
-                    }}
-                    onChange={this.switchFile}
-                  >
-                    {this.state.availableFiles.map((file: string) => {
-                      return (
-                        <MenuItem value={file} key={file} className={classes.fileMenuItem}>
-                          {file}
-                        </MenuItem>
-                      );
-                    })}
-                  </Select>
-                </React.Fragment>
-              ) : null}
-            </span>
-          </Grid>
+          {/* If not Loadfile, show select*/}
+          {!this.props.loadFile ? (
+            <Fragment>
+              {mode} <Next/>
+              <div className={classes.select}>
+                <Select
+                  value={this.state.selectedFile}
+                  onChange={this.loadFileContent}
+                  options={this.state.availableFiles.map((file) => ({ label: file, value: file }))}
+                />
+              </div>
+            </Fragment>
+          ) : null}
 
-          {/* Contains grid items */}
-          {this.props.showSaveButton ? this.renderSaveButton() : null}
-          {/* Contains grid items */}
-          {this.props.closeFileEditor ? this.renderCloseButton() : null}
-        </Grid>
-        <Grid item={true} xs={12} className={classes.codeEditorContent}>
+          {this.props.showSaveButton && this.renderSaveButton()}
+          {this.props.closeFileEditor && this.renderCloseButton()}
+        </div>
+        <div className={classes.codeEditorContent}>
           <MonacoEditorComponent
             createCompletionSuggestions={this.createCompletionSuggestions}
-            heightPx={`${this.props.editorHeight}px`}
             isLoading={this.state.isLoading}
             language={language['name']}
             onValueChange={this.onValueChange}
@@ -366,12 +309,11 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                 : this.state.fileEditorCancelRef
             }
           />
-        </Grid>
-        <Grid className={classes.footerContent} item={true} xs={11} />
-        <Grid className={classes.footerContent} item={true} xs={1}>
-          <span>{language['displayName']}</span>
-        </Grid>
-      </Grid>
+        </div>
+        <div className={classes.footer}>
+          {language['displayName']}
+        </div>
+      </div>
     );
   }
 }
