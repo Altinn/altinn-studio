@@ -1,0 +1,27 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/footer.schema.v1.json",
+  "footer": [
+    {
+      "type": "Text",
+      "title": "**Frontend Test**<br>*Testdepartementet*"
+    },
+    {
+      "type": "Link",
+      "icon": "information",
+      "title": "general.accessibility",
+      "target": "https://www.altinn.no/om-altinn/tilgjengelighet/"
+    },
+    {
+      "type": "Email",
+      "icon": "email",
+      "title": "hjelp@etaten.no",
+      "target": "hjelp@etaten.no"
+    },
+    {
+      "type": "Phone",
+      "icon": "phone",
+      "title": "+47 987 65 432",
+      "target": "+4798765432"
+    }
+  ]
+}
