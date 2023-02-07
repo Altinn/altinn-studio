@@ -13,8 +13,8 @@ We've also created a [into course for app development](https://docs.altinn.studi
 
 > **Note** Developing apps?
 > If you just want to quickly perform tests of your app on your development machine you can follow the instructions on
-> how to [run apps locally](src/development/README.md). This repository is mainly the Designer-tool that deployed and used to build and
-> monitor apps.
+> how to [run apps locally](https://github.com/Altinn/app-localtest). This repository is mainly the Designer-tool which is used to build and
+> deploy apps.
 
 ## Getting Started with developing Altinn Studio
 
