@@ -16,25 +16,25 @@ These are some of the required steps, tips and tricks when it comes to running a
 
 ### Setup
 
-0. Clone the altinn-studio repository to a local folder
+1. Clone the altinn-studio repository to a local folder
    ```shell
-   git clone https://github.com/Altinn/altinn-studio
-   cd altinn-studio
+   git clone https://github.com/Altinn/app-localtest
+   cd app-localtest
    ```
-1. Navigate to the `development` folder in the altinn-studio repo
-   ```shell
-   cd src/development
-   ```
-2. Build and and run the containers in the background. This mode supports running one app at a
-   time. If you need to run multiple apps at once, remove `--profile localtest` from the command and follow the
-   instructions below to run LocalTest locally outside Docker.
+
+2. Build and run the containers in the background. This mode supports running one app at a time. If you need to run 
+   multiple apps at once, remove `--profile localtest` from the command and follow the  instructions below to run 
+   LocalTest locally outside Docker.
+
    ```shell
    docker compose --profile localtest up -d --build
    ```
+   
    Note: Using profiles requires docker-compose version [1.28.0](https://docs.docker.com/compose/release-notes/#1280)
    or later. If your version does not support profiles and you prefer to run localtest in Docker, make sure to follow
    [the instructions to install more a recent version](https://docs.docker.com/engine/install/) or comment out
    the profile restriction in `docker-compose.yml`.
+
 3. Start your app
    ```shell
    cd /path/to/your/App
@@ -69,7 +69,7 @@ Settings (under `LocalPlatformSettings`):
 - `AppRepositoryBasePath` - The folder where LocalTest will look for apps and their files
   if `LocalAppMode` == `"file"`. This is typically the parent directory where you checkout all your apps.
 - `LocalTestingStaticTestDataPath` - Test user data like profile, register and
-  roles. (`<path to altinn-studio repo>/src/development/TestData/`)
+  roles. (`<path to altinn-studio repo>/testdata/`)
 
 The recommended way of changing settings for LocalTest is through
 [user-secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows#set-a-secret).
@@ -100,7 +100,7 @@ This section contains the most common changes.
 
 #### Adjust authentication level of logged in test user
 This would be required if your app requires a higher than default authentication level. You can also use this to give the user a lower authentication level if you want to test the app behaviour for those.
-1. Open the `src/development/LocalTest/Controllers/HomeController.cs` in your preffered text editor or IDE.
+1. Open the `src/Controllers/HomeController.cs` in your preffered text editor or IDE.
 2. Find the function `LogInTestUser`
 3. Modify this line `claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));`,
 by exchanging `"2"` for a string containing your required authentication level.
@@ -110,7 +110,7 @@ by exchanging `"2"` for a string containing your required authentication level.
 #### Add a missing role for a test user
 This would be required if your app requires a role which none of the test users have.
 1. Identify the role list you need to modify by noting the userId of the user representing an entity, and the partyId of the entity you want to represent
-2. Find the correct `roles.json` file in `C:\Repos\altinn-studio\src\development\TestData\authorization\roles` by navigating to `User_{userID}\party_{partyId}\roles.json`
+2. Find the correct `roles.json` file in `testdata/authorization/roles` by navigating to `User_{userID}\party_{partyId}\roles.json`
 3. Add a new entry in the list for the role you require
 
   ```

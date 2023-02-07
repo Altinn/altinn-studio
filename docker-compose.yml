@@ -25,14 +25,12 @@ services:
       - "host.docker.internal:host-gateway"
   altinn_platform_pdf:
     container_name: altinn-pdf
-    image: altinn-pdf:latest
+    image: ghcr.io/altinn/altinn-pdf:latest
     restart: always
     networks:
       - altinntestlocal_network
     ports:
      - "5070:5070"
-    build:
-      context: ./../Altinn.Platform/Altinn.Platform.PDF/
     extra_hosts:
       - "host.docker.internal:host-gateway"
   altinn_pdf_service:
@@ -51,22 +49,19 @@ services:
     container_name: localtest
     image: localtest:latest
     restart: always
-    profiles:
-      - localtest
     networks:
       - altinntestlocal_network
     ports:
       - "5101:5101"
     build:
-      dockerfile: ./LocalTest/Dockerfile
-      context: ./
+      context: .
     environment:
       - DOTNET_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://*:5101/
       - GeneralSettings__BaseUrl=http://${TEST_DOMAIN:-local.altinn.cloud}:${ALTINN3LOCAL_PORT:-80}
       - GeneralSettings__HostName=${TEST_DOMAIN:-local.altinn.cloud}
     volumes:
-      - ./TestData:/TestData
+      - ./testdata:/testdata
       - ${ALTINN3LOCALSTORAGE_PATH:-AltinnPlatformLocal}:/AltinnPlatformLocal
     extra_hosts:
       - "host.docker.internal:host-gateway"

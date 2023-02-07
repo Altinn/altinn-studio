@@ -1,1 +1,13 @@
 .env
+.idea
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+msbuild.log
+AltinnPlatformLocal/
