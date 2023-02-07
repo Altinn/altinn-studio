@@ -49,6 +49,7 @@ export const dataModelItemMock: IDataModelFieldElement = {
 
 export const languageStateMock: ILanguageState = {
   error: null,
+  fetched: false,
   language: {},
 }
 

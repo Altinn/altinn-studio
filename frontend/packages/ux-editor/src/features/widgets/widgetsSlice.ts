@@ -4,6 +4,7 @@ import type { IWidget } from '../../types/global';
 import { widgetUrl } from 'app-shared/cdn-paths';
 
 export interface IWidgetState {
+  fetched: boolean;
   widgets: IWidget[];
   urls: string[];
   error: any;
@@ -14,6 +15,7 @@ export interface IFetchWidgetFulfilled {
 }
 
 const initialState: IWidgetState = {
+  fetched: false,
   widgets: [],
   urls: [widgetUrl()],
   error: null,
@@ -28,10 +30,12 @@ const widgetsSlice = createSlice({
     fetchWidgetsFulfilled: (state, action: PayloadAction<IFetchWidgetFulfilled>) => {
       const { widgets } = action.payload;
       state.widgets = widgets;
+      state.fetched = true;
       state.error = null;
     },
     fetchWidgetsRejected: (state, action) => {
       const { error } = action.payload;
+      state.fetched = true;
       state.error = error;
     },
     // eslint-disable-next-line @typescript-eslint/no-empty-function

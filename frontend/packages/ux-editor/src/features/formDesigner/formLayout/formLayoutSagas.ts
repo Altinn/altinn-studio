@@ -279,11 +279,13 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
 function* saveFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIterator {
   const { org, app } = payload;
   try {
+    // Without this delay the selectedLayout is not set with the correct value.
     yield delay(200);
-    const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
     const selectedLayout = yield select(
       (state: IAppState) => state.formDesigner.layout.selectedLayout
     );
+
+    const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
     const convertedLayout = {
       $schema: layoutSchemaUrl(),
       data: {
@@ -548,7 +550,7 @@ export function* fetchFormLayoutSettingSaga({
 
 export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
   yield takeEvery(
-    [FormLayoutActions.fetchFormLayoutFulfilled, FormLayoutActions.fetchLayoutSettings],
+    [FormLayoutActions.fetchLayoutSettings],
     fetchFormLayoutSettingSaga
   );
 }

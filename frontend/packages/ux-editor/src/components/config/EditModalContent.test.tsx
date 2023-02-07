@@ -134,6 +134,7 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
       ...appDataMock,
       languageState: {
         language: mockLanguage,
+        fetched: false,
         error: null,
       },
       dataModel: {
@@ -161,6 +162,7 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
         fetched: true,
         fetching: false,
         invalidLayouts: [],
+        isLayoutSettingsFetched: false,
         layoutSettings: null,
         layouts: {
           FormLayout: {

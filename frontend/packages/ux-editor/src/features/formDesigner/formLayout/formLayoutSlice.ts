@@ -42,12 +42,14 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   selectedLayout: string;
   layoutSettings: ILayoutSettings;
   invalidLayouts: string[];
+  isLayoutSettingsFetched: boolean;
 }
 
 const initialState: IFormLayoutState = {
   layouts: {},
   fetching: false,
   fetched: false,
+  isLayoutSettingsFetched: false,
   error: null,
   saving: false,
   unSavedChanges: false,
@@ -289,6 +291,7 @@ const formLayoutSlice = createSlice({
     ) => {
       const { settings } = action.payload;
       state.layoutSettings = settings;
+      state.isLayoutSettingsFetched = true;
     },
     fetchLayoutSettingsRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;

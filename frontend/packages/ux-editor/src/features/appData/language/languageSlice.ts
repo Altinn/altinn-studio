@@ -5,12 +5,14 @@ import type { IFormDesignerActionRejected } from '../../../types/global';
 
 export interface ILanguageState {
   language: any;
+  fetched: boolean;
   error: Error;
 }
 
 const initialState: ILanguageState = {
   language: fallbackLanguage,
   error: null,
+  fetched: false
 };
 
 export interface IFetchLanguage {
@@ -30,10 +32,12 @@ const languageSlice = createSlice({
     fetchLanguageFulfilled: (state, action: PayloadAction<IFetchLanguageFulfilled>) => {
       const { language } = action.payload;
       state.language = language;
+      state.fetched = true;
       state.error = null;
     },
     fetchLanguageRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
+      state.fetched = true;
       state.error = error;
     },
   },
