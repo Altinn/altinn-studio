@@ -15,7 +15,8 @@ export function ErrorMessageComponent() {
   };
 
   return (
-    <div className='error-snackbar-container'>
+    errors.length > 0 && (
+      <div className='error-snackbar-container'>
       {!errors.length
         ? null
         : errors.map((error: IErrorStateError, index: number) => (
@@ -29,5 +30,6 @@ export function ErrorMessageComponent() {
             </button>
           ))}
     </div>
+    )
   );
 }
