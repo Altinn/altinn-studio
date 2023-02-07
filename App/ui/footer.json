@@ -13,13 +13,11 @@
     },
     {
       "type": "Email",
-      "icon": "email",
       "title": "hjelp@etaten.no",
       "target": "hjelp@etaten.no"
     },
     {
       "type": "Phone",
-      "icon": "phone",
       "title": "+47 987 65 432",
       "target": "+4798765432"
     }
