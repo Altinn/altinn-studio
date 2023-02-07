@@ -65,7 +65,7 @@ export function AccessControlContainer({ language }: IAccessControlContainerProp
 
   useEffect(() => {
     dispatch(ApplicationMetadataActions.getApplicationMetadata({ org, app }));
-  }, [dispatch]);
+  }, [app, dispatch, org]);
 
   const handlePartyTypesAllowedChange = (partyTypes: string[]) => {
     const newPartyTypesAllowed = { ...partyTypesAllowed };

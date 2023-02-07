@@ -44,7 +44,8 @@ export const TextRow = ({
       upsertEntry({ ...textData, id: textId, value: textEntryValue });
     }
   };
-  const isIllegalId = (textId: string) => Boolean(textId.toLowerCase().match(' ')); // TODO: create matcher
+  const isIllegalId = (textIdToCheck: string) => Boolean(textIdToCheck.toLowerCase().match(' ')); // TODO: create matcher
+
   const handleTextIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.currentTarget.value;
     if (!newValue) {

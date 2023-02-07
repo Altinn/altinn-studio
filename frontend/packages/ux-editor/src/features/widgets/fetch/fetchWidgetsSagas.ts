@@ -36,7 +36,7 @@ export function* watchFetchWidgetsSaga(): SagaIterator {
 }
 
 export function* fetchWidgetSettingsSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
-  const {org, app} = payload;
+  const { org, app } = payload;
   try {
     const url = widgetSettingsPath(org, app);
     const widgetSettings = yield call(get, url);

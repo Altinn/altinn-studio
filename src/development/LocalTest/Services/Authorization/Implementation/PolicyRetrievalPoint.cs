@@ -20,25 +20,36 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     public class PolicyRetrievalPoint : IPolicyRetrievalPoint
     {
         private readonly ILocalApp _localApp;
+        private readonly LocalPlatformSettings _localPlatformSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.
         /// </summary>
         /// <param name="policyRepository">The policy Repository..</param>
         public PolicyRetrievalPoint(
-            ILocalApp localApp)
+            ILocalApp localApp, IOptions<LocalPlatformSettings> localPlatformSettings)
         {
             _localApp = localApp;
+            _localPlatformSettings = localPlatformSettings.Value;
         }
 
         /// <inheritdoc/>
         public async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
-            var app = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.AppAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
-            var org = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.OrgAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
-            string policyString = await _localApp.GetXACMLPolicy($"{org}/{app}");
-            policyString = policyString.Replace("[ORG]", org).Replace("[APP]", app);
-            return ParsePolicyContent(policyString);
+            string app = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.AppAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault()?.Value;
+            string org = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.OrgAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault()?.Value;
+            string resourceRegistry = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.ResourceRegistryAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault()?.Value;
+
+            if (app != null && org != null)
+            {
+                string policyString = await _localApp.GetXACMLPolicy($"{org}/{app}");
+                policyString = policyString.Replace("[ORG]", org).Replace("[APP]", app);
+                return ParsePolicyContent(policyString);
+            }
+            else
+            {
+                return ParsePolicy(GetResourcePolicyPath(resourceRegistry));
+            }
         }
 
         /// <inheritdoc/>
@@ -61,6 +72,24 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         public Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
             throw new NotImplementedException();
+        }
+
+        private string GetResourcePolicyPath(string resourceId)
+        {
+            return Path.Join(_localPlatformSettings.LocalTestingStaticTestDataPath, _localPlatformSettings.ResourceRegistryFolder,"policies", "{resourceId}.xml");
+        }
+
+        public static XacmlPolicy ParsePolicy(string policyPath)
+        {
+            XmlDocument policyDocument = new XmlDocument();
+            policyDocument.Load(policyPath);
+            XacmlPolicy policy;
+            using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
+            {
+                policy = XacmlParser.ParseXacmlPolicy(reader);
+            }
+
+            return policy;
         }
     }
 }

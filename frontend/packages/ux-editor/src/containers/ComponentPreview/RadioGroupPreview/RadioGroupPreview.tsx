@@ -55,7 +55,7 @@ export const RadioGroupPreview = ({
             textResourceId={component.textResourceBindings?.description}
           />
         )}
-        items={component.options?.map(({value, label}) => ({
+        items={component.options?.map(({ value, label }) => ({
           value,
           label: (
             <TextResource

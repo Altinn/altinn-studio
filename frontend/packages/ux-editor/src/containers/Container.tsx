@@ -11,7 +11,7 @@ import {
   makeGetLayoutContainerOrder,
   makeGetLayoutContainersSelector,
 } from '../selectors/getLayoutData';
-import { renderSelectGroupDataModelBinding } from '../utils/render';
+import { SelectGroupDataModelBinding } from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayout';
@@ -413,12 +413,12 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         {expanded &&
           components &&
           (itemOrder?.length
-            ? itemOrder.map((id: string, index: number) => {
-                const component = components[id];
+            ? itemOrder.map((itemOrderId: string, index: number) => {
+                const component = components[itemOrderId];
                 if (component) {
-                  return this.renderFormComponent(id, index);
+                  return this.renderFormComponent(itemOrderId, index);
                 }
-                return containers[id] && this.renderContainer(id, index);
+                return containers[itemOrderId] && this.renderContainer(itemOrderId, index);
               })
             : this.renderContainerPlaceholder())}
       </div>
@@ -453,12 +453,11 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         />
         {tmpContainer.maxCount > 1 && (
           <>
-            {renderSelectGroupDataModelBinding(
-              tmpContainer.dataModelBindings,
-              this.handleDataModelGroupChange,
-              'group',
-              language
-            )}
+            <SelectGroupDataModelBinding
+              dataModelBinding={tmpContainer.dataModelBindings}
+              onDataModelChange={this.handleDataModelGroupChange}
+              key='group'
+            />
             <div>
               <TextField
                 disabled={!!tmpContainer.dataModelBindings.group}

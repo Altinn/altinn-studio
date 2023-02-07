@@ -173,7 +173,7 @@ const render = (props?: Partial<TextResourceProps>, resources?: ITextResource[])
     language: texts
   };
 
-  const textResources: ITextResourcesState = {
+  const mockedTextResources: ITextResourcesState = {
     ...textResourcesMock,
     resources: {
       ...textResourcesMock.resources,
@@ -184,7 +184,7 @@ const render = (props?: Partial<TextResourceProps>, resources?: ITextResource[])
   const appData: IAppDataState = {
     ...appDataMock,
     languageState,
-    textResources
+    textResources: mockedTextResources
   };
 
   return renderWithMockStore({ appData })(

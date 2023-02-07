@@ -1,8 +1,9 @@
 import Select from 'react-select';
 import React from 'react';
-import { PropertyLabel, selectStyles } from '../../../utils/render';
+import { selectStyles } from '../../../utils/render';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
+import { Label } from 'app-shared/components/Label';
 
 enum HeaderSize {
   S = 'h4',
@@ -34,10 +35,9 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
 
   return (
     <div data-testid='header-size-select-wrapper'>
-      <PropertyLabel
-        textKey={t('ux_editor.modal_header_type_helper')}
-        htmlFor={`edit-header-size-select-${component.id}`}
-      />
+      <Label htmlFor={`edit-header-size-select-${component.id}`}>
+        {t('ux_editor.modal_header_type_helper')}
+      </Label>
       <Select
         inputId={`edit-header-size-select-${component.id}`}
         styles={selectStyles}

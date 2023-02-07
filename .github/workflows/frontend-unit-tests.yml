@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   test:
-    name: Test and build
+    name: Lint, Test and build
     runs-on: ubuntu-latest
     steps:
       - name: 'Checking Out Code'
@@ -42,6 +42,10 @@ jobs:
           YARN_ENABLE_GLOBAL_CACHE: 'false'
           YARN_NM_MODE: 'hardlinks-local'
           HUSKY: '0'
+
+      - name: 'Running Eslint'
+        working-directory: frontend
+        run: yarn lint
 
       - name: 'Running Unit Tests'
         working-directory: frontend

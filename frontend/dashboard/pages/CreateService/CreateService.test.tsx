@@ -107,7 +107,7 @@ describe('CreateService', () => {
       rest.post(createRepoPath(), async (req, res, ctx) => {
         const org = req.url.searchParams.get('user_login')
         const repoName = req.url.searchParams.get('this-app-name-exists')
-        return res(ctx.status(409), ctx.json({org, repoName}));
+        return res(ctx.status(409), ctx.json({ org, repoName }));
       })
     );
 
@@ -131,7 +131,7 @@ describe('CreateService', () => {
       rest.post(createRepoPath(), async (req, res, ctx) => {
         const org = req.url.searchParams.get('user_login')
         const repoName = req.url.searchParams.get('new-app')
-        return res(ctx.status(500), ctx.json({org, repoName}));
+        return res(ctx.status(500), ctx.json({ org, repoName }));
       })
     );
 

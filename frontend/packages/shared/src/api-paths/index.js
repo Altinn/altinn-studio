@@ -9,11 +9,11 @@ export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/conf
 
 // Datamodel
 export const createDatamodelPath = (org, app) => `/designer/api/${org}/${app}/datamodels/new`; // Post
-export const datamodelPath = (org, app, modelPath) => `/designer/api/${org}/${app}/datamodels/datamodel?${s({modelPath})}`; // Get, Put, Delete
+export const datamodelPath = (org, app, modelPath) => `/designer/api/${org}/${app}/datamodels/datamodel?${s({ modelPath })}`; // Get, Put, Delete
 export const datamodelsPath = (org, app) => `/designer/api/${org}/${app}/datamodels/all-json`; // Get
 export const datamodelsXsdPath = (org, app) => `/designer/api/${org}/${app}/datamodels/all-xsd`; // Get
 export const datamodelsUploadPath = (org, app) => `/designer/api/${org}/${app}/datamodels/upload`; // Post
-export const datamodelAddXsdFromRepoPath = (org, app, filePath) => `/designer/api/${org}/${app}/datamodels/xsd-from-repo?${s({filePath})}`; // Post
+export const datamodelAddXsdFromRepoPath = (org, app, filePath) => `/designer/api/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
 
 // Deployment
 // See frontend/app-development/utils/urlHelper.ts Deployments
@@ -57,15 +57,14 @@ export const orgsListPath = () => '/designer/api/orgs'; // Get
 // Release
 // See frontend/app-development/utils/urlHelper.ts Releases
 
+export const appReleasesPath = (org, app) => `/designer/api/${org}/${app}/releases`;
+export const deploymentsPath = (org, app) => `/designer/api/${org}/${app}/deployments`;
+export const deployPermissionsPath = (org, app) => `/designer/api/${org}/${app}/deployments/permissions`;
+
 // Repositories
 export const abortmergePath = (org, app) => `/designer/api/repos/repo/${org}/${app}/abort-merge`;
 export const cloneAppPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/clone`; // Get
-export const copyAppPath = (org, sourceRepository, targetRepository) =>
-  `/designer/api/repos/copy-app?${s({
-    org,
-    sourceRepository,
-    targetRepository,
-  })}`;
+export const copyAppPath = (org, sourceRepository, targetRepository) => `/designer/api/repos/copy-app?${s({ org, sourceRepository, targetRepository })}`;
 export const createRepoPath = () => `/designer/api/repos/create-app`; // Post
 export const discardChangesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/discard`; // Get
 export const discardFileChangesPath = (org, app, filename) => `/designer/api/repos/repo/${org}/${app}/discard/${filename}`; // Get
@@ -107,4 +106,4 @@ export const userStarredListPath = () => '/designer/api/user/starred'; // Get
 export const userStarredRepoPath = (org, app) => `/designer/api/user/starred/${org}/${app}`; // Put, Delete
 
 // Deprecated
-export const getServiceFilesPath = (org, app, fileEditorMode) => `/designer/api/${org}/${app}/service-development/get-all?${s({fileEditorMode,})}`; // Get
+export const getServiceFilesPath = (org, app, fileEditorMode) => `/designer/api/${org}/${app}/service-development/get-all?${s({ fileEditorMode })}`; // Get

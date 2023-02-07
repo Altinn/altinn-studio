@@ -45,7 +45,7 @@ export const FormDesigner = ({
     if (selectedLayout === 'default') {
       addInitialPage();
     }
-  }, [selectedLayout]);
+  }, [app, dispatch, org, selectedLayout, t]);
 
   const toggleCodeEditor = (mode?: LogicMode) => {
     setCodeEditorOpen(!codeEditorOpen);

@@ -228,8 +228,7 @@ export function ReleaseContainer() {
   }
 
   return (
-    <>
-      <div className={classes.appReleaseWrapper}>
+    <div className={classes.appReleaseWrapper}>
         <div className={classes.versionHeader}>
           <div className={classes.versionHeaderTitle}>{t('app_release.release_tab_versions')}</div>
         </div>
@@ -264,6 +263,5 @@ export function ReleaseContainer() {
             ))}
         </div>
       </div>
-    </>
   );
 }

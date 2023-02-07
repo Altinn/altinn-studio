@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
@@ -94,15 +94,11 @@ test('dispatches correctly when changing restriction value', async () => {
   const minLength = '100';
   const maxLength = '666';
 
-  const minLengthTextField = await waitFor(() =>
-    screen.getByLabelText(language['schema_editor.minLength'])
-  );
+  const minLengthTextField = await screen.findByLabelText(language['schema_editor.minLength']);
   fireEvent.change(minLengthTextField, { target: { value: minLength } });
   fireEvent.blur(minLengthTextField);
 
-  const maxLengthTextField = await waitFor(() =>
-    screen.getByLabelText(language['schema_editor.maxLength'])
-  );
+  const maxLengthTextField = await screen.findByLabelText(language['schema_editor.maxLength']);
   fireEvent.change(maxLengthTextField, { target: { value: maxLength } });
   fireEvent.blur(maxLengthTextField);
 

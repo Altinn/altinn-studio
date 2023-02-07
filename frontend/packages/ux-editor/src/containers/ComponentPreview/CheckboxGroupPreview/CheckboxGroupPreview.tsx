@@ -52,7 +52,7 @@ export const CheckboxGroupPreview = ({
             textResourceId={component.textResourceBindings?.description}
           />
         )}
-        items={component.options?.map(({value, label}) => ({
+        items={component.options?.map(({ value, label }) => ({
           name: value,
           label: (
             <TextResource

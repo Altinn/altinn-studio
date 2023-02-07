@@ -104,7 +104,7 @@ export const DroppableDraggableContainer = memo(function DroppableDraggableConta
       />
       <div ref={drop}>
         <div
-          className={cn({[classes.isDragging]: isDragging, [classes.isOver]: isOver})}
+          className={cn({ [classes.isDragging]: isDragging, [classes.isOver]: isOver })}
           data-testid={'droppable-draggable-container'}
           ref={dragPreview}
         >

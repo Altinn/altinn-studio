@@ -54,9 +54,9 @@ describe('EditDataModelBindings', () => {
   });
 
   it('should show select with provided data model binding', () => {
-    render({dataModelBindings: {
+    render({ dataModelBindings: {
       simpleBinding: 'testModel.field1',
-    }});
+    } });
     expect(screen.getByText('ux_editor.modal_properties_data_model_helper')).toBeInTheDocument();
     expect(screen.getByText('testModel.field1')).toBeInTheDocument();
   })

@@ -40,7 +40,7 @@ export const SchemaSelect = (props: ISchemaSelectProps) => {
       };
     },
   };
-  const IndicatorSeparator = () => <></>;
+  const IndicatorSeparator = () => <div></div>;
   const DropdownIndicator = () => (
     <i
       className={classNames([classes['fa.fa-nedtrekk'], 'fa fa-nedtrekk', classes.chevron])}

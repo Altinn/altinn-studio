@@ -40,19 +40,19 @@ export const DesignView = ({
     [layoutOrder, isDragging]
   );
 
-  const setContainerLayoutOrder = (containerId: string, layoutOrder: string[]) => {
-    if (layoutOrder.includes(containerId)) {
+  const setContainerLayoutOrder = (containerId: string, newLayoutOrder: string[]) => {
+    if (newLayoutOrder.includes(containerId)) {
       throw Error("can't add item to itself");
     }
     setState({
-      layoutOrder: { ...state.layoutOrder, [containerId]: layoutOrder },
+      layoutOrder: { ...state.layoutOrder, [containerId]: newLayoutOrder },
       isDragging: true,
     });
   };
 
   const removeItemFromContainer = (item: EditorDndItem): void => {
-    const layoutOrder = removeArrayElement(state.layoutOrder[item.containerId], item.id);
-    setContainerLayoutOrder(item.containerId, layoutOrder);
+    const updatedLayoutOrder = removeArrayElement(state.layoutOrder[item.containerId], item.id);
+    setContainerLayoutOrder(item.containerId, updatedLayoutOrder);
     item.index = undefined;
     item.containerId = undefined;
   };

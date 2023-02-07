@@ -64,8 +64,7 @@ export class HandleMergeConflictContainer extends React.Component<
     const { selectedFile } = this.state;
 
     return (
-      <React.Fragment>
-        <div className={classes.root} id='handleMergeConflictContainer'>
+      <div className={classes.root} id='handleMergeConflictContainer'>
           <Grid container={true} justifyContent='flex-start' alignItems='stretch'>
             <Grid item={true} xs={12}>
               {repoStatus.hasMergeConflict ? null : <VersionControlHeader language={language} />}
@@ -178,7 +177,6 @@ export class HandleMergeConflictContainer extends React.Component<
             </Grid>
           </Grid>
         </div>
-      </React.Fragment>
     );
   }
 }

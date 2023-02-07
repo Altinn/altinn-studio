@@ -5,7 +5,7 @@ import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLa
 import { PageElement } from './PageElement';
 import { useDispatch, useSelector } from 'react-redux';
 import { deepCopy } from 'app-shared/pure';
-import {useParams, useSearchParams} from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import classes from './ReceiptPageElement.module.css';
 
 export function ReceiptPageElement() {

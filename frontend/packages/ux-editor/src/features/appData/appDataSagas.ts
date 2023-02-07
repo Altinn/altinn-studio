@@ -45,7 +45,7 @@ import {
 } from 'app-shared/api-paths';
 
 function* fetchDataModelSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
-  const {org, app} = payload;
+  const { org, app } = payload;
   try {
     const url = datamodelMetadataPath(org, app);
     const dataModel: any = yield call(get, url);
@@ -67,7 +67,7 @@ export function* watchFetchDataModelSaga(): SagaIterator {
 }
 
 function* fetchRuleModelSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
-  const {org, app} = payload;
+  const { org, app } = payload;
   try {
     const ruleModel = yield call(get, ruleHandlerPath(org, app));
     const ruleModelFields: IRuleModelFieldElement[] = [];

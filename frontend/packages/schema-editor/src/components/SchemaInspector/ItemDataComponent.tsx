@@ -70,8 +70,8 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(uiSchema, pointer) : [];
 
-  const softValidateName = (nodeName: string) => {
-    const error = !isValidName(nodeName) ? NameError.InvalidCharacter : NameError.NoError;
+  const softValidateName = (nodeNameToValidate: string) => {
+    const error = !isValidName(nodeNameToValidate) ? NameError.InvalidCharacter : NameError.NoError;
     setNameError(error);
     return error;
   };
