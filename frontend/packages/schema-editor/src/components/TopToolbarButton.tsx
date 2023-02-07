@@ -15,59 +15,60 @@ interface TopToolbarButtonProps extends PropsWithChildren<any> {
   id: string;
 }
 
-export const TopToolbarButton = forwardRef(({
-  onClick,
-  disabled,
-  faIcon,
-  children,
-  hideText,
-  warning,
-  iconSize,
-  className,
-  id,
-}: TopToolbarButtonProps, ref: Ref<HTMLButtonElement>) => {
-  const computedClasses = classNames([
-    classes.toolbarButton,
-    hideText && classes.iconButton,
-    warning && 'warn',
-    className,
-  ]);
-  const icon = (
-    <i className={faIcon} style={{ ...(iconSize && { fontSize: iconSize }) }} aria-hidden />
-  );
-  if (hideText) {
+const TopToolbarButton = forwardRef(
+  (
+    {
+      onClick,
+      disabled = false,
+      faIcon,
+      children,
+      hideText = false,
+      warning = false,
+      iconSize = undefined,
+      className,
+      id,
+    }: TopToolbarButtonProps,
+    ref: Ref<HTMLButtonElement>
+  ) => {
+    const computedClasses = classNames([
+      classes.toolbarButton,
+      hideText && classes.iconButton,
+      warning && 'warn',
+      className,
+    ]);
+    const icon = (
+      <i className={faIcon} style={{ ...(iconSize && { fontSize: iconSize }) }} aria-hidden />
+    );
+    if (hideText) {
+      return (
+        <IconButton
+          aria-label={children}
+          className={computedClasses}
+          color='primary'
+          disabled={disabled}
+          onClick={onClick}
+          ref={ref}
+        >
+          {icon}
+        </IconButton>
+      );
+    }
     return (
-      <IconButton
-        aria-label={children}
+      <Button
         className={computedClasses}
-        color='primary'
+        data-testid={id}
         disabled={disabled}
+        id={id}
         onClick={onClick}
         ref={ref}
+        startIcon={icon}
+        variant='text'
       >
-        {icon}
-      </IconButton>
+        {children}
+      </Button>
     );
   }
-  return (
-    <Button
-      className={computedClasses}
-      data-testid={id}
-      disabled={disabled}
-      id={id}
-      onClick={onClick}
-      ref={ref}
-      startIcon={icon}
-      variant='text'
-    >
-      {children}
-    </Button>
-  );
-});
+);
 
-TopToolbarButton.defaultProps = {
-  disabled: false,
-  hideText: false,
-  warning: false,
-  iconSize: undefined,
-};
+TopToolbarButton.displayName = 'TopToolbarButton';
+export { TopToolbarButton };

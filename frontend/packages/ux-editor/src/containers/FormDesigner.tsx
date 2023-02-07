@@ -31,7 +31,7 @@ export const FormDesigner = (): JSX.Element =>  {
   useEffect(() => {
     dispatch(FormLayoutActions.fetchFormLayout({ org, app }));
     dispatch(fetchServiceConfiguration({ org, app }));
-  }, [dispatch]);
+  }, [app, dispatch, org]);
 
   const toggleCodeEditor = (mode?: LogicMode) => {
     setCodeEditorOpen(!codeEditorOpen);

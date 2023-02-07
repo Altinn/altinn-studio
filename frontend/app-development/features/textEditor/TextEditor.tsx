@@ -87,11 +87,11 @@ export const TextEditor = ({ language }: TextEditorProps) => {
       langCode,
     });
 
-  const handleTranslationChange = (translations: TextResourceFile) =>
+  const handleTranslationChange = (changedTranslations: TextResourceFile) =>
     updateLang({
       ...orgApp,
       langCode: selectedLangCode,
-      data: translations,
+      data: changedTranslations,
     });
   const handleTextIdChange = (mutation: TextResourceIdMutation) =>
     updateTextId({

@@ -57,7 +57,7 @@ export function SchemaItem({
   const focusedNode = refNode ?? selectedNode;
   const childNodesSorted: UiSchemaNodes = [];
   focusedNode.children.forEach((childPointer) => {
-    const node = childNodes.find((node) => node.pointer === childPointer);
+    const node = childNodes.find((childNode) => childNode.pointer === childPointer);
     node && childNodesSorted.push(node);
   });
   const selectedPointer = useSelector((state: ISchemaState) =>
@@ -94,9 +94,9 @@ export function SchemaItem({
           />
         }
       >
-        {childNodesSorted.map((childNode: UiSchemaNode, index: number) => (
+        {childNodesSorted.map((childNode: UiSchemaNode, childNodeIndex: number) => (
           <SchemaItem
-            index={index}
+            index={childNodeIndex}
             editMode={editMode}
             isPropertiesView={isPropertiesView}
             selectedNode={childNode}

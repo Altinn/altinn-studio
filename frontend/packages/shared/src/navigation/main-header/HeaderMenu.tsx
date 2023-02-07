@@ -86,15 +86,15 @@ export function HeaderMenu({ language, org, repo }: HeaderMenuProps) {
         >
           {t('shared.header_all')}
         </MenuItem>
-        {selectableOrgs?.map((org) => {
+        {selectableOrgs?.map((selectableOrg) => {
           return (
             <MenuItem
-              id={`menu-org-${org.id}`}
-              selected={selectedContext === org.id}
-              key={org.id}
-              onClick={() => handleSetSelectedContext(org.id)}
+              id={`menu-org-${selectableOrg.id}`}
+              selected={selectedContext === selectableOrg.id}
+              key={selectableOrg.id}
+              onClick={() => handleSetSelectedContext(selectableOrg.id)}
             >
-              {org.full_name || org.username}
+              {selectableOrg.full_name || selectableOrg.username}
             </MenuItem>
           );
         })}

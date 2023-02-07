@@ -100,7 +100,7 @@ export function DataModelling({
         uploadedOrCreatedFileName.current = schemaName;
       }
     }
-  }, [selectedOption, dispatch]);
+  }, [selectedOption, dispatch, org, repo]);
 
   const handleSaveSchema = (schema: any) =>
     dispatch(saveDataModel({ schema, metadata: selectedOption }));

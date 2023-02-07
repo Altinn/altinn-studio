@@ -12,17 +12,19 @@ export interface IconButtonProps {
   onClick: () => void;
 }
 
-export const IconButton = forwardRef((
-  { ariaLabel, className, icon, id, onClick }: IconButtonProps,
-  ref: Ref<HTMLButtonElement>,
-) => (
-  <button
-    aria-label={ariaLabel}
-    className={cn(classes.iconButton, className)}
-    id={id}
-    onClick={onClick}
-    ref={ref}
-  >
-    <Icon image={icon} className={classes.icon} />
-  </button>
-));
+const IconButton = forwardRef(
+  ({ ariaLabel, className, icon, id, onClick }: IconButtonProps, ref: Ref<HTMLButtonElement>) => (
+    <button
+      aria-label={ariaLabel}
+      className={cn(classes.iconButton, className)}
+      id={id}
+      onClick={onClick}
+      ref={ref}
+    >
+      <Icon image={icon} className={classes.icon} />
+    </button>
+  )
+);
+
+IconButton.displayName = 'IconButton';
+export { IconButton };

@@ -413,12 +413,12 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         {expanded &&
           components &&
           (itemOrder?.length
-            ? itemOrder.map((id: string, index: number) => {
-                const component = components[id];
+            ? itemOrder.map((itemOrderId: string, index: number) => {
+                const component = components[itemOrderId];
                 if (component) {
-                  return this.renderFormComponent(id, index);
+                  return this.renderFormComponent(itemOrderId, index);
                 }
-                return containers[id] && this.renderContainer(id, index);
+                return containers[itemOrderId] && this.renderContainer(itemOrderId, index);
               })
             : this.renderContainerPlaceholder())}
       </div>

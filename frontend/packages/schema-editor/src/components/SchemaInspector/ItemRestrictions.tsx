@@ -72,8 +72,8 @@ export const ItemRestrictions = ({
       })
     );
 
-  const onChangeRestrictions = (path: string, restrictions: Dict) =>
-    dispatch(setRestrictions({ path, restrictions }));
+  const onChangeRestrictions = (path: string, changedRestrictions: Dict) =>
+    dispatch(setRestrictions({ path, restrictions: changedRestrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) =>
     dispatch(

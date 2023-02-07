@@ -71,7 +71,7 @@ export const DroppableDraggableComponent = memo(function DroppableDraggableCompo
   return (
     <div ref={wrapperRef}>
       <div ref={drop}>
-        <div ref={dragPreview} style={{opacity, background}}>
+        <div ref={dragPreview} style={{ opacity, background }}>
           {component(drag)}
         </div>
       </div>

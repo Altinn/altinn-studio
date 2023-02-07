@@ -4,7 +4,7 @@ import { TopToolbar } from './TopToolbar';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const renderToolbar = (Toolbar: JSX.Element = <></>) => {
+const renderToolbar = (Toolbar: JSX.Element = <div></div>) => {
   const saveAction = jest.fn();
   const toggleEditMode = jest.fn();
   const user = userEvent.setup();
@@ -29,7 +29,7 @@ test('renders the top toolbar', () => {
 });
 
 test('handles a click on the save button', async () => {
-  const { saveAction, user } = renderToolbar(<></>);
+  const { saveAction, user } = renderToolbar(<div></div>);
   const topToolbar = screen.getByRole('toolbar');
   expect(topToolbar).toBeDefined();
   const saveButton = screen.getByTestId('save-model-button');
@@ -39,7 +39,7 @@ test('handles a click on the save button', async () => {
 });
 
 test('handles a click on the toggle edit mode button', async () => {
-  const { toggleEditMode, user } = renderToolbar(<></>);
+  const { toggleEditMode, user } = renderToolbar(<div></div>);
   const topToolbar = screen.getByRole('toolbar');
   expect(topToolbar).toBeDefined();
   const toggleEditModeButton = screen.getByText('edit_mode');

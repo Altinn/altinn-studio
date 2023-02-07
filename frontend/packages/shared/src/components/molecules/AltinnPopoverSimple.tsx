@@ -44,8 +44,7 @@ export const AltinnPopoverSimple = (props: IAltinnPopoverProps) => {
   };
 
   return (
-    <>
-      <Popover
+    <Popover
         open={props.open}
         anchorEl={props.anchorEl}
         onClose={props.handleClose}
@@ -89,6 +88,5 @@ export const AltinnPopoverSimple = (props: IAltinnPopoverProps) => {
           </Grid>
         </Grid>
       </Popover>
-    </>
   );
 };

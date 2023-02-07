@@ -85,7 +85,7 @@ export function PropertyItem({
           hideLabel
           inputId={`${inputId}-typeselect`}
           label={t('type')}
-          onChange={(type) => onChangeType(fullPath, type as FieldType)}
+          onChange={(fieldType) => onChangeType(fullPath, fieldType as FieldType)}
           options={getTypeOptions(t)}
           value={type}
         />

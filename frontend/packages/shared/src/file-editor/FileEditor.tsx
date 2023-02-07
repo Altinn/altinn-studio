@@ -314,9 +314,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                   );
                 })
               ) : (
-                <React.Fragment>
-                  <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
-                </React.Fragment>
+                <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
               )}
 
               {/* If not Loadfile, show select*/}
