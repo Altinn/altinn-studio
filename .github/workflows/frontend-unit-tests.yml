@@ -43,6 +43,10 @@ jobs:
           YARN_NM_MODE: 'hardlinks-local'
           HUSKY: '0'
 
+      - name: 'Running Eslint'
+        working-directory: frontend
+        run: yarn lint
+
       - name: 'Running Unit Tests'
         working-directory: frontend
         run: yarn test:ci
