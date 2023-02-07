@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { v1 as uuidv1 } from 'uuid';
+import Modal from 'react-modal';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import {
   makeGetAllLayoutComponents,
@@ -15,6 +16,7 @@ import type {
   IFormLayoutOrder,
   IRuleModelFieldElement,
 } from '../../types/global';
+import classes from './ConditionalRenderingComponent.module.css';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: any;
@@ -254,29 +256,29 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
     const selectedMethod = this.state.conditionalRendering.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
     return (
-      <div className='modal-content'>
-        <div className='modal-header a-modal-header'>
-          <div className='a-iconText a-iconText-background a-iconText-large'>
-            <div className='a-iconText-icon'>
-              <i className='fa fa-corp a-icon' />
-            </div>
-            <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>
-                {this.props.language['ux_editor.modal_configure_conditional_rendering_header']}
-              </span>
-            </h1>
-          </div>
+      <Modal
+        isOpen={true}
+        onRequestClose={() => {}}
+        className={classes.modalBody}
+        ariaHideApp={false}
+        overlayClassName={classes.reactModalOverlay}
+      >
+        <div className={classes.modalHeader}>
+          <i className='fa fa-corp' />
+          <h1 className={classes.modalHeaderTitle}>
+            {this.props.language['ux_editor.modal_configure_conditional_rendering_header']}
+          </h1>
         </div>
-        <div className='modal-body a-modal-body'>
-          <div className='form-group a-form-group'>
-            <label htmlFor='selectConditionalRule' className='a-form-label'>
+        <div className={classes.modalBodyContent}>
+          <div className={classes.formGroup}>
+            <label htmlFor='selectConditionalRule' className={classes.label}>
               {this.props.language['ux_editor.modal_configure_conditional_rendering_helper']}
             </label>
             <select
               name='selectConditionalRule'
               onChange={this.handleSelectedMethodChange}
               value={selectedMethod}
-              className='custom-select a-custom-select'
+              className={classes.customSelect}
               id='selectConditionalRule'
               style={{ fontSize: '16px' }}
             >
@@ -292,8 +294,8 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
           </div>
           {this.state.conditionalRendering.selectedFunction ? (
             <>
-              <div className='form-group a-form-group mt-2'>
-                <h2 className='a-h4'>
+              <div>
+                <h2 className={classes.subTitle}>
                   {
                     this.props.language[
                       'ux_editor.modal_configure_conditional_rendering_configure_input_header'
@@ -304,75 +306,74 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   (key: any) => {
                     const paramName = key;
                     return (
-                      <div className='row align-items-center mb-1' key={key}>
-                        <div className='col-3 col'>
-                          <div className='form-group a-form-group mt-1 disabled'>
-                            <label className='a-form-label' htmlFor={paramName}>
-                              {
-                                this.props.language[
-                                  'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper'
-                                ]
+                      <>
+                        <label className={classes.label} htmlFor={paramName}>
+                          {
+                            this.props.language[
+                              'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper'
+                            ]
+                          }
+                        </label>
+                        <div className={classes.configureInputParamsContainer} key={key}>
+                          <input
+                            id={paramName}
+                            name={paramName}
+                            type='text'
+                            className={classes.inputType}
+                            value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
+                            width={10}
+                            disabled={true}
+                          />
+
+                          <div>
+                            <SelectDataModelComponent
+                              onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
+                              selectedElement={
+                                this.state.conditionalRendering.inputParams[paramName]
                               }
-                            </label>
-                            <input
-                              id={paramName}
-                              name={paramName}
-                              type='text'
-                              className='form-control'
-                              value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
-                              width={10}
-                              disabled={true}
+                              hideRestrictions={true}
                             />
                           </div>
                         </div>
-                        <div className='col-9 col'>
-                          <SelectDataModelComponent
-                            onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
-                            selectedElement={this.state.conditionalRendering.inputParams[paramName]}
-                            hideRestrictions={true}
-                          />
-                        </div>
-                      </div>
+                      </>
                     );
                   }
                 )}
               </div>
-              <div className='form-group a-form-group mt-2'>
-                <h2 className='a-h4'>
+              <div>
+                <h2 className={classes.subTitle}>
                   {
                     this.props.language[
                       'ux_editor.modal_configure_conditional_rendering_configure_output_header'
                     ]
                   }
                 </h2>
-                <div className='row align-items-center mb-1'>
-                  <div className='col'>
-                    <label className='a-form-label' htmlFor='select_action'>
-                      {
-                        this.props.language[
-                          'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper'
-                        ]
-                      }
-                    </label>
-                    <select
-                      id='select_action'
-                      value={this.state.conditionalRendering.selectedAction}
-                      onChange={this.handleActionChange}
-                      className='custom-select a-custom-select'
-                      style={{ fontSize: '16px' }}
-                    >
-                      <option value=''>{this.props.language['general.action']}</option>
-                      {this.state.selectableActions.map((value: string) => {
-                        return (
-                          <option key={value} value={value}>
-                            {value}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
+                <div className={classes.selectActionContainer}>
+                  <label className={classes.label} htmlFor='select_action'>
+                    {
+                      this.props.language[
+                        'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper'
+                      ]
+                    }
+                  </label>
+                  <select
+                    id='select_action'
+                    value={this.state.conditionalRendering.selectedAction}
+                    onChange={this.handleActionChange}
+                    className={classes.customSelect}
+                    style={{ fontSize: '16px' }}
+                  >
+                    <option value=''>{this.props.language['general.action']}</option>
+                    {this.state.selectableActions.map((value: string) => {
+                      return (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      );
+                    })}
+                  </select>
                 </div>
-                <p className='mt-2'>
+                <p>
                   {
                     this.props.language[
                       'ux_editor.modal_configure_conditional_rendering_configure_output_field_helper'
@@ -381,74 +382,55 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                 </p>
                 {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
                   return (
-                    <div className='row align-items-center' key={key}>
-                      <div className='col-11 col'>
-                        <select
-                          name={key}
-                          onChange={this.handleFieldMappingChange.bind(null, key)}
-                          value={this.state.conditionalRendering.selectedFields[key]}
-                          className='custom-select a-custom-select mb-1'
-                          style={{ fontSize: '16px' }}
-                        >
-                          <option value=''>
-                            {this.props.language['general.select_component']}
-                          </option>
-                          {this.renderCondtionalRenderingTargetOptions()}
-                        </select>
-                      </div>
-                      <div className='col-1 col'>
-                        <button
-                          type='button'
-                          className='a-btn a-btn-icon'
-                          onClick={this.removeFieldMapping.bind(null, key)}
-                        >
-                          <i className='fa fa-circle-exit a-danger ai-left' />
-                        </button>
-                      </div>
+                    <div className={classes.chooseComponentContainer} key={key}>
+                      <select
+                        name={key}
+                        onChange={this.handleFieldMappingChange.bind(null, key)}
+                        value={this.state.conditionalRendering.selectedFields[key]}
+                        className={classes.customSelect}
+                        style={{ fontSize: '16px' }}
+                      >
+                        <option value=''>{this.props.language['general.select_component']}</option>
+                        {this.renderCondtionalRenderingTargetOptions()}
+                      </select>
+
+                      <button
+                        type='button'
+                        className={classes.deleteFieldButton}
+                        onClick={this.removeFieldMapping.bind(null, key)}
+                      >
+                        <i className='fa fa-circle-exit a-danger ai-left' />
+                      </button>
                     </div>
                   );
                 })}
-                <div className='align-items-center row'>
-                  <div className='col-6 col'>
-                    <button type='button' className='a-btn' onClick={this.addNewField}>
-                      {
-                        this.props.language[
-                          'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping'
-                        ]
-                      }
-                    </button>
-                  </div>
-                </div>
+                <button type='button' className={classes.addFieldButton} onClick={this.addNewField}>
+                  {
+                    this.props.language[
+                      'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping'
+                    ]
+                  }
+                </button>
               </div>
             </>
           ) : null}
-          <div className='row mt-3'>
-            <div className='col'>
-              {this.state.conditionalRendering.selectedFunction ? (
-                <button
-                  onClick={this.handleSaveEdit}
-                  type='submit'
-                  className='a-btn a-btn-success mr-2'
-                >
-                  {this.props.language['general.save']}
-                </button>
-              ) : null}
-              {this.props.connectionId ? (
-                <button
-                  type='button'
-                  className='a-btn a-btn-danger mr-2'
-                  onClick={this.handleDeleteConnection}
-                >
-                  {this.props.language['general.delete']}
-                </button>
-              ) : null}
-              <button className={'anchor'} onClick={this.props.cancelEdit}>
-                {this.props.language['general.cancel']}
+          <div className={classes.buttonsContainer}>
+            {this.state.conditionalRendering.selectedFunction ? (
+              <button onClick={this.handleSaveEdit} type='submit' className={classes.saveButton}>
+                {this.props.language['general.save']}
               </button>
-            </div>
+            ) : null}
+            {this.props.connectionId ? (
+              <button type='button' className={classes.dangerButton} onClick={this.handleDeleteConnection}>
+                {this.props.language['general.delete']}
+              </button>
+            ) : null}
+            <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
+              {this.props.language['general.cancel']}
+            </button>
           </div>
         </div>
-      </div>
+      </Modal>
     );
   }
 }
