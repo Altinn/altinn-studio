@@ -95,7 +95,7 @@ export const textLanguagesPath = (org, app) => `/designer/api/${org}/${app}/text
 export const textResourcesPath = (org, app, langCode) => `/designer/api/${org}/${app}/text/language/${langCode}`; // Get, Post, Put, Delete
 export const textResourcesAddPath = (org, app) => `/designer/api/${org}/${app}/text/language/add-texts`; // Post
 export const serviceNamePath = (org, app) => `/designer/api/${org}/${app}/text/service-name`; // Get, Post
-export const textResourceIdsPath = (org, app) => `/designer/${org}/${app}/text/keys`; // Put
+export const textResourceIdsPath = (org, app) => `/designer/api/${org}/${app}/text/keys`; // Put
 
 // Text - new
 
