@@ -1,6 +1,6 @@
 import React from 'react';
 import { AltinnSpinner } from 'app-shared/components';
-import classes from './page-spinner.module.css';
+import classes from './PageSpinner.module.css';
 
 type PageSpinnerProps = {
   text: string;
