@@ -146,7 +146,7 @@ export function App() {
       const name = t('general.page') + (layoutPagesOrder.length + 1);
       dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
     }
-  }, [app, dispatch, layoutOrder.length, org, selectedLayout, t]);
+  }, [app, dispatch, layoutOrder?.length, layoutPagesOrder?.length, org, selectedLayout, t]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
