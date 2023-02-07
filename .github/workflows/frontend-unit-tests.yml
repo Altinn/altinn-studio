@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   test:
-    name: Test and build
+    name: Lint, Test and build
     runs-on: ubuntu-latest
     steps:
       - name: 'Checking Out Code'
