@@ -2,8 +2,9 @@ import { appDevelopmentApi } from './appDevelopmentApi';
 import type { TextResourceFile, TextResourceEntry } from '@altinn/text-editor';
 import { Tags } from './tags';
 import { languagesApi } from './languagesApi';
-import {textResourceIdsPath, textResourcesPath} from 'app-shared/api-paths';
-import {TextResourceIdMutation} from "@altinn/text-editor/src/types";
+import { textResourceIdsPath, textResourcesPath } from 'app-shared/api-paths';
+import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
+import { HandleServiceInformationActions } from 'app-development/features/administration/handleServiceInformationSlice';
 
 type OrgApp = {
   org: string;
@@ -50,6 +51,11 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
         );
         try {
           await queryFulfilled;
+          const changedAppName = data.resources.find(({ id }) => id === 'appName');
+          if (changedAppName) {
+            const serviceName = changedAppName.value;
+            dispatch(HandleServiceInformationActions.updateAppNameWithinState({ serviceName }));
+          }
         } catch {
           dispatch(textsApi.util.invalidateTags([{ type: Tags.Translations, id: langCode }]));
         }
