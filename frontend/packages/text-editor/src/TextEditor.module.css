@@ -60,6 +60,7 @@
 }
 
 .TextEditor__main {
+  padding-top: 2rem;
   margin: 0 auto;
   width: 100%;
   background-color: #fff;
