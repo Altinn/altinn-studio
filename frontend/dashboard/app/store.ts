@@ -4,6 +4,7 @@ import { rootReducer } from './rootReducer';
 import { sagaMiddleware } from './rootSaga';
 import type { PreloadedState } from '@reduxjs/toolkit';
 import { designerApi } from '../services/designerApi';
+import { isProduction } from 'app-shared/utils/is-production';
 
 export const middlewares = [sagaMiddleware, designerApi.middleware];
 
@@ -12,7 +13,7 @@ const reducer = combineReducers(rootReducer);
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   const store = configureStore({
     reducer,
-    devTools: process.env.NODE_ENV !== 'production',
+    devTools: !isProduction(),
     middleware: (getDefaultMiddleware: () => any[]) => getDefaultMiddleware().concat(middlewares),
     preloadedState,
   });
