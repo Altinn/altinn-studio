@@ -317,11 +317,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
         }
 
-        public async Task<Designer.Models.FormLayout> GetFormLayout(string layoutSetName, string layoutName)
+        public async Task<Designer.Models.FormLayout> GetFormLayout(string layoutSetName, string layoutNamePath)
         {
-            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutNamePath);
 
-            var fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
+            var fileContent = await ReadTextByAbsolutePathAsync(layoutFilePath);
             var layout = JsonConvert.DeserializeObject<Designer.Models.FormLayout>(fileContent);
 
             return layout;
@@ -330,7 +330,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public string[] GetLayoutSetNames()
         {
             string layoutSetsRelativePath = Path.Combine(LAYOUTS_FOLDER_NAME);
-            string[] layoutSetNames = Directory.GetDirectories(layoutSetsRelativePath);
+            string[] layoutSetNames = GetDirectoriesByRelativeDirectory(layoutSetsRelativePath);
             return layoutSetNames;
         }
 
@@ -344,12 +344,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public string[] GetFormLayoutNames([CanBeNull] string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
-            return Directory.GetFiles(layoutSetPath);
+            return GetFilesByRelativeDirectory(layoutSetPath);
         }
 
-        public async Task SaveFormLayout([CanBeNull] string layoutSetName, string layoutName, Designer.Models.FormLayout layout)
+        public async Task SaveFormLayout([CanBeNull]string layoutSetName, string layoutNamePath, Designer.Models.FormLayout layout)
         {
-            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, ExtractFileNameFromPath(layoutNamePath));
             var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             string serializedLayout = System.Text.Json.JsonSerializer.Serialize(layout, jsonOptions);
 

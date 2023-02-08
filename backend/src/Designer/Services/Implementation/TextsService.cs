@@ -205,10 +205,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            string[] layoutNames = altinnAppGitRepository.GetFormLayoutNames(layoutSetName);
-            foreach (string layoutName in layoutNames)
+            string[] layoutNamePaths = altinnAppGitRepository.GetFormLayoutNames(layoutSetName);
+            foreach (string layoutNamePath in layoutNamePaths)
             {
-                Designer.Models.FormLayout formLayout = await altinnAppGitRepository.GetFormLayout(layoutSetName, layoutName);
+                Designer.Models.FormLayout formLayout = await altinnAppGitRepository.GetFormLayout(layoutSetName, layoutNamePath);
                 foreach (Designer.Models.Layout layoutObject in formLayout.data.layout)
                 {
                     foreach (TextIdMutation mutation in keyMutations)
@@ -219,7 +219,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         }
                     }
                 }
-                await altinnAppGitRepository.SaveFormLayout(layoutSetName, layoutName, formLayout);
+                await altinnAppGitRepository.SaveFormLayout(layoutSetName, layoutNamePath, formLayout);
             }
         }
 
@@ -227,22 +227,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             if (textResourceBindings.title == keyMutation.OldId)
             {
-                textResourceBindings.title = keyMutation.NewId.HasValue ? null : keyMutation.NewId.Value;
+                textResourceBindings.title = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
             }
 
-            if (textResourceBindings.add_button == keyMutation.OldId)
+            else if (textResourceBindings.add_button == keyMutation.OldId)
             {
-                textResourceBindings.add_button = keyMutation.NewId.HasValue ? null : keyMutation.NewId.Value;
+                textResourceBindings.add_button = keyMutation.NewId.HasValue ? keyMutation.NewId.Value: null;
             }
 
-            if (textResourceBindings.next == keyMutation.OldId)
+            else if (textResourceBindings.next == keyMutation.OldId)
             {
-                textResourceBindings.next = keyMutation.NewId.HasValue ? null : keyMutation.NewId.Value;
+                textResourceBindings.next = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
             }
 
-            if (textResourceBindings.back == keyMutation.OldId)
+            else if (textResourceBindings.back == keyMutation.OldId)
             {
-                textResourceBindings.back = keyMutation.NewId.HasValue ? null : keyMutation.NewId.Value;
+                textResourceBindings.back = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
             }
         }
 

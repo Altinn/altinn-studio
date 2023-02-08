@@ -340,6 +340,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service name of the service</returns>
         [HttpGet]
+        [Route("service-name")]
         public IActionResult GetServiceName(string org, string app)
         {
             string defaultLang = "nb";
