@@ -159,7 +159,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             System.IO.File.WriteAllText(serviceConfigPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
-            _repository.UpdateServiceInformationInApplication(org, app, serviceConfigurationObject);
+            _repository.UpdateAppTitleInAppMetadata(org, app, "nb", serviceConfigurationObject.ServiceName);
         }
     }
 }

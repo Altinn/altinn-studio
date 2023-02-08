@@ -140,10 +140,14 @@ namespace Altinn.Studio.Designer.Controllers
             // updating application metadata with appTitle.
             JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
 
-            if (!(appTitleToken == null))
+            if (!(appTitleToken == null) && !(string.IsNullOrEmpty(appTitleToken.Value<string>("value"))))
             {
                 string appTitle = appTitleToken.Value<string>("value");
-                _repository.UpdateAppTitle(org, app, languageCode, appTitle);
+                _repository.UpdateAppTitleInAppMetadata(org, app, languageCode, appTitle);
+            }
+            else
+            {
+                return BadRequest("The appliaction name must be a value.");
             }
 
             _repository.SaveLanguageResource(org, app, languageCode, json.ToString());
@@ -171,7 +175,10 @@ namespace Altinn.Studio.Designer.Controllers
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
                 string textResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, developer) + filename;
 
-                TextResource textResourceObject = new TextResource { Language = languageCode, Resources = new List<TextResourceElement>() };
+                TextResource textResourceObject = new TextResource
+                {
+                    Language = languageCode, Resources = new List<TextResourceElement>()
+                };
 
                 if (System.IO.File.Exists(textResourceDirectoryPath))
                 {
@@ -181,7 +188,13 @@ namespace Altinn.Studio.Designer.Controllers
 
                 foreach (KeyValuePair<string, string> kvp in keysTexts)
                 {
-                    TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
+                    if ((kvp.Key == "appName" || kvp.Key == "serviceName") && string.IsNullOrEmpty(kvp.Value))
+                    {
+                        throw new ArgumentException("The appliaction name must be a value.");
+                    }
+
+                    TextResourceElement textResourceContainsKey =
+                        textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
                     if (textResourceContainsKey is null)
                     {
                         textResourceObject.Resources.Add(new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
@@ -199,6 +212,10 @@ namespace Altinn.Studio.Designer.Controllers
 
                 return Ok($"The text resource, resource.{languageCode}.json, was updated.");
 
+            }
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
             }
             catch (Exception)
             {
@@ -245,7 +262,14 @@ namespace Altinn.Studio.Designer.Controllers
 
                     foreach (TextIdMutation m in mutations)
                     {
-                        int originalEntryIndex = textResourceObject.Resources.FindIndex(textResourceElement => textResourceElement.Id == m.OldId);
+                        if (m.OldId == "appName" || m.OldId == "serviceName")
+                        {
+                            throw new ArgumentException("You can not change the key representing the name of the application.");
+                        }
+
+                        int originalEntryIndex =
+                            textResourceObject.Resources.FindIndex(textResourceElement =>
+                                textResourceElement.Id == m.OldId);
                         if (originalEntryIndex == -1)
                         {
                             continue;
@@ -260,6 +284,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {
                             textResourceObject.Resources.Remove(textEntry); //remove
                         }
+
                         mutationHasOccured = true;
                     }
 
@@ -267,6 +292,10 @@ namespace Altinn.Studio.Designer.Controllers
 
                     _repository.SaveLanguageResource(org, app, languageCode, resourceString);
                 }
+            }
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
             }
             catch (Exception e)
             {
@@ -380,6 +409,8 @@ namespace Altinn.Studio.Designer.Controllers
 
                 if (textResourceObject != null)
                 {
+                    // To keep old apps up to date with newer Studio where key, serviceName, is changed to appName
+                    textResourceObject.Delete("serviceName");
                     textResourceObject.Add("appName", serviceName.serviceName.ToString());
                 }
 
