@@ -210,19 +210,17 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   public renderCloseButton = (): JSX.Element =>  (
     <>
       <Button
+        icon={<Cancel/>}
         onClick={this.props.closeFileEditor}
         variant={ButtonVariant.Quiet}
         title='Lukk'
-      >
-        <Cancel/>
-      </Button>
+      />
       <Button
+        icon={<Success/>}
         onClick={this.saveFile}
         variant={ButtonVariant.Quiet}
         title='Lagre'
-      >
-        <Success/>
-      </Button>
+      />
     </>
   );
 
@@ -230,11 +228,10 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     <div ref={this.state.fileEditorSaveRef}>
       <Button
         disabled={!this.state.valueDiff}
+        icon={<Success/>}
         onClick={this.saveFile}
         title='Lagre fil'
-      >
-        <Success/>
-      </Button>
+      />
     </div>
   );
 
@@ -281,7 +278,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
 
           {/* If not Loadfile, show select*/}
           {!this.props.loadFile ? (
-            <Fragment>
+            <>
               {mode} <Next/>
               <div className={classes.select}>
                 <Select
@@ -290,7 +287,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                   options={this.state.availableFiles.map((file) => ({ label: file, value: file }))}
                 />
               </div>
-            </Fragment>
+            </>
           ) : null}
 
           {this.props.showSaveButton && this.renderSaveButton()}
