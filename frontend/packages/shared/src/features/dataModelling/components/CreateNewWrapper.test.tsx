@@ -45,14 +45,14 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await act(() => user.click(newButton));
+      await user.click(newButton);
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
       });
-      await act(() => user.type(textInput, 'new-model'));
-      await act(() => user.click(okButton));
+      await user.type(textInput, 'new-model');
+      await user.click(okButton);
       expect(handleChange).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -66,12 +66,12 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await act(() => user.click(newButton));
+      await user.click(newButton);
 
       const textInput = screen.getByRole('textbox');
 
-      await act(() => user.type(textInput, 'new-model'));
-      await act(() => user.keyboard('{Enter}'));
+      await user.type(textInput, 'new-model');
+      await user.keyboard('{Enter}');
       expect(handleChange).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -85,14 +85,14 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await act(() => user.click(newButton));
+      await user.click(newButton);
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
       });
-      await act(() => user.type(textInput, 'new-model'));
-      await act(() => user.click(okButton));
+      await user.type(textInput, 'new-model');
+      await user.click(okButton);
       expect(handleChange).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: '',
@@ -108,17 +108,17 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await act(() => user.click(newButton));
+      await user.click(newButton);
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
       });
 
-      await act(() => user.type(textInput, modelName));
+      await user.type(textInput, modelName);
       expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
 
-      await act(() => user.click(okButton));
+      await user.click(okButton);
 
       expect(handleChange).not.toHaveBeenCalled();
       expect(screen.getByText(errMessage)).toBeInTheDocument();
@@ -135,13 +135,13 @@ describe('CreateNewWrapper', () => {
       const newButton = screen.getByRole('button', {
         name: /general\.create_new/i,
       });
-      await act(() => userWithNoPointerEventCheck.click(newButton));
+      await userWithNoPointerEventCheck.click(newButton);
 
       const okButton = screen.getByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
       });
 
-      await act(() => userWithNoPointerEventCheck.click(okButton));
+      await userWithNoPointerEventCheck.click(okButton);
 
       expect(handleChange).not.toHaveBeenCalled();
     });

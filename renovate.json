@@ -12,6 +12,5 @@
       "groupSlug": "gitea",
       "matchPackageNames": ["gitea/gitea"]
     }
-  ],
-  "ignoreDeps": ["@testing-library/dom"]
+  ]
 }
