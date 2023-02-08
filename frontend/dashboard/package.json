@@ -34,7 +34,6 @@
   "scripts": {
     "build": "yarn typeCheck:once && cross-env NODE_ENV=production webpack --config ../webpack.config.prod.js",
     "compile-ts": "tsc",
-    "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
     "start": "yarn typeCheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
     "test": "jest --maxWorkers=50%",
     "typeCheck:once": "tsc --noEmit",
