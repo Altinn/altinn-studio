@@ -5,6 +5,7 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import { rootReducer } from '../reducers';
 import { sagaMiddleware } from '../sagas';
 import { appDevelopmentApi } from '../services/appDevelopmentApi';
+import { isProduction } from 'app-shared/utils/is-production';
 
 export const middlewares = [sagaMiddleware, appDevelopmentApi.middleware];
 
@@ -16,7 +17,7 @@ const reducer = combineReducers({
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   const store = configureStore({
     reducer,
-    devTools: process.env.NODE_ENV !== 'production',
+    devTools: !isProduction(),
     middleware: (getDefaultMiddleware) => {
       return getDefaultMiddleware({
         serializableCheck: {
