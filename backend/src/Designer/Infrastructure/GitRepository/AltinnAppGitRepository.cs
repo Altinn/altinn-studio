@@ -1,15 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
-using Altinn.Studio.Designer.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -317,16 +315,27 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
         }
 
-        public async Task<Designer.Models.FormLayout> GetFormLayout(string layoutSetName, string layoutNamePath)
+        /// <summary>
+        /// Returns the
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="layoutNamePath">The absolute path to the layoutfile</param>
+        /// <returns>The layout</returns>
+        public async Task<FormLayout> GetLayout(string layoutSetName, string layoutNamePath)
         {
-            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutNamePath);
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, Path.GetFileName(layoutNamePath));
 
-            var fileContent = await ReadTextByAbsolutePathAsync(layoutFilePath);
-            var layout = JsonConvert.DeserializeObject<Designer.Models.FormLayout>(fileContent);
+            var fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
+            FormLayout layout = JsonConvert.DeserializeObject<FormLayout>(fileContent);
 
             return layout;
         }
 
+        /// <summary>
+        /// Gets a list of all layoutset names
+        /// <remarks>If app does not use layoutset the default folder for layouts "layouts" will be returned</remarks>
+        /// </summary>
+        /// <returns>An array of all layoutset names</returns>
         public string[] GetLayoutSetNames()
         {
             string layoutSetsRelativePath = Path.Combine(LAYOUTS_FOLDER_NAME);
@@ -334,22 +343,40 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return layoutSetNames;
         }
 
-        public bool appUsesLayoutSets(string[] layoutSetNames)
+        /// <summary>
+        /// Check if app uses layoutsets or not based on whether
+        /// the list of layoutset names actually are layoutset names
+        /// or only the default folder for layouts
+        /// </summary>
+        /// <param name="layoutSetNames">List of potential layoutset names</param>
+        /// <returns>A boolean representing if the app uses layoutsets or not</returns>
+        public bool AppUsesLayoutSets(string[] layoutSetNames)
         {
-            string layoutSetsRelativePath = GetPathToLayoutSet(layoutSetNames[0]);
-            // also check if path is holding subfolders or files
-            return !(layoutSetNames.Contains("layouts") && layoutSetNames.Length == 1);
+            string layoutSetRelativePath = GetPathToLayoutSet(layoutSetNames[0]);
+            return !(layoutSetNames.Contains("layouts") && layoutSetNames.Length == 1 && !DirectoryExistsByRelativePath(layoutSetRelativePath));
         }
 
-        public string[] GetFormLayoutNames([CanBeNull] string layoutSetName)
+        /// <summary>
+        /// Gets all layout names for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <returns>An array of the absolute paths to all layout files under the specific layoutset</returns>
+        public string[] GetLayoutNames([CanBeNull] string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
             return GetFilesByRelativeDirectory(layoutSetPath);
         }
 
-        public async Task SaveFormLayout([CanBeNull]string layoutSetName, string layoutNamePath, Designer.Models.FormLayout layout)
+        /// <summary>
+        /// Saves layout file to specific layoutset. If layoutset is null
+        /// it will be stored as if the app does not use layoutsets, meaning under /App/ui/layouts/.
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="layoutNamePath">The absolute path to the layout file</param>
+        /// <param name="layout">The actual layout that is saved</param>
+        public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutNamePath, Designer.Models.FormLayout layout)
         {
-            string layoutFilePath = GetPathToLayoutFile(layoutSetName, ExtractFileNameFromPath(layoutNamePath));
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, Path.GetFileName(layoutNamePath));
             var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             string serializedLayout = System.Text.Json.JsonSerializer.Serialize(layout, jsonOptions);
 
@@ -450,7 +477,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME);
             }
 
-            return  Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME);
+            return Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME);
         }
 
         private static string GetPathToLayoutFile([CanBeNull] string layoutSetName, string fileName)

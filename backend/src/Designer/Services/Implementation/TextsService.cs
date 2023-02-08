@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -182,34 +181,36 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return response;
         }
 
-        public bool UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations)
+        /// <inheritdoc />
+        public async Task UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations)
         {
             // handle if no layout exists
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
-            bool appUsesLayoutSets = altinnAppGitRepository.appUsesLayoutSets(layoutSetNames);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets(layoutSetNames);
+
             if (appUsesLayoutSets)
             {
                 foreach (string layoutSetName in layoutSetNames)
                 {
-                    UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations);
+                    await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations);
                 }
+
+                return;
             }
-            else
-            {
-                UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations);
-            }
-            return true;
+
+            await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations);
         }
 
+        /// <inheritdoc />
         public async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            string[] layoutNamePaths = altinnAppGitRepository.GetFormLayoutNames(layoutSetName);
+            string[] layoutNamePaths = altinnAppGitRepository.GetLayoutNames(layoutSetName);
             foreach (string layoutNamePath in layoutNamePaths)
             {
-                Designer.Models.FormLayout formLayout = await altinnAppGitRepository.GetFormLayout(layoutSetName, layoutNamePath);
-                foreach (Designer.Models.Layout layoutObject in formLayout.data.layout)
+                Designer.Models.FormLayout layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutNamePath);
+                foreach (Designer.Models.Layout layoutObject in layout.data.layout)
                 {
                     foreach (TextIdMutation mutation in keyMutations)
                     {
@@ -219,7 +220,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         }
                     }
                 }
-                await altinnAppGitRepository.SaveFormLayout(layoutSetName, layoutNamePath, formLayout);
+                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutNamePath, layout);
             }
         }
 
@@ -232,7 +233,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             else if (textResourceBindings.add_button == keyMutation.OldId)
             {
-                textResourceBindings.add_button = keyMutation.NewId.HasValue ? keyMutation.NewId.Value: null;
+                textResourceBindings.add_button = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
             }
 
             else if (textResourceBindings.next == keyMutation.OldId)

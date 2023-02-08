@@ -236,11 +236,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return File.Exists(absoluteFilePath);
         }
 
-        public string ExtractFileNameFromPath(string path)
-        {
-            return Path.GetFileName(path);
-        }
-
         /// <summary>
         /// Checks if a directory exists within the repository.
         /// </summary>

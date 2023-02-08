@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -218,7 +218,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>If the newId is empty or undefined it implies that it is going to be removed</remarks>
         /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
         [HttpPut("keys")]
-        public IActionResult UpdateKeyNames(string org, string app, [FromBody] List<TextIdMutation> mutations)
+        public async Task<IActionResult> UpdateKeyNames(string org, string app, [FromBody] List<TextIdMutation> mutations)
         {
             bool mutationHasOccured = false;
             try
@@ -257,7 +257,7 @@ namespace Altinn.Studio.Designer.Controllers
                         mutationHasOccured = true;
                     }
 
-                    _textsService.UpdateRelatedFiles(org, app, developer, mutations);
+                    await _textsService.UpdateRelatedFiles(org, app, developer, mutations);
 
                     string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
 
