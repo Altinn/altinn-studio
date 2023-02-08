@@ -1,6 +1,6 @@
+import React from 'react';
 import classes from './TextEditor.module.css';
 import { TextRow } from './TextRow';
-import React, { useEffect } from 'react';
 import type {
   TextResourceEntry,
   TextResourceEntryDeletion,
