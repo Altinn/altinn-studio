@@ -89,5 +89,10 @@ namespace Altinn.Platform.Register.Models
         /// Gets a persons address city
         /// </summary>
         public string AddressCity { get; set; }
+
+        /// <summary>
+        /// Gets a persons date of death. Null if not dead.
+        /// </summary>
+        public DateTime? DateOfDeath { get; set; }
     }
 }
