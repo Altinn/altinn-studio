@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { handlers, renderWithProviders, setupServer } from '../../dashboardTestUtils';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
@@ -61,7 +61,7 @@ describe('Dashboard > index', () => {
     const { user } = render();
 
     const searchInput = screen.getByTestId('search-repos-default');
-    await act(() => user.type(searchInput, 'search'));
+    await user.type(searchInput, 'search');
     await waitFor(() => {
       expect(screen.queryByTestId('favorite-repos-list')).not.toBeInTheDocument();
       expect(screen.queryByTestId('org-repos-list')).not.toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('Dashboard > index', () => {
     const { user } = render();
 
     const searchInput = screen.getByTestId('search-repos-default');
-    await act(() => user.type(searchInput, 'search'));
+    await user.type(searchInput, 'search');
 
     await waitFor(() => {
       expect(screen.queryByTestId('favorite-repos-list')).not.toBeInTheDocument();
@@ -81,7 +81,7 @@ describe('Dashboard > index', () => {
       expect(screen.queryByTestId('search-result-repos-list')).toBeInTheDocument();
     });
 
-    await act(() => user.keyboard('{Escape}'));
+    await user.keyboard('{Escape}');
 
     await waitForElementToBeRemoved(screen.queryByTestId('search-result-repos-list'));
 
@@ -94,7 +94,7 @@ describe('Dashboard > index', () => {
     const { user } = render();
 
     const searchInput = screen.getByTestId('search-repos-default');
-    await act(() => user.type(searchInput, 'search'));
+    await user.type(searchInput, 'search');
 
     await waitFor(() => {
       expect(screen.queryByTestId('favorite-repos-list')).not.toBeInTheDocument();
@@ -102,7 +102,7 @@ describe('Dashboard > index', () => {
       expect(screen.queryByTestId('search-result-repos-list')).toBeInTheDocument();
     });
 
-    await act(() => user.click(screen.getByTestId('clear-search-button')));
+    await user.click(screen.getByTestId('clear-search-button'));
 
     await waitForElementToBeRemoved(() => screen.queryByTestId('search-result-repos-list'));
 
@@ -116,7 +116,7 @@ describe('Dashboard > index', () => {
 
     expect(window.location.href.includes('new')).toBe(false);
 
-    await act(() => user.click(screen.getByRole('link', { name: /dashboard.new_service/i })));
+    await user.click(screen.getByRole('link', { name: /dashboard.new_service/i }));
 
     expect(window.location.href.includes('new')).toBe(true);
   });

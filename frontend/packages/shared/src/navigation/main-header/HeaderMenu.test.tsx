@@ -35,7 +35,7 @@ describe('HeaderMenu', () => {
       name: /shared\.header_logout/i,
     });
 
-    await act(() => userEvent.click(logoutButton));
+    await userEvent.click(logoutButton);
 
     expect(postSpy).toHaveBeenCalledWith(`${window.location.origin}/repos/user/logout`);
   });
@@ -48,7 +48,7 @@ describe('HeaderMenu', () => {
       name: /shared\.header_all/i,
     });
 
-    await act(() => userEvent.click(allItem));
+    await userEvent.click(allItem);
 
     expect(handleSetSelectedContext).toHaveBeenCalledWith(SelectedContextType.All);
   });
@@ -61,7 +61,7 @@ describe('HeaderMenu', () => {
       name: /john smith/i,
     });
 
-    await act(() => userEvent.click(selfItem));
+    await userEvent.click(selfItem);
 
     expect(handleSetSelectedContext).toHaveBeenCalledWith(SelectedContextType.Self);
   });
@@ -74,7 +74,7 @@ describe('HeaderMenu', () => {
       name: /organization 1/i,
     });
 
-    await act(() => userEvent.click(orgItem));
+    await userEvent.click(orgItem);
     expect(handleSetSelectedContext).toHaveBeenCalledWith(1);
   });
 });

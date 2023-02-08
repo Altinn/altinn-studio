@@ -1,9 +1,8 @@
 import React from 'react';
 import { EditAutoComplete, getAutocompleteOptions } from './EditAutoComplete';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FormComponentType } from '../../../types/global';
-
 
 test('should give options', () => {
   const options = getAutocompleteOptions('nam');
@@ -34,10 +33,8 @@ test('that is renders', async () => {
   render(<EditAutoComplete handleComponentChange={handleComponentChange} component={component} />);
   const textbox = screen.getByRole('textbox');
   expect(textbox).toBeInTheDocument();
-  await act(async () => {
-    await userEvent.type(textbox, 'hello');
-    await userEvent.tab();
-  });
+  await userEvent.type(textbox, 'hello');
+  await userEvent.tab();
   expect(textbox).toHaveValue('hello');
   expect(handleComponentChange).toHaveBeenCalled();
 });
