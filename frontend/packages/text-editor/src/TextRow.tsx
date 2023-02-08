@@ -46,19 +46,32 @@ export const TextRow = ({
   };
   const isIllegalId = (textIdToCheck: string) => Boolean(textIdToCheck.toLowerCase().match(' ')); // TODO: create matcher
 
-  const handleTextIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.currentTarget.value;
-    if (!newValue) {
-      setKeyError('TextId kan ikke være tom');
-    } else if (idExists(newValue)) {
-      setKeyError('Denne IDen finnes allerede');
-    } else if (isIllegalId(newValue)) {
-      setKeyError('Det er ikke tillat med mellomrom i en textId');
-    } else {
-      setKeyError('');
+  const validateTextId = (textIdToValidate: string): { error: string } => {
+    const createValidationResult = (errorText: string) => ({ error: errorText });
+
+    if (!textIdToValidate) {
+      return createValidationResult('TextId kan ikke være tom');
     }
-    setTextIdValue(newValue || '');
+
+    if (idExists(textIdToValidate)) {
+      return createValidationResult('Denne IDen finnes allerede');
+    }
+
+    if (isIllegalId(textIdToValidate)) {
+      return createValidationResult('Det er ikke tillat med mellomrom i en textId');
+    }
+
+    return createValidationResult('');
   };
+
+  const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const newTextId = event.currentTarget.value;
+    const validation = validateTextId(newTextId);
+
+    setKeyError(validation.error);
+    setTextIdValue(newTextId);
+  };
+
   const handleTextIdBlur = () => {
     if (!keyError && textId !== textIdValue) {
       updateEntryId({ oldId: textId, newId: textIdValue });
