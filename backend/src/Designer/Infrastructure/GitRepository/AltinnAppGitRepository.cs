@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.Studio.Designer.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using JetBrains.Annotations;
 using Microsoft.IdentityModel.Tokens;
@@ -26,6 +28,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     {
         private const string MODEL_FOLDER_PATH = "App/models/";
         private const string CONFIG_FOLDER_PATH = "App/config/";
+        private const string LAYOUTS_FOLDER_NAME = "App/ui/";
+        private const string LAYOUTS_IN_SET_FOLDER_NAME = "layouts/";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
@@ -213,7 +217,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             string textResourcesDirectory = GetPathToJsonTextsFile(null);
 
-            if (!DirectoryExitsByRelativePath(textResourcesDirectory))
+            if (!DirectoryExistsByRelativePath(textResourcesDirectory))
             {
                 return allResourceTexts;
             }
@@ -313,6 +317,45 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
         }
 
+        public async Task<Designer.Models.FormLayout> GetFormLayout(string layoutSetName, string layoutName)
+        {
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+
+            var fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
+            var layout = JsonConvert.DeserializeObject<Designer.Models.FormLayout>(fileContent);
+
+            return layout;
+        }
+
+        public string[] GetLayoutSetNames()
+        {
+            string layoutSetsRelativePath = Path.Combine(LAYOUTS_FOLDER_NAME);
+            string[] layoutSetNames = Directory.GetDirectories(layoutSetsRelativePath);
+            return layoutSetNames;
+        }
+
+        public bool appUsesLayoutSets(string[] layoutSetNames)
+        {
+            string layoutSetsRelativePath = GetPathToLayoutSet(layoutSetNames[0]);
+            // also check if path is holding subfolders or files
+            return !(layoutSetNames.Contains("layouts") && layoutSetNames.Length == 1);
+        }
+
+        public string[] GetFormLayoutNames([CanBeNull] string layoutSetName)
+        {
+            string layoutSetPath = GetPathToLayoutSet(layoutSetName);
+            return Directory.GetFiles(layoutSetPath);
+        }
+
+        public async Task SaveFormLayout([CanBeNull] string layoutSetName, string layoutName, Designer.Models.FormLayout layout)
+        {
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+            string serializedLayout = System.Text.Json.JsonSerializer.Serialize(layout, jsonOptions);
+
+            await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout);
+        }
+
         /// <summary>
         /// Save app texts to resource files
         /// </summary>
@@ -396,8 +439,27 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private static string GetPathToMarkdownTextFile(string fileName)
         {
-            string textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
-            return textsFileRelativeFilePath;
+            string mdTextsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
+            return mdTextsFileRelativeFilePath;
+        }
+
+        private static string GetPathToLayoutSet([CanBeNull] string layoutSetName)
+        {
+            if (layoutSetName.IsNullOrEmpty())
+            {
+                return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME);
+            }
+
+            return  Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME);
+        }
+
+        private static string GetPathToLayoutFile([CanBeNull] string layoutSetName, string fileName)
+        {
+            if (layoutSetName.IsNullOrEmpty())
+            {
+                return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME, fileName);
+            }
+            return Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME, fileName);
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -69,5 +69,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="oldKey">The old key that will be replaced</param>
         /// <param name="newKey">The new key to replace the old</param>
         public Task<string> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey);
+
+        /// <summary>
+        /// Updates references to text keys in layout files.
+        /// </summary>
+        /// <param name="org">Identifier for the organisation</param>
+        /// <param name="app">Identifier for the application</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="keyMutations">A list of the keys that are updated</param>
+        /// <returns></returns>
+        public bool UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations);
     }
 }

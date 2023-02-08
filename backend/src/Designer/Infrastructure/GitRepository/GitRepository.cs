@@ -224,7 +224,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Checks if a directory exists within the repository.
         /// </summary>
         /// <param name="relativeDirectoryPath">Relative path to directory to check for existense.</param>
-        public bool DirectoryExitsByRelativePath(string relativeDirectoryPath)
+        public bool DirectoryExistsByRelativePath(string relativeDirectoryPath)
         {
             var absoluteDirectoryPath = GetAbsoluteFilePathSanitized(relativeDirectoryPath);
 
