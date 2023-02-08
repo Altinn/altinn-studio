@@ -5,3 +5,7 @@
 .isOver {
   background-color: #022F5108;
 }
+
+.fullHeight {
+  height: calc(100% - 90px);
+}
