@@ -47,6 +47,14 @@ export const FormDesigner = ({
     }
   }, [app, dispatch, org, selectedLayout, t]);
 
+  useEffect(() => {
+    if (codeEditorOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [codeEditorOpen]);
+
   const toggleCodeEditor = (mode?: LogicMode) => {
     setCodeEditorOpen(!codeEditorOpen);
     setCodeEditorMode(mode || null);

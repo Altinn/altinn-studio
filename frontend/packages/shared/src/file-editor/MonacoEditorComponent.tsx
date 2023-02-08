@@ -1,17 +1,15 @@
 import React from 'react';
-import { CircularProgress, Grid } from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import MonacoEditor from 'react-monaco-editor';
 import classes from './MonacoEditorComponent.module.css';
 
 export interface IMonacoEditorComponentProps {
   createCompletionSuggestions?: (monaco: any, filterText: string) => any[];
   escRef: any;
-  heightPx?: any;
   isLoading?: boolean;
   language: string;
   onValueChange: (value: string) => void;
   value: string;
-  widthPx?: any;
 }
 
 export interface IMonacoEditorComponentState {
@@ -105,24 +103,10 @@ class MonacoEditorComponent extends React.Component<
 
   public render() {
     return this.props.isLoading ? (
-      <Grid
-        container={true}
-        alignItems='center'
-        justifyContent='center'
-        direction='column'
-        style={{
-          height: this.props.heightPx ? this.props.heightPx : '100%',
-          width: this.props.widthPx ? this.props.heightPx : '100%',
-        }}
-      >
-        <Grid container={true} item={true} alignItems='center' justifyContent='center'>
-          <Grid id='spinnerGridItem' item={true}>
-            <CircularProgress className={classes.spinner} />
-          </Grid>
-        </Grid>
-      </Grid>
+      <CircularProgress className={classes.spinner} />
     ) : (
       <div
+        className={classes.root}
         ref={this.state.monacoWrapperRef}
         tabIndex={0}
         onFocus={this.setFileEditorFocus('focus')}
@@ -131,8 +115,6 @@ class MonacoEditorComponent extends React.Component<
       >
         <MonacoEditor
           theme={'editorTheme'}
-          height={this.props.heightPx ? this.props.heightPx : '100%'}
-          width={this.props.widthPx ? this.props.widthPx : '100%'}
           value={this.props.value}
           language={this.props.language}
           options={{

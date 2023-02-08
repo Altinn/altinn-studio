@@ -1,3 +1,7 @@
+.root {
+  height: 100%;
+}
+
 .spinner {
   color: #1EAEF7;
 }
