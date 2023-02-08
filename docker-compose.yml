@@ -25,6 +25,7 @@ services:
       - "host.docker.internal:host-gateway"
   altinn_platform_pdf:
     container_name: altinn-pdf
+    platform: linux/amd64
     image: ghcr.io/altinn/altinn-pdf:latest
     restart: always
     networks:
