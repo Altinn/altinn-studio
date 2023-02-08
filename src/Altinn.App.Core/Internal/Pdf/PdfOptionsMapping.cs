@@ -153,7 +153,10 @@ public class PdfOptionsMapping : IPdfOptionsMapping
             }
             else
             {
-                selectedDatas.Add(jsonData.SelectToken(select).ToString());
+                JToken? token = jsonData.SelectToken(select);
+                if (token != null) {
+                    selectedDatas.Add(token.ToString());
+                }
             }
         }
 
