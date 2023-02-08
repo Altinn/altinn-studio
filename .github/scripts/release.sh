@@ -5,6 +5,7 @@ set -u
 
 PRE_RELEASE=no
 COMMIT=no
+SYNC_AZURE_CDN=no
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -26,6 +27,20 @@ while [[ $# -gt 0 ]]; do
       COMMIT=yes
       shift # pop option
       ;;
+    --azure-sa-name)
+      AZURE_STORAGE_ACCOUNT_NAME="$2"
+      shift # pop option
+      shift # pop option
+      ;;
+    --azure-sa-token)
+      AZURE_STORAGE_ACCOUNT_TOKEN="$2"
+      shift # pop option
+      shift # pop option
+      ;;
+    --azure-sync-cdn )
+      SYNC_AZURE_CDN=yes
+      shift #pop option
+      ;;
     -*|--*)
       echo "Unknown option $1"
       exit 1
@@ -39,6 +54,7 @@ done
 
 SOURCE=dist
 TARGET=toolkits/altinn-app-frontend
+AZURE_TARGET_URI="https://${AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/app-frontend"
 
 if ! test -d "$PATH_TO_CDN" || ! test -d "$PATH_TO_CDN/$TARGET"; then
   echo "Unable to find $PATH_TO_CDN/$TARGET"
@@ -159,3 +175,42 @@ else
 fi
 
 echo "-------------------------------------"
+if [[ -z "$AZURE_STORAGE_ACCOUNT_NAME" ]]; then
+  echo "Skipping publish to azure cdn. As --azure-sa-name flag not defined"
+else 
+  if [[ -d "$AZURE_STORAGE_ACCOUNT_NAME" ]]; then
+    echo
+    echo "azure-sa-name seems to be a local directory. Simulating azcopy sync with rsync to folder"
+    echo
+    toolkits_rsync_opts=( -am --include='*/' --include="${APP_FULL}/*" )
+    if [[ "$PRE_RELEASE" == "no" ]]; then
+      toolkits_rsync_opts+=( --include="${APP_MAJOR}/*" --include="${APP_MAJOR_MINOR}/*" )
+    fi
+    toolkits_rsync_opts+=( --exclude='*' )
+    schemas_rsync_opts=( -am --include='*/' --include="component/*" --include="layout/*"  --exclude='*' )
+    set -x
+    rsync "${toolkits_rsync_opts[@]}" $TARGET $AZURE_STORAGE_ACCOUNT_NAME
+    if [[ "$PRE_RELEASE" == "no" ]]; then
+      rsync "${schemas_rsync_opts[@]}" $TARGET_SCHEMAS/json $AZURE_STORAGE_ACCOUNT_NAME -v
+    fi
+    set +x
+    echo "-------------------------------------"
+  else
+    AZCOPY_INCLUDE_REGEX="^$APP_FULL/*"
+    if [[ "$PRE_RELEASE" == "no" ]]; then
+      AZCOPY_INCLUDE_REGEX+="|^$APP_MAJOR/.*|^$APP_MAJOR_MINOR/.*"
+    fi
+    AZCOPY_TOOLKITS_OPTS=( --include-regex="${AZCOPY_INCLUDE_REGEX}" )
+    AZCOPY_SCHEMAS_OPTS=( --include-rexec"^component/.*|^layout/.*" )
+    AZCOPY_ADDITIONAL_OPTS=( --put-md5 --compare-hash=MD5 --delete-destination=true )
+    if [[ "$SYNC_AZURE_CDN" == "no" ]]; then
+      echo "Publish to azure cdn will run with --dry-run (toggle with --azure-sync-cdn). No files will actually be synced"
+      AZCOPY_ADDITIONAL_OPTS+=( --dry-run )
+    else
+      echo "Publishing files to azure cdn"
+    fi
+    azcopy sync "$TARGET" "$AZURE_TARGET_URI/toolkits${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_TOOLKITS_OPTS[@]}" "${AZCOPY_ADDITIONAL_OPTS[@]}"
+    azcopy sync "${TARGET_SCHEMAS}/json/" "$AZURE_TARGET_URI/altinn-cdn${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_SCHEMAS_OPTS[@]}" "${AZCOPY_ADDITIONAL_OPTS[@]}"
+    echo "-------------------------------------"
+  fi
+fi
