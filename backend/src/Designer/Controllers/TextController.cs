@@ -140,7 +140,7 @@ namespace Altinn.Studio.Designer.Controllers
             // updating application metadata with appTitle.
             JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
 
-            if (!(appTitleToken == null) && !(string.IsNullOrEmpty(appTitleToken.Value<string>("value"))))
+            if ((appTitleToken != null) && !(string.IsNullOrEmpty(appTitleToken.Value<string>("value"))))
             {
                 string appTitle = appTitleToken.Value<string>("value");
                 _repository.UpdateAppTitleInAppMetadata(org, app, languageCode, appTitle);
@@ -177,7 +177,8 @@ namespace Altinn.Studio.Designer.Controllers
 
                 TextResource textResourceObject = new TextResource
                 {
-                    Language = languageCode, Resources = new List<TextResourceElement>()
+                    Language = languageCode,
+                    Resources = new List<TextResourceElement>()
                 };
 
                 if (System.IO.File.Exists(textResourceDirectoryPath))
