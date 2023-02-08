@@ -64,9 +64,9 @@ export const TextRow = ({
 
   const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const newTextId = event.currentTarget.value;
-    const validation = validateTextId(newTextId);
+    const validationResult = validateTextId(newTextId);
 
-    setKeyError(validation.error);
+    setKeyError(validationResult);
     setTextIdValue(newTextId);
   };
 
