@@ -60,8 +60,8 @@ Cypress.Commands.add('reduxDispatch', (action) => {
   return cy.window().its('reduxStore').invoke('dispatch', action);
 });
 
-Cypress.Commands.add('interceptLayout', (layoutName, mutator, wholeLayoutMutator) => {
-  cy.intercept({ method: 'GET', url: `**/api/layouts/${layoutName}`, times: 1 }, (req) => {
+Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator) => {
+  cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, times: 1 }, (req) => {
     req.reply((res) => {
       const set = JSON.parse(res.body);
       for (const layout of Object.values(set)) {
@@ -72,5 +72,5 @@ Cypress.Commands.add('interceptLayout', (layoutName, mutator, wholeLayoutMutator
       }
       res.send(JSON.stringify(set));
     });
-  }).as(`interceptLayout(${layoutName})`);
+  }).as(`interceptLayout(${taskName})`);
 });

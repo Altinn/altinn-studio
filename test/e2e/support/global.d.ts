@@ -111,7 +111,7 @@ declare global {
        * Must be called in the beginning of your test.
        */
       interceptLayout(
-        layoutName: FrontendTestTask | string,
+        taskName: FrontendTestTask | string,
         mutator: (component: ILayoutComponentOrGroup) => void,
         wholeLayoutMutator?: (layoutSet: any) => void,
       ): Chainable<null>;
