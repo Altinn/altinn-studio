@@ -44,6 +44,7 @@ import {
   formLayoutPath,
   formLayoutNamePath,
 } from 'app-shared/api-paths';
+import { TextKey } from "../../../components/config/editModal/EditTextResourceBinding";
 
 const selectCurrentLayout = (state: IAppState): IFormLayout =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
@@ -71,8 +72,10 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
     Object.entries(component.textResourceBindings).forEach(([key, value]) => {
       const newTextId = generateRandomId(12);
       Object.assign(newTextResourceBindings, { [key]: newTextId });
-      Object.assign(newTextResources, { [newTextId]: value });
-      newTextResourcesArray.push({ id: newTextId, value });
+      if (key == TextKey.title || key == TextKey.help) {
+        Object.assign(newTextResources, { [newTextId]: value });
+        newTextResourcesArray.push({ id: newTextId, value });
+      }
     });
     yield put(
       upsertTextResources({
