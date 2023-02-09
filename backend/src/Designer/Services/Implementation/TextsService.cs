@@ -224,26 +224,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private static void UpdateKeyInTextResourceBinding(TextResourceBindings textResourceBindings, TextIdMutation keyMutation)
+        private static void UpdateKeyInTextResourceBinding(Dictionary<string, string> textResourceBindings, TextIdMutation keyMutation)
         {
-            if (textResourceBindings.title == keyMutation.OldId)
+            foreach (KeyValuePair<string, string> trb in textResourceBindings.Where(trb => trb.Value == keyMutation.OldId))
             {
-                textResourceBindings.title = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
-            }
-
-            else if (textResourceBindings.add_button == keyMutation.OldId)
-            {
-                textResourceBindings.add_button = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
-            }
-
-            else if (textResourceBindings.next == keyMutation.OldId)
-            {
-                textResourceBindings.next = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
-            }
-
-            else if (textResourceBindings.back == keyMutation.OldId)
-            {
-                textResourceBindings.back = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
+                textResourceBindings[trb.Key] = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
             }
         }
 

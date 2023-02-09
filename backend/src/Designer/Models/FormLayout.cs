@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Models
     {
         public string id { get; set; }
         public string type { get; set; }
-        public TextResourceBindings textResourceBindings { get; set; }
+        public Dictionary<string, string> textResourceBindings { get; set; }
         public DataModelBindings dataModelBindings { get; set; }
         public bool? required { get; set; }
         public object readOnly { get; set; }
@@ -35,17 +35,5 @@ namespace Altinn.Studio.Designer.Models
         public string simpleBinding { get; set; }
         public string group { get; set; }
         public string list { get; set; }
-    }
-
-#nullable enable
-    public class TextResourceBindings
-    {
-        public string? title { get; set; }
-        public List<object>? edit_button_open { get; set; }
-        public string? add_button { get; set; }
-        public string? body { get; set; }
-        public string? add_label { get; set; }
-        public string? next { get; set; }
-        public string? back { get; set; }
     }
 }
