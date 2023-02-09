@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -10,6 +11,9 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller for pipelines
     /// </summary>
     [ApiController]
+    // Obsolete route
+    [Route("/designer/api/v1")]
+    // Route that is consistent with newer version
     [Route("/designer/api/")]
     public class PipelinesController : ControllerBase
     {
@@ -32,6 +36,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpPost]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        // Obsolete route
+        [Route("checkreleasebuildstatus")]
+        // Route that is consistent with newer version
         [Route("check-release-build-status")]
         public async Task<IActionResult> CheckReleaseStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
@@ -45,6 +52,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpPost]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        // Obsolete route
+        [Route("checkdeploymentbuildstatus")]
+        // Route that is consistent with newer version
         [Route("check-deployment-build-status")]
         public async Task<IActionResult> CheckDeploymentStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
