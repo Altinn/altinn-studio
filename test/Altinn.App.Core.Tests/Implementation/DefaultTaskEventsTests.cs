@@ -173,6 +173,143 @@ public class DefaultTaskEventsTests: IDisposable
         startTwo.VerifyNoOtherCalls();
     }
 
+    [Fact]
+    public async void OnEndProcessTask_does_not_sets_hard_soft_delete_if_process_ended_and_autoDeleteOnProcessEnd_false()
+    {
+        _application.DataTypes = new List<DataType>();
+        _application.AutoDeleteOnProcessEnd = false;
+        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        DefaultTaskEvents te = new DefaultTaskEvents(
+            _logger,
+            _resMock.Object,
+            _dataMock.Object,
+            _prefillMock.Object,
+            _appModel,
+            _instantiationMock.Object,
+            _instanceMock.Object,
+            _taskStarts,
+            _taskEnds,
+            _taskAbandons,
+            _pdfMock.Object,
+            _featureManagerMock.Object,
+            _layoutStateInitializer);
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            InstanceOwner = new()
+            {
+                PartyId = "1000"
+            },
+            Process = new()
+            {
+                Ended = DateTime.Now
+            }
+        };
+        await te.OnEndProcessTask("EndEvent_1", instance);
+        _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
+    }
+    
+    [Fact]
+    public async void OnEndProcessTask_sets_hard_soft_delete_if_process_ended_and_autoDeleteOnProcessEnd_true()
+    {
+        _application.DataTypes = new List<DataType>();
+        _application.AutoDeleteOnProcessEnd = true;
+        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        DefaultTaskEvents te = new DefaultTaskEvents(
+            _logger,
+            _resMock.Object,
+            _dataMock.Object,
+            _prefillMock.Object,
+            _appModel,
+            _instantiationMock.Object,
+            _instanceMock.Object,
+            _taskStarts,
+            _taskEnds,
+            _taskAbandons,
+            _pdfMock.Object,
+            _featureManagerMock.Object,
+            _layoutStateInitializer);
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            InstanceOwner = new()
+            {
+                PartyId = "1000"
+            },
+            Process = new()
+            {
+                Ended = DateTime.Now
+            }
+        };
+        await te.OnEndProcessTask("EndEvent_1", instance);
+        _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Once);
+    }
+    
+    [Fact]
+    public async void OnEndProcessTask_does_not_sets_hard_soft_delete_if_process_not_ended_and_autoDeleteOnProcessEnd_true()
+    {
+        _application.DataTypes = new List<DataType>();
+        _application.AutoDeleteOnProcessEnd = true;
+        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        DefaultTaskEvents te = new DefaultTaskEvents(
+            _logger,
+            _resMock.Object,
+            _dataMock.Object,
+            _prefillMock.Object,
+            _appModel,
+            _instantiationMock.Object,
+            _instanceMock.Object,
+            _taskStarts,
+            _taskEnds,
+            _taskAbandons,
+            _pdfMock.Object,
+            _featureManagerMock.Object,
+            _layoutStateInitializer);
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            InstanceOwner = new()
+            {
+                PartyId = "1000"
+            },
+            Process = new()
+        };
+        await te.OnEndProcessTask("EndEvent_1", instance);
+        _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
+    }
+    
+    [Fact]
+    public async void OnEndProcessTask_does_not_sets_hard_soft_delete_if_process_null_and_autoDeleteOnProcessEnd_true()
+    {
+        _application.DataTypes = new List<DataType>();
+        _application.AutoDeleteOnProcessEnd = true;
+        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        DefaultTaskEvents te = new DefaultTaskEvents(
+            _logger,
+            _resMock.Object,
+            _dataMock.Object,
+            _prefillMock.Object,
+            _appModel,
+            _instantiationMock.Object,
+            _instanceMock.Object,
+            _taskStarts,
+            _taskEnds,
+            _taskAbandons,
+            _pdfMock.Object,
+            _featureManagerMock.Object,
+            _layoutStateInitializer);
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            InstanceOwner = new()
+            {
+                PartyId = "1000"
+            }
+        };
+        await te.OnEndProcessTask("EndEvent_1", instance);
+        _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
+    }
+
     public void Dispose()
     {
         _resMock.Verify(r => r.GetApplication());

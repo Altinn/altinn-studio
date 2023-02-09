@@ -204,7 +204,7 @@ public class DefaultTaskEvents : ITaskEvents
 
     private async Task RunAutoDeleteOnProcessEnd(Instance instance, Guid instanceGuid)
     {
-        if (_appMetadata.AutoDeleteOnProcessEnd)
+        if (_appMetadata.AutoDeleteOnProcessEnd && instance.Process?.Ended != null)
         {
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
