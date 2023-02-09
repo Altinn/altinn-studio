@@ -93,13 +93,17 @@ these on commits. To avoid confusion, it is recommended to set this up your IDE:
 
 <details>
 <summary>Visual Studio Code</summary>
+
 Install the extensions recommended by the workspace, at least [eslint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint).
+
 </details>
 
 <details>
 <summary>WebStorm/IntelliJ IDEA</summary>
+
 Configure your IDE to run `eslint --fix` on save (prettier will also reformat your code when doing this). It is also recommended to
 [set up Prettier as the default formatter](https://www.jetbrains.com/help/webstorm/prettier.html#ws_prettier_default_formatter).
+
 </details>
 
 ## Authors
