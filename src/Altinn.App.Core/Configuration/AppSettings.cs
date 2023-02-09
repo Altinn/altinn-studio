@@ -83,6 +83,11 @@ namespace Altinn.App.Core.Configuration
         /// </summary>
         public string LayoutSetsFileName { get; set; } = "layout-sets.json";
 
+                /// <summary>
+        /// Gets or sets the name of the layout setting file name
+        /// </summary>
+        public string FooterFileName { get; set; } = "footer.json";
+
         /// <summary>
         /// Gets or sets The name of the rule configuration json file Name
         /// </summary>

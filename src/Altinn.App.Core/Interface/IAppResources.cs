@@ -116,6 +116,12 @@ namespace Altinn.App.Core.Interface
         string GetLayoutSets();
 
         /// <summary>
+        /// Gets the footer layout
+        /// </summary>
+        /// <returns>The footer layout</returns>
+        Task<string?> GetFooter();
+
+        /// <summary>
         /// Get the layout set definition. Return null if no layoutsets exists
         /// </summary>
         LayoutSets? GetLayoutSet();

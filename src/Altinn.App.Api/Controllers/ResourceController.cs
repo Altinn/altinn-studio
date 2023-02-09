@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Globalization;
 using System.IO;
@@ -70,7 +71,7 @@ namespace Altinn.App.Api.Controllers
         [HttpGet]
         public IActionResult GetRuntimeResource(string id)
         {
-            byte[] fileContent = _appResourceService.GetRuntimeResource(id);
+            byte[]? fileContent = _appResourceService.GetRuntimeResource(id);
 
             if (fileContent != null)
             {
@@ -178,7 +179,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/layoutsettings")]
         public ActionResult GetLayoutSettings(string org, string app)
         {
-            string settings = _appResourceService.GetLayoutSettingsString();
+            string? settings = _appResourceService.GetLayoutSettingsString();
             return Ok(settings);
         }
 
@@ -193,7 +194,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/layoutsettings/{id}")]
         public ActionResult GetLayoutSettings(string org, string app, string id)
         {
-            string settings = _appResourceService.GetLayoutSettingsStringForSet(id);
+            string? settings = _appResourceService.GetLayoutSettingsStringForSet(id);
             return Ok(settings);
         }
 
@@ -249,6 +250,25 @@ namespace Altinn.App.Api.Controllers
             }
 
             return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(".json"));
+        }
+
+        /// <summary>
+        /// Get the footer layout
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <returns>The footer layout in the form of a string.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/v1/footer")]
+        public async Task<ActionResult> GetFooterLayout(string org, string app)
+        {
+            string? layout = await _appResourceService.GetFooter();
+            if (layout is null)
+            {
+                return NoContent();
+            }
+            
+            return Ok(layout);
         }
     }
 }
