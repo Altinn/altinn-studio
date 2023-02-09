@@ -1,6 +1,6 @@
+import React from 'react';
 import classes from './TextEditor.module.css';
 import { TextRow } from './TextRow';
-import React from 'react';
 import type {
   TextResourceEntry,
   TextResourceEntryDeletion,
@@ -26,7 +26,14 @@ export const TextList = ({
   ...rest
 }: TextListProps) => {
   const langName = getLangName({ code: selectedLangCode });
-  const idExits = (entryId: string) => textIds.includes(entryId);
+
+  const idExits = (textId: string, textEntryValue: string): boolean => {
+    const isSameField = texts[textId]?.value === textEntryValue;
+
+    // combined textId with text-value to decide whether the key exists or not.
+    return textIds.includes(textId) && !isSameField;
+  };
+
   return (
     <ul className={classes.TextEditor__body}>
       {textIds
@@ -36,7 +43,7 @@ export const TextList = ({
             key={`${selectedLangCode}.${id}`}
             textId={id}
             langName={langName}
-            idExists={idExits}
+            idExists={(textId) => idExits(textId, texts[id]?.value)}
             textData={texts[id]}
             {...rest}
           />
