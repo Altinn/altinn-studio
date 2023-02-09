@@ -69,10 +69,15 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
     const newTextResourceBindings = {};
     const newTextResourcesArray = [];
     Object.entries(component.textResourceBindings).forEach(([key, value]) => {
-      const newTextId = generateRandomId(12);
-      Object.assign(newTextResourceBindings, { [key]: newTextId });
-      Object.assign(newTextResources, { [newTextId]: value });
-      newTextResourcesArray.push({ id: newTextId, value });
+      if (key == 'title' || key == 'help' || key == 'description') {
+        const newTextId = generateRandomId(12);
+        Object.assign(newTextResourceBindings, { [key]: newTextId });
+        Object.assign(newTextResources, { [newTextId]: value });
+        newTextResourcesArray.push({ id: newTextId, value });
+      }
+      else {
+        Object.assign(newTextResourceBindings, { [key]: value });
+      }
     });
     yield put(
       upsertTextResources({
