@@ -10,6 +10,7 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 
 namespace Altinn.App.Core.Implementation;
 
@@ -33,6 +34,7 @@ public class DefaultTaskEvents : ITaskEvents
     private readonly IEFormidlingService? _eFormidlingService;
     private readonly AppSettings? _appSettings;
     private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
+    private readonly IFeatureManager _featureManager;
 
     /// <summary>
     /// Constructor with services from DI
@@ -49,9 +51,11 @@ public class DefaultTaskEvents : ITaskEvents
         IEnumerable<IProcessTaskEnd> taskEnds,
         IEnumerable<IProcessTaskAbandon> taskAbandons,
         IPdfService pdfService,
+        IFeatureManager featureManager,
         LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
         IOptions<AppSettings>? appSettings = null,
-        IEFormidlingService? eFormidlingService = null)
+        IEFormidlingService? eFormidlingService = null
+        )
     {
         _logger = logger;
         _appResources = resourceService;
@@ -68,17 +72,15 @@ public class DefaultTaskEvents : ITaskEvents
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _eFormidlingService = eFormidlingService;
         _appSettings = appSettings?.Value;
+        _featureManager = featureManager;
     }
 
     /// <inheritdoc />
     public async Task OnStartProcessTask(string taskId, Instance instance, Dictionary<string, string> prefill)
     {
-        _logger.LogInformation($"OnStartProcessTask for {instance.Id}");
+        _logger.LogDebug("OnStartProcessTask for {instanceId}", instance.Id);
 
-        foreach (var taskStart in _taskStarts)
-        {
-            await taskStart.Start(taskId, instance, prefill);
-        }
+        await RunAppDefinedOnTaskStart(taskId, instance, prefill);
 
         // If this is a revisit to a previous task we need to unlock data
         foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId))
@@ -88,7 +90,7 @@ public class DefaultTaskEvents : ITaskEvents
             if (dataElement != null && dataElement.Locked)
             {
                 dataElement.Locked = false;
-                _logger.LogInformation($"Unlocking data element {dataElement.Id} of dataType {dataType.Id}.");
+                _logger.LogDebug("Unlocking data element {dataElementId} of dataType {dataTypeId}.", dataElement.Id, dataType.Id);
                 await _dataClient.Update(instance, dataElement);
             }
         }
@@ -96,7 +98,7 @@ public class DefaultTaskEvents : ITaskEvents
         foreach (DataType dataType in _appMetadata.DataTypes.Where(dt =>
                      dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
         {
-            _logger.LogInformation($"Auto create data element: {dataType.Id}");
+            _logger.LogDebug("Auto create data element: {dataTypeId}", dataType.Id);
 
             DataElement? dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
 
@@ -117,8 +119,16 @@ public class DefaultTaskEvents : ITaskEvents
                 await UpdatePresentationTextsOnInstance(instance, dataType.Id, data);
                 await UpdateDataValuesOnInstance(instance, dataType.Id, data);
 
-                _logger.LogInformation($"Created data element: {createdDataElement.Id}");
+                _logger.LogDebug("Created data element: {createdDataElementId}", createdDataElement.Id);
             }
+        }
+    }
+
+    private async Task RunAppDefinedOnTaskStart(string taskId, Instance instance, Dictionary<string, string> prefill)
+    {
+        foreach (var taskStart in _taskStarts)
+        {
+            await taskStart.Start(taskId, instance, prefill);
         }
     }
 
@@ -127,17 +137,37 @@ public class DefaultTaskEvents : ITaskEvents
     {
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
         List<DataType> dataTypesToLock = _appMetadata.DataTypes.FindAll(dt => dt.TaskId == endEvent);
+
+        await RunRemoveHiddenData(instance, instanceGuid, dataTypesToLock);
+
+        await RunAppDefinedOnTaskEnd(endEvent, instance);
+
+        await RunLockDataAndGeneratePdf(endEvent, instance, dataTypesToLock);
+
+        await RunEformidling(endEvent, instance);
+
+        await RunAutoDeleteOnProcessEnd(instance, instanceGuid);
+    }
+
+    private async Task RunRemoveHiddenData(Instance instance, Guid instanceGuid, List<DataType> dataTypesToLock)
+    {
         if (_appSettings?.RemoveHiddenDataPreview == true)
         {
             await RemoveHiddenData(instance, instanceGuid, dataTypesToLock);
         }
+    }
 
+    private async Task RunAppDefinedOnTaskEnd(string endEvent, Instance instance)
+    {
         foreach (var taskEnd in _taskEnds)
         {
             await taskEnd.End(endEvent, instance);
         }
+    }
 
-        _logger.LogInformation($"OnEndProcessTask for {instance.Id}. Locking data elements connected to {endEvent} ===========");
+    private async Task RunLockDataAndGeneratePdf(string endEvent, Instance instance, List<DataType> dataTypesToLock)
+    {
+        _logger.LogDebug("OnEndProcessTask for {instanceId}. Locking data elements connected to {endEvent}", instance.Id, endEvent);
 
         foreach (DataType dataType in dataTypesToLock)
         {
@@ -146,14 +176,22 @@ public class DefaultTaskEvents : ITaskEvents
             foreach (DataElement dataElement in instance.Data.FindAll(de => de.DataType == dataType.Id))
             {
                 dataElement.Locked = true;
-                _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType.Id}.");
+                _logger.LogDebug("Locking data element {dataElementId} of dataType {dataTypeId}.", dataElement.Id, dataType.Id);
                 Task updateData = _dataClient.Update(instance, dataElement);
 
                 if (generatePdf)
                 {
-                    Type dataElementType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
-                    Task createPdf =
-                        _pdfService.GenerateAndStoreReceiptPDF(instance, endEvent, dataElement, dataElementType);
+                    Task createPdf;
+                    if (await _featureManager.IsEnabledAsync(FeatureFlags.NewPdfGeneration))
+                    {
+                        createPdf = _pdfService.GenerateAndStorePdf(instance, CancellationToken.None);
+                    }
+                    else
+                    {
+                        Type dataElementType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
+                        createPdf = _pdfService.GenerateAndStoreReceiptPDF(instance, endEvent, dataElement, dataElementType);
+                    }
+
                     await Task.WhenAll(updateData, createPdf);
                 }
                 else
@@ -162,6 +200,19 @@ public class DefaultTaskEvents : ITaskEvents
                 }
             }
         }
+    }
+
+    private async Task RunAutoDeleteOnProcessEnd(Instance instance, Guid instanceGuid)
+    {
+        if (_appMetadata.AutoDeleteOnProcessEnd)
+        {
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
+        }
+    }
+
+    private async Task RunEformidling(string endEvent, Instance instance)
+    {
         if (_appSettings?.EnableEFormidling == true && _appMetadata.EFormidling?.SendAfterTaskId == endEvent && _eFormidlingService != null)
         {
             // The code above updates data elements on the instance. To ensure
@@ -169,12 +220,6 @@ public class DefaultTaskEvents : ITaskEvents
             // we reload the instance before we pass it on to eFormidling.
             var updatedInstance = await _instanceClient.GetInstance(instance);
             await _eFormidlingService.SendEFormidlingShipment(updatedInstance);
-        }
-
-        if (_appMetadata.AutoDeleteOnProcessEnd)
-        {
-            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
-            await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
         }
     }
 
@@ -213,8 +258,7 @@ public class DefaultTaskEvents : ITaskEvents
             await taskAbandon.Abandon(taskId, instance);
         }
 
-        _logger.LogInformation(
-            $"OnAbandonProcessTask for {instance.Id}. Locking data elements connected to {taskId}");
+        _logger.LogDebug("OnAbandonProcessTask for {instanceId}. Locking data elements connected to {taskId}", instance.Id, taskId);
         await Task.CompletedTask;
     }
 

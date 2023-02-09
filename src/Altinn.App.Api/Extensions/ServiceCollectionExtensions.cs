@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.App.Api.Extensions
@@ -51,6 +52,7 @@ namespace Altinn.App.Api.Extensions
         {
             services.AddMemoryCache();
             services.AddHealthChecks().AddCheck<HealthCheck>("default_health_check");
+            services.AddFeatureManagement();
 
             services.AddPlatformServices(config, env);
             services.AddAppServices(config, env);

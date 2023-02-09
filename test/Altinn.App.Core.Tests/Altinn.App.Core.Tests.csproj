@@ -5,19 +5,20 @@
 
     <IsPackable>false</IsPackable>
 
-    <RootNamespace>Altinn.App.PlatformServices.Tests</RootNamespace>
+    <RootNamespace>Altinn.App.Core.Tests</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Implementation\AppBaseTests.cs" />
     <Content Include="LayoutExpressions/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
-    <Watch Include="LayoutExpressions/**/*.json"/>
-    <Watch Include="**/*.cs"/>
+    <Watch Include="LayoutExpressions/**/*.json" />
+    <Watch Include="**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.9.0" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.0.0-preview" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
     <PackageReference Include="Moq" Version="4.18.4" />
     <PackageReference Include="xunit" Version="2.4.2" />
@@ -55,6 +56,15 @@
     <Content Include="Internal\Process\TestData\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Watch Remove="Internal\Pdf\PdfServiceTests.cs" />
+    <Watch Remove="Mocks\RequestInterceptor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Internal\Pdf\TestData\example.pdf" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

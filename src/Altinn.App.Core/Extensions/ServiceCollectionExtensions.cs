@@ -132,10 +132,12 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<InstanceDataListsFactory>();
             services.TryAddTransient<IDataListsService, DataListsService>();
             services.TryAddTransient<LayoutEvaluatorStateInitializer>();
+            services.TryAddTransient<IPdfGeneratorClient, PdfGeneratorClient>();
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
             services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
+            services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
             AddAppOptions(services);
             AddPdfServices(services);
             AddEventServices(services);
