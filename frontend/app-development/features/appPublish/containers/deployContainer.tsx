@@ -2,49 +2,54 @@ import React, { useEffect, useMemo, useState } from 'react';
 import classes from './deployContainer.module.css';
 import moment from 'moment';
 import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
-import type { IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentSlice';
 import type { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
 import type { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
-import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import { AppDeploymentComponent } from '../components/appDeploymentComponent';
+import { AppDeploymentComponent, ImageOption } from '../components/appDeploymentComponent';
 import { BuildResult } from '../../../sharedResources/appRelease/types';
-import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { useAppSelector } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
-import {
-  getDeploymentsStartInterval,
-  getDeploymentsStopInterval,
-} from '../../../sharedResources/appCluster/appClusterSlice';
 import {
   useAppDeployments,
   useAppReleases,
+  useDeployPermissions,
+  useEnvironments,
   useFrontendLang,
   useOrgList,
 } from '../hooks/query-hooks';
+import { ICreateAppDeploymentEnvObject } from '../../../sharedResources/appDeployment/types';
+import { formatDateTime } from 'app-shared/pure/date-format';
+
+type DeployEnvironment = {
+  appPrefix: string;
+  hostname: string;
+  name: string;
+  platformPrefix: string;
+  type: string;
+};
 
 export const DeployContainerComponent = () => {
   const { org, app } = useParams();
-  const dispatch = useAppDispatch();
-
-  const [environments, setEnvironments] = useState([]);
-  const [imageOptions, setImageOptions] = useState([]);
-
-  const { data: appDeployments } = useAppDeployments(org, app);
-
   const appCluster: IAppClusterState = useAppSelector((state) => state.appCluster);
-
   const createAppDeploymentErrors: any = useAppSelector(
     (state) => state.appDeployments.createAppDeploymentErrors
   );
 
-  const configuration: IConfigurationState = useAppSelector((state) => state.configuration);
-  const { data: releases } = useAppReleases(org, app);
-  const { data: orgs = { orgs: {} } } = useOrgList();
-  const { data: language = {} } = useFrontendLang('nb');
-  const deployPermissions: string[] = useAppSelector(
-    (state) => state.userState.permissions.deploy.environments
-  );
+  const { data: appDeployments, isLoading: deploymentsAreLoading } = useAppDeployments(org, app);
+  const { data: environmentList = [], isLoading: envIsLoading } = useEnvironments();
+  const { data: releases = [], isLoading: releasesIsLoading } = useAppReleases(org, app);
+  const { data: orgs = { orgs: {} }, isLoading: orgsIsLoading } = useOrgList();
+  const { data: language = {}, isLoading: languageIsLoading } = useFrontendLang('nb');
+  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissions(org, app);
+
+  const isLoading = () =>
+    releasesIsLoading ||
+    orgsIsLoading ||
+    languageIsLoading ||
+    permissionsIsLoading ||
+    envIsLoading ||
+    deploymentsAreLoading;
+
   const orgName: string = useMemo(() => {
     let name = '';
     if (orgs.orgs && orgs.orgs[org]) {
@@ -53,57 +58,24 @@ export const DeployContainerComponent = () => {
     return name;
   }, [org, orgs]);
 
-  useEffect(() => {
-    dispatch(ConfigurationActions.getEnvironments());
-    dispatch(AppDeploymentActions.getAppDeploymentsStartInterval());
+  const deployEnvironments: ICreateAppDeploymentEnvObject[] = useMemo(
+    () =>
+      orgs?.orgs[org]?.environments
+        .map((envName: string) => environmentList.find((env: any) => env.name === envName))
+        .filter((element: any) => element != null),
+    [orgs, org, environmentList]
+  );
 
-    return () => {
-      dispatch(AppDeploymentActions.getAppDeploymentsStopInterval());
-      dispatch(getDeploymentsStopInterval());
-    };
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (
-      !!orgs.orgs &&
-      !!orgs.orgs[org] &&
-      !!orgs.orgs[org].environments &&
-      !!configuration.environments.result
-    ) {
-      setEnvironments(
-        orgs.orgs[org].environments
-          .map((envName: string) =>
-            configuration.environments.result.find((env: any) => env.name === envName)
-          )
-          .filter((element: any) => element != null)
-      );
-    }
-  }, [orgs, org, configuration]);
-
-  useEffect(() => {
-    if (environments.length) {
-      dispatch(getDeploymentsStartInterval());
-    } else {
-      dispatch(getDeploymentsStopInterval());
-    }
-  }, [environments, dispatch, appDeployments]);
-
-  useEffect(() => {
-    const tempImages = releases
-      .filter((image) => image.build.result === BuildResult.succeeded)
-      .map((image) => {
-        const releaseTime = moment(new Date(image.created)).format('DD.MM.YY [kl.] HH:mm');
-        return {
+  const imageOptions: ImageOption[] = useMemo(
+    () =>
+      releases
+        .filter((image) => image.build.result === BuildResult.succeeded)
+        .map((image) => ({
           value: image.tagName,
-          label: `Version ${image.tagName} (${releaseTime})`,
-        };
-      });
-    setImageOptions(tempImages);
-  }, [releases]);
-
-  const isLoading = (): boolean => {
-    return !environments.length || !appDeployments.deployments || !deployableImages || !language;
-  };
+          label: `Version ${image.tagName} (${formatDateTime(image.created)})`,
+        })),
+    [releases]
+  );
 
   if (isLoading()) {
     return (
@@ -117,31 +89,25 @@ export const DeployContainerComponent = () => {
       </div>
     );
   }
-
   return (
     <div className={classes.deployContainer}>
-      {environments.map((env: any, index: number) => {
+      {deployEnvironments.map((envObj: ICreateAppDeploymentEnvObject) => {
         return (
           <AppDeploymentComponent
-            key={index}
-            envName={env.name}
-            envObj={env}
-            urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
-            urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
+            key={envObj.name}
+            envObj={envObj}
+            urlToApp={`https://${org}.${envObj.appPrefix}.${envObj.hostname}/${org}/${app}/`}
+            urlToAppLinkTxt={`${org}.${envObj.appPrefix}.${envObj.hostname}/${org}/${app}/`}
             deploymentList={
               appCluster.deploymentList &&
-              appCluster.deploymentList.find((elem: any) => elem.env === env.name)
+              appCluster.deploymentList.find((elem: any) => elem.env === envObj.name)
             }
-            releases={imageOptions}
-            deployHistory={appDeployments.deployments.filter(
-              (deployment: any) => deployment.envName === env.name
-            )}
-            deployError={createAppDeploymentErrors.filter(
-              (error: ICreateAppDeploymentErrors) => error.env === env.name
-            )}
+            imageOptions={imageOptions}
+            deployHistory={appDeployments.filter((x) => x.envName === envObj.name)}
+            deployError={createAppDeploymentErrors.filter((x) => x.env === envObj.name)}
             language={language}
             deployPermission={
-              deployPermissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
+              permissions.findIndex((e) => e.toLowerCase() === envObj.name.toLowerCase()) > -1
             }
             orgName={orgName}
           />

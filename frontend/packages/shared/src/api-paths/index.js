@@ -1,4 +1,4 @@
-import { stringify as s } from "qs";
+import { stringify as s } from 'qs';
 
 // ApplicationMetaData
 export const appMetadataPath = (org, app) => `/designer/api/${org}/${app}/metadata`; // Get, Put, Post
@@ -36,11 +36,11 @@ export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commi
 export const repositoryGitPath = (org, app) => `/repos/${org}/${app}.git`;
 export const repositoryPath = (org, app) => `/repos/${org}/${app}`;
 export const repositoryOwnerPath = (org) => `/repos/${org}`;
-export const repositoryBasePath = () => "/repos";
-export const userLogoutPath = () => "/repos/user/logout";
+export const repositoryBasePath = () => '/repos';
+export const userLogoutPath = () => '/repos/user/logout';
 
 // Home
-export const userLogoutAfterPath = () => "/Home/Logout";
+export const userLogoutAfterPath = () => '/Home/Logout';
 
 // Languages - new text-format
 export const languagesPath = (org, app) => `/designer/api/${org}/${app}/languages`; // Get
@@ -52,17 +52,17 @@ export const datamodelMetadataPath = (org, app) => `/designer/api/${org}/${app}/
 export const datamodelXsdPath = (org, app) => `/designer/api/${org}/${app}/model/xsd`; // Get
 
 // Organizations
-export const orgsListPath = () => "/designer/api/orgs"; // Get
+export const orgsListPath = () => '/designer/api/orgs'; // Get
 
-// Release
+// Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
-
 export const appReleasesPath = (org, app) => `/designer/api/${org}/${app}/releases`;
 export const deploymentsPath = (org, app) => `/designer/api/${org}/${app}/deployments`;
 export const deployPermissionsPath = (org, app) => `/designer/api/${org}/${app}/deployments/permissions`;
 
 // Repositories
 export const abortmergePath = (org, app) => `/designer/api/repos/repo/${org}/${app}/abort-merge`;
+export const branchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=${branch}`; // Get
 export const cloneAppPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/clone`; // Get
 export const copyAppPath = (org, sourceRepository, targetRepository) => `/designer/api/repos/copy-app?${s({ org, sourceRepository, targetRepository })}`;
 export const createRepoPath = () => `/designer/api/repos/create-app`; // Post
@@ -70,7 +70,6 @@ export const discardChangesPath = (org, app) => `/designer/api/repos/repo/${org}
 export const discardFileChangesPath = (org, app, filename) => `/designer/api/repos/repo/${org}/${app}/discard/${filename}`; // Get
 export const masterRepoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=master`; // Get
 export const repoBranchesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches`; // Get
-export const repoBranchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=${branch}}`; // Get
 export const repoCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit`; // Post
 export const repoCommitPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit-and-push`; // Post
 export const repoDownloadPath = (org, app, full) => `/designer/api/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;
@@ -81,7 +80,7 @@ export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app
 export const repoPullPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/pull`; // Get
 export const repoPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/push`; // Post
 export const repoResetPAth = (org, app) => `/designer/api/repos/repo/${org}/${app}/reset`; // Get
-export const repoSearchPath = () => "/designer/api/repos/search"; // Get
+export const repoSearchPath = () => '/designer/api/repos/search'; // Get
 export const repoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/status`; // Get
 export const reposListPath = (org) => `/designer/api/repos/org/${org}`; // Get
 export const stageFilePath = (org, app, filename) => `/designer/api/repos/repo/${org}/${app}/stage/${filename}`; // Get
@@ -100,9 +99,9 @@ export const textResourceIdsPath = (org, app) => `/designer/api/${org}/${app}/te
 // Text - new
 
 // User
-export const userCurrentPath = () => "/designer/api/user/current"; // Get
-export const userReposPath = () => "/designer/api/user/repos"; // Get
-export const userStarredListPath = () => "/designer/api/user/starred"; // Get
+export const userCurrentPath = () => '/designer/api/user/current'; // Get
+export const userReposPath = () => '/designer/api/user/repos'; // Get
+export const userStarredListPath = () => '/designer/api/user/starred'; // Get
 export const userStarredRepoPath = (org, app) => `/designer/api/user/starred/${org}/${app}`; // Put, Delete
 
 // Deprecated

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import { AltinnIcon, AltinnLink } from 'app-shared/components';
 import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
@@ -15,8 +15,12 @@ import { Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/alti
 import { ErrorMessage } from './deploy/ErrorMessage';
 import { DeployDropdown } from './deploy/DeployDropdown';
 
+export type ImageOption = {
+  value: string;
+  label: string;
+};
+
 interface IAppDeploymentComponentProps {
-  envName: string;
   envObj: ICreateAppDeploymentEnvObject;
   deploymentList?: IEnvironmentItem;
   urlToApp?: string;
@@ -26,7 +30,7 @@ interface IAppDeploymentComponentProps {
   deployPermission: boolean;
   orgName: string;
   language: any;
-  releases: any;
+  imageOptions: ImageOption[];
 }
 
 export enum DeploymentStatus {
@@ -43,10 +47,9 @@ export const AppDeploymentComponent = ({
   deployHistory,
   deploymentList,
   deployPermission,
-  envName,
   envObj,
   language,
-  releases,
+  imageOptions,
   urlToApp,
   urlToAppLinkTxt,
   orgName,
@@ -55,7 +58,6 @@ export const AppDeploymentComponent = ({
   const [deployInProgress, setDeployInProgress] = useState(null);
   const [deploymentStatus, setDeploymentStatus] = useState(null);
   const [selectedImageTag, setSelectedImageTag] = useState(null);
-  const [succeededDeployHistory, setSucceededDeployHistory] = useState([]);
   const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
 
   const [deployButtonHasShownError, setDeployButtonHasShownError] = useState(null);
@@ -76,15 +78,15 @@ export const AppDeploymentComponent = ({
     );
   };
 
-  useEffect(() => {
-    setSucceededDeployHistory(
+  const succeededDeployHistory = useMemo(
+    () =>
       deployHistory.filter(
         (deployment: IDeployment) =>
           deployment.build.result === DeploymentStatus.succeeded &&
           deployment.build.finished !== null
-      )
-    );
-  }, [deployHistory]);
+      ),
+    [deployHistory]
+  );
 
   useEffect(() => {
     if (deployHistory && deployHistory[0] && deployHistory[0].build.finished === null) {
@@ -114,7 +116,7 @@ export const AppDeploymentComponent = ({
     <div className={classes.mainContainer}>
       <div className={classes.headingContainer}>
         <div className={classes.envTitle}>
-          {t('app_deploy.environment', [envName.toUpperCase()])}
+          {t('app_deploy.environment', [envObj.name.toUpperCase()])}
         </div>
         <div className={classes.gridItem}>
           {deploymentList &&
@@ -151,22 +153,22 @@ export const AppDeploymentComponent = ({
                 {getParsedLanguageFromKey(
                   'app_publish.missing_rights',
                   language,
-                  [envName.toUpperCase(), orgName],
+                  [envObj.name.toUpperCase(), orgName],
                   true
                 )}
               </div>
             </div>
           )}
-          {deploymentList && deploymentList.getStatus.success === true && deployPermission && (
+          {imageOptions.length && deployPermission && (
             <DeployDropdown
               appDeployedVersion={appDeployedVersion}
               language={language}
-              envName={envName}
+              envName={envObj.name}
               disabled={selectedImageTag === null || deployInProgress === true}
               deployHistoryEntry={deployHistory[0]}
               deploymentStatus={deploymentStatus}
               selectedImageTag={selectedImageTag}
-              releases={releases}
+              imageOptions={imageOptions}
               setSelectedImageTag={setSelectedImageTag}
               startDeploy={startDeploy}
             />
@@ -192,21 +194,21 @@ export const AppDeploymentComponent = ({
         </div>
         <div className={classes.deploymentListGrid}>
           {succeededDeployHistory.length === 0 ? (
-            <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
-              {t('app_deploy_table.deployed_version_history_empty', [envName.toUpperCase()])}
+            <span id={`deploy-history-for-${envObj.name.toLowerCase()}-unavailable`}>
+              {t('app_deploy_table.deployed_version_history_empty', [envObj.name.toUpperCase()])}
             </span>
           ) : (
             <>
-              <div id={`deploy-history-for-${envName.toLowerCase()}-available`}>
-                {t('app_deploy_table.deployed_version_history', [envName.toUpperCase()])}
+              <div id={`deploy-history-for-${envObj.name.toLowerCase()}-available`}>
+                {t('app_deploy_table.deployed_version_history', [envObj.name.toUpperCase()])}
               </div>
-              <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
+              <div className={classes.tableWrapper} id={`deploy-history-table-${envObj.name}`}>
                 <Table
                   className={classes.table}
                   aria-label={getParsedLanguageFromKey(
                     'app_deploy_table.deploy_table_aria',
                     language,
-                    [envName],
+                    [envObj.name],
                     true
                   )}
                 >

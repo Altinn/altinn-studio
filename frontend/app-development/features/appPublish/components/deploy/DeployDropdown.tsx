@@ -4,7 +4,7 @@ import type { MouseEvent } from 'react';
 import { AltinnIcon, AltinnSpinner } from 'app-shared/components';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { Button, Select } from '@digdir/design-system-react';
-import { DeploymentStatus } from '../appDeploymentComponent';
+import { DeploymentStatus, ImageOption } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
@@ -13,7 +13,7 @@ import { shouldDisplayDeployStatus } from './utils';
 interface Props {
   appDeployedVersion: string;
   envName: string;
-  releases?: any[];
+  imageOptions: ImageOption[];
   language: any;
   disabled: boolean;
   deployHistoryEntry: any;
@@ -25,7 +25,7 @@ interface Props {
 
 export const DeployDropdown = ({
   appDeployedVersion,
-  releases,
+  imageOptions,
   envName,
   language,
   deploymentStatus,
@@ -41,9 +41,9 @@ export const DeployDropdown = ({
     <>
       <div>{t('app_deploy_messages.choose_version')}</div>
       <div className={classes.select} id={`deploy-select-${envName.toLowerCase()}`}>
-        {releases.length > 0 && (
+        {imageOptions.length > 0 && (
           <Select
-            options={releases || []}
+            options={imageOptions || []}
             onChange={(value: string) => setSelectedImageTag(value)}
           />
         )}

@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const queue = new pQueue({ concurrency: 1 });
 const builds = [];
-const webhookUrl = designerDomain() + '/designer/api/v1/checkreleasebuildstatus';
+const webhookUrl = designerDomain() + '/designer/api/check-release-build-status';
 export const buildsRoute = async (req, res) => {
   const params = JSON.parse(req.body.parameters);
   const ResourceOwner = params.APP_OWNER;
@@ -28,7 +28,7 @@ export const buildsRoute = async (req, res) => {
       console.log('first hit towards', webhookUrl, azureDevOpsWebHookEventModel);
       await axios.post(webhookUrl, azureDevOpsWebHookEventModel);
     } catch (e) {
-      console.error(e.message);
+      console.error(e.message, webhookUrl);
     }
   });
   await queue.add(async () => {
@@ -37,7 +37,7 @@ export const buildsRoute = async (req, res) => {
       console.log('second hit towards', webhookUrl, azureDevOpsWebHookEventModel);
       await axios.post(webhookUrl, azureDevOpsWebHookEventModel);
     } catch (e) {
-      console.error(e.message);
+      console.error(e.message, webhookUrl);
     }
   });
 };

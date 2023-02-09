@@ -1,80 +1,50 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './releaseContainer.module.css';
-import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import type { IHandleMergeConflict } from '../../handleMergeConflict/handleMergeConflictSlice';
 import type { IRelease } from '../../../sharedResources/appRelease/types';
-import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
-import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import { Button, ButtonSize, ButtonVariant, Popover } from '@digdir/design-system-react';
 import { CircularProgress } from '@mui/material';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
-import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { Upload, SuccessStroke } from '@navikt/ds-icons';
-import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { gitCommitPath, repoStatusPath } from 'app-shared/api-paths';
-import { useAppDispatch, useAppSelector, useMediaQuery } from '../../../common/hooks';
+import { gitCommitPath } from 'app-shared/api-paths';
+import { useMediaQuery } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
-import { useAppReleases, useFrontendLang, useRepoStatus } from '../hooks/query-hooks';
+import {
+  useAppReleases,
+  useBranchStatus,
+  useFrontendLang,
+  useRepoStatus,
+} from '../hooks/query-hooks';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
-  const dispatch = useAppDispatch();
   const { org, app } = useParams();
-  const [anchorElement, setAchorElement] = useState<Element>();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
-  const { data: appReleases } = useAppReleases(org, app);
+  const { data: releases = [] } = useAppReleases(org, app);
   const { data: repoStatus } = useRepoStatus(org, app);
-  const { data: language } = useFrontendLang('nb');
+  const { data: language = {} } = useFrontendLang('nb');
+  const { data: masterBranchStatus } = useBranchStatus(org, app, 'master');
 
-  const handleMergeConflict: IHandleMergeConflict = useAppSelector(
-    (state) => state.handleMergeConflict
-  );
-
-  const latestRelease: IRelease = appReleases[0] ? appReleases[0] : null;
+  const latestRelease: IRelease = releases && releases[0] ? releases[0] : null;
 
   const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
 
-  useEffect(() => {
-    dispatch(AppReleaseActions.getAppReleaseStartInterval());
-    dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
-    return () => {
-      dispatch(AppReleaseActions.getAppReleaseStopInterval());
-    };
-  }, [dispatch, language, org, app]);
-
   function handlePopoverKeyPress(event: KeyboardEvent) {
     if (event.key === 'Enter' || event.key === ' ') {
-      if (!anchorElement) {
-        setAchorElement(event.currentTarget);
-      }
       setPopoverOpenClick(!popoverOpenClick);
     }
   }
 
-  function handlePopoverOpenClicked(event: MouseEvent) {
-    if (!anchorElement) {
-      setAchorElement(event.currentTarget);
-    }
-    setPopoverOpenClick(!popoverOpenClick);
-  }
-
-  function handlePopoverOpenHover(event: MouseEvent) {
-    setAchorElement(event.currentTarget);
-    setPopoverOpenHover(true);
-  }
-
-  function handlePopoverClose() {
-    if (popoverOpenHover) {
-      setPopoverOpenHover(!popoverOpenHover);
-    }
-  }
+  const handlePopoverOpenClicked = (_: MouseEvent) => setPopoverOpenClick(!popoverOpenClick);
+  const handlePopoverOpenHover = (_: MouseEvent) => setPopoverOpenHover(true);
+  const handlePopoverClose = () => setPopoverOpenHover(false);
 
   function renderCannotCreateRelease() {
     return (
@@ -91,8 +61,6 @@ export function ReleaseContainer() {
           </div>
           <div className={classes.cannotCreateReleaseSubTitle}>
             {t('app_create_release_errors.technical_error_code')}
-            &nbsp;
-            {appReleases.errors.fetchReleaseErrorCode}
           </div>
         </div>
       </div>
@@ -100,10 +68,10 @@ export function ReleaseContainer() {
   }
 
   function renderCreateRelease() {
-    if (appReleases.errors.fetchReleaseErrorCode !== null) {
+    if (!masterBranchStatus) {
       return renderCannotCreateRelease();
     }
-    if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus) {
+    if (!masterBranchStatus || !repoStatus.contentStatus) {
       return (
         <div style={{ padding: '2rem' }}>
           <div>
@@ -113,19 +81,17 @@ export function ReleaseContainer() {
         </div>
       );
     }
-    if (appReleases.errors.fetchReleaseErrorCode !== null) {
-      return null;
-    }
+
     if (!latestRelease) {
       return <CreateReleaseComponent />;
     }
-    if (!repoStatus.branch.master || !handleMergeConflict.repoStatus) {
+    if (!masterBranchStatus || !repoStatus) {
       return null;
     }
     // Check if latest
     if (
       !!latestRelease &&
-      latestRelease.targetCommitish === repoStatus.branch.master.commit.id &&
+      latestRelease.targetCommitish === masterBranchStatus.commit.id &&
       latestRelease.build.status === BuildStatus.completed &&
       latestRelease.build.result === BuildResult.succeeded
     ) {
@@ -139,17 +105,14 @@ export function ReleaseContainer() {
 
   function renderStatusIcon() {
     if (
-      !repoStatus.branch.master ||
-      !handleMergeConflict.repoStatus.contentStatus ||
-      !handleMergeConflict.repoStatus.contentStatus.length ||
-      !appReleases.releases.length
+      !masterBranchStatus ||
+      !repoStatus.contentStatus ||
+      !repoStatus.contentStatus.length ||
+      !releases.length
     ) {
       return <SuccessStroke />;
     }
-    if (
-      !!handleMergeConflict.repoStatus.contentStatus ||
-      !!handleMergeConflict.repoStatus.aheadBy
-    ) {
+    if (!!repoStatus.contentStatus || !!repoStatus.aheadBy) {
       return <Upload />;
     }
     return null;
@@ -157,45 +120,41 @@ export function ReleaseContainer() {
 
   function renderStatusMessage() {
     if (
-      !repoStatus.branch.master ||
-      !handleMergeConflict.repoStatus.contentStatus ||
-      !handleMergeConflict.repoStatus.contentStatus.length ||
-      !appReleases.releases.length
+      !masterBranchStatus ||
+      !repoStatus.contentStatus ||
+      !repoStatus.contentStatus.length ||
+      !releases.length
     ) {
       return 'Ok';
     }
-    if (!appReleases.releases || !appReleases.releases.length) {
+    if (!releases || !releases.length) {
       return null;
     }
-    if (!!latestRelease && latestRelease.targetCommitish === repoStatus.branch.master.commit.id) {
+    if (!!latestRelease && latestRelease.targetCommitish === masterBranchStatus.commit.id) {
       return t('app_create_release.local_changes_cant_build');
     }
-    if (handleMergeConflict.repoStatus.contentStatus) {
+    if (repoStatus.contentStatus) {
       return t('app_create_release.local_changes_can_build');
     }
     return null;
   }
 
   function renderCreateReleaseTitle() {
-    if (
-      !!appReleases.errors.fetchReleaseErrorCode ||
-      !repoStatus.branch.master ||
-      !handleMergeConflict.repoStatus.contentStatus
-    ) {
+    if (!masterBranchStatus || !repoStatus.contentStatus) {
       return null;
     }
 
     if (
       !latestRelease ||
-      latestRelease.targetCommitish !== repoStatus.branch.master.commit.id ||
-      !handleMergeConflict.repoStatus.contentStatus
+      latestRelease.targetCommitish !== masterBranchStatus.commit.id ||
+      !repoStatus.contentStatus
     ) {
       return (
         <>
           {t('app_release.release_title')} &nbsp;
-          {repoStatus.branch.master ? (
+          {masterBranchStatus ? (
             <a
-              href={gitCommitPath(org, app, repoStatus.branch.master.commit.id)}
+              href={gitCommitPath(org, app, masterBranchStatus.commit.id)}
               target='_blank'
               rel='noopener noreferrer'
             >
@@ -205,7 +164,7 @@ export function ReleaseContainer() {
         </>
       );
     }
-    if (latestRelease.targetCommitish === repoStatus.branch.master.commit.id) {
+    if (latestRelease.targetCommitish === masterBranchStatus.commit.id) {
       return (
         <>
           {t('general.version')}
@@ -214,7 +173,7 @@ export function ReleaseContainer() {
           &nbsp;
           {t('general.contains')}
           &nbsp;
-          <a href={gitCommitPath(org, app, repoStatus.branch.master.commit.id)}>
+          <a href={gitCommitPath(org, app, masterBranchStatus.commit.id)}>
             {t('app_release.release_title_link')}
           </a>
         </>
@@ -240,7 +199,7 @@ export function ReleaseContainer() {
               onMouseOver={handlePopoverOpenHover}
               onMouseLeave={handlePopoverClose}
               tabIndex={0}
-              onKeyPress={handlePopoverKeyPress}
+              onKeyUp={handlePopoverKeyPress}
               icon={renderStatusIcon()}
               size={ButtonSize.Small}
               variant={ButtonVariant.Quiet}
@@ -253,8 +212,8 @@ export function ReleaseContainer() {
       <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
       <div className={classes.appReleaseHistory}>
-        {!!appReleases.releases.length &&
-          appReleases.releases.map((release: IRelease, index: number) => (
+        {!!releases.length &&
+          releases.map((release: IRelease, index: number) => (
             <ReleaseComponent key={index} release={release} />
           ))}
       </div>

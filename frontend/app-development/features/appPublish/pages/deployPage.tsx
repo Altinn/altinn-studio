@@ -11,7 +11,6 @@ import { useParams } from 'react-router-dom';
 export function DeployPage() {
   const { data: orgs = { orgs: {} }, isLoading: isLoadingOrgs } = useOrgList();
   const { data: language = {}, isLoading: isLoadingLang } = useFrontendLang('nb');
-  const t = (key: string) => getLanguageFromKey(key, language);
   const { org } = useParams();
   if (isLoadingOrgs || isLoadingLang) {
     return (
@@ -24,7 +23,7 @@ export function DeployPage() {
       </div>
     );
   }
-
+  const t = (key: string) => getLanguageFromKey(key, language);
   // If org isn't listed, or doesn't have any environments
   if (!orgs.orgs[org] || !orgs.orgs[org].environments || !orgs.orgs[org].environments.length) {
     return (
