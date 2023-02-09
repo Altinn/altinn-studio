@@ -5,20 +5,10 @@ import { useText } from '../../../hooks';
 import { TranslationKey } from 'language/type';
 
 export interface EditTextResourceBindingProps extends IGenericEditComponent {
-  textKey: TextKey;
+  textKey: string;
   labelKey: TranslationKey;
   descriptionKey?: TranslationKey;
   placeholderKey?: TranslationKey;
-}
-
-export enum TextKey {
-  title = 'title',
-  help = 'help',
-  next = 'next',
-  back = 'back',
-  body = 'body',
-  description = 'description',
-  add_button = 'add_button',
 }
 
 export const EditTextResourceBinding = ({
