@@ -17,6 +17,7 @@ export enum TextKey {
   next = 'next',
   back = 'back',
   body = 'body',
+  description = 'description',
   add_button = 'add_button',
 }
 
