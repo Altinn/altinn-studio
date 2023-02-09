@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import classes from './releaseContainer.module.css';
-import type { IHandleMergeConflict } from '../../handleMergeConflict/handleMergeConflictSlice';
 import type { IRelease } from '../../../sharedResources/appRelease/types';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
@@ -46,30 +45,28 @@ export function ReleaseContainer() {
   const handlePopoverOpenHover = (_: MouseEvent) => setPopoverOpenHover(true);
   const handlePopoverClose = () => setPopoverOpenHover(false);
 
-  function renderCannotCreateRelease() {
-    return (
-      <div className={classes.cannotCreateReleaseContainer}>
-        {hiddenMdDown ? null : (
-          <AltinnIconComponent
-            iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
-            iconColor='#E23B53'
-          />
-        )}
-        <div>
-          <div className={classes.cannotCreateReleaseTitle}>
-            {t('app_create_release_errors.fetch_release_failed', ['mailto:tjenesteeier@altinn.no'])}
-          </div>
-          <div className={classes.cannotCreateReleaseSubTitle}>
-            {t('app_create_release_errors.technical_error_code')}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   function renderCreateRelease() {
     if (!masterBranchStatus) {
-      return renderCannotCreateRelease();
+      return (
+        <div className={classes.cannotCreateReleaseContainer}>
+          {hiddenMdDown ? null : (
+            <AltinnIconComponent
+              iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
+              iconColor='#E23B53'
+            />
+          )}
+          <div>
+            <div className={classes.cannotCreateReleaseTitle}>
+              {t('app_create_release_errors.fetch_release_failed', [
+                'mailto:tjenesteeier@altinn.no',
+              ])}
+            </div>
+            <div className={classes.cannotCreateReleaseSubTitle}>
+              {t('app_create_release_errors.technical_error_code')}
+            </div>
+          </div>
+        </div>
+      );
     }
     if (!masterBranchStatus || !repoStatus.contentStatus) {
       return (
@@ -81,24 +78,28 @@ export function ReleaseContainer() {
         </div>
       );
     }
-
-    if (!latestRelease) {
-      return <CreateReleaseComponent />;
-    }
     if (!masterBranchStatus || !repoStatus) {
       return null;
     }
     // Check if latest
     if (
-      !!latestRelease &&
+      latestRelease &&
       latestRelease.targetCommitish === masterBranchStatus.commit.id &&
       latestRelease.build.status === BuildStatus.completed &&
       latestRelease.build.result === BuildResult.succeeded
     ) {
-      return null;
+      return <div style={{ padding: '2rem' }}>No changes on current release</div>;
     }
-    if (latestRelease.build.status !== BuildStatus.completed) {
-      return null;
+    if (
+      latestRelease &&
+      latestRelease.targetCommitish === masterBranchStatus.commit.id &&
+      latestRelease.build.status !== BuildStatus.completed
+    ) {
+      return (
+        <div style={{ padding: '2rem' }}>
+          Still building release: {latestRelease.targetCommitish}
+        </div>
+      );
     }
     return <CreateReleaseComponent />;
   }

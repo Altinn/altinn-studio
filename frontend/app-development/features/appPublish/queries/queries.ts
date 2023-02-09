@@ -9,7 +9,8 @@ import {
 } from 'app-shared/api-paths';
 import { environmentsConfigUrl, orgsListUrl } from 'app-shared/cdn-paths';
 
-export const getAppReleases = (owner, app) => get(appReleasesPath(owner, app));
+export const getAppReleases = (owner, app) =>
+  get(appReleasesPath(owner, app) + '?sortDirection=Descending');
 export const getDeployPermissions = (owner, app) => get(deployPermissionsPath(owner, app));
 export const getFrontendLang = (locale: string) => get(frontendLangPath(locale));
 export const getOrgList = () => get(orgsListUrl());
