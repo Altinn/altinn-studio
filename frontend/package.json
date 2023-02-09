@@ -60,7 +60,7 @@
     "webpack-dev-server": "4.11.1",
     "whatwg-fetch": "3.6.2"
   },
-  "packageManager": "yarn@3.3.1",
+  "packageManager": "yarn@3.4.1",
   "private": true,
   "scripts": {
     "build": "yarn workspaces foreach -p run build",
