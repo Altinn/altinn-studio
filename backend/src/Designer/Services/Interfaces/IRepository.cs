@@ -417,15 +417,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool DeleteMetadataForAttachment(string org, string app, string id);
 
         /// <summary>
-        /// Updates the application information in Application metadata
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="applicationInformation">the application information to be updated</param>
-        /// <returns>true if the information is updated successfully</returns>
-        bool UpdateServiceInformationInApplication(string org, string app, ServiceConfiguration applicationInformation);
-
-        /// <summary>
         /// Returns the application metadata for an application.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -456,7 +447,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="languageId"> the language id</param>
         /// <param name="title"> new application title </param>
-        void UpdateAppTitle(string org, string app, string languageId, string title);
+        void UpdateAppTitleInAppMetadata(string org, string app, string languageId, string title);
 
         /// <summary>
         /// Gets the prefill json file

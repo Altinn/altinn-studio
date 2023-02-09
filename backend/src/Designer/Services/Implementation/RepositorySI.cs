@@ -1361,41 +1361,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public bool UpdateServiceInformationInApplication(string org, string app, ServiceConfiguration applicationInformation)
-        {
-            try
-            {
-                PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
-
-                if (existingApplicationMetadata.Title == null)
-                {
-                    existingApplicationMetadata.Title = new Dictionary<string, string>();
-                }
-
-                if (existingApplicationMetadata.Title.ContainsKey("nb"))
-                {
-                    existingApplicationMetadata.Title["nb"] = applicationInformation.ServiceName;
-                }
-                else
-                {
-                    existingApplicationMetadata.Title.Add("nb", applicationInformation.ServiceName);
-                }
-
-                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Formatting.Indented);
-                string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <inheritdoc/>
-        public void UpdateAppTitle(string org, string app, string languageId, string title)
+        public void UpdateAppTitleInAppMetadata(string org, string app, string languageId, string title)
         {
             PlatformStorageModels.Application appMetadata = GetApplication(org, app);
 

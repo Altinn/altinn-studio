@@ -45,5 +45,23 @@ namespace Altinn.Studio.Designer.Models
                 Resources.Add(new Resource { Id = id, Value = value ?? string.Empty });
             }
         }
+
+        /// <summary>
+        /// Deletes text resource in the Resources list.
+        /// </summary>
+        /// <param name="id"> The id. </param>
+        /// <exception cref="ArgumentException">id missing</exception>
+        public void Delete(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("Argument null or whitespace", nameof(id));
+            }
+
+            if (Resources.Any(r => r.Id == id))
+            {
+                Resources.Remove(Resources.Find(r => r.Id == id));
+            }
+        }
     }
 }
