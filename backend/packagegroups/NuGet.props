@@ -14,7 +14,7 @@
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Update="LibGit2Sharp" Version="0.27.0-preview-0182" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="3.1.0" />
+    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="6.0.0" />
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
     <PackageReference Update="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
