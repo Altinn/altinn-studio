@@ -16,7 +16,7 @@ export function CreateReleaseComponent() {
   const { data: releases = [] } = useAppReleases(org, app);
   const { data: masterBranchStatus } = useBranchStatus(org, app, 'master');
   const { data: language = {} } = useFrontendLang('nb');
-  const mutation = useCreateReleaseMutation(org, app);
+
   const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
   const [openErrorPopover, setOpenErrorPopover] = useState<boolean>(false);
   const ref = useRef();
@@ -26,6 +26,7 @@ export function CreateReleaseComponent() {
 
   const handleBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.currentTarget.value);
 
+  const mutation = useCreateReleaseMutation(org, app);
   const handleBuildVersionClick = () => {
     if (versionNameValid(releases, tagName) && tagName !== '') {
       mutation.mutate({

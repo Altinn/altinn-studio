@@ -57,7 +57,7 @@ export const orgsListPath = () => '/designer/api/orgs'; // Get
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
 export const appReleasesPath = (org, app) => `/designer/api/${org}/${app}/releases`;
-export const deploymentsPath = (org, app) => `/designer/api/${org}/${app}/deployments`;
+export const appDeploymentsPath = (org, app) => `/designer/api/${org}/${app}/deployments`;
 export const deployPermissionsPath = (org, app) => `/designer/api/${org}/${app}/deployments/permissions`;
 
 // Repositories

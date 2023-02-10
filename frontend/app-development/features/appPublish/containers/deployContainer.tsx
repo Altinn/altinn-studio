@@ -1,9 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import classes from './deployContainer.module.css';
-import moment from 'moment';
 import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
-import type { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
-import type { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { AppDeploymentComponent, ImageOption } from '../components/appDeploymentComponent';
 import { BuildResult } from '../../../sharedResources/appRelease/types';
@@ -19,14 +16,6 @@ import {
 } from '../hooks/query-hooks';
 import { ICreateAppDeploymentEnvObject } from '../../../sharedResources/appDeployment/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
-
-type DeployEnvironment = {
-  appPrefix: string;
-  hostname: string;
-  name: string;
-  platformPrefix: string;
-  type: string;
-};
 
 export const DeployContainerComponent = () => {
   const { org, app } = useParams();

@@ -27,7 +27,7 @@ export function ReleaseContainer() {
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
   const { data: releases = [] } = useAppReleases(org, app);
-  const { data: repoStatus } = useRepoStatus(org, app);
+  const { data: repoStatus = {} } = useRepoStatus(org, app);
   const { data: language = {} } = useFrontendLang('nb');
   const { data: masterBranchStatus } = useBranchStatus(org, app, 'master');
 

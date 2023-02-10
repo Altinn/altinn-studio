@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import { AltinnIcon, AltinnLink } from 'app-shared/components';
-import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { useDispatch } from 'react-redux';
 import type {
   ICreateAppDeploymentEnvObject,
   ICreateAppDeploymentErrors,
@@ -14,6 +12,8 @@ import { formatDateTime } from 'app-shared/pure/date-format';
 import { Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
 import { ErrorMessage } from './deploy/ErrorMessage';
 import { DeployDropdown } from './deploy/DeployDropdown';
+import { useCreateDeployMutation } from '../hooks/mutation-hooks';
+import { useParams } from 'react-router-dom';
 
 export type ImageOption = {
   value: string;
@@ -54,28 +54,20 @@ export const AppDeploymentComponent = ({
   urlToAppLinkTxt,
   orgName,
 }: IAppDeploymentComponentProps) => {
-  const dispatch = useDispatch();
-  const [deployInProgress, setDeployInProgress] = useState(null);
-  const [deploymentStatus, setDeploymentStatus] = useState(null);
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
-
-  const [deployButtonHasShownError, setDeployButtonHasShownError] = useState(null);
 
   const appDeployedVersion =
     deploymentList && deploymentList.items && deploymentList.items.length > 0
       ? deploymentList.items[0].version
       : undefined;
-
+  const { org, app } = useParams();
+  const mutation = useCreateDeployMutation(org, app);
   const startDeploy = () => {
-    setDeployInProgress(true);
-    setDeployButtonHasShownError(false);
-    dispatch(
-      AppDeploymentActions.createAppDeployment({
-        tagName: selectedImageTag,
-        envObj,
-      })
-    );
+    mutation.mutate({
+      tagName: selectedImageTag,
+      env: envObj,
+    });
   };
 
   const succeededDeployHistory = useMemo(
@@ -87,30 +79,18 @@ export const AppDeploymentComponent = ({
       ),
     [deployHistory]
   );
-
-  useEffect(() => {
-    if (deployHistory && deployHistory[0] && deployHistory[0].build.finished === null) {
-      setDeployInProgress(true);
-      setDeploymentStatus(DeploymentStatus.inProgress);
-    } else if (
-      deployHistory &&
-      deployHistory[0] &&
-      deployHistory[0].build.finished &&
-      deployHistory[0].build.result
-    ) {
-      setDeployInProgress(false);
-      setDeploymentStatus(deployHistory[0].build.result);
+  const latestDeploy = deployHistory ? deployHistory[0] : null;
+  const { deployInProgress, deploymentStatus } = useMemo(() => {
+    if (latestDeploy && latestDeploy.build.finished === null) {
+      return { deployInProgress: true, deploymentStatus: DeploymentStatus.inProgress };
+    } else if (latestDeploy && latestDeploy.build.finished && latestDeploy.build.result) {
+      return { deployInProgress: false, deploymentStatus: latestDeploy.build.result };
     } else {
-      setDeployInProgress(false);
-      setDeploymentStatus(null);
+      return { deployInProgress: false, deploymentStatus: null };
     }
-  }, [deployButtonHasShownError, deployError, deployHistory]);
+  }, [latestDeploy]);
 
-  const showDeployFailedMessage =
-    deployButtonHasShownError !== true &&
-    deployError &&
-    deployError[0] &&
-    deployError[0].errorMessage !== null;
+  const showDeployFailedMessage = latestDeploy && latestDeploy.errorMessage !== null;
 
   return (
     <div className={classes.mainContainer}>
@@ -165,7 +145,7 @@ export const AppDeploymentComponent = ({
               language={language}
               envName={envObj.name}
               disabled={selectedImageTag === null || deployInProgress === true}
-              deployHistoryEntry={deployHistory[0]}
+              deployHistoryEntry={latestDeploy}
               deploymentStatus={deploymentStatus}
               selectedImageTag={selectedImageTag}
               imageOptions={imageOptions}

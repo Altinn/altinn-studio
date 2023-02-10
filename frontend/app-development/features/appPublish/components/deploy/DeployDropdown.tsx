@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
-import type { MouseEvent } from 'react';
 import { AltinnIcon, AltinnSpinner } from 'app-shared/components';
-import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { Button, Select } from '@digdir/design-system-react';
+import {
+  Button,
+  ButtonVariant,
+  Popover,
+  PopoverVariant,
+  Select,
+} from '@digdir/design-system-react';
+import { ButtonContainer } from 'app-shared/primitives';
 import { DeploymentStatus, ImageOption } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
@@ -35,8 +40,8 @@ export const DeployDropdown = ({
   disabled,
   startDeploy,
 }: Props) => {
+  const [popoverIsOpen, setPopoverIsOpen] = useState(false);
   const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   return (
     <>
       <div>{t('app_deploy_messages.choose_version')}</div>
@@ -49,34 +54,37 @@ export const DeployDropdown = ({
         )}
       </div>
       <div className={classes.deployButton}>
-        <Button
-          disabled={disabled}
-          onClick={(e: MouseEvent<HTMLButtonElement>) => setAnchorEl(e.currentTarget)}
-          id={`deploy-button-${envName.toLowerCase()}`}
-        >
-          {t('app_deploy_messages.btn_deploy_new_version')}
-        </Button>
-        <AltinnPopoverSimple
-          open={Boolean(anchorEl)}
-          anchorEl={anchorEl}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          btnCancelText='avbryt'
-          btnClick={() => {
-            startDeploy();
-            setAnchorEl(null);
-          }}
-          btnConfirmText={'Ja'}
-          btnPrimaryId={`deploy-button-${envName.toLowerCase()}-confirm`}
-          handleClose={() => setAnchorEl(null)}
-          transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-          paperProps={{ classes: { root: classes.paperProps } }}
+        <Popover
+          open={popoverIsOpen}
+          placement={'right'}
+          variant={PopoverVariant.Warning}
+          trigger={
+            <Button
+              disabled={disabled}
+              onClick={(_) => setPopoverIsOpen(!popoverIsOpen)}
+              id={`deploy-button-${envName.toLowerCase()}`}
+            >
+              {t('app_deploy_messages.btn_deploy_new_version')}
+            </Button>
+          }
         >
           <>
             {appDeployedVersion
               ? t('app_deploy_messages.deploy_confirmation', [selectedImageTag, appDeployedVersion])
               : t('app_deploy_messages.deploy_confirmation_short', [selectedImageTag])}
+            <ButtonContainer>
+              <Button
+                id={`deploy-button-${envName.toLowerCase()}-confirm`}
+                onClick={() => startDeploy()}
+              >
+                Ja
+              </Button>
+              <Button onClick={(_) => setPopoverIsOpen(false)} variant={ButtonVariant.Quiet}>
+                Avbryt
+              </Button>
+            </ButtonContainer>
           </>
-        </AltinnPopoverSimple>
+        </Popover>
       </div>
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (
         <div className={classes.deployStatusGridContainer}>
