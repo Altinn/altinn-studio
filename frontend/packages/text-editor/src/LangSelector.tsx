@@ -30,7 +30,7 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
     'data-value': selectedOption.value,
   };
   return (
-    <div className={classes.LangSelector}>
+    <div className={classes.LanguageSelector}>
       <Select
         hideLabel={true}
         onChange={handleSelectOnChange}
