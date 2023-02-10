@@ -6,7 +6,7 @@ export const generateTextResourceId = (
   componentId: string,
   textKey: string
 ) => {
-  return `${layoutName}-${componentId}-${textKey}`;
+  return `${layoutName}.${componentId}.${textKey}`;
 };
 
 export const generateComponentId = (componentType: string, layout: IFormLayout) => {
