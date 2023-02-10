@@ -28,4 +28,4 @@ export const getDomFriendlyID = (
 };
 
 export const isValidName = (name: string) =>
-  Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
+  Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ]*$/));
