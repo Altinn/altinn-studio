@@ -267,8 +267,8 @@ export function RepeatingGroupTableRow({
                 )}
               >
                 <div className={classes.buttonInCellWrapper}>
-                  <DeleteWarningPopover
-                    trigger={
+                  {(() => {
+                    const deleteButton = (
                       <Button
                         variant={ButtonVariant.Quiet}
                         color={ButtonColor.Danger}
@@ -282,16 +282,26 @@ export function RepeatingGroupTableRow({
                       >
                         {deleteButtonText}
                       </Button>
+                    );
+
+                    if (edit?.alertOnDelete) {
+                      return (
+                        <DeleteWarningPopover
+                          trigger={deleteButton}
+                          side='left'
+                          language={language}
+                          deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
+                          messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
+                          open={popoverPanelIndex == index && popoverOpen}
+                          setPopoverOpen={setPopoverOpen}
+                          onCancelClick={() => onOpenChange(index)}
+                          onPopoverDeleteClick={onPopoverDeleteClick(index)}
+                        />
+                      );
+                    } else {
+                      return deleteButton;
                     }
-                    side='left'
-                    language={language}
-                    deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
-                    messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
-                    open={popoverPanelIndex == index && popoverOpen}
-                    setPopoverOpen={setPopoverOpen}
-                    onCancelClick={() => onOpenChange(index)}
-                    onPopoverDeleteClick={onPopoverDeleteClick(index)}
-                  />
+                  })()}
                 </div>
               </TableCell>
             )}
@@ -323,8 +333,8 @@ export function RepeatingGroupTableRow({
               typeof popoverOpen === 'boolean' && (
                 <>
                   <div style={{ height: 8 }} />
-                  <DeleteWarningPopover
-                    trigger={
+                  {(() => {
+                    const deleteButton = (
                       <Button
                         variant={ButtonVariant.Quiet}
                         color={ButtonColor.Danger}
@@ -338,16 +348,26 @@ export function RepeatingGroupTableRow({
                       >
                         {(isEditingRow || !mobileViewSmall) && deleteButtonText}
                       </Button>
+                    );
+
+                    if (edit?.alertOnDelete) {
+                      return (
+                        <DeleteWarningPopover
+                          trigger={deleteButton}
+                          side='left'
+                          language={language}
+                          deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
+                          messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
+                          open={popoverPanelIndex == index && popoverOpen}
+                          setPopoverOpen={setPopoverOpen}
+                          onCancelClick={() => onOpenChange(index)}
+                          onPopoverDeleteClick={onPopoverDeleteClick(index)}
+                        />
+                      );
+                    } else {
+                      return deleteButton;
                     }
-                    side='left'
-                    language={language}
-                    deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
-                    messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
-                    open={popoverPanelIndex == index && popoverOpen}
-                    setPopoverOpen={setPopoverOpen}
-                    onCancelClick={() => onOpenChange(index)}
-                    onPopoverDeleteClick={onPopoverDeleteClick(index)}
-                  />
+                  })()}
                 </>
               )}
           </div>
