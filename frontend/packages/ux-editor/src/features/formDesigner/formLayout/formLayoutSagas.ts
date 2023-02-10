@@ -4,7 +4,6 @@ import { del, get, post } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import Axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import {
   convertFromLayoutToInternalFormat,
@@ -36,7 +35,7 @@ import type {
 } from '../../../types/global';
 import { upsertTextResources } from '../../appData/textResources/textResourcesSlice';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import { generateComponentId, generateTextResourceId } from '../../../utils/generateId';
 import {
   appMetadataAttachmentPath,
   layoutSettingsPath,
@@ -47,13 +46,16 @@ import {
 
 const selectCurrentLayout = (state: IAppState): IFormLayout =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
+const selectCurrentLayoutName = (state: IAppState): string =>
+  state.formDesigner.layout.selectedLayout;
 
 function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentAction>): SagaIterator {
   try {
     let { containerId, position } = payload;
     const { org, app, component, callback } = payload;
-    const id: string = uuidv4();
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
+    const currentLayoutName: string = yield select(selectCurrentLayoutName);
+    const id: string = generateComponentId(component.type, currentLayout);
 
     if (!containerId) {
       // if not containerId set it to base-container
@@ -70,12 +72,11 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
     const newTextResourcesArray = [];
     Object.entries(component.textResourceBindings).forEach(([key, value]) => {
       if (key == 'title' || key == 'help' || key == 'description') {
-        const newTextId = generateRandomId(12);
+        const newTextId = generateTextResourceId(currentLayoutName, id, key);
         Object.assign(newTextResourceBindings, { [key]: newTextId });
         Object.assign(newTextResources, { [newTextId]: value });
         newTextResourcesArray.push({ id: newTextId, value });
-      }
-      else {
+      } else {
         Object.assign(newTextResourceBindings, { [key]: value });
       }
     });
@@ -130,7 +131,8 @@ export function* watchAddFormComponentSaga(): SagaIterator {
 function* addFormContainerSaga({ payload }: PayloadAction<IAddFormContainerAction>): SagaIterator {
   try {
     const { container, positionAfterId, addToId, callback, destinationIndex, org, app } = payload;
-    const id = uuidv4();
+    const layout = yield select(selectCurrentLayout);
+    const id = generateComponentId('Group', layout);
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
     let baseContainerId;
     if (Object.keys(currentLayout.order) && Object.keys(currentLayout.order).length > 0) {
@@ -481,7 +483,10 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
 
       yield put(
         FormLayoutActions.addFormComponent({
-          component: { ...navigationButtonComponent, id: uuidv4() },
+          component: {
+            ...navigationButtonComponent,
+            id: generateComponentId(navigationButtonComponent.type, layoutsCopy[layout]),
+          },
           position: 0,
           containerId: Object.keys(layoutsCopy[layout].containers)[0],
           org,
@@ -499,7 +504,10 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
         if (!hasNavigationButton) {
           yield put(
             FormLayoutActions.addFormComponent({
-              component: { ...navigationButtonComponent, id: uuidv4() },
+              component: {
+                ...navigationButtonComponent,
+                id: generateComponentId(navigationButtonComponent.type, layoutsCopy[layout]),
+              },
               position: Object.keys(layoutsCopy[firstPageKey].components).length,
               containerId: Object.keys(layoutsCopy[firstPageKey].containers)[0],
               org,
@@ -554,10 +562,7 @@ export function* fetchFormLayoutSettingSaga({
 }
 
 export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
-  yield takeEvery(
-    [FormLayoutActions.fetchLayoutSettings],
-    fetchFormLayoutSettingSaga
-  );
+  yield takeEvery([FormLayoutActions.fetchLayoutSettings], fetchFormLayoutSettingSaga);
 }
 
 export function* saveFormLayoutSettingSaga({ payload }: PayloadAction<{ org; app }>): SagaIterator {
