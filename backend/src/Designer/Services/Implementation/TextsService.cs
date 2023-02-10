@@ -181,6 +181,63 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return response;
         }
 
+        /// <inheritdoc />
+        public async Task UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations)
+        {
+            // handle if no layout exists
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
+
+            if (altinnAppGitRepository.AppUsesLayoutSets())
+            {
+                foreach (string layoutSetName in layoutSetNames)
+                {
+                    await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations);
+                }
+
+                return;
+            }
+
+            await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations);
+        }
+
+        /// <inheritdoc />
+        public async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+            foreach (string layoutName in layoutNames)
+            {
+                Designer.Models.FormLayout layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+                foreach (Designer.Models.Layout layoutObject in layout.data.layout)
+                {
+                    foreach (TextIdMutation mutation in keyMutations)
+                    {
+                        if (layoutObject.textResourceBindings != null)
+                        {
+                            UpdateKeyInTextResourceBinding(layoutObject.textResourceBindings, mutation);
+                        }
+                    }
+                }
+                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
+            }
+        }
+
+        private static void UpdateKeyInTextResourceBinding(Dictionary<string, string> textResourceBindings, TextIdMutation keyMutation)
+        {
+            foreach (KeyValuePair<string, string> trb in textResourceBindings.Where(trb => trb.Value == keyMutation.OldId))
+            {
+                if (keyMutation.NewId.HasValue)
+                {
+                    textResourceBindings[trb.Key] = keyMutation.NewId.Value;
+                }
+                else
+                {
+                    textResourceBindings.Remove(trb.Key);
+                }
+            }
+        }
+
         private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
         {
             foreach (string key in keysToMerge)

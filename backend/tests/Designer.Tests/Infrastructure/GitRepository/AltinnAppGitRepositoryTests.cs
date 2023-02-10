@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Xunit;
@@ -14,13 +16,12 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public void Constructor_ValidParameters_ShouldInstantiate()
         {
-            var org = "ttd";
-            var repository = "hvem-er-hvem";
-            var developer = "testUser";
+            string org = "ttd";
+            string repository = "hvem-er-hvem";
+            string developer = "testUser";
 
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
-
             var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
 
             Assert.Equal(org, altinnAppGitRepository.Org);
@@ -32,13 +33,10 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public async Task GetApplicationMetadata_FileExists_ShouldHaveCorrectValues()
         {
-            var org = "ttd";
-            var repository = "hvem-er-hvem";
-            var developer = "testUser";
-
-            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
-            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+            string org = "ttd";
+            string repository = "hvem-er-hvem";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
 
@@ -77,13 +75,10 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public async Task GetTextResources_ResourceExists_ShouldReturn()
         {
-            var org = "ttd";
-            var repository = "hvem-er-hvem";
-            var developer = "testUser";
-
-            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
-            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+            string org = "ttd";
+            string repository = "hvem-er-hvem";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             var textResource = await altinnAppGitRepository.GetTextV1("nb");
 
@@ -94,13 +89,10 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public async Task GetTextResourcesForAllLanguages_ResourceExists_ShouldReturn()
         {
-            var org = "ttd";
-            var repository = "hvem-er-hvem";
-            var developer = "testUser";
-
-            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
-            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+            string org = "ttd";
+            string repository = "hvem-er-hvem";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
             var allResources = await altinnAppGitRepository.GetTextResourcesForAllLanguages();
 
@@ -109,6 +101,159 @@ namespace Designer.Tests.Infrastructure.GitRepository
             allResources.First(r => r.Key == "ServiceName").Value.Should().HaveCount(2);
             allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "en").Value.Value.Should().Be("who-is-who");
             allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "nb").Value.Value.Should().Be("Hvem er hvem?");
+        }
+
+        [Fact]
+        public void GetLayoutSetNames_WithAppThatUsesLayoutSet_ShouldReturnLayoutSetNames()
+        {
+            string org = "ttd";
+            string repository = "app-with-layoutsets";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
+
+            layoutSetNames.Should().NotBeNull();
+            layoutSetNames.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public void GetLayoutSetNames_WithAppThatNotUsesLayoutSet_ShouldReturnDefaultLayoutFolder()
+        {
+            string org = "ttd";
+            string repository = "app-without-layoutsets";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
+
+            layoutSetNames.Should().NotBeNull();
+            layoutSetNames.Should().HaveCount(1);
+        }
+
+        [Fact]
+        public async Task CheckIfAppUsesLayoutSets_ShouldReturnTrue()
+        {
+            string org = "ttd";
+            string repository = "app-with-layoutsets";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+
+            appUsesLayoutSets.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task CheckIfAppUsesLayoutSets_ShouldReturnFalse()
+        {
+            string org = "ttd";
+            string repository = "app-without-layoutsets";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+
+            appUsesLayoutSets.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task GetLayoutNames_WithAppThatUsesLayoutSet_ShouldReturnLayoutPathNames()
+        {
+            string org = "ttd";
+            string repository = "app-with-layoutsets";
+            string developer = "testUser";
+            string layoutSetName = "layoutSet1";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+
+            layoutNames.Should().NotBeNull();
+            layoutNames.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public async Task GetLayoutNames_WithAppThatNotUsesLayoutSet_ShouldReturnLayoutPathNames()
+        {
+            string org = "ttd";
+            string repository = "app-without-layoutsets";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            string[] layoutNames = altinnAppGitRepository.GetLayoutNames(null);
+
+            layoutNames.Should().NotBeNull();
+            layoutNames.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public async Task GetLayout_WithAppThatUsesLayoutSet_ShouldReturnLayout()
+        {
+            string org = "ttd";
+            string repository = "app-with-layoutsets";
+            string developer = "testUser";
+            string layoutSetName = "layoutSet1";
+            string layoutName = "layoutFile1InSet1.json";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+
+            formLayout.Should().NotBeNull();
+            formLayout.data.layout.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GetLayout_WithAppThatNotUsesLayoutSet_ShouldReturnLayout()
+        {
+            string org = "ttd";
+            string repository = "app-without-layoutsets";
+            string developer = "testUser";
+            string layoutName = "layoutFile1.json";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            FormLayout formLayout = await altinnAppGitRepository.GetLayout(null, layoutName);
+
+            formLayout.Should().NotBeNull();
+            formLayout.data.layout.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task SaveLayout_ShouldUpdateLayoutInApp()
+        {
+            string org = "ttd";
+            string repository = "app-with-layoutsets";
+            string developer = "testUser";
+            string layoutSetName = "layoutSet1";
+            string layoutName = "layoutFile2InSet1.json";
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            try
+            {
+                await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+                AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+                FormLayout formLayoutToSave = new() { schema = "some-string", data = new Data { layout = new List<Layout> { new() { id = "some-id", type = "some-type" } } } };
+                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayoutToSave);
+                FormLayout formLayoutSaved = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+
+                formLayoutSaved.Should().NotBeNull();
+                formLayoutSaved.data.layout.Should().NotBeNull();
+                formLayoutSaved.data.layout.Should().HaveCount(1);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+
+        }
+
+        private static AltinnAppGitRepository PrepareRepositoryForTest(string org, string repository, string developer)
+        {
+
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
+            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+
+            return altinnAppGitRepository;
         }
     }
 }

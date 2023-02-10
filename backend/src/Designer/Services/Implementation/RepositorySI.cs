@@ -809,6 +809,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (File.Exists(filename))
             {
+                // delete all references of text-keys in layoutfiles
                 File.Delete(filename);
                 deleted = true;
             }

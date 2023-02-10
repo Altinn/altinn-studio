@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -18,7 +19,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GitRepository"/> class.
-        /// </summary>        
+        /// </summary>
         /// <param name="repositoriesRootDirectory">Base path (full) for where the repository recides on-disk.</param>
         /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
         public GitRepository(string repositoriesRootDirectory, string repositoryDirectory)
@@ -34,7 +35,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Root path for where the repositories recides on-disk.        
+        /// Root path for where the repositories recides on-disk.
         /// </summary>
         public string RepositoriesRootDirectory { get; private set; }
 
@@ -77,8 +78,23 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Gets all the directories within the specified directory.
+        /// </summary>
+        /// <param name="relativeDirectory">Relative path to a directory within the repository.</param>
+        public string[] GetDirectoriesByRelativeDirectory(string relativeDirectory)
+        {
+            var absoluteDirectory = GetAbsoluteFilePathSanitized(relativeDirectory);
+
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectory);
+
+            string[] directories = Directory.GetDirectories(absoluteDirectory).Select(dir => new DirectoryInfo(dir).Name).ToArray();
+
+            return directories;
+        }
+
+        /// <summary>
         /// Returns the content of a file absolute path within the repository directory.
-        /// </summary>        
+        /// </summary>
         /// <param name="absoluteFilePath">The relative path to the file.</param>
         /// <returns>A string containing the file content</returns>
         public async Task<string> ReadTextByAbsolutePathAsync(string absoluteFilePath)
@@ -92,7 +108,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         /// <summary>
         /// Returns the content of a file path relative to the repository directory
-        /// </summary>        
+        /// </summary>
         /// <param name="relativeFilePath">The relative path to the file.</param>
         /// <returns>A string containing the file content</returns>
         public async Task<string> ReadTextByRelativePathAsync(string relativeFilePath)
@@ -125,7 +141,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="relativeFilePath">File to be created/updated.</param>
         /// <param name="text">Text content to be written to the file.</param>
-        /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>        
+        /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>
         public async Task WriteTextByRelativePathAsync(string relativeFilePath, string text, bool createDirectory = false)
         {
             Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
@@ -147,7 +163,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="relativeFilePath">File to be created/updated.</param>
         /// <param name="stream">Content to be written to the file.</param>
-        /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>        
+        /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>
         public async Task WriteStreamByRelativePathAsync(string relativeFilePath, Stream stream, bool createDirectory = false)
         {
             Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
@@ -169,7 +185,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="relativeFilePath">File to be created/updated.</param>
         /// <param name="obj">Object to be written to the file.</param>
-        /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>        
+        /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>
         public async Task WriteObjectByRelativePathAsync(string relativeFilePath, object obj, bool createDirectory = false)
         {
             var studioSettingsJson = JsonSerializer.Serialize(obj, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() }, WriteIndented = true });
@@ -207,7 +223,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Checks if a file exists within the repository.
         /// </summary>
-        /// <param name="relativeFilePath">Relative path to file to check for existense.</param>        
+        /// <param name="relativeFilePath">Relative path to file to check for existense.</param>
         public bool FileExistsByRelativePath(string relativeFilePath)
         {
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
@@ -224,7 +240,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Checks if a directory exists within the repository.
         /// </summary>
         /// <param name="relativeDirectoryPath">Relative path to directory to check for existense.</param>
-        public bool DirectoryExitsByRelativePath(string relativeDirectoryPath)
+        public bool DirectoryExistsByRelativePath(string relativeDirectoryPath)
         {
             var absoluteDirectoryPath = GetAbsoluteFilePathSanitized(relativeDirectoryPath);
 
@@ -284,7 +300,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Gets the absolute path for a file given a repository relative path.
         /// </summary>
-        /// <param name="relativeFilePath">Relative path to the file to get the absolute path for.</param>        
+        /// <param name="relativeFilePath">Relative path to the file to get the absolute path for.</param>
         protected string GetAbsoluteFilePathSanitized(string relativeFilePath)
         {
             if (relativeFilePath.StartsWith("/") || relativeFilePath.StartsWith("\\"))

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Mvc;
+using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -69,5 +68,26 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="oldKey">The old key that will be replaced</param>
         /// <param name="newKey">The new key to replace the old</param>
         public Task<string> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey);
+
+        /// <summary>
+        /// Updates references to text keys in layout files.
+        /// </summary>
+        /// <param name="org">Identifier for the organisation</param>
+        /// <param name="app">Identifier for the application</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="keyMutations">A list of the keys that are updated</param>
+        /// <returns></returns>
+        public Task UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations);
+
+        /// <summary>
+        /// Updates text keys in layouts for a specific layoutset
+        /// </summary>
+        /// <param name="org">Identifier for the organisation</param>
+        /// <param name="app">Identifier for the application</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="layoutSetName">Name of the layoutset</param>
+        /// <param name="keyMutations">A list of the keys that are updated</param>
+        /// <returns></returns>
+        public Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations);
     }
 }

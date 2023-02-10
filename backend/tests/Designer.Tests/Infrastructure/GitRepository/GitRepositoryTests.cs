@@ -134,7 +134,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
-            Assert.False(gitRepository.DirectoryExitsByRelativePath("c:/this/does/not/exists"));
+            Assert.False(gitRepository.DirectoryExistsByRelativePath("c:/this/does/not/exists"));
         }
 
         [Fact]

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -33,6 +33,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
+        private readonly ITextsService _textsService;
         private readonly JsonSerializerSettings _serializerSettings;
 
         /// <summary>
@@ -43,13 +44,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
-        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger)
+        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = repositoryService;
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+            _textsService = textsService;
             _serializerSettings = new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
@@ -224,14 +226,6 @@ namespace Altinn.Studio.Designer.Controllers
             }
         }
 
-        private static string MakeResourceFilename(string langCode = "nb")
-        {
-            return $"resource.{langCode}.json";
-        }
-        private string MakeResourceFilePath(string org, string app, string developer, string filename)
-        {
-            return _settings.GetLanguageResourcePath(org, app, developer) + filename;
-        }
         /// <summary>
         /// Method to update multiple key-names
         /// Non-existing keys will be added.
@@ -242,7 +236,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>If the newId is empty or undefined it implies that it is going to be removed</remarks>
         /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
         [HttpPut("keys")]
-        public IActionResult UpdateKeyNames(string org, string app, [FromBody] List<TextIdMutation> mutations)
+        public async Task<IActionResult> UpdateKeyNames(string org, string app, [FromBody] List<TextIdMutation> mutations)
         {
             bool mutationHasOccured = false;
             try
@@ -289,6 +283,8 @@ namespace Altinn.Studio.Designer.Controllers
                         mutationHasOccured = true;
                     }
 
+                    await _textsService.UpdateRelatedFiles(org, app, developer, mutations);
+
                     string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
 
                     _repository.SaveLanguageResource(org, app, languageCode, resourceString);
@@ -303,7 +299,17 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"The update could not be done:\n{e.StackTrace}");
             }
 
-            return Ok(mutationHasOccured ? $"The IDs were updated." : $"Nothing was changed.");
+            return Ok(mutationHasOccured ? "The IDs were updated." : "Nothing was changed.");
+        }
+
+        private static string MakeResourceFilename(string langCode = "nb")
+        {
+            return $"resource.{langCode}.json";
+        }
+
+        private string MakeResourceFilePath(string org, string app, string developer, string filename)
+        {
+            return _settings.GetLanguageResourcePath(org, app, developer) + filename;
         }
 
         /// <summary>
@@ -396,7 +402,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="serviceName">The service name</param>
         [HttpPost]
         [Route("service-name")]
-        [Obsolete("SetServiceName is deprecated, please use UpdateTextsForKeys instead. Use the following arguments; string org, string app, [FromBody] Dictionary<string, string> keysTexts, and add /{languageCode} to url route.")]
+        [Obsolete("SetServiceName is deprecated, please use UpdateTextsForKeys instead.")]
         public void SetServiceName(string org, string app, [FromBody] dynamic serviceName)
         {
             string defaultLang = "nb";
