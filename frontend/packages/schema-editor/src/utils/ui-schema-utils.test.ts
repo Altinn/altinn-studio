@@ -1,4 +1,4 @@
-import { getDomFriendlyID } from './ui-schema-utils';
+import { getDomFriendlyID, isValidName } from './ui-schema-utils';
 
 describe('ui-schema-utils', () => {
   describe('getDomFriendlyID', () => {
@@ -18,6 +18,21 @@ describe('ui-schema-utils', () => {
       const resetId = getDomFriendlyID('id', { reset: true });
       expect(resetId).toBe('id-0');
       expect(usedIds).toContain(resetId);
+    });
+
+    it('should validate provided name - valid name should return true', () => {
+      const validName = 'test1234_test456';
+      expect(isValidName(validName)).toBeTruthy();
+    });
+
+    it('should validate provided name - name with special characters should return false', () => {
+      const invalidName = 'test123*';
+      expect(isValidName(invalidName)).toBeFalsy();
+    });
+
+    it('should validate provided name - name with whitespace should return false', () => {
+      const invalidName = 'test 123';
+      expect(isValidName(invalidName)).toBeFalsy();
     });
   });
 });

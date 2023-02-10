@@ -67,7 +67,7 @@ test('dispatches correctly when entering text in textboxes', async () => {
   await act(async () => {
     for (const textbox of textboxes) {
       await user.clear(textbox);
-      await user.type(textbox, 'New value');
+      await user.type(textbox, 'new-value');
       await user.tab();
     }
   });
