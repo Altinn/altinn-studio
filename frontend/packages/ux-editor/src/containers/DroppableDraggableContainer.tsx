@@ -96,15 +96,15 @@ export const DroppableDraggableContainer = memo(function DroppableDraggableConta
   const [{ isDragging }, drag, dragPreview] = useDrag(dragSourceSpec(item, canDrag, dndEvents.onDropItem));
   const [{ isOver }, drop] = useDrop(dropTargetSpec(item, dndEvents, wrapperRef));
   return (
-    <div ref={wrapperRef}>
+    <div ref={wrapperRef} className={classes.fullHeight}>
       <DummyDropTarget
         index={isBaseContainer ? 0 : index}
         containerId={isBaseContainer ? id : parentContainerId}
         events={dndEvents}
       />
-      <div ref={drop}>
+      <div ref={drop} className={classes.fullHeight}>
         <div
-          className={cn({ [classes.isDragging]: isDragging, [classes.isOver]: isOver })}
+          className={cn({ [classes.isDragging]: isDragging, [classes.isOver]: isOver, [classes.fullHeight]: true })}
           data-testid={'droppable-draggable-container'}
           ref={dragPreview}
         >

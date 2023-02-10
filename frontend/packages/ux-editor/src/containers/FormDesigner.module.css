@@ -56,10 +56,11 @@
 
 .logicEditor {
   background-color: #022F5180;
+  display: grid; /* Make content fill up all available space */
   height: 100vh;
   left: 0;
   overflow: hidden;
-  position: absolute;
+  position: fixed;
   top: 0;
   width: 100vw;
   z-index: 2;

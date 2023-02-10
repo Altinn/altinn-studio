@@ -1,6 +1,0 @@
-{
-  "ignores": [
-    "msw",
-    "redux-mock-store"
-  ]
-}

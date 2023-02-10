@@ -13,11 +13,11 @@ const renderHandleMergeConflictAbort = () => {
 
 // find and click the button that opens the popover
 const findAndClickOpenPopoverButton = (user: UserEvent) =>
-  act(() => user.click(
+  user.click(
     screen.getByRole('button', {
       name: 'handle_merge_conflict.abort_merge_button',
     })
-  ));
+  );
 
 afterEach(() => jest.restoreAllMocks());
 jest.mock('app-shared/utils/networking', () => ({
@@ -45,7 +45,7 @@ test('should handle successfully returned data from API', async () => {
     name: 'handle_merge_conflict.abort_merge_button_cancel',
   });
   expect(abortMergeButtonCancel).toBeDefined();
-  await act(() => user.click(abortMergeButtonCancel));
+  await user.click(abortMergeButtonCancel);
 
   // the popover should be closed at this point
   expect(screen.queryByRole('presentation')).toBeNull();
@@ -65,7 +65,7 @@ test('should handle successfully returned data from API', async () => {
   expect(mockGet).not.toHaveBeenCalled();
 
   // creating a mock for the return value
-  await act(() => user.click(abortMergeButtonConfirm));
+  await user.click(abortMergeButtonConfirm);
   // the mock get function should have been called
   expect(mockGet).toHaveBeenCalled();
 });

@@ -65,11 +65,10 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
   return { store, user };
 };
 
-const clickMenuItem = async (user: UserEvent, testId: string) =>
-  act(async () => await user.click(screen.getByTestId(testId)));
+const clickMenuItem = (user: UserEvent, testId: string) => user.click(screen.getByTestId(testId));
 
 const clickOpenContextMenuButton = async (user: UserEvent) =>
-  act(async () => await user.click(screen.getAllByTestId('open-context-menu-button')[0]));
+  user.click(screen.getAllByTestId('open-context-menu-button')[0]);
 
 test('renders schema editor with populated schema in view mode', () => {
   renderEditor({}, false);
