@@ -29,6 +29,6 @@ describe('generateComponentId', () => {
 describe('generateTextResourceId', () => {
   it('should generate expected text resource ID from provided input', () => {
     const generatedId = generateTextResourceId('page1', 'test-component', 'title');
-    expect(generatedId).toEqual('page1-test-component-title');
+    expect(generatedId).toEqual('page1.test-component.title');
   });
 });
