@@ -187,9 +187,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // handle if no layout exists
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
-            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets(layoutSetNames);
 
-            if (appUsesLayoutSets)
+            if (altinnAppGitRepository.AppUsesLayoutSets())
             {
                 foreach (string layoutSetName in layoutSetNames)
                 {
@@ -206,10 +205,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            string[] layoutNamePaths = altinnAppGitRepository.GetLayoutNames(layoutSetName);
-            foreach (string layoutNamePath in layoutNamePaths)
+            string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+            foreach (string layoutName in layoutNames)
             {
-                Designer.Models.FormLayout layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutNamePath);
+                Designer.Models.FormLayout layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
                 foreach (Designer.Models.Layout layoutObject in layout.data.layout)
                 {
                     foreach (TextIdMutation mutation in keyMutations)
@@ -220,7 +219,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         }
                     }
                 }
-                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutNamePath, layout);
+                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
             }
         }
 
@@ -228,7 +227,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             foreach (KeyValuePair<string, string> trb in textResourceBindings.Where(trb => trb.Value == keyMutation.OldId))
             {
-                textResourceBindings[trb.Key] = keyMutation.NewId.HasValue ? keyMutation.NewId.Value : null;
+                if (keyMutation.NewId.HasValue)
+                {
+                    textResourceBindings[trb.Key] = keyMutation.NewId.Value;
+                }
+                else
+                {
+                    textResourceBindings.Remove(trb.Key);
+                }
             }
         }
 

@@ -1,0 +1,18 @@
+{
+    "sets": [
+        {
+            "id": "layoutSet1",
+            "dataType": "data-model-1",
+            "tasks": [
+                "Task_1"
+            ]
+        },
+        {
+            "id": "layoutSet2",
+            "dataType": "data-model-2",
+            "tasks": [
+                "Task_2"
+            ]
+        }
+    ]
+}

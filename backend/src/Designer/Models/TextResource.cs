@@ -33,11 +33,11 @@ namespace Altinn.Studio.Designer.Models
         /// The original id in the mutating text-resource.
         /// </summary>
         [JsonProperty(PropertyName = "oldId")]
-        public readonly string OldId;
+        public string OldId;
         /// <summary>
         /// The id to change to.
         /// </summary>
         [JsonProperty(PropertyName = "newId")]
-        public readonly Optional<string> NewId;
+        public Optional<string> NewId;
     }
 }

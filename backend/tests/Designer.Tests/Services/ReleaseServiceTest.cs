@@ -115,7 +115,7 @@ namespace Designer.Tests.Services
                 new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
                 _releaseLogger.Object);
 
-            // Act            
+            // Act
             HttpRequestWithStatusException resultException = null;
             try
             {

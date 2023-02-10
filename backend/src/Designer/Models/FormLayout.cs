@@ -19,7 +19,6 @@ namespace Altinn.Studio.Designer.Models
         public List<Layout> layout { get; set; }
     }
 
-#nullable enable
     public class Layout
     {
         public string id { get; set; }

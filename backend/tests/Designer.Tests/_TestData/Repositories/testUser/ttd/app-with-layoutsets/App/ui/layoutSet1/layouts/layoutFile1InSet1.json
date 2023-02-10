@@ -1,0 +1,18 @@
+{
+  "schema": null,
+  "data": {
+    "layout": [
+      {
+        "id": "component-id",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "some-old-id",
+          "body": "another-key"
+        },
+        "dataModelBindings": null,
+        "required": null,
+        "readOnly": null
+      }
+    ]
+  }
+}
