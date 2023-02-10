@@ -1,19 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import classes from './appDeploymentComponent.module.css';
 import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import { AltinnIcon, AltinnLink } from 'app-shared/components';
+import { DeployDropdown } from './deploy/DeployDropdown';
+import { ErrorMessage } from './deploy/ErrorMessage';
+import { Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
+import { formatDateTime } from 'app-shared/pure/date-format';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
+import { useCreateDeployMutation } from '../hooks/mutation-hooks';
+import { useParams } from 'react-router-dom';
+
 import type {
   ICreateAppDeploymentEnvObject,
   ICreateAppDeploymentErrors,
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
-import classes from './appDeploymentComponent.module.css';
-import { formatDateTime } from 'app-shared/pure/date-format';
-import { Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
-import { ErrorMessage } from './deploy/ErrorMessage';
-import { DeployDropdown } from './deploy/DeployDropdown';
-import { useCreateDeployMutation } from '../hooks/mutation-hooks';
-import { useParams } from 'react-router-dom';
+import { ILanguage } from '@altinn/schema-editor/types';
 
 export type ImageOption = {
   value: string;
@@ -29,7 +31,7 @@ interface IAppDeploymentComponentProps {
   deployHistory?: any;
   deployPermission: boolean;
   orgName: string;
-  language: any;
+  language: ILanguage;
   imageOptions: ImageOption[];
 }
 

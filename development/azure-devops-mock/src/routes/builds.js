@@ -22,6 +22,7 @@ export const buildsRoute = async (req, res) => {
   };
   res.json(buildData);
   builds.push(buildData);
+
   await queue.add(async () => {
     await sleep(10000);
     try {
@@ -31,6 +32,7 @@ export const buildsRoute = async (req, res) => {
       console.error(e.message, webhookUrl);
     }
   });
+
   await queue.add(async () => {
     await sleep(10000);
     try {

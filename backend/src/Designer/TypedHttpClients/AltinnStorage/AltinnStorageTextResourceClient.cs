@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
@@ -18,16 +19,20 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
     {
         private readonly HttpClient _httpClient;
         private readonly PlatformSettings _platformSettings;
+        private readonly ILogger<AltinnStorageTextResourceClient> _logger;
 
         /// <summary>
         /// Constructor
         /// </summary>
         public AltinnStorageTextResourceClient(
             HttpClient httpClient,
-            IOptionsMonitor<PlatformSettings> options)
+            IOptionsMonitor<PlatformSettings> options,
+            ILogger<AltinnStorageTextResourceClient> logger
+            )
         {
             _httpClient = httpClient;
             _platformSettings = options.CurrentValue;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -49,6 +54,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             Uri uri = CreateGetAndPutUri(environmentModel, org, app, language);
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
+            _logger.LogInformation("Get hitting url: {Urlstring}", uri.ToString());
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             return await response.Content.ReadAsAsync<TextResource>();
         }

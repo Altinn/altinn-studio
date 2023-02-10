@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
@@ -18,6 +19,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
     {
         private readonly HttpClient _httpClient;
         private readonly PlatformSettings _platformSettings;
+        private readonly ILogger<AltinnStorageAppMetadataClient> _logger;
 
         /// <summary>
         /// Constructor
@@ -26,7 +28,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         /// <param name="options">IOptionsMonitor of type PlatformSettings</param>
         public AltinnStorageAppMetadataClient(
             HttpClient httpClient,
-            IOptionsMonitor<PlatformSettings> options)
+            IOptionsMonitor<PlatformSettings> options,
+            ILogger<AltinnStorageAppMetadataClient> logger
+            )
         {
             _httpClient = httpClient;
             _platformSettings = options.CurrentValue;
@@ -42,6 +46,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
              * because the base address can change on each request and after HttpClient gets initial base address,
              * it is not advised (and not allowed) to change base address.
              */
+            _logger.LogInformation("GetApplicationMetadata hitting url: {Urlstring}", uri.ToString());
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             return await response.Content.ReadAsAsync<Application>();
