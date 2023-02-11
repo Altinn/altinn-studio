@@ -10,7 +10,7 @@ public class MaritalStatusCodelistProviderTests
     [Fact]
     public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
     {
-        var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationOptions()));
+        var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
         IAppOptionsProvider appOptionsProvider = new MaritalStatusCodelistProvider(httpClientMock);
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());

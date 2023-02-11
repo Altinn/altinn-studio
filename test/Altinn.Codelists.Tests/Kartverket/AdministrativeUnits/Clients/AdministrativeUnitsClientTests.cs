@@ -8,7 +8,7 @@ public class AdministrativeUnitsClientTests
     [Fact(Skip = "Disabled. This actually calls out to the api and is primarily used to test during development.")]
     public async Task GetCounties_NothingSpecified_ShouldReturnAllCounties()
     {
-        var client = new AdministrativeUnitsHttpClient(Options.Create(new AdministrativeUnitsOptions()), new HttpClient());
+        var client = new AdministrativeUnitsHttpClient(Options.Create(new AdministrativeUnitsSettings()), new HttpClient());
 
         var counties = await client.GetCounties();
 
@@ -18,7 +18,7 @@ public class AdministrativeUnitsClientTests
     [Fact(Skip = "Disabled. This actually calls out to the api and is primarily used to test during development.")]
     public async Task GetCommunes_NothingSpecified_ShouldReturnAllCommunes()
     {
-        var client = new AdministrativeUnitsHttpClient(Options.Create(new AdministrativeUnitsOptions()), new HttpClient());
+        var client = new AdministrativeUnitsHttpClient(Options.Create(new AdministrativeUnitsSettings()), new HttpClient());
 
         var communes = await client.GetCommunes();
 
@@ -28,7 +28,7 @@ public class AdministrativeUnitsClientTests
     [Fact(Skip = "Disabled. This actually calls out to the api and is primarily used to test during development.")]
     public async Task GetCommunes_CountySpecified_ShouldReturnCommunesWithinCounty()
     {
-        var client = new AdministrativeUnitsHttpClient(Options.Create(new AdministrativeUnitsOptions()), new HttpClient());
+        var client = new AdministrativeUnitsHttpClient(Options.Create(new AdministrativeUnitsSettings()), new HttpClient());
 
         var communes = await client.GetCommunes("46");
 

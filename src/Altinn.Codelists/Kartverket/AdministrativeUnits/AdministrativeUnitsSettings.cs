@@ -5,7 +5,7 @@ namespace Altinn.Codelists.Kartverket.AdministrativeUnits;
 /// <summary>
 /// Options to control the behavior of <see cref="AdministrativeUnitsHttpClient"/>
 /// </summary>
-public class AdministrativeUnitsOptions
+public class AdministrativeUnitsSettings
 {
     /// <summary>
     /// Base url to the api endpoint for information on administrative units.

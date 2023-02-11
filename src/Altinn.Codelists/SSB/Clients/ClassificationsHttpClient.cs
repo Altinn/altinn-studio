@@ -13,7 +13,7 @@ public class ClassificationsHttpClient : IClassificationsClient
     /// <summary>
     /// Initializes a new instance of the <see cref="ClassificationsHttpClient"/> class.
     /// </summary>
-    public ClassificationsHttpClient(IOptions<ClassificationOptions> options, HttpClient httpClient)
+    public ClassificationsHttpClient(IOptions<ClassificationSettings> options, HttpClient httpClient)
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri(options.Value.BaseApiUrl);

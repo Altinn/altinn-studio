@@ -3,7 +3,7 @@
 /// <summary>
 /// Options to control the behavior of <see cref="ClassificationsHttpClient"/>
 /// </summary>
-public class ClassificationOptions
+public class ClassificationSettings
 {
     /// <summary>
     /// Base url to the api endpoint for classifications.

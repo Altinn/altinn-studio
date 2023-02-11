@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddKartverketAdministrativeUnits(this IServiceCollection services)
     {
         services.AddMemoryCache();
-        services.AddOptions<AdministrativeUnitsOptions>();
+        services.AddOptions<AdministrativeUnitsSettings>();
         services.AddHttpClient<IAdministrativeUnitsClient, AdministrativeUnitsHttpClient>();
         services.Decorate<IAdministrativeUnitsClient, AdministrativeUnitsHttpClientCached>();
         services.AddTransient<IAppOptionsProvider, CountiesCodelistProvider>();

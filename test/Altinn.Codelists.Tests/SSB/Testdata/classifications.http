@@ -1,6 +1,6 @@
 ###
 # Oversikt: https://www.ssb.no/klass/
-GET http://data.ssb.no/api/klass/v1/classifications
+GET http://data.ssb.no/api/klass/v1/classifications?size=150&language=en
 
 ###
 # Søk etter klassifikasjon

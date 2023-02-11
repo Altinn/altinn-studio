@@ -12,13 +12,13 @@ public class AdministrativeUnitsHttpClientMock : IAdministrativeUnitsClient
     private const string COMMUNES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.Kartverket.AdministrativeUnits.Testdata.kommuner.json";
 
     private readonly IAdministrativeUnitsClient _administrativeUnitsHttpClient;
-    private readonly IOptions<AdministrativeUnitsOptions> _administrativeUnitsOptions;
+    private readonly IOptions<AdministrativeUnitsSettings> _administrativeUnitsOptions;
 
     public MockHttpMessageHandler HttpMessageHandlerMock { get; private set; }
     public MockedRequest MockedCountiesRequest { get; private set; }
     public MockedRequest MockedCommunesRequest { get; private set; }
 
-    public AdministrativeUnitsHttpClientMock(IOptions<AdministrativeUnitsOptions> administrativeUnitsOptions)
+    public AdministrativeUnitsHttpClientMock(IOptions<AdministrativeUnitsSettings> administrativeUnitsOptions)
     {
         _administrativeUnitsOptions = administrativeUnitsOptions;
 

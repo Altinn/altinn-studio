@@ -10,12 +10,12 @@ public class ClassificationsHttpClientMock : IClassificationsClient
     private const string MARITAL_STATUS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.maritalStatus.json";
 
     private readonly IClassificationsClient _client;
-    private readonly IOptions<ClassificationOptions> _options;
+    private readonly IOptions<ClassificationSettings> _options;
 
     public MockHttpMessageHandler HttpMessageHandlerMock { get; private set; }
     public MockedRequest MockedMaritalStatusRequest { get; private set; }
 
-    public ClassificationsHttpClientMock(IOptions<ClassificationOptions> classificationOptions)
+    public ClassificationsHttpClientMock(IOptions<ClassificationSettings> classificationOptions)
     {
         _options = classificationOptions;
 

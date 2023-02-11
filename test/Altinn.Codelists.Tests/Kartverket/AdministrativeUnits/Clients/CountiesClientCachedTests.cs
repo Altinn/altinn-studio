@@ -10,7 +10,7 @@ public class CountiesClientCachedTests
     [Fact]
     public async Task GetCounties_EmptyCache_ShouldReturnAllCounties()
     {
-        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsOptions()));
+        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsSettings()));
         var administrativeUnitsHttpClientCached = new AdministrativeUnitsHttpClientCached(administrativeUnitsHttpClientMock, new MemoryCache(new MemoryCacheOptions()));
 
         var counties = await administrativeUnitsHttpClientCached.GetCounties();
@@ -21,7 +21,7 @@ public class CountiesClientCachedTests
     [Fact]
     public async Task GetCounties_CacheFilled_ShouldReturnFromCache()
     {
-        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsOptions()));
+        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsSettings()));
         var administrativeUnitsHttpClientCached = new AdministrativeUnitsHttpClientCached(administrativeUnitsHttpClientMock, new MemoryCache(new MemoryCacheOptions()));
 
         // First request will fill the cache
@@ -37,7 +37,7 @@ public class CountiesClientCachedTests
     [Fact]
     public async Task GetCounties_CacheExpired_ShouldPopulateAgain()
     {
-        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsOptions()));
+        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsSettings()));
         var administrativeUnitsHttpClientCached = new AdministrativeUnitsHttpClientCached(
             administrativeUnitsHttpClientMock,
             new MemoryCache(new MemoryCacheOptions()),

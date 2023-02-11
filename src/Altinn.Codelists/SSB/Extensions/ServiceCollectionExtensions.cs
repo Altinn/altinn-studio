@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddSSBClassifications(this IServiceCollection services)
     {   
-        services.AddOptions<ClassificationOptions>();
+        services.AddOptions<ClassificationSettings>();
         services.AddHttpClient<IClassificationsClient, ClassificationsHttpClient>();
         services.AddTransient<IAppOptionsProvider, MaritalStatusCodelistProvider>();
 

@@ -9,7 +9,7 @@ public class CommunesCodelistProviderTests
     [Fact]
     public async Task GetAppOptionsAsync_NoCountySpecified_ShouldReturnListOfAllCommunes()
     {
-        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsOptions()));
+        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsSettings()));
         IAppOptionsProvider appOptionsProvider = new CommunesCodelistProvider(administrativeUnitsHttpClientMock);
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
@@ -22,7 +22,7 @@ public class CommunesCodelistProviderTests
     [Fact]
     public async Task GetAppOptionsAsync_CountySpecified_ShouldReturnListOfCommunesByCounty()
     {
-        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsOptions()));
+        var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsSettings()));
         IAppOptionsProvider appOptionsProvider = new CommunesCodelistProvider(administrativeUnitsHttpClientMock);
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>() { { "fnr", "46" } });

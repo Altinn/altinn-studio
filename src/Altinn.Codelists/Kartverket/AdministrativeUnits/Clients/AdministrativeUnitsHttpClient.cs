@@ -13,7 +13,7 @@ public class AdministrativeUnitsHttpClient : IAdministrativeUnitsClient
     /// <summary>
     /// Initializes a new instance of the <see cref="AdministrativeUnitsHttpClient"/> class.
     /// </summary>
-    public AdministrativeUnitsHttpClient(IOptions<AdministrativeUnitsOptions> options, HttpClient httpClient)
+    public AdministrativeUnitsHttpClient(IOptions<AdministrativeUnitsSettings> options, HttpClient httpClient)
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri(options.Value.BaseApiUrl);
