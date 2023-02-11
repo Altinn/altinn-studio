@@ -11,7 +11,7 @@ public class ClassificationsHttpClientTests
         var options = Options.Create(new ClassificationSettings());
         var client = new ClassificationsHttpClient(options, new HttpClient());
 
-        var classificationCodes = await client.GetClassificationCodes(Classification.MaritalStatus);
+        var classificationCodes = await client.GetClassificationCodes(Classification.MaritalStatus, "nn", DateOnly.FromDateTime(DateTime.Today));
 
         classificationCodes.Codes.Should().HaveCountGreaterThan(2);
     }

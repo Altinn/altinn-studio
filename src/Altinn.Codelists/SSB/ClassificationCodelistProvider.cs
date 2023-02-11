@@ -23,7 +23,10 @@ public abstract class ClassificationCodelistProvider
     /// Gets the <see cref="AppOptions"/> based on the provided classification, options id and key value pairs.
     protected async Task<AppOptions> GetAppOptionsAsync(Classification classification, string language, Dictionary<string, string> keyValuePairs)
     {
-        var classificationCode = await _classificationsClient.GetClassificationCodes(classification);
+        string? date = keyValuePairs.GetValueOrDefault("date");
+        DateOnly dateOnly = date == null ? DateOnly.FromDateTime(DateTime.Today) : DateOnly.Parse(date);
+
+        var classificationCode = await _classificationsClient.GetClassificationCodes(classification, language, dateOnly);
 
         var appOptions = new AppOptions()
         {

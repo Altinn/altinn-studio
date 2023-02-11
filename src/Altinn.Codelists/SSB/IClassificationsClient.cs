@@ -9,8 +9,8 @@ namespace Altinn.Codelists.SSB
     public interface IClassificationsClient
     {
         /// <summary>
-        /// Gets the codes for the specified classification.
+        /// Gets the codes for the specified classification. If no date is specified, the current date is used.
         /// </summary>
-        Task<ClassificationCodes> GetClassificationCodes(Classification classification);
+        Task<ClassificationCodes> GetClassificationCodes(Classification classification, string language = "nb", DateOnly? atDate = null);
     }
 }

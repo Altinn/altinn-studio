@@ -23,13 +23,19 @@ public class ClassificationsHttpClient : IClassificationsClient
     /// <summary>
     /// Gets the codes for the specified classification.
     /// </summary>
-    /// <param name="classification"></param>
+    /// <param name="classification">The type of classification to get</param>
+    /// <param name="language">The language code used for the labels. Valid options are nb (norsk bokmål), nn (nynorsk) and en (english)
+    /// Default if nothing is specified is nb (norsk bokmål).
+    /// </param>
+    /// <param name="atDate">The date the classification should be valid</param>
     /// <returns></returns>
-    public async Task<ClassificationCodes> GetClassificationCodes(Classification classification)
+    public async Task<ClassificationCodes> GetClassificationCodes(Classification classification, string language="nb", DateOnly? atDate = null)
     {
         int classificationNumber = (int)classification;
-        string fromDate = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
-        var response = await _httpClient.GetAsync($"{classificationNumber}/codes?from={fromDate}");
+        DateOnly date = atDate ?? DateOnly.FromDateTime(DateTime.Today);
+        string atDateformatted = date.ToString("yyyy-MM-dd");
+        
+        var response = await _httpClient.GetAsync($"{classificationNumber}/codesAt?date={atDateformatted}&language={language}");
         var responseJson = await response.Content.ReadAsStringAsync();
 
         var classificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(responseJson);
