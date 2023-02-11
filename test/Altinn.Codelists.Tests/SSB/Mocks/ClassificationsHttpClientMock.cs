@@ -8,21 +8,26 @@ namespace Altinn.Codelists.Tests.SSB.Mocks;
 public class ClassificationsHttpClientMock : IClassificationsClient
 {
     private const string MARITAL_STATUS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.maritalStatus.json";
+    private const string INDUSTRY_GROUPING_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.industryGrouping.json";
 
     private readonly IClassificationsClient _client;
     private readonly IOptions<ClassificationSettings> _options;
 
     public MockHttpMessageHandler HttpMessageHandlerMock { get; private set; }
-    public MockedRequest MockedMaritalStatusRequest { get; private set; }
+    public MockedRequest MockedClassificationsRequest { get; private set; }
 
     public ClassificationsHttpClientMock(IOptions<ClassificationSettings> classificationOptions)
     {
         _options = classificationOptions;
 
         HttpMessageHandlerMock = new MockHttpMessageHandler();
-        MockedMaritalStatusRequest = HttpMessageHandlerMock
+        MockedClassificationsRequest = HttpMessageHandlerMock
             .When("http://data.ssb.no/api/klass/v1/classifications/19/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(MARITAL_STATUS_TESTDATA_RESOURCE).Result);
+
+        HttpMessageHandlerMock
+            .When("http://data.ssb.no/api/klass/v1/classifications/9/*")
+            .Respond("application/json", EmbeddedResource.LoadDataAsString(INDUSTRY_GROUPING_TESTDATA_RESOURCE).Result);
 
         _client = new ClassificationsHttpClient(_options, new HttpClient(HttpMessageHandlerMock));
     }

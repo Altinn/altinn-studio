@@ -6,6 +6,11 @@
 public enum Classification
 {
     /// <summary>
+    /// Standard for næringsgruppering
+    /// </summary>
+    IndustryGrouping = 9,
+    
+    /// <summary>
     /// Standard for sivilstand
     /// </summary>
     MaritalStatus = 19,
