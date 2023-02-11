@@ -13,10 +13,10 @@ public class ClassificationsHttpClient : IClassificationsClient
     /// <summary>
     /// Initializes a new instance of the <see cref="ClassificationsHttpClient"/> class.
     /// </summary>
-    public ClassificationsHttpClient(IOptions<ClassificationSettings> options, HttpClient httpClient)
+    public ClassificationsHttpClient(IOptions<ClassificationSettings> settings, HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _httpClient.BaseAddress = new Uri(options.Value.BaseApiUrl);
+        _httpClient.BaseAddress = new Uri(settings.Value.BaseApiUrl);
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json;charset=utf-8");
     }
 
