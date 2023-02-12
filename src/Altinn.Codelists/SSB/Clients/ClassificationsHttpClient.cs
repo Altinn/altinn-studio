@@ -28,14 +28,16 @@ public class ClassificationsHttpClient : IClassificationsClient
     /// Default if nothing is specified is nb (norsk bokmål).
     /// </param>
     /// <param name="atDate">The date the classification should be valid</param>
+    /// <param name="level">The hierarchy level for classifications with multiple levels. Defaults to empty string, ie. all levels.</param>
     /// <returns></returns>
-    public async Task<ClassificationCodes> GetClassificationCodes(Classification classification, string language="nb", DateOnly? atDate = null)
+    public async Task<ClassificationCodes> GetClassificationCodes(Classification classification, string language="nb", DateOnly? atDate = null, string level = "")
     {
         int classificationNumber = (int)classification;
         DateOnly date = atDate ?? DateOnly.FromDateTime(DateTime.Today);
         string atDateformatted = date.ToString("yyyy-MM-dd");
-        
-        var response = await _httpClient.GetAsync($"{classificationNumber}/codesAt?date={atDateformatted}&language={language}");
+        string selectLevel = level == string.Empty ? string.Empty : $"&selectLevel={level}";
+
+        var response = await _httpClient.GetAsync($"{classificationNumber}/codesAt?date={atDateformatted}&language={language}{selectLevel}");
         var responseJson = await response.Content.ReadAsStringAsync();
 
         var classificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(responseJson);

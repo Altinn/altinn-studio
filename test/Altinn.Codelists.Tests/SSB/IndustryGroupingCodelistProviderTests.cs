@@ -8,7 +8,7 @@ namespace Altinn.Codelists.Tests.Kartverket.AdministrativeUnits;
 public class IndustryGroupingCodelistProviderTests
 {
     [Fact]
-    public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
+    public async Task GetAppOptionsAsync_AllLevels_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
         IAppOptionsProvider appOptionsProvider = new IndustryGroupingCodelistProvider(httpClientMock);
@@ -19,5 +19,17 @@ public class IndustryGroupingCodelistProviderTests
         appOptions.Options.First(x => x.Value == "A").Label.Should().Be("Jordbruk, skogbruk og fiske");
         appOptions.Options.First(x => x.Value == "01").Label.Should().Be("Jordbruk og tjenester tilknyttet jordbruk, jakt og viltstell");
         appOptions.Options.First(x => x.Value == "01.1").Label.Should().Be("Dyrking av ettårige vekster");
+    }
+
+    [Fact]
+    public async Task GetAppOptionsAsync_FirstLevelOnly_ShouldReturnListOfCodes()
+    {
+        var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
+        IAppOptionsProvider appOptionsProvider = new IndustryGroupingCodelistProvider(httpClientMock);
+
+        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>() { { "level", "1" } });
+
+        appOptions.Options.Should().HaveCount(21);
+        appOptions.Options.First(x => x.Value == "A").Label.Should().Be("Jordbruk, skogbruk og fiske");
     }
 }

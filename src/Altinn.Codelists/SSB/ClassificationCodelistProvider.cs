@@ -25,8 +25,9 @@ public abstract class ClassificationCodelistProvider
     {
         string? date = keyValuePairs.GetValueOrDefault("date");
         DateOnly dateOnly = date == null ? DateOnly.FromDateTime(DateTime.Today) : DateOnly.Parse(date);
+        string level = keyValuePairs.GetValueOrDefault("level") ?? string.Empty;
 
-        var classificationCode = await _classificationsClient.GetClassificationCodes(classification, language, dateOnly);
+        var classificationCode = await _classificationsClient.GetClassificationCodes(classification, language, dateOnly, level);
 
         var appOptions = new AppOptions()
         {
