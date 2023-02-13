@@ -210,7 +210,7 @@ else
       echo "Publishing files to azure cdn"
     fi
     azcopy sync "$TARGET" "$AZURE_TARGET_URI/toolkits${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_TOOLKITS_OPTS[@]}" "${AZCOPY_ADDITIONAL_OPTS[@]}"
-    azcopy sync "${TARGET_SCHEMAS}/json/" "$AZURE_TARGET_URI/altinn-cdn${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_SCHEMAS_OPTS[@]}" "${AZCOPY_ADDITIONAL_OPTS[@]}"
+    azcopy sync "${TARGET_SCHEMAS}/json" "$AZURE_TARGET_URI/${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_SCHEMAS_OPTS[@]}" "${AZCOPY_ADDITIONAL_OPTS[@]}"
     echo "-------------------------------------"
   fi
 fi
