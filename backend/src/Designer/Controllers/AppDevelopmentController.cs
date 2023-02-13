@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Text;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -18,16 +19,18 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-development")]
     public class AppDevelopmentController : Controller
     {
+        private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly IRepository _repository;
         private readonly ISourceControl _sourceControl;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FormEditorController"/> class.
+        /// Initializes a new instance of the <see cref="AppDevelopmentController"/> class.
         /// </summary>
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
-        public AppDevelopmentController(IRepository repositoryService, ISourceControl sourceControl)
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl)
         {
+            _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
             _sourceControl = sourceControl;
         }
@@ -184,9 +187,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The content of the settings file</returns>
         [HttpGet]
         [Route("layout-settings")]
-        public IActionResult GetLayoutSettings(string org, string app)
+        public async Task<IActionResult> GetLayoutSettings(string org, string app)
         {
-            return Content(_repository.GetLayoutSettings(org, app), "application/json", Encoding.UTF8);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                string layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer);
+
+                if ()
+                return Content(layoutSettings);
+            }
+            catch (IOException)
+            {
+                return BadR
+            }
         }
 
         /// <summary>

@@ -34,6 +34,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
+        private const string LAYOUT_SETTINGS_FILENAME = "settings.json";
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
 
         /// <summary>
@@ -376,6 +377,28 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Gets the settings.json for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <returns>The content of settings.json</returns>
+        public async Task<string> GetLayoutSettings(string layoutSetName)
+        {
+            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
+            if (!DirectoryExistsByRelativePath(layoutSettingsPath))
+            {
+                CreateLayoutSettings(layoutSetName);
+            }
+
+            string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath);
+            return fileContent;
+        }
+
+        public async Task CreateLayoutSettings(string layoutName)
+        {
+            string layoutSettings =
+        }
+
+        /// <summary>
         /// Saves layout file to specific layoutset. If layoutset is null
         /// it will be stored as if the app does not use layoutsets, meaning under /App/ui/layouts/.
         /// </summary>
@@ -502,6 +525,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME, fileName);
             }
             return Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME, fileName);
+        }
+
+        // can be null if app does not use layoutset
+        private static string GetPathToLayoutSettings([CanBeNull] string layoutSetName)
+        {
+            if (layoutSetName.IsNullOrEmpty())
+            {
+                return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETTINGS_FILENAME);
+            }
+            return Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUT_SETTINGS_FILENAME);
         }
 
         /// <summary>

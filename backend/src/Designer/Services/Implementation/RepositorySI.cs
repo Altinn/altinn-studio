@@ -653,6 +653,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        [Obsolete("Use GetLayoutSettings in AltinnAppGitRepository instead.")]
         public string GetLayoutSettings(string org, string app)
         {
             string filePath = _settings.GetLayoutSettingPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
