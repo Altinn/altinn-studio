@@ -1,15 +1,15 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
     /// Represents a single schema page.
     /// </summary>
-    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class FormLayout
     {
-        [JsonProperty("$schema")]
+        [JsonPropertyName("$schema")]
         public string schema { get; set; }
         public Data data { get; set; }
     }
@@ -26,13 +26,37 @@ namespace Altinn.Studio.Designer.Models
         public Dictionary<string, string> textResourceBindings { get; set; }
         public DataModelBindings dataModelBindings { get; set; }
         public bool? required { get; set; }
-        public object readOnly { get; set; }
+        public bool? readOnly { get; set; }
+        [CanBeNull] public string size { get; set; }
+        [CanBeNull] public Image image { get; set; }
+        public bool? simplified { get; set; }
+        [CanBeNull] public string minDate { get; set; }
+        [CanBeNull] public string maxDate { get; set; }
+        public int? maxFileSizeInMB { get; set; }
+        public int? maxNumberOfAttachments { get; set; }
+        public int? minNumberOfAttachments { get; set; }
+        [CanBeNull] public string displayMode { get; set; }
+        [CanBeNull] public List<Option> options { get; set; }
+        public int? preselectedOptionIndex { get; set; }
     }
 
     public class DataModelBindings
     {
-        public string simpleBinding { get; set; }
-        public string group { get; set; }
-        public string list { get; set; }
+        [CanBeNull] public string simpleBinding { get; set; }
+        [CanBeNull] public string group { get; set; }
+        [CanBeNull] public string list { get; set; }
+    }
+
+    public class Image
+    {
+        [CanBeNull] public object src { get; set; }
+        [CanBeNull] public string width { get; set; }
+        [CanBeNull] public string align { get; set; }
+    }
+
+    public class Option
+    {
+        public string label { get; set; }
+        public string value { get; set; }
     }
 }
