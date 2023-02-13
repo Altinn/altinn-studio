@@ -182,7 +182,7 @@ else
     echo
     echo "azure-sa-name seems to be a local directory. Simulating azcopy sync with rsync to folder"
     echo
-    toolkits_rsync_opts=( -am --include='*/' --include="${APP_FULL}/*" )
+    toolkits_rsync_opts=( -am --include='*/' --include="${APP_FULL}/*" --include="index.json" )
     if [[ "$PRE_RELEASE" == "no" ]]; then
       toolkits_rsync_opts+=( --include="${APP_MAJOR}/*" --include="${APP_MAJOR_MINOR}/*" )
     fi
@@ -196,7 +196,7 @@ else
     set +x
     echo "-------------------------------------"
   else
-    AZCOPY_INCLUDE_REGEX="^$APP_FULL/*"
+    AZCOPY_INCLUDE_REGEX="^index\.json$|^$APP_FULL/*"
     if [[ "$PRE_RELEASE" == "no" ]]; then
       AZCOPY_INCLUDE_REGEX+="|^$APP_MAJOR/.*|^$APP_MAJOR_MINOR/.*"
     fi
@@ -210,7 +210,9 @@ else
       echo "Publishing files to azure cdn"
     fi
     azcopy sync "$TARGET" "$AZURE_TARGET_URI/toolkits${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_TOOLKITS_OPTS[@]}" "${AZCOPY_ADDITIONAL_OPTS[@]}"
-    azcopy sync "${TARGET_SCHEMAS}/json" "$AZURE_TARGET_URI/${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_SCHEMAS_OPTS[@]}" "${AZCOPY_ADDITIONAL_OPTS[@]}"
+    if [[ "$PRE_RELEASE" == "no" ]]; then
+      azcopy sync "${TARGET_SCHEMAS}/json" "$AZURE_TARGET_URI/${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_SCHEMAS_OPTS[@]}" "${AZCOPY_ADDITIONAL_OPTS[@]}"
+    fi
     echo "-------------------------------------"
   fi
 fi
