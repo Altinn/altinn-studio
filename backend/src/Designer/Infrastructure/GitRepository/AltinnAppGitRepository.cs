@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -12,6 +13,7 @@ using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using NuGet.Protocol;
 using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
@@ -326,8 +328,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
 
-            var fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
-            FormLayout layout = JsonConvert.DeserializeObject<FormLayout>(fileContent);
+            string fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
+            FormLayout layout = System.Text.Json.JsonSerializer.Deserialize<FormLayout>(fileContent);
 
             return layout;
         }
@@ -383,7 +385,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutName, Designer.Models.FormLayout layout)
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
-            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+            JsonSerializerOptions jsonOptions = new()
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
             string serializedLayout = System.Text.Json.JsonSerializer.Serialize(layout, jsonOptions);
 
             await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout);

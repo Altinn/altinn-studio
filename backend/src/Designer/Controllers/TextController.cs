@@ -193,7 +193,7 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     if ((kvp.Key == "appName" || kvp.Key == "serviceName") && string.IsNullOrEmpty(kvp.Value))
                     {
-                        throw new ArgumentException("The appliaction name must be a value.");
+                        throw new ArgumentException("The application name must be a value.");
                     }
 
                     TextResourceElement textResourceContainsKey =

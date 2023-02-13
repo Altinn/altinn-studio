@@ -301,11 +301,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return "as";
             }
-            else if (datasource.ToLower() == "instancecontext")
+            if (datasource.ToLower() == "instancecontext")
             {
                 return "ic";
             }
-            else if (datasource.ToLower().StartsWith("datamodel"))
+            if (datasource.ToLower().StartsWith("datamodel"))
             {
                 return datasource.ToLower().Replace("datamodel", "dm");
             }
@@ -355,7 +355,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// will be overwritten when client change ID.</remarks>
         private static (Dictionary<string, string> TextsWithMd, Dictionary<string, string> Texts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
         {
-            Dictionary<string, string> textsWithMarkdown = new Dictionary<string, string>();
+            Dictionary<string, string> textsWithMarkdown = new();
             foreach (KeyValuePair<string, string> text in texts.Where(text => text.Value.Contains('\n')))
             {
                 textsWithMarkdown[text.Key] = text.Value;
