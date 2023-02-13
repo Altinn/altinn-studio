@@ -2,6 +2,7 @@ import type React from 'react';
 
 import { formatNumericText } from '@altinn/altinn-design-system';
 
+import printStyles from 'src/styles/print.module.css';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
@@ -27,6 +28,7 @@ import type {
   IValidations,
 } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
+import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
 export const componentHasValidationMessages = (componentValidations: IComponentValidations | undefined) => {
   if (!componentValidations) {
@@ -545,5 +547,20 @@ export const gridBreakpoints = (grid?: IGridStyling) => {
     ...(md && { md }),
     ...(lg && { lg }),
     ...(xl && { xl }),
+  };
+};
+
+export const pageBreakStyles = (component: AnyItem<'resolved'> | undefined) => {
+  if (!component?.pageBreak) {
+    return {};
+  }
+
+  return {
+    [printStyles['break-before-auto']]: component.pageBreak.breakBefore === 'auto',
+    [printStyles['break-before-always']]: component.pageBreak.breakBefore === 'always',
+    [printStyles['break-before-avoid']]: component.pageBreak.breakBefore === 'avoid',
+    [printStyles['break-after-auto']]: component.pageBreak.breakAfter === 'auto',
+    [printStyles['break-after-always']]: component.pageBreak.breakAfter === 'always',
+    [printStyles['break-after-avoid']]: component.pageBreak.breakAfter === 'avoid',
   };
 };

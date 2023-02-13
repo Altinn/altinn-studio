@@ -14,11 +14,11 @@ import { ComponentType } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
-import printStyles from 'src/styles/print.module.css';
 import {
   componentHasValidationMessages,
   getComponentValidations,
   getDisplayFormDataForComponent,
+  pageBreakStyles,
 } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
@@ -47,7 +47,7 @@ const useStyles = makeStyles({
 
 export function SummaryComponent(_props: ISummaryComponent) {
   const { id, grid, componentRef, display, ...groupProps } = _props;
-  const { pageRef, formData, pageBreak } = _props;
+  const { pageRef, formData } = _props;
   const classes = useStyles();
   const dispatch = useAppDispatch();
   const GetHiddenSelector = makeGetHidden();
@@ -77,6 +77,7 @@ export function SummaryComponent(_props: ISummaryComponent) {
   );
   const attachments = useAppSelector((state: IRuntimeState) => state.attachments.attachments);
   const formComponent = useResolvedNode(componentRef)?.item;
+  const summaryComponent = useResolvedNode(id)?.item;
   const layoutComponent = getLayoutComponentObject(formComponent?.type as ComponentExceptGroupAndSummary);
   const formComponentLegacy = useAppSelector(
     (state) =>
@@ -180,6 +181,7 @@ export function SummaryComponent(_props: ISummaryComponent) {
         components={groupComponents}
         renderLayoutComponent={(child) => (
           <SummaryComponent
+            key={`__summary__${child.id}`}
             id={`__summary__${child.id}`}
             componentRef={child.id}
             pageRef={groupProps.pageRef}
@@ -204,10 +206,7 @@ export function SummaryComponent(_props: ISummaryComponent) {
       lg={displayGrid?.lg || false}
       xl={displayGrid?.xl || false}
       data-testid={`summary-${id}`}
-      className={cn({
-        [printStyles['break-before']]: pageBreak?.breakBefore,
-        [printStyles['break-after']]: pageBreak?.breakAfter,
-      })}
+      className={cn(pageBreakStyles(summaryComponent ?? formComponent))}
     >
       <Grid
         container={true}

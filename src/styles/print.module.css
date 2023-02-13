@@ -1,8 +1,20 @@
 @media print {
-  .break-before {
-    page-break-before: always;
+  .break-before-auto {
+    break-before: auto;
   }
-  .break-after {
-    page-break-after: always;
+  .break-after-auto {
+    break-after: auto;
+  }
+  .break-before-always {
+    break-before: page;
+  }
+  .break-after-always {
+    break-after: page;
+  }
+  .break-before-avoid {
+    break-before: avoid-page;
+  }
+  .break-after-avoid {
+    break-after: avoid-page;
   }
 }

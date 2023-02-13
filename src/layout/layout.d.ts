@@ -194,6 +194,6 @@ export interface IGridStyling {
 }
 
 export interface IPageBreak {
-  breakBefore?: ExpressionOr<'boolean'>;
-  breakAfter?: ExpressionOr<'boolean'>;
+  breakBefore?: ExpressionOr<'string'>; // 'auto' | 'always' | 'avoid'
+  breakAfter?: ExpressionOr<'string'>; // 'auto' | 'always' | 'avoid'
 }

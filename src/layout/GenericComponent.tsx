@@ -13,7 +13,6 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import components, { FormComponentContext } from 'src/layout/index';
 import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import { makeGetFocus, makeGetHidden } from 'src/selectors/getLayoutData';
-import printStyles from 'src/styles/print.module.css';
 import { Triggers } from 'src/types';
 import {
   componentHasValidationMessages,
@@ -21,6 +20,7 @@ import {
   getTextResource,
   gridBreakpoints,
   isComponentValid,
+  pageBreakStyles,
   selectComponentTexts,
 } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
@@ -308,10 +308,7 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
           'a-form-group',
           classes.container,
           gridToClasses(props.grid?.labelGrid, classes),
-          {
-            [printStyles['break-before']]: props.pageBreak?.breakBefore,
-            [printStyles['break-after']]: props.pageBreak?.breakAfter,
-          },
+          pageBreakStyles(evaluatedProps),
         )}
         alignItems='baseline'
       >

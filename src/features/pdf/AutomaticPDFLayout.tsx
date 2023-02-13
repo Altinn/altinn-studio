@@ -37,6 +37,7 @@ const AutomaticPDFSummaryComponent = ({
         pageRef={pageRef}
         display={{ hideChangeButton: true, hideValidationMessages: true }}
         excludedChildren={excludedChildren}
+        pageBreak={node.item.pageBreak}
         grid={{ xs: 12 }}
       />
     );
@@ -73,7 +74,7 @@ const AutomaticPDFLayout = ({ layouts, pdfFormat, pageOrder, hidden }: IAutomati
       referenceNumber: true,
     },
     pageBreak: {
-      breakAfter: true,
+      breakAfter: 'always',
     },
   };
 

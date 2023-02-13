@@ -635,13 +635,13 @@ export const ExprConfigForComponent: ExprObjConfig<ILayoutComponent> = {
   },
   pageBreak: {
     breakBefore: {
-      returnType: 'boolean',
-      defaultValue: false,
+      returnType: 'string',
+      defaultValue: 'auto',
       resolvePerRow: false,
     },
     breakAfter: {
-      returnType: 'boolean',
-      defaultValue: false,
+      returnType: 'string',
+      defaultValue: 'auto',
       resolvePerRow: false,
     },
   },
