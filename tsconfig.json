@@ -15,12 +15,26 @@
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "esModuleInterop": true,
+    "strictBindCallApply": true,
+    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "src/*": ["src/*"],
       "test/*": ["test/*"]
-    }
+    },
+    "allowSyntheticDefaultImports": true,
+    "exactOptionalPropertyTypes": false,
+    "strictFunctionTypes": false,
+    "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitOverride": false,
+    "noImplicitThis": false,
+    "noUncheckedIndexedAccess": false,
+    "noUnusedParameters": false
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules/cypress"]
