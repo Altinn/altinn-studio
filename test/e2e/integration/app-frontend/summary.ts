@@ -56,14 +56,14 @@ describe('Summary', () => {
           .children(mui.gridItem)
           .then((items) => {
             cy.wrap(items).should('contain.text', 'a a');
-            cy.wrap(items).find(mui.buttonIcon).should('not.exist');
+            cy.wrap(items).find('button').should('not.exist');
           });
 
         cy.wrap(summary)
           .siblings()
           .contains(mui.gridContainer, texts.dateOfEffect)
           .then((summaryDate) => {
-            cy.wrap(summaryDate).children(mui.gridItem).find(mui.buttonIcon).should('exist').and('be.visible').click();
+            cy.wrap(summaryDate).children(mui.gridItem).find('button').should('exist').and('be.visible').click();
             cy.get(appFrontend.changeOfName.dateOfEffect).clear();
             cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
             cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {
@@ -103,7 +103,7 @@ describe('Summary', () => {
         cy.wrap(summaryDate).contains('button', texts.goToRightPage).should('be.visible').click();
         cy.get(appFrontend.changeOfName.dateOfEffect)
           .siblings()
-          .children(mui.buttonIcon)
+          .children('button')
           .click()
           .then(() => {
             cy.get(mui.selectedDate).parent().click();
@@ -199,7 +199,7 @@ describe('Summary', () => {
       .children(mui.gridItem)
       .should('have.length', 8)
       .then((item) => {
-        cy.wrap(item).find(mui.buttonIcon).should('have.length', 7);
+        cy.wrap(item).find('button').should('have.length', 7);
         cy.wrap(item)
           .eq(1)
           .children(mui.gridContainer)

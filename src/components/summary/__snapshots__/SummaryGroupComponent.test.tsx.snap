@@ -19,25 +19,28 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
     >
       <button
-        class="MuiButtonBase-root MuiIconButton-root makeStyles-editButton-6"
-        tabindex="0"
+        class="Button-module_button__2ZuB7 Button-module_small__l39oh Button-module_quiet__1KlhF Button-module_secondary__R0waJ"
         type="button"
       >
-        <span
-          class="MuiIconButton-label"
+        Change
+        <svg
+          aria-hidden="true"
+          class="Button-module_icon__-43u5"
+          fill="none"
+          focusable="false"
+          height="1em"
+          role="img"
+          viewBox="0 0 24 24"
+          width="1em"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <p
-            class="MuiTypography-root makeStyles-change-8 MuiTypography-body1"
-          >
-            <span>
-              Change
-            </span>
-            <i
-              aria-hidden="true"
-              class="fa fa-editing-file makeStyles-editIcon-7"
-            />
-          </p>
-        </span>
+          <path
+            clip-rule="evenodd"
+            d="M22.835 1.165a3.976 3.976 0 0 1 0 5.623L8.073 21.549.682 24 0 23.318l2.45-7.392L17.21 1.165a3.977 3.977 0 0 1 5.624 0Zm-4.218 7.029-2.811-2.812L4.188 17l-1.393 4.205 4.207-1.395L18.618 8.194ZM21.43 2.57a1.989 1.989 0 0 0-2.703-.1l-.108.1-1.406 1.406 2.811 2.812 1.406-1.406a1.988 1.988 0 0 0 .101-2.703l-.1-.109Z"
+            fill="currentColor"
+            fill-rule="evenodd"
+          />
+        </svg>
       </button>
     </div>
     <div
@@ -56,7 +59,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
              : 
           </span>
           <span
-            class="makeStyles-data-9"
+            class="makeStyles-data-6"
           >
             1
           </span>
@@ -71,7 +74,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
              : 
           </span>
           <span
-            class="makeStyles-data-9"
+            class="makeStyles-data-6"
           >
             2
           </span>
