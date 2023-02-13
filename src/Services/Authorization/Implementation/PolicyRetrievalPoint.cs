@@ -76,7 +76,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
         private string GetResourcePolicyPath(string resourceId)
         {
-            return Path.Join(_localPlatformSettings.LocalTestingStaticTestDataPath, _localPlatformSettings.ResourceRegistryFolder,"policies", "{resourceId}.xml");
+            return Path.Join(_localPlatformSettings.LocalTestingStaticTestDataPath, _localPlatformSettings.ResourceRegistryFolder,"policies", $"{resourceId}.xml");
         }
 
         public static XacmlPolicy ParsePolicy(string policyPath)
