@@ -4,7 +4,7 @@
 }
 
 .title-margin {
-  margin-bottom: 2rem !important;
+  margin-bottom: 1.25rem !important;
 }
 
 .pdf-wrapper p[role='doc-subtitle'] {
@@ -16,7 +16,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 0.625rem;
 }
 
 .component-container:empty {

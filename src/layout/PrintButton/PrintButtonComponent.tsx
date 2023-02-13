@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 
 import { useAppSelector } from 'src/common/hooks';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';

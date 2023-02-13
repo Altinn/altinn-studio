@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 
-import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import { Add as AddIcon } from '@navikt/ds-icons';
 

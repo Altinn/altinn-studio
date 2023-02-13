@@ -24,7 +24,7 @@ const useStyles = makeStyles({
   },
   emptyField: {
     fontStyle: 'italic',
-    fontSize: '1.4rem',
+    fontSize: '0.875rem',
   },
 });
 

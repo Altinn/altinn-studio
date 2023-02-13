@@ -71,7 +71,7 @@ export function AltinnCollapsibleAttachments({
               <AltinnIcon
                 iconClass='ai ai-arrow-down'
                 iconColor='#1EADF7'
-                iconSize='1.6rem'
+                iconSize='1rem'
               />
             </ListItemIcon>
             <ListItemText

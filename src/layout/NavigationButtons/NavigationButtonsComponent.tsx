@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button } from '@altinn/altinn-design-system';
+import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';

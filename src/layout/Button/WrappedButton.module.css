@@ -1,19 +1,19 @@
 .wrapped-button {
   display: inline-flex;
-  padding-bottom: 2.4rem;
-  margin-top: 2.8rem;
+  padding-bottom: 1.5rem;
+  margin-top: 1.75rem;
 }
 .wrapped-button > button {
   position: relative;
 }
 @media (min-device-width: 834px) {
   .wrapped-button:not(:last-child) {
-    margin-right: 1.2rem;
+    margin-right: 0.75rem;
   }
 }
 @media (min-device-width: 834px) {
   .wrapped-button:not(:first-of-type) {
-    margin-left: 1.2rem;
+    margin-left: 0.75rem;
   }
 }
 .wrapped-button--loading > button > span {

@@ -25,14 +25,14 @@ import type { IOption } from 'src/types';
 
 const useStyles = makeStyles({
   table: {
-    marginTop: '2.4rem',
+    marginTop: '1.5rem',
     tableLayout: 'fixed',
     marginBottom: '12px',
     wordBreak: 'break-word',
     textOverflow: 'ellipsis',
   },
   tableMobile: {
-    marginTop: '2.4rem',
+    marginTop: '1.5rem',
     tableLayout: 'fixed',
     marginBottom: '12px',
     width: '100%',
@@ -79,7 +79,7 @@ const useStyles = makeStyles({
       '& th': {
         padding: '0px',
         paddingLeft: '6px',
-        fontSize: '1.4rem',
+        fontSize: '0.875rem',
         fontFamily: 'Altinn-DIN',
         fontWeight: '500 !important' as any,
         color: '#000',
@@ -104,7 +104,7 @@ const useStyles = makeStyles({
   },
   editIcon: {
     paddingLeft: '6px',
-    fontSize: '1.4rem !important',
+    fontSize: '0.875rem !important',
     fontWeight: '800 !important' as any,
   },
   editTextContainer: {
@@ -113,7 +113,7 @@ const useStyles = makeStyles({
     overflow: 'hidden',
     color: '#000',
     fontWeight: '500 !important' as any,
-    fontSize: '1.2rem',
+    fontSize: '0.75rem',
   },
   textContainer: {
     whiteSpace: 'nowrap',
@@ -121,7 +121,7 @@ const useStyles = makeStyles({
     overflow: 'hidden',
     color: '#000',
     fontWeight: '500 !important' as any,
-    fontSize: '1.4rem',
+    fontSize: '0.875rem',
     minWidth: '0px',
   },
 });
@@ -224,8 +224,8 @@ export function FileList(props: FileListProps): JSX.Element | null {
                               <AltinnLoader
                                 id={`attachment-loader-upload-${props.attachments[index].id}`}
                                 style={{
-                                  marginBottom: '1.6rem',
-                                  marginRight: '1.3rem',
+                                  marginBottom: '1rem',
+                                  marginRight: '0.8125rem',
                                 }}
                                 srContent={getLanguageFromKey('general.loading', props.language)}
                               />
@@ -265,8 +265,8 @@ export function FileList(props: FileListProps): JSX.Element | null {
                           <AltinnLoader
                             id={`attachment-loader-upload-${attachment.id}`}
                             style={{
-                              marginBottom: '1.6rem',
-                              marginRight: '1.3rem',
+                              marginBottom: '1rem',
+                              marginRight: '0.8125rem',
                             }}
                             srContent={getLanguageFromKey('general.loading', props.language)}
                           />

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button } from '@altinn/altinn-design-system';
+import { Button } from '@digdir/design-system-react';
 import { Grid, IconButton, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 
@@ -22,7 +22,7 @@ const useStyles = makeStyles({
     overflow: 'hidden',
     color: '#000',
     fontWeight: '500 !important' as any,
-    fontSize: '1.4rem',
+    fontSize: '0.875rem',
     minWidth: '0px',
   },
   editContainer: {
@@ -39,7 +39,7 @@ const useStyles = makeStyles({
     justifyContent: 'left',
   },
   select: {
-    fontSize: '1.6rem',
+    fontSize: '1rem',
     '&:focus': {
       outline: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
     },
@@ -101,7 +101,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
         >
           <div style={{ display: 'flex' }}>
             {props.attachment.uploaded && (
-              <div style={{ marginLeft: '1.5rem', marginRight: '1.5rem' }}>
+              <div style={{ marginLeft: '0.9375rem', marginRight: '0.9375rem' }}>
                 {!props.mobileView
                   ? getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)
                   : undefined}

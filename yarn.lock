@@ -12,11 +12,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.26.2":
-  version: 0.26.2
-  resolution: "@altinn/altinn-design-system@npm:0.26.2"
+"@altinn/altinn-design-system@npm:0.27.5":
+  version: 0.27.5
+  resolution: "@altinn/altinn-design-system@npm:0.27.5"
   dependencies:
-    "@altinn/figma-design-tokens": ^5.0.0
+    "@altinn/figma-design-tokens": ^6.0.1
     "@navikt/ds-icons": ^2.0.0
     "@radix-ui/react-popover": ^1.0.0
     leaflet: ^1.8.0
@@ -25,14 +25,14 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 40dd7650ff60b369db13086ca1b95b83252b0c0119bc90333ae20f345ed28ad9cb2f390747564ad6922a79734c22284cdc15973518c38d4dbe689db59e319592
+  checksum: 19abedbdb39df5a9fe633dadb78d7407b465422ac398df75661a373a9ba53e731c2b7f799c79de30905c44e1755e6f0f1fc04d192bd6fa7c7b7aaf4d360b215c
   languageName: node
   linkType: hard
 
-"@altinn/figma-design-tokens@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "@altinn/figma-design-tokens@npm:5.0.0"
-  checksum: faf2405a088bc993e63e3cf0f790f343c75c34cdd0c8616ca8d0d43e8c512e8d267fe91890eeb9f6ea78ba043f472e0568529d4ae567c5fe5cf58ec397cabf72
+"@altinn/figma-design-tokens@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "@altinn/figma-design-tokens@npm:6.0.1"
+  checksum: f87abb0d8e2c070987f7d37eddfc40a6f206ef307d7edc108eeb79cb3f734fcae434b28a89111d23d4c2d85d386d4cd0fc001175a70f773d3f3de7b943804afd
   languageName: node
   linkType: hard
 
@@ -2550,6 +2550,16 @@ __metadata:
   peerDependencies:
     moment: ^2.24.0
   checksum: c4847f9d1bf09bb22c1acc5806fc50825c0bdb52408c9fec8cc5f9a65f16a8014870b5890a0eeb73b2c53a6487c35acbd2ab2a5c49068ff5a5dccbcb5c9e654b
+  languageName: node
+  linkType: hard
+
+"@digdir/design-system-react@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@digdir/design-system-react@npm:0.5.0"
+  peerDependencies:
+    react: ^18.1.0
+    react-dom: ^18.0.0
+  checksum: 3374bfc9a95fcc611fd4667d47ecd6f48124187087b8f5b6fffcfbb69b2f88bc3136d3c2fa2f1b458f0fae641d11e23711406a1c5fc564189bc130e6852bc7f3
   languageName: node
   linkType: hard
 
@@ -5460,12 +5470,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-frontend-react@workspace:."
   dependencies:
-    "@altinn/altinn-design-system": 0.26.2
+    "@altinn/altinn-design-system": 0.27.5
     "@babel/core": 7.20.12
     "@babel/polyfill": 7.12.1
     "@babel/preset-env": 7.20.2
     "@babel/preset-react": 7.18.6
     "@date-io/moment": 1.3.13
+    "@digdir/design-system-react": 0.5.0
     "@material-ui/core": 4.12.4
     "@material-ui/icons": 4.11.3
     "@material-ui/pickers": 3.3.10

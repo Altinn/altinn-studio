@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { TextField } from '@altinn/altinn-design-system';
+import { TextField } from '@digdir/design-system-react';
 import axios from 'axios';
 
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';

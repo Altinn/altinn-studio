@@ -1,6 +1,7 @@
 import * as React from 'react';
 
-import { Button, ButtonColor, ButtonVariant, PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
+import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { makeStyles } from '@material-ui/core';
 
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
@@ -9,8 +10,8 @@ import type { ILanguage } from 'src/types/shared';
 const useStyles = makeStyles({
   popoverButtonContainer: {
     display: 'flex',
-    marginTop: '1rem',
-    gap: '1rem',
+    marginTop: '0.625rem',
+    gap: '0.625rem',
   },
 });
 

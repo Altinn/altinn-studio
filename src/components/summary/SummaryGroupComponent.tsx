@@ -49,10 +49,10 @@ const useStyles = makeStyles({
   },
   label: {
     fontWeight: 500,
-    fontSize: '1.8rem',
+    fontSize: '1.125rem',
     '& p': {
       fontWeight: 500,
-      fontSize: '1.8rem',
+      fontSize: '1.125rem',
     },
   },
   labelWithError: {
@@ -70,7 +70,7 @@ const useStyles = makeStyles({
   },
   emptyField: {
     fontStyle: 'italic',
-    fontSize: '1.6rem',
+    fontSize: '1rem',
     marginTop: 4,
   },
 });

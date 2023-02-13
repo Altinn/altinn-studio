@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ButtonVariant } from '@altinn/altinn-design-system';
+import { ButtonVariant } from '@digdir/design-system-react';
 
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
 import type { ButtonProps } from 'src/layout/Button/WrappedButton';

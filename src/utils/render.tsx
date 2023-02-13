@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { ErrorMessage } from '@altinn/altinn-design-system';
+import { ErrorMessage } from '@digdir/design-system-react';
 
 import { SoftValidations } from 'src/features/form/components/SoftValidations';
 import { getParsedLanguageFromText } from 'src/utils/sharedUtils';

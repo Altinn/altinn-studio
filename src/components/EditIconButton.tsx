@@ -19,6 +19,7 @@ const useStyles = makeStyles((theme) => ({
   editIconButton: {
     color: theme.altinnPalette.primary.blueDark,
     fontWeight: 700,
+    fontSize: '1rem',
     borderRadius: '5px',
     padding: '6px 12px',
     margin: '8px 2px',

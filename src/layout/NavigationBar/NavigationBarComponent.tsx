@@ -42,14 +42,14 @@ const useStyles = makeStyles((theme) => ({
     textAlign: 'left',
     padding: '6px 12px',
     borderRadius: '40px',
-    fontSize: '1.6rem',
+    fontSize: '1rem',
 
     '&:hover': {
       outline: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
     },
     '&:focus': {
-      outline: 'var(--interactive_components-colors-focus_outline) solid var(--border_width-standard)',
-      outlineOffset: 'var(--border_width-standard)',
+      outline: 'var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width)',
+      outlineOffset: 'var(--semantic-tab_focus-outline-offset)',
     },
   },
   buttonSelected: {
@@ -62,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'space-between',
   },
   dropdownIcon: {
-    marginLeft: '1rem',
+    marginLeft: '0.625rem',
     marginTop: '0 !important', // "".form-group i" selector is stronger
     fontSize: '1em !important', // "".form-group i" selector is stronger
   },

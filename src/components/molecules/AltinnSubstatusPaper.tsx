@@ -20,8 +20,8 @@ export default function AltinnSubstatusPaper({ label, description }: IInformatio
           <Typography
             id='substatus-label'
             style={{
-              fontSize: '2.4rem',
-              marginBottom: description ? '0.8rem' : '',
+              fontSize: '1.5rem',
+              marginBottom: description ? '0.5rem' : '',
             }}
           >
             {label}
@@ -30,7 +30,7 @@ export default function AltinnSubstatusPaper({ label, description }: IInformatio
         <Grid item={true}>
           <Typography
             id='substatus-description'
-            style={{ fontSize: '1.8rem' }}
+            style={{ fontSize: '1.125rem' }}
           >
             {description}
           </Typography>

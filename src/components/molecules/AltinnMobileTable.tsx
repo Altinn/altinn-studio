@@ -13,7 +13,7 @@ export interface IAltinnMobileTableProps {
 
 const useStyles = makeStyles({
   mobileContainer: {
-    marginBottom: '1.2rem',
+    marginBottom: '0.75rem',
   },
   border: {
     borderTop: `2px solid ${theme.altinnPalette.primary.blueMedium}`,

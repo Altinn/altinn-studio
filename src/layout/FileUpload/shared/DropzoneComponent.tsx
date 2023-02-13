@@ -26,7 +26,7 @@ export const bytesInOneMB = 1048576;
 
 export const baseStyle = {
   width: 'auto',
-  height: '15.6rem',
+  height: '9.75rem',
   borderWidth: '2px',
   borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
   borderStyle: 'dotted',
@@ -114,7 +114,7 @@ export function DropzoneComponent({
               <div className='container'>
                 <div
                   className='col text-center icon'
-                  style={{ marginTop: '3.5rem' }}
+                  style={{ marginTop: '2.1875rem' }}
                 >
                   <i className='ai ai-upload' />
                 </div>

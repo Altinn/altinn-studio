@@ -17,7 +17,7 @@ const styles = createStyles({
     border: `2px solid ${theme.altinnPalette.primary.red}`,
   },
   inputField: {
-    fontSize: '1.6rem',
+    fontSize: '1rem',
     border: 0,
     outline: 'none',
     flexGrow: 2,
@@ -25,15 +25,15 @@ const styles = createStyles({
   },
   inputIcon: {
     color: theme.altinnPalette.primary.black,
-    fontSize: '2.5rem',
-    padding: '1.6rem 1rem 1.6rem 1rem',
+    fontSize: '1.5625rem',
+    padding: '1rem 0.625rem 1rem 0.625rem',
     flexGrow: 0,
     alignSelf: 'stretch',
   },
   inputLabel: {
     color: theme.altinnPalette.primary.black,
-    fontSize: '1.6rem',
-    paddingBottom: '1rem',
+    fontSize: '1rem',
+    paddingBottom: '0.625rem',
   },
 });
 
@@ -87,7 +87,7 @@ function AltinnInput(props: IAltinnInputProps) {
           className={classes.inputField}
           disableUnderline={true}
           style={{
-            padding: '0rem 0.5rem 0rem 0.5rem',
+            padding: '0rem 0.3125rem 0rem 0.3125rem',
           }}
           inputRef={inputRef}
           tabIndex={0}

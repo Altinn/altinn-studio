@@ -10,7 +10,7 @@ const theme = createTheme(AltinnAppTheme);
 
 const useStyle = makeStyles({
   helpTextIcon: {
-    fontSize: '3rem',
+    fontSize: '1.875rem',
     color: theme.altinnPalette.primary.blueDarker,
     '&:hover': {
       color: theme.altinnPalette.primary.blueDark,

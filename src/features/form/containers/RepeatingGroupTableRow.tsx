@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant, TableCell, TableRow } from '@altinn/altinn-design-system';
+import { TableCell, TableRow } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { createTheme, makeStyles, useMediaQuery } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';

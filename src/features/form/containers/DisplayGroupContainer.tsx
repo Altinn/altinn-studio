@@ -26,7 +26,7 @@ export interface IDisplayGroupContainer {
 const useStyles = makeStyles({
   groupTitle: {
     fontWeight: 700,
-    fontSize: '2.4rem',
+    fontSize: '1.5rem',
     paddingBottom: 12,
   },
   groupContainer: {

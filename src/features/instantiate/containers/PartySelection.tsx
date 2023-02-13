@@ -21,13 +21,13 @@ import type { IParty } from 'src/types/shared';
 
 const useStyles = makeStyles((theme) => ({
   partySelectionTitle: {
-    fontSize: '3.5rem',
+    fontSize: '2.1875rem',
     fontWeight: 200,
     paddingBottom: 18,
     padding: 12,
   },
   partySelectionError: {
-    fontSize: '1.75rem',
+    fontSize: '1.093rem',
     fontWeight: 300,
     backgroundColor: theme.altinnPalette.primary.redLight,
     padding: 12,
@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: 12,
   },
   partySelectionSubTitle: {
-    fontSize: '1.75rem',
+    fontSize: '1.093rem',
     fontWeight: 600,
     paddingTop: 24,
     paddingBottom: 18,
@@ -50,13 +50,13 @@ const useStyles = makeStyles((theme) => ({
     border: `2px dotted ${theme.altinnPalette.primary.blue}`,
   },
   loadMoreButtonIcon: {
-    marginLeft: '1.5rem',
+    marginLeft: '0.9375rem',
   },
   loadMoreButtonText: {
     display: 'flex',
     alignItems: 'center',
-    fontSize: '1.75rem',
-    marginLeft: '1.2rem',
+    fontSize: '1.093rem',
+    marginLeft: '0.75rem',
     fontWeight: 500,
   },
   partySelectionCheckbox: {
@@ -64,7 +64,7 @@ const useStyles = makeStyles((theme) => ({
     padding: 12,
   },
   checkboxLabes: {
-    paddingTop: '1.2rem',
+    paddingTop: '0.75rem',
   },
 }));
 const PartySelection = () => {

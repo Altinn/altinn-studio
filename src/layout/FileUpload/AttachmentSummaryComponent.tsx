@@ -13,7 +13,7 @@ export interface IAttachmentSummaryComponent {
 const useStyles = makeStyles({
   emptyField: {
     fontStyle: 'italic',
-    fontSize: '1.6rem',
+    fontSize: '1rem',
   },
 });
 

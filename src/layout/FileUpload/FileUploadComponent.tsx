@@ -183,8 +183,8 @@ export function FileUploadComponent({
       <AltinnLoader
         id='loader-upload'
         style={{
-          marginBottom: '1.6rem',
-          marginRight: '1.3rem',
+          marginBottom: '1rem',
+          marginRight: '0.8125rem',
         }}
         srContent={status}
       />
@@ -204,7 +204,7 @@ export function FileUploadComponent({
           <AltinnLoader
             id='loader-delete'
             style={{
-              marginBottom: '1.6rem',
+              marginBottom: '1rem',
               marginRight: '1.0rem',
             }}
             srContent={getLanguageFromKey('general.loading', language)}

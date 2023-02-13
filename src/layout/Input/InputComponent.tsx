@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { SearchField, TextField } from '@altinn/altinn-design-system';
+import { SearchField } from '@altinn/altinn-design-system';
+import { TextField } from '@digdir/design-system-react';
 
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import type { PropsFromGenericComponent } from 'src/layout';

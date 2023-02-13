@@ -9,7 +9,7 @@ import 'src/styles/shared.css';
 
 const useStyles = makeStyles({
   select: {
-    fontSize: '1.6rem',
+    fontSize: '1rem',
     '&:focus': {
       outline: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
     },

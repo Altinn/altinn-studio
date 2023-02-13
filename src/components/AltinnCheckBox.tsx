@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
     color: `${theme.altinnPalette.primary.blueDark} !important`,
     '& span': {
       '& svg': {
-        fontSize: '2.5rem',
+        fontSize: '1.5625rem',
       },
     },
   },

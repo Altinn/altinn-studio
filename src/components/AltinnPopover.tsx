@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button } from '@altinn/altinn-design-system';
+import { Button } from '@digdir/design-system-react';
 import { createStyles, createTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import type { PopoverProps } from '@material-ui/core';

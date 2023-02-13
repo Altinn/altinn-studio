@@ -43,15 +43,15 @@ const useStyles = makeStyles({
   },
   addButtonText: {
     fontWeight: 400,
-    fontSize: '1.6rem',
+    fontSize: '1rem',
     borderBottom: `2px solid${theme.altinnPalette.primary.blue}`,
     paddingBottom: '3px',
     marginLeft: '6px',
   },
   addIcon: {
     transform: 'rotate(45deg)',
-    fontSize: '3.4rem',
-    marginRight: '0.7rem',
+    fontSize: '2.125rem',
+    marginRight: '0.4375rem',
   },
 });
 

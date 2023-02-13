@@ -81,7 +81,7 @@ const ProcessWrapper = () => {
               {taskType === ProcessTaskType.Feedback && <Feedback />}
             </>
           ) : (
-            <div style={{ marginTop: '2.5rem' }}>
+            <div style={{ marginTop: '1.5625rem' }}>
               <AltinnContentLoader
                 width='100%'
                 height={700}

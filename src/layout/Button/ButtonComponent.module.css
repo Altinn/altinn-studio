@@ -1,5 +1,5 @@
 .button-group {
-  margin-top: 3.6rem;
+  margin-top: 2.25rem;
   margin-bottom: 0;
 }
 .button-row {
@@ -7,7 +7,7 @@
 }
 @media only screen and (max-width: 640px) {
   .button-row {
-    margin-right: -1.2rem;
+    margin-right: -0.75rem;
   }
   .button-row span {
     width: 100%;

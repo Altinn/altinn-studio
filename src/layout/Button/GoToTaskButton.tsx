@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ButtonVariant } from '@altinn/altinn-design-system';
+import { ButtonVariant } from '@digdir/design-system-react';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { WrappedButton } from 'src/layout/Button/WrappedButton';

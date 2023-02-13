@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import {
   Grid,
   makeStyles,
@@ -66,8 +66,8 @@ const useStyles = makeStyles({
   },
   table: {
     tableLayout: 'fixed',
-    marginTop: '1.2rem',
-    marginBottom: '1.2rem',
+    marginTop: '0.75rem',
+    marginBottom: '0.75rem',
     '& tr': {
       '& td': {
         whiteSpace: 'nowrap',

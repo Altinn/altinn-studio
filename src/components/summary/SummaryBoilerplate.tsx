@@ -18,10 +18,10 @@ export interface SummaryBoilerplateProps extends Omit<ILayoutCompSummary, 'type'
 const useStyles = makeStyles({
   label: {
     fontWeight: 500,
-    fontSize: '1.8rem',
+    fontSize: '1.125rem',
     '& p': {
       fontWeight: 500,
-      fontSize: '1.8rem',
+      fontSize: '1.125rem',
     },
   },
   labelWithError: {

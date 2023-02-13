@@ -14,10 +14,10 @@ const useStyles = makeStyles({
   },
   editIcon: {
     paddingLeft: '6px',
-    fontSize: '1.8rem !important',
+    fontSize: '1.125rem !important',
   },
   change: {
-    fontSize: '1.8rem',
+    fontSize: '1.125rem',
     cursor: 'pointer',
   },
 });

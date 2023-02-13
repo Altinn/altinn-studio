@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { Grid, TableCell, Typography, useMediaQuery } from '@material-ui/core';
 import { Edit as EditIcon } from '@navikt/ds-icons';
 

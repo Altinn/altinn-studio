@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: 'white',
     boxSizing: 'border-box',
     height: '36px',
-    fontSize: '1.6rem',
+    fontSize: '1rem',
     fontFamily: 'Altinn-DIN',
     borderWidth: '2px',
     borderStyle: 'solid',
@@ -34,8 +34,8 @@ const useStyles = makeStyles((theme) => ({
       borderColor: theme.altinnPalette.primary.blueDark,
     },
     '&:has(input:focus-visible)': {
-      outline: 'var(--component-input-color-outline-focus) auto var(--border_width-thin)',
-      outlineOffset: 'calc(var(--border_width-thin) + var(--border_width-standard))',
+      outline: 'var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width)',
+      outlineOffset: 'var(--semantic-tab_focus-outline-offset)',
     },
   },
   input: {
@@ -57,12 +57,12 @@ const useStyles = makeStyles((theme) => ({
       outline: 'none',
     },
     '&:focus-visible': {
-      outline: 'var(--interactive_components-colors-focus_outline) solid var(--border_width-standard)',
-      outlineOffset: 'var(--border_width-standard)',
+      outline: 'var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width)',
+      outlineOffset: 'var(--semantic-tab_focus-outline-offset)',
     },
   },
   formHelperText: {
-    fontSize: '1.4rem',
+    fontSize: '0.875rem',
   },
   datepicker: {
     width: 'auto',
@@ -74,19 +74,19 @@ const useStyles = makeStyles((theme) => ({
       fontFamily: 'Altinn-DIN',
     },
     '& .MuiTypography-h4': {
-      fontSize: '2.4rem',
+      fontSize: '1.5rem',
     },
     '& .MuiTypography-body1': {
-      fontSize: '1.8rem',
+      fontSize: '1.125rem',
     },
     '& .MuiTypography-body2': {
-      fontSize: '1.6rem',
+      fontSize: '1rem',
     },
     '& .MuiTypography-caption': {
-      fontSize: '1.6rem',
+      fontSize: '1rem',
     },
     '& .MuiTypography-subtitle1': {
-      fontSize: '1.6rem',
+      fontSize: '1rem',
     },
   },
 }));

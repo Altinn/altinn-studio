@@ -21,7 +21,7 @@ export interface IPresentationProvidedProps {
 }
 
 const style = {
-  marginBottom: '1rem',
+  marginBottom: '0.625rem',
 };
 
 const PresentationComponent = (props: IPresentationProvidedProps) => {

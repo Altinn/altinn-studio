@@ -27,13 +27,13 @@ const useStyles = makeStyles(() => ({
   },
   tableCell: {
     borderBottom: 0,
-    paddingRight: '2.5rem',
+    paddingRight: '1.5625rem',
   },
   tableRow: {
     height: 'auto',
   },
   paddingTop24: {
-    paddingTop: '2.4rem',
+    paddingTop: '1.5rem',
   },
   wordBreak: {
     wordBreak: 'break-word',
@@ -153,8 +153,8 @@ export function ReceiptComponent({
             <Typography
               variant='h3'
               style={{
-                paddingTop: '4.1rem',
-                paddingBottom: '0.5rem',
+                paddingTop: '2.562rem',
+                paddingBottom: '0.3125rem',
                 fontWeight: 600,
               }}
             >

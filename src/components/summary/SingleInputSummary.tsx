@@ -21,15 +21,15 @@ export interface ISingleInputSummary {
 const useStyles = makeStyles({
   data: {
     fontWeight: 500,
-    fontSize: '1.8rem',
+    fontSize: '1.125rem',
     '& p': {
       fontWeight: 500,
-      fontSize: '1.8rem',
+      fontSize: '1.125rem',
     },
   },
   emptyField: {
     fontStyle: 'italic',
-    fontSize: '1.6rem',
+    fontSize: '1rem',
   },
 });
 

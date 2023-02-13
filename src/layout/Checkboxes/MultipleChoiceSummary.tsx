@@ -25,10 +25,10 @@ const useStyles = makeStyles({
   // Match style in \src\components\summary\SingleInputSummary.tsx
   data: {
     fontWeight: 500,
-    fontSize: '1.8rem',
+    fontSize: '1.125rem',
     '& p': {
       fontWeight: 500,
-      fontSize: '1.8rem',
+      fontSize: '1.125rem',
     },
   },
 });

@@ -17,12 +17,12 @@ const useStyles = makeStyles({
     return {
       borderBottom: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
       '& th': {
-        fontSize: '1.4rem',
+        fontSize: '0.875rem',
         padding: padding === 'dense' ? '0 12px 4px 12px' : '0 18px 4px 36px',
         fontFamily: 'Altinn-DIN',
         '& p': {
           fontWeight: '500',
-          fontSize: '1.4rem',
+          fontSize: '0.875rem',
           padding: '0px',
         },
       },

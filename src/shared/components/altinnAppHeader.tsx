@@ -35,12 +35,12 @@ const useStyles = makeStyles((theme) => ({
   },
   headerLink: {
     color: theme.altinnPalette.primary.blueDark,
-    fontSize: '2.4rem',
+    fontSize: '1.5rem',
     lineHeight: '1.5',
-    marginLeft: '3.6rem',
+    marginLeft: '2.25rem',
     paddingBottom: '3px',
     [theme.breakpoints.down('sm')]: {
-      fontSize: '1.8rem',
+      fontSize: '1.125rem',
     },
     '&:hover': {
       padding: 0,
@@ -66,10 +66,10 @@ const useStyles = makeStyles((theme) => ({
     float: 'right',
   },
   languageDropdown: {
-    fontSize: '1.4rem',
+    fontSize: '0.875rem',
   },
   logo: {
-    marginRight: '1.2rem',
+    marginRight: '0.75rem',
   },
   menuButton: {
     [theme.breakpoints.up('xs')]: {
@@ -77,15 +77,15 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   partyIcon: {
-    fontSize: '3.1rem !important',
+    fontSize: '1.9375rem !important',
     marginLeft: '5px',
   },
   toolbarContainer: {
-    paddingTop: '3rem !important',
-    marginBottom: '3.6rem',
+    paddingTop: '1.875rem !important',
+    marginBottom: '2.25rem',
     '& .a-personSwitcher': {
       marginTop: '0 !important',
-      marginLeft: '2.4rem',
+      marginLeft: '1.5rem',
     },
     paddingLeft: '0',
     paddingRight: '0',

@@ -6,7 +6,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type IInstantiationButtonComponentProps = PropsFromGenericComponent<'InstantiationButton'>;
 
 const btnGroupStyle = {
-  marginTop: '3.6rem',
+  marginTop: '2.25rem',
   marginBottom: '0',
 };
 
