@@ -14,6 +14,7 @@ import { EditAutoComplete } from './editModal/EditAutoComplete';
 export interface IGenericEditComponent {
   component: FormComponentType;
   handleComponentChange: (component: FormComponentType) => void;
+  layoutName?: string;
 }
 
 export enum EditSettings {

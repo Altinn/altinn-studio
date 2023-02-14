@@ -1,22 +1,18 @@
 import React from 'react';
 import Select from 'react-select';
 import { selectStyles } from '../../../../utils/render';
-import type { FormComponentType, IFormImageComponent } from '../../../../types/global';
 import { FieldSet, TextField } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
 import { Label } from 'app-shared/components/Label';
-
-export interface IImageComponentProps {
-  component: IFormImageComponent;
-  handleComponentUpdate: (updatedComponent: FormComponentType) => void;
-}
+import { IGenericEditComponent } from '../../componentConfig';
 
 export const ImageComponent = ({
   component,
-  handleComponentUpdate,
-}: IImageComponentProps) => {
+  handleComponentChange,
+  layoutName,
+}: IGenericEditComponent) => {
   const t = useText();
   const alignOptions = [
     {
@@ -40,28 +36,28 @@ export const ImageComponent = ({
     const updatedComponent = { ...component };
     updatedComponent.image.align = e ? e.value : null;
 
-    handleComponentUpdate(updatedComponent);
+    handleComponentChange(updatedComponent);
   };
 
   const handleWidthChange = (e: any) => {
     const updatedComponent = { ...component };
     updatedComponent.image.width = e.target.value;
 
-    handleComponentUpdate(updatedComponent);
+    handleComponentChange(updatedComponent);
   };
 
   const handleAltTextChange = (id: string) => {
     const updatedComponent = { ...component };
     updatedComponent.textResourceBindings.altTextImg = id;
 
-    handleComponentUpdate(updatedComponent);
+    handleComponentChange(updatedComponent);
   };
 
   const handleSourceChange = (e: any) => {
     const updatedComponent = { ...component };
     updatedComponent.image.src.nb = e.target.value;
 
-    handleComponentUpdate(updatedComponent);
+    handleComponentChange(updatedComponent);
   };
 
   const placementSelectId = `image_placement-input-${component.id}`;
@@ -80,6 +76,11 @@ export const ImageComponent = ({
         handleIdChange={handleAltTextChange}
         label={t('ux_editor.modal_properties_image_alt_text_label')}
         textResourceId={component.textResourceBindings?.altTextImg}
+        generateIdOptions={{
+          componentId: component.id,
+          layoutId: layoutName,
+          textResourceKey: 'altTextImg',
+        }}
       />
       <div className={classes.widthAndPlacement}>
         <div className={classes.widthContainer}>

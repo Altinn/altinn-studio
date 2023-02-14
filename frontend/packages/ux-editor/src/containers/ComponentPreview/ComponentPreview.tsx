@@ -9,20 +9,26 @@ export interface ComponentPreviewProps extends IGenericEditComponent {}
 
 export const ComponentPreview = ({
   component,
-  handleComponentChange
+  handleComponentChange,
+  layoutName,
 }: ComponentPreviewProps) => {
-
   switch (component.type) {
     case ComponentTypes.Checkboxes:
-      return <CheckboxGroupPreview
-        component={component as IFormCheckboxComponent}
-        handleComponentChange={handleComponentChange}
-      />;
+      return (
+        <CheckboxGroupPreview
+          component={component as IFormCheckboxComponent}
+          handleComponentChange={handleComponentChange}
+          layoutName={layoutName}
+        />
+      );
     case ComponentTypes.RadioButtons:
-      return <RadioGroupPreview
-        component={component as IFormRadioButtonComponent}
-        handleComponentChange={handleComponentChange}
-      />;
+      return (
+        <RadioGroupPreview
+          component={component as IFormRadioButtonComponent}
+          handleComponentChange={handleComponentChange}
+          layoutName={layoutName}
+        />
+      );
     default:
       return <p>Forhåndsvisning er ikke implementert for denne komponenten.</p>;
   }

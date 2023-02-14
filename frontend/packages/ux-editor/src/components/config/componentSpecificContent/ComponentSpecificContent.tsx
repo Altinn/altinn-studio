@@ -14,7 +14,8 @@ import { EditTextResourceBinding } from '../editModal/EditTextResourceBinding';
 
 export function ComponentSpecificContent({
   component,
-  handleComponentChange
+  handleComponentChange,
+  layoutName,
 }: IGenericEditComponent) {
   const t = useText();
 
@@ -22,25 +23,38 @@ export function ComponentSpecificContent({
     case ComponentTypes.NavigationButtons:
     case ComponentTypes.Button:
       return (
-        <ButtonComponent component={component} handleComponentChange={handleComponentChange} />
+        <ButtonComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+          layoutName={layoutName}
+        />
       );
 
     case ComponentTypes.AddressComponent:
       return (
-        <AddressComponent component={component} handleComponentChange={handleComponentChange} />
+        <AddressComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+          layoutName={layoutName}
+        />
       );
 
     case ComponentTypes.FileUpload:
     case ComponentTypes.FileUploadWithTag:
       return (
-        <FileUploadComponent component={component} handleComponentChange={handleComponentChange} />
+        <FileUploadComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+          layoutName={layoutName}
+        />
       );
 
     case ComponentTypes.Image: {
       return (
         <ImageComponent
           component={component as IFormImageComponent}
-          handleComponentUpdate={handleComponentChange}
+          handleComponentChange={handleComponentChange}
+          layoutName={layoutName}
         />
       );
     }

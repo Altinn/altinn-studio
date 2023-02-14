@@ -63,6 +63,9 @@ export function EditContainer(props: IEditContainerProps) {
   const language = useSelector(textSelector);
   const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
   const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
+  const selectedLayout = useSelector(
+    (state: IAppState) => state.formDesigner.layout?.selectedLayout
+  );
 
   const previewableComponents = [ComponentTypes.Checkboxes, ComponentTypes.RadioButtons]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
 
@@ -114,7 +117,7 @@ export function EditContainer(props: IEditContainerProps) {
             newId: component.id,
             currentId: props.id,
             org,
-            app
+            app,
           })
         );
       }
@@ -164,6 +167,7 @@ export function EditContainer(props: IEditContainerProps) {
             <ComponentPreview
               component={component}
               handleComponentChange={handleComponentChangeAndSave}
+              layoutName={selectedLayout}
             />
           )}
           {isEditMode && component && (

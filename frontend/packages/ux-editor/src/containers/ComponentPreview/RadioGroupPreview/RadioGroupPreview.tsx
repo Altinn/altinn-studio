@@ -21,9 +21,10 @@ export interface RadioGroupPreviewProps extends IGenericEditComponent {
 export const RadioGroupPreview = ({
   component,
   handleComponentChange,
+  layoutName,
 }: RadioGroupPreviewProps) => {
   const t = useText();
-  const tRadios = (key: string) => t((`ux_editor.radios_${key}`) as TranslationKey);
+  const tRadios = (key: string) => t(`ux_editor.radios_${key}` as TranslationKey);
 
   const radioGroupName = useRef(generateRandomId(12));
 
@@ -39,33 +40,45 @@ export const RadioGroupPreview = ({
   return (
     <div className={classes.root}>
       <RadioGroup
-        legend={(
+        legend={
           <TextResource
             handleIdChange={changeLegend}
             placeholder={tRadios('legend_placeholder')}
             previewMode
             textResourceId={component.textResourceBindings?.title}
+            generateIdOptions={{
+              componentId: component.id,
+              layoutId: layoutName,
+              textResourceKey: 'title',
+            }}
           />
-        )}
-        description={(
+        }
+        description={
           <TextResource
             handleIdChange={changeDescription}
             placeholder={tRadios('description_placeholder')}
             previewMode
             textResourceId={component.textResourceBindings?.description}
+            generateIdOptions={{
+              componentId: component.id,
+              layoutId: layoutName,
+              textResourceKey: 'description',
+            }}
           />
-        )}
-        items={component.options?.map(({ value, label }) => ({
-          value,
-          label: (
-            <TextResource
-              handleIdChange={(id) => changeOptionLabel(value, id)}
-              placeholder={tRadios('option_label_placeholder')}
-              previewMode
-              textResourceId={label}
-            />
-          ),
-        })) || []}
+        }
+        items={
+          component.options?.map(({ value, label }) => ({
+            value,
+            label: (
+              <TextResource
+                handleIdChange={(id) => changeOptionLabel(value, id)}
+                placeholder={tRadios('option_label_placeholder')}
+                previewMode
+                textResourceId={label}
+              />
+            ),
+          })) || []
+        }
         name={radioGroupName.current}
         presentation
       />

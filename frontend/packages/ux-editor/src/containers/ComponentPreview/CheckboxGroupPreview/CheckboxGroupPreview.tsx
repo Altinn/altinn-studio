@@ -8,7 +8,7 @@ import { useText } from '../../../hooks';
 import {
   changeComponentOptionLabel,
   changeDescriptionBinding,
-  changeTitleBinding
+  changeTitleBinding,
 } from '../../../utils/component';
 import { AddOption } from '../../../components/AddOption';
 import { TranslationKey } from 'language/type';
@@ -20,9 +20,10 @@ export interface CheckboxGroupPreviewProps extends IGenericEditComponent {
 export const CheckboxGroupPreview = ({
   component,
   handleComponentChange,
+  layoutName,
 }: CheckboxGroupPreviewProps) => {
   const t = useText();
-  const tCheckboxes = (key: string) => t((`ux_editor.checkboxes_${key}`) as TranslationKey);
+  const tCheckboxes = (key: string) => t(`ux_editor.checkboxes_${key}` as TranslationKey);
 
   const changeOptionLabel = (value: string, label: string) =>
     handleComponentChange(changeComponentOptionLabel(component, value, label));
@@ -36,33 +37,45 @@ export const CheckboxGroupPreview = ({
   return (
     <div className={classes.root}>
       <CheckboxGroup
-        legend={(
+        legend={
           <TextResource
             handleIdChange={changeLegend}
             placeholder={tCheckboxes('legend_placeholder')}
             previewMode
             textResourceId={component.textResourceBindings?.title}
+            generateIdOptions={{
+              componentId: component.id,
+              layoutId: layoutName,
+              textResourceKey: 'title',
+            }}
           />
-        )}
-        description={(
+        }
+        description={
           <TextResource
             handleIdChange={changeDescription}
             placeholder={tCheckboxes('description_placeholder')}
             previewMode
             textResourceId={component.textResourceBindings?.description}
+            generateIdOptions={{
+              componentId: component.id,
+              layoutId: layoutName,
+              textResourceKey: 'description',
+            }}
           />
-        )}
-        items={component.options?.map(({ value, label }) => ({
-          name: value,
-          label: (
-            <TextResource
-              handleIdChange={(id) => changeOptionLabel(value, id)}
-              placeholder={tCheckboxes('option_label_placeholder')}
-              previewMode
-              textResourceId={label}
-            />
-          ),
-        })) || []}
+        }
+        items={
+          component.options?.map(({ value, label }) => ({
+            name: value,
+            label: (
+              <TextResource
+                handleIdChange={(id) => changeOptionLabel(value, id)}
+                placeholder={tCheckboxes('option_label_placeholder')}
+                previewMode
+                textResourceId={label}
+              />
+            ),
+          })) || []
+        }
         presentation
       />
       {!component.optionsId && (

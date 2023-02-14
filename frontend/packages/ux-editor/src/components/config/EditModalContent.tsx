@@ -1,12 +1,13 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
 import { ComponentTypes } from '../index';
-import type { FormComponentType, IThirdPartyComponent } from '../../types/global';
+import type { FormComponentType, IAppState, IThirdPartyComponent } from '../../types/global';
 import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@digdir/design-system-react';
 import classes from './EditModalContent.module.css';
+import { useSelector } from 'react-redux';
 
 export interface IEditModalContentProps {
   cancelEdit?: () => void;
@@ -21,6 +22,9 @@ export const EditModalContent = ({
   handleComponentUpdate,
   thirdPartyComponentConfig,
 }: IEditModalContentProps) => {
+  const selectedLayout = useSelector(
+    (state: IAppState) => state.formDesigner.layout?.selectedLayout
+  );
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {
     if (!configDef) return null;
 
@@ -45,14 +49,12 @@ export const EditModalContent = ({
 
   return (
     <FieldSet className={classes.root}>
-      <EditComponentId
-        component={component}
-        handleComponentUpdate={handleComponentUpdate}
-      />
+      <EditComponentId component={component} handleComponentUpdate={handleComponentUpdate} />
       {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
       <ComponentSpecificContent
         component={component}
         handleComponentChange={handleComponentUpdate}
+        layoutName={selectedLayout}
       />
     </FieldSet>
   );
