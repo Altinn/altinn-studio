@@ -5,14 +5,19 @@ import { IAppDataState } from '../features/appData/appDataReducers';
 import { ITextResource } from '../types/global';
 import { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import { TextResource, TextResourceProps } from './TextResource';
-import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../testing/mocks';
+import {
+  appDataMock,
+  languageStateMock,
+  renderWithMockStore,
+  textResourcesMock,
+} from '../testing/mocks';
 import { act, screen } from '@testing-library/react';
 
 const user = userEvent.setup();
 
 // Test data:
 const handleIdChange = jest.fn();
-const defaultProps: TextResourceProps = { handleIdChange }
+const defaultProps: TextResourceProps = { handleIdChange };
 const addText = 'Legg til';
 const editText = 'Rediger';
 const searchText = 'Søk';
@@ -34,7 +39,6 @@ const textResources = [
 ];
 
 describe('TextResource', () => {
-
   afterEach(jest.resetAllMocks);
 
   it('Renders add button when no resource id is given', () => {
@@ -46,6 +50,23 @@ describe('TextResource', () => {
     const { store } = render();
     await act(() => user.click(screen.getByLabelText(addText)));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
+    const actions = store.getActions();
+    expect(actions).toHaveLength(2);
+    expect(actions[0].type).toBe('textResources/upsertTextResources');
+    expect(actions[1].type).toBe('textResources/setCurrentEditId');
+  });
+
+  it('Calls handleIdChange and dispatches correct actions with expected id when add button is clicked', async () => {
+    const { store } = render({
+      generateIdOptions: {
+        componentId: 'test-id',
+        layoutId: 'Page1',
+        textResourceKey: 'title',
+      },
+    });
+    await act(() => user.click(screen.getByLabelText(addText)));
+    expect(handleIdChange).toHaveBeenCalledTimes(1);
+    expect(handleIdChange).toHaveBeenCalledWith('Page1.test-id.title');
     const actions = store.getActions();
     expect(actions).toHaveLength(2);
     expect(actions[0].type).toBe('textResources/upsertTextResources');
@@ -167,27 +188,24 @@ const renderAndOpenSearchSection = async () => {
 };
 
 const render = (props?: Partial<TextResourceProps>, resources?: ITextResource[]) => {
-
   const languageState: ILanguageState = {
     ...languageStateMock,
-    language: texts
+    language: texts,
   };
 
   const mockedTextResources: ITextResourcesState = {
     ...textResourcesMock,
     resources: {
       ...textResourcesMock.resources,
-      nb: resources ?? []
-    }
+      nb: resources ?? [],
+    },
   };
 
   const appData: IAppDataState = {
     ...appDataMock,
     languageState,
-    textResources: mockedTextResources
+    textResources: mockedTextResources,
   };
 
-  return renderWithMockStore({ appData })(
-    <TextResource {...{ ...defaultProps, ...props }}/>
-  );
+  return renderWithMockStore({ appData })(<TextResource {...{ ...defaultProps, ...props }} />);
 };

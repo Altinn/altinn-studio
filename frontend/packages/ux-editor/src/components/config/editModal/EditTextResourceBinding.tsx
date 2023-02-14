@@ -23,7 +23,7 @@ export const EditTextResourceBinding = ({
 }: EditTextResourceBindingProps) => {
   const t = useText();
   const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner.layout.selectedLayout
+    (state: IAppState) => state.formDesigner?.layout?.selectedLayout
   );
 
   const handleTextResourceChange = (value: string) =>
