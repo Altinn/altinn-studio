@@ -3,6 +3,7 @@ import type { TextResourceFile, TextResourceEntry } from '@altinn/text-editor';
 import { Tags } from './tags';
 import { languagesApi } from './languagesApi';
 import { textResourceIdsPath, textResourcesPath } from 'app-shared/api-paths';
+import { TextResourceIdMutation } from "@altinn/text-editor/src/types";
 import { HandleServiceInformationActions } from 'app-development/features/administration/handleServiceInformationSlice';
 
 type OrgApp = {
