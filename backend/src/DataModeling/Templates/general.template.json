@@ -13,22 +13,17 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "oneOf": [
-    {
-      "$ref": "#/$defs/{{rootType}}"
+  "@xsdRootElement": "{{rootType}}",
+  "properties": {
+    "property1": {
+      "type": "string"
+    },
+    "property2": {
+      "type": "string"
+    },
+    "property3": {
+      "type": "string"
     }
-  ],
-  "$defs": {
-    "{{rootType}}": {
-      "properties": {
-        "e1": {
-          "type": "string",
-          "@xsdType": "string"
-        }
-      },
-      "required": [
-        "e1"
-      ]
-    }
-  }
+  },
+  "required": ["property1", "property2"]
 }

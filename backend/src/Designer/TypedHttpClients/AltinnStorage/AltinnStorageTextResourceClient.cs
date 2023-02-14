@@ -68,12 +68,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
 
         private Uri CreatePostUri(EnvironmentModel environmentModel, string org, string app)
         {
-            return new Uri($"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiStorageApplicationUri}api/{org}/{app}/texts");
+            return new Uri($"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiStorageApplicationUri}/{org}/{app}/texts");
         }
 
         private Uri CreateGetAndPutUri(EnvironmentModel environmentModel, string org, string app, string language)
         {
-            return new Uri($"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiStorageApplicationUri}api/{org}/{app}/texts/{language}");
+            return new Uri($"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiStorageApplicationUri}/{org}/{app}/texts/{language}");
         }
     }
 }
