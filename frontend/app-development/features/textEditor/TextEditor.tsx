@@ -67,7 +67,7 @@ export const TextEditor = ({ language }: TextEditorProps) => {
   const t = (key: string) => getLanguageFromKey(key, language);
 
   /*
-   * Temporary fix to make sure to have latest text-resources fetched and available.
+   * Temporary fix to make sure to have the latest text-resources fetched.
    * This issue will be fixed when we have implemented React Query with shared state/cache
    */
   useEffect(() => {
@@ -81,7 +81,7 @@ export const TextEditor = ({ language }: TextEditorProps) => {
     return <AltinnSpinner />;
   }
 
-  const handleAddLanguage = (langCode: LangCode) => {
+  const handleAddLanguage = (langCode: LangCode) =>
     addLanguage({
       ...orgApp,
       langCode,
@@ -90,7 +90,6 @@ export const TextEditor = ({ language }: TextEditorProps) => {
         value: '',
       })),
     });
-  };
 
   const handleDeleteLanguage = (langCode: LangCode) =>
     deleteLanguage({
