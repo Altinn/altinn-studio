@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.KeyVault.Models;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -163,20 +164,29 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Saves the layout settings
         /// </summary>
-        /// <param name="jsonData">The data to be saved</param>
+        /// <param name="layoutSettings">The data to be saved</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("layout-settings")]
-        public IActionResult SaveLayoutSettings([FromBody] dynamic jsonData, string org, string app)
+        public async Task<IActionResult> SaveLayoutSettings([FromBody] LayoutSettings layoutSettings, string org, string app)
         {
-            if (_repository.SaveLayoutSettings(org, app, jsonData.ToString()))
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
             {
+                await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings);
                 return Ok("Layout settings successfully saved.");
             }
-
-            return BadRequest("Layout settings could not be saved.");
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
+            catch (Exception exception)
+            {
+                return BadRequest(exception.Message);
+            }
         }
 
         /// <summary>
@@ -187,20 +197,22 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The content of the settings file</returns>
         [HttpGet]
         [Route("layout-settings")]
-        public async Task<IActionResult> GetLayoutSettings(string org, string app)
+        public async Task<ActionResult<LayoutSettings>> GetLayoutSettings(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                string layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer);
-
-                if ()
-                return Content(layoutSettings);
+                LayoutSettings layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer);
+                return Ok(layoutSettings);
             }
-            catch (IOException)
+            catch (FileNotFoundException exception)
             {
-                return BadR
+                return NotFound(exception.Message);
+            }
+            catch (Exception exception)
+            {
+                return BadRequest(exception.Message);
             }
         }
 

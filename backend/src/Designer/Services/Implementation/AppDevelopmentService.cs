@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -13,19 +14,34 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
-        public async Task<string> GetLayoutSettings(string org, string app, string developer)
+        public async Task<LayoutSettings> GetLayoutSettings(string org, string app, string developer)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                // TODO: Find a way to get layoutSetName
-                // string layoutSettings = await altinnAppGitRepository.GetLayoutSettings(layoutSetName);
-                //return layoutSettings;
+                // TODO: Find a way to get correct layoutSetName
+                string layoutSetName = altinnAppGitRepository.GetLayoutSetNames()[0];
+                LayoutSettings layoutSettingsForLayoutSet = await altinnAppGitRepository.GetLayoutSettings(layoutSetName);
+                return layoutSettingsForLayoutSet;
             }
 
-            string layoutSettings = await altinnAppGitRepository.GetLayoutSettings(null);
+            LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(null);
             return layoutSettings;
+        }
+
+        public async Task SaveLayoutSettings(string org, string app, string developer, LayoutSettings layoutSettings)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            //bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            //if (appUsesLayoutSets)
+            //{
+            // TODO: Find a way to get layoutSetName
+            // await altinnAppGitRepository.GetLayoutSettings(layoutSetName);
+            // return;
+            //}
+
+            await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
         }
     }
 }

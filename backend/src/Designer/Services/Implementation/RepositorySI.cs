@@ -644,6 +644,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        [Obsolete("Use SaveLayoutSettings in AltinnAppGitRepository instead.")]
         public bool SaveLayoutSettings(string org, string app, string setting)
         {
             string filePath = _settings.GetLayoutSettingPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -810,7 +811,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (File.Exists(filename))
             {
-                // delete all references of text-keys in layoutfiles
                 File.Delete(filename);
                 deleted = true;
             }

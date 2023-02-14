@@ -11,6 +11,7 @@ using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
+using k8s.Autorest;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using NuGet.Protocol;
@@ -34,8 +35,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
-        private const string LAYOUT_SETTINGS_FILENAME = "settings.json";
+        private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
+
+        private readonly string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -377,25 +380,62 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets the settings.json for a specific layoutset
+        /// Gets the Settings.json for a specific layoutset
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
-        /// <returns>The content of settings.json</returns>
-        public async Task<string> GetLayoutSettings(string layoutSetName)
+        /// <returns>The content of Settings.json</returns>
+        public async Task<LayoutSettings> GetLayoutSettings(string layoutSetName)
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
-            if (!DirectoryExistsByRelativePath(layoutSettingsPath))
+            if (!FileExistsByRelativePath(layoutSettingsPath))
             {
-                CreateLayoutSettings(layoutSetName);
+                await CreateLayoutSettings(layoutSetName);
             }
 
             string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath);
-            return fileContent;
+            LayoutSettings layoutSettings = System.Text.Json.JsonSerializer.Deserialize<LayoutSettings>(fileContent);
+            return layoutSettings;
         }
 
-        public async Task CreateLayoutSettings(string layoutName)
+        public async Task CreateLayoutSettings(string layoutSetName)
         {
-            string layoutSettings =
+            string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
+            LayoutSettings layoutSettings = new()
+            {
+                schema = _layoutSettingsSchemaUrl,
+                pages = new Pages() { order = layoutNames }
+            };
+            await SaveLayoutSettings(layoutSetName, layoutSettings);
+        }
+
+        private static string[] MakePageOrder(string[] layoutNames)
+        {
+            List<string> layoutNamesWithoutFileEndings = new();
+            foreach (string layoutName in layoutNames)
+            {
+                layoutNamesWithoutFileEndings.Add(layoutName.Replace(".json", ""));
+            }
+
+            return layoutNamesWithoutFileEndings.ToArray();
+        }
+
+        /// <summary>
+        /// Saves the Settings.json for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <returns>The content of Settings.json</returns>
+        public async Task SaveLayoutSettings(string layoutSetName, LayoutSettings layoutSettings)
+        {
+            string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
+            JsonSerializerOptions jsonOptions = new()
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            string serializedLayoutSettings = System.Text.Json.JsonSerializer.Serialize(layoutSettings, jsonOptions);
+
+            await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
         }
 
         /// <summary>
