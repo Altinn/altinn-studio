@@ -17,16 +17,20 @@ namespace DataModeling.Tests.Templates
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var expectedId = "https://dev.altinn.studio/org/repository/app/model/model.schema.json";
+            string expectedId = "https://dev.altinn.studio/org/repository/app/model/model.schema.json";
+            string expectedModelName = "model";
 
             // Act
-            var actualJsonTemplate = new GeneralJsonTemplate(new Uri(expectedId), "model");
+            var actualJsonTemplate = new GeneralJsonTemplate(new Uri(expectedId), expectedModelName);
 
             // Assert
             JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
             var idKeyword = jsonSchema.GetKeyword<IdKeyword>();
             idKeyword.Id.Should().Be(expectedId);
-            var messageType = jsonSchema.FollowReference(JsonPointer.Parse("#/$defs/model")).Should().NotBeNull();
+            jsonSchema.GetKeyword<XsdRootElementKeyword>().Value.Should().Be(expectedModelName);
+            var properties = jsonSchema.GetKeyword<PropertiesKeyword>();
+            properties.Properties.Should().NotBeEmpty();
+            properties.Properties.Count.Should().Be(3);
         }
     }
 }

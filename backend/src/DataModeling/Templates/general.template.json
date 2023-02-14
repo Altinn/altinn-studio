@@ -15,13 +15,13 @@
   },
   "@xsdRootElement": "{{rootType}}",
   "properties": {
-    "e1": {
+    "property1": {
       "type": "string"
     },
-    "e2": {
+    "property2": {
       "type": "string"
     },
-    "e3": {
+    "property3": {
       "type": "string"
     }
   },
