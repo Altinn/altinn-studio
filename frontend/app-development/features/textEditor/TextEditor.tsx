@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { LangCode, TextResourceFile } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
@@ -9,7 +9,8 @@ import { useGetLanguagesQuery } from '../../services/languagesApi';
 import {
   useAddByLangCodeMutation,
   useDeleteByLangCodeMutation,
-  useGetAppTextsByLangCodeQuery, useUpdateTextIdMutation,
+  useGetAppTextsByLangCodeQuery,
+  useUpdateTextIdMutation,
   useUpdateTranslationByLangCodeMutation,
 } from '../../services/textsApi';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -49,6 +50,7 @@ export const TextEditor = ({ language }: TextEditorProps) => {
     data: translations,
     isLoading: isInitialLoadingLang,
     isFetching: isFetchingTranslations,
+    refetch: refetchTextLang,
   } = useGetAppTextsByLangCodeQuery(
     {
       ...orgApp,
@@ -63,6 +65,14 @@ export const TextEditor = ({ language }: TextEditorProps) => {
   const [updateTextId] = useUpdateTextIdMutation();
 
   const t = (key: string) => getLanguageFromKey(key, language);
+
+  /*
+   * Temporary fix to make sure to have the latest text-resources fetched.
+   * This issue will be fixed when we have implemented React Query with shared state/cache
+   */
+  useEffect(() => {
+    refetchTextLang();
+  }, [refetchTextLang]);
 
   const [hideIntroPage, setHideIntroPage] = useState(
     () => getLocalStorage(storageGroupName, 'hideTextsIntroPage') ?? false

@@ -142,6 +142,10 @@ const handleServiceInformationSlice = createSlice({
       state.error = error;
       state.serviceNameObj.saving = false;
     },
+    updateAppNameWithinState: (state, action: PayloadAction<IFetchServiceNameFulfilled>) => {
+      const { serviceName } = action.payload;
+      state.serviceNameObj.name = serviceName;
+    },
   },
 });
 
