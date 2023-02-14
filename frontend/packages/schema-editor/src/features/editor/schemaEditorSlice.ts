@@ -43,10 +43,10 @@ const schemaEditorSlice = createSlice({
       const { path, value, oldValue } = action.payload;
       const addToItem = getNodeByPointer(state.uiSchema, path);
       addToItem.enum = addToItem.enum ?? [];
-      if (!oldValue) {
+      if (oldValue === null || oldValue === undefined) {
         addToItem.enum.push(value);
       }
-      if (oldValue && addToItem.enum.includes(oldValue)) {
+      if (addToItem.enum.includes(oldValue)) {
         addToItem.enum[addToItem.enum.indexOf(oldValue)] = value;
       }
       if (!addToItem.enum.includes(value)) {

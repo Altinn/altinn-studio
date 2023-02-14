@@ -1,4 +1,4 @@
-import type { MouseEvent } from 'react';
+import { MouseEvent, useState } from 'react';
 import React from 'react';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';
@@ -25,6 +25,7 @@ import {
   ButtonVariant,
   Checkbox,
   FieldSet,
+  ErrorMessage,
 } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { Add } from '@navikt/ds-icons';
@@ -51,6 +52,9 @@ export const ItemRestrictions = ({
   language,
 }: ItemRestrictionsProps) => {
   const dispatch = useDispatch();
+
+  const [enumError, setEnumError] = useState<string>(null);
+
   const handleRequiredChanged = (e: any) => {
     const { checked } = e.target;
     if (checked !== isRequired) {
@@ -75,14 +79,22 @@ export const ItemRestrictions = ({
   const onChangeRestrictions = (path: string, changedRestrictions: Dict) =>
     dispatch(setRestrictions({ path, restrictions: changedRestrictions }));
 
-  const onChangeEnumValue = (value: string, oldValue?: string) =>
-    dispatch(
-      addEnum({
-        path: pointer,
-        value,
-        oldValue,
-      })
-    );
+  const onChangeEnumValue = (value: string, oldValue?: string) => {
+    if (value === oldValue) return;
+
+    if (enums.includes(value)) {
+      setEnumError(value);
+    } else {
+      setEnumError(null);
+      dispatch(
+        addEnum({
+          path: pointer,
+          value,
+          oldValue,
+        })
+      );
+    }
+  };
 
   const onDeleteEnumClick = (path: string, value: string) => dispatch(deleteEnum({ path, value }));
 
@@ -129,6 +141,11 @@ export const ItemRestrictions = ({
           <Divider inMenu />
           <FieldSet legend={t('enum_legend')}>
             {!enums?.length && <p className={classes.emptyEnumMessage}>{t('enum_empty')}</p>}
+            {enumError !== null && (
+              <ErrorMessage>
+                <p>{t('enum_error_duplicate')}</p>
+              </ErrorMessage>
+            )}
             {enums?.map((value: string, index) => (
               <EnumField
                 fullWidth={true}
@@ -139,6 +156,7 @@ export const ItemRestrictions = ({
                 onEnterKeyPress={dispatchAddEnum}
                 path={pointer}
                 value={value}
+                isValid={enumError !== value}
               />
             ))}
             <div className={classes.addEnumButton}>

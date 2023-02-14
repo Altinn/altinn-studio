@@ -606,6 +606,7 @@
   "schema_editor.enum": "Gyldige verdier",
   "schema_editor.enum_empty": "Listen er tom – alle verdier vil bli godtatt.",
   "schema_editor.enum_legend": "Liste med gyldige verdier",
+  "schema_editor.enum_error_duplicate": "Verdiene må være unike.",
   "schema_editor.field": "Objekt",
   "schema_editor.field_name": "Navn på felt",
   "schema_editor.fields": "Felter",

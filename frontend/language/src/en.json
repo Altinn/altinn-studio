@@ -581,6 +581,7 @@
   "schema_editor.enum": "Valid values",
   "schema_editor.enum_empty": "The list is empty—all values will be approved.",
   "schema_editor.enum_legend": "List of valid values",
+  "schema_editor.enum_error_duplicate": "The values must be unique.",
   "schema_editor.field": "Field",
   "schema_editor.field_name": "Field name",
   "schema_editor.fields": "Fields",
