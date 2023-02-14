@@ -51,6 +51,8 @@ export const getProcessNextUrl = (taskId?: string | null) => {
 
 export const getRedirectUrl = (returnUrl: string) => `${appPath}/api/v1/redirect?url=${encodeURIComponent(returnUrl)}`;
 
+export const getFeatureSetUrl = () => `${appPath}/api/v1/featureset`;
+
 export const getUpgradeAuthLevelUrl = (reqAuthLevel: string) => {
   const redirect: string =
     `https://platform.${getHostname()}` + `/authentication/api/v1/authentication?goto=${appPath}`;

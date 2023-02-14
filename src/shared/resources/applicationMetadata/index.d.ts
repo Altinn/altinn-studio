@@ -12,6 +12,7 @@ export interface IApplicationMetadata {
   title: ITitle;
   autoDeleteOnProcessEnd: boolean;
   onEntry?: IOnEntry;
+  features?: Partial<IBackendFeaturesState>;
 }
 
 export interface IApplicationMetadataState {
@@ -38,4 +39,8 @@ export interface IGetApplicationMetadataFulfilled {
 
 export interface IGetApplicationMetadataRejected {
   error: Error;
+}
+
+export interface IBackendFeaturesState {
+  multiPartSave: boolean;
 }

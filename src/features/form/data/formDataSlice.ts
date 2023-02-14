@@ -3,13 +3,12 @@ import type { AnyAction } from 'redux';
 import { fetchFormDataSaga, watchFetchFormDataInitialSaga } from 'src/features/form/data/fetch/fetchFormDataSagas';
 import { autoSaveSaga, saveFormDataSaga, submitFormSaga } from 'src/features/form/data/submit/submitFormDataSagas';
 import { deleteAttachmentReferenceSaga, updateFormDataSaga } from 'src/features/form/data/update/updateFormDataSagas';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { checkIfRuleShouldRunSaga } from 'src/features/form/rules/check/checkRulesSagas';
 import { checkIfDataListShouldRefetchSaga } from 'src/shared/resources/dataLists/fetchDataListsSaga';
 import { checkIfOptionsShouldRefetchSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import type { IFormDataState } from 'src/features/form/data';
+import type { IFormData, IFormDataState } from 'src/features/form/data';
 import type {
   IDeleteAttachmentReference,
   IFetchFormData,
@@ -24,12 +23,12 @@ import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 
 export const initialState: IFormDataState = {
   formData: {},
-  error: null,
-  responseInstance: null,
+  lastSavedFormData: {},
   unsavedChanges: false,
+  saving: false,
   submittingId: '',
   savingId: '',
-  hasSubmitted: false,
+  error: null,
   ignoreWarnings: false,
 };
 
@@ -51,6 +50,7 @@ const formDataSlice = createSagaSlice((mkAction: MkActionType<IFormDataState>) =
       reducer: (state, action) => {
         const { formData } = action.payload;
         state.formData = formData;
+        state.lastSavedFormData = formData;
       },
     }),
     fetchRejected: mkAction<IFormDataRejected>({
@@ -66,12 +66,22 @@ const formDataSlice = createSagaSlice((mkAction: MkActionType<IFormDataState>) =
       },
     }),
     submit: mkAction<ISubmitDataAction>({
-      takeLatest: submitFormSaga,
+      takeEvery: submitFormSaga,
       reducer: (state, action) => {
         const { apiMode, componentId } = action.payload;
         state.savingId = apiMode !== 'Complete' ? componentId : state.savingId;
         state.submittingId = apiMode === 'Complete' ? componentId : state.submittingId;
-        state.hasSubmitted = apiMode === 'Complete';
+      },
+    }),
+    savingStarted: mkAction<void>({
+      reducer: (state) => {
+        state.saving = true;
+      },
+    }),
+    savingEnded: mkAction<{ model: IFormData }>({
+      reducer: (state, action) => {
+        state.saving = false;
+        state.lastSavedFormData = action.payload.model;
       },
     }),
     submitFulfilled: mkAction<void>({
@@ -92,7 +102,6 @@ const formDataSlice = createSagaSlice((mkAction: MkActionType<IFormDataState>) =
     update: mkAction<IUpdateFormData>({
       takeEvery: updateFormDataSaga,
       reducer: (state) => {
-        state.hasSubmitted = false;
         state.ignoreWarnings = false;
       },
     }),
@@ -100,14 +109,16 @@ const formDataSlice = createSagaSlice((mkAction: MkActionType<IFormDataState>) =
       takeLatest: [checkIfRuleShouldRunSaga, autoSaveSaga],
       takeEvery: [checkIfOptionsShouldRefetchSaga, checkIfDataListShouldRefetchSaga],
       reducer: (state, action) => {
-        const { field, data } = action.payload;
+        const { field, data, skipAutoSave } = action.payload;
         // Remove if data is null, undefined or empty string
         if (data === undefined || data === null || data === '') {
           delete state.formData[field];
         } else {
           state.formData[field] = data;
         }
-        state.unsavedChanges = true;
+        if (!skipAutoSave) {
+          state.unsavedChanges = true;
+        }
       },
     }),
     updateRejected: mkAction<IFormDataRejected>({
@@ -117,7 +128,7 @@ const formDataSlice = createSagaSlice((mkAction: MkActionType<IFormDataState>) =
       },
     }),
     save: mkAction<ISaveAction>({
-      takeLatest: saveFormDataSaga,
+      takeEvery: saveFormDataSaga,
     }),
     deleteAttachmentReference: mkAction<IDeleteAttachmentReference>({
       takeLatest: deleteAttachmentReferenceSaga,
@@ -125,12 +136,6 @@ const formDataSlice = createSagaSlice((mkAction: MkActionType<IFormDataState>) =
   },
   extraReducers: (builder) => {
     builder
-      .addCase(FormLayoutActions.updateCurrentView, (state) => {
-        state.hasSubmitted = true;
-      })
-      .addCase(FormLayoutActions.updateCurrentViewFulfilled, (state) => {
-        state.hasSubmitted = false;
-      })
       .addMatcher(isProcessAction, (state) => {
         state.submittingId = '';
       })

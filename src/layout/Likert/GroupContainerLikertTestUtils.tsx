@@ -219,13 +219,13 @@ export const render = ({
   const components: ComponentInGroup[] = [mockRadioButton];
   const mockData: IFormDataState = {
     formData: generateMockFormData(mockQuestions),
+    lastSavedFormData: {},
     error: null,
-    hasSubmitted: false,
     ignoreWarnings: false,
     submittingId: '',
     savingId: '',
-    responseInstance: null,
     unsavedChanges: false,
+    saving: false,
   };
 
   const preloadedState = getInitialStateMock({

@@ -11,7 +11,6 @@ import {
 import type { IRuntimeState, IValidationResult, IValidations } from 'src/types';
 
 interface ValidationResult {
-  model: any;
   validationResult: IValidationResult;
   componentSpecificValidations: IValidations;
   emptyFieldsValidations: IValidations;
@@ -23,7 +22,6 @@ interface ValidationResult {
  */
 export function runClientSideValidation(state: IRuntimeState): ValidationResult {
   const out: ValidationResult = {
-    model: {},
     validationResult: {
       validations: {},
       invalidDataTypes: false,
@@ -41,7 +39,6 @@ export function runClientSideValidation(state: IRuntimeState): ValidationResult 
     instance: state.instanceData.instance,
     layoutSets: state.formLayout.layoutsets,
   });
-  out.model = convertDataBindingToModel(state.formData.formData);
   const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
 
   const hiddenFields = new Set(state.formLayout.uiConfig.hiddenFields);
@@ -51,9 +48,10 @@ export function runClientSideValidation(state: IRuntimeState): ValidationResult 
     return out;
   }
 
+  const model = convertDataBindingToModel(state.formData.formData);
   const layouts = resolvedLayoutsFromState(state);
   out.validationResult = validateFormData(
-    out.model,
+    model,
     layouts,
     layoutOrder,
     validator,

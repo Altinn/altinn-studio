@@ -5512,6 +5512,7 @@ __metadata:
     cypress: 12.5.1
     cypress-axe: 1.3.0
     cypress-plugin-tab: 1.0.5
+    cypress-wait-until: ^1.7.2
     dompurify: 2.4.3
     dot-object: 2.1.4
     dotenv: 16.0.3
@@ -7191,6 +7192,13 @@ __metadata:
   dependencies:
     ally.js: ^1.4.1
   checksum: 87d68c8caf03bb8d330901c68caa4253442d7c5364dae92899c744286a459dd16fd47c3633288eb35940655b3079502d425c83fbb489841722c7f4d7c77dd212
+  languageName: node
+  linkType: hard
+
+"cypress-wait-until@npm:^1.7.2":
+  version: 1.7.2
+  resolution: "cypress-wait-until@npm:1.7.2"
+  checksum: e3fe3c35ef8cfda39fb8919ae63a238bd580a98f5c02120306b32d6502ddfa9bfc3afde733cd9b282035b9f67e8386bd6c58bd59ca5fd2ea65291e6d9bac1ed7
   languageName: node
   linkType: hard
 
