@@ -25,5 +25,5 @@
       "type": "string"
     }
   },
-  "required": ["e1", "e2"]
+  "required": ["property1", "property2"]
 }
