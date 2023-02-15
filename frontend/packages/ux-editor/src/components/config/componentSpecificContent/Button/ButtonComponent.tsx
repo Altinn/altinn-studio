@@ -6,18 +6,15 @@ import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
 import { ComponentTypes } from '../../../index';
 
-export const ButtonComponent = ({
-  component,
-  handleComponentChange,
-}: IGenericEditComponent) => {
+export const ButtonComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
 
-  const handleButtonTypeChange = (selected: any) => {
+  const handleButtonTypeChange = (selected: string) => {
     const componentCopy = { ...component };
     if (!componentCopy.textResourceBindings) {
       componentCopy.textResourceBindings = {};
     }
-    if (selected.value === 'NavigationButtons') {
+    if (selected === 'NavigationButtons') {
       componentCopy.type = 'NavigationButtons';
       componentCopy.textResourceBindings.title = undefined;
       (componentCopy as any).textResourceId = undefined;
@@ -25,7 +22,7 @@ export const ButtonComponent = ({
       (componentCopy as any).showBackButton = true;
       componentCopy.textResourceBindings.next = 'next';
       componentCopy.textResourceBindings.back = 'back';
-    } else if (selected.value === 'Button') {
+    } else if (selected === 'Button') {
       componentCopy.type = 'Button';
       componentCopy.textResourceBindings.next = undefined;
       componentCopy.textResourceBindings.back = undefined;
@@ -58,11 +55,8 @@ export const ButtonComponent = ({
         />
       </div>
       {component.type === ComponentTypes.Button && (
-        <EditTitle
-          component={component}
-          handleComponentChange={handleComponentChange}
-        />
+        <EditTitle component={component} handleComponentChange={handleComponentChange} />
       )}
     </FieldSet>
   );
-}
+};
