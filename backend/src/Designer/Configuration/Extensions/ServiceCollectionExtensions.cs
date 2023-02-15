@@ -15,9 +15,6 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
         private const string AltinnAssemblyIdentifier = "Altinn.";
         public static IServiceCollection RegisterSettingsByBaseType<TMarker>(this IServiceCollection services, IConfiguration configuration)
         {
-            if (services == null) throw new ArgumentNullException(nameof(services));
-            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
-
             var typesToRegister = GetTypesAssignedFrom<TMarker>()
                 .Where(type => !type.IsInterface && !type.IsAbstract);
 
@@ -65,7 +62,7 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
             return DependencyContext.Default
                 .RuntimeLibraries
                 .Where(IsAltinnLibrary)
-                .Where(library => library.RuntimeAssemblyGroups.Any())//Project or (nuget)package contains assembly.
+                .Where(library => library.RuntimeAssemblyGroups.Any())
                 .Select(library => Assembly.Load(new AssemblyName(library.Name)))
                 .GetTypesAssignedFrom<TAssignedFrom>();
         }
@@ -88,8 +85,6 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
 
         private static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
         {
-            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
-
             try
             {
                 return assembly.GetTypes();
