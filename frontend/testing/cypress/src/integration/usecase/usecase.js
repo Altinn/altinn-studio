@@ -23,7 +23,7 @@ context(
     });
     beforeEach(() => {
       cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
-      cy.intercept('GET', '**/datamodels').as('getDatamodels');
+      cy.intercept('GET', '**/datamodels/all-json').as('getDatamodels');
       cy.visit('/');
       cy.searchAndOpenApp(Cypress.env('deployApp'));
       cy.wait('@getDatamodels');
