@@ -229,7 +229,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     logger.LogInformation($"// Program.cs // ConfigureServices // Configuration complete");
 
     services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
-    services.Configure<TestSomeSettings>(configuration.GetSection(nameof(TestSomeSettings)));
 }
 
 void Configure(IConfiguration configuration)
