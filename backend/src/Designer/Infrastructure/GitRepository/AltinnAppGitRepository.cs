@@ -384,7 +384,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <returns>The content of Settings.json</returns>
-        public async Task<LayoutSettings> GetLayoutSettings(string layoutSetName)
+        public async Task<LayoutSettings> GetLayoutSettingsAndCreateNewIfNotFound(string layoutSetName)
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             if (!FileExistsByRelativePath(layoutSettingsPath))
@@ -423,6 +423,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Saves the Settings.json for a specific layoutset
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="layoutSettings">The layoutsettings to be saved</param>
         /// <returns>The content of Settings.json</returns>
         public async Task SaveLayoutSettings(string layoutSetName, LayoutSettings layoutSettings)
         {

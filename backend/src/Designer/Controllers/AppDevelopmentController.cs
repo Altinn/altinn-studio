@@ -27,6 +27,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="AppDevelopmentController"/> class.
         /// </summary>
+        /// <param name="appDevelopmentService">The app development service</param>
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
         public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl)
@@ -162,7 +163,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Saves the layout settings
+        /// Saves the layout settings for an app without layoutsets
         /// </summary>
         /// <param name="layoutSettings">The data to be saved</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -176,21 +177,17 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings);
+                await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, null);
                 return Ok("Layout settings successfully saved.");
             }
             catch (FileNotFoundException exception)
             {
                 return NotFound(exception.Message);
             }
-            catch (Exception exception)
-            {
-                return BadRequest(exception.Message);
-            }
         }
 
         /// <summary>
-        /// Gets the layout settings
+        /// Gets the layout settings for an app without layoutSets
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -203,16 +200,12 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                LayoutSettings layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer);
+                LayoutSettings layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, null);
                 return Ok(layoutSettings);
             }
             catch (FileNotFoundException exception)
             {
                 return NotFound(exception.Message);
-            }
-            catch (Exception exception)
-            {
-                return BadRequest(exception.Message);
             }
         }
 
