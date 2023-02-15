@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
@@ -226,6 +227,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         }
     });
     logger.LogInformation($"// Program.cs // ConfigureServices // Configuration complete");
+
+    services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
+    services.Configure<TestSomeSettings>(configuration.GetSection(nameof(TestSomeSettings)));
 }
 
 void Configure(IConfiguration configuration)
