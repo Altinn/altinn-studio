@@ -1,6 +1,7 @@
 {
   "$id": "https://example.com/arrays.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Non xsd context schema",
   "description": "A representation of a person, company, organization, or place",
   "type": "object",
   "properties": {
@@ -51,6 +52,8 @@
   "$defs": {
     "objectType": {
       "type": "object",
+      "title": "Title of object type node",
+      "description": "Object containing various property types",
       "required": ["prop1", "prop2"],
       "properties": {
         "prop1": {

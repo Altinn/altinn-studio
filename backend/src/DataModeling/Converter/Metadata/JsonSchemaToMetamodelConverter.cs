@@ -160,6 +160,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 case CommentKeyword:
                 case XsdRootElementKeyword:
                 case DescriptionKeyword:
+                case TitleKeyword:
                     break;
 
                 case RefKeyword k:
