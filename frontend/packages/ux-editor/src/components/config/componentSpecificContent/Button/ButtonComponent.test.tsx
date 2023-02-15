@@ -1,4 +1,6 @@
 import React from 'react';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { IGenericEditComponent } from '../../componentConfig';
 import { IFormButtonComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
@@ -21,8 +23,48 @@ describe('ButtonComponent', () => {
   it('Renders without errors', () => {
     render();
   });
+
+  it('changing button type to navigation buttons should call handleComponentChange with expected properties', async () => {
+    const mockHandleComponentChange = jest.fn();
+    const { user } = render({ handleComponentChange: mockHandleComponentChange });
+    const buttonTypeSelect = screen.getByRole('combobox');
+    await act(() => user.click(buttonTypeSelect));
+    await act(() => user.click(screen.getAllByRole('option')[1]));
+    expect(mockHandleComponentChange).toHaveBeenCalledWith({
+      ...component,
+      type: 'NavigationButtons',
+      showBackButton: true,
+      textResourceBindings: {
+        next: 'next',
+        back: 'back',
+      },
+    });
+  });
 });
 
-const render = (props?: Partial<IGenericEditComponent>) =>
-  renderWithMockStore()(<ButtonComponent {...defaultProps} {...props} />);
+it('changing button type to navigation buttons should call handleComponentChange with expected properties', async () => {
+  const mockHandleComponentChange = jest.fn();
+  const { user } = render({
+    handleComponentChange: mockHandleComponentChange,
+    component: {
+      ...component,
+      type: 'NavigationButtons',
+    },
+  });
+  const buttonTypeSelect = screen.getByRole('combobox');
+  await act(() => user.click(buttonTypeSelect));
+  await act(() => user.click(screen.getAllByRole('option')[0]));
+  expect(mockHandleComponentChange).toHaveBeenCalledWith({
+    ...component,
+    type: 'Button',
+    textResourceBindings: {
+      title: 'ux_editor.modal_properties_button_type_submit',
+    },
+  });
+});
 
+const render = (props?: Partial<IGenericEditComponent>) => {
+  const user = userEvent.setup();
+  renderWithMockStore()(<ButtonComponent {...defaultProps} {...props} />);
+  return { user };
+};

@@ -16,19 +16,18 @@ export const ButtonComponent = ({ component, handleComponentChange }: IGenericEd
     }
     if (selected === 'NavigationButtons') {
       componentCopy.type = 'NavigationButtons';
-      componentCopy.textResourceBindings.title = undefined;
-      (componentCopy as any).textResourceId = undefined;
-      componentCopy.customType = undefined;
-      (componentCopy as any).showBackButton = true;
-      componentCopy.textResourceBindings.next = 'next';
-      componentCopy.textResourceBindings.back = 'back';
+      componentCopy.textResourceBindings = {
+        next: 'next',
+        back: 'back',
+      };
+      componentCopy.showBackButton = true;
     } else if (selected === 'Button') {
       componentCopy.type = 'Button';
-      componentCopy.textResourceBindings.next = undefined;
-      componentCopy.textResourceBindings.back = undefined;
-      (componentCopy as any).showPrev = undefined;
-      (componentCopy as any).showBackButton = undefined;
-      componentCopy.textResourceBindings.title = t('ux_editor.modal_properties_button_type_submit');
+      delete componentCopy.showPrev;
+      delete componentCopy.showBackButton;
+      componentCopy.textResourceBindings = {
+        title: t('ux_editor.modal_properties_button_type_submit'),
+      };
     }
     handleComponentChange(componentCopy);
   };
