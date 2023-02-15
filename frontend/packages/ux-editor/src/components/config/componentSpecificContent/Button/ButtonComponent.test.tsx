@@ -40,26 +40,26 @@ describe('ButtonComponent', () => {
       },
     });
   });
-});
 
-it('changing button type to navigation buttons should call handleComponentChange with expected properties', async () => {
-  const mockHandleComponentChange = jest.fn();
-  const { user } = render({
-    handleComponentChange: mockHandleComponentChange,
-    component: {
+  it('changing button type to submit should call handleComponentChange with expected properties', async () => {
+    const mockHandleComponentChange = jest.fn();
+    const { user } = render({
+      handleComponentChange: mockHandleComponentChange,
+      component: {
+        ...component,
+        type: 'NavigationButtons',
+      },
+    });
+    const buttonTypeSelect = screen.getByRole('combobox');
+    await act(() => user.click(buttonTypeSelect));
+    await act(() => user.click(screen.getAllByRole('option')[0]));
+    expect(mockHandleComponentChange).toHaveBeenCalledWith({
       ...component,
-      type: 'NavigationButtons',
-    },
-  });
-  const buttonTypeSelect = screen.getByRole('combobox');
-  await act(() => user.click(buttonTypeSelect));
-  await act(() => user.click(screen.getAllByRole('option')[0]));
-  expect(mockHandleComponentChange).toHaveBeenCalledWith({
-    ...component,
-    type: 'Button',
-    textResourceBindings: {
-      title: 'ux_editor.modal_properties_button_type_submit',
-    },
+      type: 'Button',
+      textResourceBindings: {
+        title: 'ux_editor.modal_properties_button_type_submit',
+      },
+    });
   });
 });
 
