@@ -6,10 +6,12 @@ import React from 'react';
  * loading indicators to the user while waiting for content to get ready.
  */
 export function ReadyForPrint() {
-  const [imagesLoaded, setImagesLoaded] = React.useState(false);
+  const [assetsLoaded, setAssetsLoaded] = React.useState(false);
 
   React.useLayoutEffect(() => {
     const promises: Promise<unknown>[] = [];
+
+    promises.push(document.fonts.ready);
 
     const imageLoadPromise = (img: HTMLImageElement) => {
       return new Promise((res) => {
@@ -29,13 +31,13 @@ export function ReadyForPrint() {
       // element after all images have been rendered.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          setImagesLoaded(true);
+          setAssetsLoaded(true);
         });
       });
     });
   }, []);
 
-  if (!imagesLoaded) {
+  if (!assetsLoaded) {
     return null;
   }
 

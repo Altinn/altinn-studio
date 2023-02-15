@@ -20,6 +20,10 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+Object.defineProperty(document, 'fonts', {
+  value: { ready: Promise.resolve({}) },
+});
+
 // org and app is assigned to window object, so to avoid 'undefined' in tests, they need to be set
 const altinnWindow = window as Window as IAltinnWindow;
 altinnWindow.org = 'ttd';
