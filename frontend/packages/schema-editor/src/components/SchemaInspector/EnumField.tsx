@@ -14,6 +14,7 @@ export interface IEnumFieldProps {
   language: ILanguage;
   readOnly?: boolean;
   fullWidth?: boolean;
+  isValid?: boolean;
   onChange: (value: string, oldValue?: string) => void;
   onDelete?: (path: string, key: string) => void;
   onEnterKeyPress?: () => void;
@@ -48,6 +49,7 @@ export const EnumField = (props: IEnumFieldProps) => {
         onBlur={onBlur}
         onKeyDown={onKeyDown}
         autoFocus
+        isValid={props.isValid}
       />
       {props.onDelete && (
         <IconButton
