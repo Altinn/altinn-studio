@@ -3,6 +3,7 @@ on:
   push:
     branches: [ master ]
     paths:
+      - 'testdata/**'
       - 'backend/**'
   pull_request:
     branches: [ master ]

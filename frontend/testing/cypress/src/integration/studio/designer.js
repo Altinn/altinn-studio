@@ -55,7 +55,7 @@ context('Designer', () => {
 
   it('is possible to delete local changes of an app ', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
-    cy.intercept('GET', '**/GetLayoutSettings').as('getLayoutSettings');
+    cy.intercept('GET', '**/layout-settings').as('getLayoutSettings');
     cy.get(designer.appMenu['edit']).click();
     cy.wait('@getLayoutSettings');
     cy.get("button[aria-label='Legg til ny side']").click();

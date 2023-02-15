@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'frontend/**'
+      - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
 
 concurrency:

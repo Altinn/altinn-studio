@@ -20,6 +20,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
   );
   JSONPointer.set(out, `/${Keywords.Required}`, findRequiredProps(nodes, rootNode.pointer));
   JSONPointer.set(out, `/${Keywords.Description}`, rootNode.description);
+  JSONPointer.set(out, `/${Keywords.Title}`, rootNode.title);
   const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
   sortedUiSchemaNodes
