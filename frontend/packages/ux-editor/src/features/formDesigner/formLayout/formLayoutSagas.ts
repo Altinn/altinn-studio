@@ -33,9 +33,7 @@ import type {
   IFormLayout,
   IFormLayouts,
 } from '../../../types/global';
-import { upsertTextResources } from '../../appData/textResources/textResourcesSlice';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { generateComponentId, generateTextResourceId } from '../../../utils/generateId';
+import { generateComponentId } from '../../../utils/generateId';
 import {
   appMetadataAttachmentPath,
   layoutSettingsPath,
@@ -46,15 +44,12 @@ import {
 
 const selectCurrentLayout = (state: IAppState): IFormLayout =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
-const selectCurrentLayoutName = (state: IAppState): string =>
-  state.formDesigner.layout.selectedLayout;
 
 function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentAction>): SagaIterator {
   try {
     let { containerId, position } = payload;
     const { org, app, component, callback } = payload;
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
-    const currentLayoutName: string = yield select(selectCurrentLayoutName);
     const id: string = generateComponentId(component.type, currentLayout);
 
     if (!containerId) {
@@ -65,30 +60,6 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
       // if position is undefined, put it on top
       position = 0;
     }
-
-    // Add new text resources for component
-    const newTextResources = {};
-    const newTextResourceBindings = {};
-    const newTextResourcesArray = [];
-    Object.entries(component.textResourceBindings).forEach(([key, value]) => {
-      if (key == 'title' || key == 'help' || key == 'description' || 'body') {
-        const newTextId = generateTextResourceId(currentLayoutName, id, key);
-        Object.assign(newTextResourceBindings, { [key]: newTextId });
-        Object.assign(newTextResources, { [newTextId]: value });
-        newTextResourcesArray.push({ id: newTextId, value });
-      } else {
-        Object.assign(newTextResourceBindings, { [key]: value });
-      }
-    });
-    yield put(
-      upsertTextResources({
-        language: DEFAULT_LANGUAGE,
-        textResources: newTextResources,
-        org,
-        app,
-      })
-    );
-    component.textResourceBindings = newTextResourceBindings;
 
     yield put(
       FormLayoutActions.addFormComponentFulfilled({

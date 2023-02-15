@@ -2,7 +2,7 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type { IImageComponentProps } from './ImageComponent';
+import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
 import { appDataMock, renderWithMockStore } from '../../../../testing/mocks';
 import { IAppDataState } from '../../../../features/appData/appDataReducers';
@@ -16,8 +16,8 @@ const componentData: IFormImageComponent = {
   textResourceBindings: {},
   type: ComponentTypes.Image,
   image: {
-    src: {}
-  }
+    src: {},
+  },
 };
 const texts = {
   'ux_editor.modal_properties_image_src_value_label': 'Source',
@@ -26,13 +26,13 @@ const texts = {
   'ux_editor.modal_properties_image_width_label': 'Width',
   'ux_editor.modal_properties_image_placement_left': 'Left',
   'ux_editor.modal_properties_image_placement_center': 'Center',
-  'ux_editor.modal_properties_image_placement_right': 'Right'
+  'ux_editor.modal_properties_image_placement_right': 'Right',
 };
-const render = (props: Partial<IImageComponentProps> = {}) => {
-  const allProps: IImageComponentProps = {
+const render = (props: Partial<IGenericEditComponent> = {}) => {
+  const allProps: IGenericEditComponent = {
     component: componentData,
-    handleComponentUpdate: jest.fn(),
-    ...props
+    handleComponentChange: jest.fn(),
+    ...props,
   };
 
   const appData: IAppDataState = {
@@ -42,14 +42,14 @@ const render = (props: Partial<IImageComponentProps> = {}) => {
       resources: {
         nb: [
           { id: 'altTextImg', value: 'Alternative text' },
-          { id: 'altTextImg2', value: 'Alternative text 2' }
-        ]
-      }
+          { id: 'altTextImg2', value: 'Alternative text 2' },
+        ],
+      },
     },
     languageState: {
       ...appDataMock.languageState,
-      language: texts
-    }
+      language: texts,
+    },
   };
 
   return renderWithMockStore({ appData })(<ImageComponent {...allProps} />);
@@ -59,10 +59,10 @@ describe('ImageComponent', () => {
   it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', async () => {
     const handleUpdate = jest.fn();
     const imgSrc = 'placekitten.com/500/500';
-    render({ handleComponentUpdate: handleUpdate });
+    render({ handleComponentChange: handleUpdate });
 
     const srcInput = screen.getByRole('textbox', {
-      name: /source/i
+      name: /source/i,
     });
 
     await act(() => user.type(srcInput, imgSrc));
@@ -72,19 +72,19 @@ describe('ImageComponent', () => {
       image: {
         ...componentData.image,
         src: {
-          nb: imgSrc
-        }
-      }
+          nb: imgSrc,
+        },
+      },
     });
   });
 
   it('should call handleComponentUpdate callback with image width value when image width input is changed', async () => {
     const handleUpdate = jest.fn();
     const size = '250px';
-    render({ handleComponentUpdate: handleUpdate });
+    render({ handleComponentChange: handleUpdate });
 
     const widthInput = screen.getByRole('textbox', {
-      name: /width/i
+      name: /width/i,
     });
 
     await act(() => user.type(widthInput, size));
@@ -93,17 +93,17 @@ describe('ImageComponent', () => {
       ...componentData,
       image: {
         ...componentData.image,
-        width: size
-      }
+        width: size,
+      },
     });
   });
 
   it('should call handleComponentUpdate callback with alignment when placement select is changed', async () => {
     const handleUpdate = jest.fn();
-    render({ handleComponentUpdate: handleUpdate });
+    render({ handleComponentChange: handleUpdate });
 
     const placementInput = screen.getByRole('combobox', {
-      name: /placement/i
+      name: /placement/i,
     });
 
     await act(() => user.type(placementInput, 'L')); // Type something to trigger showing Select options
@@ -113,8 +113,8 @@ describe('ImageComponent', () => {
       ...componentData,
       image: {
         ...componentData.image,
-        align: 'flex-start'
-      }
+        align: 'flex-start',
+      },
     });
   });
 });

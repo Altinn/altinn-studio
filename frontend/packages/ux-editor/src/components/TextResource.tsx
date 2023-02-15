@@ -3,14 +3,18 @@ import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-syste
 import { Add, Close, Edit, Search } from '@navikt/ds-icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCurrentEditId, upsertTextResources } from '../features/appData/textResources/textResourcesSlice';
+import {
+  setCurrentEditId,
+  upsertTextResources,
+} from '../features/appData/textResources/textResourcesSlice';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import {
   getAllTextResourceIds,
   getCurrentEditId,
-  textResourceByLanguageAndIdSelector
+  textResourceByLanguageAndIdSelector,
 } from '../selectors/textResourceSelectors';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import { generateTextResourceId } from '../utils/generateId';
 import { useText } from '../hooks';
 import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
@@ -23,7 +27,21 @@ export interface TextResourceProps {
   placeholder?: string;
   previewMode?: boolean;
   textResourceId?: string;
+  generateIdOptions?: GenerateTextResourceIdOptions;
 }
+
+export interface GenerateTextResourceIdOptions {
+  componentId: string;
+  layoutId: string;
+  textResourceKey: string;
+}
+
+export const generateId = (options?: GenerateTextResourceIdOptions) => {
+  if (!options) {
+    return generateRandomId(12);
+  }
+  return generateTextResourceId(options.layoutId, options.componentId, options.textResourceKey);
+};
 
 export const TextResource = ({
   description,
@@ -32,20 +50,26 @@ export const TextResource = ({
   placeholder,
   previewMode,
   textResourceId,
+  generateIdOptions,
 }: TextResourceProps) => {
   const dispatch = useDispatch();
 
-  const textResource = useSelector(textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId));
+  const textResource = useSelector(
+    textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId)
+  );
   const textResourceIds = useSelector(getAllTextResourceIds);
   const t = useText();
   const [isSearchMode, setIsSearchMode] = useState(false);
   const { org, app } = useParams();
-  const addTextResource = (id: string) => dispatch(upsertTextResources({
-    language: DEFAULT_LANGUAGE,
-    textResources: { [id]: '' },
-    org,
-    app
-  }));
+  const addTextResource = (id: string) =>
+    dispatch(
+      upsertTextResources({
+        language: DEFAULT_LANGUAGE,
+        textResources: { [id]: '' },
+        org,
+        app,
+      })
+    );
 
   const editId = useSelector(getCurrentEditId);
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
@@ -55,7 +79,7 @@ export const TextResource = ({
     if (textResourceId) {
       setEditId(textResourceId);
     } else {
-      const id = generateRandomId(12);
+      const id = generateId(generateIdOptions);
       addTextResource(id);
       handleIdChange(id);
       setEditId(id);
@@ -68,12 +92,14 @@ export const TextResource = ({
   );
 
   return (
-    <span className={cn(
-      classes.root,
-      previewMode && classes.previewMode,
-      isEditing && classes.isEditing,
-      isSearchMode && classes.isSearching,
-    )}>
+    <span
+      className={cn(
+        classes.root,
+        previewMode && classes.previewMode,
+        isEditing && classes.isEditing,
+        isSearchMode && classes.isSearching
+      )}
+    >
       {label && <span className={classes.label}>{label}</span>}
       {description && <span className={classes.description}>{description}</span>}
       {isSearchMode && (
@@ -99,9 +125,11 @@ export const TextResource = ({
         </span>
       )}
       <span className={classes.textResource}>
-        {textResource?.value
-          ? <span>{textResource.value}</span>
-          : <span className={classes.placeholder}>{placeholder}</span>}
+        {textResource?.value ? (
+          <span>{textResource.value}</span>
+        ) : (
+          <span className={classes.placeholder}>{placeholder}</span>
+        )}
         <span className={classes.buttonsWrapper}>
           <span className={classes.buttons}>
             {textResource?.value ? (
@@ -110,7 +138,7 @@ export const TextResource = ({
                 className={classes.button}
                 color={ButtonColor.Secondary}
                 disabled={isEditing}
-                icon={<Edit/>}
+                icon={<Edit />}
                 onClick={handleEditButtonClick}
                 title={t('general.edit')}
                 variant={ButtonVariant.Quiet}
@@ -142,4 +170,4 @@ export const TextResource = ({
       </span>
     </span>
   );
-}
+};

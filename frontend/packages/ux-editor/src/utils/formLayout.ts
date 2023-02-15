@@ -3,7 +3,6 @@ import type { IComponent } from '../components';
 import { ComponentTypes } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { LayoutItemType } from '../types/global';
-import { getComponentTitleByComponentType } from './language';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -211,12 +210,15 @@ export const mapComponentToToolbarElement = (
         component: {
           type: c.name,
           itemType: LayoutItemType.Component,
-          textResourceBindings: {
-            title:
-              c.name === 'Button'
-                ? getLanguageFromKey('ux_editor.modal_properties_button_type_submit', language)
-                : getComponentTitleByComponentType(c.name, language),
-          },
+          textResourceBindings:
+            c.name === 'Button'
+              ? {
+                  title: getLanguageFromKey(
+                    'ux_editor.modal_properties_button_type_submit',
+                    language
+                  ),
+                }
+              : {},
           dataModelBindings: {},
           ...JSON.parse(JSON.stringify(customProperties)),
         },
