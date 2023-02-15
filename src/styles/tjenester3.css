@@ -101,7 +101,7 @@ ul ol {
 }
 
 dt {
-  font-weight: 'bold';
+  font-weight: bold;
 }
 
 dd {
@@ -5178,7 +5178,7 @@ input[type='button'].btn-block {
   display: inline-block;
   padding: 0.25em 0.4em;
   font-size: 75%;
-  font-weight: 'bold';
+  font-weight: bold;
   line-height: 1;
   text-align: center;
   white-space: nowrap;
@@ -5764,7 +5764,7 @@ a.badge-dark.focus {
 .close {
   float: right;
   font-size: 1.5rem;
-  font-weight: 'bold';
+  font-weight: bold;
   line-height: 1;
   color: #000000;
   text-shadow: 0 1px 0 #ffffff;
@@ -12341,7 +12341,7 @@ button.bg-dark:focus {
 }
 
 .font-weight-bold {
-  font-weight: 'bold' !important;
+  font-weight: bold !important;
 }
 
 .font-weight-bolder {
@@ -15733,7 +15733,7 @@ a.no-decoration:focus,
 a.a-link-title,
 .a-btn-link.a-link-title {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   font-size: 20px;
   font-size: 1.25rem;
   line-height: 1.5;
@@ -15774,7 +15774,7 @@ a > i,
 
 .a-linkFeatured {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   color: #022f51;
   border: none;
 }
@@ -16115,14 +16115,14 @@ h3,
 .a-h3,
 .a-card .a-h3 a {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   margin-bottom: 6px;
 }
 
 h4,
 .a-h4 {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   margin-bottom: 6px;
 }
 
@@ -16145,7 +16145,7 @@ h4,
 b,
 strong {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
 }
 
 p {
@@ -16402,7 +16402,7 @@ h1 .a-label {
   line-height: 1.2;
   -webkit-font-smoothing: subpixel-antialiased;
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   position: relative;
   display: inline-block;
   width: 100%;
@@ -16786,7 +16786,7 @@ h1 .a-label {
 .a-btn-link:focus.a-nounderline span,
 .a-btn-link:hover.a-nounderline span {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   border-bottom: none;
 }
 .a-btn-link span {
@@ -16795,7 +16795,7 @@ h1 .a-label {
 }
 .a-btn-link span.a-btn-black-noUnderline {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   padding: 0;
   border: none;
 }
@@ -16805,7 +16805,7 @@ h1 .a-label {
 }
 .a-btn-link.a-nounderline span {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   border-bottom: none;
 }
 .a-btn-link.a-linkDanger span {
@@ -16890,7 +16890,7 @@ h1 .a-label {
   line-height: 1.5;
   -webkit-font-smoothing: subpixel-antialiased;
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   display: table;
   width: auto;
   padding: 8px 12px 4px 12px;
@@ -16904,7 +16904,7 @@ h1 .a-label {
 }
 .a-box-button .a-box-button-action {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   display: inline-block;
 }
 .a-box-button .a-box-button-secondaryAction {
@@ -16988,7 +16988,7 @@ h1 .a-label {
 
 .a-fullWidthBtn {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   width: 100%;
   min-height: 48px;
 }
@@ -17795,7 +17795,7 @@ button.a-btn-delete {
   line-height: 1.5;
   -webkit-font-smoothing: subpixel-antialiased;
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
 }
 @media (min-width: 768px) {
   .a-iconText .a-iconText-text a,
@@ -19221,7 +19221,7 @@ ul.connected-bullets li::before {
 }
 ul.connected-bullets li::after {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   position: absolute;
   top: -1px;
   left: 0;
@@ -19277,7 +19277,7 @@ ol.a-circle-list li {
 }
 ol.a-circle-list li::before {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   position: relative;
   top: 0;
   padding: 7px 9px 4px 9px;
@@ -19306,7 +19306,7 @@ ol.a-number-list li {
 }
 ol.a-number-list li::before {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   top: 0;
   padding: 5px 9px 4px 9px;
   margin-left: -10px;
@@ -19459,7 +19459,7 @@ ol.a-number-list.a-number-list--extra-air li {
 }
 .a-autocomplete-container .a-list li:first-of-type {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
 }
 .a-autocomplete-container .a-list li:last-of-type {
   margin-bottom: 12px;
@@ -20962,7 +20962,7 @@ a.a-linkFeatured[href^='http']:not([href*='altinn.no'])::after {
 }
 .a-illustrationLink h2 {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   display: inline;
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
@@ -21094,7 +21094,7 @@ a.a-linkFeatured[href^='http']:not([href*='altinn.no'])::after {
   line-height: 1.5;
   -webkit-font-smoothing: subpixel-antialiased;
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   display: block;
 }
 @media (min-width: 992px) {
@@ -21237,7 +21237,7 @@ a.a-linkFeatured[href^='http']:not([href*='altinn.no'])::after {
 .a-footerNav ul li a,
 .a-footerExtraNav ul li a {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   position: relative;
   color: #022f51;
   border: none;
@@ -22037,7 +22037,7 @@ a.a-linkFeatured[href^='http']:not([href*='altinn.no'])::after {
 }
 .a-globalNav-main li .a-link-tel {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   padding-top: 24px;
   padding-bottom: 24px;
   margin-left: -5px;
@@ -22378,7 +22378,7 @@ a.a-linkFeatured[href^='http']:not([href*='altinn.no'])::after {
 }
 .a-inboxHeadingContent.a-msgUnread .a-msgTitle {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
 }
 .expanded .a-inboxHeadingContent.a-msgUnread .a-msgTitle {
   font-family: 'Altinn-DIN';
@@ -22540,7 +22540,7 @@ a.a-linkFeatured[href^='http']:not([href*='altinn.no'])::after {
 }
 .a-topTasks .a-btn {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   font-size: 16px;
   font-size: 1rem;
   line-height: 1.5;
@@ -22584,7 +22584,7 @@ a.a-linkFeatured[href^='http']:not([href*='altinn.no'])::after {
 }
 .a-inline-page-link a {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   display: inline-block;
   padding: 0;
   color: #0062ba;
@@ -22614,7 +22614,7 @@ a.a-linkFeatured[href^='http']:not([href*='altinn.no'])::after {
 }
 .a-overflow-dropdown .a-charIcon span {
   font-family: 'Altinn-DIN';
-  font-weight: 'bold';
+  font-weight: bold;
   font-size: 24px;
   font-size: 1.5rem;
   line-height: 1.5;
