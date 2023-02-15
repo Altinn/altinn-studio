@@ -50,6 +50,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
             services.AddTransient<ILanguagesService, LanguagesService>();
             services.AddTransient<ITextsService, TextsService>();
+            services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.RegisterDatamodeling(configuration);
 
             return services;

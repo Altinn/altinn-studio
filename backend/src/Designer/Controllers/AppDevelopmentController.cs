@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Text;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.KeyVault.Models;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -18,16 +20,19 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-development")]
     public class AppDevelopmentController : Controller
     {
+        private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly IRepository _repository;
         private readonly ISourceControl _sourceControl;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FormEditorController"/> class.
+        /// Initializes a new instance of the <see cref="AppDevelopmentController"/> class.
         /// </summary>
+        /// <param name="appDevelopmentService">The app development service</param>
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
-        public AppDevelopmentController(IRepository repositoryService, ISourceControl sourceControl)
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl)
         {
+            _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
             _sourceControl = sourceControl;
         }
@@ -158,35 +163,50 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Saves the layout settings
+        /// Saves the layout settings for an app without layoutsets
         /// </summary>
-        /// <param name="jsonData">The data to be saved</param>
+        /// <param name="layoutSettings">The data to be saved</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("layout-settings")]
-        public IActionResult SaveLayoutSettings([FromBody] dynamic jsonData, string org, string app)
+        public async Task<IActionResult> SaveLayoutSettings([FromBody] LayoutSettings layoutSettings, string org, string app)
         {
-            if (_repository.SaveLayoutSettings(org, app, jsonData.ToString()))
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
             {
+                await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, null);
                 return Ok("Layout settings successfully saved.");
             }
-
-            return BadRequest("Layout settings could not be saved.");
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
         }
 
         /// <summary>
-        /// Gets the layout settings
+        /// Gets the layout settings for an app without layoutSets
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The content of the settings file</returns>
         [HttpGet]
         [Route("layout-settings")]
-        public IActionResult GetLayoutSettings(string org, string app)
+        public async Task<ActionResult<LayoutSettings>> GetLayoutSettings(string org, string app)
         {
-            return Content(_repository.GetLayoutSettings(org, app), "application/json", Encoding.UTF8);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                LayoutSettings layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, null);
+                return Ok(layoutSettings);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
         }
 
         /// <summary>
