@@ -1,3 +1,4 @@
+import { replaceTextResourceParams } from 'src/language/sharedLanguage';
 import {
   getBaseGroupDataModelBindingFromKeyWithIndexIndicators,
   getGroupDataModelBinding,
@@ -5,7 +6,6 @@ import {
   keyHasIndexIndicators,
   replaceIndexIndicatorsWithIndexes,
 } from 'src/utils/databindings';
-import { replaceTextResourceParams } from 'src/utils/sharedUtils';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayout } from 'src/layout/layout';
 import type {

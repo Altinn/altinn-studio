@@ -13,7 +13,7 @@ export const initialState: IIsLoadingState = {
   stateless: null,
 };
 
-const isLoadingSlice = createSagaSlice((mkAction: MkActionType<IIsLoadingState>) => ({
+export const isLoadingSlice = createSagaSlice((mkAction: MkActionType<IIsLoadingState>) => ({
   name: 'isLoading',
   initialState,
   actions: {
@@ -43,4 +43,3 @@ const isLoadingSlice = createSagaSlice((mkAction: MkActionType<IIsLoadingState>)
 }));
 
 export const IsLoadingActions = isLoadingSlice.actions;
-export default isLoadingSlice;

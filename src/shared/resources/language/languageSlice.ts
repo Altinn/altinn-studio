@@ -34,7 +34,7 @@ export const initialState: ILanguageState = {
   error: null,
 };
 
-const languageSlice = createSagaSlice((mkAction: MkActionType<ILanguageState>) => ({
+export const languageSlice = createSagaSlice((mkAction: MkActionType<ILanguageState>) => ({
   name: 'language',
   initialState,
   actions: {
@@ -74,5 +74,3 @@ const languageSlice = createSagaSlice((mkAction: MkActionType<ILanguageState>) =
 }));
 
 export const LanguageActions = languageSlice.actions;
-
-export default languageSlice;

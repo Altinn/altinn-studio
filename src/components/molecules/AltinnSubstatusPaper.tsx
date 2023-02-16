@@ -1,15 +1,15 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid, Typography } from '@material-ui/core';
 
-import AltinnInformationPaper from 'src/components/molecules/AltinnInformationPaper';
+import { AltinnInformationPaper } from 'src/components/molecules/AltinnInformationPaper';
 
 export interface IInformationPaperProps {
   label: string;
   description: string;
 }
 
-export default function AltinnSubstatusPaper({ label, description }: IInformationPaperProps) {
+export function AltinnSubstatusPaper({ label, description }: IInformationPaperProps) {
   return (
     <AltinnInformationPaper>
       <Grid

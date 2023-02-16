@@ -4,7 +4,7 @@ import createSagaMiddleware from 'redux-saga';
 import type { PreloadedState } from 'redux';
 import type { SagaMiddleware } from 'redux-saga';
 
-import reducers from 'src/reducers';
+import { combinedReducers } from 'src/reducers';
 import { appApi } from 'src/services/AppApi';
 import type { IAltinnWindow } from 'src/types';
 
@@ -22,7 +22,7 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   }
 
   const innerStore = configureStore({
-    reducer: reducers,
+    reducer: combinedReducers,
     devTools: true,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
@@ -51,6 +51,6 @@ if (process.env.NODE_ENV === 'development') {
   (window as unknown as IAltinnWindow).reduxActionLog = actionLog;
 }
 
-export type RootState = ReturnType<typeof reducers>;
+export type RootState = ReturnType<typeof combinedReducers>;
 export type AppStore = ReturnType<typeof setupStore>;
 export type AppDispatch = AppStore['dispatch'];

@@ -1,9 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Box } from '@material-ui/core';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { AltinnSpinner, Select } from 'src/components/shared';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { AltinnSpinner } from 'src/components/AltinnSpinner';
+import { Select } from 'src/components/Select';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { useGetAppLanguageQuery } from 'src/services/LanguageApi';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';

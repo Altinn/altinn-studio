@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { useGetOptions } from 'src/components/hooks';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import { getOptionLookupKey } from 'src/utils/options';

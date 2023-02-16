@@ -23,7 +23,7 @@ const initialState: IDataListsState = {
   loading: true,
 };
 
-const dataListsSlice = createSagaSlice((mkAction: MkActionType<IDataListsState>) => ({
+export const dataListsSlice = createSagaSlice((mkAction: MkActionType<IDataListsState>) => ({
   name: 'dataListState',
   initialState,
   actions: {
@@ -116,4 +116,3 @@ const dataListsSlice = createSagaSlice((mkAction: MkActionType<IDataListsState>)
 }));
 
 export const DataListsActions = dataListsSlice.actions;
-export default dataListsSlice;

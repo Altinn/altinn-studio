@@ -1,10 +1,10 @@
-import * as React from 'react';
+import React from 'react';
 import DropZone from 'react-dropzone';
 import type { FileRejection } from 'react-dropzone';
 
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/shared/mapExtensionToAcceptMime';
-import { AltinnAppTheme } from 'src/theme';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
 import type { ITextResourceBindings } from 'src/types';
 

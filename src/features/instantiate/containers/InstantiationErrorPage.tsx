@@ -3,8 +3,8 @@ import type { RouteProps } from 'react-router-dom';
 
 import Grid from '@material-ui/core/Grid';
 
-import { InstantiationContainer } from 'src/features/instantiate/containers';
-import AltinnError from 'src/shared/components/altinnError';
+import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
+import { AltinnError } from 'src/shared/components/altinnError';
 
 export type IInstantiationErrorPageProps = {
   title: string | JSX.Element | JSX.Element[];
@@ -12,7 +12,7 @@ export type IInstantiationErrorPageProps = {
   statusCode: string;
 } & RouteProps;
 
-function InstantiationErrorPage({ content, statusCode, title }: IInstantiationErrorPageProps) {
+export function InstantiationErrorPage({ content, statusCode, title }: IInstantiationErrorPageProps) {
   return (
     <InstantiationContainer type='partyChoice'>
       <Grid
@@ -28,5 +28,3 @@ function InstantiationErrorPage({ content, statusCode, title }: IInstantiationEr
     </InstantiationContainer>
   );
 }
-
-export default InstantiationErrorPage;

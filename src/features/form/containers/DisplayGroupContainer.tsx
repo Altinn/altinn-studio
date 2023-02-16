@@ -3,7 +3,7 @@ import React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import cn from 'classnames';
 
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';

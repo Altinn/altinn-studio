@@ -4,7 +4,7 @@ import type { SagaIterator } from 'redux-saga';
 import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
-import { get } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/networking';
 import { getRuleModelFields } from 'src/utils/rules';
 import { getRulehandlerUrl } from 'src/utils/urls/appUrlHelper';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
@@ -25,7 +25,7 @@ export function* fetchRuleModelSaga(): SagaIterator {
     const application: IApplicationMetadata = yield select(applicationMetadataSelector);
     const layoutSetId = getLayoutSetIdForApplication(application, instance, layoutSets);
 
-    const ruleModel = yield call(get, getRulehandlerUrl(layoutSetId));
+    const ruleModel = yield call(httpGet, getRulehandlerUrl(layoutSetId));
     const scriptEle = window.document.createElement('script');
     scriptEle.innerHTML = ruleModel;
     window.document.body.appendChild(scriptEle);

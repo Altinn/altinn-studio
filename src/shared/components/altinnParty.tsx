@@ -2,9 +2,9 @@ import React from 'react';
 
 import { Grid, makeStyles, Paper, Typography } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks';
-import { AltinnCollapsableList } from 'src/components/shared';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import type { IParty } from 'src/types/shared';
 
 const useStyles = makeStyles((theme) => ({
@@ -113,7 +113,7 @@ export interface IAltinnPartyProps {
   showSubUnits: boolean;
 }
 
-function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnPartyProps) {
+export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnPartyProps) {
   const classes = useStyles();
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
@@ -251,5 +251,3 @@ function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnPartyProps) 
     </Paper>
   );
 }
-
-export default AltinnParty;

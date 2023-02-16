@@ -3,7 +3,7 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 
 import { AltinnLogo } from 'src/components/AltinnLogo';
-import altinnTheme from 'src/theme/altinnAppTheme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { IAltinnLogoProps } from 'src/components/AltinnLogo';
 
 describe('AltinnLogo', () => {
@@ -24,7 +24,7 @@ describe('AltinnLogo', () => {
   });
 
   it('should have white image src and no custom color as filter class when passing white color from theme palette', () => {
-    render({ color: altinnTheme.altinnPalette.primary.white });
+    render({ color: AltinnAppTheme.altinnPalette.primary.white });
 
     const img = getImage();
     expect(img.src).toContain('Altinn-logo-white.svg');
@@ -40,7 +40,7 @@ describe('AltinnLogo', () => {
   });
 
   it('should have blue image src and no custom color as filter class when passing blueDark color from theme palette', () => {
-    render({ color: altinnTheme.altinnPalette.primary.blueDark });
+    render({ color: AltinnAppTheme.altinnPalette.primary.blueDark });
 
     const img = getImage();
     expect(img.src).toContain('Altinn-logo-blue.svg');

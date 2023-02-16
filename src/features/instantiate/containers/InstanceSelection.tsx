@@ -4,17 +4,15 @@ import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react'
 import { Grid, TableCell, Typography, useMediaQuery } from '@material-ui/core';
 import { Edit as EditIcon } from '@navikt/ds-icons';
 
-import { useAppSelector } from 'src/common/hooks';
-import {
-  AltinnMobileTable,
-  AltinnTable,
-  AltinnTableBody,
-  AltinnTableHeader,
-  AltinnTableRow,
-} from 'src/components/shared';
-import AltinnMobileTableItem from 'src/features/form/containers/AltinnMobileTableItem';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { AltinnMobileTable } from 'src/components/molecules/AltinnMobileTable';
+import { AltinnTableBody } from 'src/components/molecules/AltinnTableBody';
+import { AltinnTableHeader } from 'src/components/molecules/AltinnTableHeader';
+import { AltinnTableRow } from 'src/components/molecules/AltinnTableRow';
+import { AltinnTable } from 'src/components/organisms/AltinnTable';
+import { AltinnMobileTableItem } from 'src/features/form/containers/AltinnMobileTableItem';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
 
@@ -52,7 +50,7 @@ const buttonCell = {
   padding: '4px 36px 4px 4px',
 };
 
-export default function InstanceSelection({ instances, onNewInstance }: IInstanceSelectionProps) {
+export function InstanceSelection({ instances, onNewInstance }: IInstanceSelectionProps) {
   const language = useAppSelector((state) => state.language.language);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
 

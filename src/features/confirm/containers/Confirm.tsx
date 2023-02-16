@@ -1,7 +1,10 @@
 import React from 'react';
 
-import { useAppDispatch, useAppSelector, useInstanceIdParams } from 'src/common/hooks';
-import { AltinnContentIconReceipt, AltinnContentLoader } from 'src/components/shared';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { useInstanceIdParams } from 'src/common/hooks/useInstanceIdParams';
+import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIconReceipt';
+import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { ConfirmPage } from 'src/features/confirm/containers/ConfirmPage';
 import { selectAppName } from 'src/selectors/language';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';

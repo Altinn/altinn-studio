@@ -1,4 +1,4 @@
-import components, { ComponentType } from 'src/layout/index';
+import { components, ComponentType } from 'src/layout/index';
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { ComponentExceptGroupAndSummary } from 'src/layout/layout';
 

@@ -32,5 +32,3 @@ export function ReceiptComponentSimple({ title, body }: IReceiptComponentProps) 
     </div>
   );
 }
-
-export default ReceiptComponentSimple;

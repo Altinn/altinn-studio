@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 export function AltinnContentIconReceipt() {
   return (
@@ -91,5 +91,3 @@ export function AltinnContentIconReceipt() {
     </>
   );
 }
-
-export default AltinnContentIconReceipt;

@@ -6,7 +6,7 @@ import configureStore from 'redux-mock-store';
 import type { Store } from 'redux';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import InstanceSelection from 'src/features/instantiate/containers/InstanceSelection';
+import { InstanceSelection } from 'src/features/instantiate/containers/InstanceSelection';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import type { IInstanceSelectionProps } from 'src/features/instantiate/containers/InstanceSelection';
 import type { IRuntimeState, ISimpleInstance } from 'src/types';

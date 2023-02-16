@@ -17,7 +17,7 @@ import cn from 'classnames';
 
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import theme from 'src/theme/altinnStudioTheme';
+import { AltinnStudioTheme } from 'src/theme/altinnStudioTheme';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
@@ -59,7 +59,7 @@ export interface IAltinnMobileTableItemProps {
 
 const useStyles = makeStyles({
   tableContainer: {
-    borderBottom: `1px solid ${theme.altinnPalette.primary.blueMedium}`,
+    borderBottom: `1px solid ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
@@ -84,7 +84,7 @@ const useStyles = makeStyles({
     backgroundColor: '#F9CAD3;',
   },
   labelText: {
-    color: theme.altinnPalette.primary.grey,
+    color: AltinnStudioTheme.altinnPalette.primary.grey,
   },
   editButtonCell: {
     width: '185px',
@@ -113,13 +113,13 @@ const useStyles = makeStyles({
     textOverflow: 'ellipsis',
   },
   editingRow: {
-    backgroundColor: theme.palette.secondary.transparentBlue,
-    borderTop: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+    backgroundColor: AltinnStudioTheme.palette.secondary.transparentBlue,
+    borderTop: `2px dotted ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
     marginTop: '-1px',
     borderBottom: 0,
     boxSizing: 'border-box',
     '& tbody': {
-      backgroundColor: theme.palette.secondary.transparentBlue,
+      backgroundColor: AltinnStudioTheme.palette.secondary.transparentBlue,
     },
   },
   aboveEditingRow: {
@@ -131,7 +131,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function AltinnMobileTableItem({
+export function AltinnMobileTableItem({
   items,
   tableItemIndex,
   container,

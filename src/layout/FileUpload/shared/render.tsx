@@ -1,7 +1,7 @@
-import * as React from 'react';
+import React from 'react';
 
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 export const FileName = ({ children }: { children: string | undefined }) => {
   return (

@@ -1,12 +1,12 @@
-import * as React from 'react';
+import React from 'react';
 
-import SingleInputSummary from 'src/components/summary/SingleInputSummary';
-import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
-import SummaryGroupComponent from 'src/components/summary/SummaryGroupComponent';
-import MultipleChoiceSummary from 'src/layout/Checkboxes/MultipleChoiceSummary';
+import { SingleInputSummary } from 'src/components/summary/SingleInputSummary';
+import { SummaryBoilerplate } from 'src/components/summary/SummaryBoilerplate';
+import { SummaryGroupComponent } from 'src/components/summary/SummaryGroupComponent';
+import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/AttachmentSummaryComponent';
 import { AttachmentWithTagSummaryComponent } from 'src/layout/FileUploadWithTag/AttachmentWithTagSummaryComponent';
-import MapComponentSummary from 'src/layout/Map/MapComponentSummary';
+import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutComponent } from 'src/layout/layout';
@@ -27,8 +27,7 @@ export interface ISummaryComponentSwitch extends Omit<ILayoutCompSummary, 'type'
   };
 }
 
-export default function SummaryComponentSwitch({
-  id,
+export function SummaryComponentSwitch({
   change,
   formComponent,
   label,

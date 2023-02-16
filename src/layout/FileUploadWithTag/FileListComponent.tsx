@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import {
   Grid,
@@ -12,12 +12,12 @@ import {
   TableRow,
 } from '@material-ui/core';
 
-import { AltinnLoader } from 'src/components/shared';
+import { AltinnLoader } from 'src/components/AltinnLoader';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { FileName } from 'src/layout/FileUpload/shared/render';
 import { EditWindowComponent } from 'src/layout/FileUploadWithTag/EditWindowComponent';
-import { AltinnAppTheme } from 'src/theme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { IAttachment } from 'src/shared/resources/attachments';

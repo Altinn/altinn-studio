@@ -98,6 +98,18 @@
         "^/test/": "test/"
       }
     ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "ExportAllDeclaration",
+        "message": "Do not re-exports already exported symbols"
+      },
+      {
+        "selector": "ExportNamedDeclaration[source.type='Literal']",
+        "message": "Do not re-exports already exported symbols"
+      }
+    ],
+    "import/no-default-export": ["error"],
     "simple-import-sort/imports": [
       "error",
       {

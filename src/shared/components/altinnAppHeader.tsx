@@ -3,12 +3,12 @@ import React from 'react';
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
+import { AltinnLogo } from 'src/components/AltinnLogo';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
-import { AltinnLogo } from 'src/components/shared';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { renderParty } from 'src/shared/resources/utils/party';
-import { AltinnAppTheme } from 'src/theme';
-import { getLanguageFromKey, returnUrlToMessagebox } from 'src/utils/sharedUtils';
-import { returnUrlToAllSchemas, returnUrlToProfile } from 'src/utils/urls/urlHelper';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
+import { returnUrlToAllSchemas, returnUrlToMessagebox, returnUrlToProfile } from 'src/utils/urls/urlHelper';
 import type { ILanguage, IProfile } from 'src/types/shared';
 
 export interface IHeaderProps {
@@ -100,7 +100,7 @@ const gridStyle = { flexGrow: 1 };
 
 const emptyObj = {};
 
-const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
+export const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
   const party = profile?.party;
   const classes = useStyles();
 
@@ -195,5 +195,3 @@ const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
     </div>
   );
 };
-
-export default AltinnAppHeader;

@@ -1,9 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid } from '@material-ui/core';
 import classNames from 'classnames';
 
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { Progress } from 'src/components/presentation/Progress';
 import { ProcessTaskType } from 'src/types';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
@@ -15,7 +15,7 @@ export interface IHeaderProps {
   appOwner?: string;
 }
 
-const Header = ({ type, header, appOwner }: IHeaderProps) => {
+export const Header = ({ type, header, appOwner }: IHeaderProps) => {
   const showProgressSettings = useAppSelector((state) => state.formLayout.uiConfig.showProgress);
   const language = useAppSelector((state) => state.language.language);
   const textResources = useAppSelector((state) => state.textResources.resources);
@@ -69,5 +69,3 @@ const Header = ({ type, header, appOwner }: IHeaderProps) => {
     </header>
   );
 };
-
-export default Header;

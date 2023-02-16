@@ -1,20 +1,20 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import cn from 'classnames';
 
-import { useAppSelector } from 'src/common/hooks';
-import ErrorPaper from 'src/components/message/ErrorPaper';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { EditButton } from 'src/components/summary/EditButton';
 import { GroupInputSummary } from 'src/components/summary/GroupInputSummary';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { ComponentType } from 'src/layout';
 import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
-import appTheme from 'src/theme/altinnAppTheme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ComponentFromSummary } from 'src/features/form/containers/DisplayGroupContainer';
 import type { ILayoutGroup } from 'src/layout/Group/types';
@@ -56,9 +56,9 @@ const useStyles = makeStyles({
     },
   },
   labelWithError: {
-    color: appTheme.altinnPalette.primary.red,
+    color: AltinnAppTheme.altinnPalette.primary.red,
     '& p': {
-      color: appTheme.altinnPalette.primary.red,
+      color: AltinnAppTheme.altinnPalette.primary.red,
     },
   },
   link: {
@@ -75,7 +75,7 @@ const useStyles = makeStyles({
   },
 });
 
-function SummaryGroupComponent({
+export function SummaryGroupComponent({
   pageRef,
   componentRef,
   largeGroup,
@@ -341,5 +341,3 @@ function SummaryGroupComponent({
     </>
   );
 }
-
-export default SummaryGroupComponent;

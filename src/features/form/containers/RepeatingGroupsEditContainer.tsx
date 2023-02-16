@@ -5,10 +5,10 @@ import { Grid, makeStyles } from '@material-ui/core';
 import { Back, Delete as DeleteIcon, Next } from '@navikt/ds-icons';
 import cn from 'classnames';
 
-import theme from 'src/theme/altinnStudioTheme';
+import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
+import { AltinnStudioTheme } from 'src/theme/altinnStudioTheme';
 import { renderGenericComponent } from 'src/utils/layout';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import { getLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGroupEditProperties, ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup, ILayout } from 'src/layout/layout';
@@ -54,13 +54,13 @@ const useStyles = makeStyles({
     padding: '12px 24px',
   },
   hideTable: {
-    borderTop: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+    borderTop: `2px dotted ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
+    borderBottom: `2px dotted ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
     marginBottom: '-2px',
   },
   nestedHideTable: {
-    borderRight: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    borderLeft: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+    borderRight: `2px dotted ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
+    borderLeft: `2px dotted ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
   },
 });
 

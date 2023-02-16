@@ -77,7 +77,7 @@ describe('fetchFormLayoutSagas', () => {
     };
 
     it('should call relevant actions when layout is fetched successfully', () => {
-      jest.spyOn(networking, 'get').mockResolvedValue(mockResponse);
+      jest.spyOn(networking, 'httpGet').mockResolvedValue(mockResponse);
 
       return expectSaga(fetchLayoutSaga)
         .provide([
@@ -104,7 +104,7 @@ describe('fetchFormLayoutSagas', () => {
     });
 
     it('should work when a single layout is returned', () => {
-      jest.spyOn(networking, 'get').mockResolvedValue(mockResponse.page1);
+      jest.spyOn(networking, 'httpGet').mockResolvedValue(mockResponse.page1);
 
       return expectSaga(fetchLayoutSaga)
         .provide([
@@ -130,7 +130,7 @@ describe('fetchFormLayoutSagas', () => {
     });
 
     it('should call fetchRejected when fetching layout fails', () => {
-      jest.spyOn(networking, 'get').mockRejectedValue(new Error('some error'));
+      jest.spyOn(networking, 'httpGet').mockRejectedValue(new Error('some error'));
 
       return expectSaga(fetchLayoutSaga)
         .provide([
@@ -147,7 +147,7 @@ describe('fetchFormLayoutSagas', () => {
     });
 
     it('should set current view to cached key if key exists in fetched layout', () => {
-      jest.spyOn(networking, 'get').mockResolvedValue(mockResponseTwoLayoutsNoHidden);
+      jest.spyOn(networking, 'httpGet').mockResolvedValue(mockResponseTwoLayoutsNoHidden);
       jest.spyOn(window.localStorage.__proto__, 'getItem');
       window.localStorage.__proto__.getItem = jest.fn().mockReturnValue('page2');
 
@@ -179,7 +179,7 @@ describe('fetchFormLayoutSagas', () => {
     });
 
     it('should set current view to first page in layout if a cached key exists but no longer exists in layout order', () => {
-      jest.spyOn(networking, 'get').mockResolvedValue(mockResponseTwoLayouts);
+      jest.spyOn(networking, 'httpGet').mockResolvedValue(mockResponseTwoLayouts);
       jest.spyOn(window.localStorage.__proto__, 'getItem');
       window.localStorage.__proto__.getItem = jest.fn().mockReturnValue('page3');
 
@@ -211,7 +211,7 @@ describe('fetchFormLayoutSagas', () => {
     });
 
     it('should use instance.id as currentViewCacheKey if instance exists', () => {
-      jest.spyOn(networking, 'get').mockResolvedValue(mockResponse);
+      jest.spyOn(networking, 'httpGet').mockResolvedValue(mockResponse);
       return expectSaga(fetchLayoutSaga)
         .provide([
           [select(layoutSetsSelector), undefined],
@@ -237,7 +237,7 @@ describe('fetchFormLayoutSagas', () => {
     });
 
     it('should use app.id as currentViewCacheKey if no instance exists (stateless)', () => {
-      jest.spyOn(networking, 'get').mockResolvedValue(mockResponse);
+      jest.spyOn(networking, 'httpGet').mockResolvedValue(mockResponse);
       return expectSaga(fetchLayoutSaga)
         .provide([
           [select(layoutSetsSelector), undefined],

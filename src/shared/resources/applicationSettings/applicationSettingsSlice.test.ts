@@ -1,5 +1,6 @@
-import slice, {
+import {
   ApplicationSettingsActions,
+  applicationSettingsSlice as slice,
   initialState,
 } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 import type { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';

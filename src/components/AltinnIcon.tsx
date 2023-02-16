@@ -36,5 +36,3 @@ export const AltinnIcon = ({
     />
   );
 };
-
-export default AltinnIcon;

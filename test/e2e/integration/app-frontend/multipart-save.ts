@@ -1,7 +1,7 @@
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 
-import AppFrontend from 'test/e2e/pageobjects/app-frontend';
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import type { IFormData } from 'src/features/form/data';
 import type { IBackendFeaturesState } from 'src/shared/resources/applicationMetadata';

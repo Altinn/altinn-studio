@@ -31,7 +31,7 @@ const genericFulfilledReducer = (
   state.error = null;
 };
 
-const processSlice = createSagaSlice((mkAction: MkActionType<IProcessState>) => ({
+export const processSlice = createSagaSlice((mkAction: MkActionType<IProcessState>) => ({
   name: 'process',
   initialState,
   actions: {
@@ -80,4 +80,3 @@ const processSlice = createSagaSlice((mkAction: MkActionType<IProcessState>) => 
 }));
 
 export const ProcessActions = processSlice.actions;
-export default processSlice;

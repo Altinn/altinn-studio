@@ -7,6 +7,7 @@ import moment from 'moment';
 import type { Options } from 'ajv';
 import type * as AjvCore from 'ajv/dist/core';
 
+import { getLanguageFromKey, getParsedLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
 import { Severity } from 'src/types';
 import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
@@ -17,7 +18,6 @@ import { createRepeatingGroupComponents, getVariableTextKeysForRepeatingGroupCom
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { matchLayoutComponent, setupGroupComponents } from 'src/utils/layout';
 import { nodesInLayout, resolvedNodesInLayouts } from 'src/utils/layout/hierarchy';
-import { getLanguageFromKey, getParsedLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';

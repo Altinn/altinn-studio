@@ -56,7 +56,7 @@ describe('fetchFormDataSagas', () => {
       .provide([
         [select(appMetaDataSelector), { ...mockInitialState.applicationMetadata.applicationMetadata }],
         [select(instanceDataSelector), { ...mockInitialState.instanceData.instance }],
-        [call(networking.get, url), mockFormData],
+        [call(networking.httpGet, url), mockFormData],
       ])
       .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
       .run();
@@ -81,7 +81,7 @@ describe('fetchFormDataSagas', () => {
       },
     };
 
-    jest.spyOn(networking, 'get').mockImplementation(() => {
+    jest.spyOn(networking, 'httpGet').mockImplementation(() => {
       throw error;
     });
 
@@ -105,7 +105,7 @@ describe('fetchFormDataSagas', () => {
       .provide([
         [select(appMetaDataSelector), { ...mockInitialState.applicationMetadata.applicationMetadata }],
         [select(instanceDataSelector), { ...mockInitialState.instanceData.instance }],
-        [call(networking.get, url), mockFormData],
+        [call(networking.httpGet, url), mockFormData],
       ])
       .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
       .run();
@@ -130,7 +130,7 @@ describe('fetchFormDataSagas', () => {
       },
     };
 
-    jest.spyOn(networking, 'get').mockImplementation(() => {
+    jest.spyOn(networking, 'httpGet').mockImplementation(() => {
       throw error;
     });
 
@@ -174,7 +174,7 @@ describe('fetchFormDataSagas', () => {
         [select(layoutSetsSelector), mockLayoutSets],
         [select(makeGetAllowAnonymousSelector()), false],
         [select(currentSelectedPartyIdSelector), '1234'],
-        [call(networking.get, url, options), mockFormData],
+        [call(networking.httpGet, url, options), mockFormData],
       ])
       .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
       .run();
@@ -206,7 +206,7 @@ describe('fetchFormDataSagas', () => {
         [select(appMetaDataSelector), appMetadata],
         [select(layoutSetsSelector), mockLayoutSets],
         [select(makeGetAllowAnonymousSelector()), true],
-        [call(networking.get, url, options), mockFormData],
+        [call(networking.httpGet, url, options), mockFormData],
       ])
       .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
       .run();
@@ -245,7 +245,7 @@ describe('fetchFormDataSagas', () => {
       },
     };
 
-    jest.spyOn(networking, 'get').mockImplementation(() => {
+    jest.spyOn(networking, 'httpGet').mockImplementation(() => {
       throw error;
     });
 
@@ -293,7 +293,7 @@ describe('fetchFormDataSagas', () => {
       },
     };
 
-    jest.spyOn(networking, 'get').mockImplementation(() => {
+    jest.spyOn(networking, 'httpGet').mockImplementation(() => {
       throw error;
     });
 

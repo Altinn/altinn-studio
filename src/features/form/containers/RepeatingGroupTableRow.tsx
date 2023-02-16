@@ -8,7 +8,7 @@ import cn from 'classnames';
 
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
-import altinnAppTheme from 'src/theme/altinnAppTheme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getFormDataForComponentInRepeatingGroup, getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -50,7 +50,7 @@ export interface IRepeatingGroupTableRowProps {
   };
 }
 
-const theme = createTheme(altinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const useStyles = makeStyles({
   popoverCurrentCell: {

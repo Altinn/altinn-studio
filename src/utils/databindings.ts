@@ -1,6 +1,6 @@
 import { dot, object } from 'dot-object';
 
-import { getParentGroup } from 'src/utils/validation';
+import { getParentGroup } from 'src/utils/validation/validation';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
 import type { IDataModelBindings, ILayout } from 'src/layout/layout';

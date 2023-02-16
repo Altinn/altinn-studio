@@ -1,4 +1,8 @@
-import slice, { initialState, ValidationActions } from 'src/features/form/validation/validationSlice';
+import {
+  initialState,
+  ValidationActions,
+  validationSlice as slice,
+} from 'src/features/form/validation/validationSlice';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
 import type { IComponentValidations, IValidations } from 'src/types';
 

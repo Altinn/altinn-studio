@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { AltinnLoader } from 'src/components/shared';
+import { AltinnLoader } from 'src/components/AltinnLoader';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import css from 'src/layout/Button/ButtonLoader.module.css';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { ILanguage } from 'src/types/shared';
 
 export interface ButtonLoaderProps {

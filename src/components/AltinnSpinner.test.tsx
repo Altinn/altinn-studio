@@ -2,7 +2,7 @@ import React from 'react';
 
 import { render, screen } from '@testing-library/react';
 
-import AltinnSpinner from 'src/components/AltinnSpinner';
+import { AltinnSpinner } from 'src/components/AltinnSpinner';
 
 describe('tests to make sure to follow accessibility requirements', () => {
   test('should have role progressbar', () => {

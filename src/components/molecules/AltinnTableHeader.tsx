@@ -3,7 +3,7 @@ import React from 'react';
 import { makeStyles, TableHead } from '@material-ui/core';
 import cn from 'classnames';
 
-import theme from 'src/theme/altinnAppTheme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
 export interface IAltinnTableHeaderProps {
   id: string;
@@ -15,7 +15,7 @@ export interface IAltinnTableHeaderProps {
 const useStyles = makeStyles({
   tableHeader: ({ padding }: IAltinnTableHeaderProps) => {
     return {
-      borderBottom: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
+      borderBottom: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
       '& th': {
         fontSize: '0.875rem',
         padding: padding === 'dense' ? '0 12px 4px 12px' : '0 18px 4px 36px',

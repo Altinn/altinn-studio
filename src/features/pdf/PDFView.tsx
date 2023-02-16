@@ -4,14 +4,14 @@ import cn from 'classnames';
 
 import type { IPdfFormat } from '.';
 
-import { useAppSelector } from 'src/common/hooks';
-import AutomaticPDFLayout from 'src/features/pdf/AutomaticPDFLayout';
-import CustomPDFLayout from 'src/features/pdf/CustomPDFLayout';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { AutomaticPDFLayout } from 'src/features/pdf/AutomaticPDFLayout';
+import { CustomPDFLayout } from 'src/features/pdf/CustomPDFLayout';
 import css from 'src/features/pdf/PDFView.module.css';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 import { useExprContext } from 'src/utils/layout/ExprContext';
-import { get } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/networking';
 import { getPdfFormatUrl } from 'src/utils/urls/appUrlHelper';
 
 interface PDFViewProps {
@@ -19,7 +19,7 @@ interface PDFViewProps {
   appOwner?: string;
 }
 
-const PDFView = ({ appName, appOwner }: PDFViewProps) => {
+export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
   const layouts = useAppSelector((state) => state.formLayout.layouts);
   const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
   const excludedPages = useAppSelector((state) => state.formLayout.uiConfig.excludePageFromPdf);
@@ -61,7 +61,7 @@ const PDFView = ({ appName, appOwner }: PDFViewProps) => {
       const dataGuid = getCurrentTaskDataElementId(applicationMetadata, instance, layoutSets);
       if (typeof dataGuid === 'string') {
         const url = getPdfFormatUrl(instance.id, dataGuid);
-        get(url)
+        httpGet(url)
           .then((pdfFormat: IPdfFormat) => setPdfFormat(pdfFormat))
           .catch(() => setPdfFormat({ excludedPages, excludedComponents }));
       } else {
@@ -116,5 +116,3 @@ const PDFView = ({ appName, appOwner }: PDFViewProps) => {
     </div>
   );
 };
-
-export default PDFView;

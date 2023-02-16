@@ -1,12 +1,13 @@
-import * as React from 'react';
+import React from 'react';
 import { shallowEqual } from 'react-redux';
 
 import { Grid, makeStyles } from '@material-ui/core';
 import cn from 'classnames';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import ErrorPaper from 'src/components/message/ErrorPaper';
-import SummaryComponentSwitch from 'src/components/summary/SummaryComponentSwitch';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { ErrorPaper } from 'src/components/message/ErrorPaper';
+import { SummaryComponentSwitch } from 'src/components/summary/SummaryComponentSwitch';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
 import { mapGroupComponents } from 'src/features/form/containers/formUtils';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';

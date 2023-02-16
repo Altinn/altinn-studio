@@ -1,18 +1,21 @@
-import * as React from 'react';
+import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
-import { useAppDispatch, useAppSelector, useInstanceIdParams } from 'src/common/hooks';
-import { AltinnContentIconFormData, AltinnContentLoader } from 'src/components/shared';
-import InstantiateValidationError from 'src/features/instantiate/containers/InstantiateValidationError';
-import MissingRolesError from 'src/features/instantiate/containers/MissingRolesError';
-import UnknownError from 'src/features/instantiate/containers/UnknownError';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { useInstanceIdParams } from 'src/common/hooks/useInstanceIdParams';
+import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIconFormData';
+import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
+import { InstantiateValidationError } from 'src/features/instantiate/containers/InstantiateValidationError';
+import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
+import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
-import Presentation from 'src/shared/containers/Presentation';
-import { AltinnAppTheme } from 'src/theme';
+import { PresentationComponent } from 'src/shared/containers/Presentation';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { HttpStatusCodes } from 'src/utils/network/networking';
-import { isAxiosError } from 'src/utils/sharedUtils';
+import { isAxiosError } from 'src/utils/network/sharedNetworking';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 const titleKey = 'instantiate.starting';
@@ -65,7 +68,7 @@ export const InstantiateContainer = () => {
   }
 
   return (
-    <Presentation
+    <PresentationComponent
       header={titleText}
       type={ProcessTaskType.Unknown}
     >
@@ -75,6 +78,6 @@ export const InstantiateContainer = () => {
       >
         <AltinnContentIconFormData />
       </AltinnContentLoader>
-    </Presentation>
+    </PresentationComponent>
   );
 };

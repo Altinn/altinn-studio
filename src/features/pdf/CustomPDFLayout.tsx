@@ -52,7 +52,7 @@ const CustomPDFSummaryComponent = ({ component, layout }: { component: ILayoutCo
   }
 };
 
-const CustomPDFLayout = ({ layout }: ICustomPDFLayout) => (
+export const CustomPDFLayout = ({ layout }: ICustomPDFLayout) => (
   <>
     {topLevelComponents(layout).map((component) => (
       <div
@@ -67,4 +67,3 @@ const CustomPDFLayout = ({ layout }: ICustomPDFLayout) => (
     ))}
   </>
 );
-export default CustomPDFLayout;

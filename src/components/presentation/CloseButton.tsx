@@ -1,7 +1,7 @@
-import * as React from 'react';
+import React from 'react';
 
-import { useAppSelector } from 'src/common/hooks';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 
 interface CloseButtonProps {
   handleClose: () => void;

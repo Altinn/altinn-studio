@@ -1,10 +1,10 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 
-import { AltinnAppTheme } from 'src/theme';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { ILanguage } from 'src/types/shared';
 
 const useStyles = makeStyles({
@@ -34,7 +34,7 @@ interface IMessageBannerProps {
   messageKey: string;
 }
 
-export default function MessageBanner({ language, error, messageKey }: IMessageBannerProps) {
+export function MessageBanner({ language, error, messageKey }: IMessageBannerProps) {
   const classes = useStyles();
 
   return (

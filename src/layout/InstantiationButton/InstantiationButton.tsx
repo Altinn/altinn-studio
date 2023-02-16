@@ -1,7 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
 import { useInstantiateWithPrefillMutation } from 'src/services/InstancesApi';

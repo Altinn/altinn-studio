@@ -2,9 +2,9 @@ import React from 'react';
 
 import { Grid, makeStyles } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks';
-import { AltinnInput } from 'src/components/shared';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { AltinnInput } from 'src/components/AltinnInput';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 
 const useStyles = makeStyles((theme) => ({
   partySearchContainer: {
@@ -17,7 +17,7 @@ export interface IAltinnPartySearchProps {
   onSearchUpdated: (searchString: string) => void;
 }
 
-function AltinnPartySearch({ onSearchUpdated }: IAltinnPartySearchProps) {
+export function AltinnPartySearch({ onSearchUpdated }: IAltinnPartySearchProps) {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
 
@@ -44,5 +44,3 @@ function AltinnPartySearch({ onSearchUpdated }: IAltinnPartySearchProps) {
     </Grid>
   );
 }
-
-export default AltinnPartySearch;

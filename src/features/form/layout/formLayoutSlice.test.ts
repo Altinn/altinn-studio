@@ -1,4 +1,4 @@
-import slice, { FormLayoutActions, initialState } from 'src/features/form/layout/formLayoutSlice';
+import { FormLayoutActions, formLayoutSlice, initialState } from 'src/features/form/layout/formLayoutSlice';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 
 describe('layoutSlice', () => {
@@ -8,7 +8,7 @@ describe('layoutSlice', () => {
     const hiddenLayoutsExpressions = {};
 
     it('should set layout state accordingly', () => {
-      const nextState = slice.reducer(
+      const nextState = formLayoutSlice.reducer(
         initialState,
         FormLayoutActions.fetchFulfilled({
           layouts,
@@ -34,7 +34,7 @@ describe('layoutSlice', () => {
           },
         },
       };
-      const nextState = slice.reducer(
+      const nextState = formLayoutSlice.reducer(
         stateWithRepGroups,
         FormLayoutActions.fetchFulfilled({
           layouts,
@@ -51,7 +51,7 @@ describe('layoutSlice', () => {
         ...initialState,
         error: new Error('mock'),
       };
-      const nextState = slice.reducer(
+      const nextState = formLayoutSlice.reducer(
         stateWithError,
         FormLayoutActions.fetchFulfilled({
           layouts,
@@ -72,7 +72,7 @@ describe('layoutSlice', () => {
         },
         receiptLayoutName: 'receipt',
       };
-      const nextState = slice.reducer(
+      const nextState = formLayoutSlice.reducer(
         initialState,
         FormLayoutActions.fetchSettingsFulfilled({
           settings,
@@ -92,7 +92,7 @@ describe('layoutSlice', () => {
         },
         receiptLayoutName: 'receipt',
       };
-      const nextState = slice.reducer(
+      const nextState = formLayoutSlice.reducer(
         {
           ...initialState,
           uiConfig: {
@@ -118,7 +118,7 @@ describe('layoutSlice', () => {
         },
         receiptLayoutName: 'receipt',
       };
-      const nextState = slice.reducer(
+      const nextState = formLayoutSlice.reducer(
         {
           ...initialState,
           uiConfig: {

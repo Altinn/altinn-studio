@@ -1,10 +1,10 @@
-import * as React from 'react';
+import React from 'react';
 
-import { useAppSelector } from 'src/common/hooks';
-import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/utils/sharedUtils';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/language/sharedLanguage';
 
-function UnknownError() {
+export function UnknownError() {
   const language = useAppSelector((state) => state.language.language);
   if (!language) {
     return null;
@@ -37,4 +37,3 @@ function UnknownError() {
     />
   );
 }
-export default UnknownError;

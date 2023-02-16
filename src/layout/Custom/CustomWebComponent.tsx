@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 
-import { useAppSelector } from 'src/common/hooks';
-import { getTextResourceByKey } from 'src/utils/sharedUtils';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ITextResource, ITextResourceBindings } from 'src/types';
 

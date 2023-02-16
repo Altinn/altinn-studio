@@ -1,12 +1,12 @@
-import * as React from 'react';
+import React from 'react';
 
-import UnknownError from 'src/features/instantiate/containers/UnknownError';
+import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 
 interface IErrorBoundary {
   hasError: boolean;
 }
 
-class ErrorBoundary extends React.Component<any, IErrorBoundary> {
+export class ErrorBoundary extends React.Component<any, IErrorBoundary> {
   constructor(props) {
     super(props);
     this.state = { hasError: false };
@@ -28,5 +28,3 @@ class ErrorBoundary extends React.Component<any, IErrorBoundary> {
     return this.props.children;
   }
 }
-
-export default ErrorBoundary;

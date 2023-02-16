@@ -5,7 +5,8 @@ import { FormControl, FormLabel } from '@material-ui/core';
 import cn from 'classnames';
 import type { ChangeProps, ResponsiveTableConfig, SortProps } from '@altinn/altinn-design-system';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { useGetDataList } from 'src/components/hooks';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { useRadioStyles } from 'src/layout/RadioButtons/radioButtonsUtils';

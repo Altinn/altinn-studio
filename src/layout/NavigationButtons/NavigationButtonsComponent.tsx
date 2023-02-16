@@ -1,9 +1,10 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { Triggers } from 'src/types';

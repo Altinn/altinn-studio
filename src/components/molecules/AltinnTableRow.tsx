@@ -4,7 +4,7 @@ import { makeStyles, TableRow } from '@material-ui/core';
 import cn from 'classnames';
 import type { TableRowProps } from '@material-ui/core';
 
-import theme from 'src/theme/altinnAppTheme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
 export interface IAltinnTableRow {
   children: React.ReactNode;
@@ -14,11 +14,11 @@ export interface IAltinnTableRow {
 
 const useStyles = makeStyles({
   tableRowError: {
-    backgroundColor: theme.altinnPalette.primary.redLight,
+    backgroundColor: AltinnAppTheme.altinnPalette.primary.redLight,
   },
 });
 
-export default function AltinnTableRow(props: IAltinnTableRow & TableRowProps) {
+export function AltinnTableRow(props: IAltinnTableRow & TableRowProps) {
   const classes = useStyles();
   const { children, valid, ...tableProps } = props;
 

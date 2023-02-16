@@ -4,8 +4,8 @@ import { Route, useLocation } from 'react-router-dom';
 import { screen } from '@testing-library/react';
 
 import { dataTypes, instanceOwner, partyMember, partyTypesAllowed, userProfile } from 'src/__mocks__/constants';
-import { getInstanceDataStateMock } from 'src/__mocks__/mocks';
-import ReceiptContainer, { returnInstanceMetaDataObject } from 'src/features/receipt/containers/ReceiptContainer';
+import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
+import { ReceiptContainer, returnInstanceMetaDataObject } from 'src/features/receipt/containers/ReceiptContainer';
 import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
 import type { ILayout } from 'src/layout/layout';
 

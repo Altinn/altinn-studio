@@ -1,11 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 
 export interface IDescriptionProps {
   description: React.ReactNode;
   id: string;
 }
 
-export default function Description(props: IDescriptionProps) {
+export function Description(props: IDescriptionProps) {
   if (!props.description) {
     return null;
   }

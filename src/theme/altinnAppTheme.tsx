@@ -1,6 +1,6 @@
 import { commonTheme } from 'src/theme/commonTheme';
 
-const AltinnAppTheme = {
+export const AltinnAppTheme = {
   ...commonTheme,
   overrides: {
     MuiToolbar: {
@@ -84,5 +84,3 @@ const AltinnAppTheme = {
     },
   },
 };
-
-export default AltinnAppTheme;

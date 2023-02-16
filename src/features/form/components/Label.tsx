@@ -18,7 +18,7 @@ export interface IFormLabelProps {
   helpText: string | number | boolean | React.ReactNode | undefined | null;
 }
 
-export default function Label(props: IFormLabelProps) {
+export function Label(props: IFormLabelProps) {
   if (!props.labelText) {
     return null;
   }

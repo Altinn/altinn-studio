@@ -17,7 +17,7 @@ const initialState: IPartyState = {
   error: null,
 };
 
-const partySlice = createSagaSlice((mkAction: MkActionType<IPartyState>) => ({
+export const partySlice = createSagaSlice((mkAction: MkActionType<IPartyState>) => ({
   name: 'party',
   initialState,
   actions: {
@@ -54,4 +54,3 @@ const partySlice = createSagaSlice((mkAction: MkActionType<IPartyState>) => ({
 }));
 
 export const PartyActions = partySlice.actions;
-export default partySlice;

@@ -1,10 +1,10 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid, Typography } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks';
-import { AltinnAttachment } from 'src/components/shared';
-import { getInstancePdf, mapInstanceAttachments } from 'src/utils/sharedUtils';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
+import { getInstancePdf, mapInstanceAttachments } from 'src/utils/attachmentsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;

@@ -1,11 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks';
-import { useDisplayData } from 'src/components/hooks';
-import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { useDisplayData } from 'src/components/hooks/useDisplayData';
+import { SummaryBoilerplate } from 'src/components/summary/SummaryBoilerplate';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
 
 export interface ISingleInputSummary {
@@ -33,7 +33,7 @@ const useStyles = makeStyles({
   },
 });
 
-function SingleInputSummary({ formData, display, ...rest }: ISingleInputSummary) {
+export function SingleInputSummary({ formData, display, ...rest }: ISingleInputSummary) {
   const classes = useStyles();
   const displayData = useDisplayData({ formData });
   const language = useAppSelector((state) => state.language.language);
@@ -68,5 +68,3 @@ function SingleInputSummary({ formData, display, ...rest }: ISingleInputSummary)
     </>
   );
 }
-
-export default SingleInputSummary;

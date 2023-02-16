@@ -4,16 +4,17 @@ import { MemoryRouter } from 'react-router-dom';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { applicationMetadataMock } from 'src/__mocks__/applicationMetadataMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { applicationMetadataMock, getInstanceDataStateMock } from 'src/__mocks__/mocks';
-import { ConfirmPage, type Props as IConfirmPage } from 'src/features/confirm/containers/ConfirmPage';
+import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
+import { ConfirmPage, type IConfirmPageProps } from 'src/features/confirm/containers/ConfirmPage';
 import { nb } from 'src/language/texts/nb';
 import { renderWithProviders } from 'src/testUtils';
 import type { IInstance } from 'src/types/shared';
 
 describe('ConfirmPage', () => {
   const state = getInstanceDataStateMock();
-  const props: IConfirmPage = {
+  const props: IConfirmPageProps = {
     appName: 'Irrelevant',
     instance: state.instance as IInstance,
     language: nb(),

@@ -1,4 +1,4 @@
-import AppFrontend from 'test/e2e/pageobjects/app-frontend';
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
 const appFrontend = new AppFrontend();

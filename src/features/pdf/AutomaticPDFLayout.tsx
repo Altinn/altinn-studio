@@ -53,7 +53,7 @@ const AutomaticPDFSummaryComponent = ({
   return null;
 };
 
-const AutomaticPDFLayout = ({ layouts, pdfFormat, pageOrder, hidden }: IAutomaticPDFLayout) => {
+export const AutomaticPDFLayout = ({ layouts, pdfFormat, pageOrder, hidden }: IAutomaticPDFLayout) => {
   const excludedPages = new Set(pdfFormat?.excludedPages);
   const excludedComponents = new Set(pdfFormat?.excludedComponents);
   const hiddenPages = new Set(hidden);
@@ -106,5 +106,3 @@ const AutomaticPDFLayout = ({ layouts, pdfFormat, pageOrder, hidden }: IAutomati
     </>
   );
 };
-
-export default AutomaticPDFLayout;

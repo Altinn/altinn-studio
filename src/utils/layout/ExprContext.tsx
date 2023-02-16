@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from 'react';
 
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { dataSourcesFromState, resolvedNodesInLayouts, rewriteTextResourceBindings } from 'src/utils/layout/hierarchy';
 import type { ComponentExceptGroup, ILayoutComponent } from 'src/layout/layout';
 import type { LayoutNode, LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';

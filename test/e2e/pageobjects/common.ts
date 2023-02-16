@@ -1,4 +1,4 @@
-export default class Common {
+export class Common {
   // Standard Material UI components
   public gridItem = '.MuiGrid-item';
   public gridContainer = '.MuiGrid-container';

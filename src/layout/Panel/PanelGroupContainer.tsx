@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Panel } from '@altinn/altinn-design-system';
 import { Grid } from '@material-ui/core';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { EditIconButton } from 'src/components/EditIconButton';
 import { SuccessIconButton } from 'src/components/SuccessIconButton';
@@ -12,12 +13,12 @@ import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper'
 import { getVariant } from 'src/features/form/components/Panel';
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextResource } from 'src/utils/formComponentUtils';
 import { createRepeatingGroupComponentsForIndex } from 'src/utils/formLayout';
 import { getLayoutComponentById } from 'src/utils/layout';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutComponent } from 'src/layout/layout';
 

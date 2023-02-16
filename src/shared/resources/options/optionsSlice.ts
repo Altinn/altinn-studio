@@ -20,7 +20,7 @@ const initialState: IOptionsState = {
   loading: true,
 };
 
-const optionsSlice = createSagaSlice((mkAction: MkActionType<IOptionsState>) => ({
+export const optionsSlice = createSagaSlice((mkAction: MkActionType<IOptionsState>) => ({
   name: 'optionState',
   initialState,
   actions: {
@@ -95,4 +95,3 @@ const optionsSlice = createSagaSlice((mkAction: MkActionType<IOptionsState>) => 
 }));
 
 export const OptionsActions = optionsSlice.actions;
-export default optionsSlice;

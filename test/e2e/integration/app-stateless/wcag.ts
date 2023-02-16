@@ -1,4 +1,4 @@
-import AppFrontend from 'test/e2e/pageobjects/app-frontend';
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
 

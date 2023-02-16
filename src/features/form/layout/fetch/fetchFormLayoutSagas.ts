@@ -4,10 +4,10 @@ import type { SagaIterator } from 'redux-saga';
 import { preProcessItem, preProcessLayout } from 'src/features/expressions/validation';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import components from 'src/layout';
+import { components } from 'src/layout';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
-import { get } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/networking';
 import { getLayoutSetsUrl, getLayoutSettingsUrl, getLayoutsUrl } from 'src/utils/urls/appUrlHelper';
 import type { ExpressionOr, ExprObjConfig } from 'src/features/expressions/types';
 import type { ComponentTypes, ILayout, ILayouts } from 'src/layout/layout';
@@ -54,7 +54,7 @@ export function* fetchLayoutSaga(): SagaIterator {
     const instance: IInstance | null = yield select(instanceSelector);
     const applicationMetadata: IApplicationMetadata = yield select(applicationMetadataSelector);
     const layoutSetId = getLayoutSetIdForApplication(applicationMetadata, instance, layoutSets);
-    const layoutResponse: any = yield call(get, getLayoutsUrl(layoutSetId || null));
+    const layoutResponse: any = yield call(httpGet, getLayoutsUrl(layoutSetId || null));
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
     const hiddenLayoutsExpressions: IHiddenLayoutsExpressions = {};
@@ -137,7 +137,7 @@ export function* fetchLayoutSettingsSaga(): SagaIterator {
     const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
 
     const layoutSetId = getLayoutSetIdForApplication(aplicationMetadataState, instance, layoutSets);
-    const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl(layoutSetId));
+    const settings: ILayoutSettings = yield call(httpGet, getLayoutSettingsUrl(layoutSetId));
     yield put(FormLayoutActions.fetchSettingsFulfilled({ settings }));
   } catch (error) {
     if (error?.response?.status === 404) {
@@ -158,7 +158,7 @@ export function* watchFetchFormLayoutSettingsSaga(): SagaIterator {
 
 export function* fetchLayoutSetsSaga(): SagaIterator {
   try {
-    const layoutSets: ILayoutSets = yield call(get, getLayoutSetsUrl());
+    const layoutSets: ILayoutSets = yield call(httpGet, getLayoutSetsUrl());
     yield put(FormLayoutActions.fetchSetsFulfilled({ layoutSets }));
   } catch (error) {
     if (error?.response?.status === 404) {

@@ -1,16 +1,17 @@
-import * as React from 'react';
+import React from 'react';
 
 import { createTheme, MuiThemeProvider, Typography } from '@material-ui/core';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
-import { AltinnAppTheme } from 'src/theme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 const theme = createTheme(AltinnAppTheme);
 
-export default function Feedback() {
+export function Feedback() {
   const dispatch = useAppDispatch();
   const processState = useAppSelector((state) => state.process.taskType);
   const textResources = useAppSelector((state) => state.textResources.resources);

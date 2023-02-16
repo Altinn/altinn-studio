@@ -13,7 +13,7 @@ const initialState: IInstanceDataState = {
   error: null,
 };
 
-const instanceDataSlice = createSagaSlice((mkAction: MkActionType<IInstanceDataState>) => ({
+export const instanceDataSlice = createSagaSlice((mkAction: MkActionType<IInstanceDataState>) => ({
   name: 'instanceData',
   initialState,
   actions: {
@@ -34,4 +34,3 @@ const instanceDataSlice = createSagaSlice((mkAction: MkActionType<IInstanceDataS
 }));
 
 export const InstanceDataActions = instanceDataSlice.actions;
-export default instanceDataSlice;

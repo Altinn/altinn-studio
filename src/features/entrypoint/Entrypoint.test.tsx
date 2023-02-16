@@ -7,7 +7,7 @@ import { createStore } from 'redux';
 import type { AxiosError } from 'axios';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import Entrypoint from 'src/features/entrypoint/Entrypoint';
+import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { renderWithProviders } from 'src/testUtils';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IRuntimeState } from 'src/types';

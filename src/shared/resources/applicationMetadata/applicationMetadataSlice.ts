@@ -12,7 +12,7 @@ const initialState: IApplicationMetadataState = {
   error: null,
 };
 
-const applicationMetadataSlice = createSagaSlice((mkAction: MkActionType<IApplicationMetadataState>) => ({
+export const applicationMetadataSlice = createSagaSlice((mkAction: MkActionType<IApplicationMetadataState>) => ({
   name: 'applicationMetadata',
   initialState,
   actions: {
@@ -34,4 +34,3 @@ const applicationMetadataSlice = createSagaSlice((mkAction: MkActionType<IApplic
 }));
 
 export const ApplicationMetadataActions = applicationMetadataSlice.actions;
-export default applicationMetadataSlice;

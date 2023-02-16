@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid, makeStyles } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAltinnWindow } from 'src/types';

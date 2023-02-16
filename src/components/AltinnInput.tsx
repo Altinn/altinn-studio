@@ -1,11 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 
 import { createStyles, createTheme, Grid, Input, InputLabel, makeStyles } from '@material-ui/core';
 import cn from 'classnames';
 
-import altinnTheme from 'src/theme/altinnStudioTheme';
+import { AltinnStudioTheme } from 'src/theme/altinnStudioTheme';
 
-const theme = createTheme(altinnTheme);
+const theme = createTheme(AltinnStudioTheme);
 const styles = createStyles({
   input: {
     backgroundColor: theme.altinnPalette.primary.white,
@@ -47,7 +47,7 @@ export interface IAltinnInputProps extends React.InputHTMLAttributes<any> {
 
 const useStyles = makeStyles(styles);
 
-function AltinnInput(props: IAltinnInputProps) {
+export function AltinnInput(props: IAltinnInputProps) {
   const inputRef = React.createRef<HTMLInputElement>();
   const { iconString, label, widthPercentage, showLabel, validationError, ...rest } = props;
   const classes = useStyles();
@@ -101,5 +101,3 @@ AltinnInput.defaultProps = {
   showLabel: true,
   validationError: false,
 };
-
-export default AltinnInput;

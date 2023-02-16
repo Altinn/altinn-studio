@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 export function AltinnContentIconFormData() {
   return (
@@ -157,5 +157,3 @@ export function AltinnContentIconFormData() {
     </>
   );
 }
-
-export default AltinnContentIconFormData;

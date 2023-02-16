@@ -1,11 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Box, useTheme } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { CloseButton } from 'src/components/presentation/CloseButton';
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 
 export interface INavBarProps {
   handleClose: () => void;
@@ -13,7 +13,7 @@ export interface INavBarProps {
   showBackArrow?: boolean;
 }
 
-const NavBar = (props: INavBarProps) => {
+export const NavBar = (props: INavBarProps) => {
   const hideCloseButton = useAppSelector((state) => state.formLayout.uiConfig.hideCloseButton);
   const language = useAppSelector((state) => state.language.language || {});
   const theme = useTheme();
@@ -61,5 +61,3 @@ const NavBar = (props: INavBarProps) => {
     </Box>
   );
 };
-
-export default NavBar;

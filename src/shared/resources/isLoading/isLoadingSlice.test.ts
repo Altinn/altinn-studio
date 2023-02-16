@@ -1,4 +1,4 @@
-import slice, { initialState, IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
+import { initialState, IsLoadingActions, isLoadingSlice } from 'src/shared/resources/isLoading/isLoadingSlice';
 import type { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
 
 describe('isLoadingSlice', () => {
@@ -8,12 +8,15 @@ describe('isLoadingSlice', () => {
   });
 
   it('handles startDataTaskIsLoading action', () => {
-    const nextState = slice.reducer(state, IsLoadingActions.startDataTaskIsLoading);
+    const nextState = isLoadingSlice.reducer(state, IsLoadingActions.startDataTaskIsLoading);
     expect(nextState.dataTask).toBeTruthy();
   });
 
   it('handles finishDataTaskIsLoading action', () => {
-    const nextState = slice.reducer({ dataTask: true, stateless: true }, IsLoadingActions.finishDataTaskIsLoading);
+    const nextState = isLoadingSlice.reducer(
+      { dataTask: true, stateless: true },
+      IsLoadingActions.finishDataTaskIsLoading,
+    );
     expect(nextState.dataTask).toBeFalsy();
   });
 });

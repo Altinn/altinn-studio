@@ -3,7 +3,7 @@ import type { SagaIterator } from 'redux-saga';
 
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
-import { get } from 'src/utils/sharedUtils';
+import { httpGet } from 'src/utils/network/sharedNetworking';
 import { getProcessStateUrl } from 'src/utils/urls/appUrlHelper';
 import type { IProcessState } from 'src/shared/resources/process';
 import type { IRuntimeState } from 'src/types';
@@ -15,7 +15,7 @@ export function* getUpdatedProcess(): SagaIterator {
   const currentProcessState: IProcessState = yield select(processSelector);
   let delayBy = 1000;
   for (let i = 0; i < 20; i++) {
-    const result: IProcess = yield call(get, getProcessStateUrl());
+    const result: IProcess = yield call(httpGet, getProcessStateUrl());
     if (!result) {
       throw new Error('Error: no process returned.');
     }

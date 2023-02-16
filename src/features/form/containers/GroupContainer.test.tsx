@@ -4,7 +4,8 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-import { getFormLayoutGroupMock, getInitialStateMock } from 'src/__mocks__/mocks';
+import { getFormLayoutGroupMock } from 'src/__mocks__/formLayoutGroupMock';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { setupStore } from 'src/store';

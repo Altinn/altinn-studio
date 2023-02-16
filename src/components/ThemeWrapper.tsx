@@ -3,10 +3,10 @@ import type { ReactNode } from 'react';
 
 import { createTheme, ThemeProvider } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { rightToLeftISOLanguageCodes } from 'src/language/languages';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
-import { AltinnAppTheme } from 'src/theme/index';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
 type ThemeWrapperProps = {
   children?: ReactNode;

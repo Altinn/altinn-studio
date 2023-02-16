@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 
 import { render as rtlRender } from '@testing-library/react';
 
-import MultipleChoiceSummary from 'src/layout/Checkboxes/MultipleChoiceSummary';
+import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
 import type { IMultipleChoiceSummaryProps } from 'src/layout/Checkboxes/MultipleChoiceSummary';
 
 describe('MultipleChoiceSummary', () => {

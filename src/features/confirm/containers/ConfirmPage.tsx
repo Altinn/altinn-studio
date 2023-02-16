@@ -1,17 +1,16 @@
 import React from 'react';
 
+import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ProcessNavigation } from 'src/components/presentation/ProcessNavigation';
-import { AltinnReceipt } from 'src/components/shared';
 import { returnConfirmSummaryObject } from 'src/features/confirm/helpers/returnConfirmSummaryObject';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { getAttachmentGroupings, getInstancePdf } from 'src/utils/attachmentsUtils';
-import { mapInstanceAttachments } from 'src/utils/sharedUtils';
+import { getAttachmentGroupings, getInstancePdf, mapInstanceAttachments } from 'src/utils/attachmentsUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ITextResource } from 'src/types';
 import type { IInstance, ILanguage, IParty } from 'src/types/shared';
 
-export interface Props {
+export interface IConfirmPageProps {
   instance: IInstance | null;
   parties: IParty[] | null;
   language: ILanguage | null;
@@ -20,7 +19,14 @@ export interface Props {
   applicationMetadata: IApplicationMetadata | null;
 }
 
-export const ConfirmPage = ({ instance, parties, language, appName, textResources, applicationMetadata }: Props) => {
+export const ConfirmPage = ({
+  instance,
+  parties,
+  language,
+  appName,
+  textResources,
+  applicationMetadata,
+}: IConfirmPageProps) => {
   const getInstanceMetaObject = () => {
     if (instance?.org && applicationMetadata) {
       const instanceOwnerParty = parties?.find((party: IParty) => {
@@ -54,7 +60,7 @@ export const ConfirmPage = ({ instance, parties, language, appName, textResource
 
   return (
     <>
-      <AltinnReceipt
+      <ReceiptComponent
         attachmentGroupings={getAttachmentGroupings(getAttachments(), applicationMetadata, textResources)}
         body={appName && getTextFromAppOrDefault('confirm.body', textResources, language, [appName])}
         collapsibleTitle={getText('confirm.attachments')}

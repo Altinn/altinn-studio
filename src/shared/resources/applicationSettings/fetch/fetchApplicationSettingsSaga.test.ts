@@ -8,9 +8,9 @@ import { applicationSettingsApiUrl } from 'src/utils/urls/appUrlHelper';
 describe('fetchApplicationSettingsSaga', () => {
   it('should set state with result if get is successful ', () => {
     const mockResponse = { appOidcProvider: 'something' };
-    jest.spyOn(networking, 'get').mockResolvedValue(mockResponse);
+    jest.spyOn(networking, 'httpGet').mockResolvedValue(mockResponse);
     return expectSaga(getApplicationSettings)
-      .call(networking.get, applicationSettingsApiUrl)
+      .call(networking.httpGet, applicationSettingsApiUrl)
       .put(
         ApplicationSettingsActions.fetchApplicationSettingsFulfilled({
           settings: mockResponse,
@@ -21,9 +21,9 @@ describe('fetchApplicationSettingsSaga', () => {
 
   it('should set state with error if get fails', () => {
     const mockError = new Error('failed with 404');
-    jest.spyOn(networking, 'get').mockRejectedValue(mockError);
+    jest.spyOn(networking, 'httpGet').mockRejectedValue(mockError);
     return expectSaga(getApplicationSettings)
-      .call(networking.get, applicationSettingsApiUrl)
+      .call(networking.httpGet, applicationSettingsApiUrl)
       .put(
         ApplicationSettingsActions.fetchApplicationSettingsRejected({
           error: mockError,

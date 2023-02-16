@@ -60,7 +60,7 @@ export const initialState: ILayoutState = {
   },
   layoutsets: null,
 };
-const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutState>) => ({
+export const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutState>) => ({
   name: 'formLayout',
   initialState,
   extraSagas: [watchMapFileUploaderWithTagSaga, watchInitialCalculatePageOrderAndMoveToNextPageSaga],
@@ -369,4 +369,3 @@ const updateCommonPageSettings = (
 };
 
 export const FormLayoutActions = formLayoutSlice.actions;
-export default formLayoutSlice;

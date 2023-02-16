@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid, List, ListItem, ListItemText, makeStyles } from '@material-ui/core';
 
-import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
+import { SummaryBoilerplate } from 'src/components/summary/SummaryBoilerplate';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
 
 export interface IMultipleChoiceSummaryProps {
@@ -33,7 +33,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function MultipleChoiceSummary({
+export function MultipleChoiceSummary({
   formData,
   label,
   hasValidationMessages,

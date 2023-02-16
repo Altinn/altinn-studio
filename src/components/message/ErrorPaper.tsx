@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 
 import { createTheme, Grid, makeStyles, Paper } from '@material-ui/core';
 
-import { AltinnAppTheme } from 'src/theme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
 export interface IErrorPaperProps {
   message: string;
@@ -24,7 +24,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function ErrorPaper(props: IErrorPaperProps) {
+export function ErrorPaper(props: IErrorPaperProps) {
   const classes = useStyles();
   return (
     <Paper

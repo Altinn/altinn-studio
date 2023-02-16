@@ -18,8 +18,8 @@ import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getCurrentTaskDataElementId, getDataTypeByLayoutSetId, isStatelessApp } from 'src/utils/appMetadata';
 import { convertModelToDataBinding } from 'src/utils/databindings';
 import { putWithoutConfig } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/sharedNetworking';
 import { waitFor } from 'src/utils/sagas';
-import { get } from 'src/utils/sharedUtils';
 import {
   getFetchFormDataUrl,
   getStatelessFormDataUrl,
@@ -39,7 +39,7 @@ export function* fetchFormDataSaga(): SagaIterator {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const currentTaskDataElementId = getCurrentTaskDataElementId(applicationMetadata, instance, layoutSets);
     if (currentTaskDataElementId) {
-      const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataElementId));
+      const fetchedData: any = yield call(httpGet, getFetchFormDataUrl(instance.id, currentTaskDataElementId));
       const formData = convertModelToDataBinding(fetchedData);
       yield put(FormDataActions.fetchFulfilled({ formData }));
     } else {
@@ -64,7 +64,7 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
       const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
       const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance, layoutSets);
       if (currentTaskDataId) {
-        fetchedData = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
+        fetchedData = yield call(httpGet, getFetchFormDataUrl(instance.id, currentTaskDataId));
       }
     }
 
@@ -100,7 +100,7 @@ function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
   }
 
   try {
-    return yield call(get, getStatelessFormDataUrl(dataType, allowAnonymous), options);
+    return yield call(httpGet, getStatelessFormDataUrl(dataType, allowAnonymous), options);
   } catch (error) {
     if (error?.response?.status === 403 && error.response.data) {
       const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;

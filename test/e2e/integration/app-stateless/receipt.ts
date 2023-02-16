@@ -1,7 +1,7 @@
-import * as texts from 'test/e2e/fixtures/texts.json';
-import AppFrontend from 'test/e2e/pageobjects/app-frontend';
+import texts from 'test/e2e/fixtures/texts.json';
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import { getInstanceIdRegExp } from 'src/utils';
+import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 
 const appFrontend = new AppFrontend();
 

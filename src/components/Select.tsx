@@ -1,9 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
 
-import { AltinnAppTheme } from 'src/theme/index';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
 import 'src/styles/shared.css';
 
@@ -34,7 +34,7 @@ interface ISelectProps {
   className?: string;
 }
 
-const Select = ({
+export const Select = ({
   id,
   onChange,
   onBlur,
@@ -76,5 +76,3 @@ const Select = ({
     </select>
   );
 };
-
-export default Select;

@@ -1,4 +1,4 @@
-export default (_chai) => {
+export const chaiExtensions = (_chai) => {
   /**
    * @see https://www.webtips.dev/webtips/cypress/check-if-element-is-in-viewport
    */

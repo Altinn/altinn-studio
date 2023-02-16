@@ -17,7 +17,7 @@ export const initialState: IApplicationSettingsState = {
   error: null,
 };
 
-const applicationSettingsSlice = createSagaSlice((mkAction: MkActionType<IApplicationSettingsState>) => ({
+export const applicationSettingsSlice = createSagaSlice((mkAction: MkActionType<IApplicationSettingsState>) => ({
   name: 'applicationSettings',
   initialState,
   actions: {
@@ -40,4 +40,3 @@ const applicationSettingsSlice = createSagaSlice((mkAction: MkActionType<IApplic
 }));
 
 export const ApplicationSettingsActions = applicationSettingsSlice.actions;
-export default applicationSettingsSlice;

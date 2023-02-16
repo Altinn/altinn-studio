@@ -1,16 +1,17 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import Entrypoint from 'src/features/entrypoint/Entrypoint';
-import PartySelection from 'src/features/instantiate/containers/PartySelection';
-import UnknownError from 'src/features/instantiate/containers/UnknownError';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
+import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
+import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
-import ProcessWrapper from 'src/shared/containers/ProcessWrapper';
+import { ProcessWrapper } from 'src/shared/containers/ProcessWrapper';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
-import { get } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/networking';
 import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from 'src/utils/urls/appUrlHelper';
 
 // 1 minute = 60.000ms
@@ -59,7 +60,7 @@ export const App = () => {
       const timeNow = Date.now();
       if (timeNow - lastRefreshTokenTimestamp.current > TEN_MINUTE_IN_MILLISECONDS) {
         lastRefreshTokenTimestamp.current = timeNow;
-        get(refreshJwtTokenUrl).catch((err) => {
+        httpGet(refreshJwtTokenUrl).catch((err) => {
           // Most likely the user has an expired token, so we redirect to the login-page
           try {
             window.location.href = getEnvironmentLoginUrl(appOidcProvider || null);

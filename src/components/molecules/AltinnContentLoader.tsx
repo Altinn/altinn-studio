@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import ContentLoader from 'react-content-loader';
 
 import { AltinnContentIcon } from 'src/components/atoms/AltinnContentIcon';
@@ -19,5 +19,3 @@ export const AltinnContentLoader = ({ width = 400, height = 200, children }: IAl
     </ContentLoader>
   );
 };
-
-export default AltinnContentLoader;

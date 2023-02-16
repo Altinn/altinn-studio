@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Description from 'src/features/form/components/Description';
+import { Description } from 'src/features/form/components/Description';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
 import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
@@ -19,7 +19,7 @@ export interface IFormLegendProps {
   layout?: LayoutStyle;
 }
 
-export default function Legend(props: IFormLegendProps) {
+export function Legend(props: IFormLegendProps) {
   if (!props.labelText) {
     return null;
   }

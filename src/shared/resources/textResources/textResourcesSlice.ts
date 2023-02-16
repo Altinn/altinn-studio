@@ -19,7 +19,7 @@ const initialState: ITextResourcesState = {
   error: null,
 };
 
-const textResourcesSlice = createSagaSlice((mkAction: MkActionType<ITextResourcesState>) => ({
+export const textResourcesSlice = createSagaSlice((mkAction: MkActionType<ITextResourcesState>) => ({
   name: 'textResources',
   initialState,
   actions: {
@@ -56,4 +56,3 @@ const textResourcesSlice = createSagaSlice((mkAction: MkActionType<ITextResource
 }));
 
 export const TextResourcesActions = textResourcesSlice.actions;
-export default textResourcesSlice;

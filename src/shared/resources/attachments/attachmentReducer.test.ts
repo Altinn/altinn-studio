@@ -1,4 +1,4 @@
-import slice, { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { AttachmentActions, attachmentSlice } from 'src/shared/resources/attachments/attachmentSlice';
 import type { IAttachment, IAttachmentState } from 'src/shared/resources/attachments';
 
 describe('attachmentReducer', () => {
@@ -18,7 +18,7 @@ describe('attachmentReducer', () => {
         ],
       },
     };
-    const newState = slice.reducer(
+    const newState = attachmentSlice.reducer(
       state,
       AttachmentActions.deleteAttachment({
         attachment: {
@@ -49,7 +49,7 @@ describe('attachmentReducer', () => {
         ],
       },
     };
-    const newState = slice.reducer(
+    const newState = attachmentSlice.reducer(
       state,
       AttachmentActions.deleteAttachmentRejected({
         attachment: {
@@ -88,7 +88,7 @@ describe('attachmentReducer', () => {
         ],
       },
     };
-    const newState = slice.reducer(
+    const newState = attachmentSlice.reducer(
       state,
       AttachmentActions.deleteAttachmentFulfilled({
         attachmentId: 'someId',

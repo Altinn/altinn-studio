@@ -1,9 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInitialStateMock } from 'src/__mocks__/mocks';
-import ErrorReport from 'src/components/message/ErrorReport';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { ErrorReport } from 'src/components/message/ErrorReport';
 import { renderWithProviders } from 'src/testUtils';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
 import type { IValidations } from 'src/types';

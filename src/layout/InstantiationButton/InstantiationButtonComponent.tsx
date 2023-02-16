@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { InstantiationButton } from 'src/layout/InstantiationButton/InstantiationButton';
 import type { PropsFromGenericComponent } from 'src/layout';

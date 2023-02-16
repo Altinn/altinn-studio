@@ -2,7 +2,7 @@ import React from 'react';
 
 import { CircularProgress } from '@altinn/altinn-design-system';
 
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 

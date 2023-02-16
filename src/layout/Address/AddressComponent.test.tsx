@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
 
 import { act, fireEvent, render as rtlRender, screen } from '@testing-library/react';

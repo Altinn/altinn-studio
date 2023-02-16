@@ -8,8 +8,12 @@ import { ValidationActions } from 'src/features/form/validation/validationSlice'
 import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { removeAttachmentReference } from 'src/utils/databindings';
 import { getLayoutComponentById, getLayoutIdForComponent } from 'src/utils/layout';
-import { getValidator, validateComponentFormData } from 'src/utils/validation';
-import { mergeComponentValidations, validateComponentSpecificValidations } from 'src/utils/validation/validation';
+import {
+  getValidator,
+  mergeComponentValidations,
+  validateComponentFormData,
+  validateComponentSpecificValidations,
+} from 'src/utils/validation/validation';
 import type { IFormData } from 'src/features/form/data';
 import type { IDeleteAttachmentReference, IUpdateFormData } from 'src/features/form/data/formDataTypes';
 import type { ILayoutComponent } from 'src/layout/layout';

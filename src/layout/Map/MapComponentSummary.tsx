@@ -3,10 +3,10 @@ import React from 'react';
 import { Map } from '@altinn/altinn-design-system';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/language/sharedLanguage';
 import { parseLocation } from 'src/layout/Map/MapComponent';
 import { markerIcon } from 'src/layout/Map/MapIcons';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/utils/sharedUtils';
 import type { ILayoutCompMap } from 'src/layout/Map/types';
 
 export interface IMapComponentSummary {
@@ -27,7 +27,7 @@ export const useStyles = makeStyles(() => ({
   },
 }));
 
-function MapComponentSummary({ component, formData }: IMapComponentSummary) {
+export function MapComponentSummary({ component, formData }: IMapComponentSummary) {
   const classes = useStyles();
   const layers = component.layers;
   const location = formData ? parseLocation(formData) : undefined;
@@ -69,5 +69,3 @@ function MapComponentSummary({ component, formData }: IMapComponentSummary) {
     </Grid>
   );
 }
-
-export default MapComponentSummary;

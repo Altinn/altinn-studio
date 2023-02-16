@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function AltinnTableBody(props: IAltinnTableBody) {
+export function AltinnTableBody(props: IAltinnTableBody) {
   const { children, id } = props;
   const classes = useStyles(props);
 

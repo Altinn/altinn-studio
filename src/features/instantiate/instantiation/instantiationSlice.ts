@@ -13,7 +13,7 @@ const initialState: IInstantiationState = {
   error: null,
 };
 
-const instantiationSlice = createSagaSlice((mkAction: MkActionType<IInstantiationState>) => ({
+export const instantiationSlice = createSagaSlice((mkAction: MkActionType<IInstantiationState>) => ({
   name: 'instantiation',
   initialState,
   actions: {
@@ -39,4 +39,3 @@ const instantiationSlice = createSagaSlice((mkAction: MkActionType<IInstantiatio
 }));
 
 export const InstantiationActions = instantiationSlice.actions;
-export default instantiationSlice;

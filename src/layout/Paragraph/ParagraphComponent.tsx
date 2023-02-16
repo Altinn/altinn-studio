@@ -4,7 +4,7 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
-import { AltinnAppTheme } from 'src/theme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IParagraphProps = PropsFromGenericComponent<'Paragraph'>;

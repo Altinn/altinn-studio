@@ -1,9 +1,10 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid, makeStyles, useMediaQuery, useTheme } from '@material-ui/core';
 import cn from 'classnames';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { Triggers } from 'src/types';

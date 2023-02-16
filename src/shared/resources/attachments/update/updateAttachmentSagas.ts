@@ -6,7 +6,7 @@ import type { SagaIterator } from 'redux-saga';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
-import { httpDelete, post } from 'src/utils/network/networking';
+import { httpDelete, httpPost } from 'src/utils/network/networking';
 import { selectNotNull } from 'src/utils/sagas';
 import { fileTagUrl } from 'src/utils/urls/appUrlHelper';
 import type { IAttachment } from 'src/shared/resources/attachments';
@@ -63,7 +63,7 @@ export function* updateAttachmentSaga({
       },
     };
 
-    const response: any = yield call(post, fileUpdateLink, config, `"${tag}"`);
+    const response: any = yield call(httpPost, fileUpdateLink, config, `"${tag}"`);
 
     if (response.status === 201) {
       const newAttachment: IAttachment = {

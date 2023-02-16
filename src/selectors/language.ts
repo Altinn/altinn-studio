@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-import { getAppName, getAppOwner } from 'src/utils/sharedUtils';
+import { getAppName, getAppOwner } from 'src/language/sharedLanguage';
 import type { IRuntimeState } from 'src/types';
 
 const selectTextResources = (state: IRuntimeState) => state.textResources.resources;

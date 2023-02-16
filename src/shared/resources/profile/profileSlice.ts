@@ -18,7 +18,7 @@ const initialState: IProfileState = {
   error: null,
 };
 
-const profileSlice = createSagaSlice((mkAction: MkActionType<IProfileState>) => ({
+export const profileSlice = createSagaSlice((mkAction: MkActionType<IProfileState>) => ({
   name: 'profile',
   initialState,
   actions: {
@@ -39,4 +39,3 @@ const profileSlice = createSagaSlice((mkAction: MkActionType<IProfileState>) => 
 }));
 
 export const ProfileActions = profileSlice.actions;
-export default profileSlice;

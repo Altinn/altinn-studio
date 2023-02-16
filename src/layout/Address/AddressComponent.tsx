@@ -4,9 +4,10 @@ import { TextField } from '@digdir/design-system-react';
 import axios from 'axios';
 
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { AddressLabel } from 'src/layout/Address/AddressLabel';
+import { httpGet } from 'src/utils/network/sharedNetworking';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import { get, getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IComponentValidations } from 'src/types';
 
@@ -129,7 +130,7 @@ export function AddressComponent({
       hasFetchedPostPlace.current = false;
       try {
         prevZipCode.current = formData.zipCode;
-        const response = await get('https://api.bring.com/shippingguide/api/postalCode.json', {
+        const response = await httpGet('https://api.bring.com/shippingguide/api/postalCode.json', {
           params: {
             clientUrl: window.location.href,
             pnr,

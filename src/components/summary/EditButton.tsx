@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { Edit } from '@navikt/ds-icons';

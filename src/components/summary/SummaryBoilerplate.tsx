@@ -1,10 +1,10 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import cn from 'classnames';
 
 import { EditButton } from 'src/components/summary/EditButton';
-import appTheme from 'src/theme/altinnAppTheme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { ILayoutCompSummary } from 'src/layout/Summary/types';
 
 export interface SummaryBoilerplateProps extends Omit<ILayoutCompSummary, 'type' | 'id'> {
@@ -25,13 +25,13 @@ const useStyles = makeStyles({
     },
   },
   labelWithError: {
-    color: appTheme.altinnPalette.primary.red,
+    color: AltinnAppTheme.altinnPalette.primary.red,
     '& p': {
-      color: appTheme.altinnPalette.primary.red,
+      color: AltinnAppTheme.altinnPalette.primary.red,
     },
   },
 });
-export default function SummaryBoilerplate({
+export function SummaryBoilerplate({
   hasValidationMessages,
   onChangeClick,
   changeText,

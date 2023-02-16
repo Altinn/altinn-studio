@@ -3,9 +3,9 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { getInitialStateMock } from 'src/__mocks__/mocks';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { partyMock } from 'src/__mocks__/partyMock';
-import AltinnParty from 'src/shared/components/altinnParty';
+import { AltinnParty } from 'src/shared/components/altinnParty';
 import { renderWithProviders } from 'src/testUtils';
 import type { IAltinnPartyProps } from 'src/shared/components/altinnParty';
 

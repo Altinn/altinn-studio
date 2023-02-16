@@ -34,7 +34,7 @@ import type { IComponentValidations } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 
-const components: {
+export const components: {
   [Type in ComponentExceptGroupAndSummary]: LayoutComponent<Type>;
 } = {
   AddressComponent: new Address(),
@@ -108,5 +108,3 @@ export enum ComponentType {
   Form = 'form',
   Button = 'button',
 }
-
-export default components;

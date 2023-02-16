@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import type { ILabelSettings } from 'src/types';

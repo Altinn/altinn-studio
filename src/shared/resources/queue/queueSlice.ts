@@ -28,7 +28,7 @@ export const initialState: IQueueState = {
   stateless: { ...commonState },
 };
 
-const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) => ({
+export const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) => ({
   name: 'queue',
   initialState,
   actions: {
@@ -147,4 +147,3 @@ const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) => ({
 }));
 
 export const QueueActions = queueSlice.actions;
-export default queueSlice;

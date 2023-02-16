@@ -46,5 +46,3 @@ export const AltinnCheckBox = ({
     />
   );
 };
-
-export default AltinnCheckBox;

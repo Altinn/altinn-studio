@@ -1,11 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Button } from '@digdir/design-system-react';
 import { createStyles, createTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import type { PopoverProps } from '@material-ui/core';
 
-import altinnTheme from 'src/theme/altinnAppTheme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
 export interface IAnchorOrigin {
   horizontal: 'left' | 'center' | 'right' | number;
@@ -27,7 +27,7 @@ export interface IAltinnPopoverProvidedProps extends React.PropsWithChildren {
   closeButtonText?: string;
 }
 
-const theme = createTheme(altinnTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -59,7 +59,7 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-const AltinnPopoverComponent = ({
+export const AltinnPopoverComponent = ({
   anchorOrigin,
   anchorEl,
   handleClose,
@@ -134,5 +134,3 @@ const AltinnPopoverComponent = ({
     </>
   );
 };
-
-export default AltinnPopoverComponent;

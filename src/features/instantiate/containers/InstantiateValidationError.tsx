@@ -1,11 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 
-import { useAppSelector } from 'src/common/hooks';
-import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/utils/sharedUtils';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/language/sharedLanguage';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
-function InstantiateValidationError(props: { message: string }) {
+export function InstantiateValidationError(props: { message: string }) {
   const language = useAppSelector((state) => state.language.language);
   const textResources = useAppSelector((state) => state.textResources.resources);
   if (!language) {
@@ -43,5 +43,3 @@ function InstantiateValidationError(props: { message: string }) {
     />
   );
 }
-
-export default InstantiateValidationError;

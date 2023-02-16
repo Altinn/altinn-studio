@@ -12,15 +12,15 @@ import {
 } from 'src/features/form/components/FullWidthWrapper';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import { RepeatingGroupTableRow } from 'src/features/form/containers/RepeatingGroupTableRow';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { ComponentType } from 'src/layout';
 import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
-import altinnAppTheme from 'src/theme/altinnAppTheme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getTextResource } from 'src/utils/formComponentUtils';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { setupGroupComponents } from 'src/utils/layout';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
-import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
+import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation/validation';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompInput } from 'src/layout/Input/types';
@@ -55,7 +55,7 @@ export interface IRepeatingGroupTableProps {
   filteredIndexes?: number[] | null;
 }
 
-const theme = createTheme(altinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const cellMargin = 15;
 const useStyles = makeStyles({

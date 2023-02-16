@@ -4,7 +4,8 @@ import { MemoryRouter } from 'react-router-dom';
 import { screen } from '@testing-library/react';
 import axios from 'axios';
 
-import { getInitialStateMock, getInstanceDataStateMock } from 'src/__mocks__/mocks';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
 import { App } from 'src/App';
 import * as appSelector from 'src/common/hooks/useAppSelector';
 import * as anonymousSelector from 'src/selectors/getAllowAnonymous';

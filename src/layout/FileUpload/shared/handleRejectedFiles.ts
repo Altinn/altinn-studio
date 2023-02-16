@@ -1,6 +1,6 @@
 import type { FileRejection } from 'react-dropzone';
 
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import type { ILanguage } from 'src/types/shared';
 
 const bytesInOneMB = 1048576;

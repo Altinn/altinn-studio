@@ -2,8 +2,8 @@ import React from 'react';
 
 import { createTheme, makeStyles } from '@material-ui/core';
 
-import { AltinnAppTheme } from 'src/theme';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { ILanguage } from 'src/types/shared';
 
 const theme = createTheme(AltinnAppTheme);
@@ -27,7 +27,7 @@ export interface IHelpTextIconProps {
   onPopoverKeypress: (event: any) => void;
 }
 
-export default function HelpTextIcon({
+export function HelpTextIcon({
   helpIconRef,
   openPopover,
   language,

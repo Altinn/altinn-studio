@@ -22,7 +22,7 @@ const useStyles = makeStyles(() => {
   };
 });
 
-export default function AltinnTable(props: IAltinnTableProps & Omit<TableProps, 'id'>) {
+export function AltinnTable(props: IAltinnTableProps & Omit<TableProps, 'id'>) {
   const { tableLayout, wordBreak, ...tableProps } = props;
   const classes = useStyles({ tableLayout, wordBreak });
   return (

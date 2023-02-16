@@ -4,7 +4,7 @@ import type { SagaIterator } from 'redux-saga';
 import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
-import { get } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/networking';
 import { getFetchFormDynamicsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ILayoutSets, IRuntimeState } from 'src/types';
@@ -22,7 +22,7 @@ export function* fetchDynamicsSaga(): SagaIterator {
     const layoutSetId = getLayoutSetIdForApplication(application, instance, layoutSets);
     const url = getFetchFormDynamicsUrl(layoutSetId);
 
-    const result: any = yield call(get, url);
+    const result: any = yield call(httpGet, url);
     const data = result ? result.data : {};
     yield put(
       FormDynamicsActions.fetchFulfilled({

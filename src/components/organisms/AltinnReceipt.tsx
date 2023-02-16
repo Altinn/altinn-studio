@@ -3,9 +3,9 @@ import React from 'react';
 import { makeStyles, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 
-import AltinnAttachmentComponent from 'src/components/atoms/AltinnAttachment';
-import AltinnCollapsibleAttachmentsComponent from 'src/components/molecules/AltinnCollapsibleAttachments';
-import AltinnSummaryTable from 'src/components/molecules/AltinnSummaryTable';
+import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
+import { AltinnCollapsibleAttachments } from 'src/components/molecules/AltinnCollapsibleAttachments';
+import { AltinnSummaryTable } from 'src/components/molecules/AltinnSummaryTable';
 import type { IAttachment, IAttachmentGrouping } from 'src/types/shared';
 
 export interface IReceiptComponentProps {
@@ -50,7 +50,7 @@ const CollapsibleAttachments = ({ attachments, title, hideCollapsibleCount }: IC
   const isPrint = useMediaQuery('print') ? false : Boolean(attachments.length > 4);
 
   return (
-    <AltinnCollapsibleAttachmentsComponent
+    <AltinnCollapsibleAttachments
       attachments={attachments}
       collapsible={isPrint}
       title={title}
@@ -161,7 +161,7 @@ export function ReceiptComponent({
               {titleSubmitted}
             </Typography>
           )}
-          <AltinnAttachmentComponent
+          <AltinnAttachment
             attachments={pdf}
             id='attachment-list-pdf'
           />
@@ -177,5 +177,3 @@ export function ReceiptComponent({
     </div>
   );
 }
-
-export default ReceiptComponent;

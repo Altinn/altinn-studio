@@ -7,7 +7,7 @@ import { ApplicationMetadataActions } from 'src/shared/resources/applicationMeta
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getCurrentDataTypeForApplication, isStatelessApp } from 'src/utils/appMetadata';
-import { get } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/networking';
 import { getJsonSchemaUrl } from 'src/utils/urls/appUrlHelper';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ILayoutSets, IRuntimeState } from 'src/types';
@@ -31,7 +31,7 @@ function* fetchJsonSchemaSaga(): SagaIterator {
     });
 
     if (dataTypeId) {
-      const schema: any = yield call(get, url + dataTypeId);
+      const schema: any = yield call(httpGet, url + dataTypeId);
       yield put(DataModelActions.fetchJsonSchemaFulfilled({ schema, id: dataTypeId }));
     }
   } catch (error) {

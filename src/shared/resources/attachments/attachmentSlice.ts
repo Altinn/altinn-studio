@@ -30,7 +30,7 @@ const initialState: IAttachmentState = {
   error: undefined,
 };
 
-const slice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
+export const attachmentSlice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
   name: 'attachments',
   initialState,
   actions: {
@@ -151,5 +151,4 @@ const slice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
   },
 }));
 
-export const AttachmentActions = slice.actions;
-export default slice;
+export const AttachmentActions = attachmentSlice.actions;

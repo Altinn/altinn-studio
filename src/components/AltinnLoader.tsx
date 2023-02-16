@@ -11,7 +11,7 @@ export interface IAltinnLoaderProps {
   className?: string;
 }
 
-export default function AltinnLoader(props: IAltinnLoaderProps) {
+export function AltinnLoader(props: IAltinnLoaderProps) {
   return (
     <div
       aria-live='polite'

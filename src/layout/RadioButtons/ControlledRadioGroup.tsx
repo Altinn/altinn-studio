@@ -7,7 +7,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import cn from 'classnames';
 
-import { AltinnSpinner } from 'src/components/shared';
+import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { useRadioStyles } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { StyledRadio } from 'src/layout/RadioButtons/StyledRadio';
 import { shouldUseRowLayout } from 'src/utils/layout';

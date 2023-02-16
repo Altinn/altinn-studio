@@ -1,4 +1,4 @@
-import slice, { initialState, LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { initialState, LanguageActions, languageSlice } from 'src/shared/resources/language/languageSlice';
 import type { ILanguageState } from 'src/shared/resources/language/languageSlice';
 
 describe('languageSlice', () => {
@@ -8,7 +8,7 @@ describe('languageSlice', () => {
   });
 
   it('handles fetchLanguageFulfilled action', () => {
-    const nextState = slice.reducer(
+    const nextState = languageSlice.reducer(
       state,
       LanguageActions.fetchLanguageFulfilled({
         language: {
@@ -22,7 +22,7 @@ describe('languageSlice', () => {
 
   it('handles fetchLanguageRejected action', () => {
     const errorMessage = 'This is an error';
-    const nextState = slice.reducer(
+    const nextState = languageSlice.reducer(
       state,
       LanguageActions.fetchLanguageRejected({
         error: new Error(errorMessage),

@@ -8,7 +8,7 @@ import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice'
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
-import { put as httpPut } from 'src/utils/sharedUtils';
+import { httpPut } from 'src/utils/network/sharedNetworking';
 import { getProcessNextUrl } from 'src/utils/urls/appUrlHelper';
 import type { IInstanceDataState } from 'src/shared/resources/instanceData';
 import type { ICompleteProcessFulfilled } from 'src/shared/resources/process';

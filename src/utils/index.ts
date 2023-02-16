@@ -1,1 +1,0 @@
-export { getInstanceIdRegExp } from './instanceIdRegExp';

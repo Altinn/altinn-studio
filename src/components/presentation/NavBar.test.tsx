@@ -6,7 +6,7 @@ import mockAxios from 'jest-mock-axios';
 
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
-import NavBar from 'src/components/presentation/NavBar';
+import { NavBar } from 'src/components/presentation/NavBar';
 import { getLanguageFromCode } from 'src/language/languages';
 import { renderWithProviders } from 'src/testUtils';
 import type { ITextResource } from 'src/types';

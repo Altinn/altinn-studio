@@ -12,7 +12,7 @@ import {
   watchFetchTextResourcesSaga,
 } from 'src/shared/resources/textResources/fetch/fetchTextResourcesSagas';
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
-import { get } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/networking';
 import { waitFor } from 'src/utils/sagas';
 import { textResourcesUrl } from 'src/utils/urls/appUrlHelper';
 import type { IProfile } from 'src/types/shared';
@@ -48,7 +48,7 @@ describe('fetchTextResourcesSagas', () => {
       .provide([
         [select(appLanguageStateSelector), 'nb'],
         [select(makeGetAllowAnonymousSelector()), true],
-        [call(get, textResourcesUrl('nb')), mockTextResource],
+        [call(httpGet, textResourcesUrl('nb')), mockTextResource],
       ])
       .put(
         TextResourcesActions.fetchFulfilled({
@@ -71,7 +71,7 @@ describe('fetchTextResourcesSagas', () => {
     return expectSaga(fetchTextResources)
       .provide([
         [select(appLanguageStateSelector), 'en'],
-        [call(get, textResourcesUrl('en')), mockTextResource],
+        [call(httpGet, textResourcesUrl('en')), mockTextResource],
       ])
       .put(
         TextResourcesActions.fetchFulfilled({
@@ -107,7 +107,7 @@ describe('fetchTextResourcesSagas', () => {
         [select(appLanguageStateSelector), 'en'],
         [select(makeGetAllowAnonymousSelector()), false],
         [select(profileStateSelector), profileMock],
-        [call(get, textResourcesUrl('en')), mockTextResource],
+        [call(httpGet, textResourcesUrl('en')), mockTextResource],
       ])
       .put(
         TextResourcesActions.fetchFulfilled({

@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInitialStateMock } from 'src/__mocks__/mocks';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
 import { renderWithProviders } from 'src/testUtils';
 import type { IButtonProvidedProps } from 'src/layout/Button/ButtonComponent';

@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';

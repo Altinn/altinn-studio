@@ -3,13 +3,13 @@ import type { SagaIterator } from 'redux-saga';
 
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
-import { get } from 'src/utils/sharedUtils';
+import { httpGet } from 'src/utils/network/sharedNetworking';
 import { getProcessStateUrl } from 'src/utils/urls/appUrlHelper';
 import type { IProcess } from 'src/types/shared';
 
 export function* getProcessStateSaga(): SagaIterator {
   try {
-    const processState: IProcess = yield call(get, getProcessStateUrl());
+    const processState: IProcess = yield call(httpGet, getProcessStateUrl());
     if (!processState) {
       yield put(
         ProcessActions.getFulfilled({

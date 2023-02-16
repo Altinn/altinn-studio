@@ -4,7 +4,7 @@ import { Collapse, List, ListItem, ListItemIcon, ListItemText, makeStyles, Typog
 import cn from 'classnames';
 
 import { AltinnIcon } from 'src/components/AltinnIcon';
-import AltinnAttachmentComponent from 'src/components/atoms/AltinnAttachment';
+import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import type { IAttachment } from 'src/types/shared';
 
 const useStyles = makeStyles(() => ({
@@ -87,7 +87,7 @@ export function AltinnCollapsibleAttachments({
             timeout='auto'
             unmountOnExit={true}
           >
-            <AltinnAttachmentComponent
+            <AltinnAttachment
               attachments={attachments}
               nested={true}
               listDisableVerticalPadding={true}
@@ -99,7 +99,7 @@ export function AltinnCollapsibleAttachments({
           <Typography style={fontStyle}>
             {title} {attachmentCount}
           </Typography>
-          <AltinnAttachmentComponent
+          <AltinnAttachment
             attachments={attachments}
             nested={false}
             listDisableVerticalPadding={false}
@@ -110,5 +110,3 @@ export function AltinnCollapsibleAttachments({
     </>
   );
 }
-
-export default AltinnCollapsibleAttachments;

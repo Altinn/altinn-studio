@@ -2,19 +2,20 @@ import React, { useEffect, useState } from 'react';
 
 import moment from 'moment';
 
-import { useAppDispatch, useAppSelector, useInstanceIdParams } from 'src/common/hooks';
-import {
-  AltinnContentIconReceipt,
-  AltinnContentLoader,
-  AltinnReceipt,
-  AltinnReceiptSimple,
-} from 'src/components/shared';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { useInstanceIdParams } from 'src/common/hooks/useInstanceIdParams';
+import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIconReceipt';
+import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
+import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
+import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
 import { CustomReceipt } from 'src/features/customReceipt/containers/CustomReceipt';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
-import { getAttachmentGroupings, getInstancePdf } from 'src/utils/attachmentsUtils';
-import { getLanguageFromKey, mapInstanceAttachments, returnUrlToArchive } from 'src/utils/sharedUtils';
+import { getAttachmentGroupings, getInstancePdf, mapInstanceAttachments } from 'src/utils/attachmentsUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
 import type { IAttachment, IParty } from 'src/types/shared';
 
 export const returnInstanceMetaDataObject = (
@@ -50,7 +51,7 @@ export const returnInstanceMetaDataObject = (
   return obj;
 };
 
-const ReceiptContainer = () => {
+export const ReceiptContainer = () => {
   const dispatch = useAppDispatch();
   const [attachments, setAttachments] = useState<IAttachment[]>([]);
   const [pdf, setPdf] = useState<IAttachment[] | undefined>(undefined);
@@ -134,7 +135,7 @@ const ReceiptContainer = () => {
             (receiptLayoutName && layouts.includes(receiptLayoutName) ? (
               <CustomReceipt />
             ) : (
-              <AltinnReceipt
+              <ReceiptComponent
                 attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
                 body={getTextFromAppOrDefault('receipt.body', textResources, language)}
                 collapsibleTitle={getTextFromAppOrDefault('receipt.attachments', textResources, language)}
@@ -147,7 +148,7 @@ const ReceiptContainer = () => {
               />
             ))}
           {applicationMetadata.autoDeleteOnProcessEnd && (
-            <AltinnReceiptSimple
+            <ReceiptComponentSimple
               body={getTextFromAppOrDefault('receipt.body_simple', textResources, language, undefined, false)}
               title={getTextFromAppOrDefault('receipt.title', textResources, language)}
             />
@@ -165,5 +166,3 @@ const ReceiptContainer = () => {
     </div>
   );
 };
-
-export default ReceiptContainer;

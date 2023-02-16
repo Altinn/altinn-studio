@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import AltinnMobileTableItem from 'src/features/form/containers/AltinnMobileTableItem';
+import { AltinnMobileTableItem } from 'src/features/form/containers/AltinnMobileTableItem';
 import { renderWithProviders } from 'src/testUtils';
 import type { IAltinnMobileTableItemProps, IMobileTableItem } from 'src/features/form/containers/AltinnMobileTableItem';
 import type { ILanguage } from 'src/types/shared';

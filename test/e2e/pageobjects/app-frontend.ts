@@ -1,6 +1,6 @@
-import * as texts from 'test/e2e/fixtures/texts.json';
+import texts from 'test/e2e/fixtures/texts.json';
 
-export default class AppFrontend {
+export class AppFrontend {
   public apps = {
     /** @see https://dev.altinn.studio/repos/ttd/frontend-test */
     frontendTest: 'frontend-test',

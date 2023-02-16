@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { fireEvent, render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 

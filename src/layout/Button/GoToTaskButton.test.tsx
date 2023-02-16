@@ -1,9 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { getInitialStateMock } from 'src/__mocks__/mocks';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { GoToTaskButton } from 'src/layout/Button/GoToTaskButton';
 import { setupStore } from 'src/store';
 import { mockComponentProps, renderWithProviders } from 'src/testUtils';

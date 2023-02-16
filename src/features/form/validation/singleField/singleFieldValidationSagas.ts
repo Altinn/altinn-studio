@@ -5,9 +5,9 @@ import type { SagaIterator } from 'redux-saga';
 
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
-import { get } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/networking';
 import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
-import { mapDataElementValidationToRedux, mergeValidationObjects } from 'src/utils/validation';
+import { mapDataElementValidationToRedux, mergeValidationObjects } from 'src/utils/validation/validation';
 import type { IRunSingleFieldValidation } from 'src/features/form/validation/validationSlice';
 import type { ILayouts } from 'src/layout/layout';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
@@ -51,7 +51,7 @@ export function* runSingleFieldValidationSaga({
     try {
       const layouts: ILayouts = yield select(selectLayoutsState);
       const textResources: ITextResource[] = yield select(selectTextResourcesState);
-      const serverValidation: IValidationIssue[] = yield call(get, url, options);
+      const serverValidation: IValidationIssue[] = yield call(httpGet, url, options);
 
       const mappedValidations: IValidations = mapDataElementValidationToRedux(
         serverValidation,

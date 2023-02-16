@@ -17,7 +17,7 @@ import {
 } from 'src/features/form/validation/singleField/singleFieldValidationSagas';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { Severity } from 'src/types';
-import { get } from 'src/utils/network/networking';
+import { httpGet } from 'src/utils/network/networking';
 import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
 import type { IRuntimeState, IValidationIssue, IValidations } from 'src/types';
 
@@ -79,7 +79,7 @@ describe('singleFieldValidationSagas', () => {
         [select(selectLayoutSetsState), mockState.formLayout.layoutsets],
         [select(selectTextResourcesState), mockState.textResources.resources],
         [select(selectValidationsState), mockState.formValidations.validations],
-        [call(get, url, options), validationIssues],
+        [call(httpGet, url, options), validationIssues],
       ])
       .put(
         ValidationActions.runSingleFieldValidationFulfilled({
@@ -118,7 +118,7 @@ describe('singleFieldValidationSagas', () => {
         [select(selectLayoutSetsState), mockState.formLayout.layoutsets],
         [select(selectTextResourcesState), mockState.textResources.resources],
         [select(selectValidationsState), mockState.formValidations.validations],
-        [call(get, url, options), throwError(error)],
+        [call(httpGet, url, options), throwError(error)],
       ])
       .put(ValidationActions.runSingleFieldValidationRejected({ error }))
       .run();

@@ -4,7 +4,7 @@ import type { SagaIterator } from 'redux-saga';
 
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
-import { get } from 'src/utils/sharedUtils';
+import { httpGet } from 'src/utils/network/sharedNetworking';
 import { getProcessNextUrl } from 'src/utils/urls/appUrlHelper';
 import type { IGetTasksFulfilled } from 'src/shared/resources/process';
 import type { IProcess } from 'src/types/shared';
@@ -19,7 +19,7 @@ export function* getTasksSaga({ payload: { processStep } }: PayloadAction<IGetTa
     return;
   }
   try {
-    const result: IProcess = yield call(get, getProcessNextUrl());
+    const result: IProcess = yield call(httpGet, getProcessNextUrl());
     if (!result) {
       put(
         ProcessActions.getTasksRejected({

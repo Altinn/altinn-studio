@@ -1,16 +1,16 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Button } from '@digdir/design-system-react';
 import { Grid, IconButton, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 
-import { useAppDispatch } from 'src/common/hooks';
-import { AltinnLoader } from 'src/components/shared';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { AltinnLoader } from 'src/components/AltinnLoader';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { FileName } from 'src/layout/FileUpload/shared/render';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import { AltinnAppTheme } from 'src/theme';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { renderValidationMessages } from 'src/utils/render';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IOption } from 'src/types';

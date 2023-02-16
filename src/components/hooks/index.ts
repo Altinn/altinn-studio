@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { shallowEqual } from 'react-redux';
 
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from 'src/utils/options';
 import type { IMapping, IOption, IOptionSource } from 'src/types';
@@ -85,5 +85,3 @@ export const useGetDataList = ({ id }: IUseGetDataListParams) => {
   }, [id, dataListState]);
   return dataList;
 };
-
-export { useDisplayData } from './useDisplayData';

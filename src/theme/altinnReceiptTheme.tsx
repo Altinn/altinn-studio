@@ -1,6 +1,6 @@
 import { commonTheme } from 'src/theme/commonTheme';
 
-const AltinnReceiptTheme = {
+export const AltinnReceiptTheme = {
   ...commonTheme,
   overrides: {
     MuiToolbar: {
@@ -47,5 +47,3 @@ const AltinnReceiptTheme = {
     useNextVariants: true,
   },
 };
-
-export default AltinnReceiptTheme;

@@ -3,7 +3,7 @@ import { call, put } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { OrgsActions } from 'src/shared/resources/orgs/orgsSlice';
-import { orgsListUrl } from 'src/utils/sharedUtils';
+import { orgsListUrl } from 'src/utils/urls/urlHelper';
 
 export function* fetchOrgsSaga(): SagaIterator {
   try {

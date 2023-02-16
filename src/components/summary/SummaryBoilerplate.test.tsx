@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 
 import { render as rtlRender, screen } from '@testing-library/react';
 
-import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
+import { SummaryBoilerplate } from 'src/components/summary/SummaryBoilerplate';
 import type { SummaryBoilerplateProps } from 'src/components/summary/SummaryBoilerplate';
 
 describe('SummaryBoilerplate', () => {

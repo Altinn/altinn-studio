@@ -1,8 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 
 import { fireEvent, screen } from '@testing-library/react';
 
-import { getFormLayoutStateMock, getInitialStateMock } from 'src/__mocks__/mocks';
+import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { renderWithProviders } from 'src/testUtils';

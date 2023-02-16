@@ -1,10 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as ResizeObserverModule from 'resize-observer-polyfill';
 
-import { getFormLayoutGroupMock, getInitialStateMock } from 'src/__mocks__/mocks';
+import { getFormLayoutGroupMock } from 'src/__mocks__/formLayoutGroupMock';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { RepeatingGroupTable } from 'src/features/form/containers/RepeatingGroupTable';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';

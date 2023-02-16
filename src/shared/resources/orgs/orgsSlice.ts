@@ -8,7 +8,7 @@ const initialState: IOrgsState = {
   error: null,
 };
 
-const orgsSlice = createSagaSlice((mkAction: MkActionType<IOrgsState>) => ({
+export const orgsSlice = createSagaSlice((mkAction: MkActionType<IOrgsState>) => ({
   name: 'organisationMetaData',
   initialState,
   actions: {
@@ -29,4 +29,3 @@ const orgsSlice = createSagaSlice((mkAction: MkActionType<IOrgsState>) => ({
 }));
 
 export const OrgsActions = orgsSlice.actions;
-export default orgsSlice;

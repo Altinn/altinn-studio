@@ -2,8 +2,8 @@ import React from 'react';
 
 import { createTheme, Grid, makeStyles } from '@material-ui/core';
 
-import altinnAppTheme from 'src/theme/altinnAppTheme';
-import { getLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
+import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
+import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { ITextResource, ITextResourceBindings } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
@@ -16,7 +16,7 @@ export interface IRepeatingGroupAddButton {
   id?: string;
 }
 
-const theme = createTheme(altinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const useStyles = makeStyles({
   addButton: {

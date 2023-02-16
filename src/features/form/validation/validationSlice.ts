@@ -36,7 +36,7 @@ export const initialState: IValidationState = {
   invalidDataTypes: [],
 };
 
-const validationSlice = createSagaSlice((mkAction: MkActionType<IValidationState>) => ({
+export const validationSlice = createSagaSlice((mkAction: MkActionType<IValidationState>) => ({
   name: 'formValidations',
   initialState,
   actions: {
@@ -79,4 +79,3 @@ const validationSlice = createSagaSlice((mkAction: MkActionType<IValidationState
 }));
 
 export const ValidationActions = validationSlice.actions;
-export default validationSlice;

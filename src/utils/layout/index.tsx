@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { GenericComponent } from 'src/layout/GenericComponent';

@@ -4,7 +4,8 @@ import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import { Add as AddIcon } from '@navikt/ds-icons';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';

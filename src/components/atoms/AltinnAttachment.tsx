@@ -119,5 +119,3 @@ export function AltinnAttachment({ attachments, listDisableVerticalPadding, nest
     </>
   );
 }
-
-export default AltinnAttachment;

@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 
-import { getInstanceIdRegExp } from 'src/utils';
+import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 
 export function useInstanceIdParams() {
   const { pathname } = useLocation();

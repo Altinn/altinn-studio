@@ -1,13 +1,16 @@
-import * as React from 'react';
+import React from 'react';
 import { isMobile } from 'react-device-detect';
 import type { FileRejection } from 'react-dropzone';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { v4 as uuidv4 } from 'uuid';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { DropzoneComponent, handleRejectedFiles } from 'src/layout/FileUpload/shared';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { DropzoneComponent } from 'src/layout/FileUpload/shared/DropzoneComponent';
+import { handleRejectedFiles } from 'src/layout/FileUpload/shared/handleRejectedFiles';
 import { AttachmentsCounter } from 'src/layout/FileUpload/shared/render';
 import { FileList } from 'src/layout/FileUploadWithTag/FileListComponent';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
@@ -19,7 +22,6 @@ import {
 } from 'src/utils/formComponentUtils';
 import { getOptionLookupKey } from 'src/utils/options';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IRuntimeState } from 'src/types';
