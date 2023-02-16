@@ -89,5 +89,10 @@
     "packages/shared",
     "packages/text-editor",
     "packages/ux-editor"
-  ]
+  ],
+  "dependencies": {
+    "@digdir/design-system-react": "^0.5.1",
+    "@navikt/ds-icons": "^2.1.7",
+    "react-redux": "^8.0.5"
+  }
 }
