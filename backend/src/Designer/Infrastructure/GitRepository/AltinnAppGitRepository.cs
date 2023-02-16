@@ -360,7 +360,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string[] layoutSetNames = GetLayoutSetNames();
             string layoutSetRelativePath = GetPathToLayoutSet(layoutSetNames[0]);
-            return !(layoutSetNames.Contains("layouts") && layoutSetNames.Length == 1 && !DirectoryExistsByRelativePath(layoutSetRelativePath));
+            return !(layoutSetNames.Contains("layouts") && layoutSetNames.Length <= 1 && !DirectoryExistsByRelativePath(layoutSetRelativePath));
         }
 
         /// <summary>
@@ -371,11 +371,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public string[] GetLayoutNames([CanBeNull] string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
+            if (!DirectoryExistsByRelativePath(layoutSetPath))
+            {
+                throw new FileNotFoundException();
+            }
             List<string> layoutNames = new();
+
             foreach (string layoutPath in GetFilesByRelativeDirectory(layoutSetPath))
             {
                 layoutNames.Add(Path.GetFileName(layoutPath));
             }
+
             return layoutNames.ToArray();
         }
 
@@ -399,6 +405,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         public async Task CreateLayoutSettings(string layoutSetName)
         {
+            string layoutSetPath = GetPathToLayoutSet(layoutSetName);
+            if (!DirectoryExistsByRelativePath(layoutSetPath))
+            {
+                Directory.CreateDirectory(layoutSetPath);
+            }
             string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
             LayoutSettings layoutSettings = new()
             {
