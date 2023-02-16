@@ -181,7 +181,7 @@
     },
     {
       "id": "messageBody",
-      "value": "Bruke dette app for å teste app frontend <br/> 1. Melding <br/> 2. Endring-av-navn-v2 <br/> 3. Repeterende gruppe <br/> 4. Bekreftelse side",
+      "value": "Bruk denne appen for å teste app-frontend. Hver gang du trykker 'Send inn' kommer du til neste steg i prosessen. Disse stegene er laget i appen til nå: <br/><br/> 1. Denne meldingen \uD83D\uDC4B <br/> 2. Endring av navn <br/> 3. Repeterende gruppe <br/> 4. Likert <br /> 5. List <br /> 6. Bekreftelse/confirmation <br /> 7. Kvittering",
       "variables": null
     },
     {
@@ -191,7 +191,7 @@
     },
     {
       "id": "messageTitleHelp",
-      "value": "Bruk dette appen for test av app frontend",
+      "value": "Bruk denne appen for test av app frontend",
       "variables": null
     },
     {
@@ -204,7 +204,7 @@
     },
     {
       "id": "startAgain",
-      "value": "Du har startet instance: {0} for app: {1}.<br/> <br/> Trykk [her]({2}) for å starte på nytt.",
+      "value": "Du har startet instance: {0} for app: {1}.<br/> <br/> Trykk <a href='{2}' class='same-window'>her</a> for å starte på nytt.<br /><br />Noen lenker:<br /><a href='/'>Intern lenke i nytt vindu</a><br /><a href='/' class='same-window'>Intern lenke i samme vindu</a><br /><a href='https://nrk.no/'>Ekstern lenke i nytt vindu</a><br /><a href='https://nrk.no' class='same-window'>Ekstern lenke i samme vindu</a><br />",
       "variables": [
         { "key": "instanceId", "dataSource": "instanceContext" },
         { "key": "appId", "dataSource": "instanceContext" },
