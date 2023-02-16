@@ -7,25 +7,25 @@ import type { ICreateAppDeployment } from '../types';
 import { AppDeploymentActions } from '../appDeploymentSlice';
 
 function* createAppDeploymentSaga(action: PayloadAction<ICreateAppDeployment>): SagaIterator {
-  const { envObj, tagName } = action.payload;
+  const { envName, tagName } = action.payload;
   try {
     const data = {
       tagName,
-      env: envObj,
+      envName,
     };
 
     const result = yield call(post, appDeploymentsUrl, data);
 
     yield put(
       AppDeploymentActions.createAppDeploymentFulfilled({
-        envName: envObj.name,
+        envName,
         result,
       })
     );
   } catch (error) {
     yield put(
       AppDeploymentActions.createAppDeploymentRejected({
-        envName: envObj.name,
+        envName,
         error,
       })
     );

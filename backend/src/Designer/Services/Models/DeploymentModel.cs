@@ -11,8 +11,8 @@ namespace Altinn.Studio.Designer.Services.Models
         public string TagName { get; set; }
 
         /// <summary>
-        /// Environment model
+        /// Environment Name
         /// </summary>
-        public EnvironmentModel Environment { get; set; }
+        public string EnvName { get; set; }
     }
 }

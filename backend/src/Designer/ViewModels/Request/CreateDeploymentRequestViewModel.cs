@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
-
-using Altinn.Studio.Designer.Services.Models;
-
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.ViewModels.Request
@@ -14,18 +11,20 @@ namespace Altinn.Studio.Designer.ViewModels.Request
     public class CreateDeploymentRequestViewModel : IValidatableObject
     {
         /// <summary>
+        /// Environment Name
+        /// </summary>
+        [Required]
+        [JsonProperty("envName")]
+        public string EnvName { get; set; }
+
+        /// <summary>
         /// TagName
         /// </summary>
         [Required]
         [JsonProperty("tagName")]
         public string TagName { get; set; }
 
-        /// <summary>
-        /// Environment
-        /// </summary>
-        [Required]
-        [JsonProperty("env")]
-        public EnvironmentModel Environment { get; set; }
+
 
         /// <summary>
         /// Determines if this instance of the model is valid.

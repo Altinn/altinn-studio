@@ -47,7 +47,7 @@ const configurationSlice = createSlice({
   reducers: {
     getEnvironmentsFulfilled: (state, action: PayloadAction<IGetEnvironmentsFulfilled>) => {
       const { result } = action.payload;
-      state.environments.result = result.environments;
+      state.environments.result = result;
       state.environments.error = null;
     },
     getEnvironmentsRejected: (state, action: PayloadAction<IConfigurationActionRejected>) => {

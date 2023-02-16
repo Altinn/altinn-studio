@@ -203,5 +203,10 @@ namespace Altinn.Studio.Designer.Configuration
         /// Gets the name of the session timeout cookie
         /// </summary>
         public string SessionTimeoutCookieName { get; set; } = "DesignerSessionTimeout";
+
+        /// <summary>
+        /// Gets or sets the url to the environment file.
+        /// </summary>
+        public string EnvironmentsUrl { get; set; }
     }
 }

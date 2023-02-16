@@ -117,7 +117,6 @@ export const DeployContainerComponent = () => {
           <AppDeploymentComponent
             key={index}
             envName={env.name}
-            envObj={env}
             urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             deploymentList={

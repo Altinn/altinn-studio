@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Options;
 
@@ -17,25 +19,30 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
     public class AltinnStorageAppMetadataClient : IAltinnStorageAppMetadataClient
     {
         private readonly HttpClient _httpClient;
+        private readonly IEnvironmentsService _environmentsService;
         private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="httpClient">HttpClient</param>
+        /// <param name="environmentsService">EnvironmentsService</param>
         /// <param name="options">IOptionsMonitor of type PlatformSettings</param>
         public AltinnStorageAppMetadataClient(
             HttpClient httpClient,
+            IEnvironmentsService environmentsService,
             IOptionsMonitor<PlatformSettings> options)
         {
             _httpClient = httpClient;
+            _environmentsService = environmentsService;
             _platformSettings = options.CurrentValue;
         }
 
         /// <inheritdoc />
-        public async Task<Application> GetApplicationMetadata(string org, string app, EnvironmentModel environmentModel)
+        public async Task<Application> GetApplicationMetadata(string org, string app, string envName)
         {
-            Uri uri = new Uri($"{CreateUri(environmentModel)}{org}/{app}");
+            var storageUri = await CreateStorageUri(envName);
+            Uri uri = new Uri($"{storageUri}/{org}/{app}");
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
@@ -52,9 +59,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             string org,
             string app,
             Application applicationMetadata,
-            EnvironmentModel environmentModel)
+            string envName)
         {
-            Uri uri = new Uri($"{CreateUri(environmentModel)}?appId={org}/{app}");
+            var storageUri = await CreateStorageUri(envName);
+            Uri uri = new Uri($"{storageUri}?appId={org}/{app}");
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
             /*
@@ -74,9 +82,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             string org,
             string app,
             Application applicationMetadata,
-            EnvironmentModel environmentModel)
+            string envName)
         {
-            Uri uri = new Uri($"{CreateUri(environmentModel)}{org}/{app}");
+            var storageUri = await CreateStorageUri(envName);
+            Uri uri = new Uri($"{storageUri}{org}/{app}");
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
             /*
@@ -91,7 +100,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             await _httpClient.SendAsync(request);
         }
 
-        private Uri CreateUri(EnvironmentModel environmentModel)
-            => new Uri($"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiStorageApplicationUri}");
+        private async Task<Uri> CreateStorageUri(string envName)
+        {
+            var platformUri = await _environmentsService.CreatePlatformUri(envName);
+            return new Uri($"{platformUri}{_platformSettings.ApiStorageApplicationUri}");
+        }
     }
 }

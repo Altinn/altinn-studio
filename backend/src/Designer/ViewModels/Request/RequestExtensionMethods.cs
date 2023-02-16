@@ -49,7 +49,7 @@ namespace Altinn.Studio.Designer.ViewModels.Request
             => new DeploymentModel
             {
                 TagName = viewmodel.TagName,
-                Environment = viewmodel.Environment
+                EnvName = viewmodel.EnvName
             };
     }
 }

@@ -55,7 +55,7 @@ namespace Designer.Tests.Services
                 TagName = "1",
             };
 
-            deploymentModel.Environment = new EnvironmentModel
+            deploymentModel.EnvName = new EnvironmentModel
             {
                 Name = "at23",
                 Hostname = "hostname"
@@ -70,7 +70,7 @@ namespace Designer.Tests.Services
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<EnvironmentModel>())).Returns(Task.CompletedTask);
+                It.IsAny<string>())).Returns(Task.CompletedTask);
 
             Mock<IAzureDevOpsBuildClient> azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
             azureDevOpsBuildClient.Setup(b => b.QueueAsync(
@@ -100,7 +100,7 @@ namespace Designer.Tests.Services
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<EnvironmentModel>()),
+                    It.IsAny<string>()),
                 Times.Once);
             azureDevOpsBuildClient.Verify(
                 b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);

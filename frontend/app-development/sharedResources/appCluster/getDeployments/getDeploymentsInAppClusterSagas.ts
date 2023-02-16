@@ -32,7 +32,7 @@ function* fetchEnvironmentDeployments(org: string, app: string, env: any): SagaI
   try {
     const result = yield call(
       get,
-      `https://${org}.apps.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}`
+      `${window.location.protocol}//${org}.${env.appPrefix}.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}`
     );
 
     yield put(getDeploymentsFulfilled({ result, env: env.name }));

@@ -14,10 +14,10 @@ namespace Altinn.Studio.Designer.Repository.Models
         public string TagName { get; set; }
 
         /// <summary>
-        /// EnvironmentName
+        /// Environment Name
         /// </summary>
         [JsonProperty("envName")]
-        public string EnvironmentName { get; set; }
+        public string EnvName { get; set; }
 
         /// <summary>
         /// Build
