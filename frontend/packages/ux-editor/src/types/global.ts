@@ -99,7 +99,7 @@ export interface IFormCheckboxComponent extends IFormGenericOptionsComponent {
 }
 
 export interface IFormButtonComponent extends IFormComponent {
-  type: ComponentTypes.Button;
+  type: ComponentTypes.Button | ComponentTypes.NavigationButtons;
   onClickAction: () => void;
 }
 

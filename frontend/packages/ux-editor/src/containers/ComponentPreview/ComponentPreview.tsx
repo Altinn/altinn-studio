@@ -33,6 +33,8 @@ export const ComponentPreview = ({
       );
       
     case ComponentTypes.Button:
+    case ComponentTypes.NavigationButtons:
+      
         return (
        
         <ButtonPreview component={component as IFormButtonComponent}/>
