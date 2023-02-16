@@ -82,7 +82,7 @@
     "eslint-plugin-simple-import-sort": "10.0.0",
     "eslint-plugin-sonarjs": "0.18.0",
     "eslint-plugin-unused-imports": "^2.0.0",
-    "execa": "6.1.0",
+    "execa": "7.0.0",
     "fork-ts-checker-notifier-webpack-plugin": "6.0.0",
     "fork-ts-checker-webpack-plugin": "7.3.0",
     "html-react-parser": "3.0.8",
