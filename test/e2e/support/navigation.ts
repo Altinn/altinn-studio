@@ -245,3 +245,7 @@ Cypress.Commands.add('sendIn', (task) => {
   const tasks = Object.keys(completeFormFast) as FrontendTestTask[];
   currentTask = tasks[tasks.indexOf(task || currentTask || 'message') + 1];
 });
+
+export function resetNavigation() {
+  currentTask = undefined;
+}

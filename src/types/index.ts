@@ -268,6 +268,20 @@ export enum Triggers {
   ValidateRow = 'validateRow',
 }
 
+export type TriggersPageValidation = Triggers.ValidateAllPages | Triggers.ValidatePage;
+
+/**
+ * Reduces a list of validation triggers to be only one value (preferring validation for all pages
+ * over single-page validation). Useful for places that only care about page validation.
+ */
+export function reducePageValidations(triggers?: Triggers[]): TriggersPageValidation | undefined {
+  return triggers?.includes(Triggers.ValidateAllPages)
+    ? Triggers.ValidateAllPages
+    : triggers?.includes(Triggers.ValidatePage)
+    ? Triggers.ValidatePage
+    : undefined;
+}
+
 export interface ILabelSettings {
   optionalIndicator?: boolean;
 }

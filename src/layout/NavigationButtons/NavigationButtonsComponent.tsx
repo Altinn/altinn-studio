@@ -7,7 +7,7 @@ import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
-import { Triggers } from 'src/types';
+import { reducePageValidations, Triggers } from 'src/types';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IKeepComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -50,7 +50,11 @@ export function NavigationButtonsComponent(props: INavigationButtons) {
   const onClickPrevious = () => {
     const goToView = previous || (orderedLayoutKeys && orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) - 1]);
     if (goToView) {
-      dispatch(FormLayoutActions.updateCurrentView({ newView: goToView }));
+      dispatch(
+        FormLayoutActions.updateCurrentView({
+          newView: goToView,
+        }),
+      );
     }
   };
 
@@ -59,9 +63,7 @@ export function NavigationButtonsComponent(props: INavigationButtons) {
   }, []);
 
   const OnClickNext = () => {
-    const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
-    const runAllValidations = returnToView || triggers?.includes(Triggers.ValidateAllPages);
-    const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || undefined;
+    const runValidations = reducePageValidations(triggers);
     const keepScrollPosAction: IKeepComponentScrollPos = {
       componentId: props.id,
       offsetTop: getScrollPosition(),

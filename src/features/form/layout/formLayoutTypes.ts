@@ -6,6 +6,7 @@ import type {
   ILayoutSettings,
   INavigationConfig,
   IOption,
+  TriggersPageValidation,
 } from 'src/types';
 import type { Triggers } from 'src/types/index';
 
@@ -38,7 +39,7 @@ export interface IUpdateAutoSave {
 export interface IUpdateCurrentView {
   newView: string;
   returnToView?: string;
-  runValidations?: 'allPages' | 'page';
+  runValidations?: TriggersPageValidation;
   skipPageCaching?: boolean;
   focusComponentId?: string;
   keepScrollPos?: IKeepComponentScrollPos;
@@ -135,7 +136,7 @@ export interface IKeepComponentScrollPos {
 }
 
 export interface ICalculatePageOrderAndMoveToNextPage {
-  runValidations?: 'allPages' | 'page';
+  runValidations?: TriggersPageValidation;
   skipMoveToNext?: boolean;
   keepScrollPos?: IKeepComponentScrollPos;
 }

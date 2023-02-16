@@ -143,7 +143,10 @@ describe('updateLayoutSagas', () => {
     const orderResponse = ['page-1', 'FormLayout', 'page-3'];
 
     it('should fetch pageOrder and update state accordingly', () => {
-      const action = { type: 'test', payload: {} };
+      const action: PayloadAction<ICalculatePageOrderAndMoveToNextPage> = {
+        type: 'test',
+        payload: {},
+      };
       const exp = expectSaga(calculatePageOrderAndMoveToNextPageSaga, action)
         .provide([[select(), state]])
         .put(
@@ -166,7 +169,12 @@ describe('updateLayoutSagas', () => {
     });
 
     it('should not update current view if skipMoveToNext is true', () => {
-      const action = { type: 'test', payload: { skipMoveToNext: true } };
+      const action: PayloadAction<ICalculatePageOrderAndMoveToNextPage> = {
+        type: 'test',
+        payload: {
+          skipMoveToNext: true,
+        },
+      };
       const exp = expectSaga(calculatePageOrderAndMoveToNextPageSaga, action)
         .provide([[select(), state]])
         .put(
@@ -234,7 +242,10 @@ describe('updateLayoutSagas', () => {
     });
 
     it('should set new page to returnToView if set in state', () => {
-      const action = { type: 'test', payload: {} };
+      const action: PayloadAction<ICalculatePageOrderAndMoveToNextPage> = {
+        type: 'test',
+        payload: {},
+      };
       const stateWithReturnToView: IRuntimeState = {
         ...state,
         formLayout: {

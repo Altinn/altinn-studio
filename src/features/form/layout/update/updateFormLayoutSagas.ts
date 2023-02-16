@@ -304,7 +304,7 @@ export function* updateCurrentViewSaga({
       return;
     }
 
-    if (!runValidations) {
+    if (runValidations === undefined) {
       if (!skipPageCaching && currentViewCacheKey) {
         localStorage.setItem(currentViewCacheKey, newView);
       }
@@ -332,7 +332,7 @@ export function* updateCurrentViewSaga({
         );
       const layoutState: ILayoutState = state.formLayout;
 
-      const validationOptions = runValidations === 'page' ? options : undefined;
+      const validationOptions = runValidations === Triggers.ValidatePage ? options : undefined;
       const serverValidation: IValidationIssue[] | undefined =
         instanceId && currentTaskDataId
           ? yield call(httpGet, getDataValidationUrl(instanceId, currentTaskDataId), validationOptions)
@@ -351,7 +351,7 @@ export function* updateCurrentViewSaga({
         mappedValidations,
       );
       const validations =
-        runValidations === 'page'
+        runValidations === Triggers.ValidatePage
           ? { [currentView]: validationResult.validations[currentView] } // only store validations for the specific page
           : validationResult.validations;
       yield put(ValidationActions.updateValidations({ validations }));
