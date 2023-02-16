@@ -52,7 +52,7 @@ context(
     });
 
     it('App builds and deploys', () => {
-      cy.intercept('**/Deployments*').as('deploys');
+      cy.intercept('**/deployments*').as('deploys');
       cy.get(designer.appMenu.deploy).should('be.visible').click();
       cy.wait('@deploys').its('response.statusCode').should('eq', 200);
       const checkDeployOf = Cypress.env('environment') === 'prod' ? 'prod' : 'at22';
