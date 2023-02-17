@@ -1,11 +1,10 @@
 import React from 'react';
 import { AltinnButton } from '../../../components';
-import { getLanguageFromKey } from '../../../utils/language';
 import { XSDUpload } from './XSDUpload';
 import classes from './LandingPagePanel.module.css';
+import { useTranslation } from 'react-i18next';
 
 export interface LandingPageProps {
-  language: any;
   org: string;
   repo: string;
   handleXSDUploaded: (filename: string) => void;
@@ -13,13 +12,12 @@ export interface LandingPageProps {
 }
 
 export function LandingPagePanel({
-  language,
   org,
   repo,
   handleXSDUploaded,
   handleCreateModelClick,
 }: LandingPageProps) {
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
 
   return (
     <div className={classes.landingDialog}>
@@ -27,7 +25,6 @@ export function LandingPagePanel({
       <p>{t('app_data_modelling.landing_dialog_paragraph')}</p>
       <div className={classes.buttons}>
         <XSDUpload
-          language={language}
           onXSDUploaded={(filename): void => {
             handleXSDUploaded(filename);
           }}

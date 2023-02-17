@@ -11,6 +11,7 @@ import {
   Keywords,
   ObjectKind,
 } from '@altinn/schema-model';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const selectedItem: UiSchemaNode = {
@@ -39,7 +40,7 @@ const fieldTypeNames = {
   [FieldType.Object]: 'Objekt',
   [FieldType.String]: 'Tekst',
 };
-const language = {
+const texts = {
   'schema_editor.add_property': textAdd,
   'schema_editor.delete': textDelete,
   'schema_editor.delete_field': textDeleteField,
@@ -52,11 +53,14 @@ const language = {
   'schema_editor.object': fieldTypeNames[FieldType.Object],
   'schema_editor.string': fieldTypeNames[FieldType.String],
 };
-const defaultProps: ItemFieldsTabProps = {
-  language,
-  selectedItem,
-};
+const defaultProps: ItemFieldsTabProps = { selectedItem };
 const defaultState = { uiSchema };
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 const renderItemFieldsTab = (props?: Partial<ItemFieldsTabProps>, state?: any) =>
   renderWithRedux(<ItemFieldsTab {...defaultProps} {...props} />, { ...defaultState, ...state });
@@ -193,7 +197,6 @@ describe('ItemFieldsTab', () => {
       },
       { uiSchema: [...uiSchema, referencedNode] }
     );
-    console.log(screen.queryAllByRole('textbox'));
     screen.queryAllByLabelText(textFieldName).forEach((input) => expect(input).toBeDisabled());
     screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeDisabled());
   });

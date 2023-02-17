@@ -6,9 +6,9 @@ import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoS
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { TextField, TextArea, Button } from '@digdir/design-system-react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { versionNameValid } from './utils';
+import { useTranslation } from 'react-i18next';
 
 export function CreateReleaseComponent() {
   const dispatch = useAppDispatch();
@@ -21,7 +21,7 @@ export function CreateReleaseComponent() {
     (s) => s.appReleases.errors.createReleaseErrorCode
   );
   const repoStatus: IRepoStatusState = useAppSelector((state) => state.repoStatus);
-  const language: any = useAppSelector((state) => state.languageState.language);
+  const { t } = useTranslation();
 
   const [openErrorPopover, setOpenErrorPopover] = useState<boolean>(
     createReleaseErrorCode !== null
@@ -67,12 +67,12 @@ export function CreateReleaseComponent() {
         <div className={classes.createReleaseFormItem}>
           {!versionNameValid(releaseState.releases, tagName) ? (
             <div className={classes.createReleaseInvalidTagName}>
-              {getLanguageFromKey('app_create_release.release_versionnumber_validation', language)}
+              {t('app_create_release.release_versionnumber_validation')}
             </div>
           ) : null}
           <div style={{ width: '50%' }}>
             <TextField
-              label={getLanguageFromKey('app_create_release.release_versionnumber', language)}
+              label={t('app_create_release.release_versionnumber')}
               onChange={handleTagNameChange}
               value={tagName}
               isValid={versionNameValid(releaseState.releases, tagName)}
@@ -81,7 +81,7 @@ export function CreateReleaseComponent() {
         </div>
         <div className={classes.createReleaseFormItem}>
           <TextArea
-            label={getLanguageFromKey('app_create_release.release_description', language)}
+            label={t('app_create_release.release_description')}
             value={body}
             onChange={handleBodyChange}
             rows={4}
@@ -93,7 +93,7 @@ export function CreateReleaseComponent() {
             onClick={handleBuildVersionClick}
             disabled={!versionNameValid(releaseState.releases, tagName) || !tagName}
           >
-            {getLanguageFromKey('app_create_release.build_version', language)}
+            {t('app_create_release.build_version')}
           </Button>
         </div>
       </div>
@@ -117,14 +117,14 @@ export function CreateReleaseComponent() {
           </div>
           <div style={{ padding: 0 }}>
             <div className={classes.popoverErrorText}>
-              {getLanguageFromKey('app_create_release_errors.build_cannot_start', language)}
+              {t('app_create_release_errors.build_cannot_start')}
               &nbsp;
               <a href='mailto:tjenesteeier@altinn.no' target='_blank' rel='noreferrer'>
-                {getLanguageFromKey('app_create_release_errors.altinn_servicedesk', language)}
+                {t('app_create_release_errors.altinn_servicedesk')}
               </a>
             </div>
             <div className={classes.popoverTechnicalErrorText}>
-              {getLanguageFromKey('app_create_release_errors.technical_error_code', language)}
+              {t('app_create_release_errors.technical_error_code')}
               &nbsp;
               {createReleaseErrorCode}
             </div>

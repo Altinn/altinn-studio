@@ -1,14 +1,14 @@
 import React from 'react';
-import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
+import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { IFormRadioButtonComponent, IOption, ITextResource } from '../../../types/global';
 import { act, screen } from '@testing-library/react';
 import { ITextResourcesState } from '../../../features/appData/textResources/textResourcesSlice';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
-import { ILanguageState } from '../../../features/appData/language/languageSlice';
 import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
 import { ComponentTypes } from '../../../components';
 import { RadioGroupPreview, RadioGroupPreviewProps } from './RadioGroupPreview';
+import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -64,6 +64,12 @@ const texts = {
   "ux_editor.radios_option_value_error_empty": emptyErrorText,
   "ux_editor.radios_option_value_error_duplicate": duplicateErrorText
 };
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('RadioGroupPreview', () => {
   afterEach(jest.restoreAllMocks);
@@ -144,11 +150,6 @@ describe('RadioGroupPreview', () => {
 
 const render = (props: Partial<RadioGroupPreviewProps> = {}) => {
 
-  const languageState: ILanguageState = {
-    ...languageStateMock,
-    language: texts,
-  };
-
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
     resources: {
@@ -158,7 +159,6 @@ const render = (props: Partial<RadioGroupPreviewProps> = {}) => {
 
   const appData: IAppDataState = {
     ...appDataMock,
-    languageState,
     textResources,
   };
 

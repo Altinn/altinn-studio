@@ -6,7 +6,6 @@ import type { ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import React from 'react';
-import type { ILanguageState } from '../features/appData/language/languageSlice';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 import { IDataModelState } from '../features/appData/dataModel/dataModelSlice';
 
@@ -47,15 +46,8 @@ export const dataModelItemMock: IDataModelFieldElement = {
     xPath: '',
 }
 
-export const languageStateMock: ILanguageState = {
-  error: null,
-  fetched: false,
-  language: {},
-}
-
 export const appDataMock: IAppDataState = {
   dataModel: dataModelStateMock,
-  languageState: languageStateMock,
   ruleModel: null,
   textResources: textResourcesMock,
 }

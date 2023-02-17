@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import { AltinnIcon, AltinnLink } from 'app-shared/components';
 import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch } from 'react-redux';
 import type {
   ICreateAppDeploymentErrors,
@@ -13,6 +12,7 @@ import { formatDateTime } from 'app-shared/pure/date-format';
 import { Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
 import { ErrorMessage } from './deploy/ErrorMessage';
 import { DeployDropdown } from './deploy/DeployDropdown';
+import { useTranslation } from 'react-i18next';
 
 interface IAppDeploymentComponentProps {
   envName: string;
@@ -23,7 +23,6 @@ interface IAppDeploymentComponentProps {
   deployHistory?: any;
   deployPermission: boolean;
   orgName: string;
-  language: any;
   releases: any;
 }
 
@@ -42,7 +41,6 @@ export const AppDeploymentComponent = ({
   deploymentList,
   deployPermission,
   envName,
-  language,
   releases,
   urlToApp,
   urlToAppLinkTxt,
@@ -53,7 +51,7 @@ export const AppDeploymentComponent = ({
   const [deploymentStatus, setDeploymentStatus] = useState(null);
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const [succeededDeployHistory, setSucceededDeployHistory] = useState([]);
-  const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
+  const { t } = useTranslation();
 
   const [deployButtonHasShownError, setDeployButtonHasShownError] = useState(null);
 
@@ -111,13 +109,13 @@ export const AppDeploymentComponent = ({
     <div className={classes.mainContainer}>
       <div className={classes.headingContainer}>
         <div className={classes.envTitle}>
-          {t('app_deploy.environment', [envName.toUpperCase()])}
+          {t('app_deploy.environment', { envName })}
         </div>
         <div className={classes.gridItem}>
           {deploymentList &&
             deploymentList.getStatus.success === true &&
             appDeployedVersion !== undefined &&
-            t('app_deploy.deployed_version', [appDeployedVersion])}
+            t('app_deploy.deployed_version', { appDeployedVersion })}
           {deploymentList &&
             deploymentList.getStatus.success === true &&
             appDeployedVersion === undefined &&
@@ -145,19 +143,13 @@ export const AppDeploymentComponent = ({
                 <AltinnIcon iconClass='fa fa-info-circle' iconColor='#000' iconSize='3.6rem' />
               </div>
               <div>
-                {getParsedLanguageFromKey(
-                  'app_publish.missing_rights',
-                  language,
-                  [envName.toUpperCase(), orgName],
-                  true
-                )}
+                {t('app_publish.missing_rights', { envName, orgName })}
               </div>
             </div>
           )}
           {deploymentList && deploymentList.getStatus.success === true && deployPermission && (
             <DeployDropdown
               appDeployedVersion={appDeployedVersion}
-              language={language}
               envName={envName}
               disabled={selectedImageTag === null || deployInProgress === true}
               deployHistoryEntry={deployHistory[0]}
@@ -182,30 +174,25 @@ export const AppDeploymentComponent = ({
           )}
           {showDeployFailedMessage && (
             <ErrorMessage
-              message={t('app_deploy_messages.technical_error_1', [])}
-              code={t('app_deploy_messages.technical_error_code', [deployError[0].errorCode])}
+              message={t('app_deploy_messages.technical_error_1')}
+              code={t('app_deploy_messages.technical_error_code', { errorCode: deployError[0].errorCode })}
             />
           )}
         </div>
         <div className={classes.deploymentListGrid}>
           {succeededDeployHistory.length === 0 ? (
             <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
-              {t('app_deploy_table.deployed_version_history_empty', [envName.toUpperCase()])}
+              {t('app_deploy_table.deployed_version_history_empty', { envName })}
             </span>
           ) : (
             <>
               <div id={`deploy-history-for-${envName.toLowerCase()}-available`}>
-                {t('app_deploy_table.deployed_version_history', [envName.toUpperCase()])}
+                {t('app_deploy_table.deployed_version_history', { envName })}
               </div>
               <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
                 <Table
                   className={classes.table}
-                  aria-label={getParsedLanguageFromKey(
-                    'app_deploy_table.deploy_table_aria',
-                    language,
-                    [envName],
-                    true
-                  )}
+                  aria-label={t('app_deploy_table.deploy_table_aria', { envName })}
                 >
                   <TableHeader>
                     <TableRow className={classes.tableRow}>

@@ -1,7 +1,6 @@
 import React from 'react';
 import Modal from 'react-modal';
 import { Typography } from '@mui/material';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
 import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
@@ -11,6 +10,7 @@ import {
 } from '../../features/serviceConfigurations/serviceConfigurationSlice';
 import type { IAppState } from '../../types/global';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -24,7 +24,7 @@ export function RuleModal(props: IRuleModalProps) {
   const ruleConnection = useSelector(
     (state: IAppState) => state.serviceConfigurations.ruleConnection
   );
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const { t } = useTranslation();
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -52,7 +52,7 @@ export function RuleModal(props: IRuleModalProps) {
     if (!ruleConnection || Object.getOwnPropertyNames(ruleConnection).length === 0) {
       return (
         <Typography variant='caption'>
-          {getLanguageFromKey('right_menu.rules_empty', language)}
+          {t('right_menu.rules_empty')}
         </Typography>
       );
     }

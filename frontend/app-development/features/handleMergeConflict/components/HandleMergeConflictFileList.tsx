@@ -4,10 +4,8 @@ import classNames from 'classnames';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import classes from './HandleMergeConflictFileList.module.css';
 
-
 interface IHandleMergeConflictFileListProps {
   changeSelectedFile: (file: string) => void;
-  language: any;
   repoStatus: any;
 }
 

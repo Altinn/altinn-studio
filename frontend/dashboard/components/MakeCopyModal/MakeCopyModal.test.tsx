@@ -8,6 +8,7 @@ import { MemoryRouter } from 'react-router-dom';
 import type { IMakeCopyModalProps } from './MakeCopyModal';
 import { MakeCopyModal } from './MakeCopyModal';
 import { copyAppPath } from 'app-shared/api-paths';
+import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -18,6 +19,10 @@ jest.mock('app-shared/utils/networking', () => ({
   __esModule: true,
   ...jest.requireActual('app-shared/utils/networking'),
 }));
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 describe('MakeCopyModal', () => {
   it('should show error message when clicking confirm without adding name', async () => {
     render();

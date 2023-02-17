@@ -5,12 +5,17 @@ import type { HeaderMenuProps } from './HeaderMenu';
 import { HeaderMenu } from './HeaderMenu';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 const originalLocation = window.location;
 jest.mock('../../utils/networking', () => ({
   __esModule: true,
   ...jest.requireActual('../../utils/networking'),
 }));
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 describe('HeaderMenu', () => {
   beforeEach(() => {
     delete window.location;

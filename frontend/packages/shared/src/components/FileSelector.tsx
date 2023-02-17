@@ -1,10 +1,9 @@
 import React from 'react';
 import type { StyledComponentProps } from '@mui/material';
-import { getLanguageFromKey } from '../utils/language';
 import { TopToolbarButton } from '@altinn/schema-editor/components/TopToolbarButton';
+import { useTranslation } from 'react-i18next';
 
 export interface IFileSelectorProps extends StyledComponentProps {
-  language: any;
   submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
   formFileName: string;
@@ -14,7 +13,6 @@ export interface IFileSelectorProps extends StyledComponentProps {
 }
 
 function FileSelector({
-  language,
   accept,
   formFileName,
   busy,
@@ -22,6 +20,7 @@ function FileSelector({
   submitHandler,
   submitButtonRenderer,
 }: IFileSelectorProps) {
+  const { t } = useTranslation();
   const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
     <TopToolbarButton
       data-testid='upload-button'
@@ -32,7 +31,7 @@ function FileSelector({
       disabled={disabled}
       id='file-upload-button'
     >
-      {getLanguageFromKey('app_data_modelling.upload_xsd', language)}
+      {t('app_data_modelling.upload_xsd')}
     </TopToolbarButton>
   );
 

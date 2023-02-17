@@ -11,6 +11,13 @@ import {
   Keywords,
   ObjectKind,
 } from '@altinn/schema-model';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 test('item property tab renders combinations', async () => {
   const uiSchemaNodes: UiSchemaNodes = [];
@@ -25,7 +32,7 @@ test('item property tab renders combinations', async () => {
     uiSchemaNodes.push(childNode);
   });
 
-  renderWithRedux(<ItemPropertiesTab language={{}} selectedItem={uiSchemaNodes[1]} />, {
+  renderWithRedux(<ItemPropertiesTab selectedItem={uiSchemaNodes[1]} />, {
     uiSchema: uiSchemaNodes,
   });
   expect(screen.getByText('combination_inline_object_disclaimer')).toBeDefined();

@@ -2,11 +2,12 @@ import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import type { Organizations } from '../../services/organizationApi';
 import { getReposLabel, mergeRepos, validateRepoName } from './repoUtils';
 
-const language = {
+const texts = {
   'dashboard.all_apps': 'all apps',
   'dashboard.my_apps': 'my apps',
   'dashboard.apps': 'apps',
 };
+const t = (key: string) => texts[key];
 
 const orgs: Organizations = [];
 
@@ -14,7 +15,7 @@ describe('getReposLabel', () => {
   it('should return "all apps" when selectedContext is All', () => {
     const result = getReposLabel({
       selectedContext: SelectedContextType.All,
-      language,
+      t,
       orgs,
     });
 
@@ -24,7 +25,7 @@ describe('getReposLabel', () => {
   it('should return "my apps" when selectedContext is Self', () => {
     const result = getReposLabel({
       selectedContext: SelectedContextType.Self,
-      language,
+      t,
       orgs,
     });
 
@@ -34,7 +35,7 @@ describe('getReposLabel', () => {
   it('should return "org-id apps" when selectedContext is org.id', () => {
     const result = getReposLabel({
       selectedContext: 1,
-      language,
+      t,
       orgs: [
         {
           avatar_url: '',
@@ -51,7 +52,7 @@ describe('getReposLabel', () => {
   it('should return "apps" when selectedContext is org.id, and orgs array is empty', () => {
     const result = getReposLabel({
       selectedContext: 1,
-      language,
+      t,
       orgs: [],
     });
 

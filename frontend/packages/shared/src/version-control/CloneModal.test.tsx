@@ -2,6 +2,13 @@ import React from 'react';
 import { CloneModal } from './CloneModal';
 import type { ICloneModalProps } from './CloneModal';
 import { render as rtlRender, screen } from '@testing-library/react';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 describe('cloneModal', () => {
   it('should show copy link if copy feature is supported', () => {

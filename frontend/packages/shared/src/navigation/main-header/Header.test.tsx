@@ -4,9 +4,16 @@ import { render as rtlRender, screen } from '@testing-library/react';
 
 import type { IHeaderContext } from './Header';
 import { getOrgNameById, Header, HeaderContext, SelectedContextType } from './Header';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 const orgId = 1;
 const orgFullName = 'Organization 1';
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 describe('Header', () => {
   const orgProps = {
@@ -104,7 +111,7 @@ const render = ({
 
   return rtlRender(
     <HeaderContext.Provider value={headerContextValue}>
-      <Header language={{}} />
+      <Header />
     </HeaderContext.Provider>
   );
 };

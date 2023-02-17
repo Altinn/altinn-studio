@@ -6,11 +6,29 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IAppState } from '../../types/global';
 import { appDataMock, appStateMock } from '../../testing/mocks';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
 // Test data:
 const srcValueLabel = 'Source';
+const texts = {
+  'general.label': '',
+  'general.value': '',
+  'ux_editor.modal_header_type_h2': 'H2',
+  'ux_editor.modal_header_type_h3': 'H3',
+  'ux_editor.modal_header_type_h4': 'H4',
+  'ux_editor.modal_properties_image_src_value_label': srcValueLabel,
+  'ux_editor.modal_properties_image_placement_label': 'Placement',
+  'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
+  'ux_editor.modal_properties_image_width_label': 'Width',
+};
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('EditModalContent', () => {
   it('should return input specific content when type input', () => {
@@ -117,26 +135,10 @@ describe('EditModalContent', () => {
 
 const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } = {}) => {
   const createStore = configureStore();
-  const mockLanguage = {
-    'general.label': '',
-    'general.value': '',
-    'ux_editor.modal_header_type_h2': 'H2',
-    'ux_editor.modal_header_type_h3': 'H3',
-    'ux_editor.modal_header_type_h4': 'H4',
-    'ux_editor.modal_properties_image_src_value_label': srcValueLabel,
-    'ux_editor.modal_properties_image_placement_label': 'Placement',
-    'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
-    'ux_editor.modal_properties_image_width_label': 'Width',
-  };
   const initialState: IAppState = {
     ...appStateMock,
     appData: {
       ...appDataMock,
-      languageState: {
-        language: mockLanguage,
-        fetched: false,
-        error: null,
-      },
       dataModel: {
         model: [] as any[],
         fetching: false,

@@ -7,14 +7,13 @@ import { Button, Select } from '@digdir/design-system-react';
 import { DeploymentStatus } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
-import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { shouldDisplayDeployStatus } from './utils';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   appDeployedVersion: string;
   envName: string;
   releases?: any[];
-  language: any;
   disabled: boolean;
   deployHistoryEntry: any;
   deploymentStatus: DeploymentStatus;
@@ -27,7 +26,6 @@ export const DeployDropdown = ({
   appDeployedVersion,
   releases,
   envName,
-  language,
   deploymentStatus,
   deployHistoryEntry,
   selectedImageTag,
@@ -35,7 +33,7 @@ export const DeployDropdown = ({
   disabled,
   startDeploy,
 }: Props) => {
-  const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   return (
     <>
@@ -73,7 +71,7 @@ export const DeployDropdown = ({
         >
           <>
             {appDeployedVersion
-              ? t('app_deploy_messages.deploy_confirmation', [selectedImageTag, appDeployedVersion])
+              ? t('app_deploy_messages.deploy_confirmation', { selectedImageTag, appDeployedVersion })
               : t('app_deploy_messages.deploy_confirmation_short', [selectedImageTag])}
           </>
         </AltinnPopoverSimple>
@@ -100,47 +98,47 @@ export const DeployDropdown = ({
           </div>
           <div>
             {deploymentStatus === DeploymentStatus.inProgress &&
-              t('app_deploy_messages.deploy_in_progress', [
-                deployHistoryEntry?.createdBy,
-                deployHistoryEntry?.tagName,
-                getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-              ])}
+              t('app_deploy_messages.deploy_in_progress', {
+                createdBy: deployHistoryEntry?.createdBy,
+                tagName: deployHistoryEntry?.tagName,
+                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
+            })}
             {deploymentStatus === DeploymentStatus.succeeded &&
-              t('app_deploy_messages.success', [
-                deployHistoryEntry?.tagName,
-                formatTimeHHmm(deployHistoryEntry?.build.finished),
+              t('app_deploy_messages.success', {
+                tagName: deployHistoryEntry?.tagName,
+                time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
-                deployHistoryEntry?.createdBy,
-                getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-              ])}
+                createdBy: deployHistoryEntry?.createdBy,
+                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
+            })}
             {deploymentStatus === DeploymentStatus.failed &&
-              t('app_deploy_messages.failed', [
-                deployHistoryEntry?.tagName,
-                formatTimeHHmm(deployHistoryEntry?.build.finished),
+              t('app_deploy_messages.failed', {
+                tagName: deployHistoryEntry?.tagName,
+                time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
-                getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-              ])}
+                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
+            })}
             {deploymentStatus === DeploymentStatus.canceled &&
-              t('app_deploy_messages.canceled', [
-                deployHistoryEntry?.tagName,
-                formatTimeHHmm(deployHistoryEntry?.build.finished),
+              t('app_deploy_messages.canceled', {
+                tagName: deployHistoryEntry?.tagName,
+                time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
-                getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-              ])}
+                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
+            })}
             {deploymentStatus === DeploymentStatus.partiallySucceeded &&
-              t('app_deploy_messages.partiallySucceeded', [
-                deployHistoryEntry?.tagName,
+              t('app_deploy_messages.partiallySucceeded', {
+                tagName: deployHistoryEntry?.tagName,
                 envName,
-                formatTimeHHmm(deployHistoryEntry?.build.finished),
-                getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-              ])}
+                time: formatTimeHHmm(deployHistoryEntry?.build.finished),
+                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
+              })}
             {deploymentStatus === DeploymentStatus.none &&
-              t('app_deploy_messages.none', [
-                deployHistoryEntry?.tagName,
-                formatTimeHHmm(deployHistoryEntry?.build.finished),
+              t('app_deploy_messages.none', {
+                tagName: deployHistoryEntry?.tagName,
+                time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
-                getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-              ])}
+                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
+              })}
           </div>
         </div>
       )}

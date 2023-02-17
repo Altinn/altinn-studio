@@ -3,14 +3,13 @@ import classes from './RepoModal.module.css';
 import { AltinnSpinner } from 'app-shared/components';
 import { Button, ButtonColor, ButtonVariant, TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useAppSelector } from '../../../common/hooks';
+import { useTranslation } from 'react-i18next';
 
 export interface IResetRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
   onClose: any;
   open: boolean;
-  language: any;
   repositoryName: string;
   handleClickResetRepo: () => void;
 }
@@ -40,7 +39,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
     setDeleteRepoName('');
     props.onClose();
   };
-  const t = (key: string) => getLanguageFromKey(key, props.language);
+  const { t } = useTranslation();
   return (
     <div data-testid='reset-repo-container'>
       <Popover
@@ -60,11 +59,9 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
         <div className={classes.modalContainer}>
           <h2>{t('administration.reset_repo_confirm_heading')}</h2>
           <div>
-            {getParsedLanguageFromKey(
+            {t(
               'administration.reset_repo_confirm_info',
-              props.language,
-              [props.repositoryName],
-              true
+              { repositoryName: props.repositoryName },
             )}
           </div>
           <label htmlFor='delete-repo-name'>

@@ -4,8 +4,14 @@ import userEvent from '@testing-library/user-event';
 import { handlers, renderWithProviders, setupServer } from '../../dashboardTestUtils';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { Dashboard } from './Dashboard';
+import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 const server = setupServer(...handlers);
+
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
@@ -15,9 +21,6 @@ const render = (selectedContext: SelectedContextType | number = SelectedContextT
   const user = userEvent.setup();
   renderWithProviders(<Dashboard disableDebounce />, {
     preloadedState: {
-      language: {
-        language: {},
-      },
       dashboard: {
         services: [],
         selectedContext,

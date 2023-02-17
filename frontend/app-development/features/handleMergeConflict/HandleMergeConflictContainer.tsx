@@ -3,7 +3,6 @@ import { Grid, Typography } from '@mui/material';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { VersionControlHeader } from 'app-shared/version-control/VersionControlHeader';
 import { makeGetRepoStatusSelector } from './handleMergeConflictSelectors';
 import HandleMergeConflictAbortComponent from './components/HandleMergeConflictAbort';
@@ -11,11 +10,13 @@ import HandleMergeConflictDiscardChangesComponent from './components/HandleMerge
 import HandleMergeConflictFileListComponent from './components/HandleMergeConflictFileList';
 import type { RootState } from '../../store';
 import classes from './HandleMergeConflictContainer.module.css';
+import { withTranslation } from 'react-i18next';
+import i18next from 'i18next';
 
 interface IHandleMergeConflictContainerProps {
-  language: any;
   name?: any;
   repoStatus: any;
+  t: typeof i18next.t;
 }
 
 interface IHandleMergeConflictContainerState {
@@ -60,17 +61,17 @@ export class HandleMergeConflictContainer extends React.Component<
   };
 
   public render() {
-    const { language, repoStatus } = this.props;
+    const { t, repoStatus } = this.props;
     const { selectedFile } = this.state;
 
     return (
       <div className={classes.root} id='handleMergeConflictContainer'>
           <Grid container={true} justifyContent='flex-start' alignItems='stretch'>
             <Grid item={true} xs={12}>
-              {repoStatus.hasMergeConflict ? null : <VersionControlHeader language={language} />}
+              {repoStatus.hasMergeConflict ? null : <VersionControlHeader />}
 
               <Typography variant='h1'>
-                {getLanguageFromKey('handle_merge_conflict.container_title', language)}
+                {t('handle_merge_conflict.container_title')}
               </Typography>
 
               {repoStatus.hasMergeConflict ? (
@@ -80,10 +81,7 @@ export class HandleMergeConflictContainer extends React.Component<
                     classes.containerMessageHasConflict
                   )}
                 >
-                  {getLanguageFromKey(
-                    'handle_merge_conflict.container_message_has_conflict',
-                    language
-                  )}
+                  {t('handle_merge_conflict.container_message_has_conflict')}
                 </div>
               ) : repoStatus.contentStatus ? (
                 repoStatus.contentStatus.length > 0 ? (
@@ -102,19 +100,13 @@ export class HandleMergeConflictContainer extends React.Component<
                           classes.containerMessageNoConflict
                         )}
                       >
-                        {getLanguageFromKey(
-                          'handle_merge_conflict.container_message_no_conflict',
-                          language
-                        )}
+                        {t('handle_merge_conflict.container_message_no_conflict')}
                       </div>
                     </Grid>
                   </Grid>
                 ) : (
                   <div className={classes.containerMessage}>
-                    {getLanguageFromKey(
-                      'handle_merge_conflict.container_message_no_files',
-                      language
-                    )}
+                    {t('handle_merge_conflict.container_message_no_files',)}
                   </div>
                 )
               ) : null}
@@ -136,7 +128,6 @@ export class HandleMergeConflictContainer extends React.Component<
               >
                 <HandleMergeConflictFileListComponent
                   repoStatus={repoStatus}
-                  language={language}
                   changeSelectedFile={this.changeSelectedFile}
                 />
               </Grid>
@@ -164,15 +155,11 @@ export class HandleMergeConflictContainer extends React.Component<
             >
               <Grid item={true}>
                 <HandleMergeConflictDiscardChangesComponent
-                  language={language}
                   disabled={!repoStatus.hasMergeConflict}
                 />
               </Grid>
               <Grid item={true}>
-                <HandleMergeConflictAbortComponent
-                  language={this.props.language}
-                  disabled={!repoStatus.hasMergeConflict}
-                />
+                <HandleMergeConflictAbortComponent disabled={!repoStatus.hasMergeConflict} />
               </Grid>
             </Grid>
           </Grid>
@@ -186,9 +173,8 @@ const makeMapStateToProps = () => {
   return (state: RootState) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
-      language: state.languageState.language,
     };
   };
 };
 
-export default connect(makeMapStateToProps)(HandleMergeConflictContainer);
+export default withTranslation()(connect(makeMapStateToProps)(HandleMergeConflictContainer));

@@ -9,7 +9,6 @@ import { useMediaQuery } from '../common/hooks';
 
 interface ILeftMenuProps {
   className: string;
-  language: any;
   repoStatus: IShareChangesComponentProps;
   subAppClassName?: string;
 }
@@ -40,7 +39,7 @@ const SideBar = () => {
   );
 };
 
-const LeftMenu = ({ repoStatus, language, className, subAppClassName }: ILeftMenuProps) => (
+const LeftMenu = ({ repoStatus, className, subAppClassName }: ILeftMenuProps) => (
   <div className={className}>
     {!repoStatus.hasMergeConflict ? (
       <>
@@ -51,7 +50,7 @@ const LeftMenu = ({ repoStatus, language, className, subAppClassName }: ILeftMen
               <Route
                 key={route.path}
                 path={route.path}
-                element={<route.subapp {...route.props} language={language} />}
+                element={<route.subapp {...route.props} />}
               />
             ))}
           </Routes>

@@ -3,6 +3,7 @@ import { AccessControlContainer } from './AccessControlContainer';
 import { renderWithProviders } from '../../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { RootState } from 'app-development/store';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 const currentApplicationMetadata: any = {
   partyTypesAllowed: {
@@ -14,12 +15,8 @@ const currentApplicationMetadata: any = {
 };
 
 const renderAccessControlContainer = (applicationMetadata?: any) => {
-  const mockLanguage = {};
 
   const initialState: Partial<RootState> = {
-    languageState: {
-      language: mockLanguage,
-    },
     appCluster: {
       deploymentList: [],
     },
@@ -59,11 +56,17 @@ const renderAccessControlContainer = (applicationMetadata?: any) => {
     userState: null,
   };
 
-  return renderWithProviders(<AccessControlContainer language={mockLanguage} />, {
+  return renderWithProviders(<AccessControlContainer />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
     preloadedState: initialState,
   });
 };
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 describe('When loading AccessControlContainer', () => {
   it('should render all checkboxes unchecked when applicationMetadata does not contain partyTypesAllowed', () => {

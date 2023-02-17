@@ -7,6 +7,7 @@ import { handlers, renderWithProviders, rest, setupServer } from '../../dashboar
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { CreateService } from './CreateService';
 import { orgsListPath, createRepoPath } from 'app-shared/api-paths';
+import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 const server = setupServer(...handlers);
 
@@ -16,9 +17,6 @@ afterAll(() => server.close());
 
 const render = () => renderWithProviders(<CreateService />, {
   preloadedState: {
-    language: {
-      language: {},
-    },
     dashboard: {
       services: [],
       selectedContext: SelectedContextType.Self,
@@ -33,6 +31,12 @@ const render = () => renderWithProviders(<CreateService />, {
     },
   },
 });
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 describe('CreateService', () => {
   it('should show error messages when clicking create and no owner or name is filled in', async () => {

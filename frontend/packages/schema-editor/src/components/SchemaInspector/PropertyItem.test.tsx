@@ -4,6 +4,7 @@ import type { IPropertyItemProps } from './PropertyItem';
 import { PropertyItem } from './PropertyItem';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import { FieldType } from '@altinn/schema-model';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const textDeleteField = 'Slett felt';
@@ -21,7 +22,7 @@ const fieldTypeNames = {
   [FieldType.Object]: 'Objekt',
   [FieldType.String]: 'Tekst',
 };
-const mockLanguage = {
+const texts = {
   'schema_editor.delete_field': textDeleteField,
   'schema_editor.field_name': textFieldName,
   'schema_editor.required': textRequired,
@@ -35,7 +36,6 @@ const mockLanguage = {
 const defaultProps: IPropertyItemProps = {
   fullPath,
   inputId,
-  language: mockLanguage,
   onChangeType: jest.fn(),
   onChangeValue: jest.fn(),
   onDeleteField: jest.fn(),
@@ -43,6 +43,12 @@ const defaultProps: IPropertyItemProps = {
   type,
   value,
 };
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 const renderPropertyItem = (props?: Partial<IPropertyItemProps>) =>
   renderWithRedux(<PropertyItem {...defaultProps} {...props} />);

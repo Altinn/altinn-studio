@@ -1,14 +1,8 @@
 import React from 'react';
-import type { ILanguageState } from '../features/appData/language/languageSlice';
-import { IAppDataState } from '../features/appData/appDataReducers';
 import { ITextResource } from '../types/global';
 import { TextResourceOption, TextResourceOptionProps } from './TextResource';
-import {
-  appDataMock,
-  languageStateMock,
-  renderWithMockStore,
-} from '../testing/mocks';
-import { screen } from '@testing-library/react';
+import { render as renderRtl, screen } from '@testing-library/react';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 // Test data:
 const id = 'testid';
@@ -17,6 +11,11 @@ const textResource: ITextResource = { id, value };
 const defaultProps: TextResourceOptionProps = { textResource };
 const noTextText = 'Ingen tekst';
 const texts = { 'ux_editor.no_text': noTextText };
+
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('TextResourceOption', () => {
   it('Renders id and value', () => {
@@ -32,16 +31,5 @@ describe('TextResourceOption', () => {
   });
 });
 
-const render = (props?: Partial<TextResourceOptionProps>) => {
-  const languageState: ILanguageState = {
-    ...languageStateMock,
-    language: texts,
-  };
-
-  const appData: IAppDataState = {
-    ...appDataMock,
-    languageState,
-  };
-
-  return renderWithMockStore({ appData })(<TextResourceOption {...{ ...defaultProps, ...props }} />);
-};
+const render = (props?: Partial<TextResourceOptionProps>) =>
+  renderRtl(<TextResourceOption {...{ ...defaultProps, ...props }} />);

@@ -1,21 +1,20 @@
 import React from 'react';
 import { Popover } from '@mui/material';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import classes from './RepoModal.module.css';
 import { useParams } from 'react-router-dom';
 import { repoDownloadPath } from 'app-shared/api-paths';
+import { useTranslation } from 'react-i18next';
 
 interface IDownloadRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
   onClose: any;
   open: boolean;
-  language: any;
 }
 
 export function DownloadRepoModal(props: IDownloadRepoModalProps) {
   const { org, app } = useParams();
-  const t = (key: string) => getLanguageFromKey(key, props.language);
+  const { t } = useTranslation();
   return (
     <div data-testid='download-repo-container'>
       <Popover

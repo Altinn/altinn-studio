@@ -15,10 +15,10 @@ import { ReleaseComponent } from '../components/appReleaseComponent';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { Upload, SuccessStroke } from '@navikt/ds-icons';
 import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
-import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { gitCommitPath, repoStatusPath } from 'app-shared/api-paths';
 import { useAppDispatch, useAppSelector, useMediaQuery } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
@@ -34,7 +34,7 @@ export function ReleaseContainer() {
   const handleMergeConflict: IHandleMergeConflict = useAppSelector((s) => s.handleMergeConflict);
 
   const language: any = useAppSelector((state) => state.languageState.language);
-  const t = (key: string, params?: any) => getParsedLanguageFromKey(key, language, params || []);
+  const { t } = useTranslation();
 
   const { org, app } = useParams();
 
@@ -91,7 +91,10 @@ export function ReleaseContainer() {
         )}
         <div>
           <div className={classes.cannotCreateReleaseTitle}>
-            {t('app_create_release_errors.fetch_release_failed', ['mailto:tjenesteeier@altinn.no'])}
+            {t(
+              'app_create_release_errors.fetch_release_failed',
+              { contactLink: 'mailto:tjenesteeier@altinn.no' }
+            )}
           </div>
           <div className={classes.cannotCreateReleaseSubTitle}>
             {t('app_create_release_errors.technical_error_code')}

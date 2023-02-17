@@ -1,8 +1,6 @@
 import type { ChangeEventHandler, FocusEventHandler, KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import type { ILanguage } from '../../types';
-import { getTranslation } from '../../utils/language';
 import { setRequired } from '../../features/editor/schemaEditorSlice';
 import { TextField } from '@digdir/design-system-react';
 import { Checkbox, Select } from '@digdir/design-system-react';
@@ -11,11 +9,11 @@ import { IconButton } from '../common/IconButton';
 import { IconImage } from '../common/Icon';
 import { getTypeOptions } from './helpers/options';
 import type { FieldType } from '@altinn/schema-model';
+import { useTranslation } from 'react-i18next';
 
 export interface IPropertyItemProps {
   fullPath: string;
   inputId: string;
-  language: ILanguage;
   onChangeType: (path: string, type: FieldType) => void;
   onChangeValue: (path: string, value: string) => void;
   onDeleteField: (path: string, key: string) => void;
@@ -29,7 +27,6 @@ export interface IPropertyItemProps {
 export function PropertyItem({
   fullPath,
   inputId,
-  language,
   onChangeType,
   onChangeValue,
   onDeleteField,
@@ -65,13 +62,13 @@ export function PropertyItem({
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
-  const t = (key: string) => getTranslation(key, language);
+  const { t } = useTranslation();
 
   return (
     <>
       <div className={`${classes.nameInputCell} ${classes.gridItem}`}>
         <TextField
-          aria-label={t('field_name')}
+          aria-label={t('schema_editor.field_name')}
           id={inputId}
           value={inputValue}
           disabled={readOnly}
@@ -84,7 +81,7 @@ export function PropertyItem({
         <Select
           hideLabel
           inputId={`${inputId}-typeselect`}
-          label={t('type')}
+          label={t('schema_editor.type')}
           onChange={(fieldType) => onChangeType(fullPath, fieldType as FieldType)}
           options={getTypeOptions(t)}
           value={type}
@@ -95,13 +92,13 @@ export function PropertyItem({
           checked={required ?? false}
           disabled={readOnly}
           hideLabel
-          label={t('required')}
+          label={t('schema_editor.required')}
           name='checkedArray'
           onChange={changeRequiredHandler}
         />
       </span>
       <IconButton
-        ariaLabel={t('delete_field')}
+        ariaLabel={t('schema_editor.delete_field')}
         icon={IconImage.Wastebucket}
         onClick={deleteHandler}
       />

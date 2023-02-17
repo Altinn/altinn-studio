@@ -9,10 +9,10 @@ import { Divider } from 'app-shared/primitives';
 import { EllipsisV, Right } from '@navikt/ds-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy, removeKey } from 'app-shared/pure';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
+import { useTranslation } from 'react-i18next';
 
 export interface IPageElementProps {
   name: string;
@@ -23,8 +23,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout = searchParams.get('layout');
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
   const layoutOrder = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
   );
@@ -198,9 +197,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
         anchorEl={deleteAnchorEl}
         open={Boolean(deleteAnchorEl)}
         header={t('left_menu.page_delete_header')}
-        description={getParsedLanguageFromKey('left_menu.page_delete_information', language, [
-          name,
-        ])}
+        description={t('left_menu.page_delete_information', { name })}
         confirmText={t('left_menu.page_delete_confirm')}
         cancelText={t('left_menu.page_delete_cancel')}
         onClose={handleConfirmDeleteClose}

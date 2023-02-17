@@ -1,17 +1,17 @@
 import React from 'react';
 import { TopToolbarButton } from '@altinn/schema-editor/index';
-import { getLanguageFromKey } from '../../../utils/language';
 import { DeleteDialog } from './DeleteDialog';
 import classes from './DeleteWrapper.module.css';
+import { useTranslation } from 'react-i18next';
 
 export interface IDeleteWrapper {
-  language: any;
   deleteAction: () => void;
   schemaName: string;
 }
 
 export function DeleteWrapper(props: IDeleteWrapper) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const { t } = useTranslation();
   const onDeleteClick = () => setDialogOpen(true);
   const onDeleteConfirmClick = () => {
     props.deleteAction();
@@ -31,10 +31,9 @@ export function DeleteWrapper(props: IDeleteWrapper) {
           warning
           className={classes.root}
         >
-          {getLanguageFromKey('general.delete_data_model', props.language)}
+          {t('general.delete_data_model')}
         </TopToolbarButton>
       )}
-      language={props.language}
       schemaName={props.schemaName}
       onConfirm={onDeleteConfirmClick}
       onCancel={onCancelDelete}

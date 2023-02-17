@@ -1,16 +1,17 @@
 import React from 'react';
-import { RepoList } from '../../components/RepoList';
+import { RepoList } from '../RepoList';
 import { getReposLabel } from '../../utils/repoUtils';
 import { getUidFilter } from '../../utils/filterUtils';
 
 import { useAppSelector } from '../../hooks/useAppSelector';
-import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred/useAugmentReposWithStarred';
+import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useGetSearchQuery } from '../../services/repoApi';
 import { useGetUserStarredReposQuery } from '../../services/userApi';
+import { useTranslation } from 'react-i18next';
 
 export const DatamodelsReposList = () => {
-  const language = useAppSelector((state) => state.language.language);
+  const { t } = useTranslation();
   const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
   const userId = useAppSelector((state) => state.dashboard.user.id);
   const { data: orgs = [] } = useGetOrganizationsQuery();
@@ -35,7 +36,7 @@ export const DatamodelsReposList = () => {
 
   return (
     <div data-testid='datamodels-repos-list'>
-      <h2>{getReposLabel({ selectedContext, orgs, language, isDatamodelsRepo: true })}</h2>
+      <h2>{getReposLabel({ selectedContext, orgs, t, isDatamodelsRepo: true })}</h2>
       <RepoList
         repos={reposWithStarred}
         isLoading={isLoadingOrgRepos || isLoadingStarred}

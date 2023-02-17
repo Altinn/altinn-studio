@@ -5,6 +5,9 @@ import { screen } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from './test/testUtils';
 
+jest.mock('../language/src/nb.json', jest.fn());
+jest.mock('../language/src/en.json', jest.fn());
+
 describe('App', () => {
   afterEach(() => jest.clearAllMocks());
 

@@ -1,9 +1,8 @@
 import React from 'react';
 import { ResourceItem } from '../ResourceItem';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from '../../hooks/useAppSelector';
 import { Divider, SimpleContainer } from 'app-shared/primitives';
 import classes from './Resources.module.css';
+import { useTranslation } from 'react-i18next';
 interface Resource {
   label: string;
   description: string;
@@ -214,11 +213,10 @@ const resources: Resource[] = [
 ];
 
 export function Resources() {
-  const language = useAppSelector((state) => state.language.language);
-
+  const { t } = useTranslation();
   return (
     <SimpleContainer>
-      <h2>{getLanguageFromKey('dashboard.resources', language)}</h2>
+      <h2>{t('dashboard.resources')}</h2>
       <Divider inMenu />
       <div className={classes.resourcesContainer}>
         {resources.map((resource, index) => (
