@@ -51,8 +51,9 @@ describe(('EditTextResourceBindings component'), () => {
     await act(() => user.click(screen.getByLabelText(searchText)));
 
     // Select with existing texts should be shown
-    const selectText = screen.getByTestId('select-root');
-    expect(selectText).toBeInTheDocument();
+    const select = screen.getByRole('combobox');
+    expect(select).toBeInTheDocument();
+    await act(() => user.click(select));
 
     // Select text from available options
     await act(() => user.click(screen.getByRole('option', { name: textResources[0].id })));

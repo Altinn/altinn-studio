@@ -78,7 +78,7 @@ __metadata:
     jsonpointer: 5.0.1
   peerDependencies:
     "@altinn/altinn-design-system": 0.27.5
-    "@digdir/design-system-react": 0.5.1
+    "@digdir/design-system-react": 0.6.0
     "@mui/material": 5.11.8
     "@reduxjs/toolkit": 1.9.2
     axios: 1.3.2
@@ -107,7 +107,7 @@ __metadata:
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
     "@altinn/altinn-design-system": 0.27.5
-    "@digdir/design-system-react": 0.5.1
+    "@digdir/design-system-react": 0.6.0
     iso-639-1: 2.1.15
     jest: 29.4.2
     ts-jest: 29.0.5
@@ -1565,13 +1565,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.5.1":
-  version: 0.5.1
-  resolution: "@digdir/design-system-react@npm:0.5.1"
+"@digdir/design-system-react@npm:0.6.0":
+  version: 0.6.0
+  resolution: "@digdir/design-system-react@npm:0.6.0"
   peerDependencies:
     react: ^18.1.0
     react-dom: ^18.0.0
-  checksum: ec50cc3c176f4969de2b6e331082e5aa09f114a5ae6f432df187ca164cf6defad9dfda8015c7dabc0ac0e04602378ab416d6768ba7f8e92b221fdea0797f266e
+  checksum: b6e4a9b94cdc4fbb33f811a1b16028958872dc1059fbb2337f94bc858f1af2f9877950bc0bfc7efae1c021db9b8e50e43d19e049395fd099eb345fdccfafd570
   languageName: node
   linkType: hard
 
@@ -4530,7 +4530,7 @@ __metadata:
   resolution: "app-development@workspace:app-development"
   dependencies:
     "@altinn/altinn-design-system": 0.27.5
-    "@digdir/design-system-react": 0.5.1
+    "@digdir/design-system-react": 0.6.0
     "@mui/material": 5.11.8
     "@reduxjs/toolkit": 1.9.2
     axios: 1.3.2
@@ -4559,7 +4559,7 @@ __metadata:
   resolution: "app-preview@workspace:app-preview"
   dependencies:
     "@altinn/altinn-design-system": 0.27.5
-    "@digdir/design-system-react": 0.5.1
+    "@digdir/design-system-react": 0.6.0
     axios: 1.3.2
     classnames: 2.3.2
     cross-env: 7.0.3
@@ -4582,7 +4582,7 @@ __metadata:
     3: 2.1.0
     "@altinn/altinn-design-system": 0.27.5
     "@altinn/schema-editor": 0.1.0
-    "@digdir/design-system-react": 0.5.1
+    "@digdir/design-system-react": 0.6.0
     "@mui/material": 5.11.8
     "@reduxjs/toolkit": 1.9.2
     "@types/react": 18.0.28
@@ -5959,7 +5959,7 @@ __metadata:
   resolution: "dashboard@workspace:dashboard"
   dependencies:
     "@altinn/altinn-design-system": 0.27.5
-    "@digdir/design-system-react": 0.5.1
+    "@digdir/design-system-react": 0.6.0
     "@mui/x-data-grid": 5.17.23
     "@reduxjs/toolkit": 1.9.2
     cross-env: 7.0.3
