@@ -28,14 +28,11 @@ namespace Designer.Tests.Services
     public class DeploymentServiceTest
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
-
         private readonly Mock<IDeploymentRepository> _deploymentRepository;
-
         private readonly Mock<ILogger<DeploymentService>> _deploymentLogger;
-
         private readonly Mock<IReleaseRepository> _releaseRepository;
         private readonly Mock<IApplicationInformationService> _applicationInformationService;
-
+        private readonly Mock<IEnvironmentsService> _environementsService;
         public DeploymentServiceTest()
         {
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
@@ -43,7 +40,9 @@ namespace Designer.Tests.Services
             _deploymentLogger = new Mock<ILogger<DeploymentService>>();
             _deploymentRepository = new Mock<IDeploymentRepository>();
             _releaseRepository = new Mock<IReleaseRepository>();
+            _environementsService = new Mock<IEnvironmentsService>();
             _applicationInformationService = new Mock<IApplicationInformationService>();
+
         }
 
         [Fact]
@@ -55,11 +54,7 @@ namespace Designer.Tests.Services
                 TagName = "1",
             };
 
-            deploymentModel.EnvName = new EnvironmentModel
-            {
-                Name = "at23",
-                Hostname = "hostname"
-            };
+            deploymentModel.EnvName = "at23";
 
             _releaseRepository.Setup(r => r.GetSucceededReleaseFromDb(
                 It.IsAny<string>(),
@@ -86,6 +81,7 @@ namespace Designer.Tests.Services
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
+                _environementsService.Object,
                 _applicationInformationService.Object);
 
             // Act
@@ -119,6 +115,7 @@ namespace Designer.Tests.Services
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
+                _environementsService.Object,
                 _applicationInformationService.Object);
 
             // Act
@@ -146,6 +143,7 @@ namespace Designer.Tests.Services
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
+                _environementsService.Object,
                 _applicationInformationService.Object);
 
             // Act
