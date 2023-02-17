@@ -132,7 +132,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public async Task CheckIfAppUsesLayoutSets_ShouldReturnTrue()
+        public Task CheckIfAppUsesLayoutSets_ShouldReturnTrue()
         {
             string org = "ttd";
             string repository = "app-with-layoutsets";
@@ -142,10 +142,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
 
             appUsesLayoutSets.Should().BeTrue();
+            return Task.CompletedTask;
         }
 
         [Fact]
-        public async Task CheckIfAppUsesLayoutSets_ShouldReturnFalse()
+        public Task CheckIfAppUsesLayoutSets_ShouldReturnFalse()
         {
             string org = "ttd";
             string repository = "app-without-layoutsets";
@@ -155,10 +156,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
 
             appUsesLayoutSets.Should().BeFalse();
+            return Task.CompletedTask;
         }
 
         [Fact]
-        public async Task GetLayoutNames_WithAppThatUsesLayoutSet_ShouldReturnLayoutPathNames()
+        public Task GetLayoutNames_WithAppThatUsesLayoutSet_ShouldReturnLayoutPathNames()
         {
             string org = "ttd";
             string repository = "app-with-layoutsets";
@@ -170,10 +172,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             layoutNames.Should().NotBeNull();
             layoutNames.Should().HaveCount(2);
+            return Task.CompletedTask;
         }
 
         [Fact]
-        public async Task GetLayoutNames_WithAppThatNotUsesLayoutSet_ShouldReturnLayoutPathNames()
+        public Task GetLayoutNames_WithAppThatNotUsesLayoutSet_ShouldReturnLayoutPathNames()
         {
             string org = "ttd";
             string repository = "app-without-layoutsets";
@@ -184,6 +187,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             layoutNames.Should().NotBeNull();
             layoutNames.Should().HaveCount(2);
+            return Task.CompletedTask;
         }
 
         [Fact]

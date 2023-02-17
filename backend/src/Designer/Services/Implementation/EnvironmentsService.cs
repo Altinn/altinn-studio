@@ -14,7 +14,7 @@ using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class EnvironmentsService: IEnvironmentsService
+public class EnvironmentsService : IEnvironmentsService
 {
     private readonly HttpClient _httpClient;
     private readonly GeneralSettings _generalSettings;

@@ -15,7 +15,7 @@ namespace DataModeling.Tests.Json
     {
         [Theory]
         [InlineData(@"Model/JsonSchema/Seres/SeresBasicSchema.json")]
-        public async Task Analyze_Seres_Converted_JsonSchema(string path)
+        public Task Analyze_Seres_Converted_JsonSchema(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -28,11 +28,12 @@ namespace DataModeling.Tests.Json
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/oneOf/[0]")).Should().Equal(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/melding-modell")).Should().Equal(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/melding-modell/properties/e1")).Should().Equal(CompatibleXsdType.SimpleType);
+            return Task.CompletedTask;
         }
 
         [Theory]
         [InlineData(@"Model/JsonSchema/General/SimpleContentExtension.json")]
-        public async Task Analyze_SimpleContent_Extension(string path)
+        public Task Analyze_SimpleContent_Extension(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -42,11 +43,12 @@ namespace DataModeling.Tests.Json
             var metadata = analyzer.AnalyzeSchema(schema);
 
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/myBase")).Should().Contain(new[] { CompatibleXsdType.ComplexType, CompatibleXsdType.SimpleContentExtension });
+            return Task.CompletedTask;
         }
 
         [Theory]
         [InlineData(@"Model/JsonSchema/Seres/SeresSimpleTypeRestrictions.json")]
-        public async Task Analyze_SimpleType_Restriction(string path)
+        public Task Analyze_SimpleType_Restriction(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -85,11 +87,12 @@ namespace DataModeling.Tests.Json
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/numberRestrictionsFractional4")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/numberRestrictionsFractional5")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/complexStructure")).Should().Contain(CompatibleXsdType.SimpleTypeRestriction);
+            return Task.CompletedTask;
         }
 
         [Theory]
         [InlineData(@"Model/JsonSchema/Seres/SeresSimpleContentRestriction.json")]
-        public async Task Analyze_SimpleContent_Restriction(string path)
+        public Task Analyze_SimpleContent_Restriction(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -105,11 +108,12 @@ namespace DataModeling.Tests.Json
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/person")).Should().Contain(CompatibleXsdType.SimpleContentExtension);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedPerson")).Should().Contain(CompatibleXsdType.SimpleContentRestriction);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/limitedPerson-inline")).Should().Contain(CompatibleXsdType.SimpleContentRestriction);
+            return Task.CompletedTask;
         }
 
         [Theory]
         [InlineData(@"Model/JsonSchema/Seres/SeresComplexContentExtension.json")]
-        public async Task Analyze_ComplexContent_Extension(string path)
+        public Task Analyze_ComplexContent_Extension(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -122,6 +126,7 @@ namespace DataModeling.Tests.Json
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/myBase")).Should().Contain(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/badBoy")).Should().Contain(CompatibleXsdType.ComplexType);
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/badBoy/properties/reallyNasty")).Should().Contain(CompatibleXsdType.ComplexContentExtension);
+            return Task.CompletedTask;
         }
     }
 }
