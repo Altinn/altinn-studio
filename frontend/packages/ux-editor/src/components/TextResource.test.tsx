@@ -21,7 +21,7 @@ const defaultProps: TextResourceProps = { handleIdChange };
 const addText = 'Legg til';
 const editText = 'Rediger';
 const searchText = 'Søk';
-const closeSearchText = 'ukk tekstsøk';
+const closeSearchText = 'Lukk tekstsøk';
 const searchLabelText = 'Velg tekst-ID';
 const noTextChosenText = 'Ingen tekst';
 const texts = {
@@ -32,7 +32,7 @@ const texts = {
   'ux_editor.search_text_resources_label': searchLabelText,
   'ux_editor.search_text_resources_none': noTextChosenText,
 };
-const textResources = [
+const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
   { id: '2', value: 'Text 2' },
   { id: '3', value: 'Text 3' },
@@ -155,7 +155,9 @@ describe('TextResource', () => {
 
   it('Renders correct number of options in search section', async () => {
     await renderAndOpenSearchSection();
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    const combobox = screen.getByRole('combobox');
+    expect(combobox).toBeInTheDocument();
+    await act(() => user.click(combobox));
     expect(screen.getAllByRole('option')).toHaveLength(textResources.length + 1); // + 1 because of the "none" option
   });
 

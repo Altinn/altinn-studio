@@ -42,58 +42,64 @@ const defaultProps: IReferenceSelectionProps = {
 const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) =>
   renderWithRedux(<ReferenceSelectionComponent {...defaultProps} {...props} />, { uiSchema });
 
-test('Select box appears', () => {
-  renderReferenceSelectionComponent();
-  expect(screen.getByRole('combobox')).toBeDefined();
-});
-
-test('Label text appears', () => {
-  renderReferenceSelectionComponent();
-  expect(screen.getByText(label)).toBeDefined();
-});
-
-test('"Go to type" button appears with given text', () => {
-  renderReferenceSelectionComponent();
-  expect(screen.getByRole('button')).toHaveTextContent(buttonText);
-});
-
-test('All types should appear as options', () => {
-  renderReferenceSelectionComponent();
-  expect(screen.queryAllByRole('option')).toHaveLength(3);
-});
-
-test('Type options should have correct values and labels', () => {
-  renderReferenceSelectionComponent();
-  expect(screen.getByRole('option', { name: type1Name })).toHaveAttribute('value', type1.pointer);
-  expect(screen.getByRole('option', { name: type2Name })).toHaveAttribute('value', type2.pointer);
-});
-
-test('Empty option text appears', () => {
-  renderReferenceSelectionComponent();
-  expect(screen.getByRole('option', { name: emptyOptionLabel })).toBeDefined();
-});
-
-test('Empty option is selected by default', () => {
-  renderReferenceSelectionComponent();
-  expect(screen.getByRole('combobox')).toHaveValue('');
-});
-
-test('Referenced type is selected if given', () => {
-  renderReferenceSelectionComponent({
-    selectedNode: { ...selectedNode, reference: type1.pointer },
+describe('ReferenceSelectionComponent', () => {
+  test('Select box appears', () => {
+    renderReferenceSelectionComponent();
+    expect(screen.getByRole('combobox')).toBeDefined();
   });
-  expect(screen.getByRole('combobox')).toHaveValue(type1.pointer);
-});
 
-test('onChange handler is called with correct parameters when value changes', async () => {
-  renderReferenceSelectionComponent();
-  await act(() => user.click(screen.getByRole('option', { name: type1Name })));
-  expect(onChangeRef).toHaveBeenCalledTimes(1);
-  expect(onChangeRef).toHaveBeenCalledWith(selectedNode.pointer, type1.pointer);
-});
+  test('Label text appears', () => {
+    renderReferenceSelectionComponent();
+    expect(screen.getByText(label)).toBeDefined();
+  });
 
-test('onGoToDefButtonClick handler is called when "go to type" button is clicked', async () => {
-  renderReferenceSelectionComponent();
-  await act(() => user.click(screen.getByText(buttonText)));
-  expect(onGoToDefButtonClick).toHaveBeenCalledTimes(1);
+  test('"Go to type" button appears with given text', () => {
+    renderReferenceSelectionComponent();
+    expect(screen.getByRole('button')).toHaveTextContent(buttonText);
+  });
+
+  test('All types should appear as options', async () => {
+    renderReferenceSelectionComponent();
+    await act(() => user.click(screen.getByRole('combobox')));
+    expect(screen.queryAllByRole('option')).toHaveLength(3);
+  });
+
+  test('Type options should have correct values and labels', async () => {
+    renderReferenceSelectionComponent();
+    await act(() => user.click(screen.getByRole('combobox')));
+    expect(screen.getByRole('option', { name: type1Name })).toHaveAttribute('value', type1.pointer);
+    expect(screen.getByRole('option', { name: type2Name })).toHaveAttribute('value', type2.pointer);
+  });
+
+  test('Empty option text appears', async () => {
+    renderReferenceSelectionComponent();
+    await act(() => user.click(screen.getByRole('combobox')));
+    expect(screen.getByRole('option', { name: emptyOptionLabel })).toBeDefined();
+  });
+
+  test('Empty option is selected by default', () => {
+    renderReferenceSelectionComponent();
+    expect(screen.getByRole('combobox')).toHaveValue('');
+  });
+
+  test('Referenced type is selected if given', () => {
+    renderReferenceSelectionComponent({
+      selectedNode: { ...selectedNode, reference: type1.pointer },
+    });
+    expect(screen.getByRole('combobox')).toHaveValue(type1.pointer);
+  });
+
+  test('onChange handler is called with correct parameters when value changes', async () => {
+    renderReferenceSelectionComponent();
+    await act(() => user.click(screen.getByRole('combobox')));
+    await act(() => user.click(screen.getByRole('option', { name: type1Name })));
+    expect(onChangeRef).toHaveBeenCalledTimes(1);
+    expect(onChangeRef).toHaveBeenCalledWith(selectedNode.pointer, type1.pointer);
+  });
+
+  test('onGoToDefButtonClick handler is called when "go to type" button is clicked', async () => {
+    renderReferenceSelectionComponent();
+    await act(() => user.click(screen.getByText(buttonText)));
+    expect(onGoToDefButtonClick).toHaveBeenCalledTimes(1);
+  });
 });

@@ -14,27 +14,25 @@ beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-const render = () => {
-  renderWithProviders(<CreateService />, {
-    preloadedState: {
-      language: {
-        language: {},
-      },
-      dashboard: {
-        services: [],
-        selectedContext: SelectedContextType.Self,
-        repoRowsPerPage: 5,
-        user: {
-          id: 1,
-          avatar_url: 'avatar_url',
-          email: 'email',
-          full_name: 'user_full_name',
-          login: 'user_login',
-        },
+const render = () => renderWithProviders(<CreateService />, {
+  preloadedState: {
+    language: {
+      language: {},
+    },
+    dashboard: {
+      services: [],
+      selectedContext: SelectedContextType.Self,
+      repoRowsPerPage: 5,
+      user: {
+        id: 1,
+        avatar_url: 'avatar_url',
+        email: 'email',
+        full_name: 'user_full_name',
+        login: 'user_login',
       },
     },
-  });
-};
+  },
+});
 
 describe('CreateService', () => {
   it('should show error messages when clicking create and no owner or name is filled in', async () => {
@@ -63,18 +61,18 @@ describe('CreateService', () => {
     await waitFor(() => {
       expect(screen.getByRole('combobox')).toBeInTheDocument();
       expect(screen.getByRole('combobox')).toBeDisabled();
-      expect(screen.getByRole('combobox')).toHaveTextContent('user_full_name');
     });
   });
 
   it('should show error message that app name is too long when it exceeds max length', async () => {
     const user = userEvent.setup();
-    render();
+    const { container } = render();
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
+    await act(() => user.click(screen.getByRole('combobox')));
     await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
-    await act(() => user.type(screen.getByRole('textbox'), 'this-app-name-is-longer-than-max'));
+    await act(() => user.type(container.querySelector('#service-saved-name'), 'this-app-name-is-longer-than-max'));
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
     await act(() => user.click(createBtn));
@@ -85,15 +83,16 @@ describe('CreateService', () => {
 
   it('should show error message that app name is invalid when it contains invalid characters', async () => {
     const user = userEvent.setup();
-    render();
+    const { container } = render();
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
+    await act(() => user.click(screen.getByRole('combobox')));
     await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
-    await act(() => user.type(screen.getByRole('textbox'), 'datamodels'));
+    await act(() => user.type(container.querySelector('#service-saved-name'), 'datamodels'));
 
-    const createBtn = await screen.findByText('dashboard.create_service_btn');
-    await act(() => user.click(createBtn));
+    const createButton = await screen.findByText('dashboard.create_service_btn');
+    await act(() => user.click(createButton));
 
     const emptyFieldErrors = await screen.findAllByText(
       'dashboard.service_name_has_illegal_characters'
@@ -111,15 +110,16 @@ describe('CreateService', () => {
       })
     );
 
-    render();
+    const { container } = render();
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
+    await act(() => user.click(screen.getByRole('combobox')));
     await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
-    await act(() => user.type(screen.getByRole('textbox'), 'this-app-name-exists'));
+    await act(() => user.type(container.querySelector('#service-saved-name'), 'this-app-name-exists'));
 
-    const createBtn = await screen.findByText('dashboard.create_service_btn');
-    await act(() => user.click(createBtn));
+    const createButton = await screen.findByText('dashboard.create_service_btn');
+    await act(() => user.click(createButton));
 
     const emptyFieldErrors = await screen.findAllByText('dashboard.app_already_exist');
     expect(emptyFieldErrors.length).toBe(1);
@@ -135,15 +135,16 @@ describe('CreateService', () => {
       })
     );
 
-    render();
+    const { container } = render();
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
+    await act(() => user.click(screen.getByRole('combobox')));
     await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
-    await act(() => user.type(screen.getByRole('textbox'), 'new-app'));
+    await act(() => user.type(container.querySelector('#service-saved-name'), 'new-app'));
 
-    const createBtn = await screen.findByText('dashboard.create_service_btn');
-    await act(() => user.click(createBtn));
+    const createButton = await screen.findByText('dashboard.create_service_btn');
+    await act(() => user.click(createButton));
 
     const emptyFieldErrors = await screen.findAllByText('dashboard.error_when_creating_app');
     expect(emptyFieldErrors.length).toBe(1);

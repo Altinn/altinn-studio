@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, ButtonColor, ButtonVariant, Select } from '@digdir/design-system-react';
+import { Button, ButtonColor, ButtonVariant, Select, SingleSelectOption } from '@digdir/design-system-react';
 import { Add, Close, Edit, Search } from '@navikt/ds-icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,7 +9,7 @@ import {
 } from '../features/appData/textResources/textResourcesSlice';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import {
-  getAllTextResourceIds,
+  getAllTextResourceIdsWithTextSelector,
   getCurrentEditId,
   textResourceByLanguageAndIdSelector,
 } from '../selectors/textResourceSelectors';
@@ -19,6 +19,7 @@ import { useText } from '../hooks';
 import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
 import { useParams } from 'react-router-dom';
+import { ITextResource } from '../types/global';
 
 export interface TextResourceProps {
   description?: string;
@@ -57,7 +58,7 @@ export const TextResource = ({
   const textResource = useSelector(
     textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId)
   );
-  const textResourceIds = useSelector(getAllTextResourceIds);
+  const textResources = useSelector(getAllTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE));
   const t = useText();
   const [isSearchMode, setIsSearchMode] = useState(false);
   const { org, app } = useParams();
@@ -86,8 +87,13 @@ export const TextResource = ({
     }
   };
 
-  const searchOptions = prepend(
-    textResourceIds.map((id) => ({ label: id, value: id })),
+  const searchOptions: SingleSelectOption[] = prepend<SingleSelectOption>(
+    textResources.map((tr) => ({
+      label: tr.id,
+      value: tr.id,
+      formattedLabel: <TextResourceOption textResource={tr} />,
+      keywords: [tr.id, tr.value],
+    })),
     { label: t('ux_editor.search_text_resources_none'), value: '' }
   );
 
@@ -167,6 +173,24 @@ export const TextResource = ({
             />
           </span>
         </span>
+      </span>
+    </span>
+  );
+};
+
+export interface TextResourceOptionProps {
+  textResource: ITextResource;
+}
+
+export const TextResourceOption = ({ textResource }: TextResourceOptionProps) => {
+  const t = useText();
+  return (
+    <span className={classes.textOption}>
+      <span className={classes.textOptionId}>{textResource.id}</span>
+      <span
+        className={cn(classes.textOptionValue, !textResource.value && classes.empty)}
+      >
+        {textResource.value || t('ux_editor.no_text')}
       </span>
     </span>
   );
