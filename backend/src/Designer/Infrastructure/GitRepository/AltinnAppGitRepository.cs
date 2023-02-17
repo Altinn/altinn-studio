@@ -358,9 +358,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A boolean representing if the app uses layoutsets or not</returns>
         public bool AppUsesLayoutSets()
         {
-            string[] layoutSetNames = GetLayoutSetNames();
-            string layoutSetRelativePath = GetPathToLayoutSet(layoutSetNames[0]);
-            return !(layoutSetNames.Contains("layouts") && layoutSetNames.Length <= 1 && !DirectoryExistsByRelativePath(layoutSetRelativePath));
+            string layoutSetJsonFilePath = Path.Combine(LAYOUTS_FOLDER_NAME, "layout-sets.json");
+            return FileExistsByRelativePath(layoutSetJsonFilePath);
         }
 
         /// <summary>
