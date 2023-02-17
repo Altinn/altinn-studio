@@ -962,7 +962,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
                 textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = serviceConfig.ServiceName });
-                textResource.Resources.Add(new TextResourceElement() { Id = "receipt.title", Value = $"{serviceConfig.ServiceName} er nå sendt inn" });
                 var jsonSerializerSettings = new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,
