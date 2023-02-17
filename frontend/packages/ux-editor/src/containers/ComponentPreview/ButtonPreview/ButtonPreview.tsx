@@ -12,7 +12,7 @@ export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element =>
   const language = useSelector((state: IAppState) => state.appData.textResources.resources?.['nb']);
 
   const isNavigationButton = component.type === ComponentTypes.NavigationButtons;
-  const buttonColor = isNavigationButton ? ButtonColor.Success : ButtonColor.Primary;
+  const buttonColor = isNavigationButton ? ButtonColor.Primary : ButtonColor.Success;
 
   const navigationButtonText = component.showBackButton
     ? component.textResourceBindings?.back
