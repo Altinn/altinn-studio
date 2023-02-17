@@ -91,7 +91,7 @@ describe('CreateService', () => {
     await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
     await act(() => user.type(container.querySelector('#service-saved-name'), 'datamodels'));
 
-    const createButton = await screen.findByText('dashboard.create_service_btn');
+    const createButton = await screen.queryByRole('button', { name: 'dashboard.create_service_btn' });
     await act(() => user.click(createButton));
 
     const emptyFieldErrors = await screen.findAllByText(
