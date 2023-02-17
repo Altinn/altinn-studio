@@ -28,9 +28,8 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
 
         public static IServiceCollection RegisterSettings(this IServiceCollection services, Type optionType, IConfiguration configuration, string section = null)
         {
-            var @delegate = new Func<IServiceCollection, IConfiguration, string, IServiceCollection>(RegisterSettings<object>);
-            var genericMethodDefinition = @delegate.Method.GetGenericMethodDefinition();
-            var genericMethodTemplate = genericMethodDefinition.MakeGenericMethod(optionType);
+            Func<IServiceCollection, IConfiguration, string, IServiceCollection> registerSettingsMethodObject = RegisterSettings<object>;
+            var genericMethodTemplate = registerSettingsMethodObject.Method.GetGenericMethodDefinition().MakeGenericMethod(optionType);
             var configureSettingsMethodByType = (Func<IServiceCollection, IConfiguration, string, IServiceCollection>)Delegate.CreateDelegate(typeof(Func<IServiceCollection, IConfiguration, string, IServiceCollection>), genericMethodTemplate);
 
             return configureSettingsMethodByType(services, configuration, section);
@@ -77,12 +76,6 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
             return assembly.GetLoadableTypes().Where(type => typeof(TAssignedFrom).IsAssignableFrom(type) && type != typeof(TAssignedFrom));
         }
 
-        private static bool IsAltinnLibrary(RuntimeLibrary library)
-        {
-            return library.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase)
-                || library.Dependencies.Any(d => d.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase));
-        }
-
         private static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
         {
             try
@@ -94,5 +87,13 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
                 return e.Types.Where(t => t != null);
             }
         }
+
+        private static bool IsAltinnLibrary(RuntimeLibrary library)
+        {
+            return library.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase)
+                || library.Dependencies.Any(d => d.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase));
+        }
+
+
     }
 }
