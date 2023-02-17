@@ -7,8 +7,19 @@ import type { IAltinnOrgs, IApplication, IDataSources, ILanguage, ITextResource 
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node.tagName === 'A') {
-    node.setAttribute('rel', 'noopener noreferrer');
-    node.setAttribute('target', '_blank');
+    const url = node.getAttribute('href') || '';
+    if (url.startsWith('http') && !url.match(/(local\.altinn|altinn\.no|altinn\.cloud|basefarm\.net)/)) {
+      node.classList.add('target-external');
+      node.setAttribute('rel', 'noopener noreferrer');
+    } else {
+      node.classList.add('target-internal');
+    }
+
+    if (node.classList.contains('same-window')) {
+      node.setAttribute('target', '_self');
+    } else {
+      node.setAttribute('target', '_blank');
+    }
   }
 });
 
