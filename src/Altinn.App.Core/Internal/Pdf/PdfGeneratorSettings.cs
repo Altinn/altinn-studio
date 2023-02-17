@@ -21,7 +21,7 @@ public class PdfGeneratorSettings
     /// instanceId - will be taken from current instance.Id.
     /// </remarks>
     public string AppPdfPageUriTemplate { get; set; } =
-        "https://{org}.apps.{hostName}/{appId}/#/instance/{instanceId}";
+        "https://{org}.apps.{hostName}/{appId}/#/instance/{instanceId}?pdf=1";
 
     /// <summary>
     /// The name of a DOM element to wait for before triggering PDF-generator.
