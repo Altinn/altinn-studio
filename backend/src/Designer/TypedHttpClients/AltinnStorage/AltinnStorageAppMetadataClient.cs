@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public async Task<Application> GetApplicationMetadata(string org, string app, string envName)
         {
             var storageUri = await CreateStorageUri(envName);
-            Uri uri = new Uri($"{storageUri}/{org}/{app}");
+            Uri uri = new Uri($"{storageUri}{org}/{app}");
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
@@ -51,6 +51,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
              */
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await _httpClient.SendAsync(request);
+
             return await response.Content.ReadAsAsync<Application>();
         }
 
