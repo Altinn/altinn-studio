@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using static Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords;
 
 namespace Altinn.Studio.Designer.Infrastructure
@@ -62,12 +63,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IJsonSchemaToXmlSchemaConverter, JsonSchemaToXmlSchemaConverter>();
             services.AddTransient<IJsonSchemaNormalizer, JsonSchemaNormalizer>();
             services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
-            services.AddSingleton(_ =>
-            {
-                var options = new CSharpGenerationSettings();
-                configuration.GetSection(nameof(CSharpGenerationSettings)).Bind(options);
-                return options;
-            });
+            services.Configure<CSharpGenerationSettings>(configuration.GetSection(nameof(CSharpGenerationSettings)));
+            services.AddScoped(cfg => cfg.GetService<IOptionsSnapshot<CSharpGenerationSettings>>().Value);
             RegisterXsdKeywords();
             return services;
         }
