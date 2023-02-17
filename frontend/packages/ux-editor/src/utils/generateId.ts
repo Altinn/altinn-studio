@@ -1,4 +1,4 @@
-import { IFormLayout } from '../types/global';
+import { IFormLayouts } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
 export const generateTextResourceId = (
@@ -9,14 +9,18 @@ export const generateTextResourceId = (
   return `${layoutName}.${componentId}.${textKey}`;
 };
 
-export const generateComponentId = (componentType: string, layout: IFormLayout) => {
+export const generateComponentId = (componentType: string, layouts: IFormLayouts) => {
+  const layoutNames = Object.keys(layouts);
   let existsInLayout = true;
   let componentId = '';
 
-  // ensure generated ID is unique within the provided layout
+  // ensure generated ID is unique within the provided layouts
   while (existsInLayout) {
     componentId = `${componentType}-${generateRandomId(6)}`;
-    existsInLayout = !!layout.components[componentId];
+    layoutNames.forEach((layoutName) => {
+      existsInLayout = !!layouts[layoutName].components[componentId];
+    });
   }
+
   return componentId;
 };
