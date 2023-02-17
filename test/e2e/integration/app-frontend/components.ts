@@ -83,6 +83,20 @@ describe('UI Components', () => {
           .and('have.css', 'background-color', 'rgb(2, 47, 81)');
         cy.get(appFrontend.changeOfName.summaryNameChanges).should('be.visible');
       });
+    cy.viewport('samsung-s10');
+    cy.get(appFrontend.navMenu).should('not.exist');
+    cy.get('[data-testid="NavigationBar"]').find('button:contains("form")').should('not.exist');
+    cy.get('[data-testid="NavigationBar"]').find('button:contains("summary")').should('be.visible');
+    cy.viewport('macbook-16');
+    cy.interceptLayout('changename', (component) => {
+      if (component.type === 'NavigationBar') {
+        component.compact = true;
+      }
+    });
+    cy.reload();
+    cy.get(appFrontend.navMenu).should('not.exist');
+    cy.get('[data-testid="NavigationBar"]').find('button:contains("form")').should('not.exist');
+    cy.get('[data-testid="NavigationBar"]').find('button:contains("summary")').should('be.visible');
   });
 
   it('address component fetches post place from zip code', () => {

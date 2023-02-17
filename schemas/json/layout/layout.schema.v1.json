@@ -139,6 +139,7 @@
         { "if": {"properties": {"type": { "const": "Likert"}}}, "then": { "$ref": "#/definitions/radioAndCheckboxComponents"}},
         { "if": {"properties": {"type": { "const": "MultipleSelect"}}}, "then": { "$ref": "#/definitions/selectionComponents"}},
         { "if": {"properties": {"type": { "const": "NavigationButtons"}}}, "then": { "$ref": "#/definitions/navigationButtonsComponent"}},
+        { "if": {"properties": {"type": { "const": "NavigationBar"}}}, "then": { "$ref": "#/definitions/navigationBarComponent"}},
         { "if": {"properties": {"type": { "const": "RadioButtons"}}}, "then": { "$ref": "#/definitions/radioAndCheckboxComponents"}},
         { "if": {"properties": {"type": { "const": "Summary"}}}, "then": {"$ref": "#/definitions/summaryComponent"}},
         { "if": {"properties": {"type": { "const": "Header"}}}, "then": {"$ref": "#/definitions/headerComponent"}},
@@ -278,6 +279,15 @@
           "type": "boolean",
           "title": "Show back button",
           "description": "Shows two buttons (back/next) instead of just 'next'."
+        }
+      }
+    },
+    "navigationBarComponent": {
+      "properties": {
+        "compact": {
+          "type":"boolean",
+          "title": "Compact navbar menu",
+          "description": "Change appearance of navbar as compact in desktop view"
         }
       }
     },

@@ -25,6 +25,9 @@ const useStyles = makeStyles((theme) => ({
       flexDirection: 'column',
     },
   },
+  menuCompact: {
+    flexDirection: 'column',
+  },
   containerBase: {
     borderRadius: '40px',
 
@@ -102,7 +105,7 @@ const NavigationButton = React.forwardRef(
 
 NavigationButton.displayName = 'NavigationButton';
 
-export const NavigationBarComponent = ({ triggers }: INavigationBar) => {
+export const NavigationBarComponent = ({ triggers, compact }: INavigationBar) => {
   const classes = useStyles();
   const dispatch = useAppDispatch();
   const pageIds = useAppSelector(selectLayoutOrder);
@@ -113,7 +116,8 @@ export const NavigationBarComponent = ({ triggers }: INavigationBar) => {
   const language = useAppSelector((state) => state.language.language);
   const [showMenu, setShowMenu] = React.useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down(600));
+  const isMobile = useMediaQuery(theme.breakpoints.down(600)) || compact === true;
+
   const firstPageLink = React.useRef<HTMLButtonElement>();
 
   const handleNavigationClick = (pageId: string) => {
@@ -150,6 +154,7 @@ export const NavigationBarComponent = ({ triggers }: INavigationBar) => {
   return (
     <Grid container>
       <Grid
+        data-testid='NavigationBar'
         item
         component='nav'
         xs={12}
@@ -173,29 +178,32 @@ export const NavigationBarComponent = ({ triggers }: INavigationBar) => {
             </span>
           </NavigationButton>
         )}
-        <ul
-          hidden={!shouldShowMenu}
-          id='navigation-menu'
-          data-testid='navigation-menu'
-          className={classes.menu}
-        >
-          {pageIds.map((pageId, index) => {
-            return (
-              <li
-                key={pageId}
-                className={classes.containerBase}
-              >
-                <NavigationButton
-                  current={currentPageId === pageId}
-                  onClick={() => handleNavigationClick(pageId)}
-                  ref={index === 0 ? firstPageLink : null}
+        {shouldShowMenu && (
+          <ul
+            id='navigation-menu'
+            data-testid='navigation-menu'
+            className={cn(classes.menu, {
+              [classes.menuCompact]: isMobile,
+            })}
+          >
+            {pageIds.map((pageId, index) => {
+              return (
+                <li
+                  key={pageId}
+                  className={classes.containerBase}
                 >
-                  {index + 1}. {getTextResource(pageId, textResources)}
-                </NavigationButton>
-              </li>
-            );
-          })}
-        </ul>
+                  <NavigationButton
+                    current={currentPageId === pageId}
+                    onClick={() => handleNavigationClick(pageId)}
+                    ref={index === 0 ? firstPageLink : null}
+                  >
+                    {index + 1}. {getTextResource(pageId, textResources)}
+                  </NavigationButton>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Grid>
     </Grid>
   );

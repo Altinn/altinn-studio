@@ -33,15 +33,15 @@ describe('Mobile', () => {
     cy.addItemToGroup(1, 2, 'automation');
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');
-    cy.get(appFrontend.navMenu).should('have.attr', 'hidden');
+    cy.get(appFrontend.navMenu).should('not.exist');
     cy.get(appFrontend.group.navigationBarButton)
       .should('be.visible')
       .and('have.attr', 'aria-expanded', 'false')
       .click();
     cy.get(appFrontend.group.navigationBarButton).should('have.attr', 'aria-expanded', 'true');
-    cy.get(appFrontend.navMenu).should('not.have.attr', 'hidden');
+    cy.get(appFrontend.navMenu).should('be.visible');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
-    cy.get(appFrontend.navMenu).should('have.attr', 'hidden');
+    cy.get(appFrontend.navMenu).should('not.exist');
     cy.sendIn();
     likertPage.selectRequiredRadiosInMobile();
     cy.sendIn();
