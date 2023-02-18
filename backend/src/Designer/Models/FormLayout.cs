@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Models
     public class Data
     {
         public List<Layout> layout { get; set; }
-        public bool? hidden { get; set; }
+        [CanBeNull] public object hidden { get; set; }
     }
 
     public class Layout
@@ -28,7 +28,7 @@ namespace Altinn.Studio.Designer.Models
         public DataModelBindings dataModelBindings { get; set; }
         public bool? required { get; set; }
         public bool? readOnly { get; set; }
-        [CanBeNull] public Expression hidden { get; set; }
+        [CanBeNull] public object hidden { get; set; }
         [CanBeNull] public string size { get; set; }
         [CanBeNull] public Image image { get; set; }
         public bool? simplified { get; set; }

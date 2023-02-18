@@ -12,6 +12,7 @@ const selectCurrentLayoutId = (state: IAppState): string =>
   state.formDesigner.layout.selectedLayout;
 const selectCurrentLayout = (state: IAppState) =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
+const hiddenLayout = (state: IAppState) => state.formDesigner.layout.layouts.selectedLayout.hidden;
 
 function* addWidgetSaga(action: PayloadAction<IAddWidgetAction>): SagaIterator {
   try {
@@ -19,7 +20,7 @@ function* addWidgetSaga(action: PayloadAction<IAddWidgetAction>): SagaIterator {
     let { containerId } = action.payload;
     const layoutId: string = yield select(selectCurrentLayoutId);
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
-    const internalComponents = convertFromLayoutToInternalFormat(widget.components);
+    const internalComponents = convertFromLayoutToInternalFormat(widget.components, hiddenLayout);
     const components: any = { ...currentLayout.components };
     if (!containerId) {
       // if not containerId set it to base-container

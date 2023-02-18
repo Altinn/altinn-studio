@@ -257,7 +257,7 @@ export interface IFormLayout {
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
   order: IFormLayoutOrder;
-  hidden: boolean;
+  hidden?: any;
 }
 
 export interface IFormLayoutOrder {
