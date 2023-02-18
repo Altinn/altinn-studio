@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Models
     public class Data
     {
         public List<Layout> layout { get; set; }
-        [CanBeNull] public Expression hidden { get; set; }
+        public bool? hidden { get; set; }
     }
 
     public class Layout

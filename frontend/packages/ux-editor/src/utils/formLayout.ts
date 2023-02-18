@@ -15,14 +15,16 @@ import type {
   ICreateFormContainer,
   IToolbarElement,
 } from '../types/global';
+import {Form} from "react-router-dom";
 
 const { addFormComponent, addFormContainer, addWidget, updateActiveListOrder } = FormLayoutActions;
 
-export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayout {
+export function convertFromLayoutToInternalFormat(formLayout: any[], hidden: boolean): IFormLayout {
   const convertedLayout: IFormLayout = {
     containers: {},
     components: {},
     order: {},
+    hidden: hidden,
   };
 
   const baseContainerId: string = uuidv4();
