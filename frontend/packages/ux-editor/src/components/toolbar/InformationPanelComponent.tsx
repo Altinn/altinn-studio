@@ -12,6 +12,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 export interface IInformationPanelProvidedProps {
+  language?: any;
   anchorElement: any;
   selectedComponent: ComponentTypes;
   informationPanelOpen: boolean;
