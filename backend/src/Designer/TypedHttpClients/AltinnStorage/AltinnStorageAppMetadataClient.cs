@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         /// </summary>
         /// <param name="httpClient">HttpClient</param>
         /// <param name="environmentsService">EnvironmentsService</param>
-        /// <param name="options">IOptionsMonitor of type PlatformSettings</param>
+        /// <param name="options">PlatformSettings</param>
         public AltinnStorageAppMetadataClient(
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
