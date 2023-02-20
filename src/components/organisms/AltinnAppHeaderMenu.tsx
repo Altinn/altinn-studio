@@ -19,7 +19,6 @@ const useStyles = makeStyles({
     maxWidth: 100,
     padding: 0,
     top: 50,
-    right: 25,
   },
   menuItem: {
     fontSize: 16,
