@@ -9,7 +9,7 @@ export interface EditGroupDataModelBindingProps {
   onDataModelChange: (dataBindingName: string, key: string) => void;
 }
 
-export const EditGroupDataModelBinding = ({
+export const EditGroupDataModelBindings = ({
   dataModelBindings,
   onDataModelChange,
 }: EditGroupDataModelBindingProps) => {

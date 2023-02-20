@@ -11,9 +11,9 @@ import {
 } from '../../../testing/mocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import {
-  EditGroupDataModelBinding,
+  EditGroupDataModelBindings,
   EditGroupDataModelBindingProps,
-} from './EditGroupDataModelBinding';
+} from './EditGroupDataModelBindings';
 import { IDataModelFieldElement } from '../../../types/global';
 import userEvent from '@testing-library/user-event';
 
@@ -58,7 +58,7 @@ const render = (
   };
   const user = userEvent.setup();
   renderWithMockStore({ appData: { ...mockAppData, ...appData } })(
-    <EditGroupDataModelBinding {...defaultProps} {...props} />
+    <EditGroupDataModelBindings {...defaultProps} {...props} />
   );
 
   return { user };

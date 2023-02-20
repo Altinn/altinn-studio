@@ -11,7 +11,7 @@ import {
   makeGetLayoutContainerOrder,
   makeGetLayoutContainersSelector,
 } from '../selectors/getLayoutData';
-import { EditGroupDataModelBinding } from '../components/config/group/EditGroupDataModelBinding';
+import { EditGroupDataModelBindings } from '../components/config/group/EditGroupDataModelBindings';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayout';
@@ -453,7 +453,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         />
         {tmpContainer.maxCount > 1 && (
           <>
-            <EditGroupDataModelBinding
+            <EditGroupDataModelBindings
               dataModelBindings={tmpContainer.dataModelBindings}
               onDataModelChange={this.handleDataModelGroupChange}
             />
