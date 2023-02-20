@@ -62,7 +62,8 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
                 .RuntimeLibraries
                 .Where(IsAltinnLibrary)
                 .Where(library => library.RuntimeAssemblyGroups.Any())
-                .Select(library => Assembly.Load(new AssemblyName(library.Name)))
+                .Select(LoadAssembly)
+                .Where(assembly => assembly != null) // remove nulls
                 .GetTypesAssignedFrom<TAssignedFrom>();
         }
 
@@ -85,6 +86,18 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
             catch (ReflectionTypeLoadException e)
             {
                 return e.Types.Where(t => t != null);
+            }
+        }
+
+        private static Assembly LoadAssembly(RuntimeLibrary library)
+        {
+            try
+            {
+                return Assembly.Load(new AssemblyName(library.Name));
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
 
