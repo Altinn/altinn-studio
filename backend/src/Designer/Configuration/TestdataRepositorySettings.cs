@@ -5,7 +5,7 @@ namespace Altinn.Studio.Designer.Configuration
     /// <summary>
     /// Class that defines the common test data settings
     /// </summary>
-    public class TestdataRepositorySettings
+    public class TestdataRepositorySettings : ISettingsMarker
     {
         /// <summary>
         /// Gets or sets the repository location
@@ -21,10 +21,5 @@ namespace Altinn.Studio.Designer.Configuration
         /// Returns the designer host. Created for fixing Kubernetes Flaw.
         /// </summary>
         /// <returns>The designer host</returns>
-        public string GetDesignerHost()
-        {
-            string designerHost = Environment.GetEnvironmentVariable("TestdataRepositorySettings__DesignerInternalHost") ?? DesignerHost;
-            return designerHost;
-        }
     }
 }

@@ -3,7 +3,7 @@ namespace Altinn.Studio.Designer.Configuration
     /// <summary>
     /// Settings for Postgres database
     /// </summary>
-    public class PostgreSQLSettings
+    public class PostgreSQLSettings : ISettingsMarker
     {
         /// <summary>
         /// Connection string for the postgres db

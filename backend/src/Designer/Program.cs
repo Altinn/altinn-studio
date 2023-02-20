@@ -185,7 +185,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.ConfigureDataProtection(configuration, logger);
     services.ConfigureMvc();
-    services.ConfigureSettings(configuration);
+    services.ConfigureNonMarkedSettings(configuration);
 
     services.RegisterTypedHttpClients(configuration);
     services.ConfigureAuthentication(configuration, env);
@@ -226,9 +226,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             // Catch swashbuckle exception if it doesn't find the generated XML documentation file
         }
     });
-    logger.LogInformation($"// Program.cs // ConfigureServices // Configuration complete");
 
+    // Auto register all settings classes
     services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
+    logger.LogInformation($"// Program.cs // ConfigureServices // Configuration complete");
 }
 
 void Configure(IConfiguration configuration)

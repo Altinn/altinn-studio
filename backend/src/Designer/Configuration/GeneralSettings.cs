@@ -5,7 +5,7 @@ namespace Altinn.Studio.Designer.Configuration
     /// <summary>
     /// General configuration settings
     /// </summary>
-    public class GeneralSettings
+    public class GeneralSettings : ISettingsMarker
     {
         /// <summary>
         /// Gets or sets the location to search for templates

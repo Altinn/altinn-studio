@@ -1,9 +1,11 @@
+using Altinn.Studio.Designer.Configuration;
+
 namespace Altinn.Studio.Designer.Infrastructure.Models
 {
     /// <summary>
     /// Settings for Azure DevOps
     /// </summary>
-    public class AzureDevOpsSettings
+    public class AzureDevOpsSettings : ISettingsMarker
     {
         /// <summary>
         /// Id for a definition that builds an Altinn Studio app

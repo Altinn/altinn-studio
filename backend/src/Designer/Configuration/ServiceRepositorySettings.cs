@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Configuration
     /// <summary>
     /// Class that represents the ServiceRepositorySettings
     /// </summary>
-    public class ServiceRepositorySettings
+    public class ServiceRepositorySettings : ISettingsMarker
     {
         /// <summary>
         /// Constant for the location of resource files
