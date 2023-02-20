@@ -1,23 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
 
+// ReSharper disable InconsistentNaming
+// ReSharper disable IdentifierTypo
+
 namespace Altinn.App.Models
 {
     public class Skjema
     {
-        [Range(Int32.MinValue, Int32.MaxValue)]
+        [Range(int.MinValue, int.MaxValue)]
         [XmlAttribute("skjemanummer")]
         [BindNever]
         public decimal skjemanummer { get; set; } = 1533;
 
-        [Range(Int32.MinValue, Int32.MaxValue)]
+        [Range(int.MinValue, int.MaxValue)]
         [XmlAttribute("spesifikasjonsnummer")]
         [BindNever]
         public decimal spesifikasjonsnummer { get; set; } = 11172;
@@ -28,7 +28,7 @@ namespace Altinn.App.Models
 
         [XmlAttribute("tittel")] [BindNever] public string tittel { get; set; } = "Endring av navn";
 
-        [Range(1, Int32.MaxValue)]
+        [Range(1, int.MaxValue)]
         [XmlAttribute("gruppeid")]
         [BindNever]
         public decimal gruppeid { get; set; } = 9308;
@@ -2052,22 +2052,22 @@ namespace Altinn.App.Models
         [XmlText()]
         public string value { get; set; }
     }
-}
 
-public class Adresse
-{
-    [XmlElement("Gateadresse_æøå", Order = 1)]
-    [JsonProperty("Gateadresse_æøå")]
-    [JsonPropertyName("Gateadresse_æøå")]
-    public string Gateadresse { get; set; }
+    public class Adresse
+    {
+        [XmlElement("Gateadresse_æøå", Order = 1)]
+        [JsonProperty("Gateadresse_æøå")]
+        [JsonPropertyName("Gateadresse_æøå")]
+        public string Gateadresse { get; set; }
 
-    [XmlElement("Postnr", Order = 2)]
-    [JsonProperty("Postnr")]
-    [JsonPropertyName("Postnr")]
-    public string Postnr { get; set; }
+        [XmlElement("Postnr", Order = 2)]
+        [JsonProperty("Postnr")]
+        [JsonPropertyName("Postnr")]
+        public string Postnr { get; set; }
 
-    [XmlElement("Poststed", Order = 3)]
-    [JsonProperty("Poststed")]
-    [JsonPropertyName("Poststed")]
-    public string Poststed { get; set; }
+        [XmlElement("Poststed", Order = 3)]
+        [JsonProperty("Poststed")]
+        [JsonPropertyName("Poststed")]
+        public string Poststed { get; set; }
+    }
 }
