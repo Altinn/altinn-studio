@@ -4,7 +4,7 @@ import { IAppState, IFormButtonComponent } from '../../../types/global';
 import { getTextResource } from '../../../utils/language';
 import { useSelector } from 'react-redux';
 import { ComponentTypes } from '../../../components';
-import clasess from "./ButtonPreview.module.css";
+import classes from "./ButtonPreview.module.css";
 
 export interface ButtonPreviewProps {
   component: IFormButtonComponent;
@@ -25,12 +25,12 @@ export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element =>
 
   // Render the button based on its type; either Send or navigation(Back/Next). 
   return (
-    <div className={clasess.root}>
+    <div className={classes.root}>
       <Button variant={ButtonVariant.Filled} color={buttonColor}>
         {getTextResource(buttonText, language)}
       </Button>
       {isNavigationButton && component.showBackButton && (
-        <Button className={clasess.showNextButton} variant={ButtonVariant.Filled} color={buttonColor}>
+        <Button variant={ButtonVariant.Filled} color={buttonColor}>
           {getTextResource(component.textResourceBindings?.next, language,)}
         </Button>
       )}

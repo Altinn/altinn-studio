@@ -1,7 +1,4 @@
 .root{
   display:flex;
-}
-
-.showNextButton{
-  margin-left: 8px;
+  gap: 8px;
 }
