@@ -1,4 +1,5 @@
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Configuration.Marker;
 
 namespace Altinn.Studio.Designer.Infrastructure.Models
 {

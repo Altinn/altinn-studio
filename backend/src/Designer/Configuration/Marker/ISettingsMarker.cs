@@ -1,4 +1,4 @@
-﻿namespace Altinn.Studio.Designer.Configuration
+﻿namespace Altinn.Studio.Designer.Configuration.Marker
 {
     /// <summary>
     /// Interface marker for all configuration classes.
