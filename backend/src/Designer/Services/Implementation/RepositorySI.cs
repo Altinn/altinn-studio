@@ -559,30 +559,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return "Rule configuration not found.";
         }
 
-        /// <inheritdoc />
-        public bool SaveFormLayout(string org, string app, string formLayout, string content)
-        {
-            string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), formLayout);
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, content, Encoding.UTF8);
-            return true;
-        }
-
-        /// <inheritdoc />
-        public bool UpdateFormLayoutName(string org, string app, string currentName, string newName)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string curFilePath = _settings.GetFormLayoutPath(org, app, developer, currentName);
-            string newFilePath = _settings.GetFormLayoutPath(org, app, developer, newName);
-            if (File.Exists(newFilePath) || !File.Exists(curFilePath))
-            {
-                return false;
-            }
-
-            File.Move(curFilePath, newFilePath);
-            return true;
-        }
-
         /// <summary>
         /// Save rule handler file to disk
         /// </summary>

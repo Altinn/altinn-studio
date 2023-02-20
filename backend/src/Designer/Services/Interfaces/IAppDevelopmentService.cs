@@ -41,7 +41,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="layoutSetName">Name of layoutset. Is null of app does not use layoutset</param>
         /// <param name="layoutName">Name of layout file</param>
         /// <returns></returns>
-        public Task DeleteFormLayout(string org, string app, string developer, string layoutSetName, string layoutName);
+        public void DeleteFormLayout(string org, string app, string developer, string layoutSetName, string layoutName);
+
+        /// <summary>
+        /// Updates the name of a layout file
+        /// </summary>
+        /// <param name="org">Identifier for organisation</param>
+        /// <param name="app">Identifier for application</param>
+        /// <param name="developer">Identifier for app-developer</param>
+        /// <param name="layoutSetName">Name of layoutset. Is null of app does not use layoutset</param>
+        /// <param name="layoutName">Name of layout file</param>
+        /// <param name="newName">The new name of the layout file</param>
+        public void UpdateFormLayoutName(string org, string app, string developer, string layoutSetName, string layoutName, string newName);
 
         /// <summary>
         /// Gets LayoutSettings for layoutset. Use null as layoutSetName for apps that does not use layoutset.

@@ -86,7 +86,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 await _appDevelopmentService.SaveFormLayout(org, app, developer, null, layoutName, formLayout);
-                return Ok("Layout settings successfully saved.");
+                return Ok("Layout successfully saved.");
             }
             catch (FileNotFoundException exception)
             {
@@ -110,7 +110,79 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 await _appDevelopmentService.DeleteFormLayout(org, app, developer, null, layoutName);
+                return Ok("Layout successfully deleted.");
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
+        }
+
+        /// <summary>
+        /// Update a form layout name
+        /// </summary>
+        /// <param name="newName">The new name of the form layout.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutName">The current name of the form layout</param>
+        /// <returns>A success message if the save was successful</returns>
+        [HttpPost]
+        [Route("form-layout-name/{layoutName}")]
+        public async Task<IActionResult> UpdateFormLayoutName(string org, string app, string layoutName, [FromBody] string newName)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                await _appDevelopmentService.UpdateFormLayoutName(org, app, developer, null, layoutName, newName);
+                return Ok("Layout name successfully changed.");
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
+        }
+
+        /// <summary>
+        /// Saves the layout settings for an app without layoutsets
+        /// </summary>
+        /// <param name="layoutSettings">The data to be saved</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>A success message if the save was successful</returns>
+        [HttpPost]
+        [Route("layout-settings")]
+        public async Task<IActionResult> SaveLayoutSettings(string org, string app, [FromBody] LayoutSettings layoutSettings)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, null);
                 return Ok("Layout settings successfully saved.");
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
+        }
+
+        /// <summary>
+        /// Gets the layout settings for an app without layoutSets
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The content of the settings file</returns>
+        [HttpGet]
+        [Route("layout-settings")]
+        public async Task<ActionResult<LayoutSettings>> GetLayoutSettings(string org, string app)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                LayoutSettings layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, null);
+                return Ok(layoutSettings);
             }
             catch (FileNotFoundException exception)
             {
@@ -161,73 +233,6 @@ namespace Altinn.Studio.Designer.Controllers
             catch (IOException)
             {
                 return BadRequest("Could not save rule handler");
-            }
-        }
-
-        /// <summary>
-        /// Update a form layout name
-        /// </summary>
-        /// <param name="newName">The new name of the form layout.</param>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutName">The current name of the form layout</param>
-        /// <returns>A success message if the save was successful</returns>
-        [HttpPost]
-        [Route("form-layout-name/{layoutName}")]
-        public IActionResult UpdateFormLayoutName(string org, string app, string layoutName, [FromBody] string newName)
-        {
-            if (_repository.UpdateFormLayoutName(org, app, layoutName, newName))
-            {
-                return Ok("From layout name successfully updated.");
-            }
-
-            return BadRequest("Form layout name could not be updated.");
-        }
-
-        /// <summary>
-        /// Saves the layout settings for an app without layoutsets
-        /// </summary>
-        /// <param name="layoutSettings">The data to be saved</param>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>A success message if the save was successful</returns>
-        [HttpPost]
-        [Route("layout-settings")]
-        public async Task<IActionResult> SaveLayoutSettings(string org, string app, [FromBody] LayoutSettings layoutSettings)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            try
-            {
-                await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, null);
-                return Ok("Layout settings successfully saved.");
-            }
-            catch (FileNotFoundException exception)
-            {
-                return NotFound(exception.Message);
-            }
-        }
-
-        /// <summary>
-        /// Gets the layout settings for an app without layoutSets
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The content of the settings file</returns>
-        [HttpGet]
-        [Route("layout-settings")]
-        public async Task<ActionResult<LayoutSettings>> GetLayoutSettings(string org, string app)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            try
-            {
-                LayoutSettings layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, null);
-                return Ok(layoutSettings);
-            }
-            catch (FileNotFoundException exception)
-            {
-                return NotFound(exception.Message);
             }
         }
 

@@ -242,26 +242,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         string GetRuleHandler(string org, string app);
 
         /// <summary>
-        /// Save the JSON form layout to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="formLayout">The form layout name</param>
-        /// <param name="content">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveFormLayout(string org, string app, string formLayout, string content);
-
-        /// <summary>
-        /// Updates a formlayout json name
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="currentName">Current form layout name</param>
-        /// <param name="newName">The new form layout name</param>
-        /// <returns>A boolean indicating if updating was ok</returns>
-        bool UpdateFormLayoutName(string org, string app, string currentName, string newName);
-
-        /// <summary>
         /// Gets the widget settings for an app
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

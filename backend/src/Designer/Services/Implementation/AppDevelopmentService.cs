@@ -60,16 +60,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task DeleteFormLayout(string org, string app, string developer, string layoutSetName, string layoutName)
+        public void DeleteFormLayout(string org, string app, string developer, string layoutSetName, string layoutName)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                await altinnAppGitRepository.DeleteLayout(layoutSetName, layoutName);
+                altinnAppGitRepository.DeleteLayout(layoutSetName, layoutName);
             }
 
-            await altinnAppGitRepository.DeleteLayout(null, layoutName);
+            altinnAppGitRepository.DeleteLayout(null, layoutName);
+        }
+
+        /// <inheritdoc />
+        public void UpdateFormLayoutName(string org, string app, string developer, string layoutSetName, string layoutName, string newName)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, layoutName, newName);
+            }
+
+            altinnAppGitRepository.UpdateFormLayoutName(null, layoutName, newName);
         }
 
         /// <inheritdoc />
