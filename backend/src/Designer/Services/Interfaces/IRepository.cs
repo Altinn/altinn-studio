@@ -130,12 +130,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         void UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName);
 
         /// <summary>
-        /// Returns a list of all organisations present in the local repository
-        /// </summary>
-        /// <returns>A list of all organisations</returns>
-        IList<OrgConfiguration> GetOwners();
-
-        /// <summary>
         /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>

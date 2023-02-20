@@ -875,31 +875,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a list of all organisations present in the local repository
-        /// </summary>
-        /// <returns>A list of all organisations</returns>
-        public IList<OrgConfiguration> GetOwners()
-        {
-            List<OrgConfiguration> organisations = new List<OrgConfiguration>();
-
-            string[] organisationDirectories = null;
-
-            organisationDirectories = Directory.GetDirectories(_settings.RepositoryLocation);
-
-            foreach (string organisationDirectory in organisationDirectories)
-            {
-                string filename = organisationDirectory + "/" + Path.GetFileName(organisationDirectory) + "/config.json";
-                if (File.Exists(filename))
-                {
-                    string textData = File.ReadAllText(filename);
-                    organisations.Add(JsonConvert.DeserializeObject<OrgConfiguration>(textData));
-                }
-            }
-
-            return organisations;
-        }
-
-        /// <summary>
         /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
