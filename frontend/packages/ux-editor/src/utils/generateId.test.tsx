@@ -17,7 +17,7 @@ describe('generateComponentId', () => {
         },
       },
       order: {
-        container: ['Input-1bd34'],
+        container1: ['Input-1bd34'],
       },
     },
     layout2: {
@@ -34,7 +34,7 @@ describe('generateComponentId', () => {
         },
       },
       order: {
-        container: ['Input-abfr34'],
+        container2: ['Input-abfr34'],
       },
     },
   };
@@ -43,6 +43,13 @@ describe('generateComponentId', () => {
     expect(newId.startsWith('Input')).toBeTruthy();
     expect(layouts.layout1.components[newId]).toBeUndefined();
     expect(layouts.layout2.components[newId]).toBeUndefined();
+  });
+
+  it('should generate unique component id for group component', () => {
+    const newId = generateComponentId('Group', layouts);
+    expect(newId.startsWith('Group')).toBeTruthy();
+    expect(layouts.layout1.containers[newId]).toBeUndefined();
+    expect(layouts.layout2.containers[newId]).toBeUndefined();
   });
 });
 
