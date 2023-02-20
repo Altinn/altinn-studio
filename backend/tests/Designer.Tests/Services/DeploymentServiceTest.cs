@@ -76,7 +76,7 @@ namespace Designer.Tests.Services
                 It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
 
             DeploymentService deploymentService = new DeploymentService(
-                new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
+                GetAzureDevOpsSettings(),
                 azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
@@ -110,7 +110,7 @@ namespace Designer.Tests.Services
             _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
 
             DeploymentService deploymentService = new DeploymentService(
-                new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
+                GetAzureDevOpsSettings(),
                 new Mock<IAzureDevOpsBuildClient>().Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
@@ -138,7 +138,7 @@ namespace Designer.Tests.Services
                 It.IsAny<DeploymentEntity>())).Returns(Task.CompletedTask);
 
             DeploymentService deploymentService = new DeploymentService(
-                new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
+                GetAzureDevOpsSettings(),
                 new Mock<IAzureDevOpsBuildClient>().Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
