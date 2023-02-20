@@ -5,7 +5,6 @@ import { AppDeploymentActions } from '../../../sharedResources/appDeployment/app
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch } from 'react-redux';
 import type {
-  ICreateAppDeploymentEnvObject,
   ICreateAppDeploymentErrors,
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
@@ -17,7 +16,6 @@ import { DeployDropdown } from './deploy/DeployDropdown';
 
 interface IAppDeploymentComponentProps {
   envName: string;
-  envObj: ICreateAppDeploymentEnvObject;
   deploymentList?: IEnvironmentItem;
   urlToApp?: string;
   urlToAppLinkTxt?: string;
@@ -44,7 +42,6 @@ export const AppDeploymentComponent = ({
   deploymentList,
   deployPermission,
   envName,
-  envObj,
   language,
   releases,
   urlToApp,
@@ -71,7 +68,7 @@ export const AppDeploymentComponent = ({
     dispatch(
       AppDeploymentActions.createAppDeployment({
         tagName: selectedImageTag,
-        envObj,
+        envName,
       })
     );
   };

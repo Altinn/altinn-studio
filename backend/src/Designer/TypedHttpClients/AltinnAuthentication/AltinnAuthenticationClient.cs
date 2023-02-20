@@ -57,13 +57,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
              */
             HttpRequestMessage message = new HttpRequestMessage
             {
-                RequestUri = new Uri($"{uri.Scheme}://{uri.Host}/{_platformSettings.ApiAuthenticationConvertUri}")
+                RequestUri = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}/{_platformSettings.ApiAuthenticationConvertUri}")
             };
 
             HttpResponseMessage response = await _httpClient.SendAsync(message);
 
             _logger.LogInformation($"//AltinnAuthenticationClient // ConvertTokenAsync // Response: {response}");
-            return await response.Content.ReadAsAsync<string>();
+            var outputToken = await response.Content.ReadAsAsync<string>();
+            return outputToken;
         }
     }
 }

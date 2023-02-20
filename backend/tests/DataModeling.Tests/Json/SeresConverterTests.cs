@@ -47,14 +47,14 @@ namespace DataModeling.Tests.Json
             XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
         }
 
-        private static async Task<XmlSchema> ConvertJsonSchema(string jsonPath)
+        private static Task<XmlSchema> ConvertJsonSchema(string jsonPath)
         {
             var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(jsonPath);
             var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
             var actualXsd = converter.Convert(jsonSchema);
 
-            return actualXsd;
+            return Task.FromResult(actualXsd);
         }
 
         private static async Task<string> Serialize(XmlSchema actualXsd)

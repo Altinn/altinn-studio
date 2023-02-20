@@ -56,7 +56,7 @@ namespace DataModeling.Tests
         }
 
         [Fact]
-        public async Task JsonModel_SeresBasic_ShouldValidate()
+        public Task JsonModel_SeresBasic_ShouldValidate()
         {
             var json = SharedResourcesHelper.LoadTestDataAsString(SERESBASIC_JSON_RESOURCE);
             var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(SERESBASIC_JSON_SCHEMA_RESOURCE);
@@ -65,6 +65,7 @@ namespace DataModeling.Tests
             var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { OutputFormat = OutputFormat.Detailed });
 
             validationResults.IsValid.Should().BeTrue();
+            return Task.CompletedTask;
         }
 
         [Fact]

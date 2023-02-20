@@ -14,8 +14,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         /// <param name="org">Organisation</param>
         /// <param name="app">Application</param>
         /// <param name="policyFile">PolicyFile</param>
-        /// <param name="environmentModel">EnvironmentModel</param>
+        /// <param name="envName">Environment Name</param>
         /// <returns></returns>
-        Task SavePolicy(string org, string app, string policyFile, EnvironmentModel environmentModel);
+        Task SavePolicy(string org, string app, string policyFile, string envName);
     }
 }

@@ -14,12 +14,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Organisation</param>
         /// <param name="app">Application</param>
         /// <param name="fullCommitId">The full commit SHA</param>
-        /// <param name="deploymentEnvironment">EnvironmentModel</param>
+        /// <param name="envName">Environment name</param>
         /// <returns></returns>
         Task UpdateApplicationAuthorizationPolicyAsync(
             string org,
             string app,
             string fullCommitId,
-            EnvironmentModel deploymentEnvironment);
+            string envName);
     }
 }

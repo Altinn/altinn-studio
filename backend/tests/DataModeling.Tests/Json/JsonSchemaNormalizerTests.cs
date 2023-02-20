@@ -38,7 +38,7 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model/JsonSchema/General/SimpleSequence.json")]
         [InlineData(@"Model/JsonSchema/General/SimpleTypeList.json")]
         [InlineData(@"Model/JsonSchema/General/SimpleTypeRestrictions.json")]
-        public async Task Normalize_NoNormalization_ShouldEqualSourceSchema(string jsonSchemaTestdata)
+        public Task Normalize_NoNormalization_ShouldEqualSourceSchema(string jsonSchemaTestdata)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -51,6 +51,7 @@ namespace DataModeling.Tests.Json
             var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement) });
 
             normalizedJsonSchemaText.Should().BeEquivalentTo(jsonSchemaText);
+            return Task.CompletedTask;
         }
 
         [Theory]
@@ -62,7 +63,7 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model/JsonSchema/Normalizer/normalize-content-no-common-keywords.json", @"Model/JsonSchema/Normalizer/normalize-content-no-common-keywords-expected.json")]
         [InlineData(@"Model/JsonSchema/Normalizer/normalize-collection.json", @"Model/JsonSchema/Normalizer/normalize-collection-expected.json")]
         [InlineData(@"Model/JsonSchema/Normalizer/normalize-keyed-collection.json", @"Model/JsonSchema/Normalizer/normalize-keyed-collection-expected.json")]
-        public async Task Normalize_WithNormalization_ShouldRemoveSingleAllOfs(string jsonSchemaTestdata, string expectedNormalizedSchemaTestdata)
+        public Task Normalize_WithNormalization_ShouldRemoveSingleAllOfs(string jsonSchemaTestdata, string expectedNormalizedSchemaTestdata)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -78,6 +79,7 @@ namespace DataModeling.Tests.Json
             var json = JsonSerializer.Serialize(normalizedJsonSchema, new JsonSerializerOptions { WriteIndented = true });
 
             normalizedJsonSchemaText.Should().BeEquivalentTo(expectedNormalizedJsonSchemaText);
+            return Task.CompletedTask;
         }
     }
 }

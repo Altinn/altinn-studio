@@ -27,7 +27,7 @@ namespace Altinn.Studio.DataModeling.Utils
         /// Concept for finding schema is ported from internal method that library is using for finding subschemas.
         /// https://github.com/gregsdennis/json-everything/blob/master/JsonSchema/JsonSchema.cs
         /// </summary>
-        private static JsonSchema FindSubschema(this JsonSchema jsonSchema, JsonPointer pointer)
+        private static JsonSchema? FindSubschema(this JsonSchema jsonSchema, JsonPointer pointer)
         {
             object resolvable = jsonSchema;
             for (var i = 0; i < pointer.Segments.Length; i++)

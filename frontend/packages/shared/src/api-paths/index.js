@@ -60,6 +60,7 @@ export const orgsListPath = () => '/designer/api/orgs'; // Get
 export const appReleasesPath = (org, app) => `/designer/api/${org}/${app}/releases`;
 export const deploymentsPath = (org, app) => `/designer/api/${org}/${app}/deployments`;
 export const deployPermissionsPath = (org, app) => `/designer/api/${org}/${app}/deployments/permissions`;
+export const environmentsConfigPath = () => `/designer/api/environments`;
 
 // Repositories
 export const abortmergePath = (org, app) => `/designer/api/repos/repo/${org}/${app}/abort-merge`;

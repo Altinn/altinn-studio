@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ILogger<ApplicationMetadataService> _logger;
         private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
         private readonly ServiceRepositorySettings _serviceRepositorySettings;
-        private EnvironmentModel _deploymentEnvironment;
+        private string _envName;
         private string _shortCommitId;
         private string _org;
         private string _app;
@@ -53,11 +53,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string org,
             string app,
             string shortCommitId,
-            EnvironmentModel deploymentEnvironment)
+            string envName)
         {
             _org = org;
             _app = app;
-            _deploymentEnvironment = deploymentEnvironment;
+            _envName = envName;
             _shortCommitId = shortCommitId;
 
             Application applicationFromRepository = await GetApplicationMetadataFileFromRepository();
@@ -97,7 +97,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
-                return await _storageAppMetadataClient.GetApplicationMetadata(_org, _app, _deploymentEnvironment);
+                return await _storageAppMetadataClient.GetApplicationMetadata(_org, _app, _envName);
             }
             catch (HttpRequestWithStatusException e)
             {
@@ -119,14 +119,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             applicationFromRepository.Id = $"{_org}/{_app}";
             applicationFromRepository.VersionId = _shortCommitId;
 
-            await _storageAppMetadataClient.CreateApplicationMetadata(_org, _app, applicationFromRepository, _deploymentEnvironment);
+            await _storageAppMetadataClient.CreateApplicationMetadata(_org, _app, applicationFromRepository, _envName);
         }
 
         private async Task UpdateApplicationMetadata(Application applicationFromRepository)
         {
             applicationFromRepository.VersionId = _shortCommitId;
 
-            await _storageAppMetadataClient.UpdateApplicationMetadata(_org, _app, applicationFromRepository, _deploymentEnvironment);
+            await _storageAppMetadataClient.UpdateApplicationMetadata(_org, _app, applicationFromRepository, _envName);
         }
     }
 }

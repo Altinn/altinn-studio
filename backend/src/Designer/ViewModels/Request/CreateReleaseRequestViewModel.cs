@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
-
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.ViewModels.Request

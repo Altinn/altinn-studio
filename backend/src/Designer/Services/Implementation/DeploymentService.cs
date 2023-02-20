@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
@@ -11,7 +10,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -27,6 +25,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
         private readonly IApplicationInformationService _applicationInformationService;
+        private readonly IEnvironmentsService _environmentsService;
 
         /// <summary>
         /// Constructor
@@ -37,6 +36,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             IDeploymentRepository deploymentRepository,
             IReleaseRepository releaseRepository,
+            IEnvironmentsService environmentsService,
             IApplicationInformationService applicationInformationService)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
@@ -44,6 +44,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _releaseRepository = releaseRepository;
             _applicationInformationService = applicationInformationService;
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
+            _environmentsService = environmentsService;
             _httpContext = httpContextAccessor.HttpContext;
         }
 
@@ -53,13 +54,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             DeploymentEntity deploymentEntity = new DeploymentEntity();
             deploymentEntity.PopulateBaseProperties(org, app, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
-            deploymentEntity.EnvironmentName = deployment.Environment.Name;
+            deploymentEntity.EnvName = deployment.EnvName;
 
             ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(org, app, deploymentEntity.TagName);
 
             await _applicationInformationService
-                .UpdateApplicationInformationAsync(org, app, release.TargetCommitish, deployment.Environment);
-            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.Environment.Hostname);
+                .UpdateApplicationInformationAsync(org, app, release.TargetCommitish, deployment.EnvName);
+            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.EnvName);
 
             deploymentEntity.Build = new BuildEntity
             {
@@ -96,15 +97,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task<Build> QueueDeploymentBuild(
             ReleaseEntity release,
             DeploymentEntity deploymentEntity,
-            string environmentHostname)
+            string envName)
         {
             QueueBuildParameters queueBuildParameters = new QueueBuildParameters
             {
                 AppCommitId = release.TargetCommitish,
                 AppOwner = deploymentEntity.Org,
                 AppRepo = deploymentEntity.App,
-                AppEnvironment = deploymentEntity.EnvironmentName,
-                Hostname = environmentHostname,
+                AppEnvironment = deploymentEntity.EnvName,
+                Hostname = await _environmentsService.GetHostNameByEnvName(envName),
                 TagName = deploymentEntity.TagName
             };
 

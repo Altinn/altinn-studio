@@ -1,0 +1,22 @@
+{
+  "environments": [
+    {
+      "platformUrl": "http://host.docker.internal:6161",
+      "appsUrl": "http://host.docker.internal:6161",
+      "hostname": "altinn-mock:6161",
+      "appPrefix": "apps",
+      "platformPrefix": "platform",
+      "name": "production",
+      "type": "production"
+    },
+    {
+      "platformUrl": "http://host.docker.internal:6161",
+      "appsUrl": "http://host.docker.internal:6161",
+      "hostname": "altinn-mock:6161",
+      "appPrefix": "apps",
+      "platformPrefix": "platform",
+      "name": "tt02",
+      "type": "test"
+    }
+  ]
+}

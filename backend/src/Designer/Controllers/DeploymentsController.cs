@@ -90,7 +90,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
         /// <param name="createDeployment">Release model</param>
-        /// <returns>Created release</returns>
+        /// <returns>Created deployment</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
@@ -100,7 +100,6 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return BadRequest(ModelState);
             }
-
             return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel()));
         }
     }

@@ -29,9 +29,9 @@ namespace Designer.Tests.Services
             // Arrange
             HttpContext httpContext = GetHttpContextForTestUser("testUser");
             Mock<IAltinnStorageTextResourceClient> storageClientMock = new Mock<IAltinnStorageTextResourceClient>();
-            storageClientMock.Setup(s => s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<EnvironmentModel>()))
+            storageClientMock.Setup(s => s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
-            storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<EnvironmentModel>()))
+            storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
               .Returns(Task.FromResult((StorageInterface.TextResource)null));
 
             TextResourceService sut = GetServiceForTest(storageClientMock);
@@ -42,7 +42,7 @@ namespace Designer.Tests.Services
             // Assert
             storageClientMock.Verify(
                 s =>
-                s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<EnvironmentModel>()),
+                s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()),
                 Times.Exactly(2));
         }
 
@@ -52,9 +52,9 @@ namespace Designer.Tests.Services
             // Arrange
             HttpContext httpContext = GetHttpContextForTestUser("testUser");
             Mock<IAltinnStorageTextResourceClient> storageClientMock = new Mock<IAltinnStorageTextResourceClient>();
-            storageClientMock.Setup(s => s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<EnvironmentModel>()))
+            storageClientMock.Setup(s => s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
-            storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<EnvironmentModel>()))
+            storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
               .Returns(Task.FromResult((StorageInterface.TextResource)null));
 
             TextResourceService sut = GetServiceForTest(storageClientMock);
@@ -65,7 +65,7 @@ namespace Designer.Tests.Services
             // Assert
             storageClientMock.Verify(
                 s =>
-                s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<EnvironmentModel>()),
+                s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()),
                 Times.Once);
         }
 
@@ -76,7 +76,7 @@ namespace Designer.Tests.Services
             HttpContext httpContext = GetHttpContextForTestUser("testUser");
             Mock<IAltinnStorageTextResourceClient> storageClientMock = new Mock<IAltinnStorageTextResourceClient>();
 
-            storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<EnvironmentModel>()))
+            storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
               .Returns(Task.FromResult((StorageInterface.TextResource)null));
 
             TextResourceService sut = GetServiceForTest(storageClientMock);
@@ -87,7 +87,7 @@ namespace Designer.Tests.Services
             // Assert
             storageClientMock.Verify(
                 s =>
-                s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<EnvironmentModel>()),
+                s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()),
                 Times.Never);
         }
 

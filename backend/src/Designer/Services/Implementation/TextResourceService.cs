@@ -45,7 +45,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateTextResourcesAsync(string org, string app, string shortCommitId, EnvironmentModel environmentModel)
+        public async Task UpdateTextResourcesAsync(string org, string app, string shortCommitId, string envName)
         {
             string textResourcesPath = GetTextResourceDirectoryPath();
             List<FileSystemObject> folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
@@ -72,24 +72,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         return;
                     }
 
-                    PlatformStorageModels.TextResource textResourceStorage = await GetTextResourceFromStorage(org, app, content.Language, environmentModel);
+                    PlatformStorageModels.TextResource textResourceStorage = await GetTextResourceFromStorage(org, app, content.Language, envName);
                     if (textResourceStorage == null)
                     {
-                        await _storageTextResourceClient.Create(org, app, content, environmentModel);
+                        await _storageTextResourceClient.Create(org, app, content, envName);
                     }
                     else
                     {
-                        await _storageTextResourceClient.Update(org, app, content, environmentModel);
+                        await _storageTextResourceClient.Update(org, app, content, envName);
                     }
                 });
             }
         }
 
-        private async Task<PlatformStorageModels.TextResource> GetTextResourceFromStorage(string org, string app, string language, EnvironmentModel environmentModel)
+        private async Task<PlatformStorageModels.TextResource> GetTextResourceFromStorage(string org, string app, string language, string envName)
         {
             try
             {
-                return await _storageTextResourceClient.Get(org, app, language, environmentModel);
+                return await _storageTextResourceClient.Get(org, app, language, envName);
             }
             catch (HttpRequestWithStatusException e)
             {
