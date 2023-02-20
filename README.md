@@ -1,6 +1,7 @@
 ## Local testing of apps
 
-These are some of the required steps, tips and tricks when it comes to running an app on a machine. The primary goal is to be able to iterate over changes and verifying them without needing to deploy the app to the test environment.
+These are some of the required steps, tips and tricks when it comes to running an app on a machine. The primary goal is
+to be able to iterate over changes and verifying them without needing to deploy the app to the test environment.
 
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
@@ -11,25 +12,27 @@ These are some of the required steps, tips and tricks when it comes to running a
 1. Newest [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
 2. Newest [Git](https://git-scm.com/downloads)
 3. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
-    - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
+    - Also
+      install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (
+      f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
 4. [Docker Desktop](https://www.docker.com/products/docker-desktop) (Linux users can also use native Docker)
 
 ### Setup
 
-1. Clone the altinn-studio repository to a local folder
+1. Clone the `app-localtest` repository to a local folder
    ```shell
    git clone https://github.com/Altinn/app-localtest
    cd app-localtest
    ```
 
-2. Build and run the containers in the background. This mode supports running one app at a time. If you need to run 
-   multiple apps at once, remove `--profile localtest` from the command and follow the  instructions below to run 
+2. Build and run the containers in the background. This mode supports running one app at a time. If you need to run
+   multiple apps at once, remove `--profile localtest` from the command and follow the instructions below to run
    LocalTest locally outside Docker.
 
    ```shell
    docker compose --profile localtest up -d --build
    ```
-   
+
    Note: Using profiles requires docker-compose version [1.28.0](https://docs.docker.com/compose/release-notes/#1280)
    or later. If your version does not support profiles and you prefer to run localtest in Docker, make sure to follow
    [the instructions to install more a recent version](https://docs.docker.com/engine/install/) or comment out
@@ -45,7 +48,33 @@ The app and local platform services are now running locally. The app can be acce
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.
 
+### Changing configuration
+
+The Docker Compose config can be changed with local environment variables. There is a
+template file for the `.env` file [here](./.env.template), rename it to `.env` and
+uncomment some variables that you want different values for.
+
+Sometimes the local environment have another service running on port 80, so you might need to change this.
+
+```dotenv
+ALTINN3LOCAL_PORT=80
+```
+
+If you want to see the storage files on disk (instead of reading them through the browser), change this to a local
+path on your computer (ensure that it exists)
+
+```dotenv
+ALTINN3LOCALSTORAGE_PATH=C:/AltinnPlatformLocal/
+```
+
+If you want to use another domain than `local.altinn.cloud` for local testing you could do that this way:
+
+```dotenv
+TEST_DOMAIN=local.altinn.cloud
+```
+
 ### Multiple apps at the same time (running LocalTest locally)
+
 The setup described above (LocalTest running in Docker) currently only supports one app at a time. If you find
 yourself needing to run multiple apps at the same time, or if you need to debug or develop LocalTest, a local setup is
 preferred.
@@ -58,6 +87,7 @@ The LocalTest application acts as an emulator of the Altinn 3 platform services.
 authorization and storage. Everything your apps will need to run locally.
 
 Settings (under `LocalPlatformSettings`):
+
 - `LocalAppMode` - (default `file`) If set to `http`, LocalTest will find the active app configuration and policy.xml
   using apis exposed on `LocalAppUrl`. (note that this is a new setting needs to be added manually under
   `LocalPlatformSettings`, it might also require updates to altinn dependencies for your apps in order to support
@@ -81,14 +111,15 @@ careful not to commit developer specific changes back to the repository.
    ```bash
    dotnet user-secrets set "LocalPlatformSettings:AppRepositoryBasePath" "C:\Repos"
    ```
-   Run the command for each setting you want to change.
+  Run the command for each setting you want to change.
 - Alternatively edit the appsettings.json file directly:
-   - Open `appsettings.json` in the `LocalTest` folder in an editor, for example in Visual Studio Code
-   - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk.
-   - Change other settings as needed.
-   - Save the file.
+    - Open `appsettings.json` in the `LocalTest` folder in an editor, for example in Visual Studio Code
+    - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk.
+    - Change other settings as needed.
+    - Save the file.
 
 Finally, start the local platform services (make sure you are in the `/src` folder)
+
 ```bash
 cd /src
 dotnet run
@@ -96,23 +127,31 @@ dotnet run
 
 ### Changing test data
 
-In some cases your application might differ from the default setup and require custom changes to the test data available.
+In some cases your application might differ from the default setup and require custom changes to the test data
+available.
 This section contains the most common changes.
 
 #### Adjust authentication level of logged in test user
 
-This would be required if your app requires a higher than default authentication level. You can also use this to give the user a lower authentication level if you want to test the app behaviour for those.
+This would be required if your app requires a higher than default authentication level. You can also use this to give
+the user a lower authentication level if you want to test the app behaviour for those.
+
 1. Open the `src/Controllers/HomeController.cs` in your preffered text editor or IDE.
 2. Find the function `LogInTestUser`
-3. Modify this line `claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));`,
-by exchanging `"2"` for a string containing your required authentication level.
+3. Modify this
+   line `claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));`,
+   by exchanging `"2"` for a string containing your required authentication level.
 4. Save and close the file
 5. Restart LocalTest
 
 #### Add a missing role for a test user
+
 This would be required if your app requires a role which none of the test users have.
-1. Identify the role list you need to modify by noting the userId of the user representing an entity, and the partyId of the entity you want to represent
-2. Find the correct `roles.json` file in `testdata/authorization/roles` by navigating to `User_{userID}\party_{partyId}\roles.json`
+
+1. Identify the role list you need to modify by noting the userId of the user representing an entity, and the partyId of
+   the entity you want to represent
+2. Find the correct `roles.json` file in `testdata/authorization/roles` by navigating
+   to `User_{userID}\party_{partyId}\roles.json`
 3. Add a new entry in the list for the role you require
 
   ```
@@ -121,5 +160,6 @@ This would be required if your app requires a role which none of the test users 
     "value": "[Insert role code here]"
   }
   ```
+
 4. Save and close the file
 5. Restart LocalTest
