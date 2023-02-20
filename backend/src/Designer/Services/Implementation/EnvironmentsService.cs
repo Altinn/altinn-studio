@@ -25,17 +25,17 @@ public class EnvironmentsService : IEnvironmentsService
     /// Initializes a new instance of the <see cref="EnvironmentsService"/> class.
     /// </summary>
     /// <param name="httpClient">System.Net.Http.HttpClient</param>
-    /// <param name="generalSettingsOptions">IOptionsMonitor of Type GeneralSettings</param>
+    /// <param name="generalSettingsOptions">GeneralSettings</param>
     /// <param name="memoryCache">The configured memory cache</param>
     /// <param name="logger">The configured logger</param>
     public EnvironmentsService(
         HttpClient httpClient,
-        IOptionsMonitor<GeneralSettings> generalSettingsOptions,
+        GeneralSettings generalSettingsOptions,
         IMemoryCache memoryCache,
         ILogger<EnvironmentsService> logger
     )
     {
-        _generalSettings = generalSettingsOptions.CurrentValue;
+        _generalSettings = generalSettingsOptions;
         _httpClient = httpClient;
         _cache = memoryCache;
         _logger = logger;

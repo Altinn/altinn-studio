@@ -380,9 +380,11 @@ namespace Designer.Tests.Services
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
 
-            IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
-            repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
+            var repoSettings = new ServiceRepositorySettings()
+            {
+                RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
+            };
 
             GiteaAPIWrapper service = new GiteaAPIWrapper(
                 repoSettings,

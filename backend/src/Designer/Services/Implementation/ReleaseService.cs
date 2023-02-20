@@ -37,7 +37,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="azureDevOpsBuildClient">IAzureDevOpsBuildClient</param>
         /// <param name="releaseRepository">IReleaseRepository</param>
-        /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
+        /// <param name="azureDevOpsOptions">AzureDevOpsSettings</param>
         /// <param name="logger">The logger.</param>
         public ReleaseService(
             IHttpContextAccessor httpContextAccessor,

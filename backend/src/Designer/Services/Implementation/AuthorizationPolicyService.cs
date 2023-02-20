@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="repositorySettings">IOptions of type ServiceRepositorySettings</param>
+        /// <param name="repositorySettings">ServiceRepositorySettings</param>
         /// <param name="giteaApiWrapper">IGitea</param>
         /// <param name="authorizationPolicyClient">IAltinnAuthorizationPolicyClient</param>
         public AuthorizationPolicyService(

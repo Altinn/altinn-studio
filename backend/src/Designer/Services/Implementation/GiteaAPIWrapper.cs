@@ -42,13 +42,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">The configured logger</param>
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
         public GiteaAPIWrapper(
-            IOptions<ServiceRepositorySettings> repositorySettings,
+            ServiceRepositorySettings repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             ILogger<GiteaAPIWrapper> logger,
             HttpClient httpClient)
         {
-            _settings = repositorySettings.Value;
+            _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
             _cache = memoryCache;
             _logger = logger;

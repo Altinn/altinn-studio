@@ -33,7 +33,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Constructor
         /// </summary>
         /// <param name="giteaApiWrapper">IGitea</param>
-        /// <param name="repositorySettings">IOptions of type ServiceRepositorySettings</param>
+        /// <param name="repositorySettings">ServiceRepositorySettings</param>
         /// <param name="logger">ILogger of type ApplicationMetadataService</param>
         /// <param name="storageAppMetadataClient">IAltinnStorageAppMetadataClient</param>
         public ApplicationMetadataService(
