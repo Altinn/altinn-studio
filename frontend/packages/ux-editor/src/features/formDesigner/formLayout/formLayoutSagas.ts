@@ -44,13 +44,15 @@ import {
 
 const selectCurrentLayout = (state: IAppState): IFormLayout =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
+const selectLayouts = (state: IAppState) => state.formDesigner.layout.layouts;
 
 function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentAction>): SagaIterator {
   try {
     let { containerId, position } = payload;
     const { org, app, component, callback } = payload;
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
-    const id: string = generateComponentId(component.type, currentLayout);
+    const layouts: IFormLayouts = yield select(selectLayouts);
+    const id: string = generateComponentId(component.type, layouts);
 
     if (!containerId) {
       // if not containerId set it to base-container

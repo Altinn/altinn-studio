@@ -1,28 +1,48 @@
-import { IFormLayout } from '../types/global';
+import { IFormLayouts } from '../types/global';
 import { generateComponentId, generateTextResourceId } from './generateId';
 
 describe('generateComponentId', () => {
-  const layout: IFormLayout = {
-    containers: {
-      container: {
-        index: 0,
-        itemType: 'CONTAINER',
+  const layouts: IFormLayouts = {
+    layout1: {
+      containers: {
+        container1: {
+          index: 0,
+          itemType: 'CONTAINER',
+        },
+      },
+      components: {
+        'Input-1bd34': {
+          id: 'Input-1bd34',
+          type: 'Input',
+        },
+      },
+      order: {
+        container: ['Input-1bd34'],
       },
     },
-    components: {
-      'Input-1bd34': {
-        id: 'Input-1bd34',
-        type: 'Input',
+    layout2: {
+      containers: {
+        container2: {
+          index: 0,
+          itemType: 'CONTAINER',
+        },
       },
-    },
-    order: {
-      container: ['Input-1bd34'],
+      components: {
+        'Input-abfr34': {
+          id: 'Input-abfr34',
+          type: 'Input',
+        },
+      },
+      order: {
+        container: ['Input-abfr34'],
+      },
     },
   };
-  it('should generate unique component id within provided layout', () => {
-    const newId = generateComponentId('Input', layout);
+  it('should generate unique component id within provided layouts', () => {
+    const newId = generateComponentId('Input', layouts);
     expect(newId.startsWith('Input')).toBeTruthy();
-    expect(layout.components[newId]).toBeUndefined();
+    expect(layouts.layout1.components[newId]).toBeUndefined();
+    expect(layouts.layout2.components[newId]).toBeUndefined();
   });
 });
 
