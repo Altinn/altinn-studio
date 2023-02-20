@@ -58,6 +58,14 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
                 throw new InvalidOperationException("PreserveCompilationContext should be set to true.");
             }
 
+            var assemblies =
+                DependencyContext.Default
+                    .RuntimeLibraries
+                    .Where(IsAltinnLibrary)
+                    .Where(library => library.RuntimeAssemblyGroups.Any() )
+                    .Select(x => x.Name);
+            Console.WriteLine(string.Join('\n', assemblies));
+
             return DependencyContext.Default
                 .RuntimeLibraries
                 .Where(IsAltinnLibrary)
