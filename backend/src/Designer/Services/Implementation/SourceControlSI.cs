@@ -38,14 +38,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="gitea">gitea.</param>
         /// <param name="logger">the log handler.</param>
         public SourceControlSI(
-            IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<GeneralSettings> generalSettings,
+            ServiceRepositorySettings repositorySettings,
+            GeneralSettings generalSettings,
             IDefaultFileFactory defaultFileFactory,
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
             ILogger<SourceControlSI> logger)
         {
-            _settings = repositorySettings.Value;
+            _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
             _gitea = gitea;
             _logger = logger;
