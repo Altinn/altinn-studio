@@ -5,10 +5,9 @@
     "prettier": "^2.8.4"
   },
   "scripts": {
-    "prepare": "husky install",
-    "prettier:format": "prettier -w ./frontend/**/**"
+    "prepare": "husky install"
   },
   "lint-staged": {
-    "prettier": "yarn prettier:format"
+    "*": "yarn prettier -w"
   }
 }
