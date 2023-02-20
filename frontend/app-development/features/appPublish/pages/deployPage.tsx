@@ -15,7 +15,6 @@ export function DeployPage() {
   const { org } = useParams();
   const dispatch = useAppDispatch();
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
-  const language: any = useAppSelector((state) => state.languageState.language);
 
   useEffect(() => {
     dispatch(ConfigurationActions.getOrgs());
@@ -23,7 +22,7 @@ export function DeployPage() {
   }, [dispatch]);
 
   const isLoading = (): boolean => {
-    return !orgs.allOrgs || !language;
+    return !orgs.allOrgs;
   };
 
   if (isLoading()) {
@@ -45,14 +44,9 @@ export function DeployPage() {
     !orgs.allOrgs[org].environments.length
   ) {
     return (
-      <InfoCard
-        headerText={t('app_publish.no_env_title')}
-        shadow={true}
-      >
+      <InfoCard headerText={t('app_publish.no_env_title')} shadow={true}>
         <div>{t('app_publish.no_env_1')}</div>
-        <div style={{ paddingTop: '2.4rem' }}>
-          {t('app_publish.no_env_2')}
-        </div>
+        <div style={{ paddingTop: '2.4rem' }}>{t('app_publish.no_env_2')}</div>
       </InfoCard>
     );
   }

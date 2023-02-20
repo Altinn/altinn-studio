@@ -12,7 +12,6 @@ import {
 import { useTranslation } from 'react-i18next';
 
 export interface IInformationPanelProvidedProps {
-  language?: any;
   anchorElement: any;
   selectedComponent: ComponentTypes;
   informationPanelOpen: boolean;
@@ -45,7 +44,7 @@ export const InformationPanelComponent = ({
         {getComponentHelperTextByComponentType(selectedComponent, t)}
       </div>
       <div className={classNames(classes.informationPanelText)}>
-        <InformationColored className={classes.informationIcon}/>
+        <InformationColored className={classes.informationIcon} />
         {!thirdPartyLibrary
           ? t('ux_editor.information_altinn_library')
           : t('ux_editor.information_third_party_library')}
@@ -60,5 +59,5 @@ export const InformationPanelComponent = ({
         </a>
       </div>
     </Popover>
-  )
+  );
 };

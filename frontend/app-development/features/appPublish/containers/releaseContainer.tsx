@@ -33,7 +33,6 @@ export function ReleaseContainer() {
   const repoStatus: IRepoStatusState = useAppSelector((state) => state.repoStatus);
   const handleMergeConflict: IHandleMergeConflict = useAppSelector((s) => s.handleMergeConflict);
 
-  const language: any = useAppSelector((state) => state.languageState.language);
   const { t } = useTranslation();
 
   const { org, app } = useParams();
@@ -51,7 +50,7 @@ export function ReleaseContainer() {
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
-  }, [dispatch, language, org, app]);
+  }, [dispatch, org, app]);
 
   function handlePopoverKeyPress(event: KeyboardEvent) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -91,10 +90,9 @@ export function ReleaseContainer() {
         )}
         <div>
           <div className={classes.cannotCreateReleaseTitle}>
-            {t(
-              'app_create_release_errors.fetch_release_failed',
-              { contactLink: 'mailto:tjenesteeier@altinn.no' }
-            )}
+            {t('app_create_release_errors.fetch_release_failed', {
+              contactLink: 'mailto:tjenesteeier@altinn.no',
+            })}
           </div>
           <div className={classes.cannotCreateReleaseSubTitle}>
             {t('app_create_release_errors.technical_error_code')}
@@ -232,39 +230,39 @@ export function ReleaseContainer() {
 
   return (
     <div className={classes.appReleaseWrapper}>
-        <div className={classes.versionHeader}>
-          <div className={classes.versionHeaderTitle}>{t('app_release.release_tab_versions')}</div>
-        </div>
-        <div className={classes.versionSubHeader}>
-          <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-          <Popover
-            className={classes.popover}
-            open={popoverOpenClick || popoverOpenHover}
-            trigger={
-              <Button
-                className={classes.appCreateReleaseStatusButton}
-                onClick={handlePopoverOpenClicked}
-                onMouseOver={handlePopoverOpenHover}
-                onMouseLeave={handlePopoverClose}
-                tabIndex={0}
-                onKeyPress={handlePopoverKeyPress}
-                icon={renderStatusIcon()}
-                size={ButtonSize.Small}
-                variant={ButtonVariant.Quiet}
-              />
-            }
-          >
-            {renderStatusMessage()}
-          </Popover>
-        </div>
-        <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
-        <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
-        <div className={classes.appReleaseHistory}>
-          {!!appReleases.releases.length &&
-            appReleases.releases.map((release: IRelease, index: number) => (
-              <ReleaseComponent key={index} release={release} />
-            ))}
-        </div>
+      <div className={classes.versionHeader}>
+        <div className={classes.versionHeaderTitle}>{t('app_release.release_tab_versions')}</div>
       </div>
+      <div className={classes.versionSubHeader}>
+        <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
+        <Popover
+          className={classes.popover}
+          open={popoverOpenClick || popoverOpenHover}
+          trigger={
+            <Button
+              className={classes.appCreateReleaseStatusButton}
+              onClick={handlePopoverOpenClicked}
+              onMouseOver={handlePopoverOpenHover}
+              onMouseLeave={handlePopoverClose}
+              tabIndex={0}
+              onKeyPress={handlePopoverKeyPress}
+              icon={renderStatusIcon()}
+              size={ButtonSize.Small}
+              variant={ButtonVariant.Quiet}
+            />
+          }
+        >
+          {renderStatusMessage()}
+        </Popover>
+      </div>
+      <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
+      <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
+      <div className={classes.appReleaseHistory}>
+        {!!appReleases.releases.length &&
+          appReleases.releases.map((release: IRelease, index: number) => (
+            <ReleaseComponent key={index} release={release} />
+          ))}
+      </div>
+    </div>
   );
 }

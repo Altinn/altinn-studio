@@ -104,13 +104,10 @@ export const AppDeploymentComponent = ({
     deployError &&
     deployError[0] &&
     deployError[0].errorMessage !== null;
-
   return (
     <div className={classes.mainContainer}>
       <div className={classes.headingContainer}>
-        <div className={classes.envTitle}>
-          {t('app_deploy.environment', { envName })}
-        </div>
+        <div className={classes.envTitle}>{t('app_deploy.environment', { envName })}</div>
         <div className={classes.gridItem}>
           {deploymentList &&
             deploymentList.getStatus.success === true &&
@@ -142,9 +139,7 @@ export const AppDeploymentComponent = ({
               <div className={classes.deploySpinnerGridItem}>
                 <AltinnIcon iconClass='fa fa-info-circle' iconColor='#000' iconSize='3.6rem' />
               </div>
-              <div>
-                {t('app_publish.missing_rights', { envName, orgName })}
-              </div>
+              <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
           )}
           {deploymentList && deploymentList.getStatus.success === true && deployPermission && (
@@ -175,7 +170,9 @@ export const AppDeploymentComponent = ({
           {showDeployFailedMessage && (
             <ErrorMessage
               message={t('app_deploy_messages.technical_error_1')}
-              code={t('app_deploy_messages.technical_error_code', { errorCode: deployError[0].errorCode })}
+              code={t('app_deploy_messages.technical_error_code', {
+                errorCode: deployError[0].errorCode,
+              })}
             />
           )}
         </div>
