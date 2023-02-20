@@ -1,5 +1,6 @@
 import { IFormLayouts } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import { ComponentTypes } from '../components';
 
 export const generateTextResourceId = (
   layoutName: string,
@@ -18,7 +19,12 @@ export const generateComponentId = (componentType: string, layouts: IFormLayouts
   while (existsInLayout) {
     componentId = `${componentType}-${generateRandomId(6)}`;
     layoutNames.forEach((layoutName) => {
-      existsInLayout = !!layouts[layoutName].components[componentId];
+      const layout = layouts[layoutName];
+      if (componentType === ComponentTypes.Group) {
+        existsInLayout = !!layout.containers[componentId];
+      } else {
+        existsInLayout = !!layout.components[componentId];
+      }
     });
   }
 

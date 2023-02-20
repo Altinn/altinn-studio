@@ -104,8 +104,8 @@ export function* watchAddFormComponentSaga(): SagaIterator {
 function* addFormContainerSaga({ payload }: PayloadAction<IAddFormContainerAction>): SagaIterator {
   try {
     const { container, positionAfterId, addToId, callback, destinationIndex, org, app } = payload;
-    const layout = yield select(selectCurrentLayout);
-    const id = generateComponentId('Group', layout);
+    const layouts = yield select(selectLayouts);
+    const id = generateComponentId('Group', layouts);
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
     let baseContainerId;
     if (Object.keys(currentLayout.order) && Object.keys(currentLayout.order).length > 0) {
