@@ -17,9 +17,9 @@ namespace Altinn.Studio.Designer.Configuration
         /// </summary>
         /// <param name="repositorySettings"> The service repository settings. </param>
         /// <param name="hostingEnvironment"> The hosting environment. </param>
-        public DefaultFileFactory(IOptions<ServiceRepositorySettings> repositorySettings, IWebHostEnvironment hostingEnvironment)
+        public DefaultFileFactory(ServiceRepositorySettings repositorySettings, IWebHostEnvironment hostingEnvironment)
         {
-            _settings = repositorySettings.Value;
+            _settings = repositorySettings;
             _hostingEnvironment = hostingEnvironment;
         }
 

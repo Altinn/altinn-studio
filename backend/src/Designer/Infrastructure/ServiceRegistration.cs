@@ -38,8 +38,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton(configuration);
 
-            services.AddSingleton<IReleaseRepository, ReleaseRepository>();
-            services.AddSingleton<IDeploymentRepository, DeploymentRepository>();
+            services.AddScoped<IReleaseRepository, ReleaseRepository>();
+            services.AddScoped<IDeploymentRepository, DeploymentRepository>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
