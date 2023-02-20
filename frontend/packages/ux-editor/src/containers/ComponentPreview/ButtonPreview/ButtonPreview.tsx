@@ -13,7 +13,7 @@ export interface ButtonPreviewProps {
 export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element => { 
 
   // Extract resource for norwegian language and assign it to language const.
-  const language = useSelector((state: IAppState) => state.appData.textResources.resources?.['nb']);
+  const textLanguage = useSelector((state: IAppState) => state.appData.textResources.resources?.['nb']);
  
   // Determine the type of the button, and then chose its color, text, and back/next button.
   const isNavigationButton = component.type === ComponentTypes.NavigationButtons;
@@ -27,11 +27,11 @@ export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element =>
   return (
     <div className={classes.root}>
       <Button variant={ButtonVariant.Filled} color={buttonColor}>
-        {getTextResource(buttonText, language)}
+        {getTextResource(buttonText, textLanguage)}
       </Button>
       {isNavigationButton && component.showBackButton && (
         <Button variant={ButtonVariant.Filled} color={buttonColor}>
-          {getTextResource(component.textResourceBindings?.next, language,)}
+          {getTextResource(component.textResourceBindings?.next, textLanguage,)}
         </Button>
       )}
     </div>
