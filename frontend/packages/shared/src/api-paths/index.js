@@ -20,7 +20,7 @@ export const datamodelAddXsdFromRepoPath = (org, app, filePath) => `/designer/ap
 
 // FormEditor
 export const ruleHandlerPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-handler`; // Get
-export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Get
+export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Post
 export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/widget-settings`; // Get
 export const ruleConfigPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-config`; // Get, Post
 export const layoutSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/layout-settings`; // Get, Post

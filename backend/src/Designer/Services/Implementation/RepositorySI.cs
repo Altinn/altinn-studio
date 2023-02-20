@@ -16,7 +16,6 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
@@ -139,17 +138,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Formatting.Indented);
             string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             File.WriteAllText(filePath, applicationMetadataAsJson, Encoding.UTF8);
-        }
-
-        /// <inheritdoc/>
-        public void UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName)
-        {
-            string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
-            string modelsFolderPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string filePath = modelsFolderPath + $"{modelName}.metadata.json";
-
-            Directory.CreateDirectory(modelsFolderPath);
-            File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
         }
 
         /// <inheritdoc/>
@@ -533,36 +521,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return filedata;
         }
 
-        /// <inheritdoc/>
-        public string GetJsonFormLayouts(string org, string app)
-        {
-            Dictionary<string, object> layouts = new Dictionary<string, dynamic>();
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-
-            // If FormLayout.json exists in app/ui => move it to app/ui/layouts (for backwards comp)
-            string filedata = string.Empty;
-            string formLayoutPath = _settings.GetOldFormLayoutPath(org, app, developer);
-            if (File.Exists(formLayoutPath))
-            {
-                filedata = File.ReadAllText(formLayoutPath, Encoding.UTF8);
-                DeleteOldFormLayoutJson(org, app, developer);
-                SaveFormLayout(org, app, "FormLayout", filedata);
-            }
-
-            string formLayoutsPath = _settings.GetFormLayoutsPath(org, app, developer);
-            if (Directory.Exists(formLayoutsPath))
-            {
-                foreach (string file in Directory.GetFiles(formLayoutsPath))
-                {
-                    string data = File.ReadAllText(file, Encoding.UTF8);
-                    string name = file.Replace(_settings.GetFormLayoutsPath(org, app, developer), string.Empty).Replace(".json", string.Empty);
-                    layouts.Add(name, JsonConvert.DeserializeObject<object>(data));
-                }
-            }
-
-            return JsonConvert.SerializeObject(layouts);
-        }
-
         /// <summary>
         /// Get the Json form model from disk for Dynamics
         /// </summary>
@@ -623,44 +581,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             File.Move(curFilePath, newFilePath);
             return true;
-        }
-
-        /// <inheritdoc />
-        public bool DeleteFormLayout(string org, string app, string formLayout)
-        {
-            string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), formLayout);
-            bool deleted = false;
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-                deleted = true;
-            }
-
-            return deleted;
-        }
-
-        /// <inheritdoc />
-        [Obsolete("Use SaveLayoutSettings in AltinnAppGitRepository instead.")]
-        public bool SaveLayoutSettings(string org, string app, string setting)
-        {
-            string filePath = _settings.GetLayoutSettingPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, setting, Encoding.UTF8);
-            return true;
-        }
-
-        /// <inheritdoc />
-        [Obsolete("Use GetLayoutSettings in AltinnAppGitRepository instead.")]
-        public string GetLayoutSettings(string org, string app)
-        {
-            string filePath = _settings.GetLayoutSettingPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string filedata = null;
-            if (File.Exists(filePath))
-            {
-                filedata = File.ReadAllText(filePath, Encoding.UTF8);
-            }
-
-            return filedata;
         }
 
         /// <summary>
@@ -1465,19 +1385,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel")
-        {
-            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + dataModelName + ".prefill.json";
-            string filedata = null;
-            if (File.Exists(filename))
-            {
-                filedata = File.ReadAllText(filename, Encoding.UTF8);
-            }
-
-            return filedata;
-        }
-
-        /// <inheritdoc/>
         public List<FileSystemObject> GetContents(string org, string repository, string path = "")
         {
             List<FileSystemObject> contents = new List<FileSystemObject>();
@@ -1573,15 +1480,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return dataTypeId;
-        }
-
-        private void DeleteOldFormLayoutJson(string org, string app, string developer)
-        {
-            string path = _settings.GetOldFormLayoutPath(org, app, developer);
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
         }
 
         /// <inheritdoc/>

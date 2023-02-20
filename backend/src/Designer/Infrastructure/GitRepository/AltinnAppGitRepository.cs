@@ -137,7 +137,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="xsd">String representing the Xsd to be saved.</param>
         /// <param name="fileName">The filename of the file to be saved excluding path.</param>
         /// <returns>A string containg the relative path to the file saved.</returns>
-        public async override Task<string> SaveXsd(string xsd, string fileName)
+        public override async Task<string> SaveXsd(string xsd, string fileName)
         {
             string filePath = Path.Combine(GetRelativeModelFolder(), fileName);
             await WriteTextByRelativePathAsync(filePath, xsd, true);
@@ -323,7 +323,28 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Returns the
+        /// Returns all the layouts for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <returns>A list of all layouts for a layoutset</returns>
+        public async Task<List<FormLayout>> GetFormLayouts(string layoutSetName)
+        {
+            List<FormLayout> formLayouts = new();
+            string[] layoutNames = GetLayoutNames(layoutSetName);
+
+            foreach (string layoutName in layoutNames)
+            {
+                string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+                string fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
+                FormLayout layout = System.Text.Json.JsonSerializer.Deserialize<FormLayout>(fileContent);
+                formLayouts.Add(layout);
+            }
+
+            return formLayouts;
+        }
+
+        /// <summary>
+        /// Returns the layout for a specific layoutset
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <param name="layoutName">The name of layoutfile</param>
@@ -341,6 +362,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 });
 
             return layout;
+        }
+
+        /// <summary>
+        /// Returns the layout for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="layoutName">The name of layoutfile</param>
+        /// <returns>The layout</returns>
+        public void DeleteLayout(string layoutSetName, string layoutName)
+        {
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+
+            DeleteFileByRelativePath(layoutFilePath);
         }
 
         /// <summary>

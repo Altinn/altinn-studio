@@ -5,7 +5,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -213,37 +212,6 @@ namespace Altinn.Studio.Designer.Controllers
             return NoContent();
         }
 
-        /// <summary>
-        /// Deletes datamodel by name
-        /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="repository">the repository</param>
-        /// <param name="modelName">The name of the data model.</param>
-        [HttpDelete]
-        [Route("do-not-use/deletedatamodel")]
-        [Obsolete]
-        public IActionResult DeleteDatamodel(string org, string repository, string modelName)
-        {
-            try
-            {
-                modelName = modelName.AsFileName();
-            }
-            catch
-            {
-                return BadRequest("Invalid model name value.");
-            }
-
-            if (_repository.DeleteMetadataForAttachment(org, repository, modelName))
-            {
-                string filePath = $"App/models/{modelName}";
-                _repository.DeleteData(org, repository, $"{filePath}.schema.json");
-                _repository.DeleteData(org, repository, $"{filePath}.xsd");
-                return Ok();
-            }
-
-            return BadRequest();
-        }
-
         private async Task<string> ReadRequestBodyContentAsync()
         {
             string content;
@@ -254,15 +222,6 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return content;
-        }
-
-        private static MemoryStream CopyFileStream(IFormFile thefile)
-        {
-            var memoryStream = new MemoryStream();
-            thefile.OpenReadStream().CopyTo(memoryStream);
-            memoryStream.Position = 0;
-
-            return memoryStream;
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
@@ -58,29 +57,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         string GetLanguageResource(string org, string app, string id);
 
         /// <summary>
-        /// Update text resource
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="currentName">The current name of the view</param>
-        /// <param name="newName">The new name of the view</param>
-        void UpdateViewNameTextResource(string org, string app, string currentName, string newName);
-
-        /// <summary>
         /// Gets the content of the ServiceModel as string
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The content of a service model (c# code and comments)</returns>
         string GetAppModel(string org, string app);
-
-        /// <summary>
-        /// Delete text resource
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name of the view</param>
-        void DeleteTextResource(string org, string app, string name);
 
         /// <summary>
         /// Stores the configuration for a given fileName
@@ -119,15 +101,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
         bool SaveRuleConfig(string org, string app, string resource);
-
-        /// <summary>
-        /// Updates the serviceMetadata
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="modelMetadata">The serviceMetadata.</param>
-        /// <param name="modelName">The name of the data model.</param>
-        void UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName);
 
         /// <summary>
         /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
@@ -217,15 +190,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         string GetAppLogic(string org, string app, string fileName);
 
         /// <summary>
-        /// Returns content of a resource file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="fileName">The file name</param>
-        /// <returns>The file content</returns>
-        string GetResourceFile(string org, string app, string fileName);
-
-        /// <summary>
         /// Saving an implementation file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -233,15 +197,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="fileName">The file name</param>
         /// <param name="fileContent">The file content</param>
         void SaveAppLogicFile(string org, string app, string fileName, string fileContent);
-
-        /// <summary>
-        /// Saving a resource file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="fileName">The file name</param>
-        /// <param name="fileContent">The file content</param>
-        void SaveResourceFile(string org, string app, string fileName, string fileContent);
 
         /// <summary>
         /// Save rule handler file
@@ -263,17 +218,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool SaveFile(string org, string app, string fileName, string fileContent);
 
         /// <summary>
-        /// Save app texts to resource files
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="texts">The texts to be saved</param>
-        /// <remarks>
-        /// Format of the dictionary is expedted to be : &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
-        /// </remarks>
-        void SaveServiceTexts(string org, string app, Dictionary<string, Dictionary<string, TextResourceElement>> texts);
-
-        /// <summary>
         /// Get XSD model from disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -288,23 +232,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Returns the Json Schema from file as a string.</returns>
         string GetJsonSchemaModel(string org, string app);
-
-        /// <summary>
-        /// Returns a given app resource embedded in the app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The name of the resource</param>
-        /// <returns>The content of the resource</returns>
-        byte[] GetServiceResource(string org, string app, string resource);
-
-        /// <summary>
-        /// Get the form layouts from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        string GetJsonFormLayouts(string org, string app);
 
         /// <summary>
         /// Get the rule handler Json form model from disk
@@ -333,32 +260,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="newName">The new form layout name</param>
         /// <returns>A boolean indicating if updating was ok</returns>
         bool UpdateFormLayoutName(string org, string app, string currentName, string newName);
-
-        /// <summary>
-        /// Removes a form layout from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="formLayout">The form layout to be deleted</param>
-        /// <returns>A boolean indicating if deleting was ok</returns>
-        bool DeleteFormLayout(string org, string app, string formLayout);
-
-        /// <summary>
-        /// Saves a layout setting file on disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="setting">The content of the setting file</param>
-        /// <returns>A boolean indicating if save was ok</returns>
-        bool SaveLayoutSettings(string org, string app, string setting);
-
-        /// <summary>
-        /// Gets the layout settings
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The content as string</returns>
-        string GetLayoutSettings(string org, string app);
 
         /// <summary>
         /// Gets the widget settings for an app
@@ -442,15 +343,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="languageId"> the language id</param>
         /// <param name="title"> new application title </param>
         void UpdateAppTitleInAppMetadata(string org, string app, string languageId, string title);
-
-        /// <summary>
-        /// Gets the prefill json file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="dataModelName">the data model name</param>
-        /// <returns></returns>
-        string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel");
 
         /// <summary>
         /// Create a new file in blob storage.
