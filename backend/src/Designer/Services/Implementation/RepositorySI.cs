@@ -27,7 +27,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class RepositorySI : IRepository
     {
-        private readonly IDefaultFileFactory _defaultFileFactory;
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -42,7 +41,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="repositorySettings">The settings for the app repository</param>
         /// <param name="generalSettings">The current general settings</param>
-        /// <param name="defaultFileFactory">The default factory</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="gitea">gitea</param>
         /// <param name="sourceControl">the source control</param>
@@ -52,7 +50,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public RepositorySI(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
-            IDefaultFileFactory defaultFileFactory,
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
             ISourceControl sourceControl,
@@ -60,7 +57,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ILogger<RepositorySI> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
-            _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings;
             _generalSettings = generalSettings;
             _httpContextAccessor = httpContextAccessor;

@@ -40,7 +40,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public SourceControlSI(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
-            IDefaultFileFactory defaultFileFactory,
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
             ILogger<SourceControlSI> logger)

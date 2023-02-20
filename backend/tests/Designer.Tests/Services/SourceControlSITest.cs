@@ -106,7 +106,6 @@ namespace Designer.Tests.Services
             SourceControlSI service = new SourceControlSI(
                 repoSettings,
                 new GeneralSettings(),
-                new Mock<IDefaultFileFactory>().Object,
                 httpContextAccessorMock.Object,
                 giteaMock.Object,
                 new Mock<ILogger<SourceControlSI>>().Object);

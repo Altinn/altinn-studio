@@ -327,7 +327,6 @@ namespace Designer.Tests.Services
             RepositorySI service = new RepositorySI(
                 repoSettings,
                 generalSettings,
-                new Mock<IDefaultFileFactory>().Object,
                 httpContextAccessorMock.Object,
                 new IGiteaMock(),
                 sourceControlMock,
