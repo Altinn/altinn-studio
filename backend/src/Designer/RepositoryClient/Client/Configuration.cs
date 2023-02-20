@@ -12,6 +12,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace Altinn.Studio.Designer.RepositoryClient.Client
 {
@@ -127,6 +130,102 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
 
             // Setting Timeout has side effects (forces ApiClient creation).
             Timeout = 100000;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Configuration" /> class
+        /// </summary>
+        /// <param name="defaultHeader">the default header</param>
+        /// <param name="apiKey">the api key</param>
+        /// <param name="apiKeyPrefix">the api key prefix</param>
+        /// <param name="basePath">the base path</param>
+        public Configuration(
+            IDictionary<string, string> defaultHeader,
+            IDictionary<string, string> apiKey,
+            IDictionary<string, string> apiKeyPrefix,
+            string basePath = "http://localhost/api/v1") : this()
+        {
+            if (string.IsNullOrWhiteSpace(basePath))
+            {
+                throw new ArgumentException("The provided basePath is invalid.", "basePath");
+            }
+
+            if (defaultHeader == null)
+            {
+                throw new ArgumentNullException("defaultHeader");
+            }
+
+            if (apiKey == null)
+            {
+                throw new ArgumentNullException("apiKey");
+            }
+
+            if (apiKeyPrefix == null)
+            {
+                throw new ArgumentNullException("apiKeyPrefix");
+            }
+
+            BasePath = basePath;
+
+            foreach (var keyValuePair in defaultHeader)
+            {
+                DefaultHeader.Add(keyValuePair);
+            }
+
+            foreach (var keyValuePair in apiKey)
+            {
+                ApiKey.Add(keyValuePair);
+            }
+
+            foreach (var keyValuePair in apiKeyPrefix)
+            {
+                ApiKeyPrefix.Add(keyValuePair);
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Configuration" /> class with different settings
+        /// </summary>
+        /// <param name="apiClient">Api client</param>
+        /// <param name="defaultHeader">Dictionary of default HTTP header</param>
+        /// <param name="username">Username</param>
+        /// <param name="password">Password</param>
+        /// <param name="accessToken">accessToken</param>
+        /// <param name="apiKey">Dictionary of API key</param>
+        /// <param name="apiKeyPrefix">Dictionary of API key prefix</param>
+        /// <param name="tempFolderPath">Temp folder path</param>
+        /// <param name="dateTimeFormat">DateTime format string</param>
+        /// <param name="timeout">HTTP connection timeout (in milliseconds)</param>
+        /// <param name="userAgent">HTTP user agent</param>
+        [Obsolete("Use explicit object construction and setting of properties.", true)]
+
+        // ReSharper disable UnusedParameter.Local
+        public Configuration(
+            ApiClient apiClient = null,
+            IDictionary<string, string> defaultHeader = null,
+            string username = null,
+            string password = null,
+            string accessToken = null,
+            IDictionary<string, string> apiKey = null,
+            IDictionary<string, string> apiKeyPrefix = null,
+            string tempFolderPath = null,
+            string dateTimeFormat = null,
+            int timeout = 100000,
+            string userAgent = "Swagger-Codegen/1.0.0/csharp")
+
+        // ReSharper restore UnusedParameter.Local
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Configuration"/> class.
+        /// </summary>
+        /// <param name="apiClient">Api client.</param>
+        [Obsolete("This constructor caused unexpected sharing of static data. It is no longer supported.", true)]
+
+        // ReSharper disable once UnusedParameter.Local
+        public Configuration(ApiClient apiClient)
+        {
         }
 
         #endregion Constructors
@@ -343,6 +442,15 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
 
         #region Methods
 
+        /// <summary>
+        /// Add default header.
+        /// </summary>
+        /// <param name="key">Header field name.</param>
+        /// <param name="value">Header field value.</param>
+        public void AddDefaultHeader(string key, string value)
+        {
+            DefaultHeader[key] = value;
+        }
 
         /// <summary>
         /// Creates a new <see cref="ApiClient" /> based on this <see cref="Configuration" /> instance.
@@ -353,6 +461,40 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
             return new ApiClient(BasePath) { Configuration = this };
         }
 
+        /// <summary>
+        /// Returns a string with essential information for debugging.
+        /// </summary>
+        /// <returns>debug report</returns>
+        public static string ToDebugReport()
+        {
+            string report = "C# SDK (IO.Swagger) Debug Report:\n";
+            report += "    OS: " + System.Environment.OSVersion + "\n";
+            report += "    .NET Framework Version: " + System.Environment.Version + "\n";
+            report += "    Version of the API: 1.1.1\n";
+            report += "    SDK Package Version: 1.0.0\n";
+
+            return report;
+        }
+
+        /// <summary>
+        /// Add Api Key Header.
+        /// </summary>
+        /// <param name="key">Api Key name.</param>
+        /// <param name="value">Api Key value.</param>
+        public void AddApiKey(string key, string value)
+        {
+            ApiKey[key] = value;
+        }
+
+        /// <summary>
+        /// Sets the API key prefix.
+        /// </summary>
+        /// <param name="key">Api Key name.</param>
+        /// <param name="value">Api Key value.</param>
+        public void AddApiKeyPrefix(string key, string value)
+        {
+            ApiKeyPrefix[key] = value;
+        }
 
         #endregion Methods
     }

@@ -725,7 +725,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 application.DataTypes = new List<PlatformStorageModels.DataType>();
             }
 
-            PlatformStorageModels.DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic != null);
+            PlatformStorageModels.DataType existingLogicElement = application.DataTypes.FirstOrDefault(d => d.AppLogic != null);
             PlatformStorageModels.DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
 
             if (logicElement == null)

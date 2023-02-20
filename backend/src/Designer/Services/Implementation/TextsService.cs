@@ -94,11 +94,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            IEnumerable<string> languageFiles = altinnAppGitRepository.FindFiles(new string[] { "resource.*.json" });
+            IEnumerable<string> languageFiles = altinnAppGitRepository.FindFiles(new [] { "resource.*.json" });
 
             foreach (string languageFile in languageFiles.ToList())
             {
-                Dictionary<string, string> newTexts = new Dictionary<string, string>();
+                Dictionary<string, string> newTexts = new ();
 
                 string languageCode = GetLanguageCodeFromFilePath(languageFile);
                 TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
@@ -208,8 +208,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
             foreach (string layoutName in layoutNames)
             {
-                Designer.Models.FormLayout layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
-                foreach (Designer.Models.Layout layoutObject in layout.Data.Layout)
+                FormLayout layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+                foreach (Layout layoutObject in layout.Data.Layout)
                 {
                     foreach (TextIdMutation mutation in keyMutations)
                     {

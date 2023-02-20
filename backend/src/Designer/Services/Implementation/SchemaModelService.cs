@@ -11,7 +11,6 @@ using System.Xml.Linq;
 using System.Xml.Schema;
 
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
@@ -234,7 +233,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (await altinnGitRepository.GetRepositoryType() == AltinnRepositoryType.App)
             {
                 var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
-                var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
+                var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRelativePath(relativeFilePath);
                 var schemaName = altinnGitRepository.GetSchemaName(relativeFilePath);
 
                 await DeleteDatatypeFromApplicationMetadata(altinnAppGitRepository, schemaName);
@@ -284,6 +283,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return convertedJsonSchema;
         }
 
+        [Obsolete("Not in use")]
         private async Task SaveOriginalXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream)
         {
             AssertValidXsd(xsdStream);
@@ -311,6 +311,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return Path.Combine(Path.GetDirectoryName(relativeFilePath), fileNameWithOriginal);
         }
 
+        [Obsolete("Not in use")]
         private static void MergeTexts(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> newTexts, Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> existingTexts)
         {
             foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> textResourceElementDict in newTexts)
@@ -363,7 +364,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 application.DataTypes = new List<DataType>();
             }
 
-            DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic?.ClassRef != null);
+            DataType existingLogicElement = application.DataTypes.FirstOrDefault(d => d.AppLogic?.ClassRef != null);
             DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
 
             if (logicElement == null)
@@ -380,16 +381,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             logicElement.AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef };
-        }
-
-        private static async Task UpdateJsonSchema(AltinnAppGitRepository altinnAppGitRepository, string relativeFilePath, string jsonContent)
-        {
-            await altinnAppGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
-        }
-
-        private static async Task UpdateJsonSchema(AltinnGitRepository altinnGitRepository, string relativeFilePath, string jsonContent)
-        {
-            await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
         }
 
         private static string SerializeJson(Json.Schema.JsonSchema jsonSchema)

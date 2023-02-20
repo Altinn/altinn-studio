@@ -16,7 +16,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Identifier for app-developer</param>
         /// <param name="layoutSetName">Name of layoutset. Is null of app does not use layoutset</param>
         /// <returns>A list of all FormLayouts for a layoutset</returns>
-        public Task<List<FormLayout>> GetFormLayouts(string org, string app, string developer, string layoutSetName);
+        public Task<Dictionary<string, FormLayout>> GetFormLayouts(string org, string app, string developer, string layoutSetName);
 
         /// <summary>
         /// Saves the form layout for a specific layoutname. If app-structure

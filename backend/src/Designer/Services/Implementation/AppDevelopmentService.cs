@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -17,33 +16,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<FormLayout>> GetFormLayouts(string org, string app, string developer, string layoutSetName)
+        public async Task<Dictionary<string, FormLayout>> GetFormLayouts(string org, string app, string developer, string layoutSetName)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                List<FormLayout> formLayoutsForLayoutSet = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
+                Dictionary<string, FormLayout> formLayoutsForLayoutSet = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
                 return formLayoutsForLayoutSet;
             }
 
-            List<FormLayout> formLayouts = await altinnAppGitRepository.GetFormLayouts(null);
+            Dictionary<string, FormLayout> formLayouts = await altinnAppGitRepository.GetFormLayouts(null);
             return formLayouts;
-        }
-
-        /// <inheritdoc />
-        public async Task<FormLayout> GetFormLayout(string org, string app, string developer, string layoutSetName, string layoutName)
-        {
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
-            {
-                FormLayout formLayoutForLayoutSet = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
-                return formLayoutForLayoutSet;
-            }
-
-            FormLayout formLayout = await altinnAppGitRepository.GetLayout(null, layoutName);
-            return formLayout;
         }
 
         /// <inheritdoc />

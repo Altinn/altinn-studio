@@ -54,13 +54,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [Route("form-layouts")]
-        public async Task<ActionResult<List<FormLayout>>> GetFormLayouts(string org, string app)
+        public async Task<ActionResult<Dictionary<string, FormLayout>>> GetFormLayouts(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                List<FormLayout> formLayouts =  await _appDevelopmentService.GetFormLayouts(org, app, developer, null);
+                Dictionary<string, FormLayout> formLayouts =  await _appDevelopmentService.GetFormLayouts(org, app, developer, null);
                 return Ok(formLayouts);
             }
             catch (FileNotFoundException exception)
@@ -103,13 +103,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpDelete]
         [Route("form-layout/{layoutName}")]
-        public async Task<IActionResult> DeleteFormLayout(string org, string app, string layoutName)
+        public IActionResult DeleteFormLayout(string org, string app, string layoutName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                await _appDevelopmentService.DeleteFormLayout(org, app, developer, null, layoutName);
+                _appDevelopmentService.DeleteFormLayout(org, app, developer, null, layoutName);
                 return Ok("Layout successfully deleted.");
             }
             catch (FileNotFoundException exception)
@@ -128,13 +128,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("form-layout-name/{layoutName}")]
-        public async Task<IActionResult> UpdateFormLayoutName(string org, string app, string layoutName, [FromBody] string newName)
+        public IActionResult UpdateFormLayoutName(string org, string app, string layoutName, [FromBody] string newName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                await _appDevelopmentService.UpdateFormLayoutName(org, app, developer, null, layoutName, newName);
+                _appDevelopmentService.UpdateFormLayoutName(org, app, developer, null, layoutName, newName);
                 return Ok("Layout name successfully changed.");
             }
             catch (FileNotFoundException exception)
@@ -217,7 +217,7 @@ namespace Altinn.Studio.Designer.Controllers
             string content = string.Empty;
             try
             {
-                using (var reader = new StreamReader(Request.Body))
+                using (StreamReader reader = new (Request.Body))
                 {
                     content = reader.ReadToEnd();
                     _repository.SaveRuleHandler(org, app, content);

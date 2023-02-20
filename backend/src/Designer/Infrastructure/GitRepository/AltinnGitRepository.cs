@@ -16,7 +16,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
     /// <summary>
     /// Class representing a Altinn Git Repository, either an app or a datamodels repository,
-    /// ie. the shared properties and functionallity between the different types of repositories.
+    /// ie. the shared properties and functionality between the different types of repositories.
     /// </summary>
     /// <remarks>This class knows that the repository is an Altinn Repository and hence knows
     /// about folders and file names and can map them to their respective models.
@@ -37,7 +37,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developer that is working on the repository.</param>
-        /// <param name="repositoriesRootDirectory">Base path (full) for where the repository recides on-disk.</param>
+        /// <param name="repositoriesRootDirectory">Base path (full) for where the repository resides on-disk.</param>
         /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
         public AltinnGitRepository(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory) : base(repositoriesRootDirectory, repositoryDirectory)
         {
@@ -65,9 +65,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public string Developer { get; private set; }
 
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
+        /// <inheritdoc />
         public async Task<AltinnRepositoryType> GetRepositoryType()
         {
             var settings = await GetAltinnStudioSettings();
@@ -109,7 +107,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".schema.json"));
             }
-            else if (fileInfo.Extension.ToLower() == ".xsd")
+            if (fileInfo.Extension.ToLower() == ".xsd")
             {
                 return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".xsd"));
             }
@@ -131,10 +129,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Gets a <see cref="AltinnCoreFile"/> representation of a file. This does not load any
         /// file contents but i do ensure the file exists ang gives some easy handles to file location and url
         /// </summary>
-        /// <param name="realtiveFilepath">The relative path to the file seen from the repository root.</param>
-        public AltinnCoreFile GetAltinnCoreFileByRealtivePath(string realtiveFilepath)
+        /// <param name="relativeFilepath">The relative path to the file seen from the repository root.</param>
+        public AltinnCoreFile GetAltinnCoreFileByRelativePath(string relativeFilepath)
         {
-            var absoluteFilepath = GetAbsoluteFilePathSanitized(realtiveFilepath);
+            string absoluteFilepath = GetAbsoluteFilePathSanitized(relativeFilepath);
             return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
         }
 
@@ -171,15 +169,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private async Task<AltinnStudioSettings> CreateNewAltinnStudioSettings()
         {
-            AltinnStudioSettings settings;
-            if (IsDatamodelsRepo())
-            {
-                settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels };
-            }
-            else
-            {
-                settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App };
-            }
+            AltinnStudioSettings settings = IsDatamodelsRepo()
+                ? new AltinnStudioSettings { RepoType = AltinnRepositoryType.Datamodels }
+                : new AltinnStudioSettings { RepoType = AltinnRepositoryType.App };
 
             await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, settings, true);
 
@@ -188,10 +180,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private async Task<(AltinnStudioSettings AltinnStudioSettinngs, bool NeedsSaving)> MigrateExistingAltinnStudioSettings()
         {
-            var altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
-            var altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+            string altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
+            AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
 
-            var needsSaving = false;
+            bool needsSaving = false;
 
             if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
             {
@@ -220,7 +212,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="xsd">String representing the Xsd to be saved.</param>
         /// <param name="filePath">The filename of the file to be saved excluding path.</param>
-        /// <returns>A string containg the relative path to the file saved.</returns>
+        /// <returns>A string containing the relative path to the file saved.</returns>
         public virtual async Task<string> SaveXsd(string xsd, string filePath)
         {
             await WriteTextByRelativePathAsync(filePath, xsd, true);
@@ -232,7 +224,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="xmlSchema">Xml schema to be saved.</param>
         /// <param name="fileName">The filename of the file to be saved excluding path.</param>
-        /// <returns>A string containg the relative path to the file saved.</returns>
+        /// <returns>A string containing the relative path to the file saved.</returns>
         public async Task<string> SaveXsd(XmlSchema xmlSchema, string fileName)
         {
             string xsd = await SerializeXsdToString(xmlSchema);
@@ -264,7 +256,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private List<AltinnCoreFile> MapFilesToAltinnCoreFiles(IEnumerable<string> schemaFiles)
         {
-            var altinnCoreSchemaFiles = new List<AltinnCoreFile>();
+            List<AltinnCoreFile> altinnCoreSchemaFiles = new ();
 
             foreach (string file in schemaFiles)
             {
