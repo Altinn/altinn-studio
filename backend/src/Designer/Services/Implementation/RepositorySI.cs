@@ -50,8 +50,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         public RepositorySI(
-            IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<GeneralSettings> generalSettings,
+            ServiceRepositorySettings repositorySettings,
+            GeneralSettings generalSettings,
             IDefaultFileFactory defaultFileFactory,
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
@@ -61,8 +61,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
             _defaultFileFactory = defaultFileFactory;
-            _settings = repositorySettings.Value;
-            _generalSettings = generalSettings.Value;
+            _settings = repositorySettings;
+            _generalSettings = generalSettings;
             _httpContextAccessor = httpContextAccessor;
             _gitea = gitea;
             _sourceControl = sourceControl;

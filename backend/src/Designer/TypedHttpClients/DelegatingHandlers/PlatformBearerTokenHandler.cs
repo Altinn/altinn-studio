@@ -28,11 +28,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         public PlatformBearerTokenHandler(
             IAccessTokenGenerator accessTokenGenerator,
             IAltinnAuthenticationClient altinnAuthenticationClient,
-            IOptions<GeneralSettings> generalSettings)
+            GeneralSettings generalSettings)
         {
             _altinnAuthenticationClient = altinnAuthenticationClient;
             _accesTokenGenerator = accessTokenGenerator;
-            _generalSettings = generalSettings.Value;
+            _generalSettings = generalSettings;
         }
 
         /// <summary>

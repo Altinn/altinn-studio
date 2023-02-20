@@ -29,10 +29,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         public AltinnAuthorizationPolicyClient(
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
-            IOptionsMonitor<PlatformSettings> options)
+            PlatformSettings options)
         {
             _httpClient = httpClient;
-            _platformSettings = options.CurrentValue;
+            _platformSettings = options;
             _environmentsService = environmentsService;
         }
 
