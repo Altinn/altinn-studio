@@ -318,11 +318,11 @@ namespace Designer.Tests.Services
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
             var generalSettings = new GeneralSettings()
-                {
-                    TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
-                    DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
-                    AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
-                };
+            {
+                TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
+                DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
+                AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
+            };
 
             RepositorySI service = new RepositorySI(
                 repoSettings,
