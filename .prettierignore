@@ -1,0 +1,10 @@
+shared/api-paths.js
+.yarn
+yarn.lock
+.gitignore
+*.svg
+**/dist/
+*.xml
+*.code-workspace
+.eslintignore
+*.snap
