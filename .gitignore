@@ -396,4 +396,4 @@ backend/src/Designer/wwwroot/designer/frontend
 **/.env
 src/studio/.devcontainer/**
 
-backend/srcaccesstoken/**
+backend/srcaccesstoken/
