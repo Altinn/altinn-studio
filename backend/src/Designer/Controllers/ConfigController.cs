@@ -40,11 +40,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
-        public ConfigController(IWebHostEnvironment hostingEnvironment, IRepository serviceRepositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
+        public ConfigController(IWebHostEnvironment hostingEnvironment, IRepository serviceRepositoryService, ServiceRepositorySettings repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = serviceRepositoryService;
-            _settings = repositorySettings.Value;
+            _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }

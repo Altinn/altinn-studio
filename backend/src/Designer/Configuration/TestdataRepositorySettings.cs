@@ -16,10 +16,5 @@ namespace Altinn.Studio.Designer.Configuration
         /// Gets or sets the designer host
         /// </summary>
         public string DesignerHost { get; set; }
-
-        /// <summary>
-        /// Returns the designer host. Created for fixing Kubernetes Flaw.
-        /// </summary>
-        /// <returns>The designer host</returns>
     }
 }
