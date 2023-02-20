@@ -38,14 +38,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="storageAppMetadataClient">IAltinnStorageAppMetadataClient</param>
         public ApplicationMetadataService(
             IGitea giteaApiWrapper,
-            IOptions<ServiceRepositorySettings> repositorySettings,
+            ServiceRepositorySettings repositorySettings,
             ILogger<ApplicationMetadataService> logger,
             IAltinnStorageAppMetadataClient storageAppMetadataClient)
         {
             _giteaApiWrapper = giteaApiWrapper;
             _logger = logger;
             _storageAppMetadataClient = storageAppMetadataClient;
-            _serviceRepositorySettings = repositorySettings.Value;
+            _serviceRepositorySettings = repositorySettings;
         }
 
         /// <inheritdoc />

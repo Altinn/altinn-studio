@@ -43,10 +43,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IReleaseRepository releaseRepository,
-            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
+            AzureDevOpsSettings azureDevOpsOptions,
             ILogger<ReleaseService> logger)
         {
-            _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
+            _azureDevOpsSettings = azureDevOpsOptions;
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _releaseRepository = releaseRepository;
             _httpContext = httpContextAccessor.HttpContext;
