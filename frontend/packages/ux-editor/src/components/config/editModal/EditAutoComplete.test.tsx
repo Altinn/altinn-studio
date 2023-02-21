@@ -1,20 +1,20 @@
 import React from 'react';
 import { EditAutoComplete } from './EditAutoComplete';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FormComponentType } from '../../../types/global';
 
 const componentMock: FormComponentType = { id: 'random-id', autocomplete: '' };
 
-
 test('should render first 6 suggestions on search field focused', async () => {
   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+  const user = userEvent.setup();
 
   const inputField = screen.getByRole('textbox');
   expect(inputField).toBeInTheDocument();
 
   act((): void => {
-    userEvent.click(inputField);
+    user.click(inputField);
   });
 
   expect(await screen.findByRole('dialog')).toBeInTheDocument();
@@ -23,9 +23,10 @@ test('should render first 6 suggestions on search field focused', async () => {
 
 test('should filter options while typing in search field', async () => {
   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+  const user = userEvent.setup();
 
   act((): void => {
-    userEvent.type(screen.getByRole('textbox'), 'off');
+    user.type(screen.getByRole('textbox'), 'off');
   });
 
   await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('off'));
@@ -34,56 +35,61 @@ test('should filter options while typing in search field', async () => {
   expect(screen.queryByRole('option', { name: 'given-name' })).not.toBeInTheDocument();
 });
 
-// test('should set the chosen options within the search field', async () => {
-//   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+test('should set the chosen options within the search field', async () => {
+  render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+  const user = userEvent.setup();
 
-//   act((): void => {
-//     userEvent.type(screen.getByRole('textbox'), 'of');
-//   });
+  const searchField = screen.getByRole('textbox');
+  act((): void => {
+    user.type(searchField, 'of');
+  });
 
-//   await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('of'));
-//   act((): void => {
-//     userEvent.click(screen.getByRole('option', { name: 'off' }));
-//   });
+  await waitFor(() => expect(searchField).toHaveValue('of'));
+  act((): void => {
+    user.click(screen.getByRole('option', { name: 'off' }));
+  });
 
-//   await waitForElementToBeRemoved(screen.queryByRole('dialog'));
-//   await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('off'));
-// });
+  await waitForElementToBeRemoved(screen.queryByRole('dialog'));
+  await waitFor(() => expect(searchField).toHaveValue('off'));
+});
 
-// test('should toggle autocomplete-popup based onFocus and onBlur', async () => {
-//   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
-//   act((): void => {
-//     userEvent.click(screen.getByRole('textbox'));
-//   });
+test('should toggle autocomplete-popup based onFocus and onBlur', async () => {
+  render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+  const user = userEvent.setup();
 
-//   expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  act((): void => {
+    user.click(screen.getByRole('textbox'));
+  });
 
-//   act(() => {
-//     userEvent.tab();
-//   });
+  expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
-//   await waitForElementToBeRemoved(screen.queryByRole('dialog'));
-// });
+  act(() => {
+    user.tab();
+  });
 
-// test('should call handleComponentChangeMock callback ', async () => {
-//   const handleComponentChangeMock = jest.fn();
-//   render(
-//     <EditAutoComplete handleComponentChange={handleComponentChangeMock} component={componentMock} />
-//   );
+  await waitForElementToBeRemoved(screen.queryByRole('dialog'));
+});
 
-//   const inputField = screen.getByRole('textbox');
-//   expect(inputField).toBeInTheDocument();
+test('should call handleComponentChangeMock callback ', async () => {
+  const handleComponentChangeMock = jest.fn();
+  render(
+    <EditAutoComplete handleComponentChange={handleComponentChangeMock} component={componentMock} />
+  );
+  const user = userEvent.setup();
 
-//   act((): void => {
-//     userEvent.click(inputField);
-//   });
+  const inputField = screen.getByRole('textbox');
+  expect(inputField).toBeInTheDocument();
 
-//   await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+  act((): void => {
+    user.click(inputField);
+  });
 
-//   act((): void => {
-//     userEvent.click(screen.getByRole('option', { name: 'on' }));
-//   });
+  await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
 
-//   await waitForElementToBeRemoved(screen.queryByRole('dialog'));
-//   expect(handleComponentChangeMock).toHaveBeenCalledWith({ autocomplete: 'on', id: 'random-id' });
-// });
+  act((): void => {
+    user.click(screen.getByRole('option', { name: 'on' }));
+  });
+
+  await waitForElementToBeRemoved(screen.queryByRole('dialog'));
+  expect(handleComponentChangeMock).toHaveBeenCalledWith({ autocomplete: 'on', id: 'random-id' });
+});
