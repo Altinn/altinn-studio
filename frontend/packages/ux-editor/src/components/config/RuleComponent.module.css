@@ -1,0 +1,9 @@
+.calculateHeader {
+  min-height: 80px;
+  background: var(--primary-color-700);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--paper-color);
+}
