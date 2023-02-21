@@ -5,6 +5,11 @@ import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type { IAppState, IDataModelFieldElement, IRuleModelFieldElement } from '../../types/global';
 import { withTranslation } from 'react-i18next';
 
+import classes from './RuleComponent.module.css';
+
+
+
+
 export interface IRuleComponentProps {
   connectionId?: any;
   cancelEdit: () => void;
@@ -145,9 +150,15 @@ class Rule extends React.Component<IRuleComponentProps, any> {
             </select>
           </div>
           {this.state.ruleConnection.selectedFunction ? (
+
+
+
             <>
+
+            
               <div className='form-group a-form-group mt-2'>
-                <h2 className='a-h4'>
+              <h2 className={classes.calculateHeader}>
+                <i className='fa fa-corp' />
                   {this.props.t('ux_editor.modal_configure_rules_configure_input_header')}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
@@ -185,6 +196,13 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   }
                 )}
               </div>
+
+
+
+
+
+
+
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
                   {this.props.t('ux_editor.modal_configure_rules_configure_output_header')}
