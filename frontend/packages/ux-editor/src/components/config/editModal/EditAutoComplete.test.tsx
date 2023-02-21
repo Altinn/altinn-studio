@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditAutoComplete } from './EditAutoComplete';
-import { act, render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FormComponentType } from '../../../types/global';
 
