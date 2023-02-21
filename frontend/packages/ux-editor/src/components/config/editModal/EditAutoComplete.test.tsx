@@ -8,7 +8,7 @@ test('should render first 6 suggestions on search field focused', async () => {
   render(
     <EditAutoComplete
       handleComponentChange={() => {}}
-      component={{ id: 'random-id' } as FormComponentType}
+      component={{ id: 'random-id', autocomplete: '' } as FormComponentType}
     />
   );
   const user = userEvent.setup();
@@ -28,7 +28,7 @@ test('should filter options while typing in search field', async () => {
   render(
     <EditAutoComplete
       handleComponentChange={() => {}}
-      component={{ id: 'random-id', } as FormComponentType}
+      component={{ id: 'random-id', autocomplete: '' } as FormComponentType}
     />
   );
   const user = userEvent.setup();
@@ -47,7 +47,7 @@ test('should set the chosen options within the search field', async () => {
   render(
     <EditAutoComplete
       handleComponentChange={() => {}}
-      component={{ id: 'random-id' } as FormComponentType}
+      component={{ id: 'random-id', autocomplete: '' } as FormComponentType}
     />
   );
   const user = userEvent.setup();
@@ -70,7 +70,7 @@ test('should toggle autocomplete-popup based onFocus and onBlur', async () => {
   render(
     <EditAutoComplete
       handleComponentChange={() => {}}
-      component={{ id: 'random-id' } as FormComponentType}
+      component={{ id: 'random-id', autocomplete: '' } as FormComponentType}
     />
   );
   const user = userEvent.setup();
@@ -93,7 +93,7 @@ test('should call handleComponentChangeMock callback ', async () => {
   render(
     <EditAutoComplete
       handleComponentChange={handleComponentChangeMock}
-      component={{ id: 'random-id' } as FormComponentType}
+      component={{ id: 'random-id', autocomplete: '' } as FormComponentType}
     />
   );
   const user = userEvent.setup();
