@@ -193,7 +193,6 @@ describe('ItemFieldsTab', () => {
       },
       { uiSchema: [...uiSchema, referencedNode] }
     );
-    console.log(screen.queryAllByRole('textbox'));
     screen.queryAllByLabelText(textFieldName).forEach((input) => expect(input).toBeDisabled());
     screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeDisabled());
   });
