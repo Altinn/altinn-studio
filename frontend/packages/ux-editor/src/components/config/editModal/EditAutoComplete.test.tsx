@@ -6,6 +6,16 @@ import type { FormComponentType } from '../../../types/global';
 
 const componentMock: FormComponentType = { id: 'random-id', autocomplete: '' };
 
+beforeAll(() => {
+  window.ResizeObserver =
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+      disconnect: jest.fn(),
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+    }));
+});
+
 test('should render first 6 suggestions on search field focused', async () => {
   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
   const user = userEvent.setup();
