@@ -95,7 +95,7 @@ describe('utils/formLayout', () => {
   });
 
   it('convertFromLayoutToInternalFormat should convert to correct format', () => {
-    const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
+    const convertedLayout = convertFromLayoutToInternalFormat(mockLayout, false);
     const mockResult = {
       components: {
         '17314adc-f75d-4a49-b726-242e2ae32ad2': {
@@ -125,7 +125,7 @@ describe('utils/formLayout', () => {
   });
 
   it('convertFromLayoutToInternalFormat should initiate an form layout with a base container', () => {
-    const convertedLayout = convertFromLayoutToInternalFormat(null);
+    const convertedLayout = convertFromLayoutToInternalFormat(null, false);
     expect(Object.keys(convertedLayout.containers).length).toEqual(1);
     expect(Object.keys(convertedLayout.components).length).toEqual(0);
     expect(Object.keys(convertedLayout.order).length).toEqual(1);
@@ -278,7 +278,7 @@ describe('utils/formLayout', () => {
       },
     };
 
-    const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
+    const convertedLayout = convertFromLayoutToInternalFormat(mockLayout, false);
     expect(convertedLayout.components).toEqual(expectedComponentResult.components);
     expect(Object.keys(convertedLayout.order).length).toEqual(4);
   });
