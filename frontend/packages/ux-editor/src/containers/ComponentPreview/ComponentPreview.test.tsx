@@ -46,7 +46,7 @@ describe('ComponentPreview', () => {
     render({ component: radiosComponent });
     expect(screen.getByTestId(radioGroupPreviewId)).toBeInTheDocument();
   });
-
+  
   it.each([
     ComponentTypes.AddressComponent,
     ComponentTypes.AttachmentList,

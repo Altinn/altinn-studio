@@ -22,13 +22,9 @@ export function getComponentHelperTextByComponentType(type: string, language: an
     case ComponentTypes.AttachmentList: {
       return language['ux_editor.helper_text_for_attachment_list'];
     }
-
-
     case ComponentTypes.Button: {
       return language['ux_editor.helper_text_for_attachment_button'];
     }
-
-
     case ComponentTypes.NavigationBar: {
       return language['ux_editor.helper_text_for_nav_bar'];
     }

@@ -42,7 +42,6 @@ export function EditContainer(props: IEditContainerProps) {
   const dispatch = useDispatch();
   const t = useText();
   const { org, app } = useParams();
-
   const [component, setComponent] = useState<IFormComponent>({
     id: props.id,
     ...props.component,
@@ -57,7 +56,6 @@ export function EditContainer(props: IEditContainerProps) {
     inEditMode: false,
     order: null,
   });
-
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const language = useSelector(textSelector);
@@ -66,11 +64,14 @@ export function EditContainer(props: IEditContainerProps) {
   const selectedLayout = useSelector(
     (state: IAppState) => state.formDesigner.layout?.selectedLayout
   );
-
-  const previewableComponents = [ComponentTypes.Checkboxes, ComponentTypes.RadioButtons,ComponentTypes.Button,ComponentTypes.NavigationButtons]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
-
+  const previewableComponents = [
+    ComponentTypes.Checkboxes,
+    ComponentTypes.RadioButtons,
+    ComponentTypes.Button,
+    ComponentTypes.NavigationButtons,
+  ];
+  // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
   const isPreviewable = previewableComponents.includes(component.type as ComponentTypes);
-
   const handleComponentUpdate = (updatedComponent: IFormComponent): void => {
     setComponent({ ...updatedComponent });
   };
@@ -108,7 +109,6 @@ export function EditContainer(props: IEditContainerProps) {
     const newListItem = { ...listItem, inEditMode: false };
     setListItem(newListItem);
     setMode(isPreviewable ? EditContainerMode.Preview : EditContainerMode.Closed);
-
     if (JSON.stringify(component) !== JSON.stringify(props.component)) {
       handleSaveChange(component);
       if (props.id !== component.id) {
@@ -122,7 +122,6 @@ export function EditContainer(props: IEditContainerProps) {
         );
       }
     }
-
     props.sendItemToParent(newListItem);
     dispatch(FormLayoutActions.deleteActiveList());
   };

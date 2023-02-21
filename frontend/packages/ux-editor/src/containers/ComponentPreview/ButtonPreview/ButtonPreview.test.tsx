@@ -46,21 +46,20 @@ describe('ButtonPreview', () => {
     expect(screen.getByRole('button', { name: 'back' }));
   });
 
-  test("Should render back and next buttons", () => {
+  test('Should render back and next buttons', () => {
     renderWithMock({
-      id:"PreviewNavigationButton",
+      id: 'PreviewNavigationButton',
       textResourceBindings: {
-        next: "next",
-        back: "back",
+        next: 'next',
+        back: 'back',
       },
-      showBackButton: true,
-      showNextButton: true,
+      showBackButton: true || false,
       type: ComponentTypes.NavigationButtons,
       onClickAction: () => {},
     });
-    expect(screen.getByRole("button", { name: "back" }));
-    expect(screen.getByRole("button", { name: "next" }));
-  })
+    expect(screen.getByRole('button', { name: 'back' }));
+    expect(screen.getByRole('button', { name: 'next' }));
+  });
 });
 
 const renderWithMock = (component: IFormButtonComponent) => {
@@ -69,4 +68,3 @@ const renderWithMock = (component: IFormButtonComponent) => {
   };
   return renderWithMockStore({ appData })(<ButtonPreview component={component} />);
 };
-

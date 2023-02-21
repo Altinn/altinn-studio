@@ -4,36 +4,53 @@ import { IAppState, IFormButtonComponent } from '../../../types/global';
 import { getTextResource } from '../../../utils/language';
 import { useSelector } from 'react-redux';
 import { ComponentTypes } from '../../../components';
-import classes from "./ButtonPreview.module.css";
+import classes from './ButtonPreview.module.css';
 
 export interface ButtonPreviewProps {
   component: IFormButtonComponent;
 }
 
-export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element => { 
+export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element => {
+  const textLanguage = useSelector(
+    (state: IAppState) => state.appData.textResources.resources?.['nb']
+  );
 
-  // Extract resource for norwegian language and assign it to language const.
-  const textLanguage = useSelector((state: IAppState) => state.appData.textResources.resources?.['nb']);
- 
-  // Determine the type of the button, and then chose its color, text, and back/next button.
   const isNavigationButton = component.type === ComponentTypes.NavigationButtons;
   const buttonColor = isNavigationButton ? ButtonColor.Primary : ButtonColor.Success;
   const navigationButtonText = component.showBackButton
     ? component.textResourceBindings?.back
     : component.textResourceBindings?.next;
-  const buttonText = isNavigationButton? navigationButtonText : component.textResourceBindings?.title; 
+  const buttonText = isNavigationButton
+    ? navigationButtonText
+    : component.textResourceBindings?.title;
+  const buttonsToPreview = isNavigationButton
+    ? [
+        {
+          variant: ButtonVariant.Filled,
+          color: buttonColor,
+          text: getTextResource(component.textResourceBindings?.back, textLanguage),
+        },
+        {
+          variant: ButtonVariant.Filled,
+          color: buttonColor,
+          text: getTextResource(component.textResourceBindings?.next, textLanguage),
+        },
+      ]
+    : [
+        {
+          variant: ButtonVariant.Filled,
+          color: buttonColor,
+          text: getTextResource(buttonText, textLanguage),
+        },
+      ];
 
-  // Render the button based on its type; either Send or navigation(Back/Next). 
   return (
     <div className={classes.root}>
-      <Button variant={ButtonVariant.Filled} color={buttonColor}>
-        {getTextResource(buttonText, textLanguage)}
-      </Button>
-      {isNavigationButton && component.showBackButton && (
-        <Button variant={ButtonVariant.Filled} color={buttonColor}>
-          {getTextResource(component.textResourceBindings?.next, textLanguage,)}
+      {buttonsToPreview.map(({ text, variant, color }) => (
+        <Button key={text} color={color} variant={variant}>
+          {text}
         </Button>
-      )}
+      ))}
     </div>
   );
 };
