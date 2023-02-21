@@ -1,10 +1,11 @@
-using System;
+#nullable enable
 using System.Net;
-using System.Threading.Tasks;
 
 using Altinn.App.Api.Infrastructure.Filters;
+using Altinn.App.Api.Mappers;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.AppModel;
@@ -16,10 +17,7 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -38,13 +36,12 @@ namespace Altinn.App.Api.Controllers
         private readonly IPrefill _prefillService;
         private readonly IRegister _registerClient;
         private readonly IPDP _pdp;
-   
+
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
-        private const string Partyheader = "party";
-        private const string PartyPrefix = "partyid:";
-        private const string PersonPrefix = "person:";
-        private const string OrgPrefix = "org:";
+        private const string PartyPrefix = "partyid";
+        private const string PersonPrefix = "person";
+        private const string OrgPrefix = "org";
 
         /// <summary>
         /// The stateless data controller is responsible for creating and updating stateles data elements.
@@ -73,6 +70,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="dataType">The data type id</param>
+        /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [Authorize]
         [HttpGet]
@@ -83,7 +81,8 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult> Get(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromQuery] string dataType)
+            [FromQuery] string dataType,
+            [FromHeader(Name = "party")] string partyFromHeader)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -97,16 +96,10 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
             }
 
-            if (GetPartyHeader(HttpContext).Count > 1)
+            InstanceOwner? owner = await GetInstanceOwner(partyFromHeader);
+            if (owner is null)
             {
-                return BadRequest($"Invalid party. Only one allowed");
-            }
-
-            InstanceOwner owner = await GetInstanceOwner(HttpContext);
-
-            if (string.IsNullOrEmpty(owner.PartyId))
-            {
-                return StatusCode((int)HttpStatusCode.Forbidden);
+                return BadRequest($"Invalid party header. Please provide a party header on the form partyid:123, org:[orgnr] or person:[ssn]");
             }
 
             EnforcementResult enforcementResult = await AuthorizeAction(org, app, Convert.ToInt32(owner.PartyId), "read");
@@ -115,7 +108,7 @@ namespace Altinn.App.Api.Controllers
             {
                 return Forbidden(enforcementResult);
             }
-        
+
             object appModel = _appModel.Create(classRef);
 
             // runs prefill from repo configuration if config exists
@@ -156,7 +149,7 @@ namespace Altinn.App.Api.Controllers
             object appModel = _appModel.Create(classRef);
 
             var virutalInstance = new Instance();
-            
+
             await _dataProcessor.ProcessDataRead(virutalInstance, null, appModel);
 
             return Ok(appModel);
@@ -168,6 +161,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="dataType">The data type id</param>
+        /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [Authorize]
         [HttpPost]
@@ -178,7 +172,8 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult> Post(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromQuery] string dataType)
+            [FromQuery] string dataType,
+            [FromHeader(Name = "party")] string partyFromHeader)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -192,16 +187,11 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
             }
 
-            if (GetPartyHeader(HttpContext).Count > 1)
-            {
-                return BadRequest($"Invalid party. Only one allowed");
-            }
+            InstanceOwner? owner = await GetInstanceOwner(partyFromHeader);
 
-            InstanceOwner owner = await GetInstanceOwner(HttpContext);
-
-            if (string.IsNullOrEmpty(owner.PartyId))
+            if (owner is null)
             {
-               return StatusCode((int)HttpStatusCode.Forbidden);
+                return BadRequest($"Invalid party header");
             }
 
             EnforcementResult enforcementResult = await AuthorizeAction(org, app, Convert.ToInt32(owner.PartyId), "read");
@@ -212,7 +202,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-            object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+            object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
             if (!string.IsNullOrEmpty(deserializer.Error))
             {
@@ -255,7 +245,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-            object appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+            object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
             if (!string.IsNullOrEmpty(deserializer.Error))
             {
@@ -268,56 +258,54 @@ namespace Altinn.App.Api.Controllers
             return Ok(appModel);
         }
 
-        private static StringValues GetPartyHeader(HttpContext context)
+        private async Task<InstanceOwner?> GetInstanceOwner(string partyFromHeader)
         {
-            StringValues partyValues;
-            if (context.Request.Headers.TryGetValue(Partyheader, out partyValues))
+            // Use the party id of the logged in user, if no party id is given in the header
+            // Not sure if this is really used anywhere. It doesn't seem usefull, as you'd
+            // always want to create an instance based on the selected party, not the person
+            // you happend to log in as.
+            if (partyFromHeader is null)
             {
-                return partyValues;
+                var partyId = Request.HttpContext.User.GetPartyIdAsInt();
+                if (partyId is null)
+                {
+                    return null;
+                }
+
+                var partyFromUser = await _registerClient.GetParty(partyId.Value);
+                if (partyFromUser is null)
+                {
+                    return null;
+                }
+
+                return InstantiationHelper.PartyToInstanceOwner(partyFromUser);
             }
 
-            return partyValues;
-        }
-
-        private async Task<InstanceOwner> GetInstanceOwner(HttpContext context)
-        {
-            InstanceOwner owner = new InstanceOwner();
-            StringValues partyValues;
-            if (context.Request.Headers.TryGetValue(Partyheader, out partyValues))
+            // Get the party as read in from the header. Authorization happens later.
+            var headerParts = partyFromHeader.Split(':');
+            if (partyFromHeader.Contains(',') || headerParts.Length != 2)
             {
-                return await GetInstanceOwner(partyValues[0], owner);
-            }
-            else
-            {
-                owner.PartyId = context.User.GetPartyIdAsInt().ToString();
-                return owner;
-            }
-        }
-
-        private async Task<InstanceOwner> GetInstanceOwner(string partyValue, InstanceOwner owner)
-        {
-            Party party = null;
-            if (partyValue.StartsWith(PartyPrefix))
-            {
-                owner.PartyId = partyValue.Replace(PartyPrefix, string.Empty);
-                return owner;
-            }
-            else if (partyValue.StartsWith(PersonPrefix))
-            {
-                string ssn = partyValue.Replace(PersonPrefix, string.Empty);
-                party = await _registerClient.LookupParty(new PartyLookup { Ssn = ssn });
-                owner.PartyId = party.PartyId.ToString();
-                owner.PersonNumber = ssn;
-            }
-            else if (partyValue.StartsWith(OrgPrefix))
-            {
-                string orgno = partyValue.Replace(OrgPrefix, string.Empty);
-                party = await _registerClient.LookupParty(new PartyLookup { OrgNo = orgno });
-                owner.PartyId = party.PartyId.ToString();
-                owner.OrganisationNumber = orgno;
+                return null;
             }
 
-            return owner;
+            var id = headerParts[1];
+            var idPrefix = headerParts[0].ToLowerInvariant();
+            var party = idPrefix switch
+            {
+                PartyPrefix => await _registerClient.GetParty(int.TryParse(id, out var partyId) ? partyId : 0),
+
+                // Frontend seems to only use partyId, not orgnr or ssn.
+                PersonPrefix => await _registerClient.LookupParty(new PartyLookup { Ssn = id }),
+                OrgPrefix => await _registerClient.LookupParty(new PartyLookup { OrgNo = id }),
+                _ => null,
+            };
+
+            if (party is null || party.PartyId == 0)
+            {
+                return null;
+            }
+
+            return InstantiationHelper.PartyToInstanceOwner(party);
         }
 
         private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, string action)

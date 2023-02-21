@@ -1,11 +1,7 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Mappers;
@@ -25,14 +21,11 @@ using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Common.PEP.Models;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
@@ -239,6 +232,7 @@ namespace Altinn.App.Api.Controllers
             try
             {
                 party = await LookupParty(instanceTemplate.InstanceOwner);
+                instanceTemplate.InstanceOwner = InstantiationHelper.PartyToInstanceOwner(party);
             }
             catch (Exception partyLookupException)
             {
@@ -375,6 +369,7 @@ namespace Altinn.App.Api.Controllers
             try
             {
                 party = await LookupParty(instansiationInstance.InstanceOwner);
+                instansiationInstance.InstanceOwner = InstantiationHelper.PartyToInstanceOwner(party);
             }
             catch (Exception partyLookupException)
             {
@@ -757,20 +752,13 @@ namespace Altinn.App.Api.Controllers
 
         private async Task<Party> LookupParty(InstanceOwner instanceOwner)
         {
-            Party party;
             if (instanceOwner.PartyId != null)
             {
                 try
                 {
-                    party = await _registerClient.GetParty(int.Parse(instanceOwner.PartyId));
-                    SetInstanceOwnerProps(instanceOwner, party);
+                    return await _registerClient.GetParty(int.Parse(instanceOwner.PartyId));
                 }
-                catch (ServiceException)
-                {
-                    // Just rethrow service exception
-                    throw;
-                }
-                catch (Exception e)
+                catch (Exception e) when (e is not ServiceException)
                 {
                     _logger.LogWarning($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}");
                     throw new ServiceException(HttpStatusCode.BadRequest, $"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}", e);
@@ -785,49 +773,23 @@ namespace Altinn.App.Api.Controllers
                     if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                     {
                         lookupNumber = "personNumber";
-                        party = await _registerClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
+                        return await _registerClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
                     }
                     else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                     {
                         lookupNumber = "organisationNumber";
-                        party = await _registerClient.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
+                        return await _registerClient.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
                     }
                     else
                     {
                         throw new ServiceException(HttpStatusCode.BadRequest, "Neither personNumber or organisationNumber has value in instanceOwner");
                     }
-
-                    instanceOwner.PartyId = party.PartyId.ToString();
                 }
                 catch (Exception e)
                 {
                     _logger.LogWarning($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e}");
                     throw new ServiceException(HttpStatusCode.BadRequest, $"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}", e);
                 }
-            }
-
-            return party;
-        }
-
-        private static void SetInstanceOwnerProps(InstanceOwner instanceOwner, Party party)
-        {
-            if (!string.IsNullOrEmpty(party.SSN))
-            {
-                instanceOwner.PersonNumber = party.SSN;
-                instanceOwner.OrganisationNumber = null;
-                instanceOwner.Username = null;
-            }
-            else if (!string.IsNullOrEmpty(party.OrgNumber))
-            {
-                instanceOwner.PersonNumber = null;
-                instanceOwner.OrganisationNumber = party.OrgNumber;
-                instanceOwner.Username = null;
-            }
-            else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
-            {
-                instanceOwner.PersonNumber = null;
-                instanceOwner.OrganisationNumber = null;
-                instanceOwner.Username = party.Name;
             }
         }
 

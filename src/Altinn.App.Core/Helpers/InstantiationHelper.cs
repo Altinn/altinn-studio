@@ -31,7 +31,7 @@ namespace Altinn.App.Core.Helpers
             {
                 bool canPartyInstantiate = IsPartyAllowedToInstantiate(party, partyTypesAllowed);
                 bool isChildPartyAllowed = false;
-                List<Party> allowedChildParties = null;
+                List<Party>? allowedChildParties = null;
                 if (party.ChildParties != null)
                 {
                     allowedChildParties = new List<Party>();
@@ -156,12 +156,48 @@ namespace Altinn.App.Core.Helpers
                     Party? validChildParty = party.ChildParties.Find(cp => cp.PartyId == partyId);
                     if (validChildParty != null)
                     {
-                      validParty = validChildParty;
+                        validParty = validChildParty;
                     }
                 }
             }
 
             return validParty;
+        }
+
+        /// <summary>
+        /// Get the correct <see cref="InstanceOwner" /> object from the <see cref="Party" /> object of the entity that should own the instance
+        /// </summary>
+        public static InstanceOwner PartyToInstanceOwner(Party party)
+        {
+            if (!string.IsNullOrEmpty(party.SSN))
+            {
+                return new()
+                {
+                    PartyId = party.PartyId.ToString(),
+                    PersonNumber = party.SSN,
+                };
+            }
+            else if (!string.IsNullOrEmpty(party.OrgNumber))
+            {
+                return new()
+                {
+                    PartyId = party.PartyId.ToString(),
+                    OrganisationNumber = party.OrgNumber,
+                };
+            }
+            else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
+            {
+                return new()
+                {
+                    PartyId = party.PartyId.ToString(),
+                    Username = party.Name,
+                };
+            }
+            return new()
+            {
+                PartyId = party.PartyId.ToString(),
+                // instanceOwnerPartyType == "unknown"
+            };
         }
     }
 }
