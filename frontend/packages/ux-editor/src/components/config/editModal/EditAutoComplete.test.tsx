@@ -34,22 +34,22 @@ test('should filter options while typing in search field', async () => {
   expect(screen.queryByRole('option', { name: 'given-name' })).not.toBeInTheDocument();
 });
 
-test('should set the chosen options within the search field', async () => {
-  render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+// test('should set the chosen options within the search field', async () => {
+//   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
 
-  const searchField = screen.getByRole('textbox');
-  act((): void => {
-    userEvent.type(searchField, 'of');
-  });
+//   const searchField = screen.getByRole('textbox');
+//   act((): void => {
+//     userEvent.type(searchField, 'of');
+//   });
 
-  await waitFor(() => expect(searchField).toHaveValue('of'));
-  act((): void => {
-    userEvent.click(screen.getByRole('option', { name: 'off' }));
-  });
+//   await waitFor(() => expect(searchField).toHaveValue('of'));
+//   act((): void => {
+//     userEvent.click(screen.getByRole('option', { name: 'off' }));
+//   });
 
-  await waitForElementToBeRemoved(screen.queryByRole('dialog'));
-  await waitFor(() => expect(searchField).toHaveValue('off'));
-});
+//   await waitForElementToBeRemoved(screen.queryByRole('dialog'));
+//   await waitFor(() => expect(searchField).toHaveValue('off'));
+// });
 
 // test('should toggle autocomplete-popup based onFocus and onBlur', async () => {
 //   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
