@@ -21,14 +21,29 @@ namespace Altinn.Platform.Authorization.Constants
         public const string InstanceAttribute = "urn:altinn:instance-id";
 
         /// <summary>
+        /// xacm string that represents appresource
+        /// </summary>
+        public const string AppResourceAttribute = "urn:altinn:appresource";
+
+        /// <summary>
         /// xacml string that represents task
         /// </summary>
         public const string TaskAttribute = "urn:altinn:task";
 
         /// <summary>
+        /// xacml string that represents end event
+        /// </summary>
+        public const string EndEventAttribute = "urn:altinn:end-event";
+
+        /// <summary>
         /// xacml string that represents party
         /// </summary>
         public const string PartyAttribute = "urn:altinn:partyid";
+
+        /// <summary>
+        /// xacml string that represents organization number 
+        /// </summary>
+        public const string OrganizationNumberAttribute = "urn:altinn:organizationnumber";
 
         /// <summary>
         /// xacml string that represents user
