@@ -9,10 +9,7 @@ import { menu } from './appBarConfig';
 import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 describe('AppBar', () => {
   describe('When using AppBarConfig menu entries', () => {
@@ -38,11 +35,7 @@ const render = (props: Partial<IAppBarProps> = {}) => {
   } as IAppBarProps;
 
   const createStore = configureStore();
-  const initialState = {
-    languageState: {
-      language: {},
-    },
-  };
+  const initialState = {};
   const store = createStore(initialState);
 
   return rtlRender(

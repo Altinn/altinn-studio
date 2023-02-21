@@ -1,8 +1,8 @@
 import React from 'react';
-import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import type { IDataModelBindings } from '../../../types/global';
 import { Label } from 'app-shared/components/Label';
-import { useText } from '../../../hooks';
+import { SelectDataModelComponent } from '../SelectDataModelComponent';
+import { useTranslation } from 'react-i18next';
 
 export interface EditGroupDataModelBindingProps {
   dataModelBindings: IDataModelBindings;
@@ -13,7 +13,7 @@ export const EditGroupDataModelBindings = ({
   dataModelBindings,
   onDataModelChange,
 }: EditGroupDataModelBindingProps) => {
-  const t = useText();
+  const { t } = useTranslation();
   return (
     <div>
       <Label htmlFor='dataModalHelper'>{t('ux_editor.modal_properties_data_model_helper')}</Label>
