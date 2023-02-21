@@ -5,7 +5,6 @@ import {
   appDataMock,
   dataModelItemMock,
   dataModelStateMock,
-  languageStateMock,
   renderWithMockStore,
   textResourcesMock,
 } from '../../../testing/mocks';
@@ -36,9 +35,6 @@ const dataModelMock: IDataModelFieldElement[] = [
 
 const mockAppData: IAppDataState = {
   ...appDataMock,
-  languageState: {
-    ...languageStateMock,
-  },
   textResources: {
     ...textResourcesMock,
   },

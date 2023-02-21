@@ -12,7 +12,7 @@ import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 import cn from 'classnames';
 import type { IRepository } from 'app-shared/types/global';
 import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { MakeCopyModal } from '../../components/MakeCopyModal';
+import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../services/userApi';
 
