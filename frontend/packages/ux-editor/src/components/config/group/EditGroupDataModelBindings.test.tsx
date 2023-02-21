@@ -53,6 +53,7 @@ const render = (
     onDataModelChange: jest.fn(),
   };
   const user = userEvent.setup();
+
   renderWithMockStore({ appData: { ...mockAppData, ...appData } })(
     <EditGroupDataModelBindings {...defaultProps} {...props} />
   );
