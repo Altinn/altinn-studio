@@ -8,10 +8,9 @@ import {
   TextField
 } from '@digdir/design-system-react';
 import { AltinnPopoverSimple } from '../../../components/molecules/AltinnPopoverSimple';
-import { getLanguageFromKey } from '../../../utils/language';
+import { useTranslation } from 'react-i18next';
 
 export interface ICreateNewWrapper {
-  language: any;
   createAction: ({
     name,
     relativePath,
@@ -26,7 +25,7 @@ export interface ICreateNewWrapper {
 }
 
 export function CreateNewWrapper(props: ICreateNewWrapper) {
-  const t = (key: string) => getLanguageFromKey(key, props.language);
+  const { t } = useTranslation();
   const [createButtonAnchor, setCreateButtonAnchor] = useState(null);
   const [newModelName, setNewModelName] = useState('');
   const [nameError, setNameError] = useState('');

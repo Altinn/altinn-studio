@@ -1,22 +1,21 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tabs } from '@digdir/design-system-react';
 import type { TabItem } from '@digdir/design-system-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
-import { getTranslation } from '../utils/language';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
-import type { ILanguage } from '../types';
 import classes from './SchemaInspector.module.css';
 import { Divider } from 'app-shared/primitives';
+import { useTranslation } from 'react-i18next';
 
 export interface ISchemaInspectorProps {
-  language: ILanguage;
   selectedItem?: UiSchemaNode;
 }
 
-export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProps) => {
-  const t = useCallback((key: string) => getTranslation(key, language), [language]);
+export const SchemaInspector = ({ selectedItem }: ISchemaInspectorProps) => {
+  const translation = useTranslation();
+  const t = (key: string) => translation.t('schema_editor.' + key);
   enum TabValue {
     Properties = 'properties',
     Fields = 'fields'
@@ -37,7 +36,7 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
     const tabs = [
       {
         name: t(TabValue.Properties),
-        content: <ItemPropertiesTab selectedItem={selectedItem} language={language} />,
+        content: <ItemPropertiesTab selectedItem={selectedItem} />,
         value: TabValue.Properties
       }
     ];
@@ -48,13 +47,13 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
     ) {
       tabs.push({
         name: t(TabValue.Fields),
-        content: <ItemFieldsTab selectedItem={selectedItem} language={language} />,
+        content: <ItemFieldsTab selectedItem={selectedItem} />,
         value: TabValue.Fields
       });
     }
     setTabsFor(selectedItem.pointer);
     setTabItems(tabs);
-  }, [activeTab, TabValue.Fields, TabValue.Properties, language, selectedItem, t, tabsFor]);
+  }, [activeTab, TabValue.Fields, TabValue.Properties, selectedItem, tabsFor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const switchTab = (tabValue: string) => {
     if (

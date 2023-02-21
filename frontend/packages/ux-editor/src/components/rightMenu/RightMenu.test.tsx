@@ -1,9 +1,9 @@
 import React from 'react';
 import { IAppDataState } from '../../features/appData/appDataReducers';
-import { ILanguageState } from '../../features/appData/language/languageSlice';
 import { RightMenuProps, RightMenu } from './RightMenu';
-import { appDataMock, languageStateMock, renderWithMockStore } from '../../testing/mocks';
+import { appDataMock, renderWithMockStore } from '../../testing/mocks';
 import { screen } from '@testing-library/react';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const defaultProps: RightMenuProps = {
@@ -32,6 +32,10 @@ jest.mock('./ConditionalRenderingTab', () => ({
 jest.mock('./CalculationsTab', () => ({
   CalculationsTab: () => <div data-testid={calculationsTabTestId} />
 }));
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('RightMenu', () => {
   it('Renders all tabs', () => {
@@ -46,17 +50,7 @@ describe('RightMenu', () => {
 });
 
 const render = (props: Partial<RightMenuProps> = {}) => {
-
-  const languageState: ILanguageState = {
-    ...languageStateMock,
-    language: texts,
-  };
-
-  const appData: IAppDataState = {
-    ...appDataMock,
-    languageState,
-  };
-
+  const appData: IAppDataState = { ...appDataMock };
   return renderWithMockStore({ appData })(
     <RightMenu {...{ ...defaultProps, ...props }} />
   );

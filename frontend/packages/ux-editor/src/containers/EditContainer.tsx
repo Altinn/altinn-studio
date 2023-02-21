@@ -14,11 +14,10 @@ import cn from 'classnames';
 import type { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useText } from '../hooks';
-import { textSelector } from '../selectors/textSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { ComponentPreview } from './ComponentPreview';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export interface IEditContainerProps {
   component: IFormComponent;
@@ -40,7 +39,7 @@ enum EditContainerMode {
 
 export function EditContainer(props: IEditContainerProps) {
   const dispatch = useDispatch();
-  const t = useText();
+  const { t } = useTranslation();
   const { org, app } = useParams();
 
   const [component, setComponent] = useState<IFormComponent>({
@@ -60,7 +59,6 @@ export function EditContainer(props: IEditContainerProps) {
 
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const language = useSelector(textSelector);
   const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
   const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useSelector(
@@ -181,7 +179,7 @@ export function EditContainer(props: IEditContainerProps) {
               <i className={componentIcons[component.type] || 'fa fa-help-circle'} />
               {component.textResourceBindings?.title
                 ? truncate(getTextResource(component.textResourceBindings.title, textResources), 80)
-                : getComponentTitleByComponentType(component.type, language) ||
+                : getComponentTitleByComponentType(component.type, t) ||
                   t('ux_editor.component_unknown')}
             </div>
           )}

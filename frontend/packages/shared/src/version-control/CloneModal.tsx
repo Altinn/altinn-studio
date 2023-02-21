@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Popover } from '@mui/material';
 import axios from 'axios';
 import AltinnIcon from '../components/AltinnIcon';
-import { getLanguageFromKey } from '../utils/language';
 import { get } from '../utils/networking';
 import { altinnDocsUrl, dataModelUploadPageUrl } from '../utils/urlHelper';
 import { datamodelXsdPath, repositoryGitPath } from '../api-paths';
@@ -10,11 +9,11 @@ import { useParams } from 'react-router-dom';
 import { SimpleContainer } from '../primitives';
 import classes from './CloneModal.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 export interface ICloneModalProps {
   anchorEl: Element;
   onClose: any;
-  language: any;
 }
 
 export function CloneModal(props: ICloneModalProps) {
@@ -44,7 +43,7 @@ export function CloneModal(props: ICloneModalProps) {
       source.cancel('Component got unmounted.');
     };
   }, [app, org, props.anchorEl]);
-  const t = (key: string) => getLanguageFromKey(key, props.language);
+  const { t } = useTranslation();
   const open = Boolean(props.anchorEl);
   return (
     <Popover

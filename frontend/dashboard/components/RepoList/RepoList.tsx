@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type {
   GridActionsColDef,
   GridColDef,
@@ -10,15 +10,14 @@ import type {
 } from '@mui/x-data-grid';
 import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 import cn from 'classnames';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
 import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { MakeCopyModal } from '../../components/MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../services/userApi';
-import { useAppSelector } from '../../hooks/useAppSelector';
 
 import classes from './RepoList.module.css';
+import { useTranslation } from 'react-i18next';
 
 export interface IRepoListProps {
   isLoading: boolean;
@@ -52,10 +51,10 @@ const gridStyleOverride = {
 };
 
 export const NoResults = () => {
-  const language = useAppSelector((state) => state.language.language);
+  const { t } = useTranslation();
   return (
     <GridOverlay>
-      <p>{getLanguageFromKey('dashboard.no_repos_result', language)}</p>
+      <p>{t('dashboard.no_repos_result')}</p>
     </GridOverlay>
   );
 };
@@ -81,12 +80,11 @@ export const RepoList = ({
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
-  const language = useAppSelector((state) => state.language.language);
   const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = useRef(null);
-  const t = useCallback((key: string) => getLanguageFromKey(key, language), [language]);
+  const { t } = useTranslation();
 
   const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {

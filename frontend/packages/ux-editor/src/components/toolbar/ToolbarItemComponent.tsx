@@ -1,11 +1,10 @@
 import React from 'react';
 import classNames from 'classnames';
 import classes from './ToolbarItemComponent.module.css';
-import type { IAppState } from '../../types/global';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Helptext } from '@navikt/ds-icons';
 import { getComponentTitleByComponentType } from '../../utils/language';
-import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 export interface IToolbarItemProvidedProps {
   componentType: string;
@@ -15,7 +14,7 @@ export interface IToolbarItemProvidedProps {
 }
 
 export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const { t } = useTranslation();
   return (
     <div className={classes.toolbarItem}>
       <div className={classes.componentIcon}>
@@ -23,7 +22,7 @@ export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
       </div>
       <div className={classes.componentLabel}>
         {props.thirdPartyLabel == null
-          ? getComponentTitleByComponentType(props.componentType, language)
+          ? getComponentTitleByComponentType(props.componentType, t)
           : props.thirdPartyLabel}
       </div>
       <div className={classes.componentHelpIcon}>

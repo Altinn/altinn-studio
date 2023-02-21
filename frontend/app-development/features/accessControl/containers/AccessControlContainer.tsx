@@ -1,22 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { CheckboxGroup, CheckboxGroupVariant } from '@digdir/design-system-react';
 import classes from './AccessControlContainer.module.css';
 import type { RootState } from '../../../store';
 import { useAppSelector } from 'app-development/common/hooks';
 import { useParams } from 'react-router-dom';
-
-export interface IAccessControlContainerProps {
-  language: any;
-}
-
-export interface IAccessControlContainerState {
-  partyTypesAllowed: IPartyTypesAllowed;
-  setStateCalled: boolean;
-}
+import { useTranslation } from 'react-i18next';
 
 export interface IPartyTypesAllowed {
   bankruptcyEstate: boolean;
@@ -32,9 +23,9 @@ export enum PartyTypes {
   subUnit = 'subUnit',
 }
 
-export function AccessControlContainer({ language }: IAccessControlContainerProps) {
+export function AccessControlContainer() {
   const dispatch = useDispatch();
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
   const { org, app } = useParams();
 
   const [partyTypesAllowed, setPartyTypesAllowed] = useState<IPartyTypesAllowed>({

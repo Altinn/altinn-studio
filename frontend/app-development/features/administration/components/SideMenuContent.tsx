@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import type { ICommit, IRepository } from '../../../types/global';
 import { RepositoryType } from 'app-shared/types/global';
@@ -10,9 +9,9 @@ import { DownloadRepoModal } from './DownloadRepoModal';
 import classes from './SideMenuContent.module.css';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface ISideMenuContent {
-  language: any;
   service: IRepository;
   initialCommit: ICommit;
   repoType: RepositoryType;
@@ -45,7 +44,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
 
   const downloadModalAnchor = useRef<HTMLDivElement>();
   const resetRepoModalAnchor = useRef<HTMLDivElement>();
-  const t = (key: string) => getLanguageFromKey(key, props.language);
+  const { t } = useTranslation();
   return (
     <div className={classes.container}>
       {/* App owner info */}
@@ -88,7 +87,6 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       <ResetRepoModal
         anchorRef={resetRepoModalAnchor}
         handleClickResetRepo={handleResetRepoClick}
-        language={props.language}
         onClose={onCloseModal}
         open={resetRepoModalOpen}
         repositoryName={props.service.name}
@@ -105,7 +103,6 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       <div ref={downloadModalAnchor} />
       <DownloadRepoModal
         anchorRef={downloadModalAnchor}
-        language={props.language}
         onClose={toggleDownloadModal}
         open={downloadModalOpen}
       />

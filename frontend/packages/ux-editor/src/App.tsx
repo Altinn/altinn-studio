@@ -10,14 +10,12 @@ import {
 } from './features/appData/textResources/textResourcesSlice';
 import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
 import { fetchDataModel } from './features/appData/dataModel/dataModelSlice';
-import { fetchLanguage } from './features/appData/language/languageSlice';
 import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
 import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { textLanguagesPath, textResourcesPath } from 'app-shared/api-paths';
 import type { IAppState } from './types/global';
 import { deepCopy } from 'app-shared/pure';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useText } from './hooks';
 import { PageSpinner } from './components/PageSpinner';
 import { ErrorPage } from './components/ErrorPage';
@@ -54,22 +52,19 @@ export function App() {
   );
   const isLayoutFetched = useSelector((state: IAppState) => state.formDesigner.layout.fetched);
   const isWidgetFetched = useSelector((state: IAppState) => state.widgets.fetched);
-  const isLanguageFetched = useSelector((state: IAppState) => state.appData.languageState.fetched);
 
   const dataModelFetchedError = useSelector((state: IAppState) => state.appData.dataModel.error);
   const layoutFetchedError = useSelector((state: IAppState) => state.formDesigner.layout.error);
   const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
-  const languageFetchedError = useSelector((state: IAppState) => state.appData.languageState.error);
 
   const componentIsReady =
     isLayoutFetched &&
     isWidgetFetched &&
     isLayoutSettingsFetched &&
-    isDataModelFetched &&
-    isLanguageFetched;
+    isDataModelFetched;
 
   const componentHasError =
-    dataModelFetchedError || layoutFetchedError || widgetFetchedError || languageFetchedError;
+    dataModelFetchedError || layoutFetchedError || widgetFetchedError;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -88,9 +83,6 @@ export function App() {
     }
     if (widgetFetchedError) {
       return createErrorMessage(t('general.widget'));
-    }
-    if (languageFetchedError) {
-      return createErrorMessage(t('general.language'));
     }
 
     return createErrorMessage(t('general.unknown_error'));
@@ -121,7 +113,6 @@ export function App() {
       dispatch(loadLanguages({ url: textLanguagesPath(org, app) }));
       dispatch(fetchServiceConfiguration({ org, app }));
       dispatch(fetchRuleModel({ org, app }));
-      dispatch(fetchLanguage({ languageCode: DEFAULT_LANGUAGE }));
       dispatch(fetchWidgetSettings({ org, app }));
       dispatch(FormLayoutActions.fetchLayoutSettings({ org, app }));
       dispatch(fetchWidgets({ org, app }));

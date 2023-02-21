@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { TextField } from '@digdir/design-system-react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import type { FormComponentType, IAppState } from '../../../types/global';
 import { useSelector } from 'react-redux';
 import { idExists, validComponentId } from '../../../utils/formLayout';
+import { useTranslation } from 'react-i18next';
 
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponentType) => void;
@@ -21,8 +21,7 @@ export const EditComponentId = ({ component, handleComponentUpdate }: IEditCompo
     (state: IAppState) =>
       state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers
   );
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
   const errorMessageRef = useRef<HTMLDivElement>();
 
   useEffect(() => {

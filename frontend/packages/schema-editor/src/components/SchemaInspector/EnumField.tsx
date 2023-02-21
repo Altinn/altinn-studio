@@ -1,17 +1,15 @@
 import type { KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { IconButton } from '../common/IconButton';
-import { getTranslation } from '../../utils/language';
-import type { ILanguage } from '../../types';
 import { TextField } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { IconImage } from '../common/Icon';
+import { useTranslation } from 'react-i18next';
 
 export interface IEnumFieldProps {
   path: string;
   value: string;
-  language: ILanguage;
   readOnly?: boolean;
   fullWidth?: boolean;
   isValid?: boolean;
@@ -25,6 +23,7 @@ export const EnumField = (props: IEnumFieldProps) => {
   useEffect(() => {
     setVal(props.value);
   }, [props.value]);
+  const { t } = useTranslation();
 
   const onBlur = () => {
     props.onChange(val, props.value);
@@ -53,7 +52,7 @@ export const EnumField = (props: IEnumFieldProps) => {
       />
       {props.onDelete && (
         <IconButton
-          ariaLabel={getTranslation('delete_field', props.language)}
+          ariaLabel={t('schema_editor.delete_field')}
           className={classes.delete}
           icon={IconImage.Wastebucket}
           id={`${baseId}-delete-${props.value}`}

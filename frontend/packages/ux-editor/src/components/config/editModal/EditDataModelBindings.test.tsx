@@ -1,16 +1,19 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 
-import { appDataMock, dataModelItemMock, dataModelStateMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
+import { appDataMock, dataModelItemMock, dataModelStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
+import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
     ...appDataMock,
-    languageState: {
-      ...languageStateMock,
-    },
     textResources: {
       ...textResourcesMock,
     },

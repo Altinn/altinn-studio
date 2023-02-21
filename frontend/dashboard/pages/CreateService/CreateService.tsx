@@ -1,14 +1,14 @@
 import React, { useCallback, useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import { validateRepoName } from '../../utils/repoUtils';
-import { useAppSelector } from '../../hooks/useAppSelector';
 import { DataModellingFormat, useAddRepoMutation } from '../../services/repoApi';
 import { applicationAboutPage } from '../../utils/urlUtils';
 import classes from './CreateService.module.css';
 import { Button, ButtonColor } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
+import i18next from 'i18next';
 
 enum PageState {
   Idle = 'Idle',
@@ -20,7 +20,7 @@ interface IValidateInputs {
   setOrgErrorMessage: (value: string) => void;
   setRepoErrorMessage: (value: string) => void;
   repoName: string;
-  language: any;
+  t: typeof i18next.t;
 }
 
 const validateInputs = ({
@@ -28,10 +28,9 @@ const validateInputs = ({
   setOrgErrorMessage,
   setRepoErrorMessage,
   repoName,
-  language,
+  t,
 }: IValidateInputs) => {
   let isValid = true;
-  const t = (key: string) => getLanguageFromKey(key, language);
   if (!selectedOrgOrUser) {
     setOrgErrorMessage(t('dashboard.field_cannot_be_empty'));
     isValid = false;
@@ -52,7 +51,6 @@ const validateInputs = ({
 };
 
 export const CreateService = () => {
-  const language = useAppSelector((state) => state.language.language);
   const selectedFormat = DataModellingFormat.XSD;
   const [selectedOrgOrUser, setSelectedOrgOrUser] = useState('');
   const [orgErrorMessage, setOrgErrorMessage] = useState(null);
@@ -60,7 +58,7 @@ export const CreateService = () => {
   const [repoName, setRepoName] = useState('');
   const [pageState, setPageState] = useState(PageState.Idle);
   const [addRepo] = useAddRepoMutation();
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
   const handleServiceOwnerChanged = useCallback((newValue: string) => {
     setSelectedOrgOrUser(newValue);
     setOrgErrorMessage(null);
@@ -75,7 +73,7 @@ export const CreateService = () => {
     const isValid = validateInputs({
       selectedOrgOrUser,
       repoName,
-      language,
+      t,
       setRepoErrorMessage,
       setOrgErrorMessage,
     });

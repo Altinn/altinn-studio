@@ -2,24 +2,25 @@ import React from 'react';
 import { fireEvent, screen, within } from '@testing-library/react';
 
 import { EditHeaderSize } from './EditHeaderSize';
-import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
+import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
+import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 
 const h4Text = 'Undertittel (H4)';
 const h3Text = 'Undertittel (H3)';
 const h2Text = 'Undertittel (H2)';
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => mockUseTranslation({
+    'ux_editor.modal_header_type_h4': h4Text,
+    'ux_editor.modal_header_type_h3': h3Text,
+    'ux_editor.modal_header_type_h2': h2Text,
+  })
+}));
+
 const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
     ...appDataMock,
-    languageState: {
-      ...languageStateMock,
-      language: {
-        'ux_editor.modal_header_type_h4': h4Text,
-        'ux_editor.modal_header_type_h3': h3Text,
-        'ux_editor.modal_header_type_h2': h2Text,
-      },
-    },
     textResources: {
       ...textResourcesMock,
       resources: {

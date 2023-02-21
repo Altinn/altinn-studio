@@ -1,16 +1,14 @@
 import React from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
-import type { ILanguage } from '../types';
-import { getTranslation } from '../utils/language';
 import { TopToolbarButton } from './TopToolbarButton';
 import classes from './TopToolbar.module.css';
+import { useTranslation } from 'react-i18next';
 
 interface TopToolbarProps {
   Toolbar: JSX.Element;
   editMode: boolean;
   saveAction?: (payload: any) => void;
   toggleEditMode?: (e: any) => void;
-  language: ILanguage;
 }
 
 export function TopToolbar({
@@ -18,9 +16,9 @@ export function TopToolbar({
   Toolbar,
   saveAction,
   toggleEditMode,
-  language,
 }: TopToolbarProps) {
-  const t = (key: string) => getTranslation(key, language);
+  const translation = useTranslation();
+  const t = (key: string) => translation.t('schema_editor.' + key);
 
   return (
     <section className={classes.toolbar} role={'toolbar'}>

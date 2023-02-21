@@ -1,19 +1,16 @@
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
-export interface DatamodelsAdministrationProps {
-  language: any;
-}
-
-export function DatamodelsAdministration({ language }: DatamodelsAdministrationProps) {
+export function DatamodelsAdministration() {
+  const { t } = useTranslation();
   return (
     <div>
-      <p>{getLanguageFromKey('administration.datamodels_info1', language)}</p>
-      <p>{getLanguageFromKey('administration.datamodels_info2', language)}</p>
+      <p>{t('administration.datamodels_info1')}</p>
+      <p>{t('administration.datamodels_info2')}</p>
       <p>
-        {getLanguageFromKey('administration.datamodels_info3', language)}&nbsp;
+        {t('administration.datamodels_info3')}&nbsp;
         <a href='https://docs.altinn.studio/app/development/data/data-model/'>
-          {getLanguageFromKey('administration.datamodels_info_link', language)}
+          {t('administration.datamodels_info_link')}
         </a>
       </p>
     </div>

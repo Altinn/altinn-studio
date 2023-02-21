@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import type { IRepoListProps } from './RepoList';
 import * as userApi from '../../services/userApi';
 import { RepoList } from './RepoList';
+import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -14,6 +15,10 @@ jest.mock('../../services/userApi', () => ({
   __esModule: true,
   ...jest.requireActual('../../services/userApi'),
 }));
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 const repos = [
   {

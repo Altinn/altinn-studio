@@ -1,13 +1,11 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import postMessages from 'app-shared/utils/postMessages';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
 import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
-import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import {
   fetchRemainingSession,
   keepAliveSession,
@@ -24,24 +22,36 @@ import { useAppDispatch, useAppSelector } from './common/hooks';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
 import {
-  frontendLangPath,
   repoInitialCommitPath,
   repoMetaPath,
   repoStatusPath,
   serviceConfigPath,
   serviceNamePath,
 } from 'app-shared/api-paths';
+import i18next from 'i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
+import nb from '../language/src/nb.json';
+import en from '../language/src/en.json';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 const GetRepoStatusSelector = makeGetRepoStatusSelector();
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
+
+i18next.use(initReactI18next).init({
+  lng: DEFAULT_LANGUAGE,
+  resources: {
+    nb: { translation: nb },
+    en: { translation: en },
+  },
+  fallbackLng: 'nb',
+});
 
 export function App() {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
   const repositoryType = getRepositoryType(org, app);
-  const language = useAppSelector((state) => state.languageState.language);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
   const repoStatus = useAppSelector(GetRepoStatusSelector);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes
@@ -51,11 +61,6 @@ export function App() {
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    dispatch(
-      fetchLanguage({
-        url: frontendLangPath('nb'),
-      })
-    );
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
     if (repositoryType === RepositoryType.App) {
       dispatch(ApplicationMetadataActions.getApplicationMetadata({ org, app }));
@@ -167,7 +172,6 @@ export function App() {
       <PageHeader repoStatus={repoStatus} />
       <LeftMenu
         className={classes.contentWrapper}
-        language={language}
         repoStatus={repoStatus}
         subAppClassName={repoStatus.hasMergeConflict ? classes.mergeConflictApp : classes.subApp}
       />

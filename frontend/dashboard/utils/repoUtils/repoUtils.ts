@@ -1,13 +1,13 @@
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import type { IRepository } from 'app-shared/types/global';
 import type { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
 import type { Organizations } from '../../services/organizationApi';
+import i18next from 'i18next';
 
 type GetReposLabel = {
   selectedContext: SelectedContext;
   orgs: Organizations;
-  language: any;
+  t: typeof i18next.t;
   isDatamodelsRepo?: boolean;
 };
 
@@ -19,10 +19,9 @@ export type MergeReposProps = {
 export const getReposLabel = ({
   selectedContext,
   orgs,
-  language,
+  t,
   isDatamodelsRepo = false,
 }: GetReposLabel) => {
-  const t = (key: string) => getLanguageFromKey(key, language);
   if (selectedContext === SelectedContextType.All) {
     return isDatamodelsRepo ? t('dashboard.all_datamodels') : t('dashboard.all_apps');
   }

@@ -11,7 +11,7 @@ import { FieldType, Keywords, makePointer } from '@altinn/schema-model';
 
 import { SchemaTreeView } from '../TreeView/SchemaTreeView';
 import type { PanelProps } from '@altinn/schema-editor/components/layout/layoutTypes';
-import { getTranslation } from '@altinn/schema-editor/utils/language';
+import { useTranslation } from 'react-i18next';
 
 export type TypesPanelProps = PanelProps & {
   expandedDefNodes: string[];
@@ -19,13 +19,13 @@ export type TypesPanelProps = PanelProps & {
   definitions: UiSchemaNodes;
 };
 export const TypesPanel = ({
-  language,
   editMode,
   expandedDefNodes,
   setExpandedDefNodes,
   definitions,
 }: TypesPanelProps) => {
-  const t = (key: string) => getTranslation(key, language);
+  const translation = useTranslation();
+  const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
   const selectedDefinitionNodeId = useSelector(
     (state: ISchemaState) => state.selectedDefinitionNodeId

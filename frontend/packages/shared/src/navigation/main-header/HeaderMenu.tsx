@@ -3,20 +3,19 @@ import { Avatar, Divider, Grid, IconButton, MenuItem, Typography } from '@mui/ma
 import { AltinnMenu } from '../../components';
 import { post } from '../../utils/networking';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
-import { getLanguageFromKey } from '../../utils/language';
 import { repositoryBasePath, repositoryOwnerPath, repositoryPath } from '../../api-paths';
 import classes from './HeaderMenu.module.css';
+import { useTranslation } from 'react-i18next';
 
 export type HeaderMenuProps = {
-  language: any;
   org: string;
   repo?: string;
 };
 
-export function HeaderMenu({ language, org, repo }: HeaderMenuProps) {
+export function HeaderMenu({ org, repo }: HeaderMenuProps) {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
   const { user, selectedContext, selectableOrgs, setSelectedContext } = useContext(HeaderContext);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
 
   const openMenu = (e: React.MouseEvent) => {
     e.stopPropagation();

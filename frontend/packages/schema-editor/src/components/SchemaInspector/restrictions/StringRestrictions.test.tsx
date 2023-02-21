@@ -4,9 +4,10 @@ import { StringRestrictions } from './StringRestrictions';
 import { StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import userEvent from '@testing-library/user-event';
+import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 
 // Test data
-const language = {
+const texts = {
   'schema_editor.format': 'Format',
   'schema_editor.format_date': 'Dato',
   'schema_editor.format_date_after_excl': 'Senere enn',
@@ -43,13 +44,18 @@ const path = '#/properties/testpath';
 const onChangeRestrictionValue = jest.fn();
 const onChangeRestrictions = jest.fn();
 const defaultProps: RestrictionItemProps = {
-  language,
   onChangeRestrictionValue,
   onChangeRestrictions,
   path,
   readonly: false,
   restrictions: {},
 };
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 const user = userEvent.setup();
 
@@ -70,40 +76,40 @@ describe('StringRestrictions', () => {
       StrRestrictionKeys.maxLength,
       StrRestrictionKeys.pattern,
       'pattern_test_field',
-    ].forEach((key) => expect(screen.getByLabelText(language[`schema_editor.${key}`])).toBeDefined());
+    ].forEach((key) => expect(screen.getByLabelText(texts[`schema_editor.${key}`])).toBeDefined());
   });
 
   test('Format selection appears with all options', async () => {
     renderStringRestrictions();
-    expect(screen.getByText(language[`schema_editor.format`])).toBeDefined();
-    expect(screen.getByLabelText(language[`schema_editor.format`])).toBeDefined();
-    await act(() => user.click(screen.getByLabelText(language[`schema_editor.format`])));
+    expect(screen.getByText(texts[`schema_editor.format`])).toBeDefined();
+    expect(screen.getByLabelText(texts[`schema_editor.format`])).toBeDefined();
+    await act(() => user.click(screen.getByLabelText(texts[`schema_editor.format`])));
     Object.values(StringFormat).forEach((format) => {
       expect(
-        screen.getByRole('option', { name: language[`schema_editor.format_${format}`] })
+        screen.getByRole('option', { name: texts[`schema_editor.format_${format}`] })
       ).toHaveAttribute('value', format);
     });
     expect(
-      screen.getByRole('option', { name: language['schema_editor.format_none'] })
+      screen.getByRole('option', { name: texts['schema_editor.format_none'] })
     ).toHaveAttribute('value', '');
   });
 
   test('Empty format option is selected by default', () => {
     renderStringRestrictions();
-    expect(screen.getByLabelText(language[`schema_editor.format`])).toHaveValue('');
+    expect(screen.getByLabelText(texts[`schema_editor.format`])).toHaveValue('');
   });
 
   test('Given format option is selected', () => {
     const format = StringFormat.Date;
     renderStringRestrictions({ restrictions: { format } });
-    expect(screen.getByLabelText(language[`schema_editor.format`])).toHaveValue(format);
+    expect(screen.getByLabelText(texts[`schema_editor.format`])).toHaveValue(format);
   });
 
   test('onChangeRestrictions is called with correct input when format is changed', async () => {
     const { rerender } = renderStringRestrictions();
-    await act(() => user.click(screen.getByLabelText(language[`schema_editor.format`])));
+    await act(() => user.click(screen.getByLabelText(texts[`schema_editor.format`])));
     await act(() => user.click(
-      screen.getByRole('option', { name: language[`schema_editor.format_${StringFormat.Date}`] })
+      screen.getByRole('option', { name: texts[`schema_editor.format_${StringFormat.Date}`] })
     ));
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
@@ -112,8 +118,8 @@ describe('StringRestrictions', () => {
     );
     onChangeRestrictions.mockReset();
     rerender(<StringRestrictions {...defaultProps} />);
-    await act(() => user.click(screen.getByLabelText(language[`schema_editor.format`])));
-    await act(() => user.click(screen.getByRole('option', { name: language[`schema_editor.format_none`] })));
+    await act(() => user.click(screen.getByLabelText(texts[`schema_editor.format`])));
+    await act(() => user.click(screen.getByRole('option', { name: texts[`schema_editor.format_none`] })));
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -124,9 +130,9 @@ describe('StringRestrictions', () => {
   test('Date restriction fields appear if and only if format is either date, date-time or time', () => {
     [StringFormat.Date, StringFormat.DateTime, StringFormat.Time].forEach((format: string) => {
       const { unmount } = renderStringRestrictions({ restrictions: { format } });
-      expect(screen.getByLabelText(language['schema_editor.format_date_after_incl'])).toBeTruthy();
-      expect(screen.getByLabelText(language['schema_editor.format_date_before_incl'])).toBeTruthy();
-      expect(screen.getAllByLabelText(language['schema_editor.format_date_inclusive'])).toHaveLength(
+      expect(screen.getByLabelText(texts['schema_editor.format_date_after_incl'])).toBeTruthy();
+      expect(screen.getByLabelText(texts['schema_editor.format_date_before_incl'])).toBeTruthy();
+      expect(screen.getAllByLabelText(texts['schema_editor.format_date_inclusive'])).toHaveLength(
         2
       );
       unmount();
@@ -151,9 +157,9 @@ describe('StringRestrictions', () => {
       StringFormat.Regex,
     ].forEach((format: string) => {
       const { unmount } = renderStringRestrictions({ restrictions: { format } });
-      expect(screen.queryByLabelText(language['schema_editor.format_date_after_incl'])).toBeFalsy();
-      expect(screen.queryByLabelText(language['schema_editor.format_date_before_incl'])).toBeFalsy();
-      expect(screen.queryByLabelText(language['schema_editor.format_date_inclusive'])).toBeFalsy();
+      expect(screen.queryByLabelText(texts['schema_editor.format_date_after_incl'])).toBeFalsy();
+      expect(screen.queryByLabelText(texts['schema_editor.format_date_before_incl'])).toBeFalsy();
+      expect(screen.queryByLabelText(texts['schema_editor.format_date_inclusive'])).toBeFalsy();
       unmount();
     });
   });
@@ -162,10 +168,10 @@ describe('StringRestrictions', () => {
     const format = StringFormat.Date;
     const formatMinimum = '1000-01-01';
     renderStringRestrictions({ restrictions: { format, formatMinimum } });
-    expect(screen.getByLabelText(language['schema_editor.format_date_after_incl'])).toHaveValue(
+    expect(screen.getByLabelText(texts['schema_editor.format_date_after_incl'])).toHaveValue(
       formatMinimum
     );
-    expect(screen.queryByLabelText(language['schema_editor.format_date_after_excl'])).toBeFalsy();
+    expect(screen.queryByLabelText(texts['schema_editor.format_date_after_excl'])).toBeFalsy();
     expect(getMinimumInclusiveCheckbox()).toBeChecked();
   });
 
@@ -173,10 +179,10 @@ describe('StringRestrictions', () => {
     const format = StringFormat.Date;
     const formatExclusiveMinimum = '1000-01-01';
     renderStringRestrictions({ restrictions: { format, formatExclusiveMinimum } });
-    expect(screen.getByLabelText(language['schema_editor.format_date_after_excl'])).toHaveValue(
+    expect(screen.getByLabelText(texts['schema_editor.format_date_after_excl'])).toHaveValue(
       formatExclusiveMinimum
     );
-    expect(screen.queryByLabelText(language['schema_editor.format_date_after_incl'])).toBeFalsy();
+    expect(screen.queryByLabelText(texts['schema_editor.format_date_after_incl'])).toBeFalsy();
     expect(getMinimumInclusiveCheckbox()).not.toBeChecked();
   });
 
@@ -184,10 +190,10 @@ describe('StringRestrictions', () => {
     const format = StringFormat.Date;
     const formatMaximum = '3000-01-01';
     renderStringRestrictions({ restrictions: { format, formatMaximum } });
-    expect(screen.getByLabelText(language['schema_editor.format_date_before_incl'])).toHaveValue(
+    expect(screen.getByLabelText(texts['schema_editor.format_date_before_incl'])).toHaveValue(
       formatMaximum
     );
-    expect(screen.queryByLabelText(language['schema_editor.format_date_before_excl'])).toBeFalsy();
+    expect(screen.queryByLabelText(texts['schema_editor.format_date_before_excl'])).toBeFalsy();
     expect(getMaximumInclusiveCheckbox()).toBeChecked();
   });
 
@@ -195,17 +201,17 @@ describe('StringRestrictions', () => {
     const format = StringFormat.Date;
     const formatExclusiveMaximum = '3000-01-01';
     renderStringRestrictions({ restrictions: { format, formatExclusiveMaximum } });
-    expect(screen.getByLabelText(language['schema_editor.format_date_before_excl'])).toHaveValue(
+    expect(screen.getByLabelText(texts['schema_editor.format_date_before_excl'])).toHaveValue(
       formatExclusiveMaximum
     );
-    expect(screen.queryByLabelText(language['schema_editor.format_date_before_incl'])).toBeFalsy();
+    expect(screen.queryByLabelText(texts['schema_editor.format_date_before_incl'])).toBeFalsy();
     expect(getMaximumInclusiveCheckbox()).not.toBeChecked();
   });
 
   test('onChangeRestrictions is called with correct arguments when "earliest" field is changed', async () => {
     renderStringRestrictions({ restrictions: { format: StringFormat.Date } });
     const input = '2';
-    await act(() => user.type(screen.getByLabelText(language['schema_editor.format_date_after_incl']), input));
+    await act(() => user.type(screen.getByLabelText(texts['schema_editor.format_date_after_incl']), input));
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -216,7 +222,7 @@ describe('StringRestrictions', () => {
   test('onChangeRestrictions is called with correct arguments when "latest" field is changed', async () => {
     renderStringRestrictions({ restrictions: { format: StringFormat.Date } });
     const input = '2';
-    await act(() => user.type(screen.getByLabelText(language['schema_editor.format_date_before_incl']), input));
+    await act(() => user.type(screen.getByLabelText(texts['schema_editor.format_date_before_incl']), input));
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -287,14 +293,14 @@ describe('StringRestrictions', () => {
   test('Minimum length field has given value', async () => {
     const minLength = 3;
     renderStringRestrictions({ restrictions: { minLength } });
-    expect(screen.getByLabelText(language[`schema_editor.minLength`])).toHaveValue(
+    expect(screen.getByLabelText(texts[`schema_editor.minLength`])).toHaveValue(
       minLength.toString()
     );
   });
 
   test('onChangeRestrictions is called with correct input when minimum length is changed', async () => {
     renderStringRestrictions({ restrictions: { minLength: '1' } });
-    await act(() => user.type(screen.getByLabelText(language[`schema_editor.minLength`]), '2'));
+    await act(() => user.type(screen.getByLabelText(texts[`schema_editor.minLength`]), '2'));
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -305,14 +311,14 @@ describe('StringRestrictions', () => {
   test('Maximum length field has given value', async () => {
     const maxLength = 255;
     renderStringRestrictions({ restrictions: { maxLength } });
-    expect(screen.getByLabelText(language[`schema_editor.maxLength`])).toHaveValue(
+    expect(screen.getByLabelText(texts[`schema_editor.maxLength`])).toHaveValue(
       maxLength.toString()
     );
   });
 
   test('onChangeRestrictions is called with correct input when maximum length is changed', async () => {
     renderStringRestrictions({ restrictions: { maxLength: '14' } });
-    await act(() => user.type(screen.getByLabelText(language[`schema_editor.maxLength`]), '4'));
+    await act(() => user.type(screen.getByLabelText(texts[`schema_editor.maxLength`]), '4'));
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -323,18 +329,18 @@ describe('StringRestrictions', () => {
   test('Pattern field has given value', async () => {
     const pattern = '[A-Z]';
     renderStringRestrictions({ restrictions: { pattern } });
-    expect(screen.getByLabelText(language[`schema_editor.pattern`])).toHaveValue(pattern);
+    expect(screen.getByLabelText(texts[`schema_editor.pattern`])).toHaveValue(pattern);
   });
 
   test('onChangeRestrictionValue is called with correct input when pattern is changed', async () => {
     renderStringRestrictions({ restrictions: { pattern: '[a-z' } });
-    await act(() => user.type(screen.getByLabelText(language[`schema_editor.pattern`]), ']'));
+    await act(() => user.type(screen.getByLabelText(texts[`schema_editor.pattern`]), ']'));
     expect(onChangeRestrictionValue).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictionValue).toHaveBeenCalledWith(path, StrRestrictionKeys.pattern, '[a-z]');
   });
 });
 
 const getInclusiveCheckboxes = () =>
-  screen.getAllByLabelText(language['schema_editor.format_date_inclusive']);
+  screen.getAllByLabelText(texts['schema_editor.format_date_inclusive']);
 const getMinimumInclusiveCheckbox = () => getInclusiveCheckboxes()[0];
 const getMaximumInclusiveCheckbox = () => getInclusiveCheckboxes()[1];

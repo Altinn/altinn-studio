@@ -3,10 +3,10 @@ import type { User } from '../../resources/fetchDashboardResources/dashboardSlic
 import { AltinnSpinner } from 'app-shared/components';
 import type { IGiteaOrganisation } from 'app-shared/types/global';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { Select } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 const zIndex = {
   zIndex: 1300,
@@ -47,7 +47,7 @@ export const ServiceOwnerSelector = ({
   const { data: organisations, isLoading: isLoadingOrganisations } = useGetOrganizationsQuery();
 
   const user = useAppSelector((state) => state.dashboard.user);
-  const language = useAppSelector((state) => state.language.language);
+  const { t } = useTranslation();
 
   const serviceOwnerRef = useRef(null);
 
@@ -72,12 +72,12 @@ export const ServiceOwnerSelector = ({
   const value =
     selectableOrgsOrUser.length === 1 ? selectableOrgsOrUser[0].value : selectedOrgOrUser;
   return isLoadingOrganisations ? (
-    <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
+    <AltinnSpinner spinnerText={t('dashboard.loading')} />
   ) : (
     <div>
       <Select
         inputId='service-owner'
-        label={getLanguageFromKey('general.service_owner', language)}
+        label={t('general.service_owner')}
         onChange={handleChange}
         options={selectableOrgsOrUser}
         value={value}

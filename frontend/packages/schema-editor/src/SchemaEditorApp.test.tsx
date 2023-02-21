@@ -3,8 +3,16 @@ import { unmountComponentAtNode } from 'react-dom';
 import { act, render, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { dataMock } from './mockData';
+import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 let container: any = null;
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
+
 beforeEach(() => {
   container = document.createElement('div');
   document.body.appendChild(container);
@@ -21,7 +29,6 @@ test('renders schema editor app', () => {
     render(
       <SchemaEditorApp
         schema={dataMock}
-        language={{}}
         onSaveSchema={jest.fn()}
         name='test'
         LandingPagePanel={<div>landing page panel goes here</div>}
