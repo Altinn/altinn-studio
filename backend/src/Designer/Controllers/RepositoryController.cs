@@ -145,27 +145,31 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
-                Guard.AssertValidAppRepoName(repository);
-            }
-            catch (ArgumentException)
-            {
-                return BadRequest($"{repository} is an invalid repository name.");
-            }
+                try
+                {
+                    Guard.AssertValidAppRepoName(repository);
+                }
+                catch (ArgumentException)
+                {
+                    return BadRequest($"{repository} is an invalid repository name.");
+                }
 
-            var config = new ServiceConfiguration
-            {
-                RepositoryName = repository,
-                ServiceName = repository
-            };
+                var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
 
-            var repositoryResult = await _repository.CreateService(org, config);
-            if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
-            {
-                return Created(repositoryResult.CloneUrl, repositoryResult);
+                var repositoryResult = await _repository.CreateService(org, config);
+                if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
+                {
+                    return Created(repositoryResult.CloneUrl, repositoryResult);
+                }
+                else
+                {
+                    return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
+                }
             }
-            else
+            catch (Exception e)
             {
-                return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
+                Console.WriteLine(e.Message);
+                return BadRequest();
             }
         }
 
