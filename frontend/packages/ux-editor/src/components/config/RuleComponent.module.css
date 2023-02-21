@@ -1,4 +1,4 @@
-.calculateHeader {
+.modalHeader {
   min-height: 80px;
   background: var(--primary-color-700);
   padding: 12px;
@@ -6,4 +6,65 @@
   align-items: center;
   gap: 12px;
   color: var(--paper-color);
+}
+
+.modalHeaderTitle {
+  font-size: 1.5rem;
+  font-weight: normal;
+}
+
+.modalBody {
+  max-width: 800px;
+  width: 100%;
+  background: var(--paper-color);
+  margin-top: 30px;
+}
+.modalBodyContent {
+  padding: 30px;
+}
+
+.subTitle {
+  font-size: 18px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  margin-top: 25px;
+}
+
+.customSelect {
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 2px solid var(--primary-color);
+  width: 100%;
+}
+
+.cancelButton {
+  font-size: 1rem;
+  padding: 8px 30px;
+  color: var(--text-color);
+  border: 2px solid var(--text-color);
+  margin-top: 8px;
+}
+
+.reactModalOverlay {
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: var(--overlay-gradient);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  z-index: 1000;
 }

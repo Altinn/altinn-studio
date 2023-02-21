@@ -6,9 +6,7 @@ import type { IAppState, IDataModelFieldElement, IRuleModelFieldElement } from '
 import { withTranslation } from 'react-i18next';
 
 import classes from './RuleComponent.module.css';
-
-
-
+import Modal from 'react-modal';
 
 export interface IRuleComponentProps {
   connectionId?: any;
@@ -114,29 +112,30 @@ class Rule extends React.Component<IRuleComponentProps, any> {
     const selectedMethod = this.state.ruleConnection.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
     return (
-      <div className='modal-content'>
-        <div className='modal-header a-modal-header'>
-          <div className='a-iconText a-iconText-background a-iconText-large'>
-            <div className='a-iconText-icon'>
-              <i className='fa fa-corp a-icon' />
-            </div>
-            <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>
-                {this.props.t('ux_editor.modal_configure_rules_header')}
-              </span>
-            </h1>
-          </div>
+      <Modal
+        isOpen={true}
+        onRequestClose={() => {}}
+        className={classes.modalBody}
+        ariaHideApp={false}
+        overlayClassName={classes.reactModalOverlay}
+      >
+        <div className={classes.modalHeader}>
+          <i className='fa fa-corp' />
+          <h1 className={classes.modalHeaderTitle}>
+            <span>{this.props.t('ux_editor.modal_configure_rules_header')}</span>
+          </h1>
         </div>
-        <div className='modal-body a-modal-body'>
-          <div className='form-group a-form-group'>
-            <label htmlFor='selectRule' className='a-form-label'>
+        <div className={classes.modalBodyContent}>
+          <div className={classes.formGroup}>
+            <label htmlFor='selectRule' className={classes.label}>
               {this.props.t('ux_editor.modal_configure_rules_helper')}
             </label>
+
             <select
               name='selectRule'
               onChange={this.handleSelectedMethodChange}
               value={selectedMethod}
-              className='custom-select a-custom-select'
+              className={classes.customSelect}
               style={{ fontSize: '16px' }}
             >
               <option value={''}>{this.props.t('general.choose_method')}</option>
@@ -149,16 +148,11 @@ class Rule extends React.Component<IRuleComponentProps, any> {
               })}
             </select>
           </div>
+
           {this.state.ruleConnection.selectedFunction ? (
-
-
-
             <>
-
-            
-              <div className='form-group a-form-group mt-2'>
-              <h2 className={classes.calculateHeader}>
-                <i className='fa fa-corp' />
+              <div>
+                <h2 className={classes.subTitle}>
                   {this.props.t('ux_editor.modal_configure_rules_configure_input_header')}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
@@ -168,11 +162,13 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                       <div className='align-items-center mb-1 row' key={index}>
                         <div className='col-3 col'>
                           <div className='form-group a-form-group mt-1 disabled'>
-                            <label className='a-form-label' htmlFor={paramName}>
-                              {this.props.t(
-                                'ux_editor.modal_configure_rules_configure_input_param_helper'
-                              )}
+                            <label className={classes.label} htmlFor={paramName}>
+                              {
+                                this.props.t('ux_editor.modal_configure_rules_configure_input_param_helper')
+                                
+                              }
                             </label>
+
                             <input
                               id={paramName}
                               name={paramName}
@@ -183,13 +179,13 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                               disabled={true}
                             />
                           </div>
-                        </div>
-                        <div className='col-9 col'>
-                          <SelectDataModelComponent
-                            onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
-                            selectedElement={this.state.ruleConnection.inputParams[paramName]}
-                            hideRestrictions={true}
-                          />
+                          <div>
+                            <SelectDataModelComponent
+                              onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
+                              selectedElement={this.state.ruleConnection.inputParams[paramName]}
+                              hideRestrictions={true}
+                            />
+                          </div>
                         </div>
                       </div>
                     );
@@ -197,17 +193,11 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                 )}
               </div>
 
-
-
-
-
-
-
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
                   {this.props.t('ux_editor.modal_configure_rules_configure_output_header')}
                 </h2>
-                {/* length is always 1 since method always returns just one thing */}
+                {/* length is always 1 since method always returns just one thing    */}
                 <div className='align-items-center mt-1 row' key='0'>
                   <div className='col col-3'>
                     <div className='form-group a-form-group mt-1 disabled'>
@@ -258,13 +248,13 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   {this.props.t('general.delete')}
                 </button>
               ) : null}
-              <button className={'anchor'} onClick={this.props.cancelEdit}>
+              <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
                 {this.props.t('general.cancel')}
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </Modal>
     );
   }
 }
