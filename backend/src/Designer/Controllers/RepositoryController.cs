@@ -143,6 +143,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("create-app")]
         public async Task<ActionResult<RepositoryModel>> CreateApp([FromQuery] string org, [FromQuery] string repository)
         {
+            Console.WriteLine("Organization: " + org);
             try
             {
                 try
