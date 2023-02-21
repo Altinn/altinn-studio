@@ -5,7 +5,12 @@ import userEvent from '@testing-library/user-event';
 import type { FormComponentType } from '../../../types/global';
 
 test('should render first 6 suggestions on search field focused', async () => {
-  render(<EditAutoComplete handleComponentChange={() => {}} component={{} as FormComponentType} />);
+  render(
+    <EditAutoComplete
+      handleComponentChange={() => {}}
+      component={{ id: 'random-id' } as FormComponentType}
+    />
+  );
   const user = userEvent.setup();
 
   const inputField = screen.getByRole('textbox');
@@ -20,7 +25,12 @@ test('should render first 6 suggestions on search field focused', async () => {
 });
 
 test('should filter options while typing in search field', async () => {
-  render(<EditAutoComplete handleComponentChange={() => {}} component={{} as FormComponentType} />);
+  render(
+    <EditAutoComplete
+      handleComponentChange={() => {}}
+      component={{ id: 'random-id', } as FormComponentType}
+    />
+  );
   const user = userEvent.setup();
 
   act((): void => {
@@ -34,7 +44,12 @@ test('should filter options while typing in search field', async () => {
 });
 
 test('should set the chosen options within the search field', async () => {
-  render(<EditAutoComplete handleComponentChange={() => {}} component={{} as FormComponentType} />);
+  render(
+    <EditAutoComplete
+      handleComponentChange={() => {}}
+      component={{ id: 'random-id' } as FormComponentType}
+    />
+  );
   const user = userEvent.setup();
 
   const searchField = screen.getByRole('textbox');
@@ -52,7 +67,12 @@ test('should set the chosen options within the search field', async () => {
 });
 
 test('should toggle autocomplete-popup based onFocus and onBlur', async () => {
-  render(<EditAutoComplete handleComponentChange={() => {}} component={{} as FormComponentType} />);
+  render(
+    <EditAutoComplete
+      handleComponentChange={() => {}}
+      component={{ id: 'random-id' } as FormComponentType}
+    />
+  );
   const user = userEvent.setup();
 
   act((): void => {
@@ -73,7 +93,7 @@ test('should call handleComponentChangeMock callback ', async () => {
   render(
     <EditAutoComplete
       handleComponentChange={handleComponentChangeMock}
-      component={{} as FormComponentType}
+      component={{ id: 'random-id' } as FormComponentType}
     />
   );
   const user = userEvent.setup();
@@ -92,5 +112,5 @@ test('should call handleComponentChangeMock callback ', async () => {
   });
 
   await waitForElementToBeRemoved(screen.queryByRole('dialog'));
-  expect(handleComponentChangeMock).toHaveBeenCalledWith({ autocomplete: 'on' });
+  expect(handleComponentChangeMock).toHaveBeenCalledWith({ autocomplete: 'on', id: 'random-id' });
 });
