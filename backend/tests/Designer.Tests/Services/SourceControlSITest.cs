@@ -96,14 +96,16 @@ namespace Designer.Tests.Services
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
 
             giteaMock ??= new Mock<IGitea>();
-            IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
+
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
-            repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar;
+            var repoSettings = new ServiceRepositorySettings()
+            {
+                RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar
+            };
 
             SourceControlSI service = new SourceControlSI(
                 repoSettings,
-                new Mock<IOptions<GeneralSettings>>().Object,
-                new Mock<IDefaultFileFactory>().Object,
+                new GeneralSettings(),
                 httpContextAccessorMock.Object,
                 giteaMock.Object,
                 new Mock<ILogger<SourceControlSI>>().Object);

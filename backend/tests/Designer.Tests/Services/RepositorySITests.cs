@@ -307,24 +307,26 @@ namespace Designer.Tests.Services
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
 
             sourceControlMock ??= new ISourceControlMock();
-            IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
+
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
-            repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar;
+            ServiceRepositorySettings repoSettings = new ServiceRepositorySettings()
+            {
+                RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar
+            };
+
 
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-            IOptions<GeneralSettings> generalSettings = Options.Create(
-                new GeneralSettings()
-                {
-                    TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
-                    DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
-                    AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
-                });
+            var generalSettings = new GeneralSettings()
+            {
+                TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
+                DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
+                AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
+            };
 
             RepositorySI service = new RepositorySI(
                 repoSettings,
                 generalSettings,
-                new Mock<IDefaultFileFactory>().Object,
                 httpContextAccessorMock.Object,
                 new IGiteaMock(),
                 sourceControlMock,

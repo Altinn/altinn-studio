@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;
+        private readonly ServiceRepositorySettings _serviceRepositorySettings;
         private readonly IXmlSchemaToJsonSchemaConverter _xmlSchemaToJsonSchemaConverter;
         private readonly IJsonSchemaToXmlSchemaConverter _jsonSchemaToXmlSchemaConverter;
         private readonly IModelMetadataToCsharpConverter _modelMetadataToCsharpConverter;
@@ -64,7 +64,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public SchemaModelService(
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             ILoggerFactory loggerFactory,
-            IOptions<ServiceRepositorySettings> serviceRepositorySettings,
+            ServiceRepositorySettings serviceRepositorySettings,
             IXmlSchemaToJsonSchemaConverter xmlSchemaToJsonSchemaConverter,
             IJsonSchemaToXmlSchemaConverter jsonSchemaToXmlSchemaConverter,
             IModelMetadataToCsharpConverter modelMetadataToCsharpConverter)
@@ -256,7 +256,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>Returns a resolvable uri to the location of the schema.</returns>
         public Uri GetSchemaUri(string org, string repository, string schemaName, string relativePath = "")
         {
-            var baseUrl = _serviceRepositorySettings.Value.RepositoryBaseURL;
+            var baseUrl = _serviceRepositorySettings.RepositoryBaseURL;
             baseUrl = baseUrl.TrimEnd("/".ToCharArray());
 
             Uri schemaUri;

@@ -379,9 +379,9 @@ src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 
 ## Test repositories
 backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo-*/**
+backend/tests/Designer.Tests/_TestData/Remote/**/test-repo-*/**
+backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo_*/**
 backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
-backend/tests/Designer.Tests/_TestData/Repositories/*/*/test-repo_*/**
-backend/tests/Designer.Tests/_TestData/Remote/*/test-repo_*/**
 
 ######### Built react apps for designer ###########
 backend/src/Designer/wwwroot/designer/css/react

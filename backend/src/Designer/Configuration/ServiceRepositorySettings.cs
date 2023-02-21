@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Newtonsoft.Json;
@@ -10,7 +11,7 @@ namespace Altinn.Studio.Designer.Configuration
     /// <summary>
     /// Class that represents the ServiceRepositorySettings
     /// </summary>
-    public class ServiceRepositorySettings
+    public class ServiceRepositorySettings : ISettingsMarker
     {
         /// <summary>
         /// Constant for the location of resource files

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TestRepoPrefix>test-repo_</TestRepoPrefix>
+    <TestRepoPrefix>test-repo-</TestRepoPrefix>
   </PropertyGroup>
 
   <ItemGroup>

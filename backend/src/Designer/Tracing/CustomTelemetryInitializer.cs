@@ -1,7 +1,7 @@
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 
-namespace Altinn.Studio.Designer.Configuration
+namespace Altinn.Studio.Designer.Tracing
 {
     /// <summary>
     /// Set up custom telemetry for Application Insights

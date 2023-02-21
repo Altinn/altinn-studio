@@ -4,9 +4,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Configuration.Extensions;
+using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
@@ -184,7 +187,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.ConfigureDataProtection(configuration, logger);
     services.ConfigureMvc();
-    services.ConfigureSettings(configuration);
+    services.ConfigureNonMarkedSettings(configuration);
 
     services.RegisterTypedHttpClients(configuration);
     services.ConfigureAuthentication(configuration, env);
@@ -225,6 +228,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             // Catch swashbuckle exception if it doesn't find the generated XML documentation file
         }
     });
+
+    // Auto register all settings classes
+    services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
     logger.LogInformation($"// Program.cs // ConfigureServices // Configuration complete");
 }
 

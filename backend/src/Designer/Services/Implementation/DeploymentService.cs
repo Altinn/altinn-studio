@@ -31,7 +31,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Constructor
         /// </summary>
         public DeploymentService(
-            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
+            AzureDevOpsSettings azureDevOpsOptions,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IHttpContextAccessor httpContextAccessor,
             IDeploymentRepository deploymentRepository,
@@ -43,8 +43,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _deploymentRepository = deploymentRepository;
             _releaseRepository = releaseRepository;
             _applicationInformationService = applicationInformationService;
-            _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _environmentsService = environmentsService;
+            _azureDevOpsSettings = azureDevOpsOptions;
             _httpContext = httpContextAccessor.HttpContext;
         }
 

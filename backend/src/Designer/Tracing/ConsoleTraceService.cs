@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Yuniql.Extensibility;
 
-namespace Altinn.Studio.Designer.Configuration
+namespace Altinn.Studio.Designer.Tracing
 {
     /// <summary>
     /// Copied from sample project.
@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Configuration
     public class ConsoleTraceService : ITraceService
     {
         /// <summary>
-        /// Debug enabled 
+        /// Debug enabled
         /// </summary>
         public bool IsDebugEnabled { get; set; } = false;
 
@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Configuration
 
         /// <summary>
         /// Info
-        /// </summary>      
+        /// </summary>
         public void Info(string message, object payload = null)
         {
             var traceMessage = $"INF   {DateTime.UtcNow.ToString("o")}   {message}{Environment.NewLine}";
