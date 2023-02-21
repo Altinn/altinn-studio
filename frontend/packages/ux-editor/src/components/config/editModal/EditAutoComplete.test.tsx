@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditAutoComplete } from './EditAutoComplete';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FormComponentType } from '../../../types/global';
 
@@ -21,18 +21,18 @@ test('should render first 6 suggestions on search field focused', async () => {
   expect(screen.getAllByRole('option')).toHaveLength(6);
 });
 
-// test('should filter options while typing in search field', async () => {
-//   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
+test('should filter options while typing in search field', async () => {
+  render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
 
-//   act((): void => {
-//     userEvent.type(screen.getByRole('textbox'), 'off');
-//   });
+  act((): void => {
+    userEvent.type(screen.getByRole('textbox'), 'off');
+  });
 
-//   await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('off'));
+  await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('off'));
 
-//   expect(screen.getByRole('option', { name: 'off' })).toBeInTheDocument();
-//   expect(screen.queryByRole('option', { name: 'given-name' })).not.toBeInTheDocument();
-// });
+  expect(screen.getByRole('option', { name: 'off' })).toBeInTheDocument();
+  expect(screen.queryByRole('option', { name: 'given-name' })).not.toBeInTheDocument();
+});
 
 // test('should set the chosen options within the search field', async () => {
 //   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
