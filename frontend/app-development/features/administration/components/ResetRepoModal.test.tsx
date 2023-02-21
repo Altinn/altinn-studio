@@ -28,6 +28,7 @@ describe('ResetRepoModal', () => {
     };
     mockStore = createStore(initialState);
     mockAnchorEl = {
+      // eslint-disable-next-line testing-library/no-node-access
       current: document.querySelector('body'),
     };
   });

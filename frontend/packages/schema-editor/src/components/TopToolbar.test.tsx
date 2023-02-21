@@ -1,5 +1,4 @@
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 import { TopToolbar } from './TopToolbar';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -9,16 +8,16 @@ const renderToolbar = (Toolbar: JSX.Element = <div></div>) => {
   const saveAction = jest.fn();
   const toggleEditMode = jest.fn();
   const user = userEvent.setup();
-  act(() => {
-    render(
-      <TopToolbar
-        Toolbar={Toolbar}
-        saveAction={saveAction}
-        editMode={true}
-        toggleEditMode={toggleEditMode}
-      />
-    );
-  });
+
+  render(
+    <TopToolbar
+      Toolbar={Toolbar}
+      saveAction={saveAction}
+      editMode={true}
+      toggleEditMode={toggleEditMode}
+    />
+  );
+
   return { saveAction, toggleEditMode, user };
 };
 
@@ -26,13 +25,10 @@ const renderToolbar = (Toolbar: JSX.Element = <div></div>) => {
 const editText = 'Edit';
 const texts = {
   'schema_editor.edit_mode': editText,
-}
+};
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('TopToolbar', () => {
   test('renders the top toolbar', () => {
@@ -47,7 +43,7 @@ describe('TopToolbar', () => {
     expect(topToolbar).toBeDefined();
     const saveButton = screen.getByTestId('save-model-button');
     expect(saveButton).toBeDefined();
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
     expect(saveAction).toBeCalledTimes(1);
   });
 
@@ -57,7 +53,7 @@ describe('TopToolbar', () => {
     expect(topToolbar).toBeDefined();
     const toggleEditModeButton = screen.getByText(editText);
     expect(toggleEditModeButton).toBeDefined();
-    await act(() => user.click(toggleEditModeButton));
+    await user.click(toggleEditModeButton);
     expect(toggleEditMode).toBeCalledTimes(1);
   });
 });

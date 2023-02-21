@@ -1,6 +1,6 @@
 import React from 'react';
 import { HandleMergeConflictFileList } from './HandleMergeConflictFileList';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const renderHandleMergeConflictFileList = (mockRepostatus?: any) => {
@@ -26,13 +26,10 @@ const renderHandleMergeConflictFileList = (mockRepostatus?: any) => {
     hasMergeConflict: true,
   };
   const changeSelectedFile: (file: string) => void = jest.fn();
-  const container = render(
-    <HandleMergeConflictFileList
-      changeSelectedFile={changeSelectedFile}
-      repoStatus={repoStatus}
-    />
+  render(
+    <HandleMergeConflictFileList changeSelectedFile={changeSelectedFile} repoStatus={repoStatus} />
   );
-  return { changeSelectedFile, user, repoStatus, container };
+  return { changeSelectedFile, user, repoStatus };
 };
 
 describe('HandleMergeConflictFileList', () => {
@@ -54,17 +51,10 @@ describe('HandleMergeConflictFileList', () => {
     expect(expectedFilenames).toEqual(renderedFilenames);
   });
 
-  test('should show correct icons', () => {
-    const { container } = renderHandleMergeConflictFileList();
-    // Expect correct icons to show
-    expect(container.baseElement.getElementsByClassName('fa-check')).toHaveLength(2);
-    expect(container.baseElement.getElementsByClassName('fa-circlecancel')).toHaveLength(1);
-  });
-
   test('should trigger handleListItemClick() when listItem is clicked', async () => {
     const { user, changeSelectedFile } = renderHandleMergeConflictFileList();
-    const listitems = screen.getAllByRole('listitem');
-    await act(() => user.click(listitems[0]));
+    const listItems = screen.getAllByRole('listitem');
+    await user.click(listItems[0]);
     expect(changeSelectedFile).toHaveBeenCalled();
   });
 

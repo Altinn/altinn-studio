@@ -25,11 +25,13 @@ const render = (props: Partial<IProfileMenuComponentProps> = {}) => {
 describe('ProfileMenu', () => {
   it('should match snapshot', () => {
     const { container } = render();
+     // eslint-disable-next-line testing-library/no-node-access
     expect(container.firstChild).toMatchSnapshot();
   });
 
   it('should match snapshot with logout text', () => {
     const { container } = render({ showlogout: true });
+     // eslint-disable-next-line testing-library/no-node-access
     expect(container.firstChild).toMatchSnapshot();
   });
 
@@ -43,8 +45,8 @@ describe('ProfileMenu', () => {
     const profileBtn = screen.getByRole('button', { name: /profilikon knapp/i });
     await act(() => user.click(profileBtn));
 
-    expect(screen.queryByRole('menuitem', { name: /dokumentasjon/i })).toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: /åpne repository/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /dokumentasjon/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /åpne repository/i })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: /logout/i })).not.toBeInTheDocument();
   });
 

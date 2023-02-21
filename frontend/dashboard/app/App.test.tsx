@@ -62,7 +62,7 @@ describe('Dashboard > App', () => {
       },
     });
 
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
+    await waitForElementToBeRemoved(() => screen.queryByText('dashboard.loading'));
 
     expect(screen.getByRole('link', { name: /dashboard.new_service/i })).toBeInTheDocument();
   });

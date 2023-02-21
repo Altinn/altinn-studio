@@ -1,5 +1,4 @@
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TopToolbarButton } from './TopToolbarButton';
@@ -9,20 +8,19 @@ jest.mock('./TopToolbarButton.module.css', () => ({ iconButton: 'iconButton' }))
 const renderButton = (text: string, style = 'text', disabled = false) => {
   const handleClick = jest.fn();
   const user = userEvent.setup();
-  act(() => {
-    render(
-      <TopToolbarButton
-        id='toolbar-test-button'
-        faIcon='fa ai-trash'
-        hideText={style === 'icon'}
-        onClick={handleClick}
-        disabled={disabled}
-        warning={style === 'warning'}
-      >
-        {text}
-      </TopToolbarButton>
-    );
-  });
+
+  render(
+    <TopToolbarButton
+      id='toolbar-test-button'
+      faIcon='fa ai-trash'
+      hideText={style === 'icon'}
+      onClick={handleClick}
+      disabled={disabled}
+      warning={style === 'warning'}
+    >
+      {text}
+    </TopToolbarButton>
+  );
   return { handleClick, user };
 };
 
@@ -51,24 +49,24 @@ test('renders a warning button', () => {
 
 test('reacts to being clicked', async () => {
   const { handleClick, user } = renderButton('delete', 'text');
-  await act(() => user.click(screen.getByRole('button')));
+  await user.click(screen.getByRole('button'));
   expect(handleClick).toBeCalledTimes(1);
 });
 
 test('reacts to being clicked (icon button)', async () => {
   const { handleClick, user } = renderButton('delete', 'icon');
-  await act(() => user.click(screen.getByRole('button')));
+  await user.click(screen.getByRole('button'));
   expect(handleClick).toBeCalledTimes(1);
 });
 
-test('does nothing when disabled', () => {
+test('does nothing when disabled', async () => {
   const { handleClick } = renderButton('delete', 'text', true);
-  fireEvent.click(screen.getByRole('button'));
+  await fireEvent.click(screen.getByRole('button'));
   expect(handleClick).toBeCalledTimes(0);
 });
 
-test('does nothing when disabled (icon button)', () => {
+test('does nothing when disabled (icon button)', async () => {
   const { handleClick } = renderButton('delete', 'icon', true);
-  fireEvent.click(screen.getByRole('button'));
+  await fireEvent.click(screen.getByRole('button'));
   expect(handleClick).toBeCalledTimes(0);
 });

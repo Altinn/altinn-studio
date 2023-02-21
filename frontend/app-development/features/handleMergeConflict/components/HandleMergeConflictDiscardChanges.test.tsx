@@ -1,14 +1,14 @@
 import React from 'react';
 import * as networking from 'app-shared/utils/networking';
 import { HandleMergeConflictDiscardChanges } from './HandleMergeConflictDiscardChanges';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 const renderHandleMergeConflictDiscardChanges = () => {
   const user = userEvent.setup();
-  const container = render(<HandleMergeConflictDiscardChanges t={mockUseTranslation().t} />);
-  return { container, user };
+  render(<HandleMergeConflictDiscardChanges t={mockUseTranslation().t} />);
+  return { user };
 };
 afterEach(() => jest.restoreAllMocks());
 jest.mock('app-shared/utils/networking', () => ({
@@ -50,13 +50,13 @@ describe('HandleMergeConflictDiscardChanges', () => {
       name: 'handle_merge_conflict.discard_changes_button',
     });
 
-    await act(() => user.click(discardMergeChangesBtn));
+    await user.click(discardMergeChangesBtn);
 
     const discardMergeChangesConfirmBtn = screen.getByRole('button', {
       name: 'handle_merge_conflict.discard_changes_button_confirm',
     });
 
-    await act(() => user.click(discardMergeChangesConfirmBtn));
+    await user.click(discardMergeChangesConfirmBtn);
     expect(mockGet).toHaveBeenCalled();
     expect(consoleError).toHaveBeenCalled();
   });

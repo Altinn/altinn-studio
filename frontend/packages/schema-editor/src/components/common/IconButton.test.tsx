@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { IconImage } from './Icon';
 import type { IconButtonProps } from './IconButton';
 import { IconButton } from './IconButton';
@@ -22,20 +22,20 @@ test('Button appears', () => {
 });
 
 test('Icon appears', () => {
-  const { container } = renderIconButton();
-  expect(container.querySelectorAll(`.${icon}`)).toHaveLength(1);
+  renderIconButton();
+  expect(screen.getByRole('button')).toContainHTML("<span class='element' />");
 });
 
 test('onCLick handler is called when button is clicked', async () => {
   renderIconButton();
-  await act(() => user.click(screen.getByRole('button')));
+  await user.click(screen.getByRole('button'));
   expect(onClick).toHaveBeenCalledTimes(1);
 });
 
 test('Button has given id', () => {
   const id = 'test';
-  const { container } = renderIconButton({ id });
-  expect(container.querySelectorAll(`#${id}`)).toHaveLength(1);
+  renderIconButton({ id });
+  expect(screen.getByRole('button')).toHaveAttribute('id', 'test')
 });
 
 test('Button has given class', () => {

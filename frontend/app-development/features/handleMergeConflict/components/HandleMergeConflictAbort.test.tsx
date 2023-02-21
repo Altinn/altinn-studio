@@ -18,8 +18,8 @@ const texts = {
 
 const renderHandleMergeConflictAbort = () => {
   const user = userEvent.setup();
-  const container = render(<HandleMergeConflictAbort t={mockUseTranslation(texts).t} />);
-  return { user, container };
+  render(<HandleMergeConflictAbort t={mockUseTranslation(texts).t} />);
+  return { user };
 };
 
 // find and click the button that opens the popover
@@ -60,7 +60,7 @@ describe('HandleMergeConflictAbort', () => {
     await findAndClickOpenPopoverButton(user);
 
     // the popover should be open at this point
-    expect(screen.queryByRole('presentation')).toBeDefined();
+    expect(screen.getByRole('presentation')).toBeDefined();
 
     // Expect the abort merge button to exists and click it
     const abortMergeButtonConfirm = screen.getByRole('button', { name: confirmText });

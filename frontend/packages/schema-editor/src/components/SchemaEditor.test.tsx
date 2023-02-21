@@ -2,7 +2,7 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { dataMock } from '../mockData';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event/dist/types/setup/setup';
 import { SchemaEditor, SchemaEditorTestIds } from './SchemaEditor';
@@ -73,10 +73,7 @@ const clickOpenContextMenuButton = async (user: UserEvent) =>
   user.click(screen.getAllByTestId('open-context-menu-button')[0]);
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('SchemaEditor', () => {
   test('renders schema editor with populated schema in view mode', () => {
@@ -92,6 +89,7 @@ describe('SchemaEditor', () => {
     expect(screen.getByTestId('schema-editor')).toBeDefined();
     expect(screen.getByTestId('save-model-button')).toBeDefined();
     expect(screen.getByTestId('save-model-button')).toBeEnabled();
+    // eslint-disable-next-line testing-library/prefer-presence-queries
     expect(screen.queryByTestId('schema-inspector')).toBeDefined();
   });
 
@@ -310,7 +308,7 @@ describe('SchemaEditor', () => {
   test('should trigger correct dispatch when changing tab', async () => {
     const { store, user } = renderEditor();
     const tab = screen.getByRole('tab', { name: typesText });
-    await act(() => user.click(tab));
+    await user.click(tab);
     const lastAction = store.getActions().at(-1);
     expect(lastAction.type).toBe('schemaEditor/setSelectedTab');
     expect(lastAction.payload).toStrictEqual({ selectedTab: 'definitions' });

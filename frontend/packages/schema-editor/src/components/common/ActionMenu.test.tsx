@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { IconImage } from './Icon';
 import type { IActionMenuProps } from './ActionMenu';
 import { ActionMenu } from './ActionMenu';
@@ -32,7 +32,7 @@ test('All items are present', () => {
 test('All menu item buttons call their respective action on click', async () => {
   renderActionMenu();
   for (const { action, text } of items) {
-    await act(() => user.click(screen.getByText(text)));
+    await user.click(screen.getByText(text));
     expect(action).toHaveBeenCalledTimes(1);
   }
 });
@@ -40,16 +40,12 @@ test('All menu item buttons call their respective action on click', async () => 
 test('Menu item button loses focus when clicked', async () => {
   renderActionMenu();
   const { text } = items[0];
-  await act(() => user.click(screen.getByText(text)));
+  await user.click(screen.getByText(text));
   expect(screen.getByText(text)).not.toHaveFocus();
 });
 
 test('Menu item has given class name', () => {
-  const { container } = renderActionMenu();
-  expect(container.querySelector(`.${items[0].className}`)).toBeDefined();
-});
-
-test('Root element has given class name', () => {
-  const { container } = renderActionMenu();
-  expect(container.querySelector(`.${className}`)).toBeDefined();
+  renderActionMenu();
+  const [firstItem] = screen.getAllByTestId('menuitem-action-menu');
+  expect(firstItem).toHaveClass('item-class');
 });

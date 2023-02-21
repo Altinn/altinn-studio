@@ -8,10 +8,7 @@ import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 const server = setupServer(...handlers);
 
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
@@ -46,17 +43,17 @@ describe('Dashboard > index', () => {
 
     expect(screen.getByText('test-org dashboard.apps')).toBeInTheDocument();
 
-    expect(screen.queryByTestId('favorite-repos-list')).toBeInTheDocument();
+    expect(screen.getByTestId('favorite-repos-list')).toBeInTheDocument();
 
-    expect(screen.queryByTestId('org-repos-list')).toBeInTheDocument();
+    expect(screen.getByTestId('org-repos-list')).toBeInTheDocument();
     expect(screen.queryByTestId('search-result-repos-list')).not.toBeInTheDocument();
   });
 
   it('displays FavoriteReposList and OrgReposList, and not search results list by default', () => {
     render();
 
-    expect(screen.queryByTestId('favorite-repos-list')).toBeInTheDocument();
-    expect(screen.queryByTestId('org-repos-list')).toBeInTheDocument();
+    expect(screen.getByTestId('favorite-repos-list')).toBeInTheDocument();
+    expect(screen.getByTestId('org-repos-list')).toBeInTheDocument();
     expect(screen.queryByTestId('search-result-repos-list')).not.toBeInTheDocument();
   });
 
@@ -67,8 +64,12 @@ describe('Dashboard > index', () => {
     await user.type(searchInput, 'search');
     await waitFor(() => {
       expect(screen.queryByTestId('favorite-repos-list')).not.toBeInTheDocument();
+    });
+    await waitFor(() => {
       expect(screen.queryByTestId('org-repos-list')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('search-result-repos-list')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('search-result-repos-list')).toBeInTheDocument();
     });
   });
 
@@ -80,16 +81,22 @@ describe('Dashboard > index', () => {
 
     await waitFor(() => {
       expect(screen.queryByTestId('favorite-repos-list')).not.toBeInTheDocument();
+    });
+
+    await waitFor(() => {
       expect(screen.queryByTestId('org-repos-list')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('search-result-repos-list')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('search-result-repos-list')).toBeInTheDocument();
     });
 
     await user.keyboard('{Escape}');
 
     await waitForElementToBeRemoved(screen.queryByTestId('search-result-repos-list'));
 
-    expect(screen.queryByTestId('favorite-repos-list')).toBeInTheDocument();
-    expect(screen.queryByTestId('org-repos-list')).toBeInTheDocument();
+    expect(screen.getByTestId('favorite-repos-list')).toBeInTheDocument();
+    expect(screen.getByTestId('org-repos-list')).toBeInTheDocument();
     expect(screen.queryByTestId('search-result-repos-list')).not.toBeInTheDocument();
   });
 
@@ -101,16 +108,22 @@ describe('Dashboard > index', () => {
 
     await waitFor(() => {
       expect(screen.queryByTestId('favorite-repos-list')).not.toBeInTheDocument();
+    });
+
+    await waitFor(() => {
       expect(screen.queryByTestId('org-repos-list')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('search-result-repos-list')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('search-result-repos-list')).toBeInTheDocument();
     });
 
     await user.click(screen.getByTestId('clear-search-button'));
 
     await waitForElementToBeRemoved(() => screen.queryByTestId('search-result-repos-list'));
 
-    expect(screen.queryByTestId('favorite-repos-list')).toBeInTheDocument();
-    expect(screen.queryByTestId('org-repos-list')).toBeInTheDocument();
+    expect(screen.getByTestId('favorite-repos-list')).toBeInTheDocument();
+    expect(screen.getByTestId('org-repos-list')).toBeInTheDocument();
     expect(screen.queryByTestId('search-result-repos-list')).not.toBeInTheDocument();
   });
 

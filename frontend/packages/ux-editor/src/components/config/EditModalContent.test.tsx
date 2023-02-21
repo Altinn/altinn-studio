@@ -25,43 +25,63 @@ const texts = {
 };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('EditModalContent', () => {
-  it('should return input specific content when type input', () => {
-    const { rendered } = render({
+  test('should return input specific content when type input', () => {
+    render({
       componentProps: {
         type: 'Input',
       },
     });
 
-    expect(rendered.container.querySelectorAll('input').length).toBe(5);
+    const labels = [
+      'ux_editor.modal_properties_component_change_id',
+      'ux_editor.modal_properties_data_model_helper',
+      'ux_editor.modal_configure_read_only',
+    ];
+
+    labels.map((label) => expect(screen.getByLabelText(label)));
+    expect(screen.getByRole('combobox'));
+    expect(screen.getByLabelText('Autocomplete (WCAG)'));
   });
 
-  it('should return header specific content when type header', () => {
-    const { rendered } = render({
+  test('should return header specific content when type header', () => {
+    render({
       componentProps: {
         type: 'Header',
       },
     });
 
-    expect(rendered.container.querySelectorAll('input').length).toBe(2);
+    const labels = [
+      'ux_editor.modal_properties_component_change_id',
+      'ux_editor.modal_header_type_helper',
+    ];
+    labels.map((label) => expect(screen.getByLabelText(label)));
   });
 
-  it('should return file uploader specific content when type file uploader', () => {
-    const { rendered } = render({
+  test('should return file uploader specific content when type file uploader', () => {
+    render({
       componentProps: {
         type: 'FileUpload',
       },
     });
 
-    expect(rendered.container.querySelectorAll('input').length).toBe(8);
+    const labels = [
+      'ux_editor.modal_properties_component_change_id',
+      'ux_editor.modal_properties_file_upload_simple',
+      'ux_editor.modal_properties_file_upload_list',
+      'ux_editor.modal_properties_valid_file_endings_all',
+      'ux_editor.modal_properties_valid_file_endings_custom',
+      'ux_editor.modal_properties_minimum_files',
+      'ux_editor.modal_properties_maximum_files',
+      'ux_editor.modal_properties_maximum_file_size (ux_editor.modal_properties_maximum_file_size_helper)',
+    ];
+
+    labels.map((label) => expect(screen.getByLabelText(label)));
   });
 
-  it('should call handleComponentUpdate with max number of attachments to 1 when clearing max number of attachments', async () => {
+  test('should call handleComponentUpdate with max number of attachments to 1 when clearing max number of attachments', async () => {
     const handleUpdate = jest.fn();
     const { allComponentProps } = render({
       componentProps: {
@@ -73,14 +93,14 @@ describe('EditModalContent', () => {
 
     const maxFilesInput = screen.getByLabelText('ux_editor.modal_properties_maximum_files');
 
-    await act(() => user.clear(maxFilesInput));
+    await user.clear(maxFilesInput);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...allComponentProps,
       maxNumberOfAttachments: 1,
     });
   });
 
-  it('should call handleComponentUpdate with required: false when min number of attachments is set to 0', async () => {
+  test('should call handleComponentUpdate with required: false when min number of attachments is set to 0', async () => {
     const handleUpdate = jest.fn();
     const { allComponentProps } = render({
       componentProps: {
@@ -101,18 +121,18 @@ describe('EditModalContent', () => {
     });
   });
 
-  it('should return button spesific content when type button', () => {
-    const { rendered } = render({
+  test('should return button spesific content when type button', () => {
+    render({
       componentProps: {
         type: 'Button',
       },
     });
 
-    expect(rendered.getByTestId('component-id-inputundefined-default')).toBeInTheDocument();
-    expect(rendered.queryAllByRole('combobox').length).toBe(1);
+    expect(screen.getByTestId('component-id-inputundefined-default')).toBeInTheDocument();
+    expect(screen.queryAllByRole('combobox').length).toBe(1);
   });
 
-  it('should render Image component when component type is Image', () => {
+  test('should render Image component when component type is Image', () => {
     render({
       componentProps: {
         type: 'Image',
