@@ -72,7 +72,7 @@ public class PdfService : IPdfService
         _dataClient = dataClient;
         _httpContextAccessor = httpContextAccessor;
         _profileClient = profileClient;
-        _registerClient= registerClient;
+        _registerClient = registerClient;
         _pdfFormatter = pdfFormatter;
         _pdfGeneratorClient = pdfGeneratorClient;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
@@ -140,7 +140,7 @@ public class PdfService : IPdfService
 
         object data = await _dataClient.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
 
-        layoutSettings = await _pdfFormatter.FormatPdf(layoutSettings, data);
+        layoutSettings = await _pdfFormatter.FormatPdf(layoutSettings, data, instance, layoutSet);
         XmlSerializer serializer = new XmlSerializer(dataElementModelType);
         using MemoryStream stream = new MemoryStream();
 
@@ -216,7 +216,7 @@ public class PdfService : IPdfService
             textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
 
         fileName = (titleText != null && !string.IsNullOrEmpty(titleText.Value)) ? $"{titleText.Value}.pdf" : $"{app}.pdf";
-        
+
         fileName = GetValidFileName(fileName);
 
         return await _dataClient.InsertBinaryData(
@@ -280,7 +280,7 @@ public class PdfService : IPdfService
         {
             fileName = titleText.Value + ".pdf";
         }
-        
+
         return GetValidFileName(fileName);
     }
 
