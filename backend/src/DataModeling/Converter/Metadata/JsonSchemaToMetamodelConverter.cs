@@ -184,7 +184,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     break;
 
                 default:
-                    throw new NotImplementedException($"Keyword {keyword.Keyword()} not processed!");
+                    throw new MetamodelConvertException($"Keyword {keyword.Keyword()} not processed!. It's not supported in the current version of the JsonSchemaToMetamodelConverter.");
             }
 
             OnKeywordProcessed(new KeywordProcessedEventArgs() { Path = path, Keyword = keyword });
