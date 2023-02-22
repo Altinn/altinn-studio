@@ -86,11 +86,6 @@ export function DataModelling({
     }
   }, [metadataOptions, selectedOption, metadataLoadingState]);
   useEffect(() => {
-    console.log({
-      prev: prevFetchedOption?.current,
-      selectedOption,
-      isSame: schemaPathIsSame(prevFetchedOption?.current, selectedOption),
-    });
     if (!schemaPathIsSame(prevFetchedOption?.current, selectedOption)) {
       dispatch(fetchDataModel({ metadata: selectedOption, org, app: repo }));
       prevFetchedOption.current = selectedOption;
