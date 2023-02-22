@@ -3,7 +3,7 @@ import type { LangRowProps } from './TextRow';
 import type { TextDetail } from './types';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import { screen, render as rtlRender, act } from '@testing-library/react';
+import { screen, render as rtlRender } from '@testing-library/react';
 
 describe('TextRow', () => {
   const renderTextRow = (props: Partial<LangRowProps> = {}) => {
