@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
@@ -25,6 +25,7 @@ const childNodes = fieldNames.map((childNodeName) => ({
   fieldType: FieldType.String,
 }));
 const numberOfFields = fieldNames.length;
+// eslint-disable-next-line testing-library/no-node-access
 selectedItem.children = childNodes.map(({ pointer }) => pointer);
 const uiSchema: UiSchemaNodes = [selectedItem, ...childNodes];
 const textAdd = 'Legg til felt';
@@ -57,10 +58,7 @@ const defaultProps: ItemFieldsTabProps = { selectedItem };
 const defaultState = { uiSchema };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const renderItemFieldsTab = (props?: Partial<ItemFieldsTabProps>, state?: any) =>
   renderWithRedux(<ItemFieldsTab {...defaultProps} {...props} />, { ...defaultState, ...state });
@@ -92,8 +90,8 @@ describe('ItemFieldsTab', () => {
     const { user, store } = renderItemFieldsTab();
     const suffix = 'Duck';
     for (const fieldName of fieldNames) {
-      await act(() => user.type(screen.getByDisplayValue(fieldName), suffix));
-      await act(() => user.tab());
+      await user.type(screen.getByDisplayValue(fieldName), suffix);
+      await user.tab();
     }
     const setPropertyNameActions = store
       .getActions()
@@ -109,9 +107,9 @@ describe('ItemFieldsTab', () => {
     const { user, store } = renderItemFieldsTab();
     const newType = FieldType.Integer;
     for (const i in fieldNames) {
-      await act(() => user.click(screen.getAllByRole('combobox')[i]));
-      await act(() => user.click(screen.getByRole('option', { name: fieldTypeNames[newType] })));
-      await act(() => user.tab());
+      await user.click(screen.getAllByRole('combobox')[i]);
+      await user.click(screen.getByRole('option', { name: fieldTypeNames[newType] }));
+      await user.tab();
     }
     const setPropertyNameActions = store
       .getActions()
@@ -125,7 +123,7 @@ describe('ItemFieldsTab', () => {
 
   test('addProperty action is called with correct payload when the "Add field" button is clicked', async () => {
     const { user, store } = renderItemFieldsTab();
-    await act(() => user.click(screen.getByText(textAdd)));
+    await user.click(screen.getByText(textAdd));
     const addPropertyActions = store
       .getActions()
       .filter((action) => action.type === 'schemaEditor/addProperty');
@@ -135,8 +133,8 @@ describe('ItemFieldsTab', () => {
 
   test('addProperty action is calledd with correct payload when a field is focused and the Enter key is clicked', async () => {
     const { user, store } = renderItemFieldsTab();
-    await act(() => user.click(screen.getAllByRole('textbox')[0]));
-    await act(() => user.keyboard('{Enter}'));
+    await user.click(screen.getAllByRole('textbox')[0]);
+    await user.keyboard('{Enter}');
     const addPropertyActions = store
       .getActions()
       .filter((action) => action.type === 'schemaEditor/addProperty');
@@ -147,7 +145,7 @@ describe('ItemFieldsTab', () => {
   test('deleteProperty action is called with correct payload when delete button is clicked', async () => {
     const { user, store } = renderItemFieldsTab();
     for (const i in fieldNames) {
-      await act(() => user.click(screen.queryAllByLabelText(textDeleteField)[i]));
+      await user.click(screen.queryAllByLabelText(textDeleteField)[i]);
     }
     const setPropertyNameActions = store
       .getActions()
@@ -167,14 +165,15 @@ describe('ItemFieldsTab', () => {
     };
     const newSelectedItem = {
       ...selectedItem,
+      // eslint-disable-next-line testing-library/no-node-access
       children: [...selectedItem.children, newChildNode.pointer],
     };
     const newUiSchema = [newSelectedItem, ...childNodes, newChildNode];
-    rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem}/>, {
+    rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />, {
       uiSchema: newUiSchema,
     });
     expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
-    await act(() => user.keyboard('a')); // Should replace the current value since the text should be selected
+    await user.keyboard('a'); // Should replace the current value since the text should be selected
     expect(screen.getByDisplayValue('a')).toBeDefined();
     expect(screen.queryByDisplayValue(newChildNodeName)).toBeFalsy();
   });

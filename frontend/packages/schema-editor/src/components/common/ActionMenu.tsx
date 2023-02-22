@@ -32,7 +32,7 @@ export const ActionMenu = ({ openButtonText, className, items }: IActionMenuProp
 );
 
 const ActionMenuItem = ({ action, className, icon, text, testId }: IActionMenuItemProps) => (
-  <li className={cn(classes.item, className)}>
+  <li className={cn(classes.item, className)} data-testid="menuitem-action-menu">
     <button
       className={classes.itemButton}
       name={text}

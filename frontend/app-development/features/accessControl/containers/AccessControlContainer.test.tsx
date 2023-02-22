@@ -4,6 +4,7 @@ import { renderWithProviders } from '../../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { RootState } from 'app-development/store';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { screen } from '@testing-library/react';
 
 const currentApplicationMetadata: any = {
   partyTypesAllowed: {
@@ -70,7 +71,7 @@ jest.mock(
 
 describe('When loading AccessControlContainer', () => {
   it('should render all checkboxes unchecked when applicationMetadata does not contain partyTypesAllowed', () => {
-    const screen = renderAccessControlContainer({
+    renderAccessControlContainer({
       ...currentApplicationMetadata,
       partyTypesAllowed: null,
     });
@@ -80,7 +81,7 @@ describe('When loading AccessControlContainer', () => {
   });
 
   it('should render checkboxes as defined by applicationMetadata.partyTypesAllowed object', () => {
-    const screen = renderAccessControlContainer();
+    renderAccessControlContainer();
     const checkboxes = screen.queryAllByRole('checkbox');
     const partyTypesAllowed = currentApplicationMetadata.partyTypesAllowed;
     expect(checkboxes).toHaveLength(4);

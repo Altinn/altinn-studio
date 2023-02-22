@@ -28,6 +28,7 @@ test('item property tab renders combinations', async () => {
   ['donald', 'dolly'].forEach((childNodeName) => {
     const childNode = createChildNode(selectedNode, childNodeName, false);
     childNode.fieldType = FieldType.String;
+    // eslint-disable-next-line testing-library/no-node-access
     selectedNode.children.push(childNode.pointer);
     uiSchemaNodes.push(childNode);
   });

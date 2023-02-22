@@ -41,56 +41,50 @@ const versionControlHeaderMockServer = setupServer(...handlers);
 export const versionControlHeaderBeforeAll = () => {
   versionControlHeaderMockServer.listen();
 };
-export const versionControlHeaderafterEach = () => {
+export const versionControlHeaderAfterEach = () => {
   versionControllHeaderApiCalls.mockReset();
   versionControlHeaderMockServer.resetHandlers();
 };
-export const versionControlHeaderafterAll = () => versionControlHeaderMockServer.resetHandlers();
+export const versionControlHeaderAfterAll = () => versionControlHeaderMockServer.resetHandlers();
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 beforeAll(versionControlHeaderBeforeAll);
-afterEach(versionControlHeaderafterEach);
-afterAll(versionControlHeaderafterAll);
+afterEach(versionControlHeaderAfterEach);
+afterAll(versionControlHeaderAfterAll);
 
 describe('Shared > Version Control > VersionControlHeader', () => {
   it('should render header when type is not defined', async () => {
     render(<VersionControlHeader hasPushRight={true} />);
     await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(1));
     expect(await screen.findByTestId('version-control-header')).not.toBeNull();
-    expect(await screen.queryByTestId('version-control-fetch-button')).toBeNull();
-    expect(await screen.queryByTestId('version-control-share-button')).toBeNull();
+    expect(screen.queryByTestId('version-control-fetch-button')).toBeNull();
+    expect(screen.queryByTestId('version-control-share-button')).toBeNull();
   });
 
   it('should render header when type is header', async () => {
-    const { queryByTestId } = render(
-      <VersionControlHeader type='header' hasPushRight={true} />
-    );
+    render(<VersionControlHeader type='header' hasPushRight={true} />);
     await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(1));
-    expect(queryByTestId('version-control-header')).not.toBeNull();
-    expect(queryByTestId('version-control-fetch-button')).toBeNull();
-    expect(queryByTestId('version-control-share-button')).toBeNull();
+    // eslint-disable-next-line testing-library/prefer-presence-queries
+    expect(screen.queryByTestId('version-control-header')).not.toBeNull();
+    expect(screen.queryByTestId('version-control-fetch-button')).toBeNull();
+    expect(screen.queryByTestId('version-control-share-button')).toBeNull();
   });
 
   it('should render fetch-button when type is fetch-button', async () => {
-    const { queryByTestId } = render(
-      <VersionControlHeader hasPushRight={true} type='fetchButton' />
-    );
-    expect(queryByTestId('version-control-header')).toBeNull();
-    expect(queryByTestId('version-control-fetch-button')).not.toBeNull();
-    expect(queryByTestId('version-control-share-button')).toBeNull();
+    render(<VersionControlHeader hasPushRight={true} type='fetchButton' />);
+    expect(screen.queryByTestId('version-control-header')).toBeNull();
+    // eslint-disable-next-line testing-library/prefer-presence-queries
+    expect(screen.queryByTestId('version-control-fetch-button')).not.toBeNull();
+    expect(screen.queryByTestId('version-control-share-button')).toBeNull();
   });
 
   it('should render share-button when type is share-button', async () => {
-    const component = render(
-      <VersionControlHeader hasPushRight={true} type='shareButton' />
-    );
-    expect(component.queryByTestId('version-control-header')).toBeNull();
-    expect(component.queryByTestId('version-control-fetch-button')).toBeNull();
-    expect(component.queryByTestId('version-control-share-button')).not.toBeNull();
+    render(<VersionControlHeader hasPushRight={true} type='shareButton' />);
+    expect(screen.queryByTestId('version-control-header')).toBeNull();
+    expect(screen.queryByTestId('version-control-fetch-button')).toBeNull();
+    // eslint-disable-next-line testing-library/prefer-presence-queries
+    expect(screen.queryByTestId('version-control-share-button')).not.toBeNull();
   });
 });

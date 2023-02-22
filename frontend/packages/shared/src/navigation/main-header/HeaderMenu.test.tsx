@@ -3,7 +3,7 @@ import * as networking from '../../utils/networking';
 import { HeaderContext, SelectedContextType } from './Header';
 import type { HeaderMenuProps } from './HeaderMenu';
 import { HeaderMenu } from './HeaderMenu';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
@@ -85,10 +85,11 @@ describe('HeaderMenu', () => {
 });
 
 const openMenu = async () => {
+  const user = userEvent.setup();
   const menuButton = screen.getByRole('button', {
     name: /shared\.header_button_alt/i,
   });
-  await act(() => userEvent.click(menuButton));
+  await user.click(menuButton);
 };
 
 const render = (props: Partial<HeaderMenuProps> = {}) => {

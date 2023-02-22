@@ -162,6 +162,7 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
   const mockStore = createStore(initialState);
   rtlRender(
     <Provider store={mockStore}>
+      {/* eslint-disable-next-line testing-library/no-node-access */}
       <EditContainer {...allProps}>{allProps.children}</EditContainer>
     </Provider>
   );

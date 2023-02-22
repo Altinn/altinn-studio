@@ -3,7 +3,7 @@ import type { LangRowProps } from './TextRow';
 import type { TextDetail } from './types';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import { screen, render as rtlRender, act } from '@testing-library/react';
+import { screen, render as rtlRender } from '@testing-library/react';
 
 describe('TextRow', () => {
   const renderTextRow = (props: Partial<LangRowProps> = {}) => {
@@ -33,8 +33,8 @@ describe('TextRow', () => {
       name: /norsk/i,
     });
 
-    await act(() => user.type(valueInput, '-updated'));
-    await act(() => user.keyboard('{TAB}'));
+    await user.type(valueInput, '-updated');
+    await user.keyboard('{TAB}');
 
     expect(upsertEntry).toHaveBeenCalledWith({
       id: 'key1',
@@ -47,7 +47,7 @@ describe('TextRow', () => {
     const { user } = renderTextRow({ removeEntry });
     const deleteButton = screen.getByTestId('delete-button');
 
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
 
@@ -59,14 +59,14 @@ describe('TextRow', () => {
     });
     const emptyMsg = 'TextId kan ikke være tom';
     const illegalCharMsg = 'Det er ikke tillat med mellomrom i en textId';
-    await act(() => user.dblClick(idInput));
-    await act(() => user.keyboard('{BACKSPACE}'));
+    await user.dblClick(idInput);
+    await user.keyboard('{BACKSPACE}');
     const error = screen.getByRole('alertdialog');
     expect(error).toBeInTheDocument();
-    expect(screen.queryByText(emptyMsg)).not.toBeNull();
-    await act(() => user.keyboard('2'));
+    expect(screen.getByText(emptyMsg)).not.toBeNull();
+    await user.keyboard('2');
     expect(screen.queryByText(emptyMsg)).toBeNull();
-    await act(() => user.keyboard(' '));
+    await user.keyboard(' ');
     expect(screen.getByText(illegalCharMsg)).toBeInTheDocument();
   });
   test('that the text area has 3 rows', async () => {

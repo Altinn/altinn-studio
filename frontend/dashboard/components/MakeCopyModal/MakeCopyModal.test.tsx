@@ -99,6 +99,7 @@ const render = (props: Partial<IMakeCopyModalProps> = {}) => {
     },
   };
   const store = configureStore()(initialState);
+  // eslint-disable-next-line testing-library/no-node-access
   const anchor = document.querySelector('body');
 
   const allProps = {

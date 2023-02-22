@@ -8,12 +8,13 @@ import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';
 import { serviceConfigPath, serviceNamePath } from 'app-shared/api-paths';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+const user = userEvent.setup();
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 describe('Administration', () => {
   const mockService: IRepository = {
@@ -91,27 +92,24 @@ describe('Administration', () => {
   };
 
   it('should handle sucessfully updating app name', async () => {
-    const utils = renderWithProviders(
-      <ServiceAdministration repository={mockService} />,
-      {
-        startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-        preloadedState: {
-          serviceInformation: mockServiceInformation,
-        },
-      }
-    );
+    const utils = renderWithProviders(<ServiceAdministration repository={mockService} />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+      preloadedState: {
+        serviceInformation: mockServiceInformation,
+      },
+    });
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
     const mockEvent = { target: { value: 'New name' } };
 
-    const editButton = utils.getByText('general.edit').closest('button');
-    fireEvent.click(editButton);
+    const editButton = screen.getByRole('button', { name: 'general.edit' });
+    await user.click(editButton);
 
-    const inputElement = utils
+    const inputElement = screen
       .getByTestId('service-administration-container')
-      .querySelector('#administrationInputAppName_textField');
+      .querySelector('#administrationInputAppName_textField'); // eslint-disable-line testing-library/no-node-access
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceName);
 
-    fireEvent.change(inputElement, mockEvent);
+    await fireEvent.change(inputElement, mockEvent);
     expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
 
     fireEvent.blur(inputElement);
@@ -126,6 +124,9 @@ describe('Administration', () => {
         },
         type: 'handleServiceInformation/saveServiceConfig',
       });
+    });
+
+    await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
           url: serviceNamePath('my-org', 'my-app'),
@@ -146,15 +147,15 @@ describe('Administration', () => {
     const mockEvent = { target: { value: 'New description' } };
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
 
-    const inputElement = utils
+    const inputElement = screen
       .getByTestId('service-administration-container')
-      .querySelector('#administrationInputDescription_textField');
+      .querySelector('#administrationInputDescription_textField'); // eslint-disable-line testing-library/no-node-access
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceDescription);
 
-    fireEvent.change(inputElement, mockEvent);
+    await fireEvent.change(inputElement, mockEvent);
     expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
 
-    fireEvent.blur(inputElement);
+    await fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
@@ -179,15 +180,15 @@ describe('Administration', () => {
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
     const mockEvent = { target: { value: 'New id' } };
 
-    const inputElement = utils
+    const inputElement = screen
       .getByTestId('service-administration-container')
-      .querySelector('#administrationInputAppId_textField');
+      .querySelector('#administrationInputAppId_textField'); // eslint-disable-line testing-library/no-node-access
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
 
-    fireEvent.change(inputElement, mockEvent);
+    await fireEvent.change(inputElement, mockEvent);
     expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
 
-    fireEvent.blur(inputElement);
+    await fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({

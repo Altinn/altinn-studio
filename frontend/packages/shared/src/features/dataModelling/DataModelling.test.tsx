@@ -220,7 +220,7 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
     render({ dataModelling: { schema: undefined } });
-    expect(screen.queryByText('app_data_modelling.landing_dialog_header')).toBeInTheDocument();
+    expect(screen.getByText('app_data_modelling.landing_dialog_header')).toBeInTheDocument();
   });
 
   it('Should not show start dialog when the models have not been loaded yet', () => {

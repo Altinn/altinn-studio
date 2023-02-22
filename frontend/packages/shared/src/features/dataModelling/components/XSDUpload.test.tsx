@@ -63,7 +63,7 @@ describe('XSDUpload', () => {
     await user.upload(fileInput, file);
 
     expect(
-      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)
+      screen.getByText(/form_filler\.file_uploader_validation_error_upload/i)
     ).toBeInTheDocument();
   });
 

@@ -40,6 +40,7 @@ describe('cloneModal', () => {
 
 const render = (props: Partial<ICloneModalProps> = {}) => {
   const allProps = {
+     // eslint-disable-next-line testing-library/no-node-access
     anchorEl: document.querySelector('body'),
     onClose: jest.fn(),
     open: true,

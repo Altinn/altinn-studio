@@ -6,7 +6,7 @@ import type { ISyncModalComponentProps } from './SyncModal';
 describe('syncModal', () => {
   it('should match snapshot when anchor element is null', () => {
     const { container } = render();
-
+    // eslint-disable-next-line testing-library/no-node-access
     expect(container.firstChild).toMatchSnapshot();
   });
 });

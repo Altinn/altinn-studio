@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IRepoListProps } from './RepoList';
 import * as userApi from '../../services/userApi';
@@ -15,10 +15,7 @@ jest.mock('../../services/userApi', () => ({
   __esModule: true,
   ...jest.requireActual('../../services/userApi'),
 }));
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 const repos = [
   {
@@ -58,27 +55,29 @@ const repos = [
 describe('RepoList', () => {
   it('should not call onSortModelChange when clicking sort button and isServerSort is false', async () => {
     const handleSort = jest.fn();
-    const { container } = render({
+    render({
       onSortModelChange: handleSort,
       isServerSort: false,
     });
 
-    const sortBtn = container.querySelector('button[aria-label="Sort"]');
-    await act(() => user.click(sortBtn));
+    // eslint-disable-next-line testing-library/no-node-access
+    const sortBtn = document.querySelector('button[aria-label="Sort"]');
+    await user.click(sortBtn);
 
     expect(handleSort).not.toHaveBeenCalled();
   });
 
   it('should call onSortModelChange when clicking sort button and isServerSort is true', async () => {
     const handleSort = jest.fn();
-    const { container } = render({
+    render({
       onSortModelChange: handleSort,
       isServerSort: true,
       rowCount: 5,
     });
 
-    const sortBtn = container.querySelector('button[aria-label="Sort"]');
-    await act(() => user.click(sortBtn));
+    // eslint-disable-next-line testing-library/no-node-access
+    const sortBtn = document.querySelector('button[aria-label="Sort"]');
+    await user.click(sortBtn);
 
     expect(handleSort).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
       reason: undefined,
@@ -95,7 +94,7 @@ describe('RepoList', () => {
     const favoriteBtn = screen.getByRole('menuitem', {
       name: /dashboard.star/i,
     });
-    await act(() => user.click(favoriteBtn));
+    await user.click(favoriteBtn);
 
     expect(useSetStarredRepoMutationSpy).toBeCalledWith(repos[0]);
   });
@@ -110,7 +109,7 @@ describe('RepoList', () => {
     const unFavoriteBtn = screen.getByRole('menuitem', {
       name: /dashboard.unstar/i,
     });
-    await act(() => user.click(unFavoriteBtn));
+    await user.click(unFavoriteBtn);
 
     expect(useUnsetStarredRepoMutationSpy).toBeCalledWith(repos[1]);
   });
@@ -135,7 +134,7 @@ describe('RepoList', () => {
     render({ repos: [datamodelsRepo] });
 
     expect(screen.getByTestId('gitea-repo-link')).toBeInTheDocument();
-    expect(screen.queryByTestId('edit-repo-link')).toBeInTheDocument();
+    expect(screen.getByTestId('edit-repo-link')).toBeInTheDocument();
   });
 
   it('should show gitea icon edit app not when displaying a "-datamodels" repo', () => {
