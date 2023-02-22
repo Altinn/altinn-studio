@@ -4,11 +4,8 @@ import { v1 as uuidv1 } from 'uuid';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type { IAppState, IDataModelFieldElement, IRuleModelFieldElement } from '../../types/global';
 import { withTranslation } from 'react-i18next';
-
 import classes from './RuleComponent.module.css';
 import Modal from 'react-modal';
-
-
 
 export interface IRuleComponentProps {
   connectionId?: any;
@@ -132,7 +129,6 @@ class Rule extends React.Component<IRuleComponentProps, any> {
             <label htmlFor='selectRule' className={classes.label}>
               {this.props.t('ux_editor.modal_configure_rules_helper')}
             </label>
-
             <select
               name='selectRule'
               onChange={this.handleSelectedMethodChange}
@@ -150,7 +146,6 @@ class Rule extends React.Component<IRuleComponentProps, any> {
               })}
             </select>
           </div>
-
           {this.state.ruleConnection.selectedFunction ? (
             <>
               <div>
@@ -163,9 +158,9 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                     return (
                       <>
                         <label className={classes.label} htmlFor={paramName}>
-                          {
-                            this.props.t('ux_editor.modal_configure_rules_configure_input_param_helper')
-                          }
+                          {this.props.t(
+                            'ux_editor.modal_configure_rules_configure_input_param_helper'
+                          )}
                         </label>
                         <div className={classes.configureInputParamsContainer} key={key}>
                           <input
@@ -177,7 +172,6 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                             width={10}
                             disabled={true}
                           />
-
                           <div>
                             <SelectDataModelComponent
                               onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
@@ -191,19 +185,13 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   }
                 )}
               </div>
-
               <div>
                 <h2 className={classes.subTitle}>
                   {this.props.t('ux_editor.modal_configure_rules_configure_output_header')}
                 </h2>
                 {/* length is always 1 since method always returns just one thing    */}
-
                 <label className={classes.label} htmlFor='outParam'>
-                  {
-                    this.props.t('ux_editor.modal_configure_rules_configure_output_param_helper')
-                   
-                    
-                  }
+                  {this.props.t('ux_editor.modal_configure_rules_configure_output_param_helper')}
                 </label>
                 <div className={classes.configureInputParamsContainer}>
                   <input
@@ -215,32 +203,21 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                     width={10}
                     disabled={true}
                   />
-                </div>
-
-                <div>
-                  <SelectDataModelComponent
-                    onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
-                    selectedElement={this.state.ruleConnection.outParams.outParam0}
-                    hideRestrictions={true}
-                  />
+                  <div>
+                    <SelectDataModelComponent
+                      onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
+                      selectedElement={this.state.ruleConnection.outParams.outParam0}
+                      hideRestrictions={true}
+                    />
+                  </div>
                 </div>
               </div>
             </>
           ) : null}
-
           <div className={classes.buttonsContainer}>
             {this.state.ruleConnection.selectedFunction ? (
               <button onClick={this.handleSaveEdit} type='submit' className={classes.saveButton}>
                 {this.props.t('general.save')}
-              </button>
-            ) : null}
-            {this.props.connectionId ? (
-              <button
-                type='button'
-                className='a-btn a-btn-danger mr-2'
-                onClick={this.handleDeleteConnection}
-              >
-                {this.props.t('general.delete')}
               </button>
             ) : null}
             <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
