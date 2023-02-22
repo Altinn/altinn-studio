@@ -70,7 +70,7 @@ export function DataModelling({
       shouldSelectFirstEntry({
         metadataOptions,
         selectedOption,
-        metadataLoadingState
+        metadataLoadingState,
       })
     ) {
       setSelectedOption(metadataOptions[0].options[0]);
@@ -86,6 +86,11 @@ export function DataModelling({
     }
   }, [metadataOptions, selectedOption, metadataLoadingState]);
   useEffect(() => {
+    console.log({
+      prev: prevFetchedOption?.current,
+      selectedOption,
+      isSame: schemaPathIsSame(prevFetchedOption?.current, selectedOption),
+    });
     if (!schemaPathIsSame(prevFetchedOption?.current, selectedOption)) {
       dispatch(fetchDataModel({ metadata: selectedOption, org, app: repo }));
       prevFetchedOption.current = selectedOption;
@@ -102,7 +107,11 @@ export function DataModelling({
 
   const handleSaveSchema = (schema: any) =>
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
-  const handleDeleteSchema = () => dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
+  const handleDeleteSchema = () => {
+    dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
+    // Needed to reset prev fetched option when deleting the data model.
+    prevFetchedOption.current = null;
+  };
   const handleCreateNewFromLandingPage = () => setCreateNewOpen(true);
 
   const handleCreateSchema = (model: { name: string; relativeDirectory?: string }) => {
