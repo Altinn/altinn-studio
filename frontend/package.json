@@ -89,5 +89,8 @@
     "packages/shared",
     "packages/text-editor",
     "packages/ux-editor"
-  ]
+  ],
+  "dependencies": {
+    "react-i18next": "^12.1.5"
+  }
 }
