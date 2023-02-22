@@ -104,7 +104,7 @@ export function DataModelling({
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
   const handleDeleteSchema = () => {
     dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
-    // Needed to reset prev fetched option when deleting the data model.
+    // Needs to reset prevFetchedOption when deleting the data model.
     prevFetchedOption.current = null;
   };
   const handleCreateNewFromLandingPage = () => setCreateNewOpen(true);
