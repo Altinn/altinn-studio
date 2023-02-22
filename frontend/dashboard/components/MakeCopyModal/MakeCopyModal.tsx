@@ -5,7 +5,7 @@ import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopov
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import type { PopoverOrigin } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, RelativeRoutingType } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../../utils/repoUtils';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
@@ -41,7 +41,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
         const [org, app] = serviceFullName.split('/');
         await post(copyAppPath(org, app, repoName));
         dispatch(DashboardActions.fetchServices({ url: userReposPath() }));
-        navigate(`${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`);
+        window.location.href = `${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`;
       } catch (error) {
         error?.response?.status === 409
           ? setErrorMessage(t('dashboard.app_already_exist'))
