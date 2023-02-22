@@ -21,7 +21,7 @@ export interface ISchemaState {
 }
 
 export enum NameError {
-  InvalidCharacter = 'schema_editor.nameError_invalidCharacter',
-  AlreadyInUse = 'schema_editor.nameError_alreadyInUse',
-  NoError = '',
+  InvalidCharacter = 'InvalidCharacter',
+  AlreadyInUse = 'AlreadyInUse',
+  NoError = 'NoError',
 }
