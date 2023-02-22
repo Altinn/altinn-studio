@@ -3,12 +3,15 @@ import { between, sleep, designerDomain } from '../utils.js';
 import axios from 'axios';
 
 const queue = new pQueue({ concurrency: 1 });
+/**
+ * @see backend/src/Designer/appsettings.json
+ */
+const DEPLOY_DEFINITION_ID = 81;
 const builds = [];
 const deploys = [];
 export const buildsRoute = async (req, res) => {
   const params = JSON.parse(req.body.parameters);
-  const isDeploy = !!params.APP_DEPLOY_TOKEN;
-
+  const isDeploy = parseInt(req.body.definition.id) === DEPLOY_DEFINITION_ID;
   const webhookUrl =
     designerDomain() +
     '/designer/api/v1/' +
@@ -38,22 +41,22 @@ export const buildsRoute = async (req, res) => {
   };
   res.json(buildData);
   builds.push(buildData);
+
   await queue.add(async () => {
     await sleep(10000);
     try {
-      console.log('first hit towards', webhookUrl, azureDevOpsWebHookEventModel);
       await axios.post(webhookUrl, azureDevOpsWebHookEventModel);
     } catch (e) {
-      console.error(e.message);
+      console.error(e.message, webhookUrl);
     }
   });
+
   await queue.add(async () => {
     await sleep(10000);
     try {
-      console.log('second hit towards', webhookUrl, azureDevOpsWebHookEventModel);
       await axios.post(webhookUrl, azureDevOpsWebHookEventModel);
     } catch (e) {
-      console.error(e.message);
+      console.error(e.message, webhookUrl);
     }
   });
 };

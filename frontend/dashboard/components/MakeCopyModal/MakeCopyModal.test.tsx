@@ -13,17 +13,27 @@ import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
+const originalWindowLocation = window.location;
 
-afterEach(() => jest.restoreAllMocks());
 jest.mock('app-shared/utils/networking', () => ({
   __esModule: true,
   ...jest.requireActual('app-shared/utils/networking'),
 }));
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
+
 describe('MakeCopyModal', () => {
+  beforeEach(() => {
+    delete window.location;
+    window.location = {
+      ...originalWindowLocation,
+      assign: jest.fn(),
+    };
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    window.location = originalWindowLocation;
+  });
   it('should show error message when clicking confirm without adding name', async () => {
     render();
 
