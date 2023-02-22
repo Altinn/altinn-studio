@@ -8,6 +8,8 @@ import { withTranslation } from 'react-i18next';
 import classes from './RuleComponent.module.css';
 import Modal from 'react-modal';
 
+
+
 export interface IRuleComponentProps {
   connectionId?: any;
   cancelEdit: () => void;
@@ -162,7 +164,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                       <>
                         <label className={classes.label} htmlFor={paramName}>
                           {
-                            this.props.t('ux_editor.modal_configure_rules_configure_input_param_helper' )
+                            this.props.t('ux_editor.modal_configure_rules_configure_input_param_helper')
                           }
                         </label>
                         <div className={classes.configureInputParamsContainer} key={key}>
@@ -199,6 +201,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                 <label className={classes.label} htmlFor='outParam'>
                   {
                     this.props.t('ux_editor.modal_configure_rules_configure_output_param_helper')
+                   
                     
                   }
                 </label>
