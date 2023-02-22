@@ -5,7 +5,6 @@ import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopov
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import type { PopoverOrigin } from '@mui/material';
-import { useNavigate, RelativeRoutingType } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../../utils/repoUtils';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
@@ -28,7 +27,6 @@ const transformAnchorOrigin: PopoverOrigin = {
 };
 
 export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
-  const navigate = useNavigate();
   const [repoName, setRepoName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
