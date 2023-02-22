@@ -4,9 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
@@ -15,17 +13,18 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Json;
-using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Controllers.DataModelsController.Utils;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Json.Schema;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
@@ -40,7 +39,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
 
     private string TargetTestRepository { get; }
 
-    private bool TestFilesCopied { get; set; }
+    private string CreatedTestRepoPath { get; set; }
 
     private const string TestOrg = "ttd";
     private const string TestSourceRepository = "hvem-er-hvem";
@@ -66,9 +65,9 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
     /// </summary>
     public void Dispose()
     {
-        if (TestFilesCopied)
+        if (!string.IsNullOrWhiteSpace(CreatedTestRepoPath))
         {
-            TestDataHelper.DeleteAppRepository(TestOrg, TargetTestRepository, TestDeveloper);
+            TestDataHelper.DeleteDirectory(CreatedTestRepoPath);
         }
     }
 
@@ -79,7 +78,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
     [InlineData("App%2Fmodels%2FtestModel.schema.json")]
     public async Task ValidInput_ShouldReturn_NoContent_And_Create_Files(string modelPath)
     {
-        var url = $"{VersionPrefix}/{TestOrg}/{TargetTestRepository}/datamodels/datamodel?modelPath={modelPath}";
+        var url = $"{VersionPrefix}/ttd/{TargetTestRepository}/datamodels/datamodel?modelPath={modelPath}";
         var fileName = Path.GetFileName(HttpUtility.UrlDecode(modelPath));
         var modelName = fileName.Remove(fileName.Length - ".schema.json".Length);
 
@@ -95,17 +94,15 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
 
     private async Task RepositoryCopiedForTest(string org, string repository, string developer, string targetRepository)
     {
-        await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-        TestFilesCopied = true;
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
     }
 
-    private PutDatamodelTests RequestMessageCreatedFromJsonString(string json, string url)
+    private void RequestMessageCreatedFromJsonString(string json, string url)
     {
         HttpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
             Content = new StringContent(json, Encoding.UTF8, MediaTypeNames.Application.Json)
         };
-        return this;
     }
 
     private async Task HttpRequestSent()
@@ -115,7 +112,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
     {
-        var location = Path.GetFullPath(Path.Combine(TestRepositoriesLocation, TestDeveloper, TestOrg, TargetTestRepository, "App", "models"));
+        var location = Path.GetFullPath(Path.Combine(CreatedTestRepoPath, "App", "models"));
         var jsonSchemaLocation = Path.Combine(location, $"{modelName}.schema.json");
         var xsdSchemaLocation = Path.Combine(location, $"{modelName}.xsd");
         var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");
@@ -125,8 +122,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         Assert.True(File.Exists(jsonSchemaLocation));
 
         await VerifyXsdFileContent(xsdSchemaLocation);
-        string serializedExpectedContent = FormatJsonString(MinimumValidJsonSchema);
-        VerifyFileContent(jsonSchemaLocation, serializedExpectedContent);
+        FileContentVerifier.VerifyJsonFileContent(jsonSchemaLocation, MinimumValidJsonSchema);
         VerifyMetadataContent(metamodelLocation);
     }
 
@@ -152,31 +148,12 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(JsonSchema.FromText(MinimumValidJsonSchema));
         var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
         var modelMetadata = metamodelConverter.Convert(MinimumValidJsonSchema);
-        string serializedModelMetadata = SerializeModelMetadata(modelMetadata);
-        VerifyFileContent(path, serializedModelMetadata);
+        FileContentVerifier.VerifyJsonFileContent(path, JsonSerializer.Serialize(modelMetadata));
     }
 
     private static void VerifyFileContent(string path, string expectedContent)
     {
         var fileContent = File.ReadAllText(path);
         expectedContent.Should().Be(fileContent);
-    }
-
-    private class Utf8StringWriter : StringWriter
-    {
-        /// <inheritdoc/>
-        public override Encoding Encoding => Encoding.UTF8;
-    }
-
-    private static string FormatJsonString(string jsonContent)
-    {
-        var options = new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true };
-        return System.Text.Json.JsonSerializer.Serialize(Json.Schema.JsonSchema.FromText(jsonContent), options);
-    }
-
-    private static string SerializeModelMetadata(ModelMetadata modelMetadata)
-    {
-        var options = new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true };
-        return System.Text.Json.JsonSerializer.Serialize(modelMetadata, options);
     }
 }
