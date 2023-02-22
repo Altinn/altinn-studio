@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import morgan from 'morgan';
 import { buildRoute, buildsRoute, kubernetesWrapperRoute } from './routes/builds.js';
 import { authenticationRoute } from './routes/authentication.js';
 import { storageApplicationMetadataRoute, storageTextsRoute } from './routes/storage.js';
@@ -8,6 +9,7 @@ import { environmentsRoute } from './routes/environments.js';
 const app = express();
 
 app.use(cors());
+app.use(morgan('combined'));
 app.use(express.json());
 
 app.get('/', (req, res) => res.send('Azure Devops API Mock'));

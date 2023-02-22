@@ -8,7 +8,6 @@ const randomPass = () =>
   );
 
 const defaultEnvVars = {
-  COMMIT: getCommit(),
   CYPRESS_TEST_APP: 'autodeploy-v3',
   DEVELOP_APP_DEVELOPMENT: 0,
   DEVELOP_BACKEND: 0,
@@ -37,6 +36,8 @@ module.exports = () => {
       envData[key] = value;
     }
   });
+  // Commit should always be latest and be overwritten
+  envData['COMMIT'] = getCommit();
   const newEnv = [];
   Object.keys(envData).forEach((key) => newEnv.push([key, envData[key]].join('=')));
   fs.writeFileSync(fd, newEnv.join(os.EOL), 'utf-8');
