@@ -4,6 +4,7 @@ import { DataModellingContainer } from './DataModelling';
 import { LoadingState } from 'app-shared/features/dataModelling/sagas/metadata';
 import { renderWithProviders } from '../../dashboardTestUtils';
 import { setupStore } from '../../app/store';
+import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -20,8 +21,13 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
+
 describe('DataModelling', () => {
-  const language = { administration: {} };
   const modelName = 'model-name';
   const initialState = {
     dataModelsMetadataState: {
@@ -58,7 +64,6 @@ describe('DataModelling', () => {
     }));
     const initStore = setupStore({
       ...initialState,
-      language: { language },
     } as unknown);
     const dispatch = jest.spyOn(initStore, 'dispatch').mockImplementation(jest.fn());
     renderWithProviders(

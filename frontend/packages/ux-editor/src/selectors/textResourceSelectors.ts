@@ -1,4 +1,4 @@
-import { IAppState } from '../types/global';
+import { IAppState, ITextResource } from '../types/global';
 import { removeDuplicates } from 'app-shared/utils/arrayUtils';
 
 export const getAllTextResources = (state: IAppState) => state
@@ -22,3 +22,8 @@ export const getAllTextResourceIds = (state: IAppState) => removeDuplicates(
     .values(getAllTextResources(state))
     .flatMap((resources) => resources.map((textResource) => textResource.id))
 );
+
+// Similar to textResourcesByLanguageSelector, but returns all existing ids, also if they don't exist in the given language
+export const getAllTextResourceIdsWithTextSelector = (language: string) => (state: IAppState): ITextResource[] =>
+  getAllTextResourceIds(state)
+    .map((id) => textResourceByLanguageAndIdSelector(language, id)(state) ?? { id, value: '' });

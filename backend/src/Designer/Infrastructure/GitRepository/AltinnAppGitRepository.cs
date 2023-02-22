@@ -358,9 +358,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A boolean representing if the app uses layoutsets or not</returns>
         public bool AppUsesLayoutSets()
         {
-            string[] layoutSetNames = GetLayoutSetNames();
-            string layoutSetRelativePath = GetPathToLayoutSet(layoutSetNames[0]);
-            return !(layoutSetNames.Contains("layouts") && layoutSetNames.Length == 1 && !DirectoryExistsByRelativePath(layoutSetRelativePath));
+            string layoutSetJsonFilePath = Path.Combine(LAYOUTS_FOLDER_NAME, "layout-sets.json");
+            return FileExistsByRelativePath(layoutSetJsonFilePath);
         }
 
         /// <summary>
@@ -371,11 +370,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public string[] GetLayoutNames([CanBeNull] string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
+            if (!DirectoryExistsByRelativePath(layoutSetPath))
+            {
+                throw new FileNotFoundException();
+            }
             List<string> layoutNames = new();
+
             foreach (string layoutPath in GetFilesByRelativeDirectory(layoutSetPath))
             {
                 layoutNames.Add(Path.GetFileName(layoutPath));
             }
+
             return layoutNames.ToArray();
         }
 
@@ -399,6 +404,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         public async Task CreateLayoutSettings(string layoutSetName)
         {
+            string layoutSetPath = GetPathToLayoutSet(layoutSetName);
+            if (!DirectoryExistsByRelativePath(layoutSetPath))
+            {
+                Directory.CreateDirectory(layoutSetPath);
+            }
             string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
             LayoutSettings layoutSettings = new()
             {

@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import './DefaultToolbar.css';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export function DefaultToolbar() {
   const dispatch = useDispatch();
@@ -25,25 +26,25 @@ export function DefaultToolbar() {
   });
 
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const language: any = useSelector((state: IAppState) => state.appData.languageState.language);
+  const { t } = useTranslation();
   const order: any[] = useSelector(makeGetLayoutOrderSelector());
   const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);
   const { org, app } = useParams();
   const orgApp = { org, app };
   const componentList: IToolbarElement[] = schemaComponents.map((component) =>
-    mapComponentToToolbarElement(component, language, activeList, order, dispatch, orgApp)
+    mapComponentToToolbarElement(component, t, activeList, order, dispatch, orgApp)
   );
 
   const textComponentList: IToolbarElement[] = textComponents.map((component) =>
-    mapComponentToToolbarElement(component, language, activeList, order, dispatch, orgApp)
+    mapComponentToToolbarElement(component, t, activeList, order, dispatch, orgApp)
   );
 
   const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component) =>
-    mapComponentToToolbarElement(component, language, activeList, order, dispatch, orgApp)
+    mapComponentToToolbarElement(component, t, activeList, order, dispatch, orgApp)
   );
 
   const widgetComponentsList: IToolbarElement[] = widgetsList.map((widget) =>
-    mapWidgetToToolbarElement(widget, activeList, order, language, dispatch)
+    mapWidgetToToolbarElement(widget, activeList, order, t, dispatch)
   );
 
   const allComponentLists: any = {
@@ -99,13 +100,11 @@ export function DefaultToolbar() {
             componentListOpen={componentListsState[key].expanded}
             handleCollapsableListClicked={handleCollapsableListClicked}
             handleComponentInformationOpen={handleComponentInformationOpen}
-            language={language}
             setCollapsableListAnimationState={setCollapsableListAnimationState}
           />
         );
       })}
       <InformationPanelComponent
-        language={language}
         anchorElement={anchorElement}
         informationPanelOpen={compInfoPanelOpen}
         onClose={handleComponentInformationClose}

@@ -1,16 +1,17 @@
 import React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import { discardChangesPath } from 'app-shared/api-paths';
+import i18next from 'i18next';
+import { withTranslation } from 'react-i18next';
 
 
 interface IHandleMergeConflictDiscardChangesProps {
   disabled?: boolean;
-  language: any;
+  t: typeof i18next.t;
 }
 
 interface IHandleMergeConflictDiscardChangesState {
@@ -30,7 +31,7 @@ const initialPopoverState = {
   btnCancelText: '',
 };
 
-class HandleMergeConflictDiscardChanges extends React.Component<
+export class HandleMergeConflictDiscardChanges extends React.Component<
   IHandleMergeConflictDiscardChangesProps,
   IHandleMergeConflictDiscardChangesState
 > {
@@ -50,18 +51,9 @@ class HandleMergeConflictDiscardChanges extends React.Component<
       popoverState: {
         ...this.state.popoverState,
         btnMethod: this.discardChangesConfirmed,
-        btnConfirmText: getLanguageFromKey(
-          'handle_merge_conflict.discard_changes_button_confirm',
-          this.props.language
-        ),
-        descriptionText: getLanguageFromKey(
-          'handle_merge_conflict.discard_changes_message',
-          this.props.language
-        ),
-        btnCancelText: getLanguageFromKey(
-          'handle_merge_conflict.discard_changes_button_cancel',
-          this.props.language
-        ),
+        btnConfirmText: this.props.t('handle_merge_conflict.discard_changes_button_confirm'),
+        descriptionText: this.props.t('handle_merge_conflict.discard_changes_message'),
+        btnCancelText: this.props.t('handle_merge_conflict.discard_changes_button_cancel'),
       },
     });
   };
@@ -118,10 +110,7 @@ class HandleMergeConflictDiscardChanges extends React.Component<
       <React.Fragment>
         <AltinnButton
           id='discardMergeChangesBtn'
-          btnText={getLanguageFromKey(
-            'handle_merge_conflict.discard_changes_button',
-            this.props.language
-          )}
+          btnText={this.props.t('handle_merge_conflict.discard_changes_button')}
           onClickFunction={this.discardChangesPopover}
           secondaryButton={true}
           disabled={this.props.disabled}
@@ -147,4 +136,4 @@ class HandleMergeConflictDiscardChanges extends React.Component<
   }
 }
 
-export default HandleMergeConflictDiscardChanges;
+export default withTranslation()(HandleMergeConflictDiscardChanges);

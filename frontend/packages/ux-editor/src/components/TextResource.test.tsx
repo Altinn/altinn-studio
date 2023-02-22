@@ -1,5 +1,4 @@
 import React from 'react';
-import type { ILanguageState } from '../features/appData/language/languageSlice';
 import userEvent from '@testing-library/user-event';
 import { IAppDataState } from '../features/appData/appDataReducers';
 import { ITextResource } from '../types/global';
@@ -7,11 +6,11 @@ import { ITextResourcesState } from '../features/appData/textResources/textResou
 import { TextResource, TextResourceProps } from './TextResource';
 import {
   appDataMock,
-  languageStateMock,
   renderWithMockStore,
   textResourcesMock,
 } from '../testing/mocks';
 import { act, screen } from '@testing-library/react';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -21,7 +20,7 @@ const defaultProps: TextResourceProps = { handleIdChange };
 const addText = 'Legg til';
 const editText = 'Rediger';
 const searchText = 'Søk';
-const closeSearchText = 'ukk tekstsøk';
+const closeSearchText = 'Lukk tekstsøk';
 const searchLabelText = 'Velg tekst-ID';
 const noTextChosenText = 'Ingen tekst';
 const texts = {
@@ -32,11 +31,17 @@ const texts = {
   'ux_editor.search_text_resources_label': searchLabelText,
   'ux_editor.search_text_resources_none': noTextChosenText,
 };
-const textResources = [
+const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
   { id: '2', value: 'Text 2' },
   { id: '3', value: 'Text 3' },
 ];
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('TextResource', () => {
   afterEach(jest.resetAllMocks);
@@ -155,7 +160,9 @@ describe('TextResource', () => {
 
   it('Renders correct number of options in search section', async () => {
     await renderAndOpenSearchSection();
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    const combobox = screen.getByRole('combobox');
+    expect(combobox).toBeInTheDocument();
+    await act(() => user.click(combobox));
     expect(screen.getAllByRole('option')).toHaveLength(textResources.length + 1); // + 1 because of the "none" option
   });
 
@@ -188,10 +195,6 @@ const renderAndOpenSearchSection = async () => {
 };
 
 const render = (props?: Partial<TextResourceProps>, resources?: ITextResource[]) => {
-  const languageState: ILanguageState = {
-    ...languageStateMock,
-    language: texts,
-  };
 
   const mockedTextResources: ITextResourcesState = {
     ...textResourcesMock,
@@ -203,7 +206,6 @@ const render = (props?: Partial<TextResourceProps>, resources?: ITextResource[])
 
   const appData: IAppDataState = {
     ...appDataMock,
-    languageState,
     textResources: mockedTextResources,
   };
 

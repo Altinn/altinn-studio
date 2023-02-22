@@ -11,62 +11,69 @@ import {
   Keywords,
   ObjectKind,
 } from '@altinn/schema-model';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 // Test data:
-const mockLanguage = {
-  'schema_editor.enum_legend': 'Liste med gyldige verdier',
+const legendText = 'Liste med gyldige verdier';
+const texts = {
+  'schema_editor.enum_legend': legendText,
 };
 const mockSelectedNode = createNodeBase(Keywords.Properties, 'test');
-const defaultProps: ItemRestrictionsProps = {
-  language: mockLanguage,
-  ...mockSelectedNode,
-};
+const defaultProps: ItemRestrictionsProps = { ...mockSelectedNode };
 
-test('item restrictions require checkbox to work', async () => {
-  const selectedNode = createNode({ fieldType: FieldType.String });
-  const { user, store } = renderItemRestrictions(selectedNode);
-  await act(() => user.click(screen.getByRole('checkbox')));
-  const action = store.getActions().pop();
-  expect(action.type).toBe('schemaEditor/setRequired');
-  expect(action.payload.required).toBeTruthy();
-});
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
-test('item restrictions tab require checkbox to decheck', async () => {
-  const selectedNode = createNode({ fieldType: FieldType.String, isRequired: true });
-  const { user, store } = renderItemRestrictions(selectedNode);
-  await act(() => user.click(screen.getByRole('checkbox')));
-  const action = store.getActions().pop();
-  expect(action.type).toBe('schemaEditor/setRequired');
-  expect(action.payload.required).toBeFalsy();
-});
+describe('ItemRestrictions', () => {
+  test('item restrictions require checkbox to work', async () => {
+    const selectedNode = createNode({ fieldType: FieldType.String });
+    const { user, store } = renderItemRestrictions(selectedNode);
+    await act(() => user.click(screen.getByRole('checkbox')));
+    const action = store.getActions().pop();
+    expect(action.type).toBe('schemaEditor/setRequired');
+    expect(action.payload.required).toBeTruthy();
+  });
 
-test('Enum list should only appear for strings and numbers, as well as arrays of those', () => {
-  (Object.values(FieldType) as (FieldType | CombinationKind)[])
-    .concat(Object.values(CombinationKind))
-    .forEach((fieldType) => {
-      const primitiveProps = { ...createNode({ fieldType }) };
-      const arrayProps = {
-        ...createNode({
-          isArray: true,
-          fieldType,
-          objectKind: ObjectKind.Field,
-          pointer: 'arraytest',
-        }),
-      };
-      for (const props of [primitiveProps, arrayProps]) {
-        const { renderResult } = renderItemRestrictions(props);
-        switch (fieldType) {
-          case FieldType.String:
-          case FieldType.Number:
-          case FieldType.Integer:
-            expect(screen.getByText(mockLanguage['schema_editor.enum_legend'])).toBeDefined();
-            break;
-          default:
-            expect(screen.queryByText(mockLanguage['schema_editor.enum_legend'])).toBeFalsy();
+  test('item restrictions tab require checkbox to decheck', async () => {
+    const selectedNode = createNode({ fieldType: FieldType.String, isRequired: true });
+    const { user, store } = renderItemRestrictions(selectedNode);
+    await act(() => user.click(screen.getByRole('checkbox')));
+    const action = store.getActions().pop();
+    expect(action.type).toBe('schemaEditor/setRequired');
+    expect(action.payload.required).toBeFalsy();
+  });
+
+  test('Enum list should only appear for strings and numbers, as well as arrays of those', () => {
+    (Object.values(FieldType) as (FieldType | CombinationKind)[])
+      .concat(Object.values(CombinationKind))
+      .forEach((fieldType) => {
+        const primitiveProps = { ...createNode({ fieldType }) };
+        const arrayProps = {
+          ...createNode({
+            isArray: true,
+            fieldType,
+            objectKind: ObjectKind.Field,
+            pointer: 'arraytest',
+          }),
+        };
+        for (const props of [primitiveProps, arrayProps]) {
+          const { renderResult } = renderItemRestrictions(props);
+          switch (fieldType) {
+            case FieldType.String:
+            case FieldType.Number:
+            case FieldType.Integer:
+              expect(screen.getByText(legendText)).toBeDefined();
+              break;
+            default:
+              expect(screen.queryByText(legendText)).toBeFalsy();
+          }
+          renderResult.unmount();
         }
-        renderResult.unmount();
-      }
-    });
+      });
+  });
 });
 
 const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) =>

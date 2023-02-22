@@ -3,8 +3,15 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { ICreateNewWrapper } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
+import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 describe('CreateNewWrapper', () => {
   it('should open the popup when clicking "new" button', async () => {
@@ -149,8 +156,7 @@ describe('CreateNewWrapper', () => {
 });
 
 const render = (props: Partial<ICreateNewWrapper> = {}) => {
-  const allProps = {
-    language: { administration: {} },
+  const allProps: ICreateNewWrapper = {
     dataModelNames: [],
     createAction: jest.fn(),
     ...props,

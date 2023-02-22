@@ -4,9 +4,15 @@ import type { IXSDUploadProps } from './XSDUpload';
 import { XSDUpload } from './XSDUpload';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 

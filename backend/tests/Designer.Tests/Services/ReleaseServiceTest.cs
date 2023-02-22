@@ -70,7 +70,7 @@ namespace Designer.Tests.Services
                 _httpContextAccessor.Object,
                 azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
-                new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
+                GetAzureDevOpsSettings(),
                 _releaseLogger.Object);
 
             // Act
@@ -112,7 +112,7 @@ namespace Designer.Tests.Services
                 _httpContextAccessor.Object,
                 new Mock<IAzureDevOpsBuildClient>().Object,
                 _releaseRepository.Object,
-                new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
+                GetAzureDevOpsSettings(),
                 _releaseLogger.Object);
 
             // Act
@@ -141,7 +141,7 @@ namespace Designer.Tests.Services
                 _httpContextAccessor.Object,
                 new Mock<IAzureDevOpsBuildClient>().Object,
                 _releaseRepository.Object,
-                new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
+                GetAzureDevOpsSettings(),
                 _releaseLogger.Object);
 
             // Act
@@ -163,7 +163,7 @@ namespace Designer.Tests.Services
                 _httpContextAccessor.Object,
                 new Mock<IAzureDevOpsBuildClient>().Object,
                 _releaseRepository.Object,
-                new TestOptionsMonitor<AzureDevOpsSettings>(GetAzureDevOpsSettings()),
+                GetAzureDevOpsSettings(),
                 _releaseLogger.Object);
 
             // Act

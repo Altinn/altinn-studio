@@ -16,15 +16,11 @@ import {
 import { Link, useSearchParams } from 'react-router-dom';
 import classes from './TextEditor.module.css';
 import { getLocalStorage, setLocalStorage } from 'app-shared/utils/localStorage';
-import type { LanguageTree } from 'app-shared/utils/language';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
+import { useTranslation } from 'react-i18next';
 
-interface TextEditorProps extends React.PropsWithChildren<any> {
-  language: LanguageTree;
-}
 const storageGroupName = 'textEditorStorage';
-export const TextEditor = ({ language }: TextEditorProps) => {
+export const TextEditor = () => {
   const [searchParams, setSearchParams] = useSearchParams({ lang: defaultLangCode });
   const selectedLangCode = searchParams.get('lang');
   const getSearchQuery = () => searchParams.get('search') || '';
@@ -64,7 +60,7 @@ export const TextEditor = ({ language }: TextEditorProps) => {
   const [addLanguage] = useAddByLangCodeMutation();
   const [updateTextId] = useUpdateTextIdMutation();
 
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
 
   /*
    * Temporary fix to make sure to have the latest text-resources fetched.

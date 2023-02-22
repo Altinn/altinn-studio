@@ -6,15 +6,15 @@ import { DeployContainerComponent } from '../containers/deployContainer';
 import { InfoCard } from './InfoCard';
 import { ReleaseContainer } from '../containers/releaseContainer';
 import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
-import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export function DeployPage() {
+  const { t } = useTranslation();
   const { org } = useParams();
   const dispatch = useAppDispatch();
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
-  const language: any = useAppSelector((state) => state.languageState.language);
 
   useEffect(() => {
     dispatch(ConfigurationActions.getOrgs());
@@ -22,7 +22,7 @@ export function DeployPage() {
   }, [dispatch]);
 
   const isLoading = (): boolean => {
-    return !orgs.allOrgs || !language;
+    return !orgs.allOrgs;
   };
 
   if (isLoading()) {
@@ -44,14 +44,9 @@ export function DeployPage() {
     !orgs.allOrgs[org].environments.length
   ) {
     return (
-      <InfoCard
-        headerText={getParsedLanguageFromKey('app_publish.no_env_title', language, [])}
-        shadow={true}
-      >
-        <div>{getParsedLanguageFromKey('app_publish.no_env_1', language, [])}</div>
-        <div style={{ paddingTop: '2.4rem' }}>
-          {getParsedLanguageFromKey('app_publish.no_env_2', language, [])}
-        </div>
+      <InfoCard headerText={t('app_publish.no_env_title')} shadow={true}>
+        <div>{t('app_publish.no_env_1')}</div>
+        <div style={{ paddingTop: '2.4rem' }}>{t('app_publish.no_env_2')}</div>
       </InfoCard>
     );
   }

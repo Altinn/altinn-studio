@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.KeyVault.Models;
 
 namespace Altinn.Studio.Designer.Controllers
 {

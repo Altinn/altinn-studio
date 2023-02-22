@@ -10,7 +10,7 @@ export interface IBuild {
 
 export interface ICreateAppDeployment {
   tagName: string;
-  envObj: ICreateAppDeploymentEnvObject;
+  envName: string;
 }
 
 export interface ICreateAppDeploymentFulfilled {

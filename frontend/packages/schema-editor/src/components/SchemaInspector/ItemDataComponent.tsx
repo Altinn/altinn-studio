@@ -1,9 +1,8 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { ILanguage, ISchemaState } from '../../types';
+import type { ISchemaState } from '../../types';
 import { NameError } from '../../types';
-import { getTranslation } from '../../utils/language';
 import {
   addCombinationItem,
   deleteCombinationItem,
@@ -40,14 +39,12 @@ import {
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
+import { useTranslation } from 'react-i18next';
 
-export interface IItemDataComponentProps extends UiSchemaNode {
-  language: ILanguage;
-}
+export type IItemDataComponentProps = UiSchemaNode;
 
 export function ItemDataComponent(props: IItemDataComponentProps) {
   const {
-    language,
     fieldType,
     pointer,
     title,
@@ -148,7 +145,8 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     }
   };
 
-  const t = (key: string) => getTranslation(key, language);
+  const translation = useTranslation();
+  const t = (key: string) => translation.t('schema_editor.' + key);
   const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
   const descriptionId = getDomFriendlyID(pointer, { suffix: 'description' });
   return (

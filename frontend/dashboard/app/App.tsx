@@ -11,8 +11,6 @@ import { Dashboard } from '../pages/Dashboard';
 import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
 import { DataModellingContainer } from '../pages/DataModelling';
 import { Route, Routes } from 'react-router-dom';
-import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 import { useAppDispatch } from '../hooks/useAppDispatch';
 import { useAppSelector } from '../hooks/useAppSelector';
@@ -23,19 +21,19 @@ import AppHeader, {
   SelectedContextType
 } from 'app-shared/navigation/main-header/Header';
 import {
-  frontendLangPath,
   userCurrentPath,
   userLogoutAfterPath,
   userLogoutPath,
   userReposPath
 } from 'app-shared/api-paths';
+import { useTranslation } from 'react-i18next';
 
 export const App = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.dashboard.user);
-  const language = useAppSelector((state) => state.language.language);
   const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
   const { data: orgs = [], isLoading: isLoadingOrganizations } = useGetOrganizationsQuery();
+  const { t } = useTranslation();
 
   const setSelectedContext = (newSelectedContext: SelectedContext) =>
     dispatch(
@@ -57,7 +55,6 @@ export const App = () => {
 
   useEffect(() => {
     dispatch(DashboardActions.fetchCurrentUser({ url: userCurrentPath() }));
-    dispatch(fetchLanguage({ url: frontendLangPath('nb') }));
     dispatch(DashboardActions.fetchServices({ url: userReposPath() }));
   }, [dispatch]);
 
@@ -77,7 +74,7 @@ export const App = () => {
   return user && !isLoadingOrganizations ? (
     <div className={classes.root}>
       <HeaderContext.Provider value={headerContextValue}>
-        <AppHeader language={language} />
+        <AppHeader />
       </HeaderContext.Provider>
       <Routes>
         <Route path='/' element={<Dashboard />} />
@@ -87,14 +84,14 @@ export const App = () => {
     </div>
   ) : (
     <CenterContainer>
-      <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
+      <AltinnSpinner spinnerText={t('dashboard.loading')} />
       {showLogOutButton && (
         <Button
           onClick={() =>
             post(userLogoutPath()).then(() => window.location.assign(userLogoutAfterPath()))
           }
         >
-          {getLanguageFromKey('dashboard.logout', language)}
+          {t('dashboard.logout')}
         </Button>
       )}
     </CenterContainer>

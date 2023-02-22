@@ -6,15 +6,15 @@ import { DatamodelsAdministration } from './DatamodelsAdministration';
 import { RepositoryType } from 'app-shared/types/global';
 import { ServiceAdministration } from './ServiceAdministration';
 import { SideMenuContent } from './SideMenuContent';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useAppSelector } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export function AdministrationComponent() {
-  const language = useAppSelector((state) => state.languageState.language);
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const initialCommit = useAppSelector((state) => state.serviceInformation.initialCommit);
+  const { t } = useTranslation();
   const { org, app } = useParams();
   const repositoryType = getRepositoryType(org, app);
 
@@ -25,18 +25,17 @@ export function AdministrationComponent() {
           sideMenuChildren={
             <SideMenuContent
               initialCommit={initialCommit}
-              language={language}
               service={repository}
               repoType={repositoryType}
             />
           }
-          header={getLanguageFromKey('administration.administration', language)}
+          header={t('administration.administration')}
         >
           {repositoryType === RepositoryType.App && (
-            <ServiceAdministration language={language} repository={repository} />
+            <ServiceAdministration repository={repository} />
           )}
           {repositoryType === RepositoryType.Datamodels && (
-            <DatamodelsAdministration language={language} />
+            <DatamodelsAdministration />
           )}
         </AltinnColumnLayout>
       )}

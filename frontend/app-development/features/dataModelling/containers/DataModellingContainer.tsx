@@ -3,11 +3,7 @@ import { DataModelling } from 'app-shared/features';
 import classes from './DataModellingContainer.module.css';
 import { useParams } from 'react-router-dom';
 
-interface IDataModellingContainerProps {
-  language: any;
-}
-
-const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
+const DataModellingContainer = () => {
   const { org, app } = useParams();
 
   return (
@@ -17,7 +13,7 @@ const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
       data-testid='data-modelling-container'
     >
       <div className={classes.dataModellingWrapper}>
-        <DataModelling language={language} org={org} repo={app} />
+        <DataModelling org={org} repo={app} />
       </div>
     </div>
   );

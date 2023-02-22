@@ -1,29 +1,30 @@
 import React from 'react';
-import { getLanguageFromKey } from '../utils/language';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { Upload, Cancel } from '@navikt/ds-icons';
 import classes from './VersionControlHeader.module.css';
+import { useTranslation } from 'react-i18next';
 
 export interface IShareChangesComponentProps {
   buttonOnly?: boolean;
   changesInLocalRepo: boolean;
   hasMergeConflict: boolean;
   hasPushRight: boolean;
-  language: any;
   shareChanges: any;
 }
 
 export const ShareChangesButton = (props: IShareChangesComponentProps) => {
+  const { t } = useTranslation();
+
   const shareChangesHandler = (event: any) =>
     props.shareChanges(event.currentTarget, !props.changesInLocalRepo);
 
   const renderCorrectText = () => {
     if (props.hasMergeConflict) {
-      return getLanguageFromKey('sync_header.merge_conflict', props.language);
+      return t('sync_header.merge_conflict');
     } else if (props.changesInLocalRepo) {
-      return getLanguageFromKey('sync_header.changes_to_share', props.language);
+      return t('sync_header.changes_to_share');
     } else {
-      return getLanguageFromKey('sync_header.no_changes_to_share', props.language);
+      return t('sync_header.no_changes_to_share');
     }
   };
 

@@ -1,13 +1,12 @@
 import React from 'react';
 import { AltinnSpinner, FileSelector } from '../../../components';
-import { getLanguageFromKey } from '../../../utils/language';
 import axios from 'axios';
 import ErrorPopover from '../../../components/ErrorPopover';
 import { datamodelsUploadPath } from '../../../api-paths';
+import { useTranslation } from 'react-i18next';
 
 export interface IXSDUploadProps {
   disabled?: boolean;
-  language: any;
   onXSDUploaded: (filename: string) => void;
   org: string;
   repo: string;
@@ -16,12 +15,13 @@ export interface IXSDUploadProps {
 
 export const XSDUpload = ({
   disabled,
-  language,
   onXSDUploaded,
   org,
   repo,
   submitButtonRenderer,
 }: IXSDUploadProps) => {
+  const { t } = useTranslation();
+
   const [uploading, setUploading] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
 
@@ -43,9 +43,7 @@ export const XSDUpload = ({
       })
       .catch((error) => {
         if (error) {
-          setErrorText(
-            getLanguageFromKey('form_filler.file_uploader_validation_error_upload', language)
-          );
+          setErrorText(t('form_filler.file_uploader_validation_error_upload'));
         }
       })
       .finally(() => setUploading(false));
@@ -55,13 +53,10 @@ export const XSDUpload = ({
     <>
       <span ref={uploadButton}>
         {uploading ? (
-          <AltinnSpinner
-            spinnerText={getLanguageFromKey('app_data_modelling.uploading_xsd', language)}
-          />
+          <AltinnSpinner spinnerText={t('app_data_modelling.uploading_xsd')} />
         ) : (
           <FileSelector
             busy={false}
-            language={language}
             submitHandler={handleUpload}
             accept='.xsd'
             formFileName='file'

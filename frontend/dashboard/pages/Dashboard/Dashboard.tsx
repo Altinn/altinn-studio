@@ -4,7 +4,6 @@ import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { Close } from '@navikt/ds-icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DatamodelsReposList } from '../../components/DataModelsRepoList';
@@ -13,15 +12,15 @@ import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
 import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
-import { useAppSelector } from '../../hooks/useAppSelector';
 import { useDebounce } from 'react-use';
+import { useTranslation } from 'react-i18next';
 
 type DashboardProps = {
   disableDebounce?: boolean;
 };
 
 export const Dashboard = ({ disableDebounce }: DashboardProps) => {
-  const language = useAppSelector((state) => state.language.language);
+  const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
@@ -41,7 +40,7 @@ export const Dashboard = ({ disableDebounce }: DashboardProps) => {
               <div>
                 <SearchField
                   id='search-repos'
-                  label={getLanguageFromKey('dashboard.search', language)}
+                  label={t('dashboard.search')}
                   value={searchText}
                   onChange={handleChangeSearch}
                   onKeyDown={handleKeyDown}
@@ -51,7 +50,7 @@ export const Dashboard = ({ disableDebounce }: DashboardProps) => {
                 <Button
                   data-testid='clear-search-button'
                   className={classes.clearSearchButton}
-                  aria-label={getLanguageFromKey('dashboard.clear_search', language)}
+                  aria-label={t('dashboard.clear_search')}
                   onClick={handleClearSearch}
                   icon={<Close />}
                   variant={ButtonVariant.Quiet}
@@ -66,7 +65,7 @@ export const Dashboard = ({ disableDebounce }: DashboardProps) => {
               onMouseLeave={handleNewLinkFocusOut}
               data-testid={'dashboard.new_app'}
             >
-              <span>{getLanguageFromKey('dashboard.new_service', language)}</span>
+              <span>{t('dashboard.new_service')}</span>
               <i
                 className={cn('fa', classes.plusIcon, {
                   'fa-circle-plus': isNewLinkFocused,

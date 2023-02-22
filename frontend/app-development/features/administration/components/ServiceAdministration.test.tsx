@@ -7,6 +7,13 @@ import type { IHandleServiceInformationState } from '../handleServiceInformation
 import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';
 import { serviceConfigPath, serviceNamePath } from 'app-shared/api-paths';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 describe('Administration', () => {
   const mockService: IRepository = {
@@ -85,7 +92,7 @@ describe('Administration', () => {
 
   it('should handle sucessfully updating app name', async () => {
     const utils = renderWithProviders(
-      <ServiceAdministration language={{}} repository={mockService} />,
+      <ServiceAdministration repository={mockService} />,
       {
         startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
         preloadedState: {

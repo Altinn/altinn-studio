@@ -44,11 +44,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
-        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService)
+        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, ServiceRepositorySettings repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = repositoryService;
-            _settings = repositorySettings.Value;
+            _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _textsService = textsService;

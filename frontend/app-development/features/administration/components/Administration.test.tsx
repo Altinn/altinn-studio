@@ -5,6 +5,13 @@ import type { ICommit, IRepository } from '../../../types/global';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 describe('Administration', () => {
   const mockService: IRepository = {

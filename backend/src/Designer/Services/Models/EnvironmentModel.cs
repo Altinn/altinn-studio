@@ -9,16 +9,29 @@ namespace Altinn.Studio.Designer.Services.Models
     public class EnvironmentModel
     {
         /// <summary>
-        /// Hostname
+        /// AppsUrl
         /// </summary>
         [Required]
+        [JsonProperty("appsUrl")]
+        public string AppsUrl { get; set; }
+
+        /// <summary>
+        /// PlatformUrl
+        /// </summary>
+        [Required]
+        [JsonProperty("platformUrl")]
+        public string PlatformUrl { get; set; }
+
+        /// <summary>
+        /// Hostname
+        /// </summary>
         [JsonProperty("hostname")]
         public string Hostname { get; set; }
 
         /// <summary>
         /// App prefix
         /// </summary>
-        [JsonProperty("app")]
+        [JsonProperty("appPrefix")]
         public string AppPrefix { get; set; }
 
         /// <summary>

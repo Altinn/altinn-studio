@@ -6,11 +6,10 @@ import {
   TextArea,
   TextField
 } from '@digdir/design-system-react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import InformationPaper from 'app-shared/components/AltinnInformationPaper';
 import classes from './MainContent.module.css';
-import { useAppSelector } from '../../../common/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface IMainContentProps {
   repositoryName: string;
@@ -18,7 +17,6 @@ interface IMainContentProps {
   appId: string;
   appName: string;
   editAppName: boolean;
-  language: any;
   onAppDescriptionBlur: () => void;
   onAppDescriptionChange: (event: any) => void;
   onAppIdBlur: () => void;
@@ -32,8 +30,7 @@ interface IMainContentProps {
 export const MainContent = (props: IMainContentProps): JSX.Element => {
   const urlParams = new URLSearchParams(`?${window.location.hash.split('?')[1]}`);
   const copiedApp = Boolean(urlParams.get('copiedApp'));
-  const language = useAppSelector((state) => state.languageState.language);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
   return (
     <div className={classes.mainContentContainer}>
       {copiedApp && (

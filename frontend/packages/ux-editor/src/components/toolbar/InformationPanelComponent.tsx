@@ -9,9 +9,9 @@ import {
   getComponentHelperTextByComponentType,
   getComponentTitleByComponentType,
 } from '../../utils/language';
+import { useTranslation } from 'react-i18next';
 
 export interface IInformationPanelProvidedProps {
-  language: any;
   anchorElement: any;
   selectedComponent: ComponentTypes;
   informationPanelOpen: boolean;
@@ -22,40 +22,42 @@ export interface IInformationPanelProvidedProps {
 export const InformationPanelComponent = ({
   anchorElement,
   informationPanelOpen,
-  language,
   onClose,
   selectedComponent,
   thirdPartyLibrary,
-}: IInformationPanelProvidedProps) => (
-  <Popover
-    anchorEl={anchorElement}
-    open={informationPanelOpen}
-    onClose={onClose}
-    PaperProps={{ square: true }}
-    anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-    transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-    classes={{ paper: classNames(classes.informationPanel) }}
-  >
-    <div className={classNames(classes.informationPanelHeader)}>
-      {getComponentTitleByComponentType(selectedComponent, language)}
-    </div>
-    <div className={classNames(classes.informationPanelText)}>
-      {getComponentHelperTextByComponentType(selectedComponent, language)}
-    </div>
-    <div className={classNames(classes.informationPanelText)}>
-      <InformationColored className={classes.informationIcon} />
-      {!thirdPartyLibrary
-        ? language['ux_editor.information_altinn_library']
-        : language['ux_editor.information_third_party_library']}
-    </div>
-    <div className={classNames(classes.informationPanelLink)}>
-      <a
-        href='https://docs.altinn.studio/technology/solutions/altinn-studio/designer/functional/build-app/ui-designer/components/'
-        target='_blank'
-        rel='noopener noreferrer'
-      >
-        {language['ux_editor.information_more_info_link']}
-      </a>
-    </div>
-  </Popover>
-);
+}: IInformationPanelProvidedProps) => {
+  const { t } = useTranslation();
+  return (
+    <Popover
+      anchorEl={anchorElement}
+      open={informationPanelOpen}
+      onClose={onClose}
+      PaperProps={{ square: true }}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+      classes={{ paper: classNames(classes.informationPanel) }}
+    >
+      <div className={classNames(classes.informationPanelHeader)}>
+        {getComponentTitleByComponentType(selectedComponent, t)}
+      </div>
+      <div className={classNames(classes.informationPanelText)}>
+        {getComponentHelperTextByComponentType(selectedComponent, t)}
+      </div>
+      <div className={classNames(classes.informationPanelText)}>
+        <InformationColored className={classes.informationIcon} />
+        {!thirdPartyLibrary
+          ? t('ux_editor.information_altinn_library')
+          : t('ux_editor.information_third_party_library')}
+      </div>
+      <div className={classNames(classes.informationPanelLink)}>
+        <a
+          href='https://docs.altinn.studio/technology/solutions/altinn-studio/designer/functional/build-app/ui-designer/components/'
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          {t('ux_editor.information_more_info_link')}
+        </a>
+      </div>
+    </Popover>
+  );
+};

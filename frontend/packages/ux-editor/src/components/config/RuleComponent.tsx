@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { v1 as uuidv1 } from 'uuid';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type { IAppState, IDataModelFieldElement, IRuleModelFieldElement } from '../../types/global';
+import { withTranslation } from 'react-i18next';
 
 export interface IRuleComponentProps {
   connectionId?: any;
@@ -12,7 +13,7 @@ export interface IRuleComponentProps {
   dataModelElements: IDataModelFieldElement;
   ruleConnection: any;
   deleteConnection?: (connectionId: any) => void;
-  language: any;
+  t: any;
 }
 
 class Rule extends React.Component<IRuleComponentProps, any> {
@@ -116,7 +117,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>
-                {this.props.language['ux_editor.modal_configure_rules_header']}
+                {this.props.t('ux_editor.modal_configure_rules_header')}
               </span>
             </h1>
           </div>
@@ -124,7 +125,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
             <label htmlFor='selectRule' className='a-form-label'>
-              {this.props.language['ux_editor.modal_configure_rules_helper']}
+              {this.props.t('ux_editor.modal_configure_rules_helper')}
             </label>
             <select
               name='selectRule'
@@ -133,7 +134,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
               className='custom-select a-custom-select'
               style={{ fontSize: '16px' }}
             >
-              <option value={''}>{this.props.language['general.choose_method']}</option>
+              <option value={''}>{this.props.t('general.choose_method')}</option>
               {this.props.ruleModelElements.map((funcObj: any) => {
                 return (
                   <option key={funcObj.name} value={funcObj.name}>
@@ -147,7 +148,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
             <>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
-                  {this.props.language['ux_editor.modal_configure_rules_configure_input_header']}
+                  {this.props.t('ux_editor.modal_configure_rules_configure_input_header')}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
                   (key: any, index: any) => {
@@ -157,11 +158,9 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                         <div className='col-3 col'>
                           <div className='form-group a-form-group mt-1 disabled'>
                             <label className='a-form-label' htmlFor={paramName}>
-                              {
-                                this.props.language[
-                                  'ux_editor.modal_configure_rules_configure_input_param_helper'
-                                ]
-                              }
+                              {this.props.t(
+                                'ux_editor.modal_configure_rules_configure_input_param_helper'
+                              )}
                             </label>
                             <input
                               id={paramName}
@@ -188,18 +187,16 @@ class Rule extends React.Component<IRuleComponentProps, any> {
               </div>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
-                  {this.props.language['ux_editor.modal_configure_rules_configure_output_header']}
+                  {this.props.t('ux_editor.modal_configure_rules_configure_output_header')}
                 </h2>
                 {/* length is always 1 since method always returns just one thing */}
                 <div className='align-items-center mt-1 row' key='0'>
                   <div className='col col-3'>
                     <div className='form-group a-form-group mt-1 disabled'>
                       <label className='a-form-label' htmlFor='outParam'>
-                        {
-                          this.props.language[
-                            'ux_editor.modal_configure_rules_configure_output_param_helper'
-                          ]
-                        }
+                        {this.props.t(
+                          'ux_editor.modal_configure_rules_configure_output_param_helper'
+                        )}
                       </label>
                       <input
                         id='outParam0'
@@ -231,7 +228,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   type='submit'
                   className='a-btn a-btn-success mr-2'
                 >
-                  {this.props.language['general.save']}
+                  {this.props.t('general.save')}
                 </button>
               ) : null}
               {this.props.connectionId ? (
@@ -240,11 +237,11 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   className='a-btn a-btn-danger mr-2'
                   onClick={this.handleDeleteConnection}
                 >
-                  {this.props.language['general.delete']}
+                  {this.props.t('general.delete')}
                 </button>
               ) : null}
               <button className={'anchor'} onClick={this.props.cancelEdit}>
-                {this.props.language['general.cancel']}
+                {this.props.t('general.cancel')}
               </button>
             </div>
           </div>
@@ -260,8 +257,7 @@ const mapsStateToProps = (state: IAppState, props: any): any => {
     dataModelElements: state.appData.dataModel.model,
     ruleConnection: state.serviceConfigurations.ruleConnection,
     selectedFunction: props.selectedFunction,
-    language: state.appData.languageState.language,
   };
 };
 
-export const RuleComponent = connect(mapsStateToProps)(Rule);
+export const RuleComponent = withTranslation()(connect(mapsStateToProps)(Rule));

@@ -1,15 +1,14 @@
 import React from 'react';
-import type { ILanguage } from '../../types';
-import { getTranslation } from '../../utils/language';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import classes from './InlineObject.module.css';
+import { useTranslation } from 'react-i18next';
 
 export interface IInlineObjectProps {
   item: UiSchemaNode;
-  language: ILanguage;
 }
 
-export function InlineObject({ item, language }: IInlineObjectProps) {
+export function InlineObject({ item }: IInlineObjectProps) {
+  const { t } = useTranslation();
   // present as plain json object, not with any meta fields used in UiSchemaItem
   return (
     <div>
@@ -17,7 +16,7 @@ export function InlineObject({ item, language }: IInlineObjectProps) {
         {JSON.stringify(item, null, '    ')}
       </pre>
       <div id='information-paper' className={classes.informationPaper}>
-        {getTranslation('combination_inline_object_disclaimer', language)}
+        {t('combination_inline_object_disclaimer')}
       </div>
     </div>
   );

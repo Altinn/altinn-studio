@@ -1,8 +1,7 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from '../../hooks/useAppSelector';
 import { TextField } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 interface IRepoNameInputProps {
   repoName: string;
@@ -15,9 +14,8 @@ export const RepoNameInput = ({
   onRepoNameChanged,
   errorMessage,
 }: IRepoNameInputProps) => {
-  const language = useAppSelector((state) => state.language.language);
   const serviceNameRef = useRef(null);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
   useLayoutEffect(() => {
     serviceNameRef.current = document.querySelector('#service-saved-name');
   });

@@ -8,6 +8,20 @@ import { App } from './app/App';
 import { run } from './app/rootSaga';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/localStorageUtils';
 import { setupStore } from './app/store';
+import i18next from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import nb from '../language/src/nb.json';
+import en from '../language/src/en.json';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+
+i18next.use(initReactI18next).init({
+  lng: DEFAULT_LANGUAGE,
+  resources: {
+    nb: { translation: nb },
+    en: { translation: en },
+  },
+  fallbackLng: 'nb',
+});
 
 const store = setupStore(loadFromLocalStorage());
 store.subscribe(

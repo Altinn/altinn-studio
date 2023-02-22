@@ -7,13 +7,11 @@ import appDeploymentReducer from '../sharedResources/appDeployment/appDeployment
 import applicationMetadataReducer from '../sharedResources/applicationMetadata/applicationMetadataSlice';
 import appReleaseReducer from '../sharedResources/appRelease/appReleaseSlice';
 import configurationReducer from '../sharedResources/configuration/configurationSlice';
-import languageReducer from '../utils/fetchLanguage/languageSlice';
 import repoStatusReducer from '../sharedResources/repoStatus/repoStatusSlice';
 import userReducer from '../sharedResources/user/userSlice';
 import { appDevelopmentApi } from '../services/appDevelopmentApi';
 
 export const rootReducer = {
-  languageState: languageReducer,
   handleMergeConflict: handleMergeConflictReducer,
   serviceInformation: handleServiceInformationReducer,
   applicationMetadataState: applicationMetadataReducer,

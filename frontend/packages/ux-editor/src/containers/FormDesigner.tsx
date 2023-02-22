@@ -25,7 +25,7 @@ export const FormDesigner = ({
   activeList,
   layoutOrder,
   selectedLayout,
-  dataModel
+  dataModel,
 }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useParams();
@@ -37,14 +37,17 @@ export const FormDesigner = ({
 
   useEffect((): void => {
     const addInitialPage = (): void => {
-      const name = `${t('general.page')} 1`;
+      const name = `${t('general.page')}1`;
       dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
     };
 
-    if (selectedLayout === 'default') {
+    const layoutsExist = layoutOrder && !Object.keys(layoutOrder).length;
+    // Old apps might have selectedLayout='default' even when there exist a single layout.
+    // Should only add initial page if no layouts exist.
+    if (selectedLayout === 'default' && !layoutsExist) {
       addInitialPage();
     }
-  }, [app, dispatch, org, selectedLayout, t]);
+  }, [app, dispatch, org, selectedLayout, t, layoutOrder]);
 
   useEffect(() => {
     if (codeEditorOpen) {

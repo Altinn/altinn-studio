@@ -5,6 +5,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { VersionControlHeader } from './VersionControlHeader';
 import { setWindowLocationForTests, TEST_DOMAIN } from '../../../../testing/testUtils';
 import { datamodelXsdPath, repoMetaPath } from '../api-paths';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 setWindowLocationForTests('test-org', 'test-app');
 
@@ -46,13 +47,19 @@ export const versionControlHeaderafterEach = () => {
 };
 export const versionControlHeaderafterAll = () => versionControlHeaderMockServer.resetHandlers();
 
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
+
 beforeAll(versionControlHeaderBeforeAll);
 afterEach(versionControlHeaderafterEach);
 afterAll(versionControlHeaderafterAll);
 
 describe('Shared > Version Control > VersionControlHeader', () => {
   it('should render header when type is not defined', async () => {
-    render(<VersionControlHeader language={{}} hasPushRight={true} />);
+    render(<VersionControlHeader hasPushRight={true} />);
     await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(1));
     expect(await screen.findByTestId('version-control-header')).not.toBeNull();
     expect(await screen.queryByTestId('version-control-fetch-button')).toBeNull();
@@ -61,7 +68,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
 
   it('should render header when type is header', async () => {
     const { queryByTestId } = render(
-      <VersionControlHeader language={{}} type='header' hasPushRight={true} />
+      <VersionControlHeader type='header' hasPushRight={true} />
     );
     await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(1));
     expect(queryByTestId('version-control-header')).not.toBeNull();
@@ -71,7 +78,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
 
   it('should render fetch-button when type is fetch-button', async () => {
     const { queryByTestId } = render(
-      <VersionControlHeader language={{}} hasPushRight={true} type='fetchButton' />
+      <VersionControlHeader hasPushRight={true} type='fetchButton' />
     );
     expect(queryByTestId('version-control-header')).toBeNull();
     expect(queryByTestId('version-control-fetch-button')).not.toBeNull();
@@ -80,7 +87,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
 
   it('should render share-button when type is share-button', async () => {
     const component = render(
-      <VersionControlHeader hasPushRight={true} language={{}} type='shareButton' />
+      <VersionControlHeader hasPushRight={true} type='shareButton' />
     );
     expect(component.queryByTestId('version-control-header')).toBeNull();
     expect(component.queryByTestId('version-control-fetch-button')).toBeNull();

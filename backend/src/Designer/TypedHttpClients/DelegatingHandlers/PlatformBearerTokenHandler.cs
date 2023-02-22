@@ -28,11 +28,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         public PlatformBearerTokenHandler(
             IAccessTokenGenerator accessTokenGenerator,
             IAltinnAuthenticationClient altinnAuthenticationClient,
-            IOptions<GeneralSettings> generalSettings)
+            GeneralSettings generalSettings)
         {
             _altinnAuthenticationClient = altinnAuthenticationClient;
             _accesTokenGenerator = accessTokenGenerator;
-            _generalSettings = generalSettings.Value;
+            _generalSettings = generalSettings;
         }
 
         /// <summary>
@@ -60,6 +60,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
 
             string designerToken = _accesTokenGenerator.GenerateAccessToken(issuer, AccessTokenApp);
             string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(designerToken, request.RequestUri);
+
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", altinnToken);
             return await base.SendAsync(request, cancellationToken);
         }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Options;
 
@@ -17,6 +18,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
     public class AltinnStorageTextResourceClient : IAltinnStorageTextResourceClient
     {
         private readonly HttpClient _httpClient;
+        private readonly IEnvironmentsService _environmentsService;
         private readonly PlatformSettings _platformSettings;
 
         /// <summary>
@@ -24,16 +26,18 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         /// </summary>
         public AltinnStorageTextResourceClient(
             HttpClient httpClient,
-            IOptionsMonitor<PlatformSettings> options)
+            IEnvironmentsService environmentsService,
+            PlatformSettings options)
         {
             _httpClient = httpClient;
-            _platformSettings = options.CurrentValue;
+            _environmentsService = environmentsService;
+            _platformSettings = options;
         }
 
         /// <inheritdoc/>
-        public async Task Create(string org, string app, TextResource textResource, EnvironmentModel environmentModel)
+        public async Task Create(string org, string app, TextResource textResource, string envName)
         {
-            Uri uri = CreatePostUri(environmentModel, org, app);
+            Uri uri = await CreatePostUri(envName, org, app);
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             string stringContent = JsonSerializer.Serialize(textResource);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, uri)
@@ -44,9 +48,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         }
 
         /// <inheritdoc/>
-        public async Task<TextResource> Get(string org, string app, string language, EnvironmentModel environmentModel)
+        public async Task<TextResource> Get(string org, string app, string language, string envName)
         {
-            Uri uri = CreateGetAndPutUri(environmentModel, org, app, language);
+            Uri uri = await CreateGetAndPutUri(envName, org, app, language);
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await _httpClient.SendAsync(request);
@@ -54,9 +58,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         }
 
         /// <inheritdoc/>
-        public async Task Update(string org, string app, TextResource textResource, EnvironmentModel environmentModel)
+        public async Task Update(string org, string app, TextResource textResource, string envName)
         {
-            Uri uri = CreateGetAndPutUri(environmentModel, org, app, textResource.Language);
+            Uri uri = await CreateGetAndPutUri(envName, org, app, textResource.Language);
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             string stringContent = JsonSerializer.Serialize(textResource);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, uri)
@@ -66,14 +70,16 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             await _httpClient.SendAsync(request);
         }
 
-        private Uri CreatePostUri(EnvironmentModel environmentModel, string org, string app)
+        private async Task<Uri> CreatePostUri(string envName, string org, string app)
         {
-            return new Uri($"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiStorageApplicationUri}/{org}/{app}/texts");
+            var platformUri = await _environmentsService.CreatePlatformUri(envName);
+            return new Uri($"{platformUri}{_platformSettings.ApiStorageApplicationUri}{org}/{app}/texts");
         }
 
-        private Uri CreateGetAndPutUri(EnvironmentModel environmentModel, string org, string app, string language)
+        private async Task<Uri> CreateGetAndPutUri(string envName, string org, string app, string language)
         {
-            return new Uri($"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiStorageApplicationUri}/{org}/{app}/texts/{language}");
+            var platformUri = await _environmentsService.CreatePlatformUri(envName);
+            return new Uri($"{platformUri}{_platformSettings.ApiStorageApplicationUri}{org}/{app}/texts/{language}");
         }
     }
 }

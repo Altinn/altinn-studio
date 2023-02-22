@@ -44,13 +44,15 @@ import {
 
 const selectCurrentLayout = (state: IAppState): IFormLayout =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
+const selectLayouts = (state: IAppState) => state.formDesigner.layout.layouts;
 
 function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentAction>): SagaIterator {
   try {
     let { containerId, position } = payload;
     const { org, app, component, callback } = payload;
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
-    const id: string = generateComponentId(component.type, currentLayout);
+    const layouts: IFormLayouts = yield select(selectLayouts);
+    const id: string = generateComponentId(component.type, layouts);
 
     if (!containerId) {
       // if not containerId set it to base-container
@@ -102,8 +104,8 @@ export function* watchAddFormComponentSaga(): SagaIterator {
 function* addFormContainerSaga({ payload }: PayloadAction<IAddFormContainerAction>): SagaIterator {
   try {
     const { container, positionAfterId, addToId, callback, destinationIndex, org, app } = payload;
-    const layout = yield select(selectCurrentLayout);
-    const id = generateComponentId('Group', layout);
+    const layouts = yield select(selectLayouts);
+    const id = generateComponentId('Group', layouts);
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
     let baseContainerId;
     if (Object.keys(currentLayout.order) && Object.keys(currentLayout.order).length > 0) {
@@ -222,18 +224,18 @@ function* fetchFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIte
   if (!formLayouts || Object.keys(formLayouts).length === 0) {
     // Default name if no formlayout exists
     try {
-      convertedLayouts.FormLayout = convertFromLayoutToInternalFormat(null);
+      convertedLayouts.FormLayout = convertFromLayoutToInternalFormat(null, false);
     } catch {
       invalidLayouts.push('FormLayout');
     }
   } else {
     Object.keys(formLayouts).forEach((layoutName: string) => {
       if (!formLayouts[layoutName] || !formLayouts[layoutName].data) {
-        convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(null);
+        convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(null, false);
       } else {
         try {
           convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(
-            formLayouts[layoutName].data.layout
+            formLayouts[layoutName].data.layout, formLayouts[layoutName].data.hidden
           );
         } catch {
           invalidLayouts.push(layoutName);
@@ -268,6 +270,7 @@ function* saveFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIter
       $schema: layoutSchemaUrl(),
       data: {
         layout: convertInternalToLayoutFormat(layouts[selectedLayout]),
+        hidden: layouts[selectedLayout].hidden,
       },
     };
     const url = formLayoutPath(org, app, selectedLayout);
@@ -426,7 +429,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
     if (Object.keys(layoutsCopy).indexOf(layout) !== -1) {
       throw Error('Layout already exists');
     }
-    layoutsCopy[layout] = convertFromLayoutToInternalFormat(null);
+    layoutsCopy[layout] = convertFromLayoutToInternalFormat(null, false);
 
     yield put(
       FormLayoutActions.addLayoutFulfilled({

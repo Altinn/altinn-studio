@@ -3,6 +3,7 @@ import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { handlers, renderWithProviders, setupServer } from '../dashboardTestUtils';
 import { App } from './App';
+import { mockUseTranslation } from '../../testing/mocks/i18nMock';
 
 const server = setupServer(...handlers);
 
@@ -13,9 +14,6 @@ afterAll(() => server.close());
 const render = (extraDashboardState: any = {}) => {
   renderWithProviders(<App />, {
     preloadedState: {
-      language: {
-        language: {},
-      },
       dashboard: {
         services: [],
         selectedContext: SelectedContextType.Self,
@@ -24,6 +22,12 @@ const render = (extraDashboardState: any = {}) => {
     },
   });
 };
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation() }),
+);
 
 describe('Dashboard > App', () => {
   it('should show waiting while user and orgs are not loaded', () => {

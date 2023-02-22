@@ -7,8 +7,24 @@ import userEvent from '@testing-library/user-event';
 import { EditContainer } from './EditContainer';
 import type { IEditContainerProps } from './EditContainer';
 import { IAppState } from '../types/global';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
-const id = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88';
+// Test data:
+const id = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88'
+const texts = {
+  'ux_editor.modal_properties_data_model_helper': 'Lenke til datamodell',
+  'general.for': 'for',
+  'general.edit': 'Endre',
+  'general.delete': 'Slett',
+  'general.save': 'Lagre',
+  'general.cancel': 'Avbryt',
+};
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('EditContainer', () => {
   test('should show edit id when edit button is clicked', async () => {
@@ -45,18 +61,6 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
   const createStore = configureStore();
   const initialState: IAppState = {
     appData: {
-      languageState: {
-        fetched: false,
-        language: {
-          'ux_editor.modal_properties_data_model_helper': 'Lenke til datamodell',
-          'general.for': 'for',
-          'general.edit': 'Endre',
-          'general.delete': 'Slett',
-          'general.save': 'Lagre',
-          'general.cancel': 'Avbryt',
-        },
-        error: null
-      },
       dataModel: {
         model: [] as any[],
         error: null,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AltinnSpinner } from 'app-shared/components';
-import type { IJsonSchema, ILanguage, ISchemaState } from '../types';
+import type { IJsonSchema, ISchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
 import {
   setJsonSchema,
@@ -11,10 +11,8 @@ import {
   setUiSchema,
   updateJsonSchema,
 } from '../features/editor/schemaEditorSlice';
-import { getTranslation } from '../utils/language';
 import { SchemaInspector } from './SchemaInspector';
 import { TopToolbar } from './TopToolbar';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { UiSchemaNodes } from '@altinn/schema-model';
 import {
   getChildNodesByPointer,
@@ -27,11 +25,11 @@ import {
 import { createSelector } from '@reduxjs/toolkit';
 import { Tabs } from '@digdir/design-system-react';
 import { ModelsPanel, TypesPanel } from './layout';
+import { useTranslation } from 'react-i18next';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
   LandingPagePanel: JSX.Element;
-  language: ILanguage;
   loading?: boolean;
   name?: string;
   onSaveSchema: (payload: any) => void;
@@ -82,7 +80,6 @@ export const SchemaEditor = ({
   onSaveSchema,
   saveUrl,
   name,
-  language,
   editMode,
   toggleEditMode,
 }: IEditorProps) => {
@@ -98,6 +95,9 @@ export const SchemaEditor = ({
 
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
+
+  const translation = useTranslation();
+  const t = (key: string) => translation.t('schema_editor.' + key);
 
   const selectedEditorTab = useSelector((state: ISchemaState) => state.selectedEditorTab);
 
@@ -125,10 +125,8 @@ export const SchemaEditor = ({
     dispatch(setSelectedTab({ selectedTab: value }));
 
   const loadingIndicator = loading ? (
-    <AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />
+    <AltinnSpinner spinnerText={t('general.loading')} />
   ) : null;
-
-  const t = (key: string) => getTranslation(key, language);
 
   const selectedId = useSelector((state: ISchemaState) =>
     state.selectedEditorTab === 'properties'
@@ -152,7 +150,6 @@ export const SchemaEditor = ({
     <div className={classes.root}>
       <TopToolbar
         Toolbar={Toolbar}
-        language={language}
         saveAction={name ? handleSaveSchema : undefined}
         toggleEditMode={name ? toggleEditMode : undefined}
         editMode={editMode}
@@ -168,7 +165,6 @@ export const SchemaEditor = ({
                   name: t('model'),
                   content: (
                     <ModelsPanel
-                      language={language}
                       editMode={editMode}
                       setExpandedPropNodes={setExpandedPropNodes}
                       expandedPropNodes={expandedPropNodes}
@@ -181,7 +177,6 @@ export const SchemaEditor = ({
                   name: t('types'),
                   content: (
                     <TypesPanel
-                      language={language}
                       editMode={editMode}
                       definitions={definitions}
                       setExpandedDefNodes={setExpandedDefNodes}
@@ -200,7 +195,6 @@ export const SchemaEditor = ({
         {schema && editMode && (
           <aside className={classes.inspector}>
             <SchemaInspector
-              language={language}
               selectedItem={selectedItem}
               key={selectedItem?.pointer || ''}
             />

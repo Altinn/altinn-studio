@@ -3,6 +3,7 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { IDeleteWrapper } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
+import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -10,8 +11,9 @@ const user = userEvent.setup();
 const deleteText = 'Delete';
 const continueText = 'Continue';
 const cancelText = 'Cancel';
-const language = {
-  'administration.delete_model_confirm': 'Delete {0}?',
+const confirmText = 'Delete {schemaName}?';
+const texts = {
+  'administration.delete_model_confirm': confirmText,
   'general.delete_data_model': deleteText,
   'general.continue': continueText,
   'general.cancel': cancelText,
@@ -19,10 +21,15 @@ const language = {
 const deleteAction = jest.fn();
 const schemaName = 'some-name';
 const defaultProps: IDeleteWrapper = {
-  language,
   deleteAction,
   schemaName
 };
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 const render = (props: Partial<IDeleteWrapper> = {}) =>
   rtlRender(<DeleteWrapper {...defaultProps} {...props} />);
@@ -68,5 +75,5 @@ describe('DeleteWrapper', () => {
 const getDeleteButton = () => screen.getByRole('button', { name: deleteText });
 const getContinueButton = () => screen.getByRole('button', { name: continueText });
 const getCancelButton = () => screen.getByRole('button', { name: cancelText });
-const getDeleteMessage = () => screen.getByText(`Delete ${schemaName}?`);
-const queryDeleteMessage = () => screen.queryByText(`Delete ${schemaName}?`);
+const getDeleteMessage = () => screen.getByText(confirmText);
+const queryDeleteMessage = () => screen.queryByText(confirmText);

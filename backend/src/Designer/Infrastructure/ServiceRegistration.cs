@@ -5,12 +5,14 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using static Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords;
 
 namespace Altinn.Studio.Designer.Infrastructure
@@ -34,11 +36,10 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ISourceControl, SourceControlSI>();
             services.Decorate<ISourceControl, SourceControlLoggingDecorator>();
 
-            services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton(configuration);
 
-            services.AddSingleton<IReleaseRepository, ReleaseRepository>();
-            services.AddSingleton<IDeploymentRepository, DeploymentRepository>();
+            services.AddScoped<IReleaseRepository, ReleaseRepository>();
+            services.AddScoped<IDeploymentRepository, DeploymentRepository>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
@@ -50,6 +51,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
             services.AddTransient<ILanguagesService, LanguagesService>();
             services.AddTransient<ITextsService, TextsService>();
+            services.AddTransient<IEnvironmentsService, EnvironmentsService>();
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.RegisterDatamodeling(configuration);
 
@@ -62,12 +64,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IJsonSchemaToXmlSchemaConverter, JsonSchemaToXmlSchemaConverter>();
             services.AddTransient<IJsonSchemaNormalizer, JsonSchemaNormalizer>();
             services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
-            services.AddSingleton(_ =>
-            {
-                var options = new CSharpGenerationSettings();
-                configuration.GetSection(nameof(CSharpGenerationSettings)).Bind(options);
-                return options;
-            });
+            services.RegisterSettings<CSharpGenerationSettings>(configuration);
             RegisterXsdKeywords();
             return services;
         }

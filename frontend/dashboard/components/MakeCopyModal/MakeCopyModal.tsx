@@ -2,7 +2,6 @@ import type { MouseEvent, ChangeEvent } from 'react';
 import React, { useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import type { PopoverOrigin } from '@mui/material';
@@ -10,12 +9,12 @@ import { useNavigate } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../../utils/repoUtils';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
-import { useAppSelector } from '../../hooks/useAppSelector';
 
 import { TextField } from '@digdir/design-system-react';
 import { copyAppPath, userReposPath } from 'app-shared/api-paths';
 import classes from './MakeCopyModal.module.css';
 import { SimpleContainer } from 'app-shared/primitives';
+import { useTranslation } from 'react-i18next';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
@@ -29,13 +28,12 @@ const transformAnchorOrigin: PopoverOrigin = {
 };
 
 export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
-  const language = useAppSelector((state) => state.language.language);
   const navigate = useNavigate();
   const [repoName, setRepoName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const dispatch = useAppDispatch();
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { t } = useTranslation();
   const handleClone = async () => {
     if (validAppName()) {
       setIsLoading(true);

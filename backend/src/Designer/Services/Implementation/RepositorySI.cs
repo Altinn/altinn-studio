@@ -27,7 +27,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class RepositorySI : IRepository
     {
-        private readonly IDefaultFileFactory _defaultFileFactory;
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -42,7 +41,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="repositorySettings">The settings for the app repository</param>
         /// <param name="generalSettings">The current general settings</param>
-        /// <param name="defaultFileFactory">The default factory</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="gitea">gitea</param>
         /// <param name="sourceControl">the source control</param>
@@ -50,9 +48,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         public RepositorySI(
-            IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<GeneralSettings> generalSettings,
-            IDefaultFileFactory defaultFileFactory,
+            ServiceRepositorySettings repositorySettings,
+            GeneralSettings generalSettings,
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
             ISourceControl sourceControl,
@@ -60,9 +57,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ILogger<RepositorySI> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
-            _defaultFileFactory = defaultFileFactory;
-            _settings = repositorySettings.Value;
-            _generalSettings = generalSettings.Value;
+            _settings = repositorySettings;
+            _generalSettings = generalSettings;
             _httpContextAccessor = httpContextAccessor;
             _gitea = gitea;
             _sourceControl = sourceControl;
@@ -875,31 +871,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a list of all organisations present in the local repository
-        /// </summary>
-        /// <returns>A list of all organisations</returns>
-        public IList<OrgConfiguration> GetOwners()
-        {
-            List<OrgConfiguration> organisations = new List<OrgConfiguration>();
-
-            string[] organisationDirectories = null;
-
-            organisationDirectories = Directory.GetDirectories(_settings.RepositoryLocation);
-
-            foreach (string organisationDirectory in organisationDirectories)
-            {
-                string filename = organisationDirectory + "/" + Path.GetFileName(organisationDirectory) + "/config.json";
-                if (File.Exists(filename))
-                {
-                    string textData = File.ReadAllText(filename);
-                    organisations.Add(JsonConvert.DeserializeObject<OrgConfiguration>(textData));
-                }
-            }
-
-            return organisations;
-        }
-
-        /// <summary>
         /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
@@ -962,7 +933,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
                 textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = serviceConfig.ServiceName });
-                textResource.Resources.Add(new TextResourceElement() { Id = "receipt.title", Value = $"{serviceConfig.ServiceName} er nå sendt inn" });
                 var jsonSerializerSettings = new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,

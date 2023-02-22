@@ -22,17 +22,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="repositorySettings">IOptions of type ServiceRepositorySettings</param>
+        /// <param name="repositorySettings">ServiceRepositorySettings</param>
         /// <param name="giteaApiWrapper">IGitea</param>
         /// <param name="authorizationPolicyClient">IAltinnAuthorizationPolicyClient</param>
         public AuthorizationPolicyService(
-            IOptions<ServiceRepositorySettings> repositorySettings,
+            ServiceRepositorySettings repositorySettings,
             IGitea giteaApiWrapper,
             IAltinnAuthorizationPolicyClient authorizationPolicyClient)
         {
             _giteaApiWrapper = giteaApiWrapper;
             _authorizationPolicyClient = authorizationPolicyClient;
-            _serviceRepositorySettings = repositorySettings.Value;
+            _serviceRepositorySettings = repositorySettings;
         }
 
         /// <inheritdoc />
@@ -40,13 +40,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string org,
             string app,
             string shortCommitId,
-            EnvironmentModel deploymentEnvironment)
+            string envName)
         {
             FileSystemObject policyFile = await GetAuthorizationPolicyFileFromGitea(org, app, shortCommitId);
             byte[] data = Convert.FromBase64String(policyFile.Content);
             string policyFileContent = Encoding.UTF8.GetString(data);
             policyFileContent = policyFileContent.Replace("[ORG]", org).Replace("[APP]", app);
-            await _authorizationPolicyClient.SavePolicy(org, app, policyFileContent, deploymentEnvironment);
+            await _authorizationPolicyClient.SavePolicy(org, app, policyFileContent, envName);
         }
 
         private async Task<FileSystemObject> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId)

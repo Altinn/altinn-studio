@@ -11,6 +11,7 @@ import {
   Keywords,
   ObjectKind,
 } from '@altinn/schema-model';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const selectedItem: UiSchemaNode = {
@@ -39,7 +40,7 @@ const fieldTypeNames = {
   [FieldType.Object]: 'Objekt',
   [FieldType.String]: 'Tekst',
 };
-const language = {
+const texts = {
   'schema_editor.add_property': textAdd,
   'schema_editor.delete': textDelete,
   'schema_editor.delete_field': textDeleteField,
@@ -52,145 +53,151 @@ const language = {
   'schema_editor.object': fieldTypeNames[FieldType.Object],
   'schema_editor.string': fieldTypeNames[FieldType.String],
 };
-const defaultProps: ItemFieldsTabProps = {
-  language,
-  selectedItem,
-};
+const defaultProps: ItemFieldsTabProps = { selectedItem };
 const defaultState = { uiSchema };
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 const renderItemFieldsTab = (props?: Partial<ItemFieldsTabProps>, state?: any) =>
   renderWithRedux(<ItemFieldsTab {...defaultProps} {...props} />, { ...defaultState, ...state });
 
-test('Header texts appear', () => {
-  renderItemFieldsTab();
-  expect(screen.getByText(textFieldName)).toBeDefined();
-  expect(screen.getByText(textType)).toBeDefined();
-  expect(screen.getByText(textRequired)).toBeDefined();
-  expect(screen.getByText(textDelete)).toBeDefined();
-});
-
-test('Inputs and delete buttons appear for all fields', () => {
-  renderItemFieldsTab();
-  const textboxes = screen.getAllByRole('textbox');
-  expect(textboxes).toHaveLength(numberOfFields);
-  textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(fieldNames[i]));
-  expect(screen.getAllByRole('checkbox')).toHaveLength(numberOfFields);
-  expect(screen.queryAllByLabelText(textDeleteField)).toHaveLength(numberOfFields);
-});
-
-test('"Add property" button appears', () => {
-  renderItemFieldsTab();
-  expect(screen.getByText(textAdd)).toBeDefined();
-});
-
-test('setPropertyName action is called with correct payload when a name is changed', async () => {
-  const { user, store } = renderItemFieldsTab();
-  const suffix = 'Duck';
-  for (const fieldName of fieldNames) {
-    await act(() => user.type(screen.getByDisplayValue(fieldName), suffix));
-    await act(() => user.tab());
-  }
-  const setPropertyNameActions = store
-    .getActions()
-    .filter((action) => action.type === 'schemaEditor/setPropertyName');
-  expect(setPropertyNameActions).toHaveLength(numberOfFields);
-  setPropertyNameActions.forEach((action, i) => {
-    expect(action.payload.name).toEqual(fieldNames[i] + suffix);
-    expect(action.payload.path).toEqual(childNodes[i].pointer);
+describe('ItemFieldsTab', () => {
+  test('Header texts appear', () => {
+    renderItemFieldsTab();
+    expect(screen.getByText(textFieldName)).toBeDefined();
+    expect(screen.getByText(textType)).toBeDefined();
+    expect(screen.getByText(textRequired)).toBeDefined();
+    expect(screen.getByText(textDelete)).toBeDefined();
   });
-});
 
-test('setType action is called with correct payload when a type is changed', async () => {
-  const { user, store } = renderItemFieldsTab();
-  const newType = FieldType.Integer;
-  for (const i in fieldNames) {
-    await act(() => user.click(screen.getAllByRole('combobox')[i]));
-    await act(() => user.click(screen.getAllByRole('option', { name: fieldTypeNames[newType] })[i]));
-  }
-  const setPropertyNameActions = store
-    .getActions()
-    .filter((action) => action.type === 'schemaEditor/setType');
-  expect(setPropertyNameActions).toHaveLength(numberOfFields);
-  setPropertyNameActions.forEach((action, i) => {
-    expect(action.payload.type).toEqual(newType);
-    expect(action.payload.path).toEqual(childNodes[i].pointer);
+  test('Inputs and delete buttons appear for all fields', () => {
+    renderItemFieldsTab();
+    const textboxes = screen.getAllByLabelText(textFieldName);
+    expect(textboxes).toHaveLength(numberOfFields);
+    textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(fieldNames[i]));
+    expect(screen.getAllByRole('checkbox')).toHaveLength(numberOfFields);
+    expect(screen.queryAllByLabelText(textDeleteField)).toHaveLength(numberOfFields);
   });
-});
 
-test('addProperty action is called with correct payload when the "Add field" button is clicked', async () => {
-  const { user, store } = renderItemFieldsTab();
-  await act(() => user.click(screen.getByText(textAdd)));
-  const addPropertyActions = store
-    .getActions()
-    .filter((action) => action.type === 'schemaEditor/addProperty');
-  expect(addPropertyActions).toHaveLength(1);
-  expect(addPropertyActions[0].payload.pointer).toEqual(selectedItem.pointer);
-});
-
-test('addProperty action is calledd with correct payload when a field is focused and the Enter key is clicked', async () => {
-  const { user, store } = renderItemFieldsTab();
-  await act(() => user.click(screen.getAllByRole('textbox')[0]));
-  await act(() => user.keyboard('{Enter}'));
-  const addPropertyActions = store
-    .getActions()
-    .filter((action) => action.type === 'schemaEditor/addProperty');
-  expect(addPropertyActions).toHaveLength(1);
-  expect(addPropertyActions[0].payload.pointer).toEqual(selectedItem.pointer);
-});
-
-test('deleteProperty action is called with correct payload when delete button is clicked', async () => {
-  const { user, store } = renderItemFieldsTab();
-  for (const i in fieldNames) {
-    await act(() => user.click(screen.queryAllByLabelText(textDeleteField)[i]));
-  }
-  const setPropertyNameActions = store
-    .getActions()
-    .filter((action) => action.type === 'schemaEditor/deleteProperty');
-  expect(setPropertyNameActions).toHaveLength(numberOfFields);
-  setPropertyNameActions.forEach((action, i) =>
-    expect(action.payload.path).toEqual(childNodes[i].pointer)
-  );
-});
-
-test('Newly added field gets focus and its text becomes selected', async () => {
-  const { user, rerenderWithRedux } = renderItemFieldsTab();
-  const newChildNodeName = 'Skrue';
-  const newChildNode = {
-    ...createChildNode(selectedItem, newChildNodeName, false),
-    fieldType: FieldType.String,
-  };
-  const newSelectedItem = {
-    ...selectedItem,
-    children: [...selectedItem.children, newChildNode.pointer],
-  };
-  const newUiSchema = [newSelectedItem, ...childNodes, newChildNode];
-  rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />, {
-    uiSchema: newUiSchema,
+  test('"Add property" button appears', () => {
+    renderItemFieldsTab();
+    expect(screen.getByText(textAdd)).toBeDefined();
   });
-  expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
-  await act(() => user.keyboard('a')); // Should replace the current value since the text should be selected
-  expect(screen.getByDisplayValue('a')).toBeDefined();
-  expect(screen.queryByDisplayValue(newChildNodeName)).toBeFalsy();
-});
 
-test('Inputs are enabled by default', () => {
-  renderItemFieldsTab();
-  screen.queryAllByRole('textbox').forEach((input) => expect(input).toBeEnabled());
-  screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeEnabled());
-});
+  test('setPropertyName action is called with correct payload when a name is changed', async () => {
+    const { user, store } = renderItemFieldsTab();
+    const suffix = 'Duck';
+    for (const fieldName of fieldNames) {
+      await act(() => user.type(screen.getByDisplayValue(fieldName), suffix));
+      await act(() => user.tab());
+    }
+    const setPropertyNameActions = store
+      .getActions()
+      .filter((action) => action.type === 'schemaEditor/setPropertyName');
+    expect(setPropertyNameActions).toHaveLength(numberOfFields);
+    setPropertyNameActions.forEach((action, i) => {
+      expect(action.payload.name).toEqual(fieldNames[i] + suffix);
+      expect(action.payload.path).toEqual(childNodes[i].pointer);
+    });
+  });
 
-test('Inputs are disabled if the selected item is a reference', () => {
-  const referencedNode = createNodeBase(Keywords.Definitions, 'testtype');
-  renderItemFieldsTab(
-    {
-      selectedItem: {
-        ...selectedItem,
-        objectKind: ObjectKind.Reference,
-        reference: referencedNode.pointer,
+  test('setType action is called with correct payload when a type is changed', async () => {
+    const { user, store } = renderItemFieldsTab();
+    const newType = FieldType.Integer;
+    for (const i in fieldNames) {
+      await act(() => user.click(screen.getAllByRole('combobox')[i]));
+      await act(() => user.click(screen.getByRole('option', { name: fieldTypeNames[newType] })));
+      await act(() => user.tab());
+    }
+    const setPropertyNameActions = store
+      .getActions()
+      .filter((action) => action.type === 'schemaEditor/setType');
+    expect(setPropertyNameActions).toHaveLength(numberOfFields);
+    setPropertyNameActions.forEach((action, i) => {
+      expect(action.payload.type).toEqual(newType);
+      expect(action.payload.path).toEqual(childNodes[i].pointer);
+    });
+  });
+
+  test('addProperty action is called with correct payload when the "Add field" button is clicked', async () => {
+    const { user, store } = renderItemFieldsTab();
+    await act(() => user.click(screen.getByText(textAdd)));
+    const addPropertyActions = store
+      .getActions()
+      .filter((action) => action.type === 'schemaEditor/addProperty');
+    expect(addPropertyActions).toHaveLength(1);
+    expect(addPropertyActions[0].payload.pointer).toEqual(selectedItem.pointer);
+  });
+
+  test('addProperty action is calledd with correct payload when a field is focused and the Enter key is clicked', async () => {
+    const { user, store } = renderItemFieldsTab();
+    await act(() => user.click(screen.getAllByRole('textbox')[0]));
+    await act(() => user.keyboard('{Enter}'));
+    const addPropertyActions = store
+      .getActions()
+      .filter((action) => action.type === 'schemaEditor/addProperty');
+    expect(addPropertyActions).toHaveLength(1);
+    expect(addPropertyActions[0].payload.pointer).toEqual(selectedItem.pointer);
+  });
+
+  test('deleteProperty action is called with correct payload when delete button is clicked', async () => {
+    const { user, store } = renderItemFieldsTab();
+    for (const i in fieldNames) {
+      await act(() => user.click(screen.queryAllByLabelText(textDeleteField)[i]));
+    }
+    const setPropertyNameActions = store
+      .getActions()
+      .filter((action) => action.type === 'schemaEditor/deleteProperty');
+    expect(setPropertyNameActions).toHaveLength(numberOfFields);
+    setPropertyNameActions.forEach((action, i) =>
+      expect(action.payload.path).toEqual(childNodes[i].pointer)
+    );
+  });
+
+  test('Newly added field gets focus and its text becomes selected', async () => {
+    const { user, rerenderWithRedux } = renderItemFieldsTab();
+    const newChildNodeName = 'Skrue';
+    const newChildNode = {
+      ...createChildNode(selectedItem, newChildNodeName, false),
+      fieldType: FieldType.String,
+    };
+    const newSelectedItem = {
+      ...selectedItem,
+      children: [...selectedItem.children, newChildNode.pointer],
+    };
+    const newUiSchema = [newSelectedItem, ...childNodes, newChildNode];
+    rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem}/>, {
+      uiSchema: newUiSchema,
+    });
+    expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
+    await act(() => user.keyboard('a')); // Should replace the current value since the text should be selected
+    expect(screen.getByDisplayValue('a')).toBeDefined();
+    expect(screen.queryByDisplayValue(newChildNodeName)).toBeFalsy();
+  });
+
+  test('Inputs are enabled by default', () => {
+    renderItemFieldsTab();
+    screen.queryAllByRole('textbox').forEach((input) => expect(input).toBeEnabled());
+    screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeEnabled());
+  });
+
+  test('Inputs are disabled if the selected item is a reference', () => {
+    const referencedNode = createNodeBase(Keywords.Definitions, 'testtype');
+    renderItemFieldsTab(
+      {
+        selectedItem: {
+          ...selectedItem,
+          objectKind: ObjectKind.Reference,
+          reference: referencedNode.pointer,
+        },
       },
-    },
-    { uiSchema: [...uiSchema, referencedNode] }
-  );
-  screen.queryAllByRole('textbox').forEach((input) => expect(input).toBeDisabled());
-  screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeDisabled());
+      { uiSchema: [...uiSchema, referencedNode] }
+    );
+    screen.queryAllByLabelText(textFieldName).forEach((input) => expect(input).toBeDisabled());
+    screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeDisabled());
+  });
 });

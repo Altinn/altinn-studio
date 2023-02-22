@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { get, post } from '../utils/networking';
 import type { IContentStatus, IGitStatus } from '../types/global';
-import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
 import { FetchChangesButton } from './FetchChangesButton';
 import { ShareChangesButton } from './ShareChangesButton';
@@ -18,9 +17,9 @@ import {
 } from '../api-paths';
 import classes from './VersionControlHeader.module.css';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export interface IVersionControlHeaderProps {
-  language: any;
   type?: 'fetchButton' | 'shareButton' | 'header';
   hasPushRight?: boolean;
 }
@@ -43,7 +42,7 @@ function hasLocalChanges(result: IGitStatus) {
 
 export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const cancelToken = axios.CancelToken;
-  const t = (key: string) => getLanguageFromKey(key, props.language);
+  const { t } = useTranslation();
   const { org, app } = useParams();
   const source = cancelToken.source();
   const [hasPushRight, setHasPushRight] = useState(props.hasPushRight);
@@ -325,7 +324,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
             changesInLocalRepo={hasChangesInLocalRepo}
             hasMergeConflict={hasMergeConflict}
             hasPushRight={hasPushRight}
-            language={props.language}
             shareChanges={shareChanges}
           />
           <SyncModal
@@ -336,7 +334,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
           <CloneModal
             anchorEl={cloneModalAnchor}
             onClose={closeCloneModal}
-            language={props.language}
           />
         </div>
       ) : type === 'fetchButton' ? (
@@ -359,7 +356,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
             changesInLocalRepo={hasChangesInLocalRepo}
             hasMergeConflict={hasMergeConflict}
             hasPushRight={hasPushRight}
-            language={props.language}
             shareChanges={shareChanges}
           />
           <SyncModal

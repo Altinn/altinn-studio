@@ -4,9 +4,16 @@ import configureStore from 'redux-mock-store';
 import type { IResetRepoModalProps } from './ResetRepoModal';
 import { ResetRepoModal } from './ResetRepoModal';
 import { render, screen } from '@testing-library/react';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => mockUseTranslation({
+    'administration.reset_repo_button': 'Slett mine endringer',
+    'administration.reset_repo_confirm_repo_name': 'Skriv inn reponavn',
+  }),
+}));
 
 describe('ResetRepoModal', () => {
-  let mockLanguage: any;
   let mockStore: any;
   let mockAnchorEl: any;
   const mockRepoName = 'TestRepo';
@@ -20,12 +27,6 @@ describe('ResetRepoModal', () => {
       },
     };
     mockStore = createStore(initialState);
-    mockLanguage = {
-      administration: {
-        reset_repo_button: 'Slett mine endringer',
-        reset_repo_confirm_repo_name: 'Skriv inn repo-navn',
-      },
-    };
     mockAnchorEl = {
       current: document.querySelector('body'),
     };
@@ -35,7 +36,6 @@ describe('ResetRepoModal', () => {
     const defaultProps = {
       anchorRef: mockAnchorEl,
       handleClickResetRepo: mockFunc,
-      language: mockLanguage,
       onClose: mockFunc,
       open: true,
       repositoryName: mockRepoName,

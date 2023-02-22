@@ -16,7 +16,7 @@ using NpgsqlTypes;
 namespace Altinn.Studio.Designer.Repository
 {
     /// <summary>
-    /// Handles deployment repository. 
+    /// Handles deployment repository.
     /// </summary>
     [ExcludeFromCodeCoverage]
     public class DeploymentRepository : IDeploymentRepository
@@ -31,11 +31,11 @@ namespace Altinn.Studio.Designer.Repository
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentRepository"/> class.
         /// </summary>
-        public DeploymentRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<DeploymentRepository> logger)
+        public DeploymentRepository(PostgreSQLSettings postgresSettings, ILogger<DeploymentRepository> logger)
         {
             _connectionString = string.Format(
-                postgresSettings.Value.ConnectionString,
-                postgresSettings.Value.DesignerDbPwd);
+                postgresSettings.ConnectionString,
+                postgresSettings.DesignerDbPwd);
             _logger = logger;
         }
 
@@ -44,10 +44,10 @@ namespace Altinn.Studio.Designer.Repository
         {
             try
             {
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                using NpgsqlConnection conn = new(_connectionString);
                 await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(insertDeploymentSql, conn);
+                using NpgsqlCommand pgcom = new(insertDeploymentSql, conn);
                 pgcom.Parameters.AddWithValue("buildid", deploymentEntity.Build.Id);
                 pgcom.Parameters.AddWithValue("tagName", deploymentEntity.TagName);
                 pgcom.Parameters.AddWithValue("org", deploymentEntity.Org);
@@ -68,16 +68,16 @@ namespace Altinn.Studio.Designer.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<DeploymentEntity>> Get(string app, string org, DocumentQueryModel query)
+        public async Task<IEnumerable<DeploymentEntity>> Get(string org, string app, DocumentQueryModel query)
         {
-            List<DeploymentEntity> searchResult = new List<DeploymentEntity>();
+            List<DeploymentEntity> searchResult = new();
 
             try
             {
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                using NpgsqlConnection conn = new(_connectionString);
                 await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(getDeploymentsSql, conn);
+                using NpgsqlCommand pgcom = new(getDeploymentsSql, conn);
                 pgcom.Parameters.AddWithValue("_org", NpgsqlDbType.Varchar, org);
                 pgcom.Parameters.AddWithValue("_app", NpgsqlDbType.Varchar, app);
                 pgcom.Parameters.AddWithValue("_limit", NpgsqlDbType.Integer, query.Top ?? int.MaxValue);
@@ -107,10 +107,10 @@ namespace Altinn.Studio.Designer.Repository
             try
             {
                 DeploymentEntity deploymentEntity = null;
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                using NpgsqlConnection conn = new(_connectionString);
                 await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(getDeploymentSql, conn);
+                using NpgsqlCommand pgcom = new(getDeploymentSql, conn);
                 pgcom.Parameters.AddWithValue("_org", NpgsqlDbType.Varchar, org);
                 pgcom.Parameters.AddWithValue("_buildid", NpgsqlDbType.Varchar, buildId);
 
@@ -136,10 +136,10 @@ namespace Altinn.Studio.Designer.Repository
         {
             try
             {
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                using NpgsqlConnection conn = new(_connectionString);
                 await conn.OpenAsync();
 
-                NpgsqlCommand pgcom = new NpgsqlCommand(updateDeploymentBuildSql, conn);
+                using NpgsqlCommand pgcom = new(updateDeploymentBuildSql, conn);
                 pgcom.Parameters.AddWithValue("_org", deploymentEntity.Org);
                 pgcom.Parameters.AddWithValue("_buildid", deploymentEntity.Build.Id);
                 pgcom.Parameters.AddWithValue("_buildresult", deploymentEntity.Build.Result.ToEnumMemberAttributeValue());

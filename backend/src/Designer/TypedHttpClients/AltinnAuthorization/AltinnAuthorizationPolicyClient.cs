@@ -4,6 +4,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Options;
 
@@ -16,25 +18,29 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
     {
         private readonly HttpClient _httpClient;
         private readonly PlatformSettings _platformSettings;
+        private readonly IEnvironmentsService _environmentsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="httpClient">HttpClient</param>
+        /// <param name="environmentsService">environmentsService</param>
         /// <param name="options">OptionsMonitor of type PlatformSettings</param>
         public AltinnAuthorizationPolicyClient(
             HttpClient httpClient,
-            IOptionsMonitor<PlatformSettings> options)
+            IEnvironmentsService environmentsService,
+            PlatformSettings options)
         {
             _httpClient = httpClient;
-            _platformSettings = options.CurrentValue;
+            _platformSettings = options;
+            _environmentsService = environmentsService;
         }
 
         /// <inheritdoc />
-        public async Task SavePolicy(string org, string app, string policyFile, EnvironmentModel environmentModel)
+        public async Task SavePolicy(string org, string app, string policyFile, string envName)
         {
-            string uriString = $"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiAuthorizationPolicyUri}";
-            Uri uri = new Uri($"{uriString}?org={org}&app={app}");
+            var platformUri = await _environmentsService.CreatePlatformUri(envName);
+            Uri uri = new Uri($"{platformUri}{_platformSettings.ApiAuthorizationPolicyUri}?org={org}&app={app}");
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)

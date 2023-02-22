@@ -9,11 +9,10 @@ import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
 
 export interface ServiceAdministrationProps {
-  language: any;
   repository: IRepository;
 }
 
-export function ServiceAdministration({ language, repository }: ServiceAdministrationProps) {
+export function ServiceAdministration({ repository }: ServiceAdministrationProps) {
   const { org, app } = useParams();
   const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
   const description = useAppSelector(
@@ -119,7 +118,6 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
           appName={newName}
           appNameAnchorEl={appNameAnchorEl}
           editAppName={editAppName}
-          language={language}
           onAppDescriptionBlur={handleAppDescriptionBlur}
           onAppDescriptionChange={handleAppDescriptionChange}
           onAppIdBlur={handleAppIdBlur}

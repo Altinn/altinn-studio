@@ -25,11 +25,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
         /// <param name="logger">The logger.</param>
         public AltinnAuthenticationClient(
             HttpClient httpClient,
-            IOptionsMonitor<PlatformSettings> options,
+            PlatformSettings options,
             ILogger<AltinnAuthenticationClient> logger)
         {
             _httpClient = httpClient;
-            _platformSettings = options.CurrentValue;
+            _platformSettings = options;
             _logger = logger;
         }
 
@@ -57,13 +57,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
              */
             HttpRequestMessage message = new HttpRequestMessage
             {
-                RequestUri = new Uri($"{uri.Scheme}://{uri.Host}/{_platformSettings.ApiAuthenticationConvertUri}")
+                RequestUri = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}/{_platformSettings.ApiAuthenticationConvertUri}")
             };
 
             HttpResponseMessage response = await _httpClient.SendAsync(message);
 
             _logger.LogInformation($"//AltinnAuthenticationClient // ConvertTokenAsync // Response: {response}");
-            return await response.Content.ReadAsAsync<string>();
+            var outputToken = await response.Content.ReadAsAsync<string>();
+            return outputToken;
         }
     }
 }

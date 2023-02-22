@@ -1,15 +1,16 @@
 import React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import { abortmergePath } from 'app-shared/api-paths';
+import i18next from 'i18next';
+import { withTranslation } from 'react-i18next';
 
 interface IHandleMergeConflictAbortProps {
-  language: any;
   disabled?: boolean;
+  t: typeof i18next.t;
 }
 
 interface IHandleMergeConflictAbortState {
@@ -49,18 +50,9 @@ export class HandleMergeConflictAbort extends React.Component<
       popoverState: {
         ...this.state.popoverState,
         btnMethod: this.AbortConfirmed,
-        btnConfirmText: getLanguageFromKey(
-          'handle_merge_conflict.abort_merge_button_confirm',
-          this.props.language
-        ),
-        descriptionText: getLanguageFromKey(
-          'handle_merge_conflict.abort_merge_message',
-          this.props.language
-        ),
-        btnCancelText: getLanguageFromKey(
-          'handle_merge_conflict.abort_merge_button_cancel',
-          this.props.language
-        ),
+        btnConfirmText: this.props.t('handle_merge_conflict.abort_merge_button_confirm'),
+        descriptionText: this.props.t('handle_merge_conflict.abort_merge_message'),
+        btnCancelText: this.props.t('handle_merge_conflict.abort_merge_button_cancel'),
       },
     });
   };
@@ -116,10 +108,7 @@ export class HandleMergeConflictAbort extends React.Component<
     return (
       <React.Fragment>
         <AltinnButton
-          btnText={getLanguageFromKey(
-            'handle_merge_conflict.abort_merge_button',
-            this.props.language
-          )}
+          btnText={this.props.t('handle_merge_conflict.abort_merge_button')}
           id='abortMergeBtn'
           onClickFunction={this.AbortPopover}
           secondaryButton={true}
@@ -146,4 +135,4 @@ export class HandleMergeConflictAbort extends React.Component<
   }
 }
 
-export default HandleMergeConflictAbort;
+export default withTranslation()(HandleMergeConflictAbort);

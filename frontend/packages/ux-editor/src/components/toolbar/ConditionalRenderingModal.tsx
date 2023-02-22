@@ -2,7 +2,6 @@ import React from 'react';
 import Modal from 'react-modal';
 import { Typography } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
 import RuleButton from './RuleButton';
 import {
@@ -11,6 +10,7 @@ import {
 } from '../../features/serviceConfigurations/serviceConfigurationSlice';
 import type { IAppState } from '../../types/global';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -24,7 +24,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   const conditionalRendering = useSelector(
     (state: IAppState) => state.serviceConfigurations.conditionalRendering
   );
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const { t } = useTranslation();
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -52,7 +52,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
     if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
       return (
         <Typography variant='caption'>
-          {getLanguageFromKey('right_menu.rules_empty', language)}
+          {t('right_menu.rules_empty')}
         </Typography>
       );
     }

@@ -44,14 +44,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">the source control</param>
         public HomeController(
             ILogger<HomeController> logger,
-            IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<GeneralSettings> generalSettings,
+            ServiceRepositorySettings repositorySettings,
+            GeneralSettings generalSettings,
             IGitea giteaWrapper,
             ISourceControl sourceControl)
         {
             _logger = logger;
-            _settings = repositorySettings.Value;
-            _generalSettings = generalSettings.Value;
+            _settings = repositorySettings;
+            _generalSettings = generalSettings;
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
         }

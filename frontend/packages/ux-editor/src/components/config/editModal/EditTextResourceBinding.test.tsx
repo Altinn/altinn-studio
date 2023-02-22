@@ -2,24 +2,29 @@ import React from 'react';
 import { EditTextResourceBinding, EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithMockStore, languageStateMock, appDataMock, textResourcesMock } from '../../../testing/mocks';
+import { renderWithMockStore, appDataMock, textResourcesMock } from '../../../testing/mocks';
 import { FormComponentType, ITextResource } from '../../../types/global';
+import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+
+const addText = 'Legg til';
+const searchText = 'Søk';
+const texts: Record<string, string> = {
+  'ux_editor.modal_text': 'Tekst',
+  'general.add': addText,
+  'general.search': searchText,
+};
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe(('EditTextResourceBindings component'), () => {
-  const addText = 'Legg til';
-  const searchText = 'Søk';
   const mockComponent = {
     id: 'test-id',
     textResourceBindings: {
       test: 'test-text',
     }
   } as FormComponentType;
-
-  const language: Record<string, string> = {
-    'ux_editor.modal_text': 'Tekst',
-    'general.add': addText,
-    'general.search': searchText,
-  };
 
   const textResources: ITextResource[] = [
     {
@@ -51,8 +56,9 @@ describe(('EditTextResourceBindings component'), () => {
     await act(() => user.click(screen.getByLabelText(searchText)));
 
     // Select with existing texts should be shown
-    const selectText = screen.getByTestId('select-root');
-    expect(selectText).toBeInTheDocument();
+    const select = screen.getByRole('combobox');
+    expect(select).toBeInTheDocument();
+    await act(() => user.click(select));
 
     // Select text from available options
     await act(() => user.click(screen.getByRole('option', { name: textResources[0].id })));
@@ -83,10 +89,6 @@ describe(('EditTextResourceBindings component'), () => {
             nb: textResources
           }
         },
-        languageState: {
-          ...languageStateMock,
-          language,
-        }
       }
     })(<EditTextResourceBinding
           component={component}

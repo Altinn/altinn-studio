@@ -1,5 +1,3 @@
-import type { LanguageTree } from 'app-shared/utils/language';
-export type { LanguageTree as ILanguage };
 /** Interfaces */
 import type { UiSchemaNodes } from '@altinn/schema-model';
 export interface IJsonSchema {
@@ -23,7 +21,7 @@ export interface ISchemaState {
 }
 
 export enum NameError {
-  InvalidCharacter = 'nameError_invalidCharacter',
-  AlreadyInUse = 'nameError_alreadyInUse',
+  InvalidCharacter = 'schema_editor.nameError_invalidCharacter',
+  AlreadyInUse = 'schema_editor.nameError_alreadyInUse',
   NoError = '',
 }

@@ -14,11 +14,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Organisation</param>
         /// <param name="app">Application</param>
         /// <param name="shortCommitId">Commit Id</param>
-        /// <param name="deploymentEnvironment">EnvironmentModel</param>
+        /// <param name="envName">Environment Name</param>
         Task UpdateApplicationInformationAsync(
             string org,
             string app,
             string shortCommitId,
-            EnvironmentModel deploymentEnvironment);
+            string envName);
     }
 }

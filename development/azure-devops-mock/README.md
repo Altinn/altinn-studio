@@ -28,3 +28,7 @@ docker rm --force studio-azure-mock
 docker image prune -a --force
 docker compose -f ../../docker-compose.yml up -d
 ```
+
+```bash
+docker stop studio-azure-mock
+```

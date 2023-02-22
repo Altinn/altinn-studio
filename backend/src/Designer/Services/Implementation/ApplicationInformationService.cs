@@ -35,16 +35,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string org,
             string app,
             string shortCommitId,
-            EnvironmentModel deploymentEnvironment)
+            string envName)
         {
             Task updateMetadataTask = _applicationMetadataService
-                .UpdateApplicationMetadataAsync(org, app, shortCommitId, deploymentEnvironment);
+                .UpdateApplicationMetadataAsync(org, app, shortCommitId, envName);
 
             Task updateAuthPolicyTask = _authorizationPolicyService
-                .UpdateApplicationAuthorizationPolicyAsync(org, app, shortCommitId, deploymentEnvironment);
+                .UpdateApplicationAuthorizationPolicyAsync(org, app, shortCommitId, envName);
 
             Task updateTextResources = _textResourceService
-                .UpdateTextResourcesAsync(org, app, shortCommitId, deploymentEnvironment);
+                .UpdateTextResourcesAsync(org, app, shortCommitId, envName);
 
             await Task.WhenAll(new List<Task>
             {

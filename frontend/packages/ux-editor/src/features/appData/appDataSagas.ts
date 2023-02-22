@@ -24,12 +24,6 @@ import {
   fetchDataModelFulfilled,
   fetchDataModelRejected,
 } from './dataModel/dataModelSlice';
-import type { IFetchLanguage } from './language/languageSlice';
-import {
-  fetchLanguage,
-  fetchLanguageFulfilled,
-  fetchLanguageRejected,
-} from './language/languageSlice';
 import {
   fetchRuleModel,
   fetchRuleModelFulfilled,
@@ -38,7 +32,6 @@ import {
 import type { IDataModelFieldElement, IRuleModelFieldElement } from '../../types/global';
 import {
   textResourcesAddPath,
-  frontendLangPath,
   textResourcesPath,
   ruleHandlerPath,
   datamodelMetadataPath
@@ -152,20 +145,6 @@ export function* watchLoadLanguagesSaga(): SagaIterator {
   yield takeLatest(loadLanguages, loadLanguagesSaga);
 }
 
-export function* fetchLanguageSaga({ payload }: PayloadAction<IFetchLanguage>): SagaIterator {
-  try {
-    const { languageCode } = payload;
-    const language = yield call(get, frontendLangPath(languageCode));
-    yield put(fetchLanguageFulfilled({ language }));
-  } catch (error) {
-    yield put(fetchLanguageRejected({ error }));
-  }
-}
-
-export function* watchFetchLanguageSaga(): SagaIterator {
-  yield takeLatest(fetchLanguage, fetchLanguageSaga);
-}
-
 export function* addTextResourcesSaga({ payload }: any): SagaIterator {
   try {
     const { textResources } = payload;
@@ -202,7 +181,6 @@ export default function* appDataSagas(): SagaIterator {
   yield fork(watchLoadTextResourcesSaga);
   yield fork(watchLoadLanguagesSaga);
   yield fork(watchFetchRuleModelSaga);
-  yield fork(watchFetchLanguageSaga);
   yield fork(watchAddTextResourcesSaga);
   yield fork(watchUpsertTextResourcesSaga);
 }

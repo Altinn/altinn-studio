@@ -77,20 +77,18 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                    bufferSize: 1024,
                    leaveOpen: true))
                 {
-                    string body = await reader.ReadToEndAsync();
-
                     try
                     {
+                        string body = await reader.ReadToEndAsync();
                         CreateDeploymentRequestViewModel model = JsonConvert.DeserializeObject<CreateDeploymentRequestViewModel>(body);
-                        environment = model.Environment.Name;
+                        environment = model.EnvName;
                     }
                     catch
                     {
-                        reader.Close();
                         _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                         return;
                     }
-
+                    reader.Close();
                     // Reset the request body stream position so the next middleware can read it
                     _httpContext.Request.Body.Position = 0;
                 }

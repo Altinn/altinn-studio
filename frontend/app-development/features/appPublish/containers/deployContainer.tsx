@@ -32,7 +32,6 @@ export const DeployContainerComponent = () => {
   );
   const deployableImages: IAppReleaseState = useAppSelector((state) => state.appReleases);
   const configuration: IConfigurationState = useAppSelector((state) => state.configuration);
-  const language: any = useAppSelector((state) => state.languageState.language);
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
   const deployPermissions: string[] = useAppSelector(
     (state) => state.userState.permissions.deploy.environments
@@ -94,7 +93,7 @@ export const DeployContainerComponent = () => {
   }, [deployableImages]);
 
   const isLoading = (): boolean => {
-    return !environments.length || !appDeployments.deployments || !deployableImages || !language;
+    return !environments.length || !appDeployments.deployments || !deployableImages;
   };
 
   if (isLoading()) {
@@ -117,7 +116,6 @@ export const DeployContainerComponent = () => {
           <AppDeploymentComponent
             key={index}
             envName={env.name}
-            envObj={env}
             urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             deploymentList={
@@ -131,7 +129,6 @@ export const DeployContainerComponent = () => {
             deployError={createAppDeploymentErrors.filter(
               (error: ICreateAppDeploymentErrors) => error.env === env.name
             )}
-            language={language}
             deployPermission={
               deployPermissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }

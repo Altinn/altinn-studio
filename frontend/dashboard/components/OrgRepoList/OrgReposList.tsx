@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { GridSortModel } from '@mui/x-data-grid';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { RepoList } from '../../components/RepoList';
+import { RepoList } from '../RepoList';
 import { getReposLabel } from '../../utils/repoUtils';
 import { getUidFilter } from '../../utils/filterUtils';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
@@ -10,13 +10,14 @@ import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarr
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useGetSearchQuery } from '../../services/repoApi';
 import { useGetUserStarredReposQuery } from '../../services/userApi';
+import { useTranslation } from 'react-i18next';
 
 const rowsPerPageOptions = [5, 10, 20, 50, 100];
 
 export const OrgReposList = () => {
   const dispatch = useAppDispatch();
   const pageSize = useAppSelector((state) => state.dashboard.repoRowsPerPage);
-  const language = useAppSelector((state) => state.language.language);
+  const { t } = useTranslation();
   const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
   const userId = useAppSelector((state) => state.dashboard.user.id);
   const { data: orgs = [] } = useGetOrganizationsQuery();
@@ -46,7 +47,7 @@ export const OrgReposList = () => {
 
   return (
     <div data-testid='org-repos-list'>
-      <h2>{getReposLabel({ selectedContext, orgs, language })}</h2>
+      <h2>{getReposLabel({ selectedContext, orgs, t })}</h2>
       <RepoList
         repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
         isLoading={isLoadingOrgRepos || isLoadingStarred}
