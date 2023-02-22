@@ -155,30 +155,28 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   {this.props.language['ux_editor.modal_configure_rules_configure_input_header']}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
-                  (key: any, index: any) => {
+                  (key: any) => {
                     const paramName = key;
                     return (
-                      <div className='align-items-center mb-1 row' key={index}>
-                        <div className='col-3 col'>
-                          <div className='form-group a-form-group mt-1 disabled'>
-                            <label className={classes.label} htmlFor={paramName}>
-                              {
-                                this.props.language[
-                                  'ux_editor.modal_configure_rules_configure_input_param_helper'
-                                ]
-                              }
-                            </label>
+                      <>
+                        <label className={classes.label} htmlFor={paramName}>
+                          {
+                            this.props.language[
+                              'ux_editor.modal_configure_rules_configure_input_param_helper'
+                            ]
+                          }
+                        </label>
+                        <div className={classes.configureInputParamsContainer} key={key}>
+                          <input
+                            id={paramName}
+                            name={paramName}
+                            type='text'
+                            className={classes.inputType}
+                            value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
+                            width={10}
+                            disabled={true}
+                          />
 
-                            <input
-                              id={paramName}
-                              name={paramName}
-                              type='text'
-                              className='form-control'
-                              value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
-                              width={10}
-                              disabled={true}
-                            />
-                          </div>
                           <div>
                             <SelectDataModelComponent
                               onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
@@ -187,73 +185,66 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                             />
                           </div>
                         </div>
-                      </div>
+                      </>
                     );
                   }
                 )}
               </div>
 
-              <div className='form-group a-form-group mt-2'>
-                <h2 className='a-h4'>
+              <div>
+                <h2 className={classes.subTitle}>
                   {this.props.language['ux_editor.modal_configure_rules_configure_output_header']}
                 </h2>
                 {/* length is always 1 since method always returns just one thing    */}
-                <div className='align-items-center mt-1 row' key='0'>
-                  <div className='col col-3'>
-                    <div className='form-group a-form-group mt-1 disabled'>
-                      <label className='a-form-label' htmlFor='outParam'>
-                        {
-                          this.props.language[
-                            'ux_editor.modal_configure_rules_configure_output_param_helper'
-                          ]
-                        }
-                      </label>
-                      <input
-                        id='outParam0'
-                        name='outParam0'
-                        type='text'
-                        className='form-control'
-                        value='outParam0'
-                        width={10}
-                        disabled={true}
-                      />
-                    </div>
-                  </div>
-                  <div className='col col-9'>
-                    <SelectDataModelComponent
-                      onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
-                      selectedElement={this.state.ruleConnection.outParams.outParam0}
-                      hideRestrictions={true}
-                    />
-                  </div>
+
+                <label className={classes.label} htmlFor='outParam'>
+                  {
+                    this.props.language[
+                      'ux_editor.modal_configure_rules_configure_output_param_helper'
+                    ]
+                  }
+                </label>
+                <div className={classes.configureInputParamsContainer}>
+                  <input
+                    id='outParam0'
+                    name='outParam0'
+                    type='text'
+                    className={classes.inputType}
+                    value='outParam0'
+                    width={10}
+                    disabled={true}
+                  />
+                </div>
+
+                <div>
+                  <SelectDataModelComponent
+                    onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
+                    selectedElement={this.state.ruleConnection.outParams.outParam0}
+                    hideRestrictions={true}
+                  />
                 </div>
               </div>
             </>
           ) : null}
-          <div className='row mt-3'>
-            <div className='col'>
-              {this.state.ruleConnection.selectedFunction ? (
-                <button
-                  onClick={this.handleSaveEdit}
-                  type='submit'
-                  className='a-btn a-btn-success mr-2'
-                >
-                  {this.props.language['general.save']}
-                </button>
-              ) : null}
-              {this.props.connectionId ? (
-                <button
-                  type='button'
-                  className='a-btn a-btn-danger mr-2'
-                  onClick={this.handleDeleteConnection}
-                >
-                  {this.props.language['general.delete']}
-                </button>
-              ) : null}
-              <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
-                {this.props.language['general.cancel']}
+
+          <div className={classes.buttonsContainer}>
+            {this.state.ruleConnection.selectedFunction ? (
+              <button onClick={this.handleSaveEdit} type='submit' className={classes.saveButton}>
+                {this.props.language['general.save']}
               </button>
-            </div>
+            ) : null}
+            {this.props.connectionId ? (
+              <button
+                type='button'
+                className='a-btn a-btn-danger mr-2'
+                onClick={this.handleDeleteConnection}
+              >
+                {this.props.language['general.delete']}
+              </button>
+            ) : null}
+            <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
+              {this.props.language['general.cancel']}
+            </button>
           </div>
         </div>
       </Modal>
