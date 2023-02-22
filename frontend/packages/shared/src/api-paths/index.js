@@ -65,7 +65,7 @@ export const environmentsConfigPath = () => `/designer/api/environments`;
 // Repositories
 export const abortmergePath = (org, app) => `/designer/api/repos/repo/${org}/${app}/abort-merge`;
 export const cloneAppPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/clone`; // Get
-export const copyAppPath = (org, sourceRepository, targetRepository) => `/designer/api/repos/copy-app?${s({ org, sourceRepository, targetRepository })}`;
+export const copyAppPath = (org, sourceRepository, targetRepository) => `/designer/api/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository })}`;
 export const createRepoPath = () => `/designer/api/repos/create-app`; // Post
 export const discardChangesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/discard`; // Get
 export const discardFileChangesPath = (org, app, filename) => `/designer/api/repos/repo/${org}/${app}/discard/${filename}`; // Get
