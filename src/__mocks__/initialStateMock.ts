@@ -40,6 +40,10 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       error: null,
       invalidDataTypes: [],
     },
+    footerLayout: {
+      footerLayout: null,
+      error: null,
+    },
     instanceData: getInstanceDataStateMock(),
     instantiation: {
       error: null,

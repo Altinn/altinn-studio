@@ -3,6 +3,7 @@ import React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { Footer } from 'src/features/footer/Footer';
 import { AltinnAppHeader } from 'src/shared/components/altinnAppHeader';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
@@ -49,6 +50,7 @@ export function InstantiationContainer({ children, type }: IInstantiateContainer
         type={type}
       />
       <main id='main-content'>{children}</main>
+      <Footer />
       <ReadyForPrint />
     </Grid>
   );

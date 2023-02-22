@@ -1,0 +1,24 @@
+.footer {
+  padding: 60px 24px;
+  max-width: none;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 30px 50px;
+}
+
+@media only screen and (min-width: 600px) {
+  .footer {
+    flex-direction: row;
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+  .footer {
+    max-width: 1056px;
+    padding: 60px 0;
+  }
+}

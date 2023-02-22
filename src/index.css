@@ -235,7 +235,6 @@ select.disabled {
 .modal-content {
   border: none;
   box-shadow: 1px 1px 4px 0 rgb(137 137 137 / 50%);
-  margin-bottom: 60px;
 }
 
 #errorReport .modal-content {

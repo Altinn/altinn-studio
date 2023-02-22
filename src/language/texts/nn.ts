@@ -89,6 +89,7 @@ export function nn() {
     },
     general: {
       action: 'Handling',
+      accessibility: 'Tilgjengelegheit',
       add_connection: 'Legg til tilkobling',
       add_new: 'Legg til ny',
       add: 'Legg til',

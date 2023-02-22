@@ -6,6 +6,7 @@ import { AltinnSubstatusPaper } from 'src/components/molecules/AltinnSubstatusPa
 import { AltinnAppHeader } from 'src/components/organisms/AltinnAppHeader';
 import { Header } from 'src/components/presentation/Header';
 import { NavBar } from 'src/components/presentation/NavBar';
+import { Footer } from 'src/features/footer/Footer';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import { getLayoutOrderFromTracks } from 'src/selectors/getLayoutOrder';
@@ -130,6 +131,7 @@ export const PresentationComponent = (props: IPresentationProvidedProps) => {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

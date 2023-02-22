@@ -89,6 +89,7 @@ export function en() {
     },
     general: {
       action: 'Action',
+      accessibility: 'Accessibility',
       add_connection: 'Add connection',
       add_new: 'Add new',
       add: 'Add',

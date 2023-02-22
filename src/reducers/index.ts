@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 
+import { footerLayoutSlice } from 'src/features/footer/data/footerLayoutSlice';
 import { formDataSlice } from 'src/features/form/data/formDataSlice';
 import { formDataModelSlice } from 'src/features/form/datamodel/datamodelSlice';
 import { formDynamicsSlice } from 'src/features/form/dynamics/formDynamicsSlice';
@@ -31,6 +32,7 @@ const reducers = {
   [formDynamicsSlice.name]: formDynamicsSlice.reducer,
   [formLayoutSlice.name]: formLayoutSlice.reducer,
   [formRulesSlice.name]: formRulesSlice.reducer,
+  [footerLayoutSlice.name]: footerLayoutSlice.reducer,
   [validationSlice.name]: validationSlice.reducer,
   [instanceDataSlice.name]: instanceDataSlice.reducer,
   [instantiationSlice.name]: instantiationSlice.reducer,

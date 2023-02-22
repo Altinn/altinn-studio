@@ -1,6 +1,7 @@
 import { put } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
+import { FooterLayoutActions } from 'src/features/footer/data/footerLayoutSlice';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { DataModelActions } from 'src/features/form/datamodel/datamodelSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
@@ -69,6 +70,7 @@ export const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) 
         yield put(LanguageActions.fetchLanguage());
         yield put(ApplicationMetadataActions.get());
         yield put(FormLayoutActions.fetchSets());
+        yield put(FooterLayoutActions.fetch());
         yield put(OrgsActions.fetch());
         yield put(QueueActions.startInitialAppTaskQueueFulfilled());
       },

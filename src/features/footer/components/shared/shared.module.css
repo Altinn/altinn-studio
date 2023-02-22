@@ -1,0 +1,33 @@
+.link {
+  color: var(--colors-interaction-button-default) !important;
+  border: none !important;
+  border-radius: 3px;
+}
+
+.link:hover {
+  color: var(--colors-interaction-button-hover) !important;
+}
+
+.link:focus-visible {
+  outline: var(--interactive_components-colors-focus_outline) solid var(--border_width-standard);
+  outline-offset: var(--border_width-standard);
+}
+
+.link::after {
+  display: unset !important;
+  width: unset !important;
+  background-image: unset !important;
+  background-repeat: unset !important;
+  background-size: unset !important;
+  vertical-align: unset !important;
+  margin-top: unset !important;
+  margin-left: unset !important;
+  content: unset !important;
+  white-space: unset !important;
+  overflow: unset !important;
+  text-indent: unset !important;
+}
+
+.link_text {
+  border-bottom: 2px solid var(--colors-interaction-button-default);
+}
