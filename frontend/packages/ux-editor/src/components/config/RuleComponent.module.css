@@ -45,6 +45,43 @@
   width: 100%;
 }
 
+.selectActionContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.configureInputParamsContainer {
+  display: grid;
+  grid-template-columns: 1fr 10fr;
+  gap: 8px;
+}
+
+.inputType {
+  font-size: 16px;
+  padding: 8px;
+  max-width: 80px;
+  color: var(--text-color);
+  letter-spacing: 0.3px;
+  border-radius: 0;
+  transition: none;
+  background: var(--disabled-color);
+  border: 2px solid var(--primary-color);
+}
+
+.saveButton {
+  color: #000;
+  font-size: 1rem;
+  padding: 8px 30px;
+  background-color: var(--success-color);
+  border: 2px solid var(--success-color);
+}
+
+.buttonsContainer {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
 .cancelButton {
   font-size: 1rem;
   padding: 8px 30px;
