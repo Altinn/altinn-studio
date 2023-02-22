@@ -1,7 +1,11 @@
 import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { ComponentPreview, ComponentPreviewProps } from './ComponentPreview';
-import { FormComponentType, IFormCheckboxComponent, IFormRadioButtonComponent } from '../../types/global';
+import {
+  FormComponentType,
+  IFormCheckboxComponent,
+  IFormRadioButtonComponent,
+} from '../../types/global';
 import { ComponentTypes } from '../../components';
 
 // Test data:
@@ -15,11 +19,11 @@ const defaultProps: ComponentPreviewProps = {
 // Mocks:
 const checkboxGroupPreviewId = 'CheckboxGroupPreview';
 jest.mock('./CheckboxGroupPreview', () => ({
-  CheckboxGroupPreview: () => <div data-testid={checkboxGroupPreviewId} />
+  CheckboxGroupPreview: () => <div data-testid={checkboxGroupPreviewId} />,
 }));
 const radioGroupPreviewId = 'RadioGroupPreview';
 jest.mock('./RadioGroupPreview', () => ({
-  RadioGroupPreview: () => <div data-testid={radioGroupPreviewId} />
+  RadioGroupPreview: () => <div data-testid={radioGroupPreviewId} />,
 }));
 
 describe('ComponentPreview', () => {
@@ -46,11 +50,10 @@ describe('ComponentPreview', () => {
     render({ component: radiosComponent });
     expect(screen.getByTestId(radioGroupPreviewId)).toBeInTheDocument();
   });
-  
+
   it.each([
     ComponentTypes.AddressComponent,
     ComponentTypes.AttachmentList,
-    ComponentTypes.Button,
     ComponentTypes.Datepicker,
     ComponentTypes.Dropdown,
     ComponentTypes.FileUpload,
@@ -60,7 +63,6 @@ describe('ComponentPreview', () => {
     ComponentTypes.Image,
     ComponentTypes.Input,
     ComponentTypes.NavigationBar,
-    ComponentTypes.NavigationButtons,
     ComponentTypes.Map,
     ComponentTypes.Panel,
     ComponentTypes.Paragraph,
@@ -68,7 +70,9 @@ describe('ComponentPreview', () => {
     ComponentTypes.ThirdParty,
   ])('Renders error text when component type is %s', (type: ComponentTypes) => {
     render({ component: { ...component, type } });
-    expect(screen.getByText('Forhåndsvisning er ikke implementert for denne komponenten.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Forhåndsvisning er ikke implementert for denne komponenten.')
+    ).toBeInTheDocument();
   });
 });
 
