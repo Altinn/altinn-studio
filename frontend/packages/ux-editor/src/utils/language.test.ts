@@ -40,10 +40,8 @@ describe('Designer > utils/language', () => {
       ComponentTypes.Dropdown,
       ComponentTypes.TextArea,
       ComponentTypes.FileUpload,
-      ComponentTypes.Button,
       ComponentTypes.AddressComponent,
       ComponentTypes.Group,
-      ComponentTypes.NavigationButtons,
       'undefined-component-type',
     ];
 
