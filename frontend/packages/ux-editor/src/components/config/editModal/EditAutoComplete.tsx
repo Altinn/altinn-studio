@@ -1,6 +1,16 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { TextField, Popover, PopoverVariant, Button, ButtonSize, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import {
+  TextField,
+  Popover,
+  PopoverVariant,
+  Button,
+  ButtonSize,
+  ButtonColor,
+  ButtonVariant,
+} from '@digdir/design-system-react';
+import { stringToArray, arrayToString } from '../../../utils/stringUtils';
+import { replaceLastItem } from 'app-shared/utils/arrayUtils';
 
 const getLastWord = (value: string) => value.split(' ').pop();
 const stdAutocompleteOpts = [
@@ -59,63 +69,76 @@ const stdAutocompleteOpts = [
   'photo',
 ];
 
-export const getAutocompleteOptions = (phrase: string) => {
-  const lastWord = getLastWord(phrase);
-  return stdAutocompleteOpts.includes(lastWord) || lastWord === ''
-    ? []
-    : stdAutocompleteOpts.filter((alternative) => alternative.includes(lastWord)).slice(0, 6);
-};
-
 export const EditAutoComplete = ({ component, handleComponentChange }: IGenericEditComponent) => {
-  const [value, setValue] = useState<string>(component?.autocomplete || '');
+  const [searchFieldFocused, setSearchFieldFocused] = useState<boolean>(false);
+  const [autocompleteText, setAutocompleteText] = useState<string>(component?.autocomplete || '');
 
-  const handleWordClick = (word: string) => {
-    const parts = value.split(' ');
-    parts[parts.length - 1] = word;
-    const newValue = parts.join(' ');
-    setValue(newValue);
+  const autoCompleteOptions = useMemo((): string[] => {
+    const lastWord = getLastWord(autocompleteText);
+    return stdAutocompleteOpts.filter((alternative) => alternative.includes(lastWord))?.slice(0, 6);
+  }, [autocompleteText]);
+
+  const buildNewText = (word: string): string => {
+    const wordParts = stringToArray(autocompleteText, ' ');
+    const newWordParts = replaceLastItem(wordParts, word);
+    return arrayToString(newWordParts);
+  };
+
+  const handleWordClick = (word: string): void => {
+    const autocomplete = buildNewText(word);
+    setAutocompleteText(autocomplete);
     handleComponentChange({
       ...component,
-      autocomplete: newValue,
+      autocomplete,
     });
   };
 
-  const persistChange = () =>
+  const persistChange = (): void =>
     handleComponentChange({
       ...component,
-      autocomplete: value,
+      autocomplete: autocompleteText,
     });
 
-  const handleChange = (event: any) => setValue(event.target.value);
-  const options = getAutocompleteOptions(value);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setAutocompleteText(event.target.value);
+  };
+
   return (
     <div>
       <TextField
         id={`component-id-input${component.id}`}
         label='Autocomplete (WCAG)'
-        onBlur={persistChange}
         onChange={handleChange}
-        value={value}
+        value={autocompleteText}
+        onFocus={(): void => setSearchFieldFocused(true)}
+        onBlur={(): void => {
+          persistChange();
+          setTimeout(() => {
+            setSearchFieldFocused(false);
+          }, 100);
+        }}
       />
       <Popover
         variant={PopoverVariant.Default}
-        open={options.length > 0}
+        open={searchFieldFocused && autoCompleteOptions.length > 0}
         placement='bottom-start'
         arrow={false}
         trigger={<div />}
       >
-        {options.map((word) => (
-          <Button
-            size={ButtonSize.Small}
-            color={ButtonColor.Inverted}
-            variant={ButtonVariant.Quiet}
-            key={word}
-            style={{ float: 'left' }}
-            onClick={() => handleWordClick(word)}
-          >
-            {word}
-          </Button>
-        ))}
+        {autoCompleteOptions.map(
+          (option): JSX.Element => (
+            <Button
+              role='option'
+              key={option}
+              size={ButtonSize.Small}
+              color={ButtonColor.Secondary}
+              variant={ButtonVariant.Quiet}
+              onClick={() => handleWordClick(option)}
+            >
+              {option}
+            </Button>
+          )
+        )}
       </Popover>
     </div>
   );
