@@ -68,9 +68,11 @@ export function InstanceInformationComponent({ elements }: PropsFromGenericCompo
     `${instanceOwnerParty.ssn ? instanceOwnerParty.ssn : instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
 
   const instanceReceiver =
-    receiver !== false && allOrgs && instance && allOrgs[instance?.org] && language
-      ? allOrgs[instance.org].name[userLanguage]
-      : 'Error: Receiver org not found';
+    receiver !== false
+      ? allOrgs && instance && allOrgs[instance?.org] && language
+        ? allOrgs[instance.org].name[userLanguage]
+        : 'Error: Receiver org not found'
+      : undefined;
 
   const instanceReferenceNumber = referenceNumber !== false && instance && instance.id.split('/')[1].split('-')[4];
 
