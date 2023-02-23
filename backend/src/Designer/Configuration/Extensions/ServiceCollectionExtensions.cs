@@ -63,24 +63,27 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
                 .RuntimeLibraries
                 .Where(IsAltinnLibrary)
                 .Where(IsLoadable)
-                .Select(library =>
-                {
-                    try
-                    {
-                        return Assembly.Load(new AssemblyName(library.Name));
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Failed runtime info: " + JsonConvert.SerializeObject(library.RuntimeAssemblyGroups.SelectMany(x => x.RuntimeFiles).Select(x => new {x.FileVersion, x.Path, x.AssemblyVersion})));
-                        throw;
-                    }
-
-                })
+                .Select(library => Assembly.Load(new AssemblyName(library.Name)))
                 .GetTypesAssignedFrom<TAssignedFrom>();
         }
+
         private static bool IsLoadable(RuntimeLibrary library)
         {
-            return library.RuntimeAssemblyGroups.Any();
+            // Contains assembly
+            if (!library.RuntimeAssemblyGroups.Any())
+            {
+                return false;
+            }
+
+            try
+            {
+                Assembly.Load(new AssemblyName(library.Name));
+                return true;
+            }
+            catch (ArgumentNullException e) // On some machines there are some additional Runtime libraries with ".Reference" suffix. Skip them.
+            {
+                return false;
+            }
         }
 
         private static IEnumerable<Type> GetTypesAssignedFrom<TAssignedFrom>(this IEnumerable<Assembly> assemblies)
