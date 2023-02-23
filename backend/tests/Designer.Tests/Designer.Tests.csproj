@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <AssemblyName>Altinn.Studio.Designer.Tests</AssemblyName>
+    <RootNamespace>Designer.Tests</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
