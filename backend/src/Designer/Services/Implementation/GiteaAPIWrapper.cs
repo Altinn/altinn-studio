@@ -18,7 +18,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -108,11 +107,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 // The repository with the same name already exists, 409 from Gitea API
                 repository.RepositoryCreatedStatus = HttpStatusCode.Conflict;
             }
+            else if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                // The user is not part of a team with repo-creation permissions, 403 from Gitea API
+                _logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}. If this was not expected try updating team settings in gitea.");
+                repository.RepositoryCreatedStatus = HttpStatusCode.Forbidden;
+            }
             else
             {
-                _logger.LogError("User " + developer +
-                    " Create repository failed with statuscode " + response.StatusCode + " for " +
-                    org + " and repo-name " + options.Name);
+                _logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}.");
+                repository.RepositoryCreatedStatus = response.StatusCode;
             }
 
             return repository;

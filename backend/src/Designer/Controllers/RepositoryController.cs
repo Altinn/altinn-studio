@@ -143,35 +143,23 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("create-app")]
         public async Task<ActionResult<RepositoryModel>> CreateApp([FromQuery] string org, [FromQuery] string repository)
         {
-            Console.WriteLine("Organization: " + org);
             try
             {
-                try
-                {
-                    Guard.AssertValidAppRepoName(repository);
-                }
-                catch (ArgumentException)
-                {
-                    return BadRequest($"{repository} is an invalid repository name.");
-                }
-
-                var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
-
-                var repositoryResult = await _repository.CreateService(org, config);
-                if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
-                {
-                    return Created(repositoryResult.CloneUrl, repositoryResult);
-                }
-                else
-                {
-                    return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
-                }
+                Guard.AssertValidAppRepoName(repository);
             }
-            catch (Exception e)
+            catch (ArgumentException)
             {
-                Console.WriteLine(e.Message);
-                return BadRequest();
+                return BadRequest($"{repository} is an invalid repository name.");
             }
+
+            var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
+
+            var repositoryResult = await _repository.CreateService(org, config);
+            if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
+            {
+                return Created(repositoryResult.CloneUrl, repositoryResult);
+            }
+            return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
         }
 
         /// <summary>
