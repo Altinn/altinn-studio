@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Configuration.Extensions
 {
@@ -62,12 +63,24 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
                 .RuntimeLibraries
                 .Where(IsAltinnLibrary)
                 .Where(IsLoadable)
-                .Select(library => Assembly.Load(new AssemblyName(library.Name)))
+                .Select(library =>
+                {
+                    try
+                    {
+                        return Assembly.Load(new AssemblyName(library.Name));
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Failed runtime info: " + JsonConvert.SerializeObject(library.RuntimeAssemblyGroups.SelectMany(x => x.RuntimeFiles).Select(x => new {x.FileVersion, x.Path, x.AssemblyVersion})));
+                        throw;
+                    }
+
+                })
                 .GetTypesAssignedFrom<TAssignedFrom>();
         }
         private static bool IsLoadable(RuntimeLibrary library)
         {
-            return library.RuntimeAssemblyGroups.Any(x => x.RuntimeFiles.Any());
+            return library.RuntimeAssemblyGroups.Any();
         }
 
         private static IEnumerable<Type> GetTypesAssignedFrom<TAssignedFrom>(this IEnumerable<Assembly> assemblies)
