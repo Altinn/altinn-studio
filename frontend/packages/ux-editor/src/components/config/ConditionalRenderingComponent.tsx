@@ -267,13 +267,14 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
         <div className={classes.modalHeader}>
           <i className='fa fa-corp' />
           <h1 className={classes.modalHeaderTitle}>
-            {this.props.t['ux_editor.modal_configure_conditional_rendering_header']}
+            {this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
           </h1>
         </div>
+
         <div className={classes.modalBodyContent}>
           <div className={classes.formGroup}>
             <label htmlFor='selectConditionalRule' className={classes.label}>
-              {this.props.t['ux_editor.modal_configure_conditional_rendering_helper']}
+              {this.props.t('ux_editor.modal_configure_conditional_rendering_helper')}
             </label>
             <select
               name='selectConditionalRule'
