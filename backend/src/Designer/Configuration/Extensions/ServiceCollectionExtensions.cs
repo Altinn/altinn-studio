@@ -61,10 +61,13 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
             return DependencyContext.Default
                 .RuntimeLibraries
                 .Where(IsAltinnLibrary)
-                .Where(library => library.RuntimeAssemblyGroups.Any())
-                .Select(LoadAssembly)
-                .Where(assembly => assembly != null) // remove nulls
+                .Where(IsLoadable)
+                .Select(library => Assembly.Load(new AssemblyName(library.Name)))
                 .GetTypesAssignedFrom<TAssignedFrom>();
+        }
+        private static bool IsLoadable(RuntimeLibrary library)
+        {
+            return library.RuntimeAssemblyGroups.Any(x => x.RuntimeFiles.Any());
         }
 
         private static IEnumerable<Type> GetTypesAssignedFrom<TAssignedFrom>(this IEnumerable<Assembly> assemblies)
@@ -86,18 +89,6 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
             catch (ReflectionTypeLoadException e)
             {
                 return e.Types.Where(t => t != null);
-            }
-        }
-
-        private static Assembly LoadAssembly(RuntimeLibrary library)
-        {
-            try
-            {
-                return Assembly.Load(new AssemblyName(library.Name));
-            }
-            catch (Exception)
-            {
-                return null;
             }
         }
 
