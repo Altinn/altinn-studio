@@ -121,10 +121,5 @@ namespace DataModeling.Tests
 
             return xmlWriter.ToString();
         }
-
-        internal class Utf8StringWriter : StringWriter
-        {
-            public override Encoding Encoding => Encoding.UTF8;
-        }
     }
 }

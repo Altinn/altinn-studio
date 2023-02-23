@@ -136,12 +136,26 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 throw new ArgumentException($"Unhandled keyword(s) in root JSON Schema '{string.Join("', '", unhandledKeywords.Select(kw => kw.Keyword()))}'");
             }
 
-            var schemaSet = new XmlSchemaSet();
-            schemaSet.Add(_xsd);
-            schemaSet.Compile();
-
-            return _xsd;
+            return CompileSchema(_xsd);
         }
+
+        private static XmlSchema CompileSchema(XmlSchema schema)
+        {
+            try
+            {
+                var schemaSet = new XmlSchemaSet();
+                schemaSet.Add(schema);
+                schemaSet.Compile();
+
+                return schema;
+            }
+            catch (XmlSchemaException e)
+            {
+                throw new JsonSchemaConvertException("Produced XSD is not valid. Can't compile", e);
+            }
+
+        }
+
 
         private void HandleSchemaAttributes()
         {

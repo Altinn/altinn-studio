@@ -6,6 +6,7 @@ using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
+using Altinn.Studio.Designer.Filters.Datamodeling;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
@@ -39,7 +40,11 @@ ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddMvcOptions(options =>
+    {
+        options.Filters.Add(typeof(DatamodelingExceptionFilterAttribute));
+    });
 
 await SetConfigurationProviders(builder.Configuration, builder.Environment);
 

@@ -373,7 +373,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 BaseValueType.Boolean => ("bool", true),
                 BaseValueType.Double => ("double", true),
                 BaseValueType.Long => ("long", true),
-                _ => throw new NotImplementedException()
+                _ => throw new CsharpGenerationException("Unsupported type: " + typeName)
             };
 
         }
