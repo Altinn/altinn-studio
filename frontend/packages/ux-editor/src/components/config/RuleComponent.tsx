@@ -113,7 +113,9 @@ class Rule extends React.Component<IRuleComponentProps, any> {
     return (
       <Modal
         isOpen={true}
-        onRequestClose={() => {}}
+        onRequestClose={() => {
+          this.props.cancelEdit;
+        }}
         className={classes.modalBody}
         ariaHideApp={false}
         overlayClassName={classes.reactModalOverlay}
@@ -156,7 +158,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   (key: any) => {
                     const paramName = key;
                     return (
-                      <>
+                      <React.Fragment key={key}>
                         <label className={classes.label} htmlFor={paramName}>
                           {this.props.t(
                             'ux_editor.modal_configure_rules_configure_input_param_helper'
@@ -180,7 +182,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                             />
                           </div>
                         </div>
-                      </>
+                      </React.Fragment>
                     );
                   }
                 )}
@@ -189,7 +191,6 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                 <h2 className={classes.subTitle}>
                   {this.props.t('ux_editor.modal_configure_rules_configure_output_header')}
                 </h2>
-                {/* length is always 1 since method always returns just one thing    */}
                 <label className={classes.label} htmlFor='outParam'>
                   {this.props.t('ux_editor.modal_configure_rules_configure_output_param_helper')}
                 </label>

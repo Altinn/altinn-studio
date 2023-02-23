@@ -1,3 +1,14 @@
+:root {
+  --primary-color: #008fd6;
+  --primary-color-700: #022f51;
+  --success-color: #17c96b;
+  --danger-color: #e23b53;
+  --text-color: #000;
+  --paper-color: #fff;
+  --disabled-color: #e9ecef;
+  --overlay-gradient: rgba(30, 174, 247, 0.3);
+}
+
 .modalHeader {
   min-height: 80px;
   background: var(--primary-color-700);
