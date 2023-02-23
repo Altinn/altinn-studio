@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyModel;
@@ -40,7 +41,7 @@ namespace Altinn.Studio.Designer.Helpers
                 Assembly.Load(new AssemblyName(library.Name));
                 return true;
             }
-            catch (ArgumentNullException e) // On some machines there are some additional Runtime libraries with ".Reference" suffix. Skip them.
+            catch (FileNotFoundException) // On some machines there are some additional Runtime libraries with ".Reference" suffix. Skip them.
             {
                 return false;
             }
