@@ -155,22 +155,21 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   {this.props.t('ux_editor.modal_configure_rules_configure_input_header')}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
-                  (key: any) => {
-                    const paramName = key;
+                  (paramName: string) => {
                     return (
-                      <React.Fragment key={key}>
+                      <React.Fragment key={paramName}>
                         <label className={classes.label} htmlFor={paramName}>
                           {this.props.t(
                             'ux_editor.modal_configure_rules_configure_input_param_helper'
                           )}
                         </label>
-                        <div className={classes.configureInputParamsContainer} key={key}>
+                        <div className={classes.configureInputParamsContainer} key={paramName}>
                           <input
                             id={paramName}
                             name={paramName}
                             type='text'
                             className={classes.inputType}
-                            value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
+                            value={this.props.ruleModelElements[selectedMethodNr].inputs[paramName]}
                             width={10}
                             disabled={true}
                           />
