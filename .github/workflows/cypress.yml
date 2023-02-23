@@ -56,9 +56,10 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        env:
-          GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
+
+      - name: Build
+        run: yarn build
 
       - name: Verify cypress and run tests
         run: "
@@ -66,16 +67,14 @@ jobs:
           export CYPRESS_PROJECT_ID=y2jhp6\n
           export CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}\n
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}\n
-          ./node_modules/.bin/start-server-and-test
-            'yarn start --no-hot'
-            http://localhost:8080/altinn-app-frontend.js
-            'yarn run cy:test:all:headless
-              --env environment=tt02,testUserName=tt02testuser,testUserPwd=${{ secrets.CYPRESS_ALTINN_USERPWD }}
-              --record
-              --parallel
-              --tag \"altinn-app-frontend\"
-              --group altinn-app-frontend
-              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT'
+          bash -c 'cd dist/; npx http-server -p 8080 --cors >/dev/null &'\n
+          bash -c 'yarn run cy:test:all:headless
+            --env environment=tt02,testUserName=tt02testuser,testUserPwd=${{ secrets.CYPRESS_ALTINN_USERPWD }}
+            --record
+            --parallel
+            --tag \"altinn-app-frontend\"
+            --group altinn-app-frontend
+            --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT'
         "
 
       - uses: actions/upload-artifact@v3
@@ -116,17 +115,16 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        env:
-          GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
+
+      - name: Build
+        run: yarn build
 
       - name: Verify cypress and run tests
         run: "
           yarn run cy:verify\n
-          ./node_modules/.bin/start-server-and-test
-            'yarn start --no-hot'
-            http://localhost:8080/altinn-app-frontend.js
-            'yarn run cy:test:all:headless
+          bash -c 'cd dist/; npx http-server -p 8080 --cors >/dev/null &'\n
+          bash -c 'yarn run cy:test:all:headless
               --config watchForFileChanges=false
               --env environment=tt02,testUserName=testuserexternal,testUserPwd=r@h74Rz7XYQJ'
         "

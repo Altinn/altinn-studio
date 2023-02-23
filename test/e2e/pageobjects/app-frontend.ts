@@ -105,7 +105,6 @@ export class AppFrontend {
       editWindow: '[id^="attachment-edit-window"]',
       tagsDropDown: '[id^="attachment-tag-dropdown"]',
       saveTag: '[id^="attachment-save-tag-button"]',
-      delete: 'button[class*="makeStyles-deleteButton"]',
       uploaded: '#tagFile',
     },
     reasonRelationship: '#reasonRelationship',
@@ -239,8 +238,8 @@ export function makeUploaderSelectors<T extends Type>(
       ...(type === 'tagged' && {
         tagSelector: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) select`,
         tagSave: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[id^=attachment-save-tag-button]`,
-        editBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) td:last-of-type button[class*=editTextContainer]`,
-        deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[class*=deleteButton]`,
+        editBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) td:last-of-type button:contains("Rediger")`,
+        deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button:contains("Slett")`,
       }),
     }),
     addMoreBtn: `#altinn-fileuploader-${id}-${row} > button`,

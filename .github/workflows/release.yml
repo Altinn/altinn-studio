@@ -21,8 +21,6 @@ jobs:
 
       - name: install dependencies
         working-directory: app-frontend
-        env:
-          GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
 
       - name: run build
@@ -51,7 +49,7 @@ jobs:
       - name: Run release script (pre-release)
         working-directory: app-frontend
         if: "github.event.release.prerelease"
-        run: | 
+        run: |
          bash .github/scripts/release.sh \
            --frontend . \
            --cdn ../cdn \

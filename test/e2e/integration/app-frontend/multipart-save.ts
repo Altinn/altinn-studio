@@ -138,6 +138,11 @@ describe('Multipart save', () => {
     expectSave(`${groupKey}[1].${subGroupKey}[0].${commentKey}`, 'second comment', null);
 
     cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.get(appFrontend.group.newValue).type('2').blur();
+    expectSave(`${groupKey}[0].${newValueKey}`, '22', '2');
+    cy.get(appFrontend.group.newValue).clear().type('2').blur();
+    expectSave(`${groupKey}[0].${newValueKey}`, '2', '22');
+
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.addNewItemSubGroup).click();
     expectSave(`${groupKey}[0].${subGroupKey}[1].source`, 'altinn', null);

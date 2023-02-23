@@ -157,20 +157,21 @@ export function* putFormData({ field, componentId }: SaveDataParams) {
   yield call(waitForSaving);
   const state: IRuntimeState = yield select();
   const model = getModelToSave(state);
+  const formDataCopy: IFormData = { ...state.formData.formData };
 
   const url = dataElementUrl(defaultDataElementGuid);
   let lastSavedModel = state.formData.formData;
   try {
     const { data, options } = createFormDataRequest(state, model, field, componentId);
     const responseData = yield call(httpPut, url, data, options);
-    lastSavedModel = yield call(handleChangedFields, responseData?.changedFields, state.formData.formData);
+    lastSavedModel = yield call(handleChangedFields, responseData?.changedFields, formDataCopy);
   } catch (error) {
     if (error.response && error.response.status === 303) {
       // 303 means that data has been changed by calculation on server. Try to update from response.
       // Newer backends might not reply back with this special response code when there are changes, they
       // will just respond with the 'changedFields' property instead (see code handling this above).
       if (error.response.data?.changedFields) {
-        lastSavedModel = yield call(handleChangedFields, error.response.data?.changedFields, state.formData.formData);
+        lastSavedModel = yield call(handleChangedFields, error.response.data?.changedFields, formDataCopy);
       } else {
         // No changedFields property returned, try to fetch
         yield put(FormDataActions.fetch({ url }));

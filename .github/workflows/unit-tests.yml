@@ -45,8 +45,6 @@ jobs:
 
       - name: install dependencies
         working-directory: app-frontend
-        env:
-          GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
 
       - name: type-check
