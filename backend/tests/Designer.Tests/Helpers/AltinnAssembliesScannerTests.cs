@@ -17,6 +17,7 @@ namespace Designer.Tests.Helpers
             Assert.True(types.All(t => typeof(ITestMarker).IsAssignableFrom(t)));
             Assert.Contains(types, t => t == typeof(TestClass1));
             Assert.Contains(types, t => t == typeof(TestClass2));
+            Assert.DoesNotContain(types, t => t == typeof(ITestMarker));
         }
 
         public interface ITestMarker
