@@ -4,6 +4,7 @@ import { Common } from 'test/e2e/pageobjects/common';
 
 import { Triggers } from 'src/types';
 import type { ILayout } from 'src/layout/layout';
+import type { ILayoutCompSummary } from 'src/layout/Summary/types.d';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
@@ -368,6 +369,78 @@ describe('Summary', () => {
     cy.get(appFrontend.group.showGroupToContinue).find('input[type=checkbox]').uncheck();
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get('[data-testid=summary-summary-1]').should('not.exist');
+  });
+
+  it('Can exclude children from group summary', () => {
+    cy.interceptLayout('group', (component: ILayoutCompSummary) => {
+      if (component.id === 'summary-1') {
+        component.excludedChildren = ['comments-0-1', 'hideComment'];
+      }
+    });
+    cy.goto('group');
+
+    cy.get(appFrontend.group.prefill['liten']).click().blur();
+    cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+    cy.get(appFrontend.group.showGroupToContinue).get('input').check();
+    // Add data
+    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+
+    cy.get(appFrontend.group.comments).type('first comment').blur();
+    cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
+    cy.get(appFrontend.group.addNewItemSubGroup).should('exist').and('be.visible').focus().click();
+
+    cy.get(appFrontend.group.comments).type('second comment').blur();
+    cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
+    cy.get(appFrontend.group.addNewItemSubGroup).should('exist').and('be.visible').focus().click();
+
+    cy.get(appFrontend.group.comments).type('third comment').blur();
+    cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
+
+    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    //Skjul kommentar felt
+    cy.get(
+      '#mainGroup-0-summary > [data-testid=summary-subGroup-0-summary-group] > div > [data-testid=summary-group-component]',
+    )
+      .children()
+      .last()
+      .children()
+      .eq(0)
+      .should('exist')
+      .and('be.visible')
+      .and('contain.text', 'Kommentarer : first comment')
+      .and('contain.text', 'Nested uploader with tags : Du har ikke lagt inn informasjon her')
+      .and('contain.text', 'Vis tillegg : Du har ikke lagt inn informasjon her')
+      .and('contain.text', 'Referanse : Du har ikke lagt inn informasjon her')
+      .and('not.contain.text', 'Skjul kommentar felt');
+    cy.get(
+      '#mainGroup-0-summary > [data-testid=summary-subGroup-0-summary-group] > div > [data-testid=summary-group-component]',
+    )
+      .children()
+      .last()
+      .children()
+      .eq(1)
+      .should('exist')
+      .and('be.visible')
+      .and('not.contain.text', 'Kommentarer')
+      .and('contain.text', 'Nested uploader with tags : Du har ikke lagt inn informasjon her')
+      .and('contain.text', 'Vis tillegg : Du har ikke lagt inn informasjon her')
+      .and('contain.text', 'Referanse : Du har ikke lagt inn informasjon her')
+      .and('not.contain.text', 'Skjul kommentar felt');
+    cy.get(
+      '#mainGroup-0-summary > [data-testid=summary-subGroup-0-summary-group] > div > [data-testid=summary-group-component]',
+    )
+      .children()
+      .last()
+      .children()
+      .eq(2)
+      .should('exist')
+      .and('be.visible')
+      .and('contain.text', 'Kommentarer : third comment')
+      .and('contain.text', 'Nested uploader with tags : Du har ikke lagt inn informasjon her')
+      .and('contain.text', 'Vis tillegg : Du har ikke lagt inn informasjon her')
+      .and('contain.text', 'Referanse : Du har ikke lagt inn informasjon her')
+      .and('not.contain.text', 'Skjul kommentar felt');
   });
 
   it('Navigation between summary and pages', () => {

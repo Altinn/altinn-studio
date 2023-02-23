@@ -91,8 +91,7 @@ export function SummaryGroupComponent({
 
   const removeExcludedChildren = (n: AnyNode<'resolved'>) =>
     !excludedChildren ||
-    !excludedChildren.includes(n.item.id) ||
-    !excludedChildren.includes(`${n.item.baseComponentId}`);
+    (!excludedChildren.includes(n.item.id) && !excludedChildren.includes(`${n.item.baseComponentId}`));
 
   const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
   const formData = useAppSelector((state) => state.formData.formData);
