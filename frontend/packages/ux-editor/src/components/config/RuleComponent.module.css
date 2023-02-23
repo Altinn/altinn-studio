@@ -24,6 +24,22 @@
   padding: 30px;
 }
 
+.reactModalOverlay {
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: var(--overlay-gradient);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
 .subTitle {
   font-size: 18px;
 }
@@ -69,6 +85,12 @@
   border: 2px solid var(--primary-color);
 }
 
+.buttonsContainer {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
 .saveButton {
   color: #000;
   font-size: 1rem;
@@ -78,32 +100,10 @@
   margin-top: 25px;
 }
 
-.buttonsContainer {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-}
-
 .cancelButton {
   font-size: 1rem;
   padding: 8px 30px;
   color: var(--text-color);
   border: 2px solid var(--text-color);
   margin-top: 25px;
-}
-
-.reactModalOverlay {
-  display: flex;
-  justify-content: center;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: var(--overlay-gradient);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  overflow-y: auto;
-  z-index: 1000;
 }
