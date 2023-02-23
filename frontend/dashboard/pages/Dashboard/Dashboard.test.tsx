@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { handlers, renderWithProviders, setupServer } from '../../dashboardTestUtils';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
@@ -93,8 +93,6 @@ describe('Dashboard > index', () => {
 
     await user.keyboard('{Escape}');
 
-    await waitForElementToBeRemoved(screen.queryByTestId('search-result-repos-list'));
-
     expect(screen.getByTestId('favorite-repos-list')).toBeInTheDocument();
     expect(screen.getByTestId('org-repos-list')).toBeInTheDocument();
     expect(screen.queryByTestId('search-result-repos-list')).not.toBeInTheDocument();
@@ -119,8 +117,6 @@ describe('Dashboard > index', () => {
     });
 
     await user.click(screen.getByTestId('clear-search-button'));
-
-    await waitForElementToBeRemoved(() => screen.queryByTestId('search-result-repos-list'));
 
     expect(screen.getByTestId('favorite-repos-list')).toBeInTheDocument();
     expect(screen.getByTestId('org-repos-list')).toBeInTheDocument();
