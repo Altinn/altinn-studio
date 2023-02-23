@@ -70,7 +70,7 @@ export function DataModelling({
       shouldSelectFirstEntry({
         metadataOptions,
         selectedOption,
-        metadataLoadingState
+        metadataLoadingState,
       })
     ) {
       setSelectedOption(metadataOptions[0].options[0]);
@@ -102,7 +102,11 @@ export function DataModelling({
 
   const handleSaveSchema = (schema: any) =>
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
-  const handleDeleteSchema = () => dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
+  const handleDeleteSchema = () => {
+    dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
+    // Needs to reset prevFetchedOption when deleting the data model.
+    prevFetchedOption.current = null;
+  };
   const handleCreateNewFromLandingPage = () => setCreateNewOpen(true);
 
   const handleCreateSchema = (model: { name: string; relativeDirectory?: string }) => {
