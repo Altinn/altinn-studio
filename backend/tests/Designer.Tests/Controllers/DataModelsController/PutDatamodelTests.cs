@@ -15,6 +15,8 @@ using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DataModelsController.Utils;
@@ -34,19 +36,16 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
     private const string VersionPrefix = "/designer/api";
 
     private HttpRequestMessage HttpRequestMessage { get; set; }
-
     private HttpResponseMessage HttpResponseMessage { get; set; }
 
     private string TargetTestRepository { get; }
-
     private string CreatedTestRepoPath { get; set; }
 
-    private const string TestOrg = "ttd";
-    private const string TestSourceRepository = "hvem-er-hvem";
-    private const string TestDeveloper = "testUser";
+    private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
-    private const string MinimumValidJsonSchema =
-        @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
+    private const string OneOfAndPropertiesSchema =
+        "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"oneOf\":[{\"$ref\":\"#/$defs/otherType\"}],\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}},\"otherType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
+
 
     public PutDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
@@ -83,13 +82,30 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         var modelName = fileName.Remove(fileName.Length - ".schema.json".Length);
 
         await Given.That
-            .RepositoryCopiedForTest(TestOrg, TestSourceRepository, TestDeveloper, TargetTestRepository);
+            .RepositoryCopiedForTest("ttd", "hvem-er-hvem", "testUser", TargetTestRepository);
 
         And.RequestMessageCreatedFromJsonString(MinimumValidJsonSchema, url);
 
         await When.HttpRequestSent();
         Then.HttpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NoContent);
         await And.FilesWithCorrectNameAndContentShouldBeCreated(modelName);
+    }
+
+    [Theory]
+    [InlineData("testModel.schema.json", OneOfAndPropertiesSchema, DatamodelingErrorCodes.JsonSchemaConvertError)]
+    public async Task ValidInput_ShouldReturn_NoContent_And_Create_Files2(string modelPath, string schema, string expectedErrorCode)
+    {
+        string url = $"{VersionPrefix}/ttd/{TargetTestRepository}/datamodels/datamodel?modelPath={modelPath}";
+        await Given.That
+            .RepositoryCopiedForTest("ttd", "hvem-er-hvem", "testUser", TargetTestRepository);
+
+        And.RequestMessageCreatedFromJsonString(schema, url);
+        await When.HttpRequestSent();
+        Then.HttpResponseMessage.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+
+        var errorResponse = await HttpResponseMessage.Content.ReadAsAsync<ApiError>();
+
+        errorResponse.ErrorCode.Should().Be(expectedErrorCode);
     }
 
     private async Task RepositoryCopiedForTest(string org, string repository, string developer, string targetRepository)
