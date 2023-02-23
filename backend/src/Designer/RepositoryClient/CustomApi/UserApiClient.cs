@@ -11,7 +11,6 @@ namespace Altinn.Studio.Designer.RepositoryClient.CustomApi
     /// <summary>
     /// client for user api
     /// </summary>
-    [Obsolete("Not in use")]
     public class UserApiClient
     {
         private readonly string giteaCoookieId = "i_like_gitea";

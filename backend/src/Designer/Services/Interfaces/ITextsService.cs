@@ -30,6 +30,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <returns>The text file as a dictionary with ID and text as key:value pairs</returns>
         public Task<List<string>> GetKeys(string org, string repo, string developer, IList<string> languages);
 
+        public Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode);
+
         /// <summary>
         /// Edit texts file for specific language by overwriting old text file.
         /// </summary>

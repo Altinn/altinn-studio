@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Altinn.Studio.Designer.Configuration;
@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -29,6 +28,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IRepository _repository;
         private readonly ServiceRepositorySettings _settings;
+        private readonly ITextsService _textsService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
 
@@ -38,13 +38,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="hostingEnvironment">The hosting environment service.</param>
         /// <param name="serviceRepositoryService">The serviceRepository service.</param>
         /// <param name="repositorySettings">The repository settings.</param>
+        /// <param name="textsService">The texts service</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
-        public ConfigController(IWebHostEnvironment hostingEnvironment, IRepository serviceRepositoryService, ServiceRepositorySettings repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
+        public ConfigController(IWebHostEnvironment hostingEnvironment, IRepository serviceRepositoryService, ServiceRepositorySettings repositorySettings, ITextsService textsService, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = serviceRepositoryService;
             _settings = repositorySettings;
+            _textsService = textsService;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
@@ -135,7 +137,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("service")]
         public void SetServiceConfig(string org, string app, [FromBody] dynamic serviceConfig)
         {
-            string serviceConfigPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string serviceConfigPath = _settings.GetServicePath(org, app, developer) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;
 
             if (System.IO.File.Exists(serviceConfigPath))
@@ -159,6 +162,8 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             System.IO.File.WriteAllText(serviceConfigPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
+            _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string>() { {"appName", serviceConfig.serviceName.ToString()} }, "nb" );
+            _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string>() { {"serviceName", serviceConfigurationObject.ServiceName} }, "nb" );
             _repository.UpdateAppTitleInAppMetadata(org, app, "nb", serviceConfigurationObject.ServiceName);
         }
     }

@@ -148,6 +148,7 @@ export function* watchLoadLanguagesSaga(): SagaIterator {
 export function* addTextResourcesSaga({ payload }: any): SagaIterator {
   try {
     const { textResources } = payload;
+    debugger;
     const url = textResourcesAddPath(payload.owner, payload.app);
     yield call(post, url, textResources);
     yield put(addTextResourcesFulfilled());

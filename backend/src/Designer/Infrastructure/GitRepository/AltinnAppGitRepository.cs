@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
+using LibGit2Sharp;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Formatting = Newtonsoft.Json.Formatting;
+using TextResource = Altinn.Platform.Storage.Interface.Models.TextResource;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -170,10 +172,45 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string resourcePath = GetPathToJsonTextsFile($"resource.{language}.json");
 
+            if (FileExistsByRelativePath(resourcePath))
+            {
+                throw new NotFoundException("Text resource file not found.");
+            }
+
             string fileContent = await ReadTextByRelativePathAsync(resourcePath);
             Designer.Models.TextResource textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(fileContent);
 
             return textResource;
+        }
+
+        public async Task SaveTextV1(string languageCode, Designer.Models.TextResource jsonTexts)
+        {
+            string fileName = $"{languageCode}.texts.json";
+            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
+
+            JsonSerializerOptions jsonOptions = new () { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+            string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, jsonOptions);
+
+            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
+        }
+
+        /// <summary>
+        /// Reads text file from disk written in the new text format
+        /// identified by the languageCode in filename.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <returns>Texts as a string</returns>
+        public async Task<Dictionary<string, string>> GetTextsV2(string languageCode)
+        {
+            string fileName = $"{languageCode}.texts.json";
+
+            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
+
+            string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
+
+            Dictionary<string, string> jsonTexts = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(texts);
+
+            return jsonTexts;
         }
 
         /// <summary>
@@ -204,84 +241,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
 
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, text.Value, true);
-        }
-
-        /// <summary>
-        /// Gets a merged set of all text resources in the application.
-        /// </summary>
-        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
-        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
-        public async Task<Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>> GetTextResourcesForAllLanguages()
-        {
-            Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> allResourceTexts = new ();
-
-            string textResourcesDirectory = GetPathToJsonTextsFile(null);
-
-            if (!DirectoryExistsByRelativePath(textResourcesDirectory))
-            {
-                return allResourceTexts;
-            }
-
-            string[] files = GetFilesByRelativeDirectory(textResourcesDirectory);
-
-            foreach (string file in files)
-            {
-                if (!IsValidResourceFile(file))
-                {
-                    continue;
-                }
-
-                string content = await ReadTextByAbsolutePathAsync(file);
-                Designer.Models.TextResource textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content, new JsonSerializerSettings());
-                string language = textResource.Language;
-
-                GetTextResourceForLanguage(allResourceTexts, textResource, language);
-            }
-
-            return allResourceTexts;
-        }
-
-        private static void GetTextResourceForLanguage(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> allResourceTexts, Designer.Models.TextResource textResource, string language)
-        {
-            foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
-            {
-                string key = textResourceElement.Id;
-                string value = textResourceElement.Value;
-
-                if (key == null && value == null)
-                {
-                    continue;
-                }
-
-                if (!allResourceTexts.ContainsKey(key))
-                {
-                    allResourceTexts.Add(key, new Dictionary<string, Designer.Models.TextResourceElement>());
-                }
-
-                if (!allResourceTexts[key].ContainsKey(language))
-                {
-                    allResourceTexts[key].Add(language, textResourceElement);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Reads text file from disk written in the new text format
-        /// identified by the languageCode in filename.
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        /// <returns>Texts as a string</returns>
-        public async Task<Dictionary<string, string>> GetTextsV2(string languageCode)
-        {
-            string fileName = $"{languageCode}.texts.json";
-
-            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-
-            string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
-
-            Dictionary<string, string> jsonTexts = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(texts);
-
-            return jsonTexts;
         }
 
         /// <summary>
@@ -534,7 +493,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private static string GetPathToJsonTextsFile([CanBeNull] string fileName)
         {
-            return fileName.IsNullOrEmpty() ? Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME) : Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            return fileName.IsNullOrEmpty() ?
+                Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME) :
+                Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
         }
 
         private static string GetPathToMarkdownTextFile(string fileName)

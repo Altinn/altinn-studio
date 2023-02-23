@@ -4,9 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -16,6 +19,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class TextsService : ITextsService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+        private readonly JsonSerializerSettings _serializerSettings;
 
         /// <summary>
         /// Constructor
@@ -24,6 +28,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+            _serializerSettings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore
+            };
         }
 
         /// <inheritdoc />
@@ -126,6 +135,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
             }
+        }
+
+        public async Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+            TextResource textResourceObject = await altinnAppGitRepository.GetTextV1(languageCode);
+
+            // handle if file not already exist
+
+            foreach (KeyValuePair<string, string> kvp in keysTexts)
+            {
+                if ((kvp.Key == "appName" || kvp.Key == "serviceName") && string.IsNullOrEmpty(kvp.Value))
+                {
+                    throw new ArgumentException("The application name must be a value.");
+                }
+
+                TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
+                if (textResourceContainsKey is null)
+                {
+                    textResourceObject.Resources.Add(new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
+                }
+                else
+                {
+                    int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
+                    textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value };
+                }
+            }
+
+            await altinnAppGitRepository.SaveTextV1(languageCode, textResourceObject);
         }
 
         /// <inheritdoc />

@@ -6,7 +6,8 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';
-import { serviceConfigPath, serviceNamePath } from 'app-shared/api-paths';
+import { serviceConfigPath } from 'app-shared/api-paths';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -122,19 +123,9 @@ describe('Administration', () => {
         type: 'handleServiceInformation/saveServiceConfig',
       });
     });
-
-    await waitFor(() => {
-      expect(dispatchSpy).toBeCalledWith({
-        payload: {
-          url: serviceNamePath('my-org', 'my-app'),
-          newServiceName: mockEvent.target.value,
-        },
-        type: 'handleServiceInformation/saveServiceName',
-      });
-    });
   });
 
-  it('should handle sucessfully updating app description', async () => {
+  it('should handle successfully updating app description', async () => {
     const utils = renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {

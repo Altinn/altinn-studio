@@ -399,48 +399,5 @@ namespace Altinn.Studio.Designer.Controllers
                 return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance: $"App/config/texts/{filename}", detail: $"Failed to parse App/config/texts/{filename} as JSON\n" + ex.Message);
             }
         }
-
-        /// <summary>
-        /// Method to save the updated service name to the textresources file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="serviceName">The service name</param>
-        [HttpPost]
-        [Route("service-name")]
-        [Obsolete("SetServiceName is deprecated, please use UpdateTextsForKeys instead.")]
-        public void SetServiceName(string org, string app, [FromBody] dynamic serviceName)
-        {
-            string defaultLang = "nb";
-            string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
-            if (System.IO.File.Exists(serviceResourceDirectoryPath))
-            {
-                string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
-
-                ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-
-                if (textResourceObject != null)
-                {
-                    // To keep old apps up to date with newer Studio where key, serviceName, is changed to appName
-                    textResourceObject.Delete("serviceName");
-                    textResourceObject.Add("appName", serviceName.serviceName.ToString());
-                }
-
-                string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
-
-                _repository.SaveLanguageResource(org, app, "nb", resourceString);
-            }
-            else
-            {
-                ResourceCollection resourceCollection = new ResourceCollection
-                {
-                    Language = "nb",
-                    Resources = new List<Resource> { new Resource { Id = "appName", Value = serviceName.serviceName.ToString() } }
-                };
-
-                _repository.SaveLanguageResource(org, app, "nb", JsonConvert.SerializeObject(resourceCollection, _serializerSettings));
-            }
-        }
     }
 }
