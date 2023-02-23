@@ -14,20 +14,20 @@ export interface ISchemaInspectorProps {
 }
 
 export const SchemaInspector = ({ selectedItem }: ISchemaInspectorProps) => {
-  const translation = useTranslation();
-  const t = (key: string) => translation.t('schema_editor.' + key);
+  const { t } = useTranslation();
+
   enum TabValue {
     Properties = 'properties',
-    Fields = 'fields'
+    Fields = 'fields',
   }
   const [tabsFor, setTabsFor] = useState<string>(undefined);
   const [activeTab, setActiveTab] = useState<string>(TabValue.Properties);
   const [tabItems, setTabItems] = useState<TabItem[]>([
     {
-      name: t(TabValue.Properties),
+      name: t('schema_editor.properties'),
       content: null,
-      value: TabValue.Properties
-    }
+      value: TabValue.Properties,
+    },
   ]);
 
   useEffect(() => {
@@ -35,10 +35,10 @@ export const SchemaInspector = ({ selectedItem }: ISchemaInspectorProps) => {
     if (tabsFor !== selectedItem.pointer) setActiveTab(TabValue.Properties);
     const tabs = [
       {
-        name: t(TabValue.Properties),
+        name: t('schema_editor.properties'),
         content: <ItemPropertiesTab selectedItem={selectedItem} />,
-        value: TabValue.Properties
-      }
+        value: TabValue.Properties,
+      },
     ];
     if (
       selectedItem?.fieldType === FieldType.Object &&
@@ -46,9 +46,9 @@ export const SchemaInspector = ({ selectedItem }: ISchemaInspectorProps) => {
       selectedItem.objectKind !== ObjectKind.Reference
     ) {
       tabs.push({
-        name: t(TabValue.Fields),
+        name: t('schema_editor.fields'),
         content: <ItemFieldsTab selectedItem={selectedItem} />,
-        value: TabValue.Fields
+        value: TabValue.Fields,
       });
     }
     setTabsFor(selectedItem.pointer);
@@ -77,7 +77,7 @@ export const SchemaInspector = ({ selectedItem }: ISchemaInspectorProps) => {
   return (
     <div>
       <p className={classes.noItem} id='no-item-paragraph'>
-        {t('no_item_selected')}
+        {t('schema_editor.no_item_selected')}
       </p>
       <Divider />
     </div>

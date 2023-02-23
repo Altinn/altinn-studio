@@ -69,12 +69,12 @@ describe('SchemaInspector', () => {
     expect(tabpanel).toBeDefined();
     expect(screen.getAllByRole('tab')).toHaveLength(1);
     const textboxes = screen.getAllByRole('textbox');
+
     for (const textbox of textboxes) {
       await user.clear(textbox);
       await user.type(textbox, 'new-value');
       await user.tab();
     }
-
     const actions = store.getActions();
     expect(actions.length).toBeGreaterThanOrEqual(1);
     const actionTypes = actions.map((a) => a.type);
