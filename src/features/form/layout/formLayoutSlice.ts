@@ -343,6 +343,11 @@ export const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutSt
         state.uiConfig.keepScrollPos = undefined;
       },
     }),
+    updateLayout: mkAction<ILayouts>({
+      reducer: (state, action) => {
+        state.layouts = { ...state.layouts, ...action.payload };
+      },
+    }),
   },
 }));
 

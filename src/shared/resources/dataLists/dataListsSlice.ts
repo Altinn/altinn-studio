@@ -1,8 +1,7 @@
-import { fetchDataListsSaga } from 'src/shared/resources/dataLists/fetchDataListsSaga';
+import { fetchDataListsSaga, watchFinishedLoadingSaga } from 'src/shared/resources/dataLists/fetchDataListsSaga';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
   IDataListsState,
-  IFetchDataListCountFulfilledAction,
   IFetchDataListsFulfilledAction,
   IFetchDataListsRejectedAction,
   IFetchingDataListsAction,
@@ -26,18 +25,14 @@ const initialState: IDataListsState = {
 export const dataListsSlice = createSagaSlice((mkAction: MkActionType<IDataListsState>) => ({
   name: 'dataListState',
   initialState,
+  extraSagas: [watchFinishedLoadingSaga],
   actions: {
     fetch: mkAction<void>({
       takeEvery: fetchDataListsSaga,
     }),
-    dataListCountFulfilled: mkAction<IFetchDataListCountFulfilledAction>({
-      reducer: (state, action) => {
-        const { count } = action.payload;
-        if (count <= 0) {
-          state.loading = false;
-        } else {
-          state.dataListCount = count;
-        }
+    loaded: mkAction<void>({
+      reducer: (state) => {
+        state.loading = false;
       },
     }),
     fetchFulfilled: mkAction<IFetchDataListsFulfilledAction>({
@@ -46,12 +41,6 @@ export const dataListsSlice = createSagaSlice((mkAction: MkActionType<IDataLists
         state.dataLists[key].loading = false;
         state.dataLists[key].listItems = dataLists;
         state.dataLists[key].paginationData = metadata;
-        if (state.loading) {
-          state.dataListLoadedCount++;
-          if (state.dataListLoadedCount == state.dataListCount) {
-            state.loading = false;
-          }
-        }
       },
     }),
     fetchRejected: mkAction<IFetchDataListsRejectedAction>({
@@ -59,12 +48,6 @@ export const dataListsSlice = createSagaSlice((mkAction: MkActionType<IDataLists
         const { key, error } = action.payload;
         state.dataLists[key].loading = false;
         state.error = error;
-        if (state.loading) {
-          state.dataListLoadedCount++;
-          if (state.dataListLoadedCount == state.dataListCount) {
-            state.loading = false;
-          }
-        }
       },
     }),
     fetching: mkAction<IFetchingDataListsAction>({

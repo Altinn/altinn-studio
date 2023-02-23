@@ -207,7 +207,7 @@ export function SummaryComponent(_props: ISummaryComponent) {
       lg={displayGrid?.lg || false}
       xl={displayGrid?.xl || false}
       data-testid={`summary-${id}`}
-      className={cn(pageBreakStyles(summaryComponent ?? formComponent))}
+      className={cn(pageBreakStyles(summaryComponent?.pageBreak ?? formComponent?.pageBreak))}
     >
       <Grid
         container={true}

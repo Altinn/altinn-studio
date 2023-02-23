@@ -80,6 +80,12 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       parties: [partyMock],
       selectedParty: partyMock,
     },
+    pdf: {
+      readyForPrint: false,
+      pdfFormat: null,
+      method: null,
+      error: null,
+    },
     process: {
       error: null,
       taskType: null,
@@ -135,8 +141,6 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     optionState: {
       options: {},
       error: null,
-      optionsCount: 0,
-      optionsLoadedCount: 0,
       loading: false,
     },
     dataListState: {

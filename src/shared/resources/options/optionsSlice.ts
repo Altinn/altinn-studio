@@ -1,8 +1,7 @@
-import { fetchOptionsSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
+import { fetchOptionsSaga, watchFinishedLoadingSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
   IFetchingOptionsAction,
-  IFetchOptionsCountFulfilledAction,
   IFetchOptionsFulfilledAction,
   IFetchOptionsRejectedAction,
   IOptionsState,
@@ -15,26 +14,20 @@ const initialState: IOptionsState = {
   options: {},
   optionsWithIndexIndicators: [],
   error: null,
-  optionsCount: 0,
-  optionsLoadedCount: 0,
   loading: true,
 };
 
 export const optionsSlice = createSagaSlice((mkAction: MkActionType<IOptionsState>) => ({
   name: 'optionState',
   initialState,
+  extraSagas: [watchFinishedLoadingSaga],
   actions: {
     fetch: mkAction<void>({
       takeEvery: fetchOptionsSaga,
     }),
-    optionCountFulfilled: mkAction<IFetchOptionsCountFulfilledAction>({
-      reducer: (state, action) => {
-        const { count } = action.payload;
-        if (count <= 0) {
-          state.loading = false;
-        } else {
-          state.optionsCount = count;
-        }
+    loaded: mkAction<void>({
+      reducer: (state) => {
+        state.loading = false;
       },
     }),
     fetchFulfilled: mkAction<IFetchOptionsFulfilledAction>({
@@ -44,12 +37,6 @@ export const optionsSlice = createSagaSlice((mkAction: MkActionType<IOptionsStat
         if (option) {
           option.loading = false;
           option.options = options;
-        }
-        if (state.loading) {
-          state.optionsLoadedCount++;
-          if (state.optionsLoadedCount == state.optionsCount) {
-            state.loading = false;
-          }
         }
       },
     }),
@@ -61,12 +48,6 @@ export const optionsSlice = createSagaSlice((mkAction: MkActionType<IOptionsStat
           option.loading = false;
         }
         state.error = error;
-        if (state.loading) {
-          state.optionsLoadedCount++;
-          if (state.optionsLoadedCount == state.optionsCount) {
-            state.loading = false;
-          }
-        }
       },
     }),
     fetching: mkAction<IFetchingOptionsAction>({

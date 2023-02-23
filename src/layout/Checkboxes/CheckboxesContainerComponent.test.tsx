@@ -61,8 +61,6 @@ const render = (props: Partial<ICheckboxContainerProps> = {}, customState: Prelo
           name: '',
           message: '',
         },
-        optionsCount: 2,
-        optionsLoadedCount: 1,
         loading: true,
       },
       ...customState,

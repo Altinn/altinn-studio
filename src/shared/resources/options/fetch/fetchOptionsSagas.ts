@@ -1,4 +1,4 @@
-import { call, fork, put, select } from 'redux-saga/effects';
+import { call, fork, put, race, select, take } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
@@ -34,12 +34,28 @@ export const optionsWithIndexIndicatorsSelector = (state: IRuntimeState) =>
 export const instanceIdSelector = (state: IRuntimeState): string | undefined => state.instanceData.instance?.id;
 export const repeatingGroupsSelector = (state: IRuntimeState) => state.formLayout?.uiConfig.repeatingGroups;
 
+export function* watchFinishedLoadingSaga(): SagaIterator {
+  let optionCount = 0;
+  let fulfilledCount = 0;
+  while (true) {
+    const [fetch, fulfilled] = yield race([take(OptionsActions.fetching), take(OptionsActions.fetchFulfilled)]);
+    if (fetch) {
+      optionCount++;
+    }
+    if (fulfilled) {
+      fulfilledCount++;
+    }
+    if (optionCount === fulfilledCount) {
+      yield put(OptionsActions.loaded());
+    }
+  }
+}
+
 export function* fetchOptionsSaga(): SagaIterator {
   const layouts: ILayouts = yield selectNotNull(formLayoutSelector);
   const repeatingGroups: IRepeatingGroups = yield selectNotNull(repeatingGroupsSelector);
   const fetchedOptions: string[] = [];
   const optionsWithIndexIndicators: IOptionsMetaData[] = [];
-  let count = 0;
   for (const layoutId of Object.keys(layouts)) {
     for (const element of layouts[layoutId] || []) {
       const { optionsId, mapping, secure } = element as ISelectionComponentProps;
@@ -72,13 +88,14 @@ export function* fetchOptionsSaga(): SagaIterator {
             dataMapping: mapping,
             secure,
           });
-          count++;
           fetchedOptions.push(lookupKey);
         }
       }
     }
   }
-  yield put(OptionsActions.optionCountFulfilled({ count }));
+  if (fetchedOptions.length == 0) {
+    yield put(OptionsActions.loaded());
+  }
   yield put(
     OptionsActions.setOptionsWithIndexIndicators({
       optionsWithIndexIndicators,

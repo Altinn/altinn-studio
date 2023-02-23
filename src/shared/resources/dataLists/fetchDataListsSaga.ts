@@ -1,5 +1,5 @@
 import { SortDirection } from '@altinn/altinn-design-system';
-import { call, fork, put, select } from 'redux-saga/effects';
+import { call, fork, put, race, select, take } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
@@ -29,12 +29,28 @@ export const dataListsWithIndexIndicatorsSelector = (state: IRuntimeState) =>
 export const instanceIdSelector = (state: IRuntimeState): string | undefined => state.instanceData.instance?.id;
 export const repeatingGroupsSelector = (state: IRuntimeState) => state.formLayout?.uiConfig.repeatingGroups;
 
+export function* watchFinishedLoadingSaga(): SagaIterator {
+  let dataListCount = 0;
+  let fulfilledCount = 0;
+  while (true) {
+    const [fetch, fulfilled] = yield race([take(DataListsActions.fetching), take(DataListsActions.fetchFulfilled)]);
+    if (fetch) {
+      dataListCount++;
+    }
+    if (fulfilled) {
+      fulfilledCount++;
+    }
+    if (dataListCount === fulfilledCount) {
+      yield put(DataListsActions.loaded());
+    }
+  }
+}
+
 export function* fetchDataListsSaga(): SagaIterator {
   const layouts: ILayouts = yield selectNotNull(formLayoutSelector);
   const repeatingGroups: IRepeatingGroups = yield selectNotNull(repeatingGroupsSelector);
   const fetchedDataLists: string[] = [];
   const dataListsWithIndexIndicators: IDataListsMetaData[] = [];
-  let count = 0;
   for (const layoutId of Object.keys(layouts)) {
     for (const element of layouts[layoutId] || []) {
       if (element.type !== 'List' || !element.id) {
@@ -69,13 +85,14 @@ export function* fetchDataListsSaga(): SagaIterator {
             secure,
             paginationDefaultValue: paginationDefault,
           });
-          count++;
           fetchedDataLists.push(lookupKey);
         }
       }
     }
   }
-  yield put(DataListsActions.dataListCountFulfilled({ count }));
+  if (fetchedDataLists.length == 0) {
+    yield put(DataListsActions.loaded());
+  }
   yield put(
     DataListsActions.setDataListsWithIndexIndicators({
       dataListsWithIndexIndicators,

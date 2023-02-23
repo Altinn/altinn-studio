@@ -60,7 +60,7 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
       container={true}
       item={true}
       id={props.id || container.id}
-      className={cn(classes.groupContainer, pageBreakStyles(container))}
+      className={cn(classes.groupContainer, pageBreakStyles(container.pageBreak))}
       spacing={3}
       alignItems='flex-start'
       data-testid='display-group-container'

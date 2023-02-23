@@ -6,12 +6,14 @@ import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
+import { PdfActions } from 'src/features/pdf/data/pdfSlice';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import { ProcessWrapper } from 'src/shared/containers/ProcessWrapper';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { httpGet } from 'src/utils/network/networking';
+import { shouldGeneratePdf } from 'src/utils/pdf';
 import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from 'src/utils/urls/appUrlHelper';
 
 // 1 minute = 60.000ms
@@ -47,6 +49,7 @@ export const App = () => {
       window.addEventListener('scroll', refreshJwtToken);
       window.addEventListener('onfocus', refreshJwtToken);
       window.addEventListener('keydown', refreshJwtToken);
+      window.addEventListener('hashchange', setPdfState);
     }
 
     function removeEventListeners() {
@@ -54,6 +57,13 @@ export const App = () => {
       window.removeEventListener('scroll', refreshJwtToken);
       window.removeEventListener('onfocus', refreshJwtToken);
       window.removeEventListener('keydown', refreshJwtToken);
+      window.removeEventListener('hashchange', setPdfState);
+    }
+
+    function setPdfState() {
+      if (shouldGeneratePdf()) {
+        dispatch(PdfActions.pdfStateChanged());
+      }
     }
 
     function refreshJwtToken() {

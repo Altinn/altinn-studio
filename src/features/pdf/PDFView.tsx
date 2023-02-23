@@ -2,92 +2,70 @@ import React from 'react';
 
 import cn from 'classnames';
 
-import type { IPdfFormat } from '.';
-
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { AutomaticPDFLayout } from 'src/features/pdf/AutomaticPDFLayout';
-import { CustomPDFLayout } from 'src/features/pdf/CustomPDFLayout';
+import { SummaryComponent } from 'src/components/summary/SummaryComponent';
+import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
+import { mapGroupComponents } from 'src/features/form/containers/formUtils';
+import { PDF_LAYOUT_NAME } from 'src/features/pdf/data/pdfSlice';
 import css from 'src/features/pdf/PDFView.module.css';
+import { ComponentType } from 'src/layout';
+import { GenericComponent } from 'src/layout/GenericComponent';
+import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
-import { useExprContext } from 'src/utils/layout/ExprContext';
-import { httpGet } from 'src/utils/network/networking';
-import { getPdfFormatUrl } from 'src/utils/urls/appUrlHelper';
+import { topLevelComponents } from 'src/utils/formLayout';
+import type { ComponentExceptGroupAndSummary, ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
 
 interface PDFViewProps {
   appName: string;
   appOwner?: string;
 }
 
+const PDFComponent = ({ component, layout }: { component: ILayoutComponentOrGroup; layout: ILayout }) => {
+  const layoutComponent = getLayoutComponentObject(component.type as ComponentExceptGroupAndSummary);
+
+  if (component.type === 'Group') {
+    return (
+      <DisplayGroupContainer
+        container={component}
+        components={mapGroupComponents(component, layout)}
+        renderLayoutComponent={(child) => (
+          <PDFComponent
+            key={child.id}
+            component={child}
+            layout={layout}
+          />
+        )}
+      />
+    );
+  } else if (component.type === 'Summary') {
+    return (
+      <SummaryComponent
+        {...component}
+        display={{ hideChangeButton: true, hideValidationMessages: true }}
+        grid={{ xs: 12 }}
+      />
+    );
+  } else if (layoutComponent?.getComponentType() === ComponentType.Presentation) {
+    return (
+      <GenericComponent
+        {...component}
+        grid={{ xs: 12 }}
+      />
+    );
+  } else {
+    console.warn(`Type: "${component.type}" is not allowed in PDF.`);
+    return null;
+  }
+};
+
 export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
-  const layouts = useAppSelector((state) => state.formLayout.layouts);
-  const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
-  const excludedPages = useAppSelector((state) => state.formLayout.uiConfig.excludePageFromPdf);
-  const excludedComponents = useAppSelector((state) => state.formLayout.uiConfig.excludeComponentFromPdf);
-  const pageOrder = useAppSelector((state) => state.formLayout.uiConfig.tracks.order);
-  const hidden = useAppSelector((state) => state.formLayout.uiConfig.tracks.hidden);
-  const pdfLayoutName = useAppSelector((state) => state.formLayout.uiConfig.pdfLayoutName);
-  const optionsLoading = useAppSelector((state) => state.optionState.loading);
-  const dataListLoading = useAppSelector((state) => state.dataListState.loading);
-  const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
-  const applicationSettings = useAppSelector((state) => state.applicationSettings.applicationSettings);
-  const applicationMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
-  const formData = useAppSelector((state) => state.formData.formData);
-  const unsavedChanges = useAppSelector((state) => state.formData.unsavedChanges);
-  const hiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
-  const parties = useAppSelector((state) => state.party.parties);
-  const language = useAppSelector((state) => state.language.language);
-  const textResources = useAppSelector((state) => state.textResources.resources);
-  const instance = useAppSelector((state) => state.instanceData.instance);
-  const allOrgs = useAppSelector((state) => state.organisationMetaData.allOrgs);
-  const profile = useAppSelector((state) => state.profile.profile);
-  const nodeLayouts = useExprContext();
+  const { readyForPrint, method } = useAppSelector((state) => state.pdf);
+  const { layouts, uiConfig } = useAppSelector((state) => state.formLayout);
 
-  // Custom pdf layout
-  const pdfLayout = pdfLayoutName && layouts ? layouts[pdfLayoutName] : undefined;
+  const pdfLayoutName = method === 'custom' ? uiConfig.pdfLayoutName : method === 'auto' ? PDF_LAYOUT_NAME : undefined;
+  const pdfLayout = pdfLayoutName && layouts?.[pdfLayoutName];
 
-  // Fetch PdfFormat from backend
-  const [pdfFormat, setPdfFormat] = React.useState<IPdfFormat | null>(null);
-  React.useEffect(() => {
-    if (
-      applicationMetadata &&
-      instance &&
-      (instance?.data?.length === 1 || layoutSets) &&
-      excludedPages &&
-      excludedComponents &&
-      !pdfLayout &&
-      !unsavedChanges
-    ) {
-      const dataGuid = getCurrentTaskDataElementId(applicationMetadata, instance, layoutSets);
-      if (typeof dataGuid === 'string') {
-        const url = getPdfFormatUrl(instance.id, dataGuid);
-        httpGet(url)
-          .then((pdfFormat: IPdfFormat) => setPdfFormat(pdfFormat))
-          .catch(() => setPdfFormat({ excludedPages, excludedComponents }));
-      } else {
-        setPdfFormat({ excludedPages, excludedComponents });
-      }
-    }
-  }, [applicationMetadata, excludedComponents, excludedPages, instance, layoutSets, pdfLayout, unsavedChanges]);
-
-  if (
-    optionsLoading ||
-    dataListLoading ||
-    !layouts ||
-    !hidden ||
-    !repeatingGroups ||
-    !applicationSettings ||
-    !formData ||
-    !hiddenFields ||
-    !parties ||
-    !language ||
-    !textResources ||
-    !allOrgs ||
-    !profile ||
-    !pageOrder ||
-    (!pdfFormat && !pdfLayout) ||
-    !nodeLayouts
-  ) {
+  if (!readyForPrint || !pdfLayout) {
     return null;
   }
 
@@ -102,16 +80,17 @@ export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
           {appOwner}
         </p>
       )}
-      {typeof pdfLayout !== 'undefined' ? (
-        <CustomPDFLayout layout={pdfLayout} />
-      ) : (
-        <AutomaticPDFLayout
-          pdfFormat={pdfFormat}
-          pageOrder={pageOrder}
-          hidden={hidden}
-          layouts={nodeLayouts}
-        />
-      )}
+      {topLevelComponents(pdfLayout).map((component) => (
+        <div
+          key={component.id}
+          className={css['component-container']}
+        >
+          <PDFComponent
+            component={component}
+            layout={pdfLayout}
+          />
+        </div>
+      ))}
       <ReadyForPrint />
     </div>
   );

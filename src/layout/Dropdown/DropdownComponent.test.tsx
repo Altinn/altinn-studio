@@ -55,8 +55,6 @@ const render = (props: Partial<IDropdownProps> = {}, customState: PreloadedState
           name: '',
           message: '',
         },
-        optionsCount: 2,
-        optionsLoadedCount: 1,
         loading: true,
       },
     },

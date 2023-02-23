@@ -104,8 +104,6 @@ describe('AttachmentWithTagSummaryComponent', () => {
           ],
         },
       },
-      optionsCount: 4,
-      optionsLoadedCount: 4,
       loading: false,
     },
   };

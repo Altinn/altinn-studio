@@ -13,6 +13,7 @@ import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { IDataModelBindings, IGridStyling, ILayoutComponent, ISelectionComponentProps } from 'src/layout/layout';
+import type { IPageBreak } from 'src/layout/layout.d';
 import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 import type {
   IComponentValidations,
@@ -24,7 +25,6 @@ import type {
   IValidations,
 } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
-import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
 export const componentHasValidationMessages = (componentValidations: IComponentValidations | undefined) => {
   if (!componentValidations) {
@@ -546,17 +546,17 @@ export const gridBreakpoints = (grid?: IGridStyling) => {
   };
 };
 
-export const pageBreakStyles = (component: AnyItem<'resolved'> | undefined) => {
-  if (!component?.pageBreak) {
+export const pageBreakStyles = (pageBreak: IPageBreak | undefined) => {
+  if (!pageBreak) {
     return {};
   }
 
   return {
-    [printStyles['break-before-auto']]: component.pageBreak.breakBefore === 'auto',
-    [printStyles['break-before-always']]: component.pageBreak.breakBefore === 'always',
-    [printStyles['break-before-avoid']]: component.pageBreak.breakBefore === 'avoid',
-    [printStyles['break-after-auto']]: component.pageBreak.breakAfter === 'auto',
-    [printStyles['break-after-always']]: component.pageBreak.breakAfter === 'always',
-    [printStyles['break-after-avoid']]: component.pageBreak.breakAfter === 'avoid',
+    [printStyles['break-before-auto']]: pageBreak.breakBefore === 'auto',
+    [printStyles['break-before-always']]: pageBreak.breakBefore === 'always',
+    [printStyles['break-before-avoid']]: pageBreak.breakBefore === 'avoid',
+    [printStyles['break-after-auto']]: pageBreak.breakAfter === 'auto',
+    [printStyles['break-after-always']]: pageBreak.breakAfter === 'always',
+    [printStyles['break-after-avoid']]: pageBreak.breakAfter === 'avoid',
   };
 };

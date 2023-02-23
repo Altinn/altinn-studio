@@ -31,6 +31,7 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
     state.optionState.error ||
     state.attachments.error ||
     state.dataListState.error ||
+    state.pdf.error ||
     // we have a few special cases where we allow 404 status codes but not other errors
     exceptIfIncludes(state.applicationSettings.error, '404') ||
     exceptIfIncludes(state.textResources.error, '404') ||

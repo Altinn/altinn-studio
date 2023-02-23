@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { makeStyles } from '@material-ui/core';
+
 import { HelpTextIcon } from 'src/features/form/components/HelpTextIcon';
 import { HelpTextPopover } from 'src/features/form/components/HelpTextPopover';
 import type { ILanguage } from 'src/types/shared';
@@ -9,9 +11,18 @@ export interface IHelpTextContainerProps {
   helpText: React.ReactNode;
 }
 
+const useStyles = makeStyles({
+  hiddenInPdf: {
+    '@media print': {
+      display: 'none',
+    },
+  },
+});
+
 export function HelpTextContainer({ language, helpText }: IHelpTextContainerProps) {
   const helpIconRef = React.useRef();
   const [openPopover, setOpenPopover] = React.useState<boolean>(false);
+  const classes = useStyles();
 
   const handlePopoverClick = (event: React.MouseEvent): void => {
     event.stopPropagation();
@@ -39,6 +50,7 @@ export function HelpTextContainer({ language, helpText }: IHelpTextContainerProp
     <span
       tabIndex={-1}
       onBlur={onBlur}
+      className={classes.hiddenInPdf}
     >
       <HelpTextIcon
         helpIconRef={helpIconRef}

@@ -4,8 +4,6 @@ export interface IOptionsState {
   error: Error | null;
   options: IOptions;
   optionsWithIndexIndicators?: IOptionsMetaData[];
-  optionsCount: number;
-  optionsLoadedCount: number;
   loading: boolean;
 }
 

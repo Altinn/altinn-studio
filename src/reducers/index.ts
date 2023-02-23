@@ -8,6 +8,7 @@ import { formLayoutSlice } from 'src/features/form/layout/formLayoutSlice';
 import { formRulesSlice } from 'src/features/form/rules/rulesSlice';
 import { validationSlice } from 'src/features/form/validation/validationSlice';
 import { instantiationSlice } from 'src/features/instantiate/instantiation/instantiationSlice';
+import { pdfSlice } from 'src/features/pdf/data/pdfSlice';
 import { appApi } from 'src/services/AppApi';
 import { applicationMetadataSlice } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { applicationSettingsSlice } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
@@ -40,6 +41,7 @@ const reducers = {
   [languageSlice.name]: languageSlice.reducer,
   [orgsSlice.name]: orgsSlice.reducer,
   [partySlice.name]: partySlice.reducer,
+  [pdfSlice.name]: pdfSlice.reducer,
   [processSlice.name]: processSlice.reducer,
   [profileSlice.name]: profileSlice.reducer,
   [queueSlice.name]: queueSlice.reducer,

@@ -60,8 +60,6 @@ const render = (props: Partial<IRadioButtonsContainerProps> = {}, customState: P
           name: '',
           message: '',
         },
-        optionsCount: 2,
-        optionsLoadedCount: 1,
         loading: true,
       },
       ...customState,
