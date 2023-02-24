@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
@@ -16,7 +15,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -131,7 +129,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A View with update status</returns>
         [HttpPost]
         [Route("language/{languageCode}")]
-        public async Task<ActionResult> SaveResource([FromBody] dynamic jsonData, string languageCode, string org, string app)
+        public async Task<ActionResult> SaveResource([FromBody] TextResource jsonData, string languageCode, string org, string app)
         {
             try
             {

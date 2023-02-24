@@ -6,10 +6,17 @@ using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
+    /// <summary>
+    /// Service to handle functionality concerning app-development
+    /// </summary>
     public class AppDevelopmentService : IAppDevelopmentService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
         public AppDevelopmentService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;

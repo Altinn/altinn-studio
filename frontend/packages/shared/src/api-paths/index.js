@@ -46,10 +46,7 @@ export const userLogoutAfterPath = () => '/Home/Logout';
 export const languagesPath = (org, app) => `/designer/api/${org}/${app}/languages`; // Get
 
 // Model
-export const datamodelCsharpPath = (org, app) => `/designer/api/${org}/${app}/model/csharp`; // Get
-export const datamodelJsonSchemaPath = (org, app) => `/designer/api/${org}/${app}/model/json-schema`; // Get
 export const datamodelMetadataPath = (org, app) => `/designer/api/${org}/${app}/model/metadata`; // Get
-export const datamodelXsdPath = (org, app) => `/designer/api/${org}/${app}/model/xsd`; // Get
 
 // Organizations
 export const orgsListPath = () => '/designer/api/orgs'; // Get

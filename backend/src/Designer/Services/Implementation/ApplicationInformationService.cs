@@ -13,7 +13,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IApplicationMetadataService _applicationMetadataService;
         private readonly IAuthorizationPolicyService _authorizationPolicyService;
         private readonly ITextResourceService _textResourceService;
-        private readonly IGitea _giteaApiWrapper;
 
         /// <summary>
         /// Constructor
@@ -21,13 +20,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public ApplicationInformationService(
             IApplicationMetadataService applicationMetadataService,
             IAuthorizationPolicyService authorizationPolicyService,
-            ITextResourceService textResourceService,
-            IGitea giteaApiWrapper)
+            ITextResourceService textResourceService)
         {
             _applicationMetadataService = applicationMetadataService;
             _authorizationPolicyService = authorizationPolicyService;
             _textResourceService = textResourceService;
-            _giteaApiWrapper = giteaApiWrapper;
         }
 
         /// <inheritdoc />
@@ -38,7 +35,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string envName)
         {
             Task updateMetadataTask = _applicationMetadataService
-                .UpdateApplicationMetadataAsync(org, app, shortCommitId, envName);
+                .UpdateApplicationMetadataInStorageAsync(org, app, shortCommitId, envName);
 
             Task updateAuthPolicyTask = _authorizationPolicyService
                 .UpdateApplicationAuthorizationPolicyAsync(org, app, shortCommitId, envName);

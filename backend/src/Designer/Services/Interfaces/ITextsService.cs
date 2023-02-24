@@ -9,6 +9,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     /// </summary>
     public interface ITextsService
     {
+
+        /// <summary>
+        /// Creates the default text resource file in old text format with appName
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="repo">Repository</param>
+        /// <param name="developer">Username of developer</param>
+        public Task CreateLanguageResources(string org, string repo, string developer);
+
         /// <summary>
         /// Gets texts file in old format in app repository according to
         /// specified languageCode.

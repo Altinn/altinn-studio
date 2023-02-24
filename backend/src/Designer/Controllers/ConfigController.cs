@@ -29,6 +29,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IRepository _repository;
         private readonly ServiceRepositorySettings _settings;
         private readonly ITextsService _textsService;
+        private readonly IApplicationMetadataService _applicationMetadataService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
 
@@ -39,14 +40,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="serviceRepositoryService">The serviceRepository service.</param>
         /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="textsService">The texts service</param>
+        /// <param name="applicationMetadataService">The application metadata service.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
-        public ConfigController(IWebHostEnvironment hostingEnvironment, IRepository serviceRepositoryService, ServiceRepositorySettings repositorySettings, ITextsService textsService, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
+        public ConfigController(IWebHostEnvironment hostingEnvironment, IRepository serviceRepositoryService, ServiceRepositorySettings repositorySettings, ITextsService textsService, IApplicationMetadataService applicationMetadataService, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = serviceRepositoryService;
             _settings = repositorySettings;
             _textsService = textsService;
+            _applicationMetadataService = applicationMetadataService;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
@@ -86,7 +89,7 @@ namespace Altinn.Studio.Designer.Controllers
                 configJson = "{}";
             }
 
-            JsonResult result = new JsonResult(configJson);
+            JsonResult result = new (configJson);
 
             return result;
         }
@@ -102,7 +105,7 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult Schema(string schemaName)
         {
             string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/{schemaName.AsFileName()}.json");
-            return Content(schema, "application/json", System.Text.Encoding.UTF8);
+            return Content(schema, "application/json", Encoding.UTF8);
         }
 
         /// <summary>
@@ -117,7 +120,6 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string serviceConfigPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;
-            var watch = System.Diagnostics.Stopwatch.StartNew();
             if (System.IO.File.Exists(serviceConfigPath))
             {
                 string serviceConfiguration = System.IO.File.ReadAllText(serviceConfigPath, Encoding.UTF8);
@@ -139,7 +141,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string serviceConfigPath = _settings.GetServicePath(org, app, developer) + _settings.ServiceConfigFileName;
-            ServiceConfiguration serviceConfigurationObject = null;
+            ServiceConfiguration serviceConfigurationObject;
 
             if (System.IO.File.Exists(serviceConfigPath))
             {
@@ -162,8 +164,8 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             System.IO.File.WriteAllText(serviceConfigPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
-            _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string>() { { "appName", serviceConfig.serviceName.ToString() } }, "nb");
-            _repository.UpdateAppTitleInAppMetadata(org, app, "nb", serviceConfigurationObject.ServiceName);
+            _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string> { { "appName", serviceConfig.serviceName.ToString() } }, "nb");
+            _applicationMetadataService.UpdateAppTitleInAppMetadata(org, app, "nb", serviceConfigurationObject.ServiceName);
         }
     }
 }

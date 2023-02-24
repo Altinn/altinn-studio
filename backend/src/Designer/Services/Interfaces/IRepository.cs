@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service metadata for an app.</returns>
-        ModelMetadata GetModelMetadata(string org, string app);
+        Task<ModelMetadata> GetModelMetadata(string org, string app);
 
         /// <summary>
         /// Get content of configuration file
@@ -39,15 +39,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         string GetConfiguration(string org, string app, string name);
 
         /// <summary>
-        /// Get content of file path relative to root
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="fileName">The name of file path relative to app directory</param>
-        /// <returns>The fileContent</returns>
-        string GetFileByRelativePath(string org, string app, string fileName);
-
-        /// <summary>
         /// Get content of resource file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -55,14 +46,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>The resource file content</returns>
         string GetLanguageResource(string org, string app, string id);
-
-        /// <summary>
-        /// Gets the content of the ServiceModel as string
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The content of a service model (c# code and comments)</returns>
-        string GetAppModel(string org, string app);
 
         /// <summary>
         /// Stores the configuration for a given fileName
@@ -218,22 +201,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool SaveFile(string org, string app, string fileName, string fileContent);
 
         /// <summary>
-        /// Get XSD model from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the XSD from file as a string.</returns>
-        string GetXsdModel(string org, string app);
-
-        /// <summary>
-        /// Get Json Schema model from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the Json Schema from file as a string.</returns>
-        string GetJsonSchemaModel(string org, string app);
-
-        /// <summary>
         /// Get the rule handler Json form model from disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -265,64 +232,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Returns the json object as a string</returns>
         string GetRuleConfig(string org, string app);
-
-        /// <summary>
-        /// update  metadata for attachment
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="applicationMetadata">the application metadata to be updated</param>
-        void AddMetadataForAttachment(string org, string app, string applicationMetadata);
-
-        /// <summary>
-        /// update  metadata for attachment
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="applicationMetadata">the application metadata to be updated</param>
-        void UpdateMetadataForAttachment(string org, string app, string applicationMetadata);
-
-        /// <summary>
-        /// Delete metadata for attachment component
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">the id of the attachment component</param>
-        /// <returns></returns>
-        bool DeleteMetadataForAttachment(string org, string app, string id);
-
-        /// <summary>
-        /// Returns the application metadata for an application.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The application  metadata for an application.</returns>
-        PlatformStorageModels.Application GetApplication(string org, string app);
-
-        /// <summary>
-        /// Creates the application metadata file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation., e.g. "app-name-with-spaces".</param>
-        /// <param name="appTitle">The application title in default language (nb), e.g. "App name with spaces"</param>
-        void CreateApplicationMetadata(string org, string app, string appTitle);
-
-        /// <summary>
-        /// Updates application metadata
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="applicationMetadata">The application metadata to be updated</param>
-        void UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata);
-
-        /// <summary>
-        /// Updates app title in application metadata
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="languageId"> the language id</param>
-        /// <param name="title"> new application title </param>
-        void UpdateAppTitleInAppMetadata(string org, string app, string languageId, string title);
 
         /// <summary>
         /// Create a new file in blob storage.
@@ -371,7 +280,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">The app</param>
         /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
         /// <param name="classRef">The class ref</param>
-        void UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
+        Task UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
 
         /// <summary>
         /// Deletes the repository both locally and remotely.

@@ -4,13 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -20,20 +17,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class TextsService : ITextsService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-        private readonly JsonSerializerSettings _serializerSettings;
+        private readonly IApplicationMetadataService _applicationMetadataService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-        public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+        /// <param name="applicationMetadataService">IApplicationMetadataService</param>
+        public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IApplicationMetadataService applicationMetadataService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-            _serializerSettings = new JsonSerializerSettings
+            _applicationMetadataService = applicationMetadataService;
+        }
+
+        public async Task CreateLanguageResources(string org, string repo, string developer)
+        {
+            if (!string.IsNullOrEmpty(repo))
             {
-                Formatting = Formatting.Indented,
-                NullValueHandling = NullValueHandling.Ignore
-            };
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+                TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+                textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = repo });
+                await altinnAppGitRepository.SaveTextV1("nb", textResource);
+            }
         }
 
         /// <inheritdoc />
@@ -51,33 +56,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            languageCode = languageCode.Split('-')[0];
-            JObject json = textResource;
-
-            JArray resources = json["resources"] as JArray;
-            string[] duplicateKeys = resources.GroupBy(obj => obj["id"]).Where(grp => grp.Count() > 1).Select(grp => grp.Key.ToString()).ToArray();
+            string[] duplicateKeys = textResource.Resources.GroupBy(tre => tre.Id).Where(grp => grp.Count() > 1).Select(grp => grp.Key).ToArray();
             if (duplicateKeys.Length > 0)
             {
                 throw new ArgumentException($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
             }
 
-            JArray sorted = new(resources.OrderBy(obj => obj["id"]));
-            json["resources"].Replace(sorted);
-
             // updating application metadata with appTitle.
-            JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
+            TextResourceElement appTitleResourceElement = textResource.Resources.FirstOrDefault(tre => tre.Id == "appName" || tre.Id == "ServiceName");
 
-            if (appTitleToken != null && !string.IsNullOrEmpty(appTitleToken.Value<string>("value")))
+            if (appTitleResourceElement != null && !string.IsNullOrEmpty(appTitleResourceElement.Value))
             {
-                string appTitle = appTitleToken.Value<string>("value");
-                _repository.UpdateAppTitleInAppMetadata(org, app, languageCode, appTitle);
+                await _applicationMetadataService.UpdateAppTitleInAppMetadata(org, repo, "nb", appTitleResourceElement.Value);
             }
             else
             {
                 throw new ArgumentException("The application name must be a value.");
             }
-
-            _repository.(org, app, languageCode, json.ToString());
 
             await altinnAppGitRepository.SaveTextV1(languageCode, textResource);
         }

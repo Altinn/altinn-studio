@@ -12,7 +12,6 @@ using LibGit2Sharp;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Formatting = Newtonsoft.Json.Formatting;
-using TextResource = Altinn.Platform.Storage.Interface.Models.TextResource;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -34,6 +33,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
+        private const string LAYOUT_SETS_FILENAME = "layout-sets.json";
 
         private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
 
@@ -70,6 +70,20 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
 
             await WriteTextByRelativePathAsync(appMetadataRelativeFilePath, metadataAsJson, true);
+        }
+
+        /// <summary>
+        /// Get the Json Schema file representing the application model to disk.
+        /// </summary>
+        /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
+        /// <returns>A string containing content of the json schema.</returns>
+        public async Task<string> GetJsonSchema(string modelName)
+        {
+            string relativeFilePath = GetRelativeModelFilePath(modelName);
+
+            string jsonSchemaContent = await ReadTextByRelativePathAsync(relativeFilePath);
+
+            return jsonSchemaContent;
         }
 
         /// <summary>
@@ -484,11 +498,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             File.Move(currentFilePath, newFilePath);
         }
 
-        private static bool IsValidResourceFile(string filePath)
+        public async Task<LayoutSets> GetLayoutSetsFile()
         {
-            string fileName = Path.GetFileName(filePath);
-            string[] nameParts = fileName.Split('.');
-            return nameParts.Length == 3 && nameParts[0] == "resource" && nameParts[2] == "json";
+            string layoutSetsFilePath = GetPathToLayoutSetsFile();
+            string fileContent = await ReadTextByRelativePathAsync(layoutSetsFilePath);
+            LayoutSets layoutSetsFile = System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(fileContent);
+
+            return layoutSetsFile;
         }
 
         private static string GetPathToJsonTextsFile([CanBeNull] string fileName)
@@ -525,6 +541,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return layoutSetName.IsNullOrEmpty() ?
                 Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETTINGS_FILENAME) :
                 Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUT_SETTINGS_FILENAME);
+        }
+
+        private static string GetPathToLayoutSetsFile()
+        {
+            return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETS_FILENAME);
         }
 
         /// <summary>
