@@ -87,7 +87,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task CreateApplicationMetadata(string org, string app, string appTitle)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Application appMetadata = new ()
+            Application appMetadata = new()
             {
                 Id = ApplicationHelper.GetFormattedApplicationId(org, app),
                 VersionId = null,

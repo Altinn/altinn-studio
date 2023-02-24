@@ -89,7 +89,7 @@ namespace Altinn.Studio.Designer.Controllers
                 configJson = "{}";
             }
 
-            JsonResult result = new (configJson);
+            JsonResult result = new(configJson);
 
             return result;
         }

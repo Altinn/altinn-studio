@@ -50,7 +50,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment)
         {
-            DeploymentEntity deploymentEntity = new ();
+            DeploymentEntity deploymentEntity = new();
             deploymentEntity.PopulateBaseProperties(org, app, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvName = deployment.EnvName;
@@ -98,7 +98,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             DeploymentEntity deploymentEntity,
             string envName)
         {
-            QueueBuildParameters queueBuildParameters = new ()
+            QueueBuildParameters queueBuildParameters = new()
             {
                 AppCommitId = release.TargetCommitish,
                 AppOwner = deploymentEntity.Org,

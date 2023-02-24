@@ -183,7 +183,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The texts in a dictionary</returns>
         public Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(string org, string app)
         {
-            Dictionary<string, Dictionary<string, TextResourceElement>> appTextsAllLanguages = new ();
+            Dictionary<string, Dictionary<string, TextResourceElement>> appTextsAllLanguages = new();
 
             // Get app level text resources
             string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -258,7 +258,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The text</returns>
         public List<string> GetLanguages(string org, string app)
         {
-            List<string> languages = new ();
+            List<string> languages = new();
 
             string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(resourcePath))
@@ -527,7 +527,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
 
-                ModelMetadata metadata = new ()
+                ModelMetadata metadata = new()
                 {
                     Org = org,
                     ServiceName = serviceConfig.ServiceName,
@@ -540,7 +540,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
-                CommitInfo commitInfo = new () { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
+                CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
                 _sourceControl.PushChangesForRepository(commitInfo);
             }
@@ -589,7 +589,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             appMetadata.LastChanged = appMetadata.Created;
             await targetAppRepository.SaveApplicationMetadata(appMetadata);
 
-            CommitInfo commitInfo = new () { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
+            CommitInfo commitInfo = new() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
             _sourceControl.PushChangesForRepository(commitInfo);
 
             // Final changes are made in a seperate branch to be reviewed by developer
@@ -653,7 +653,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>A list of file names</returns>
         public List<AltinnCoreFile> GetImplementationFiles(string org, string app)
         {
-            List<AltinnCoreFile> coreFiles = new ();
+            List<AltinnCoreFile> coreFiles = new();
 
             string[] files = Directory.GetFiles(_settings.GetImplementationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in files)
@@ -675,7 +675,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 modelFiles = Directory.GetFiles(_settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
                 foreach (string file in modelFiles)
                 {
-                    AltinnCoreFile corefile = new ()
+                    AltinnCoreFile corefile = new()
                     {
                         FilePath = file,
                         FileName = Path.GetFileName(file),
@@ -713,10 +713,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>A list of file names</returns>
         public List<AltinnCoreFile> GetDynamicsFiles(string org, string app)
         {
-            List<AltinnCoreFile> coreFiles = new ();
+            List<AltinnCoreFile> coreFiles = new();
 
             string rulehandlerPath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            AltinnCoreFile ruleFile = new ()
+            AltinnCoreFile ruleFile = new()
             {
                 FilePath = rulehandlerPath,
                 FileName = Path.GetFileName(rulehandlerPath),
@@ -736,12 +736,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>A list of file names</returns>
         public List<AltinnCoreFile> GetCalculationFiles(string org, string app)
         {
-            List<AltinnCoreFile> coreFiles = new ();
+            List<AltinnCoreFile> coreFiles = new();
 
             string[] files = Directory.GetFiles(_settings.GetCalculationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in files)
             {
-                AltinnCoreFile corefile = new ()
+                AltinnCoreFile corefile = new()
                 {
                     FilePath = file,
                     FileName = Path.GetFileName(file),
@@ -762,12 +762,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>A list of file names</returns>
         public List<AltinnCoreFile> GetValidationFiles(string org, string app)
         {
-            List<AltinnCoreFile> coreFiles = new ();
+            List<AltinnCoreFile> coreFiles = new();
 
             string[] files = Directory.GetFiles(_settings.GetValidationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in files)
             {
-                AltinnCoreFile corefile = new ()
+                AltinnCoreFile corefile = new()
                 {
                     FilePath = file,
                     FileName = Path.GetFileName(file),
@@ -826,7 +826,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string repopath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             stream.Seek(0, SeekOrigin.Begin);
-            using (FileStream outputFileStream = new (repopath + filepath, FileMode.Create))
+            using (FileStream outputFileStream = new(repopath + filepath, FileMode.Create))
             {
                 await stream.CopyToAsync(outputFileStream);
                 await outputFileStream.FlushAsync();
@@ -899,7 +899,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public List<FileSystemObject> GetContents(string org, string repository, string path = "")
         {
-            List<FileSystemObject> contents = new ();
+            List<FileSystemObject> contents = new();
             string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string contentPath = Path.Combine(repositoryPath, path);
 
@@ -939,15 +939,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private FileSystemObject GetFileSystemObjectForFile(string path)
         {
-            FileInfo fi = new (path);
+            FileInfo fi = new(path);
             string encoding;
 
-            using (StreamReader sr = new (path))
+            using (StreamReader sr = new(path))
             {
                 encoding = sr.CurrentEncoding.EncodingName;
             }
 
-            FileSystemObject fso = new ()
+            FileSystemObject fso = new()
             {
                 Type = FileSystemObjectType.File.ToString(),
                 Name = fi.Name,
@@ -960,8 +960,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private FileSystemObject GetFileSystemObjectForDirectory(string path)
         {
-            DirectoryInfo di = new (path);
-            FileSystemObject fso = new ()
+            DirectoryInfo di = new(path);
+            FileSystemObject fso = new()
             {
                 Type = FileSystemObjectType.Dir.ToString(),
                 Name = di.Name,
