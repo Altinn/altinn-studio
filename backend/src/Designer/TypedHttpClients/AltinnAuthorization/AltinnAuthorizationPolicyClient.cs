@@ -4,10 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Models;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 {

@@ -172,7 +172,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string resourcePath = GetPathToJsonTextsFile($"resource.{language}.json");
 
-            if (FileExistsByRelativePath(resourcePath))
+            if (!FileExistsByRelativePath(resourcePath))
             {
                 throw new NotFoundException("Text resource file not found.");
             }
@@ -185,7 +185,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         public async Task SaveTextV1(string languageCode, Designer.Models.TextResource jsonTexts)
         {
-            string fileName = $"{languageCode}.texts.json";
+            string fileName = $"resource.{languageCode}.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
 
             JsonSerializerOptions jsonOptions = new () { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };

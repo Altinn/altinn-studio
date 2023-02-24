@@ -3,7 +3,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Factories
 {

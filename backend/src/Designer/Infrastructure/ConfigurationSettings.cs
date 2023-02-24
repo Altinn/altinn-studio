@@ -1,4 +1,3 @@
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using AltinnCore.Authentication.Constants;

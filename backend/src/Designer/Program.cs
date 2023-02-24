@@ -3,7 +3,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Filters.Datamodeling;
