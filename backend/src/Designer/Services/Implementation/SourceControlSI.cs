@@ -54,7 +54,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public string CloneRemoteRepository(string org, string repository)
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
-            CloneOptions cloneOptions = new ();
+            CloneOptions cloneOptions = new();
             cloneOptions.CredentialsProvider = (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
             return LibGit2Sharp.Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
         }
@@ -63,7 +63,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public string CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
-            CloneOptions cloneOptions = new ();
+            CloneOptions cloneOptions = new();
             cloneOptions.CredentialsProvider = (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
             if (!string.IsNullOrEmpty(branchName))
@@ -82,7 +82,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 try
                 {
-                    using (LibGit2Sharp.Repository repo = new (localServiceRepoFolder))
+                    using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
                     {
                         return true;
                     }
@@ -99,10 +99,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public RepoStatus PullRemoteChanges(string org, string repository)
         {
-            RepoStatus status = new ();
+            RepoStatus status = new();
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
-                PullOptions pullOptions = new ()
+                PullOptions pullOptions = new()
                 {
                     MergeOptions = new MergeOptions()
                     {
@@ -150,7 +150,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string logMessage = string.Empty;
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
-                FetchOptions fetchOptions = new ();
+                FetchOptions fetchOptions = new();
                 fetchOptions.CredentialsProvider = (url, user, cred) =>
                          new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
@@ -207,7 +207,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             bool pushSuccess = true;
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new (localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
             {
                 string remoteUrl = FindRemoteRepoLocation(org, repository);
                 Remote remote = repo.Network.Remotes["origin"];
@@ -219,7 +219,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                 }
 
-                PushOptions options = new ()
+                PushOptions options = new()
                 {
                     OnPushStatusError = pushError =>
                     {
@@ -243,7 +243,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void Commit(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new (localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
             {
                 string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
                 Remote remote = repo.Network.Remotes["origin"];
@@ -270,14 +270,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>A list of changed files in the repository</returns>
         public List<RepositoryContent> Status(string org, string repository)
         {
-            List<RepositoryContent> repoContent = new ();
+            List<RepositoryContent> repoContent = new();
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 RepositoryStatus status = repo.RetrieveStatus(new StatusOptions());
                 foreach (StatusEntry item in status)
                 {
-                    RepositoryContent content = new ();
+                    RepositoryContent content = new();
                     content.FilePath = item.FilePath;
                     repoContent.Add(content);
                 }
@@ -294,7 +294,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The repository status</returns>
         public RepoStatus RepositoryStatus(string org, string repository)
         {
-            RepoStatus repoStatus = new ();
+            RepoStatus repoStatus = new();
             repoStatus.ContentStatus = new List<RepositoryContent>();
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
@@ -302,7 +302,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 RepositoryStatus status = repo.RetrieveStatus(new StatusOptions());
                 foreach (StatusEntry item in status)
                 {
-                    RepositoryContent content = new ();
+                    RepositoryContent content = new();
                     content.FilePath = item.FilePath;
                     content.FileStatus = (Enums.FileStatus)(int)item.State;
                     if (content.FileStatus == Enums.FileStatus.Conflicted)
@@ -347,13 +347,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>List of commits</returns>
         public List<Altinn.Studio.Designer.Models.Commit> Log(string org, string repository)
         {
-            List<Altinn.Studio.Designer.Models.Commit> commits = new ();
+            List<Altinn.Studio.Designer.Models.Commit> commits = new();
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 foreach (LibGit2Sharp.Commit c in repo.Commits.Take(50))
                 {
-                    Designer.Models.Commit commit = new ();
+                    Designer.Models.Commit commit = new();
                     commit.Message = c.Message;
                     commit.MessageShort = c.MessageShort;
                     commit.Encoding = c.Encoding;
@@ -515,7 +515,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message)
         {
-            using (LibGit2Sharp.Repository repo = new (localPath))
+            using (LibGit2Sharp.Repository repo = new(localPath))
             {
                 // Restrict users from empty commit
                 if (repo.RetrieveStatus().IsDirty)
@@ -535,7 +535,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     LibGit2Sharp.Signature signature = GetDeveloperSignature();
                     repo.Commit(message, signature, signature);
 
-                    PushOptions options = new ();
+                    PushOptions options = new();
                     options.CredentialsProvider = (url, user, cred) =>
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
@@ -572,7 +572,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void ResetCommit(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new (localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
             {
                 if (repo.RetrieveStatus().IsDirty)
                 {
@@ -592,9 +592,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new (localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
             {
-                CheckoutOptions checkoutOptions = new ()
+                CheckoutOptions checkoutOptions = new()
                 {
                     CheckoutModifiers = CheckoutModifiers.Force,
                 };
@@ -612,7 +612,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void StageChange(string org, string repository, string fileName)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new (localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
             {
                 FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
 
@@ -633,7 +633,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void AbortMerge(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new (localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
             {
                 if (repo.RetrieveStatus().IsDirty)
                 {
@@ -651,7 +651,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title)
         {
-            CreatePullRequestOption option = new ()
+            CreatePullRequestOption option = new()
             {
                 Base = target,
                 Head = source,

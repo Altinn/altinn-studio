@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -36,7 +37,53 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, string>> GetTexts(string org, string repo, string developer, string languageCode)
+        public async Task<TextResource> GetTextV1(string org, string repo, string developer, string languageCode)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+            TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
+
+            return texts;
+        }
+
+        /// <inheritdoc />
+        public async Task SaveTextV1(string org, string repo, string developer, TextResource textResource, string languageCode)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+            languageCode = languageCode.Split('-')[0];
+            JObject json = textResource;
+
+            JArray resources = json["resources"] as JArray;
+            string[] duplicateKeys = resources.GroupBy(obj => obj["id"]).Where(grp => grp.Count() > 1).Select(grp => grp.Key.ToString()).ToArray();
+            if (duplicateKeys.Length > 0)
+            {
+                throw new ArgumentException($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
+            }
+
+            JArray sorted = new(resources.OrderBy(obj => obj["id"]));
+            json["resources"].Replace(sorted);
+
+            // updating application metadata with appTitle.
+            JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
+
+            if (appTitleToken != null && !string.IsNullOrEmpty(appTitleToken.Value<string>("value")))
+            {
+                string appTitle = appTitleToken.Value<string>("value");
+                _repository.UpdateAppTitleInAppMetadata(org, app, languageCode, appTitle);
+            }
+            else
+            {
+                throw new ArgumentException("The application name must be a value.");
+            }
+
+            _repository.(org, app, languageCode, json.ToString());
+
+            await altinnAppGitRepository.SaveTextV1(languageCode, textResource);
+        }
+
+        /// <inheritdoc />
+        public async Task<Dictionary<string, string>> GetTextsV2(string org, string repo, string developer, string languageCode)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
@@ -103,11 +150,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            IEnumerable<string> languageFiles = altinnAppGitRepository.FindFiles(new [] { "resource.*.json" });
+            IEnumerable<string> languageFiles = altinnAppGitRepository.FindFiles(new[] { "resource.*.json" });
 
             foreach (string languageFile in languageFiles.ToList())
             {
-                Dictionary<string, string> newTexts = new ();
+                Dictionary<string, string> newTexts = new();
 
                 string languageCode = GetLanguageCodeFromFilePath(languageFile);
                 TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
@@ -175,7 +222,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-            Dictionary<string, Dictionary<string, string>> tempUpdatedTexts = new Dictionary<string, Dictionary<string, string>>(languages.Count);
+            Dictionary<string, Dictionary<string, string>> tempUpdatedTexts = new(languages.Count);
             bool oldKeyExistsOriginally = false;
             string response = string.Empty;
             try
@@ -239,8 +286,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations);
         }
 
-        /// <inheritdoc />
-        public async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
+        /// <summary>
+        /// Updates text keys in layouts for a specific layoutset
+        /// </summary>
+        /// <param name="org">Identifier for the organisation</param>
+        /// <param name="app">Identifier for the application</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="layoutSetName">Name of the layoutset</param>
+        /// <param name="keyMutations">A list of the keys that are updated</param>
+        private async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
@@ -358,7 +412,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>List of markdown filenames</returns>
         private static List<string> ExtractMarkdownFileNames(Dictionary<string, string> texts)
         {
-            List<string> markdownFileNames = new List<string>();
+            List<string> markdownFileNames = new();
             foreach (KeyValuePair<string, string> text in texts.Where(text => IsFileReference(text.Value)))
             {
                 int fileNameStart = 7;

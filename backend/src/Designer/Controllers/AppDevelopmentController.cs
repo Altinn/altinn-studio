@@ -60,7 +60,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                Dictionary<string, FormLayout> formLayouts =  await _appDevelopmentService.GetFormLayouts(org, app, developer, null);
+                Dictionary<string, FormLayout> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, null);
                 return Ok(formLayouts);
             }
             catch (FileNotFoundException exception)
@@ -79,7 +79,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("form-layout/{layoutName}")]
-        public async Task<IActionResult> SaveFormLayout(string org, string app, [FromRoute] string layoutName, [FromBody] FormLayout formLayout)
+        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromRoute] string layoutName, [FromBody] FormLayout formLayout)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -103,7 +103,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpDelete]
         [Route("form-layout/{layoutName}")]
-        public IActionResult DeleteFormLayout(string org, string app, string layoutName)
+        public ActionResult DeleteFormLayout(string org, string app, string layoutName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -128,7 +128,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("form-layout-name/{layoutName}")]
-        public IActionResult UpdateFormLayoutName(string org, string app, string layoutName, [FromBody] string newName)
+        public ActionResult UpdateFormLayoutName(string org, string app, string layoutName, [FromBody] string newName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -152,7 +152,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("layout-settings")]
-        public async Task<IActionResult> SaveLayoutSettings(string org, string app, [FromBody] LayoutSettings layoutSettings)
+        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromBody] LayoutSettings layoutSettings)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -217,7 +217,7 @@ namespace Altinn.Studio.Designer.Controllers
             string content = string.Empty;
             try
             {
-                using (StreamReader reader = new (Request.Body))
+                using (StreamReader reader = new(Request.Body))
                 {
                     content = reader.ReadToEnd();
                     _repository.SaveRuleHandler(org, app, content);
@@ -274,7 +274,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("widget-settings")]
         public ActionResult GetWidgetSettings(string org, string app)
         {
-            var widgetSettings = _repository.GetWidgetSettings(org, app);
+            string widgetSettings = _repository.GetWidgetSettings(org, app);
             return Ok(widgetSettings);
         }
     }

@@ -5,8 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +17,7 @@ using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -103,15 +106,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The JSON config</returns>
         [HttpGet]
         [Route("language/{languageCode}")]
-        public IActionResult GetResource(string org, string app, string languageCode)
+        public async Task<ActionResult<TextResource>> GetResource(string org, string app, string languageCode)
         {
-            string resourceJson = _repository.GetLanguageResource(org, app, languageCode);
-            if (string.IsNullOrWhiteSpace(resourceJson))
+            try
             {
-                resourceJson = string.Empty;
+                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                TextResource textResource = await _textsService.GetTextV1(org, app, developer, languageCode);
+                return Ok(textResource);
+            }
+            catch (NotFoundException)
+            {
+                return NotFound($"Text resource, resource.{languageCode}.json, could not be found.");
             }
 
-            return Ok(resourceJson);
         }
 
         /// <summary>
@@ -124,37 +131,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A View with update status</returns>
         [HttpPost]
         [Route("language/{languageCode}")]
-        public IActionResult SaveResource([FromBody] dynamic jsonData, string languageCode, string org, string app)
+        public async Task<ActionResult> SaveResource([FromBody] dynamic jsonData, string languageCode, string org, string app)
         {
-            languageCode = languageCode.Split('-')[0];
-            JObject json = jsonData;
-
-            JArray resources = json["resources"] as JArray;
-            string[] duplicateKeys = resources.GroupBy(obj => obj["id"]).Where(grp => grp.Count() > 1).Select(grp => grp.Key.ToString()).ToArray();
-            if (duplicateKeys.Length > 0)
+            try
             {
-                return BadRequest($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
+                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                await _textsService.SaveTextV1(org, app, developer, jsonData, languageCode);
+                return Ok($"Text resource, resource.{languageCode}.json, was successfully saved.");
             }
-
-            JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
-            json["resources"].Replace(sorted);
-
-            // updating application metadata with appTitle.
-            JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
-
-            if ((appTitleToken != null) && !(string.IsNullOrEmpty(appTitleToken.Value<string>("value"))))
+            catch (NotFoundException)
             {
-                string appTitle = appTitleToken.Value<string>("value");
-                _repository.UpdateAppTitleInAppMetadata(org, app, languageCode, appTitle);
+                return NotFound($"Text resource, resource.{languageCode}.json, could not be found.");
             }
-            else
-            {
-                return BadRequest("The appliaction name must be a value.");
-            }
-
-            _repository.SaveLanguageResource(org, app, languageCode, json.ToString());
-
-            return Ok("Resource saved");
         }
 
         /// <summary>
@@ -173,52 +161,8 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
-                string filename = $"resource.{languageCode}.json";
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                string textResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, developer) + filename;
-
-                TextResource textResourceObject = new TextResource
-                {
-                    Language = languageCode,
-                    Resources = new List<TextResourceElement>()
-                };
-
-                if (System.IO.File.Exists(textResourceDirectoryPath))
-                {
-                    string textResource = System.IO.File.ReadAllText(textResourceDirectoryPath, Encoding.UTF8);
-                    textResourceObject = JsonConvert.DeserializeObject<TextResource>(textResource);
-                }
-
-                foreach (KeyValuePair<string, string> kvp in keysTexts)
-                {
-                    if ((kvp.Key == "appName" || kvp.Key == "serviceName") && string.IsNullOrEmpty(kvp.Value))
-                    {
-                        throw new ArgumentException("The application name must be a value.");
-                    }
-
-                    TextResourceElement textResourceContainsKey =
-                        textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
-                    if (textResourceContainsKey is null)
-                    {
-                        textResourceObject.Resources.Add(new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
-                    }
-                    else
-                    {
-                        int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
-                        var resourceToUpdate = textResourceObject.Resources[indexTextResourceElementUpdateKey];
-                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement()
-                        {
-                            Id = kvp.Key,
-                            Value = kvp.Value,
-                            Variables = resourceToUpdate.Variables,
-                        };
-                    }
-                }
-
-                string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
-
-                _repository.SaveLanguageResource(org, app, languageCode, resourceString);
-
+                _textsService.UpdateTextsForKeys(org, app, developer, keysTexts, languageCode);
                 return Ok($"The text resource, resource.{languageCode}.json, was updated.");
 
             }

@@ -10,6 +10,28 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     public interface ITextsService
     {
         /// <summary>
+        /// Gets texts file in old format in app repository according to
+        /// specified languageCode.
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="repo">Repository</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="languageCode">LanguageCode</param>
+        /// <returns>The text file</returns>
+        public Task<TextResource> GetTextV1(string org, string repo, string developer, string languageCode);
+
+        /// <summary>
+        /// Saves text resource in old format.
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="repo">Repository</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="textResource">The text resource to be saved</param>
+        /// <param name="languageCode">LanguageCode</param>
+        /// <returns></returns>
+        public Task SaveTextV1(string org, string repo, string developer, TextResource textResource, string languageCode);
+
+        /// <summary>
         /// Gets texts file in app repository according to
         /// specified languageCode.
         /// </summary>
@@ -18,7 +40,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Username of developer</param>
         /// <param name="languageCode">LanguageCode</param>
         /// <returns>The text file as a dictionary with ID and text as key:value pairs</returns>
-        public Task<Dictionary<string, string>> GetTexts(string org, string repo, string developer, string languageCode);
+        public Task<Dictionary<string, string>> GetTextsV2(string org, string repo, string developer, string languageCode);
 
         /// <summary>
         /// Gets all keys in use across the languages.
@@ -30,6 +52,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <returns>The text file as a dictionary with ID and text as key:value pairs</returns>
         public Task<List<string>> GetKeys(string org, string repo, string developer, IList<string> languages);
 
+        /// <summary>
+        /// Updates values for
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="repo"></param>
+        /// <param name="developer"></param>
+        /// <param name="keysTexts"></param>
+        /// <param name="languageCode"></param>
+        /// <returns></returns>
         public Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode);
 
         /// <summary>
@@ -80,16 +111,5 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="keyMutations">A list of the keys that are updated</param>
         /// <returns></returns>
         public Task UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations);
-
-        /// <summary>
-        /// Updates text keys in layouts for a specific layoutset
-        /// </summary>
-        /// <param name="org">Identifier for the organisation</param>
-        /// <param name="app">Identifier for the application</param>
-        /// <param name="developer">Username of developer</param>
-        /// <param name="layoutSetName">Name of the layoutset</param>
-        /// <param name="keyMutations">A list of the keys that are updated</param>
-        /// <returns></returns>
-        public Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations);
     }
 }

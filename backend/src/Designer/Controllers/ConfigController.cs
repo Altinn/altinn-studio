@@ -162,8 +162,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             System.IO.File.WriteAllText(serviceConfigPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
-            _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string>() { {"appName", serviceConfig.serviceName.ToString()} }, "nb" );
-            _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string>() { {"serviceName", serviceConfigurationObject.ServiceName} }, "nb" );
+            _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string>() { { "appName", serviceConfig.serviceName.ToString() } }, "nb");
             _repository.UpdateAppTitleInAppMetadata(org, app, "nb", serviceConfigurationObject.ServiceName);
         }
     }

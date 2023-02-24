@@ -53,7 +53,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="recursive">True if it should search recursively through all sub-folders, false if it should only search the provided folder.</param>
         public IEnumerable<string> FindFiles(string[] searchPatterns, bool recursive = true)
         {
-            List<string> files = new ();
+            List<string> files = new();
 
             foreach (string searchPattern in searchPatterns)
             {
@@ -280,8 +280,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private static void CopyAll(string sourceDirectory, string targetDirectory)
         {
-            DirectoryInfo source = new (sourceDirectory);
-            DirectoryInfo target = new (targetDirectory);
+            DirectoryInfo source = new(sourceDirectory);
+            DirectoryInfo target = new(targetDirectory);
 
             foreach (FileInfo file in source.GetFiles())
             {
@@ -328,9 +328,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private static async Task<string> ReadTextAsync(string absoluteFilePath)
         {
-            await using FileStream sourceStream = new (absoluteFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
+            await using FileStream sourceStream = new(absoluteFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
 
-            StringBuilder sb = new ();
+            StringBuilder sb = new();
 
             byte[] buffer = new byte[0x1000];
             int numRead;
@@ -346,13 +346,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private static async Task WriteTextAsync(string absoluteFilePath, string text)
         {
             byte[] encodedText = Encoding.UTF8.GetBytes(text);
-            await using FileStream sourceStream = new (absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+            await using FileStream sourceStream = new(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
             await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length));
         }
 
         private static async Task WriteAsync(string absoluteFilePath, Stream stream)
         {
-            await using FileStream targetStream = new (absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+            await using FileStream targetStream = new(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
             await stream.CopyToAsync(targetStream, bufferSize: 4096);
         }
     }

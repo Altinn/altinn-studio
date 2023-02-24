@@ -58,7 +58,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                Dictionary<string, string> texts = await _textsService.GetTexts(org, repo, developer, languageCode);
+                Dictionary<string, string> texts = await _textsService.GetTextsV2(org, repo, developer, languageCode);
                 return Ok(texts);
             }
             catch (IOException)
@@ -96,7 +96,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             await _textsService.UpdateTexts(org, repo, developer, languageCode, jsonTexts);
-            Dictionary<string, string> savedTexts = await _textsService.GetTexts(org, repo, developer, languageCode);
+            Dictionary<string, string> savedTexts = await _textsService.GetTextsV2(org, repo, developer, languageCode);
 
             return Ok(savedTexts);
         }

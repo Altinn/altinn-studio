@@ -188,7 +188,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string fileName = $"resource.{languageCode}.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
 
-            JsonSerializerOptions jsonOptions = new () { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+            JsonSerializerOptions jsonOptions = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, jsonOptions);
 
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
@@ -223,7 +223,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string fileName = $"{languageCode}.texts.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
 
-            JsonSerializerOptions jsonOptions = new () { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+            JsonSerializerOptions jsonOptions = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, jsonOptions);
 
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);

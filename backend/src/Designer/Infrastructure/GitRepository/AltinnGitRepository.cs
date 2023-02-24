@@ -256,7 +256,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private List<AltinnCoreFile> MapFilesToAltinnCoreFiles(IEnumerable<string> schemaFiles)
         {
-            List<AltinnCoreFile> altinnCoreSchemaFiles = new ();
+            List<AltinnCoreFile> altinnCoreSchemaFiles = new();
 
             foreach (string file in schemaFiles)
             {
