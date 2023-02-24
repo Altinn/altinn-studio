@@ -106,6 +106,8 @@ export class AppFrontend {
       tagsDropDown: '[id^="attachment-tag-dropdown"]',
       saveTag: '[id^="attachment-save-tag-button"]',
       uploaded: '#tagFile',
+      error: '[id^="attachment-error"]',
+      unwantedChar: String.fromCharCode(31),
     },
     reasonRelationship: '#reasonRelationship',
     summaryNameChanges: '#nameChanges',

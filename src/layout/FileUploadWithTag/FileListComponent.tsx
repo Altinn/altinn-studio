@@ -149,6 +149,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
   if (!props.attachments || props.attachments.length === 0) {
     return null;
   }
+
   return (
     <Grid
       container={true}
@@ -290,6 +291,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
                   </TableRow>
                 );
               }
+
               return (
                 <TableRow key={`altinn-unchosen-option-attachment-row-${index}`}>
                   <TableCell
@@ -301,7 +303,11 @@ export function FileList(props: FileListProps): JSX.Element | null {
                       id={props.id}
                       dataModelBindings={props.dataModelBindings}
                       attachment={props.attachments[index]}
-                      attachmentValidations={props.attachmentValidations}
+                      attachmentValidations={[
+                        ...new Map(
+                          props.attachmentValidations.map((validation) => [validation['id'], validation]),
+                        ).values(),
+                      ]}
                       language={props.language}
                       mobileView={props.mobileView}
                       readOnly={props.readOnly}
