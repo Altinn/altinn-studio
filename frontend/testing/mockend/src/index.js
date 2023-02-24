@@ -10,7 +10,7 @@ const {
   createDatamodelPath,
   remainingSessionTimePath,
   repoInitialCommitPath,
-  repoBranchStatusPath,
+  branchStatusPath,
   repoStatusPath,
   frontendLangPath,
   repoMetaPath,
@@ -37,8 +37,8 @@ module.exports = (middlewares, devServer) => {
   app.get(remainingSessionTimePath(), (req, res) => res.send('9999'));
   app.get(repoInitialCommitPath(':org', ':app'), (req, res) => res.sendStatus(204));
   app.get(repoMetaPath(':org', ':app'), require('./routes/get-repo-data'));
-  app.get(repoBranchStatusPath(':org', ':app', 'branch'), require('./routes/get-branch'));
-  app.get(repoStatusPath(':org',':app'), fixtureRoute('status'));
+  app.get(branchStatusPath(':org', ':app', 'branch'), require('./routes/get-branch'));
+  app.get(repoStatusPath(':org', ':app'), fixtureRoute('status'));
   app.get(serviceConfigPath(':org', ':app'), (req, res) => res.sendStatus(204));
   //prettier-ignore
   app.get(serviceNamePath(':org', ':app'), (req, res) => res.send(req.params.repo.toUpperCase()));

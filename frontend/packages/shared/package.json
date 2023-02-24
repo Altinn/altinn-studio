@@ -14,7 +14,6 @@
     "diff": "5.1.0",
     "dompurify": "3.0.0",
     "marked": "4.2.12",
-    "moment": "2.29.4",
     "monaco-editor": "0.35.0",
     "qs": "6.11.0",
     "react": "18.2.0",

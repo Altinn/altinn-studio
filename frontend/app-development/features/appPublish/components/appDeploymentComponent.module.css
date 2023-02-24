@@ -27,7 +27,6 @@
 .dropdownGrid {
   padding-bottom: 4rem;
   padding-left: 5rem;
-  padding-right: 6rem;
 }
 
 .gridItem {
@@ -73,7 +72,6 @@
 }
 
 .deploymentListGrid {
-  padding-left: 4.8rem;
   display: flex;
   flex-direction: column;
 }
@@ -89,6 +87,7 @@
 
 .bodyContainer {
   display: flex;
+  gap: 40px;
 }
 .bodyContainer > * {
   flex-basis: 49%;
