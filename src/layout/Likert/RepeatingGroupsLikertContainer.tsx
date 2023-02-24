@@ -15,6 +15,7 @@ import { LayoutStyle } from 'src/types';
 import { getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getOptionLookupKey } from 'src/utils/options';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup } from 'src/layout/layout';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
@@ -22,9 +23,9 @@ import type { ITextResource } from 'src/types';
 
 type RepeatingGroupsLikertContainerProps = {
   id: string;
-  repeatingGroupDeepCopyComponents: ComponentInGroup[];
+  repeatingGroupDeepCopyComponents: ExprUnresolved<ComponentInGroup>[];
   textResources: ITextResource[];
-  container: ILayoutGroup;
+  container: ExprUnresolved<ILayoutGroup>;
 };
 
 export const RepeatingGroupsLikertContainer = ({

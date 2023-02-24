@@ -27,7 +27,7 @@ import {
 } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { ExprResolved } from 'src/features/expressions/types';
+import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { ISingleFieldValidation } from 'src/features/form/data/formDataTypes';
 import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/layout/index';
 import type {
@@ -50,7 +50,11 @@ export interface IGenericComponentProps {
  * The IGenericComponentProps type above defines which properties a GenericComponent gets, but it always also gets the
  * component definition from the layout file as well. Blending these two here.
  */
-export type IActualGenericComponentProps<Type extends ComponentTypes> = IGenericComponentProps & ILayoutCompBase<Type>;
+export type IActualGenericComponentPropsUnresolved<Type extends ComponentTypes> = IGenericComponentProps &
+  ExprUnresolved<ILayoutCompBase<Type>>;
+
+export type IActualGenericComponentPropsResolved<Type extends ComponentTypes> = IGenericComponentProps &
+  ExprResolved<ILayoutCompBase<Type>>;
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -99,14 +103,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
-  passedProps: IActualGenericComponentProps<Type>,
+  passedProps: IActualGenericComponentPropsUnresolved<Type>,
 ) {
   const evaluatedProps = useResolvedNode(passedProps as ILayoutComponent)?.item;
 
   const props = {
     ...passedProps,
     ...evaluatedProps,
-  } as ExprResolved<IActualGenericComponentProps<Type>> & {
+  } as IActualGenericComponentPropsResolved<Type> & {
     type: Type;
   };
 

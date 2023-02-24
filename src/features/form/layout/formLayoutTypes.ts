@@ -1,3 +1,4 @@
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayouts } from 'src/layout/layout';
 import type {
   IFileUploadersWithTag,
@@ -17,7 +18,7 @@ export interface IFormLayoutActionRejected {
 export interface IFetchLayoutFulfilled {
   layouts: ILayouts;
   navigationConfig?: INavigationConfig;
-  hiddenLayoutsExpressions: IHiddenLayoutsExpressions;
+  hiddenLayoutsExpressions: ExprUnresolved<IHiddenLayoutsExpressions>;
 }
 
 export interface IFetchLayoutSetsFulfilled {

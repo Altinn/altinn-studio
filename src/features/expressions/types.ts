@@ -11,39 +11,29 @@ type Functions = typeof ExprFunctions;
  */
 export type ExprFunction = keyof Functions;
 
-export type BaseValue = 'string' | 'number' | 'boolean' | 'any';
-export type BaseToActual<T extends BaseValue> = T extends 'string'
-  ? string
-  : T extends 'number'
-  ? number
-  : T extends 'boolean'
-  ? boolean
-  : never;
+export enum ExprVal {
+  Boolean = '__boolean__',
+  String = '__string__',
+  Number = '__number__',
+  Any = '__any__',
+}
 
-/**
- * A version of the type above that avoids spreading union types. Meaning, it only accepts concrete types from inside
- * BaseValue, not the union type BaseValue itself:
- *    type Test1 = BaseToActual<BaseValue>; // string | number | boolean
- *    type Test2 = BaseToActualStrict<BaseValue>; // never
- *
- * @see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
- */
-export type BaseToActualStrict<T extends BaseValue> = [T] extends ['string']
+export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.String
   ? string
-  : [T] extends ['number']
+  : T extends ExprVal.Number
   ? number
-  : [T] extends ['boolean']
+  : T extends ExprVal.Boolean
   ? boolean
-  : [T] extends ['any']
-  ? any
-  : never;
+  : T extends ExprVal.Any
+  ? string | number | boolean | null
+  : unknown;
 
-type ArgsToActualOrNull<T extends readonly BaseValue[]> = {
-  [Index in keyof T]: BaseToActual<T[Index]> | null;
+type ArgsToActualOrNull<T extends readonly ExprVal[]> = {
+  [Index in keyof T]: ExprValToActual<T[Index]> | null;
 };
 
-export interface FuncDef<Args extends readonly BaseValue[], Ret extends BaseValue> {
-  impl: (this: ExprContext, ...params: ArgsToActualOrNull<Args>) => BaseToActual<Ret> | null;
+export interface FuncDef<Args extends readonly ExprVal[], Ret extends ExprVal> {
+  impl: (this: ExprContext, ...params: ArgsToActualOrNull<Args>) => ExprValToActual<Ret> | null;
   args: Args;
   minArguments?: number;
   returns: Ret;
@@ -57,19 +47,17 @@ export interface FuncDef<Args extends readonly BaseValue[], Ret extends BaseValu
   // validation requirements. Use the addError() function if any errors are found.
   validator?: (options: {
     rawArgs: any[];
-    argTypes: (BaseValue | undefined)[];
+    argTypes: (ExprVal | undefined)[];
     ctx: ValidationContext;
     path: string[];
   }) => void;
 }
 
-type BaseValueArgsFor<F extends ExprFunction> = F extends ExprFunction ? Functions[F]['args'] : never;
+type ArgsFor<F extends ExprFunction> = F extends ExprFunction ? Functions[F]['args'] : never;
 
-type FunctionsReturning<T extends BaseValue> =
+type FunctionsReturning<T extends ExprVal> =
   | keyof PickByValue<Functions, { returns: T }>
-  | keyof PickByValue<Functions, { returns: 'any' }>;
-
-export type ExprReturning<T extends BaseValue> = Expression<FunctionsReturning<T>>;
+  | keyof PickByValue<Functions, { returns: ExprVal.Any }>;
 
 /**
  * An expression definition is basically [functionName, ...arguments], but when we map arguments (using their
@@ -79,66 +67,61 @@ export type ExprReturning<T extends BaseValue> = Expression<FunctionsReturning<T
  *
  * @see https://github.com/microsoft/TypeScript/issues/29919
  */
-type IndexHack<F extends ExprFunction> = ['Here goes the function name', ...BaseValueArgsFor<F>];
+type IndexHack<F extends ExprFunction> = ['Here goes the function name', ...ArgsFor<F>];
 
 type MaybeRecursive<
   F extends ExprFunction,
   Iterations extends Prev[number],
-  Args extends ('Here goes the function name' | BaseValue)[] = IndexHack<F>,
+  Args extends ('Here goes the function name' | ExprVal)[] = IndexHack<F>,
 > = [Iterations] extends [never]
   ? never
   : {
-      [Index in keyof Args]: Args[Index] extends BaseValue
-        ? BaseToActual<Args[Index]> | MaybeRecursive<FunctionsReturning<Args[Index]>, Prev[Iterations]>
+      [Index in keyof Args]: Args[Index] extends ExprVal
+        ? ExprValToActual<Args[Index]> | MaybeRecursive<FunctionsReturning<Args[Index]>, Prev[Iterations]>
         : F;
     };
 
 /**
  * The base type that represents any valid expression function call. When used as a type
  * inside a layout definition, you probably want something like ExpressionOr<'boolean'>
- *
- * @see ExpressionOr
  */
 export type Expression<F extends ExprFunction = ExprFunction> = MaybeRecursive<F, 2>;
-
-/**
- * This type represents an expression for a function that returns the T type, or just the T type itself.
- */
-export type ExpressionOr<T extends BaseValue> = ExprReturning<T> | BaseToActual<T>;
-
-/**
- * Type that lets you convert an expression function name to its return value type
- */
-export type ReturnValueFor<Func extends ExprFunction> = Func extends keyof Functions
-  ? BaseToActual<Functions[Func]['returns']>
-  : never;
-
-/**
- * This is the heavy lifter for ExprResolved that will recursively work through objects and remove
- * expressions (replacing them with the type the expression is expected to return).
- *
- * @see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
- */
-type ResolveDistributive<T> = [T] extends [any]
-  ? [T] extends [Expression<infer Func>]
-    ? ReturnValueFor<Func>
-    : T extends Expression
-    ? // When using ExpressionOr<...>, it creates a union type. Removing the Expression from this union
-      never
-    : T extends object
-    ? Exclude<ExprResolved<T>, Expression>
-    : T
-  : never;
 
 /**
  * This type removes all expressions from the input type (replacing them with the type
  * the expression is expected to return)
  *
+ * @see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
  * @see https://stackoverflow.com/a/54487392
  */
-export type ExprResolved<T> = {
-  [P in keyof T]: ResolveDistributive<T[P]>;
-};
+export type ExprResolved<T> = T extends ExprVal
+  ? ExprValToActual<T>
+  : T extends any
+  ? T extends object
+    ? {
+        [P in keyof T]: ExprResolved<T[P]>;
+      }
+    : T
+  : T;
+
+/**
+ * This type replaces all potential expressions in the input type with an actual value OR expression returning that
+ * value. An ExprUnresolved layout item is the type of a layout component when we get it from the layout API.
+ *
+ * @deprecated Try not to use types with unresolved expressions. Prefer to get your layout definitions from:
+ * @see useExprContext
+ * @see useResolvedNode
+ * @see ResolvedNodesSelector
+ */
+export type ExprUnresolved<T> = T extends ExprVal
+  ? ExprValToActual<T> | Expression<FunctionsReturning<T>>
+  : T extends any
+  ? T extends object
+    ? {
+        [P in keyof T]: ExprUnresolved<T[P]>;
+      }
+    : T
+  : T;
 
 /**
  * This type can be self-references in order to limit recursion depth for advanced types
@@ -161,9 +144,9 @@ type OmitNeverArrays<T> = T extends never[] ? never : T;
  * Expression configuration. This configuration object needs to be set on every layout property which can be resolved
  * as an expression, and it is the configuration passed to the expression evaluator.
  */
-export interface ExprConfig<BT extends BaseValue = BaseValue> {
-  returnType: BT;
-  defaultValue: BaseToActualStrict<BT>;
+export interface ExprConfig<V extends ExprVal = ExprVal> {
+  returnType: V;
+  defaultValue: ExprValToActual<V> | null;
 
   // Setting this to true means that if there are such expressions on a repeating 'Group' layout component, they will
   // be evaluated separately for each row in the group. This means you can have a property like edit.deleteButton which
@@ -172,14 +155,14 @@ export interface ExprConfig<BT extends BaseValue = BaseValue> {
 }
 
 /**
- * This is the heavy lifter used by ExprDefaultValues to recursively iterate types
+ * This is the heavy lifter used by ExprObjConfig to recursively iterate types
  */
-type ReplaceDistributive<T, Iterations extends Prev[number]> = [T] extends [
+type DistributiveExprConfig<T, Iterations extends Prev[number]> = [T] extends [
   string | number | boolean | null | undefined,
 ]
   ? never
-  : [T] extends [ExpressionOr<infer BT>]
-  ? ExprConfig<BT>
+  : T extends ExprVal
+  ? ExprConfig<T>
   : [T] extends [object]
   ? OmitEmptyObjects<ExprObjConfig<T, Prev[Iterations]>>
   : never;
@@ -194,5 +177,5 @@ export type ExprObjConfig<
 > = [Iterations] extends [never]
   ? never
   : OmitNeverKeys<{
-      [P in keyof Required<T>]: OmitNeverArrays<ReplaceDistributive<Exclude<T[P], undefined>, Iterations>>;
+      [P in keyof Required<T>]: OmitNeverArrays<DistributiveExprConfig<Exclude<T[P], undefined>, Iterations>>;
     }>;

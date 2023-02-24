@@ -9,7 +9,7 @@ import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
 import { httpGet } from 'src/utils/network/networking';
 import { getLayoutSetsUrl, getLayoutSettingsUrl, getLayoutsUrl } from 'src/utils/urls/appUrlHelper';
-import type { ExpressionOr, ExprObjConfig } from 'src/features/expressions/types';
+import type { ExprObjConfig, ExprUnresolved, ExprVal } from 'src/features/expressions/types';
 import type { ComponentTypes, ILayout, ILayouts } from 'src/layout/layout';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IHiddenLayoutsExpressions, ILayoutSets, ILayoutSettings, IRuntimeState } from 'src/types';
@@ -57,7 +57,7 @@ export function* fetchLayoutSaga(): SagaIterator {
     const layoutResponse: any = yield call(httpGet, getLayoutsUrl(layoutSetId || null));
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
-    const hiddenLayoutsExpressions: IHiddenLayoutsExpressions = {};
+    const hiddenLayoutsExpressions: ExprUnresolved<IHiddenLayoutsExpressions> = {};
     let autoSave: boolean | undefined;
     let firstLayoutKey: string;
     if (layoutResponse.data?.layout) {
@@ -87,9 +87,9 @@ export function* fetchLayoutSaga(): SagaIterator {
       });
     }
 
-    const config: ExprObjConfig<{ hidden: ExpressionOr<'boolean'> }> = {
+    const config: ExprObjConfig<{ hidden: ExprVal.Boolean; whatever: string }> = {
       hidden: {
-        returnType: 'boolean',
+        returnType: 'test',
         defaultValue: false,
         resolvePerRow: false,
       },

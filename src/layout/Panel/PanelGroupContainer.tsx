@@ -19,12 +19,13 @@ import { getTextResource } from 'src/utils/formComponentUtils';
 import { createRepeatingGroupComponentsForIndex } from 'src/utils/formLayout';
 import { getLayoutComponentById } from 'src/utils/layout';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutComponent } from 'src/layout/layout';
 
 export interface IPanelGroupContainerProps {
-  container: ILayoutGroup;
-  components: (ILayoutComponent | ILayoutGroup)[];
+  container: ExprUnresolved<ILayoutGroup>;
+  components: ExprUnresolved<ILayoutComponent | ILayoutGroup>[];
 }
 
 interface ICustomIconProps {
@@ -85,8 +86,8 @@ export function PanelGroupContainer({ container, components }: IPanelGroupContai
   const { iconUrl, iconAlt } = container.panel || {};
   const fullWidth = !container.baseComponentId;
   const repGroupReference = container.panel?.groupReference;
-  const referencedGroup: ILayoutGroup | undefined = repGroupReference
-    ? (getLayoutComponentById(repGroupReference.group, layouts) as ILayoutGroup)
+  const referencedGroup: ExprUnresolved<ILayoutGroup> | undefined = repGroupReference
+    ? (getLayoutComponentById(repGroupReference.group, layouts) as ExprUnresolved<ILayoutGroup>)
     : undefined;
   const referencedGroupIndex = referencedGroup ? repeatingGroups[referencedGroup.id].index : -1;
 

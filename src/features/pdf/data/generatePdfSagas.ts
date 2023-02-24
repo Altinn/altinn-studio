@@ -19,9 +19,10 @@ import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 import { httpGet } from 'src/utils/network/networking';
 import { pdfPreviewMode, shouldGeneratePdf } from 'src/utils/pdf';
 import { getPdfFormatUrl } from 'src/utils/urls/appUrlHelper';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IPdfFormat, IPdfMethod } from 'src/features/pdf/data/types';
 import type { ILayoutCompInstanceInformation } from 'src/layout/InstanceInformation/types';
-import type { ComponentExceptGroupAndSummary, ILayout, ILayoutComponentOrGroup, ILayouts } from 'src/layout/layout';
+import type { ILayout, ILayoutComponent, ILayoutComponentOrGroup, ILayouts } from 'src/layout/layout';
 import type { ILayoutCompSummary } from 'src/layout/Summary/types.d';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ILayoutSets, IRuntimeState, IUiConfig } from 'src/types';
@@ -38,7 +39,7 @@ const pdfMethodSelector = (state: IRuntimeState) => state.pdf.method;
 function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, layouts: ILayouts): ILayout {
   const automaticPdfLayout: ILayout = [];
 
-  const instanceInformation: ILayoutCompInstanceInformation = {
+  const instanceInformation: ExprUnresolved<ILayoutCompInstanceInformation> = {
     id: '__pdf__instance-information',
     type: 'InstanceInformation',
     elements: {
@@ -69,7 +70,7 @@ function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, lay
     )
     .filter(([_, component]) => !excludedComponents.has(component.id))
     .map(([pageRef, component]) => {
-      const layoutComponent = getLayoutComponentObject(component.type as ComponentExceptGroupAndSummary);
+      const layoutComponent = getLayoutComponentObject(component.type);
 
       if (component.type === 'Group' || layoutComponent?.getComponentType() === ComponentType.Form) {
         return {
@@ -78,13 +79,13 @@ function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, lay
           componentRef: component.id,
           pageRef,
           excludedChildren: pdfFormat?.excludedComponents,
-        } as ILayoutCompSummary;
+        } as ExprUnresolved<ILayoutCompSummary>;
       }
       if (layoutComponent?.getComponentType() === ComponentType.Presentation) {
         return {
           ...component,
           id: `__pdf__${component.id}`,
-        };
+        } as ExprUnresolved<ILayoutComponent>;
       }
       return null;
     })

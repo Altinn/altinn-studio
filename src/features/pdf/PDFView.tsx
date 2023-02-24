@@ -13,15 +13,22 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { topLevelComponents } from 'src/utils/formLayout';
-import type { ComponentExceptGroupAndSummary, ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
+import type { ExprUnresolved } from 'src/features/expressions/types';
+import type { ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
 
 interface PDFViewProps {
   appName: string;
   appOwner?: string;
 }
 
-const PDFComponent = ({ component, layout }: { component: ILayoutComponentOrGroup; layout: ILayout }) => {
-  const layoutComponent = getLayoutComponentObject(component.type as ComponentExceptGroupAndSummary);
+const PDFComponent = ({
+  component,
+  layout,
+}: {
+  component: ExprUnresolved<ILayoutComponentOrGroup>;
+  layout: ILayout;
+}) => {
+  const layoutComponent = getLayoutComponentObject(component.type);
 
   if (component.type === 'Group') {
     return (

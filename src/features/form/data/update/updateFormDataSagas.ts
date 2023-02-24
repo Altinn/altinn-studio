@@ -16,7 +16,6 @@ import {
 } from 'src/utils/validation/validation';
 import type { IFormData } from 'src/features/form/data';
 import type { IDeleteAttachmentReference, IUpdateFormData } from 'src/features/form/data/formDataTypes';
-import type { ILayoutComponent } from 'src/layout/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IRuntimeState } from 'src/types';
 
@@ -76,7 +75,7 @@ function* runValidations(field: string, data: any, componentId: string | undefin
     layoutSets: state.formLayout.layoutsets,
   });
   const validator = getValidator(currentDataTypeId, state.formDataModel.schemas);
-  const component = getLayoutComponentById(componentId, state.formLayout.layouts) as ILayoutComponent;
+  const component = getLayoutComponentById(componentId, state.formLayout.layouts);
 
   const validationResult = validateComponentFormData(
     layoutId,
@@ -87,7 +86,7 @@ function* runValidations(field: string, data: any, componentId: string | undefin
     state.textResources.resources,
     validator,
     state.formValidations.validations[componentId],
-    componentId !== component.id ? componentId : null,
+    componentId !== component?.id ? componentId : null,
   );
 
   const componentValidations = validationResult?.validations[layoutId][componentId];

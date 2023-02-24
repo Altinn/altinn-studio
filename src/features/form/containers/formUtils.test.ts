@@ -1,6 +1,7 @@
 import { getFormLayoutGroupMock, getMultiPageGroupMock } from 'src/__mocks__/formLayoutGroupMock';
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { mapGroupComponents } from 'src/features/form/containers/formUtils';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout } from 'src/layout/layout';
 
@@ -12,7 +13,7 @@ describe('formUtils/mapGroupComponents', () => {
   const oc = expect.objectContaining;
   it('should map multi-page groups', () => {
     const formLayout = makeFormLayout();
-    formLayout[0] = getMultiPageGroupMock() as ILayoutGroup;
+    formLayout[0] = getMultiPageGroupMock();
     const group = formLayout[0];
     const result = mapGroupComponents(group, formLayout);
     expect(result).toStrictEqual([
@@ -52,7 +53,7 @@ describe('formUtils/mapGroupComponents', () => {
   });
   it('should map groupComponents with one element', () => {
     const formLayout = makeFormLayout();
-    const group = formLayout[0] as ILayoutGroup;
+    const group = formLayout[0] as ExprUnresolved<ILayoutGroup>;
     const result = mapGroupComponents(group, formLayout);
     expect(result).toStrictEqual([
       {

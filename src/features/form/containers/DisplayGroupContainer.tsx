@@ -8,19 +8,20 @@ import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponent, ILayoutComponentOrGroup } from 'src/layout/layout';
 
-export type ComponentFromSummary = ILayoutComponentOrGroup & {
+export type ComponentFromSummary = ExprUnresolved<ILayoutComponentOrGroup> & {
   formData?: any;
   parentGroup?: string;
 };
 
 export interface IDisplayGroupContainer {
   id?: string;
-  container: ILayoutGroup;
+  container: ExprUnresolved<ILayoutGroup>;
   components: ComponentFromSummary[];
-  renderLayoutComponent: (components: ILayoutComponent | ILayoutGroup, layout: ILayout) => JSX.Element;
+  renderLayoutComponent: (components: ExprUnresolved<ILayoutComponent | ILayoutGroup>, layout: ILayout) => JSX.Element;
 }
 
 const useStyles = makeStyles({

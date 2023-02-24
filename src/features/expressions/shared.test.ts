@@ -6,15 +6,17 @@ import { convertLayouts, getSharedTests } from 'src/features/expressions/shared'
 import { asExpression } from 'src/features/expressions/validation';
 import { getRepeatingGroups, splitDashedKey } from 'src/utils/formLayout';
 import { buildInstanceContext } from 'src/utils/instanceContext';
-import { nodesInLayouts, resolvedNodesInLayouts } from 'src/utils/layout/hierarchy';
+import { _private, resolvedNodesInLayouts } from 'src/utils/layout/hierarchy';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
 import type { Expression } from 'src/features/expressions/types';
 import type { IRepeatingGroups } from 'src/types';
 import type { IApplicationSettings } from 'src/types/shared';
-import type { LayoutNode, LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
+import type { LayoutNode, LayoutPages } from 'src/utils/layout/hierarchy';
 
-function findComponent(context: FunctionTest['context'], collection: LayoutRootNodeCollection<any>) {
+const { nodesInLayouts } = _private;
+
+function findComponent(context: FunctionTest['context'], collection: LayoutPages<any>) {
   const { component, rowIndices } = context || { component: 'no-component' };
   const componentId = (component || 'no-component') + (rowIndices ? `-${rowIndices.join('-')}` : '');
   const found = collection.findById(componentId);
@@ -116,7 +118,7 @@ describe('Expressions shared context tests', () => {
     return a.component > b.component ? 1 : -1;
   }
 
-  function recurse(node: LayoutNode<any>, key: string): SharedTestContextList {
+  function recurse(node: LayoutNode, key: string): SharedTestContextList {
     const splitKey = splitDashedKey(node.item.id);
     const context: SharedTestContextList = {
       component: splitKey.baseComponentId,

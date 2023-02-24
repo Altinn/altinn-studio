@@ -14,11 +14,12 @@ import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { extractBottomButtons, hasRequiredFields, topLevelComponents } from 'src/utils/formLayout';
 import { renderGenericComponent } from 'src/utils/layout';
 import { getFormHasErrors, missingFieldsInLayoutValidations } from 'src/utils/validation/validation';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponent, RenderableGenericComponent } from 'src/layout/layout';
 
 export function renderLayoutComponent(
-  layoutComponent: ILayoutComponent | ILayoutGroup,
+  layoutComponent: ExprUnresolved<ILayoutComponent | ILayoutGroup>,
   layout: ILayout | undefined | null,
 ) {
   switch (layoutComponent.type) {
@@ -44,11 +45,11 @@ export function renderLayoutComponent(
   }
 }
 
-function GenericComponent(component: RenderableGenericComponent, layout: ILayout) {
+function GenericComponent(component: ExprUnresolved<RenderableGenericComponent>, layout: ILayout) {
   return renderGenericComponent({ component, layout });
 }
 
-function RenderLayoutGroup(layoutGroup: ILayoutGroup, layout: ILayout | undefined | null): JSX.Element {
+function RenderLayoutGroup(layoutGroup: ExprUnresolved<ILayoutGroup>, layout: ILayout | undefined | null): JSX.Element {
   const groupComponents = mapGroupComponents(layoutGroup, layout);
 
   const isRepeatingGroup = layoutGroup.maxCount && layoutGroup.maxCount > 1;

@@ -10,9 +10,16 @@ import { formatISOString } from 'src/utils/formatDate';
 import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
 import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from 'src/utils/options';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { IDataModelBindings, IGridStyling, ILayoutComponent, ISelectionComponentProps } from 'src/layout/layout';
+import type {
+  IDataModelBindings,
+  IGridStyling,
+  ILayoutComponent,
+  ISelectionComponentProps,
+  NumberFormatProps,
+} from 'src/layout/layout';
 import type { IPageBreak } from 'src/layout/layout.d';
 import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 import type {
@@ -25,6 +32,7 @@ import type {
   IValidations,
 } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
+import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
 export const componentHasValidationMessages = (componentValidations: IComponentValidations | undefined) => {
   if (!componentValidations) {
@@ -71,7 +79,7 @@ export const getFormDataForComponent = (formData: IFormData, dataModelBindings: 
 export const getDisplayFormDataForComponent = (
   formData: IFormData,
   attachments: IAttachments,
-  component: ILayoutComponent,
+  component: ExprUnresolved<ILayoutComponent> | AnyItem,
   textResources: ITextResource[],
   options: IOptions,
   repeatingGroups: IRepeatingGroups | null,
@@ -119,7 +127,7 @@ export const getDisplayFormDataForComponent = (
 
 export const getDisplayFormData = (
   dataModelBinding: string | undefined,
-  component: ILayoutComponent | ILayoutGroup,
+  component: ExprUnresolved<ILayoutComponent | ILayoutGroup> | AnyItem,
   componentId: string,
   attachments: IAttachments,
   formData: any,
@@ -243,7 +251,7 @@ export const getDisplayFormData = (
       return attachmentNamesList.join(', ');
     }
     if (component.type === 'Input' && component.formatting?.number) {
-      return formatNumericText(formDataValue, component.formatting.number);
+      return formatNumericText(formDataValue, component.formatting.number as NumberFormatProps);
     }
     if (component.type === 'Datepicker') {
       const dateFormat = getDateFormat(component.format);
@@ -253,10 +261,13 @@ export const getDisplayFormData = (
   return formDataValue;
 };
 
+/**
+ * @deprecated
+ */
 export const getFormDataForComponentInRepeatingGroup = (
   formData: IFormData,
   attachments: IAttachments,
-  component: ILayoutComponent | ILayoutGroup,
+  component: ExprUnresolved<ILayoutComponent | ILayoutGroup>,
   index: number,
   groupDataModelBinding: string | undefined,
   textResources: ITextResource[],
@@ -546,7 +557,7 @@ export const gridBreakpoints = (grid?: IGridStyling) => {
   };
 };
 
-export const pageBreakStyles = (pageBreak: IPageBreak | undefined) => {
+export const pageBreakStyles = (pageBreak: ExprResolved<IPageBreak> | undefined) => {
   if (!pageBreak) {
     return {};
   }

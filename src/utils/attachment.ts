@@ -1,5 +1,6 @@
 import { deleteGroupData, getKeyIndex } from 'src/utils/databindings';
 import { splitDashedKey } from 'src/utils/formLayout';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutComponent, ILayouts } from 'src/layout/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
@@ -113,7 +114,7 @@ export function removeFileEnding(filename: string | undefined): string {
  */
 export function shiftAttachmentRowInRepeatingGroup(
   attachments: IAttachments,
-  uploaderComponents: ILayoutComponent[],
+  uploaderComponents: ExprUnresolved<ILayoutComponent>[],
   groupId: string,
   index: number,
 ): IAttachments {

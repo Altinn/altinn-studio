@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
 import { renderWithProviders } from 'src/testUtils';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout } from 'src/layout/layout';
@@ -14,7 +15,7 @@ import type { RootState } from 'src/store';
 
 describe('PanelGroupContainer', () => {
   const initialState = getInitialStateMock();
-  const container: ILayoutGroup = {
+  const container: ExprUnresolved<ILayoutGroup> = {
     id: 'group-id',
     type: 'Group',
     children: ['input-1', 'input-2'],
@@ -98,7 +99,7 @@ describe('PanelGroupContainer', () => {
         disabled: false,
       },
     ];
-    const containerWithGroupReference: ILayoutGroup = {
+    const containerWithGroupReference: ExprUnresolved<ILayoutGroup> = {
       ...container,
       textResourceBindings: {
         add_label: 'Add new item',
@@ -126,7 +127,7 @@ describe('PanelGroupContainer', () => {
   });
 
   it('should display panel with referenced group children if no children is supplied', async () => {
-    const containerWithNoChildrenWithGroupReference: ILayoutGroup = {
+    const containerWithNoChildrenWithGroupReference: ExprUnresolved<ILayoutGroup> = {
       ...container,
       textResourceBindings: {
         add_label: 'Add new item',
@@ -154,7 +155,7 @@ describe('PanelGroupContainer', () => {
   });
 
   it('should open panel when clicking add and close when clicking save,', async () => {
-    const containerWithNoChildrenWithGroupReference: ILayoutGroup = {
+    const containerWithNoChildrenWithGroupReference: ExprUnresolved<ILayoutGroup> = {
       ...container,
       textResourceBindings: {
         add_label: 'Add new item',

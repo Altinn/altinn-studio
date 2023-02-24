@@ -29,6 +29,7 @@ import {
   splitDashedKey,
 } from 'src/utils/formLayout';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
+import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import { httpPost } from 'src/utils/network/networking';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { getOptionLookupKey, removeGroupOptionsByIndex } from 'src/utils/options';
@@ -55,7 +56,6 @@ import type {
 } from 'src/features/form/layout/formLayoutTypes';
 import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutComponent, ILayoutComponentOrGroup } from 'src/layout/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type {
   IDeleteAttachmentActionFulfilled,
@@ -69,6 +69,7 @@ import type {
   IValidationIssue,
   IValidations,
 } from 'src/types';
+import type { LayoutPages } from 'src/utils/layout/hierarchy';
 
 export const selectFormLayoutState = (state: IRuntimeState) => state.formLayout;
 export const selectFormData = (state: IRuntimeState) => state.formData;
@@ -110,7 +111,7 @@ export function* updateRepeatingGroupsSaga({
     const groupContainer = currentLayout.find((element) => element.id === layoutElementId) as ILayoutGroup | undefined;
 
     const children = groupContainer?.children || [];
-    const childGroups: (ILayoutGroup | ILayoutComponent)[] = currentLayout.filter((element) => {
+    const childGroups = currentLayout.filter((element) => {
       if (element.type !== 'Group') {
         return false;
       }
@@ -122,7 +123,7 @@ export function* updateRepeatingGroupsSaga({
       return children?.indexOf(element.id) > -1;
     });
 
-    childGroups?.forEach((group: ILayoutGroup) => {
+    childGroups?.forEach((group) => {
       if (remove && typeof index === 'number') {
         updatedRepeatingGroups = removeRepeatingGroupFromUIConfig(updatedRepeatingGroups, group.id, index, true);
       } else {
@@ -532,17 +533,11 @@ export function* watchInitialCalculatePageOrderAndMoveToNextPageSaga(): SagaIter
     const pageTriggers = state.formLayout.uiConfig.pageTriggers;
     const appHasCalculateTrigger =
       pageTriggers?.includes(Triggers.CalculatePageOrder) ||
-      Object.keys(layouts).some((layout) => {
-        return layouts[layout]?.some((element: ILayoutComponentOrGroup) => {
-          if (element.type === 'NavigationButtons') {
-            const layoutComponent = element as ILayoutComponent;
-            if (layoutComponent?.triggers?.includes(Triggers.CalculatePageOrder)) {
-              return true;
-            }
-          }
-          return false;
-        });
-      });
+      Object.keys(layouts).some((layout) =>
+        layouts[layout]?.some(
+          (element) => element.type === 'NavigationButtons' && element.triggers?.includes(Triggers.CalculatePageOrder),
+        ),
+      );
     if (appHasCalculateTrigger) {
       yield put(
         FormLayoutActions.calculatePageOrderAndMoveToNextPage({
@@ -560,6 +555,7 @@ export function* updateRepeatingGroupEditIndexSaga({
 }: PayloadAction<IUpdateRepeatingGroupsEditIndex>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
+    const resolvedNodes: LayoutPages = yield select(ResolvedNodesSelector);
     const rowIndex = state.formLayout.uiConfig.repeatingGroups?.[group].editIndex;
 
     if (validate && typeof rowIndex === 'number' && rowIndex > -1) {
@@ -630,13 +626,7 @@ export function* updateRepeatingGroupEditIndexSaga({
       };
       yield put(ValidationActions.updateValidations({ validations: newValidations }));
 
-      const rowValidations = filterValidationsByRow(
-        combinedValidations,
-        state.formLayout.layouts[currentView],
-        state.formLayout.uiConfig.repeatingGroups,
-        group,
-        rowIndex,
-      );
+      const rowValidations = filterValidationsByRow(resolvedNodes, combinedValidations, group, rowIndex);
       if (canFormBeSaved({ validations: rowValidations, invalidDataTypes: false }, 'Complete')) {
         yield put(
           FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({

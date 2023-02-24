@@ -11,20 +11,22 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { setupStore } from 'src/store';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import { Triggers } from 'src/types';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type {
   IUpdateRepeatingGroupsEditIndex,
   IUpdateRepeatingGroupsMultiPageIndex,
 } from 'src/features/form/layout/formLayoutTypes';
 import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { ComponentInGroup } from 'src/layout/layout';
 
 const mockContainer = getFormLayoutGroupMock();
 
 interface IRender {
-  container?: ILayoutGroup;
+  container?: ExprUnresolved<ILayoutGroup>;
 }
 
 function render({ container = mockContainer }: IRender = {}) {
-  const mockComponents = [
+  const mockComponents: ExprUnresolved<ComponentInGroup[]> = [
     {
       id: 'field1',
       type: 'Input',
@@ -78,7 +80,7 @@ function render({ container = mockContainer }: IRender = {}) {
       disabled: false,
       options: [{ value: 'option.value', label: 'option.label' }],
     },
-  ] as any;
+  ];
 
   const mockLayout = {
     layouts: {
@@ -96,7 +98,8 @@ function render({ container = mockContainer }: IRender = {}) {
             group: 'Group',
           },
         }),
-      ].concat(mockComponents),
+        ...mockComponents,
+      ],
     },
     uiConfig: {
       hiddenFields: [],
@@ -164,7 +167,7 @@ describe('GroupContainer', () => {
   });
 
   it('should render add new button with custom label when supplied', () => {
-    const mockContainerWithLabel: ILayoutGroup = {
+    const mockContainerWithLabel: ExprUnresolved<ILayoutGroup> = {
       textResourceBindings: {
         add_button: 'person',
       },
@@ -196,7 +199,7 @@ describe('GroupContainer', () => {
 
   it('calls setMultiPageIndex when opening a group', async () => {
     const user = userEvent.setup();
-    const multiPageContainer: ILayoutGroup = {
+    const multiPageContainer: ExprUnresolved<ILayoutGroup> = {
       ...mockContainer,
       edit: {
         ...mockContainer.edit,
@@ -223,7 +226,7 @@ describe('GroupContainer', () => {
 
   it('calls setMultiPageIndex when adding a group element', async () => {
     const user = userEvent.setup();
-    const multiPageContainer: ILayoutGroup = {
+    const multiPageContainer: ExprUnresolved<ILayoutGroup> = {
       ...mockContainer,
       edit: {
         ...mockContainer.edit,

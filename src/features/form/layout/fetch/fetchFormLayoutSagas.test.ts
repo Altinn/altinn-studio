@@ -10,6 +10,7 @@ import {
 } from 'src/features/form/layout/fetch/fetchFormLayoutSagas';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import * as networking from 'src/utils/network/networking';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompSummary } from 'src/layout/Summary/types';
@@ -68,11 +69,11 @@ describe('fetchFormLayoutSagas', () => {
       },
     };
 
-    const hiddenExprPage1: IHiddenLayoutsExpressions = {
+    const hiddenExprPage1: ExprUnresolved<IHiddenLayoutsExpressions> = {
       page1: ['equals', true, false],
     };
 
-    const hiddenExprPage2: IHiddenLayoutsExpressions = {
+    const hiddenExprPage2: ExprUnresolved<IHiddenLayoutsExpressions> = {
       page2: ['equals', 1, 2],
     };
 

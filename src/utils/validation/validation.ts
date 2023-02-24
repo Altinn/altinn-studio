@@ -14,14 +14,21 @@ import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { convertDataBindingToModel, getFormDataFromFieldKey, getKeyWithoutIndex } from 'src/utils/databindings';
 import { getDateConstraint, getDateFormat } from 'src/utils/dateHelpers';
 import { getFieldName, getFormDataForComponent } from 'src/utils/formComponentUtils';
-import { createRepeatingGroupComponents, getVariableTextKeysForRepeatingGroupComponent } from 'src/utils/formLayout';
-import { buildInstanceContext } from 'src/utils/instanceContext';
+import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { matchLayoutComponent, setupGroupComponents } from 'src/utils/layout';
-import { nodesInLayout, resolvedNodesInLayouts } from 'src/utils/layout/hierarchy';
+import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
+import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ComponentInGroup, IDataModelBindings, ILayout, ILayoutComponent, ILayouts } from 'src/layout/layout';
+import type {
+  ComponentInGroup,
+  IDataModelBindings,
+  ILayout,
+  ILayoutComponent,
+  ILayoutComponentOrGroup,
+  ILayouts,
+} from 'src/layout/layout';
 import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 import type {
   IComponentBindingValidation,
@@ -36,7 +43,7 @@ import type {
   IValidations,
 } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
-import type { LayoutNode, LayoutObject, LayoutRootNode, LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
+import type { LayoutNode, LayoutObject, LayoutPage, LayoutPages } from 'src/utils/layout/hierarchy';
 
 export interface ISchemaValidators {
   [id: string]: ISchemaValidator;
@@ -198,7 +205,7 @@ export const errorMessageKeys = {
 
 export function validateEmptyFields(
   formData: IFormData,
-  layouts: LayoutRootNodeCollection<'resolved'>,
+  layouts: LayoutPages,
   layoutOrder: string[],
   language: ILanguage,
   hiddenFields: Set<string>,
@@ -216,7 +223,7 @@ export function validateEmptyFields(
 
 export function validateEmptyFieldsForNodes(
   formData: IFormData,
-  nodes: LayoutRootNode<'resolved'> | LayoutNode<'resolved'>,
+  nodes: LayoutPage | LayoutNode,
   language: ILanguage,
   hiddenFields: Set<string>,
   textResources: ITextResource[],
@@ -245,6 +252,12 @@ export function validateEmptyFieldsForNodes(
   return validations;
 }
 
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ * @see ResolvedNodesSelector
+ */
 export function getParentGroup(groupId: string, layout: ILayout): ILayoutGroup | null {
   if (!groupId || !layout) {
     return null;
@@ -262,7 +275,13 @@ export function getParentGroup(groupId: string, layout: ILayout): ILayoutGroup |
   }) as ILayoutGroup;
 }
 
-export function getGroupChildren(groupId: string, layout: ILayout): (ILayoutGroup | ILayoutComponent)[] {
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ * @see ResolvedNodesSelector
+ */
+export function getGroupChildren(groupId: string, layout: ILayout): ExprUnresolved<ILayoutGroup | ILayoutComponent>[] {
   const layoutGroup = layout.find((element) => element.id === groupId) as ILayoutGroup;
   return layout.filter((element) =>
     layoutGroup?.children?.map((id) => (layoutGroup.edit?.multiPage ? id.split(':')[1] : id)).includes(element.id),
@@ -271,7 +290,7 @@ export function getGroupChildren(groupId: string, layout: ILayout): (ILayoutGrou
 
 export function validateEmptyField(
   formData: any,
-  node: LayoutNode<'resolved'>,
+  node: LayoutNode,
   textResources: ITextResource[],
   language: ILanguage,
 ): IComponentValidations | null {
@@ -285,14 +304,8 @@ export function validateEmptyField(
     if (!value && fieldKey) {
       const errors: string[] = [];
       const warnings: string[] = [];
-
-      const textResource =
-        node.rowIndex === undefined
-          ? node.item.textResourceBindings
-          : getVariableTextKeysForRepeatingGroupComponent(textResources, node.item.textResourceBindings, node.rowIndex);
-
       const fieldName = getFieldName(
-        textResource,
+        node.item.textResourceBindings,
         textResources,
         language,
         fieldKey !== 'simpleBinding' ? fieldKey : undefined,
@@ -310,7 +323,7 @@ export function validateEmptyField(
 
 export function validateFormComponents(
   attachments: IAttachments,
-  nodeLayout: LayoutRootNodeCollection<'resolved'>,
+  nodeLayout: LayoutPages,
   layoutOrder: string[],
   formData: IFormData,
   language: ILanguage,
@@ -332,7 +345,7 @@ export function validateFormComponents(
 */
 function validateFormComponentsForNodes(
   attachments: IAttachments,
-  nodes: LayoutRootNode<'resolved'> | LayoutNode<'resolved'>,
+  nodes: LayoutPage | LayoutNode,
   formData: IFormData,
   language: ILanguage,
   hiddenFields: Set<string>,
@@ -418,7 +431,7 @@ export function attachmentIsMissingTag(attachment: IAttachment): boolean {
 */
 export function validateDatepickerFormData(
   formData: string | null | undefined,
-  component: ILayoutCompDatepicker,
+  component: ExprUnresolved<ILayoutCompDatepicker> | ExprResolved<ILayoutCompDatepicker>,
   language: ILanguage,
 ): IComponentValidations {
   const minDate = getDateConstraint(component.minDate, 'min');
@@ -450,7 +463,7 @@ export function validateComponentFormData(
   layoutId: string,
   formData: any,
   dataModelField: string,
-  component: ILayoutComponent,
+  component: ExprUnresolved<ILayoutComponentOrGroup> | undefined,
   language: ILanguage,
   textResources: ITextResource[],
   schemaValidator: ISchemaValidator,
@@ -458,11 +471,11 @@ export function validateComponentFormData(
   componentIdWithIndex: string | null,
 ): IValidationResult | null {
   const { validator, rootElementPath, schema } = schemaValidator;
-  const dataModelBindings = component.dataModelBindings || {};
+  const dataModelBindings = component?.dataModelBindings || {};
   const fieldKey = Object.keys(dataModelBindings).find(
     (binding: string) => dataModelBindings[binding] === getKeyWithoutIndex(dataModelField),
   );
-  if (!fieldKey) {
+  if (!fieldKey || !component) {
     return null;
   }
 
@@ -537,11 +550,11 @@ export function validateComponentFormData(
 
 export function validateComponentSpecificValidations(
   formData: string | null | undefined,
-  component: ILayoutComponent,
+  component: ExprUnresolved<ILayoutComponentOrGroup> | undefined,
   language: ILanguage,
 ): IComponentValidations {
   let customComponentValidations: IComponentValidations = {};
-  if (component.type === 'Datepicker') {
+  if (component?.type === 'Datepicker') {
     customComponentValidations = validateDatepickerFormData(formData, component, language);
   }
   return customComponentValidations;
@@ -596,7 +609,7 @@ export function getSchemaPart(schemaPath: string, jsonSchema: object): any {
 
 export function validateFormData(
   formDataAsObject: any,
-  layouts: LayoutRootNodeCollection<'resolved'>,
+  layouts: LayoutPages,
   layoutOrder: string[],
   schemaValidator: ISchemaValidator,
   language: ILanguage,
@@ -631,7 +644,7 @@ export function validateFormData(
 */
 function validateFormDataForLayout(
   formDataAsObject: any,
-  node: LayoutRootNode<'resolved'> | LayoutNode<'resolved'>,
+  node: LayoutPage | LayoutNode,
   layoutKey: string,
   schemaValidator: ISchemaValidator,
   language: ILanguage,
@@ -727,7 +740,7 @@ function addErrorToValidations(
 
 function mapToComponentValidationsGivenComponent(
   layoutId: string,
-  component: ILayoutComponent | ILayoutGroup,
+  component: ExprUnresolved<ILayoutComponent | ILayoutGroup>,
   dataBinding: string,
   errorMessage: string,
   validations: ILayoutValidations,
@@ -748,7 +761,7 @@ function mapToComponentValidationsGivenComponent(
 
 export function mapToComponentValidationsGivenNode(
   layoutId: string,
-  node: LayoutObject<'resolved'>,
+  node: LayoutObject,
   dataBinding: string,
   errorMessage: string,
   validations: ILayoutValidations,
@@ -805,7 +818,7 @@ export function findLayoutIdsFromValidationIssue(layouts: ILayouts, validationIs
     return ['unmapped'];
   }
   return Object.keys(layouts).filter((id) => {
-    const foundInLayout = layouts[id]?.find((c: ILayoutComponent) => {
+    const foundInLayout = layouts[id]?.find((c) => {
       // Special handling for FileUpload components
       if (c.type === 'FileUpload' || c.type === 'FileUploadWithTag') {
         return c.id === validationIssue.field;
@@ -866,17 +879,15 @@ export function findComponentFromValidationIssue(
 }
 
 export function filterValidationsByRow(
+  nodes: LayoutPages,
   validations: IValidations,
-  formLayout: ILayout | null | undefined,
-  repeatingGroups: IRepeatingGroups | null | undefined,
   groupId: string,
   rowIndex?: number,
 ): IValidations {
-  if (!formLayout || !repeatingGroups || typeof rowIndex === 'undefined') {
+  if (!nodes || typeof rowIndex === 'undefined') {
     return validations;
   }
 
-  const nodes = nodesInLayout(formLayout, repeatingGroups);
   const groupNode = nodes.findById(groupId);
   const childIds = new Set(groupNode?.flat(false, rowIndex).map((child) => child.item.id));
   const filteredValidations = JSON.parse(JSON.stringify(validations)) as IValidations;
@@ -1136,8 +1147,8 @@ export function componentHasValidations(
   Checks if a given repeating group has any child components with errors.
 */
 export function repeatingGroupHasValidations(
-  group: ILayoutGroup | null,
-  repeatingGroupComponents: Array<Array<ILayoutGroup | ILayoutComponent>> | null,
+  group: ExprUnresolved<ILayoutGroup> | null,
+  repeatingGroupComponents: ExprUnresolved<ILayoutGroup | ILayoutComponent>[][] | null,
   validations: IValidations | null,
   currentView: string | null,
   repeatingGroups: IRepeatingGroups | null,
@@ -1148,7 +1159,7 @@ export function repeatingGroupHasValidations(
     return false;
   }
 
-  return repeatingGroupComponents.some((groupIndexArray: Array<ILayoutGroup | ILayoutComponent>, index: number) => {
+  return repeatingGroupComponents.some((groupIndexArray, index) => {
     return groupIndexArray.some((element) => {
       if (element.type !== 'Group') {
         return componentHasValidations(validations, currentView, element.id);
@@ -1160,7 +1171,7 @@ export function repeatingGroupHasValidations(
       const childGroupIndex = repeatingGroups[element.id]?.index;
       const childGroupComponents = layout.filter(
         (childElement) => element.children?.indexOf(childElement.id) > -1,
-      ) as ComponentInGroup[];
+      ) as ExprUnresolved<ComponentInGroup>[];
       const renderComponents = setupGroupComponents(childGroupComponents, element.dataModelBindings?.group, index);
       const deepCopyComponents = createRepeatingGroupComponents(
         element,
@@ -1310,19 +1321,10 @@ export function validateGroup(groupId: string, state: IRuntimeState, onlyInRowIn
   const textResources = state.textResources.resources;
   const hiddenFields = new Set<string>(state.formLayout.uiConfig.hiddenFields);
   const attachments = state.attachments.attachments;
-  const repeatingGroups = state.formLayout.uiConfig.repeatingGroups || {};
   const formData = state.formData.formData;
   const jsonFormData = convertDataBindingToModel(formData);
   const currentView = state.formLayout.uiConfig.currentView;
-  const layouts = state.formLayout.layouts;
-
-  const instanceContext = buildInstanceContext(state.instanceData?.instance);
-  const resolvedLayouts = resolvedNodesInLayouts(layouts, currentView, repeatingGroups, {
-    formData,
-    instanceContext,
-    applicationSettings: state.applicationSettings?.applicationSettings,
-    hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
-  });
+  const resolvedLayouts = ResolvedNodesSelector(state);
 
   const node = resolvedLayouts.findById(groupId);
   if (!node || !state.applicationMetadata.applicationMetadata || !language) {
@@ -1467,7 +1469,7 @@ export function removeGroupValidationsByIndex(
 }
 
 function shiftChildGroupValidation(
-  group: ILayoutGroup,
+  group: ExprUnresolved<ILayoutGroup>,
   indexToShiftFrom: number,
   validations: IValidations,
   repeatingGroups: IRepeatingGroups,

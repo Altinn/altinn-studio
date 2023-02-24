@@ -8,6 +8,7 @@ import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { setupStore } from 'src/store';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormDataState } from 'src/features/form/data';
 import type { IUpdateFormData } from 'src/features/form/data/formDataTypes';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
@@ -63,7 +64,9 @@ export const questionsWithAnswers = ({ questions, selectedAnswers }) => {
   return questionsCopy;
 };
 
-const createLikertContainer = (props: Partial<ILayoutGroup> | undefined): ILayoutGroup => {
+const createLikertContainer = (
+  props: Partial<ExprUnresolved<ILayoutGroup>> | undefined,
+): ExprUnresolved<ILayoutGroup> => {
   return {
     id: 'likert-repeating-group-id',
     type: 'Group',
@@ -79,7 +82,9 @@ const createLikertContainer = (props: Partial<ILayoutGroup> | undefined): ILayou
   };
 };
 
-const createRadioButton = (props: Partial<ILayoutCompLikert> | undefined): ILayoutCompLikert => {
+const createRadioButton = (
+  props: Partial<ExprUnresolved<ILayoutCompLikert>> | undefined,
+): ExprUnresolved<ILayoutCompLikert> => {
   return {
     id: 'field1',
     type: 'Likert',
@@ -110,8 +115,8 @@ export const createFormDataUpdateAction = (index: number, optionValue: string): 
 };
 
 const createLayout = (
-  container: ILayoutGroup,
-  components: (ILayoutComponent | ComponentInGroup)[],
+  container: ExprUnresolved<ILayoutGroup>,
+  components: ExprUnresolved<ILayoutComponent | ComponentInGroup>[],
   groupIndex: number,
 ): ILayoutState => {
   return {
@@ -200,8 +205,8 @@ interface IQuestion {
 interface IRenderProps {
   mobileView: boolean;
   mockQuestions: IQuestion[];
-  radioButtonProps: Partial<ILayoutCompLikert>;
-  likertContainerProps: Partial<ILayoutGroup>;
+  radioButtonProps: Partial<ExprUnresolved<ILayoutCompLikert>>;
+  likertContainerProps: Partial<ExprUnresolved<ILayoutGroup>>;
   extraTextResources: ITextResource[];
   validations: ILayoutValidations;
 }
@@ -216,7 +221,7 @@ export const render = ({
 }: Partial<IRenderProps> = {}) => {
   const mockRadioButton = createRadioButton(radioButtonProps);
   const mockLikertContainer = createLikertContainer(likertContainerProps);
-  const components: ComponentInGroup[] = [mockRadioButton];
+  const components: ExprUnresolved<ComponentInGroup>[] = [mockRadioButton];
   const mockData: IFormDataState = {
     formData: generateMockFormData(mockQuestions),
     lastSavedFormData: {},

@@ -2,10 +2,10 @@ import dot from 'dot-object';
 
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
-import type { BaseValue, ExprConfig, Expression } from 'src/features/expressions/types';
+import type { ExprConfig, Expression } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { IApplicationSettings, IInstanceContext } from 'src/types/shared';
-import type { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
+import type { LayoutNode, LayoutPage } from 'src/utils/layout/hierarchy';
 
 export interface ContextDataSources {
   instanceContext: IInstanceContext | null;
@@ -15,7 +15,7 @@ export interface ContextDataSources {
 }
 
 export interface PrettyErrorsOptions {
-  config?: ExprConfig<BaseValue>;
+  config?: ExprConfig;
   introText?: string;
 }
 
@@ -28,7 +28,7 @@ export class ExprContext {
 
   private constructor(
     public expr: Expression,
-    public node: LayoutNode<any> | LayoutRootNode<any> | NodeNotFoundWithoutContext,
+    public node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext,
     public dataSources: ContextDataSources,
   ) {}
 
@@ -37,7 +37,7 @@ export class ExprContext {
    */
   public static withBlankPath(
     expr: Expression,
-    node: LayoutNode<any> | LayoutRootNode<any> | NodeNotFoundWithoutContext,
+    node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext,
     dataSources: ContextDataSources,
   ): ExprContext {
     return new ExprContext(expr, node, dataSources);
@@ -57,7 +57,7 @@ export class ExprContext {
   /**
    * Utility function used to get the LayoutNode for this context, or fail if the node was not found
    */
-  public failWithoutNode(): LayoutNode<any> | LayoutRootNode<any> {
+  public failWithoutNode(): LayoutNode | LayoutPage {
     if (this.node instanceof NodeNotFoundWithoutContext) {
       throw new NodeNotFound(this, this.node);
     }

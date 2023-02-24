@@ -1,4 +1,5 @@
 import { INDEX_KEY_INDICATOR_REGEX } from 'src/utils/databindings';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { IGroupEditProperties, IGroupFilter, ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup, ComponentTypes, ILayout, ILayoutComponent } from 'src/layout/layout';
@@ -90,7 +91,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const groups = formLayout.filter((layoutElement) => layoutElement.type === 'Group');
 
   const childGroups: string[] = [];
-  groups.forEach((group: ILayoutGroup) => {
+  groups.forEach((group: ExprUnresolved<ILayoutGroup>) => {
     group.children?.forEach((childId: string) => {
       formLayout
         .filter((element) => {
@@ -107,7 +108,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   // filter away groups that should be rendered as child groups
   const filteredGroups = groups.filter((group) => childGroups.indexOf(group.id) === -1);
 
-  filteredGroups.forEach((groupElement: ILayoutGroup) => {
+  filteredGroups.forEach((groupElement: ExprUnresolved<ILayoutGroup>) => {
     if (groupElement.maxCount && groupElement.maxCount > 1) {
       const groupFormData = Object.keys(formData)
         .filter((key) => {
@@ -266,7 +267,7 @@ export function removeRepeatingGroupFromUIConfig(
 
 export const getRepeatingGroupStartStopIndex = (
   repeatingGroupIndex: number,
-  edit: IGroupEditProperties | undefined,
+  edit: ExprUnresolved<IGroupEditProperties> | undefined,
 ) => {
   if (typeof repeatingGroupIndex === 'undefined') {
     return { startIndex: 0, stopIndex: -1 };
@@ -285,13 +286,13 @@ export const getRepeatingGroupStartStopIndex = (
  * @see useResolvedNode
  */
 export function createRepeatingGroupComponents(
-  container: ILayoutGroup,
-  renderComponents: (ILayoutComponent | ILayoutGroup)[],
+  container: ExprUnresolved<ILayoutGroup>,
+  renderComponents: ExprUnresolved<ILayoutComponent | ILayoutGroup>[],
   repeatingGroupIndex: number,
   textResources: ITextResource[],
   hiddenFields?: string[],
-): ComponentInGroup[][] {
-  const componentArray: ComponentInGroup[][] = [];
+): ExprUnresolved<ComponentInGroup>[][] {
+  const componentArray: ExprUnresolved<ComponentInGroup>[][] = [];
   const { startIndex, stopIndex } = getRepeatingGroupStartStopIndex(repeatingGroupIndex, container.edit);
   for (let index = startIndex; index <= stopIndex; index++) {
     componentArray.push(
@@ -308,8 +309,8 @@ export function createRepeatingGroupComponents(
 }
 
 interface ICreateRepeatingGroupComponentsForIndexProps {
-  container: ILayoutGroup;
-  renderComponents: (ILayoutComponent | ILayoutGroup)[];
+  container: ExprUnresolved<ILayoutGroup>;
+  renderComponents: ExprUnresolved<ILayoutComponent | ILayoutGroup>[];
   textResources: ITextResource[];
   index: number;
   hiddenFields?: string[];
@@ -327,7 +328,7 @@ export function createRepeatingGroupComponentsForIndex({
   index,
   hiddenFields,
 }: ICreateRepeatingGroupComponentsForIndexProps) {
-  return renderComponents.map((component: ComponentInGroup) => {
+  return renderComponents.map((component) => {
     if (component.type === 'Group' && component.panel?.groupReference) {
       // Do not treat as a regular group child as this is merely an option
       // to add elements for another group from this group context
@@ -338,7 +339,7 @@ export function createRepeatingGroupComponentsForIndex({
       };
     }
 
-    const componentDeepCopy: ILayoutComponent | ILayoutGroup = JSON.parse(JSON.stringify(component));
+    const componentDeepCopy: ExprUnresolved<ILayoutComponent | ILayoutGroup> = JSON.parse(JSON.stringify(component));
     const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
     const groupDataModelBinding = container.dataModelBindings?.group;
     Object.keys(dataModelBindings).forEach((key) => {
@@ -366,7 +367,7 @@ export function createRepeatingGroupComponentsForIndex({
       baseComponentId: componentDeepCopy.baseComponentId || componentDeepCopy.id,
       hidden,
       mapping,
-    } as ComponentInGroup;
+    } as ExprUnresolved<ComponentInGroup>;
   });
 }
 
@@ -428,7 +429,7 @@ export function getVariableTextKeysForRepeatingGroupComponent(
  * @see useExprContext
  */
 export function hasRequiredFields(layout: ILayout): boolean {
-  return !!layout.find((c: ILayoutComponent) => c.required === true || Array.isArray(c.required));
+  return !!layout.find((c: ExprUnresolved<ILayoutComponent>) => c.required === true || Array.isArray(c.required));
 }
 
 /**
@@ -446,11 +447,11 @@ export function hasRequiredFields(layout: ILayout): boolean {
 export function findChildren(
   layout: ILayout,
   options?: {
-    matching?: (component: ILayoutComponent) => boolean;
+    matching?: (component: ExprUnresolved<ILayoutComponent>) => boolean;
     rootGroupId?: string;
   },
-): ILayoutComponent[] {
-  const out: ILayoutComponent[] = [];
+): ExprUnresolved<ILayoutComponent>[] {
+  const out: ExprUnresolved<ILayoutComponent>[] = [];
   const root: string = options?.rootGroupId || '';
   const toConsider = new Set<string>();
   const otherGroupComponents: { [groupId: string]: Set<string> } = {};

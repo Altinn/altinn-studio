@@ -2,86 +2,68 @@ import type { DeepPartial } from 'utility-types';
 
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ComponentExceptGroup, IDataModelBindings, ILayoutComponent } from 'src/layout/layout';
-import type { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
+import type { ComponentExceptGroup, IDataModelBindings, ILayoutComponentExact } from 'src/layout/layout';
+import type { LayoutNode, LayoutPage } from 'src/utils/layout/hierarchy';
 
-export type NodeType =
-  // Plain/unresolved nodes include (unresolved) expressions
-  | 'unresolved'
-  // Resolved nodes have their expressions resolved, leaving only the results
-  | 'resolved';
+/**
+ * In the hierarchy, components and groups will always have their layout expressions evaluated and resolved.
+ */
+export type HComponent<T extends ComponentExceptGroup = ComponentExceptGroup> = ExprResolved<ILayoutComponentExact<T>>;
+export type HGroup = ExprResolved<ILayoutGroup>;
 
-export type ComponentOf<
-  NT extends NodeType,
-  T extends ComponentExceptGroup = ComponentExceptGroup,
-> = NT extends 'unresolved' ? ILayoutComponent<T> : ExprResolved<ILayoutComponent<T>>;
-
-export type GroupOf<NT extends NodeType> = NT extends 'unresolved' ? ILayoutGroup : ExprResolved<ILayoutGroup>;
-
-export type LayoutGroupHierarchy<NT extends NodeType = 'unresolved'> = Omit<GroupOf<NT>, 'children'> & {
-  childComponents: (ComponentOf<NT> | LayoutGroupHierarchy<NT>)[];
+/**
+ * Definition of a non-repeating group inside a hierarchy structure
+ */
+export type HNonRepGroup = Omit<HGroup, 'children'> & {
+  childComponents: (HComponent | HNonRepGroup)[];
 };
 
-export interface RepeatingGroupExtensions {
+/**
+ * Extended attributes for components defined inside repeating group rows
+ */
+export interface HRepGroupExtensions {
   baseDataModelBindings?: IDataModelBindings;
   multiPageIndex?: number;
 }
 
-export type RepeatingGroupLayoutComponent<NT extends NodeType = 'unresolved'> = RepeatingGroupExtensions &
-  ComponentOf<NT>;
+/**
+ * A component inside a repeating group (it has some extensions)
+ */
+export type HComponentInRepGroup = HComponent & HRepGroupExtensions;
 
-export type RepeatingGroupHierarchyRow<NT extends NodeType = 'unresolved'> = {
+/**
+ * A row object for a repeating group
+ */
+export type HRepGroupRow = {
   index: number;
-  items: HierarchyWithRowsChildren<NT>[];
+  items: HRepGroupChildren[];
 
   // If this object is present, it contains a subset of the Group layout object, where some expressions may be resolved
   // in the context of the current repeating group row.
   groupExpressions?: DeepPartial<ExprResolved<ILayoutGroup>>;
 };
 
-export type RepeatingGroupHierarchy<NT extends NodeType = 'unresolved'> = Omit<
-  LayoutGroupHierarchy<NT>,
-  'childComponents' | 'children'
-> &
-  RepeatingGroupExtensions & {
-    rows: (RepeatingGroupHierarchyRow<NT> | undefined)[];
+/**
+ * Definition of a repeating group component inside a hierarchy structure
+ */
+export type HRepGroup = Omit<HGroup, 'children'> &
+  HRepGroupExtensions & {
+    rows: (HRepGroupRow | undefined)[];
   };
 
 /**
- * Types of possible components on the top level of a repeating group hierarchy with rows
+ * Types of possible components inside repeating group rows
  */
-export type HierarchyWithRows<NT extends NodeType = 'unresolved'> =
-  | ComponentOf<NT>
-  | LayoutGroupHierarchy<NT> // Non-repeating groups
-  | RepeatingGroupHierarchy<NT>;
+export type HRepGroupChildren = HComponentInRepGroup | HNonRepGroup | HRepGroup;
 
 /**
- * Types of possible components inside rows. Note that no unresolved 'ILayoutComponent' is valid here,
- * as all components inside repeating group rows needs to have a baseComponentId, etc.
+ * Any parent object of a LayoutNode (with for example repeating groups, the parent can be the group node, but above
+ * that there will be a LayoutPage).
  */
-export type HierarchyWithRowsChildren<NT extends NodeType = 'unresolved'> =
-  | RepeatingGroupLayoutComponent<NT>
-  | LayoutGroupHierarchy<NT> // Non-repeating groups
-  | RepeatingGroupHierarchy<NT>;
+export type ParentNode = LayoutNode | LayoutPage;
 
-export type AnyItem<NT extends NodeType = 'unresolved'> =
-  | ComponentOf<NT>
-  | GroupOf<NT>
-  | RepeatingGroupLayoutComponent<NT>
-  | LayoutGroupHierarchy<NT>
-  | RepeatingGroupHierarchy<NT>;
-
-export type AnyNode<NT extends NodeType = 'unresolved'> = LayoutNode<NT, AnyItem<NT>>;
-
-export type AnyParentItem<NT extends NodeType = 'unresolved'> = Exclude<
-  AnyItem<NT>,
-  ComponentOf<NT> | GroupOf<NT> | RepeatingGroupLayoutComponent<NT>
->;
-
-export type AnyParentNode<NT extends NodeType = 'unresolved'> = LayoutNode<NT> | LayoutRootNode<NT>;
-
-export type AnyTopLevelItem<NT extends NodeType> = Exclude<AnyItem<NT>, GroupOf<NT>>;
-
-export type AnyTopLevelNode<NT extends NodeType> = LayoutNode<NT, AnyTopLevelItem<NT>>;
-
-export type AnyChildNode<NT extends NodeType> = LayoutNode<NT, AnyItem<NT>>;
+/**
+ * Any item inside a hierarchy. Note that a LayoutNode _contains_ an item. The LayoutNode itself is an instance of the
+ * LayoutNode class, while _an item_ is the object inside it that is somewhat similar to layout objects.
+ */
+export type AnyItem = HComponent | HComponentInRepGroup | HNonRepGroup | HRepGroup;

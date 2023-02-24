@@ -5,12 +5,13 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { getOptionLookupKey } from 'src/utils/options';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
 import type { IAttachment } from 'src/shared/resources/attachments';
 
 export interface IAttachmentWithTagSummaryComponent {
   componentRef: string;
-  component: ILayoutCompFileUploadWithTag;
+  component: ExprUnresolved<ILayoutCompFileUploadWithTag>;
 }
 
 const useStyles = makeStyles({

@@ -1,5 +1,6 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutComponentOrGroup } from 'src/layout/layout';
 import type { IRuntimeState } from 'src/types';
 
@@ -112,7 +113,7 @@ declare global {
        */
       interceptLayout(
         taskName: FrontendTestTask | string,
-        mutator: (component: ILayoutComponentOrGroup) => void,
+        mutator: (component: ExprUnresolved<ILayoutComponentOrGroup>) => void,
         wholeLayoutMutator?: (layoutSet: any) => void,
       ): Chainable<null>;
     }

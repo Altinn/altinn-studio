@@ -7,10 +7,11 @@ import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/language/sharedLanguage';
 import { parseLocation } from 'src/layout/Map/MapComponent';
 import { markerIcon } from 'src/layout/Map/MapIcons';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompMap } from 'src/layout/Map/types';
 
 export interface IMapComponentSummary {
-  component: ILayoutCompMap;
+  component: ExprUnresolved<ILayoutCompMap>;
   formData: any;
 }
 

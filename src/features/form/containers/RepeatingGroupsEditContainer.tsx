@@ -9,7 +9,7 @@ import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLan
 import { AltinnStudioTheme } from 'src/theme/altinnStudioTheme';
 import { renderGenericComponent } from 'src/utils/layout';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import type { ExprResolved } from 'src/features/expressions/types';
+import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { IGroupEditProperties, ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup, ILayout } from 'src/layout/layout';
 import type { ITextResource } from 'src/types';
@@ -18,8 +18,8 @@ import type { ILanguage } from 'src/types/shared';
 export interface IRepeatingGroupsEditContainer {
   id: string;
   className?: string;
-  container: ILayoutGroup;
-  repeatingGroupDeepCopyComponents: ComponentInGroup[][];
+  container: ExprUnresolved<ILayoutGroup>;
+  repeatingGroupDeepCopyComponents: ExprUnresolved<ComponentInGroup>[][];
   language: ILanguage;
   textResources: ITextResource[];
   layout: ILayout | null;

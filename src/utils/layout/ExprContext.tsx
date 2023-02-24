@@ -3,26 +3,27 @@ import React, { useContext, useMemo } from 'react';
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { dataSourcesFromState, resolvedNodesInLayouts, rewriteTextResourceBindings } from 'src/utils/layout/hierarchy';
 import type { ComponentExceptGroup, ILayoutComponent } from 'src/layout/layout';
-import type { LayoutNode, LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
-import type { ComponentOf } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode, LayoutPages } from 'src/utils/layout/hierarchy';
+import type { HComponent } from 'src/utils/layout/hierarchy.types';
 
-export const ExprContext = React.createContext<LayoutRootNodeCollection<'resolved'> | undefined>(undefined);
+export const ExprContext = React.createContext<LayoutPages | undefined>(undefined);
 
 type MaybeSpecificItem<T> = T extends ILayoutComponent
   ? T extends { type: infer Type }
     ? Type extends ComponentExceptGroup
-      ? LayoutNode<'resolved', ComponentOf<'resolved', Type>>
-      : LayoutNode<'resolved'>
-    : LayoutNode<'resolved'>
-  : LayoutNode<'resolved'>;
+      ? LayoutNode<HComponent<Type>>
+      : LayoutNode
+    : LayoutNode
+  : LayoutNode;
 
 /**
- * React hook used for getting a memoized LayoutRootNodeCollection where you can look up components.
- * Do not use this directly, rather useExprContext(), which will fetch you an already resolved hierarchy.
+ * React hook used for getting a memoized LayoutPages object where you can look up components.
+ * Do not use this directly, rather useExprContext(), which will fetch you a hierarchy of components
+ * with their expressions resolved.
  *
  * @see useResolvedNode
  */
-function useLayoutsAsNodes(): LayoutRootNodeCollection<'resolved'> | undefined {
+function useLayoutsAsNodes(): LayoutPages | undefined {
   const dataSources = useAppSelector((state) => dataSourcesFromState(state));
   const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
   const layouts = useAppSelector((state) => state.formLayout.layouts);
@@ -48,8 +49,9 @@ export const ExprContextWrapper = (props: React.PropsWithChildren) => {
 };
 
 /**
- * Use the expression context. This will return a LayoutRootNodeCollection object containing the full tree of resolved
- * nodes (meaning, instances of layout components in a tree, with their expressions resolved to scalar values).
+ * Use the expression context. This will return a LayoutPages object containing the full tree of resolved
+ * nodes (meaning, instances of layout components in a tree, with their expressions evaluated and resolved to
+ * scalar values).
  *
  * Usually, if you're looking for a specific component/node, useResolvedNode() is better.
  */

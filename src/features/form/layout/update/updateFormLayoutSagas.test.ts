@@ -27,7 +27,6 @@ import type {
   ICalculatePageOrderAndMoveToNextPage,
   IUpdateRepeatingGroups,
 } from 'src/features/form/layout/formLayoutTypes';
-import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IAttachment } from 'src/shared/resources/attachments';
@@ -66,7 +65,11 @@ describe('updateLayoutSagas', () => {
         type: 'FileUpload',
         dataModelBindings: dataModelBinding,
         textResourceBindings: {},
-      } as ILayoutCompFileUpload);
+        minNumberOfAttachments: 1,
+        maxNumberOfAttachments: 15,
+        maxFileSizeInMB: 15,
+        displayMode: 'simple',
+      });
 
       const initialFormData = { ...state.formData.formData };
       state.formData.formData['Group[0].attachmentRef'] = 'abc123';

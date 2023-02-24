@@ -1,4 +1,4 @@
-import type { ExpressionOr } from 'src/features/expressions/types';
+import type { ExprVal } from 'src/features/expressions/types';
 import type { ILayoutCompBase } from 'src/layout/layout';
 import type { IGroupPanel } from 'src/layout/Panel/types';
 
@@ -10,13 +10,13 @@ export interface IGroupFilter {
 export interface IGroupEditProperties {
   mode?: 'hideTable' | 'showTable' | 'showAll' | 'likert';
   filter?: IGroupFilter[];
-  addButton?: ExpressionOr<'boolean'>;
-  saveButton?: ExpressionOr<'boolean'>;
-  deleteButton?: ExpressionOr<'boolean'>;
+  addButton?: ExprVal.Boolean;
+  saveButton?: ExprVal.Boolean;
+  deleteButton?: ExprVal.Boolean;
   multiPage?: boolean;
   openByDefault?: boolean | 'first' | 'last';
-  alertOnDelete?: ExpressionOr<'boolean'>;
-  saveAndNextButton?: ExpressionOr<'boolean'>;
+  alertOnDelete?: ExprVal.Boolean;
+  saveAndNextButton?: ExprVal.Boolean;
 }
 
 export interface ILayoutGroup extends ILayoutCompBase<'Group'> {

@@ -7,12 +7,13 @@ import {
   getConfigFor,
 } from 'src/features/expressions';
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
+import { ExprVal } from 'src/features/expressions/types';
 import type {
-  BaseValue,
   ExprConfig,
   Expression,
   ExprFunction,
   ExprObjConfig,
+  ExprValToActual,
   FuncDef,
 } from 'src/features/expressions/types';
 import type { ILayout } from 'src/layout/layout';
@@ -33,11 +34,11 @@ export interface ValidationContext {
   };
 }
 
-const validBasicTypes: { [key: string]: BaseValue } = {
-  boolean: 'boolean',
-  string: 'string',
-  bigint: 'number',
-  number: 'number',
+const validBasicTypes: { [key: string]: ExprVal } = {
+  boolean: ExprVal.Boolean,
+  string: ExprVal.String,
+  bigint: ExprVal.Number,
+  number: ExprVal.Number,
 };
 
 export class InvalidExpression extends Error {}
@@ -61,7 +62,7 @@ export function addError(
 function validateFunctionArg(
   func: ExprFunction,
   idx: number,
-  actual: (BaseValue | undefined)[],
+  actual: (ExprVal | undefined)[],
   ctx: ValidationContext,
   path: string[],
 ) {
@@ -85,7 +86,7 @@ function validateFunctionArg(
 
 function validateFunctionArgs(
   func: ExprFunction,
-  actual: (BaseValue | undefined)[],
+  actual: (ExprVal | undefined)[],
   ctx: ValidationContext,
   path: string[],
 ) {
@@ -98,7 +99,7 @@ function validateFunctionArgs(
 
 function validateFunctionArgLength(
   func: ExprFunction,
-  actual: (BaseValue | undefined)[],
+  actual: (ExprVal | undefined)[],
   ctx: ValidationContext,
   path: string[],
 ) {
@@ -128,10 +129,10 @@ function validateFunctionArgLength(
 function validateFunction(
   funcName: any,
   rawArgs: any[],
-  argTypes: (BaseValue | undefined)[],
+  argTypes: (ExprVal | undefined)[],
   ctx: ValidationContext,
   path: string[],
-): BaseValue | undefined {
+): ExprVal | undefined {
   if (typeof funcName !== 'string') {
     addError(ctx, path, ValidationErrorMessage.InvalidType, typeof funcName);
     return;
@@ -167,7 +168,7 @@ function validateExpr(expr: any[], ctx: ValidationContext, path: string[]) {
   }
 
   const [func, ...rawArgs] = expr;
-  const args: (BaseValue | undefined)[] = [];
+  const args: (ExprVal | undefined)[] = [];
 
   for (const argIdx in rawArgs) {
     const idx = parseInt(argIdx) + 1;
@@ -177,7 +178,7 @@ function validateExpr(expr: any[], ctx: ValidationContext, path: string[]) {
   return validateFunction(func, rawArgs, args, ctx, [...path, '[0]']);
 }
 
-function validateRecursively(expr: any, ctx: ValidationContext, path: string[]): BaseValue | undefined {
+function validateRecursively(expr: any, ctx: ValidationContext, path: string[]): ExprVal | undefined {
   if (validBasicTypes[typeof expr]) {
     return validBasicTypes[typeof expr];
   }
@@ -209,7 +210,11 @@ export function canBeExpression(expr: any): expr is [] {
  * @param config Configuration and default value (the default is returned if the expression fails to validate)
  * @param errorText Error intro text used when printing to console or throwing an error
  */
-export function asExpression(obj: any, config?: ExprConfig, errorText = 'Invalid expression'): Expression | undefined {
+export function asExpression(
+  obj: any,
+  config?: ExprConfig,
+  errorText = 'Invalid expression',
+): Expression | ExprValToActual | undefined {
   if (typeof obj !== 'object' || obj === null || !Array.isArray(obj)) {
     return undefined;
   }

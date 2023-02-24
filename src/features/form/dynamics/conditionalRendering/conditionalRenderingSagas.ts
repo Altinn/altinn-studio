@@ -3,26 +3,26 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
 import { evalExpr } from 'src/features/expressions';
+import { ExprVal } from 'src/features/expressions/types';
 import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { Triggers } from 'src/types';
 import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
-import { dataSourcesFromState, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
+import { dataSourcesFromState, ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import { selectNotNull } from 'src/utils/sagas';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
-import type { ExprConfig } from 'src/features/expressions/types';
+import type { ExprConfig, ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { ICheckIfConditionalRulesShouldRun, IConditionalRenderingRules } from 'src/features/form/dynamics';
 import type { IHiddenLayoutsExpressions, IRuntimeState, IUiConfig, IValidations } from 'src/types';
-import type { LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
+import type { LayoutPages } from 'src/utils/layout/hierarchy';
 
 export const ConditionalRenderingSelector = (store: IRuntimeState) => store.formDynamics.conditionalRendering;
 export const FormDataSelector = (state: IRuntimeState) => state.formData.formData;
 export const RepeatingGroupsSelector = (state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups;
 export const UiConfigSelector = (state: IRuntimeState) => state.formLayout.uiConfig;
 export const FormValidationSelector = (state: IRuntimeState) => state.formValidations.validations;
-export const ResolvedNodesSelector = (state: IRuntimeState) => resolvedLayoutsFromState(state);
 export const DataSourcesSelector = (state: IRuntimeState) => dataSourcesFromState(state);
 
 export function* checkIfConditionalRulesShouldRunSaga({
@@ -34,7 +34,7 @@ export function* checkIfConditionalRulesShouldRunSaga({
     const formValidations: IValidations = yield select(FormValidationSelector);
     const repeatingGroups = yield selectNotNull(RepeatingGroupsSelector);
     const uiConfig: IUiConfig = yield select(UiConfigSelector);
-    const resolvedNodes: LayoutRootNodeCollection<'resolved'> = yield select(ResolvedNodesSelector);
+    const resolvedNodes: LayoutPages = yield select(ResolvedNodesSelector);
     const dataSources = yield select(DataSourcesSelector);
 
     const hiddenFields = new Set(uiConfig.hiddenFields);
@@ -126,7 +126,7 @@ export function* checkIfConditionalRulesShouldRunSaga({
   }
 }
 
-function runExpressionRules(layouts: LayoutRootNodeCollection<'resolved'>, future: Set<string>) {
+function runExpressionRules(layouts: LayoutPages, future: Set<string>) {
   for (const layout of Object.values(layouts.all())) {
     for (const node of layout.flat(true)) {
       if (node.item.hidden === true || future.has(node.item.id)) {
@@ -140,12 +140,12 @@ function runExpressionRules(layouts: LayoutRootNodeCollection<'resolved'>, futur
 }
 
 function runExpressionsForLayouts(
-  nodes: LayoutRootNodeCollection<'resolved'>,
-  hiddenLayoutsExpr: IHiddenLayoutsExpressions,
+  nodes: LayoutPages,
+  hiddenLayoutsExpr: ExprUnresolved<IHiddenLayoutsExpressions>,
   dataSources: ContextDataSources,
 ): Set<string> {
-  const config: ExprConfig<'boolean'> = {
-    returnType: 'boolean',
+  const config: ExprConfig<ExprVal.Boolean> = {
+    returnType: ExprVal.Boolean,
     defaultValue: false,
     resolvePerRow: false,
   };

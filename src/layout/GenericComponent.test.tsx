@@ -7,10 +7,10 @@ import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { mockComponentProps, renderWithProviders } from 'src/testUtils';
-import type { IActualGenericComponentProps } from 'src/layout/GenericComponent';
+import type { IActualGenericComponentPropsUnresolved } from 'src/layout/GenericComponent';
 
-const render = (props: Partial<IActualGenericComponentProps<any>> = {}) => {
-  const allProps: IActualGenericComponentProps<'Input'> = {
+const render = (props: Partial<IActualGenericComponentPropsUnresolved<any>> = {}) => {
+  const allProps: IActualGenericComponentPropsUnresolved<'Input'> = {
     ...mockComponentProps,
     id: 'mockId',
     type: 'Input' as any,

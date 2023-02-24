@@ -10,7 +10,7 @@ import {
   setMappingForRepeatingGroupComponent,
   topLevelComponents,
 } from 'src/utils/formLayout';
-import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
@@ -60,7 +60,7 @@ const testLayout: ILayout = [
     },
     children: ['field1', 'Group2'],
     maxCount: 3,
-  } as ILayoutGroup,
+  },
   {
     id: 'Group2',
     type: 'Group',
@@ -69,7 +69,7 @@ const testLayout: ILayout = [
     },
     maxCount: 4,
     children: ['field2'],
-  } as ILayoutGroup,
+  },
   {
     id: 'field1',
     type: 'Input',
@@ -82,7 +82,7 @@ const testLayout: ILayout = [
     readOnly: false,
     required: false,
     disabled: false,
-  } as ILayoutComponent,
+  },
   {
     id: 'field2',
     type: 'Input',
@@ -95,7 +95,7 @@ const testLayout: ILayout = [
     readOnly: false,
     required: false,
     disabled: false,
-  } as ILayoutComponent,
+  },
 ];
 
 describe('getRepeatingGroups', () => {
@@ -257,7 +257,7 @@ describe('getRepeatingGroups', () => {
         },
         children: ['field1'],
         maxCount: 3,
-      } as ILayoutGroup,
+      },
       {
         id: 'Group2',
         type: 'Group',
@@ -266,7 +266,7 @@ describe('getRepeatingGroups', () => {
         },
         children: ['field2'],
         maxCount: 3,
-      } as ILayoutGroup,
+      },
       {
         id: 'field1',
         type: 'Input',
@@ -279,7 +279,7 @@ describe('getRepeatingGroups', () => {
         readOnly: false,
         required: false,
         disabled: false,
-      } as ILayoutComponent,
+      },
       {
         id: 'field2',
         type: 'Input',
@@ -292,7 +292,7 @@ describe('getRepeatingGroups', () => {
         readOnly: false,
         required: false,
         disabled: false,
-      } as ILayoutComponent,
+      },
     ];
     const formData = {
       'Group1[0].prop1': 'value-0-1',
@@ -330,7 +330,7 @@ describe('getRepeatingGroups', () => {
         },
         children: ['field1'],
         maxCount: 99,
-      } as ILayoutGroup,
+      },
       {
         id: 'field1',
         type: 'Input',
@@ -340,7 +340,7 @@ describe('getRepeatingGroups', () => {
         readOnly: false,
         required: false,
         disabled: false,
-      } as ILayoutComponent,
+      },
     ];
     const formData = {
       'Group1[0].prop': 'value-0',
@@ -429,7 +429,7 @@ describe('createRepeatingGroupComponents', () => {
         },
         children: ['field1'],
         maxCount: 3,
-      } as ILayoutGroup,
+      },
       {
         id: 'field1',
         type: 'Input',
@@ -442,7 +442,7 @@ describe('createRepeatingGroupComponents', () => {
         readOnly: false,
         required: false,
         disabled: false,
-      } as ILayoutComponent,
+      },
     ];
     const mockTextResources = [
       {
@@ -458,8 +458,8 @@ describe('createRepeatingGroupComponents', () => {
       },
     ];
 
-    const container: ILayoutGroup = testLayout[0] as ILayoutGroup;
-    const component: ILayoutComponent = testLayout[1] as ILayoutComponent;
+    const container = testLayout[0] as ExprUnresolved<ILayoutGroup>;
+    const component = testLayout[1] as ExprUnresolved<ILayoutComponent>;
     const expected = [
       [
         {
@@ -506,7 +506,7 @@ describe('createRepeatingGroupComponents', () => {
         },
         children: ['field1', 'panel-group'],
         maxCount: 3,
-      } as ILayoutGroup,
+      },
       {
         id: 'field1',
         type: 'Input',
@@ -519,7 +519,7 @@ describe('createRepeatingGroupComponents', () => {
         readOnly: false,
         required: false,
         disabled: false,
-      } as ILayoutComponent,
+      },
       {
         id: 'panel-group',
         type: 'Group',
@@ -532,7 +532,7 @@ describe('createRepeatingGroupComponents', () => {
             group: 'some-group',
           },
         },
-      } as ILayoutGroup,
+      },
       {
         id: 'panel-group-child',
         type: 'Input',
@@ -545,10 +545,10 @@ describe('createRepeatingGroupComponents', () => {
         readOnly: false,
         required: false,
         disabled: false,
-      } as ILayoutComponent,
+      },
     ];
 
-    const container: ILayoutGroup = testLayout[0] as ILayoutGroup;
+    const container = testLayout[0] as ExprUnresolved<ILayoutGroup>;
     const components = testLayout.splice(0, 1);
 
     const result = createRepeatingGroupComponents(container, components, 0, []);
@@ -559,13 +559,16 @@ describe('createRepeatingGroupComponents', () => {
   });
 
   it('baseComponentId should never contain group index', () => {
-    const groupProps: Pick<ILayoutGroup, 'type' | 'dataModelBindings' | 'textResourceBindings' | 'maxCount'> = {
+    const groupProps: Pick<
+      ExprUnresolved<ILayoutGroup>,
+      'type' | 'dataModelBindings' | 'textResourceBindings' | 'maxCount'
+    > = {
       type: 'Group',
       dataModelBindings: {},
       textResourceBindings: { label: 't' },
       maxCount: 3,
     };
-    const layout: ((ILayoutGroup | ILayoutComponent) & {
+    const layout: (ILayout[number] & {
       baseComponentId: string;
     })[] = [
       {
@@ -602,7 +605,12 @@ describe('createRepeatingGroupComponents', () => {
       },
     ];
 
-    const result = createRepeatingGroupComponents(layout[0] as ILayoutGroup, layout, 1, mockTextResources);
+    const result = createRepeatingGroupComponents(
+      layout[0] as ExprUnresolved<ILayoutGroup>,
+      layout,
+      1,
+      mockTextResources,
+    );
 
     const allBaseComponentIds: string[] = [];
     const findBaseComponentId = (obj: any) => {
@@ -649,7 +657,7 @@ describe('mapFileUploadersWithTag', () => {
         optionsId: 'dataTypes',
         hasCustomFileEndings: true,
         validFileEndings: ['.jpeg', '.jpg', '.pdf'],
-      } as ILayoutCompFileUploadWithTag,
+      },
       {
         id: 'file-upload-with-tag2',
         type: 'FileUploadWithTag',
@@ -667,7 +675,7 @@ describe('mapFileUploadersWithTag', () => {
         optionsId: 'dataTypes',
         hasCustomFileEndings: true,
         validFileEndings: ['.jpeg', '.jpg', '.pdf'],
-      } as ILayoutComponent,
+      },
       {
         id: 'file-upload-with-tag3',
         type: 'FileUploadWithTag',
@@ -685,7 +693,7 @@ describe('mapFileUploadersWithTag', () => {
         optionsId: 'dataTypes',
         hasCustomFileEndings: true,
         validFileEndings: ['.jpeg', '.jpg', '.pdf'],
-      } as ILayoutComponent,
+      },
     ];
 
     const testAttachments: IAttachmentState = {
@@ -756,12 +764,14 @@ describe('mapFileUploadersWithTag', () => {
     const layout: ILayout = [
       {
         id: 'field1',
+        type: 'Input',
         required: true,
-      } as ILayoutComponent,
+      },
       {
         id: 'field2',
+        type: 'Input',
         required: false,
-      } as ILayoutComponent,
+      },
     ];
     const result = hasRequiredFields(layout);
     expect(result).toBeTruthy();
@@ -795,23 +805,23 @@ describe('findChildren', () => {
       {
         id: 'field1',
         type: 'Input',
-      } as ILayoutComponent,
+      },
       {
         id: 'group1',
         type: 'Group',
         children: ['0:field2', '1:field3'],
         edit: { multiPage: true },
-      } as ILayoutGroup,
+      },
       {
         id: 'field2',
         required: true,
         type: 'Input',
-      } as ILayoutComponent,
+      },
       {
         id: 'field3',
         required: false,
         type: 'Input',
-      } as ILayoutComponent,
+      },
     ];
 
     const result1 = findChildren(layout, {
@@ -835,34 +845,34 @@ describe('findChildren', () => {
       {
         id: 'field1',
         type: 'Input',
-      } as ILayoutComponent,
+      },
       {
         id: 'group0',
         type: 'Group',
         children: ['field4'],
         maxCount: 3,
-      } as ILayoutGroup,
+      },
       {
         id: 'group1',
         type: 'Group',
         children: ['field2', 'field3', 'group0'],
         maxCount: 3,
-      } as ILayoutGroup,
+      },
       {
         id: 'field2',
         required: true,
         type: 'Input',
-      } as ILayoutComponent,
+      },
       {
         id: 'field3',
         required: false,
         type: 'Input',
-      } as ILayoutComponent,
+      },
       {
         id: 'field4',
         required: true,
         type: 'Input',
-      } as ILayoutComponent,
+      },
     ];
 
     const result1 = findChildren(layout, {

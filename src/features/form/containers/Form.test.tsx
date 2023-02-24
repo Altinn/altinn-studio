@@ -8,6 +8,7 @@ import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { Form } from 'src/features/form/containers/Form';
 import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayout, ILayoutComponent, ILayoutEntry } from 'src/layout/layout';
 import type { RootState } from 'src/store';
 
@@ -143,7 +144,7 @@ describe('Form', () => {
       {
         id: 'navBar',
         type: 'NavigationBar',
-      } as ILayoutComponent,
+      } as ExprUnresolved<ILayoutComponent>,
     ];
     renderForm(layoutWithNavBar);
     expect(screen.getByRole('navigation')).toBeInTheDocument();

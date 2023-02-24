@@ -1,12 +1,13 @@
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { CONFIG_FOR_ALL_VALUES_IN_OBJ, evalExpr, evalExprInObj } from 'src/features/expressions/index';
+import { ExprVal } from 'src/features/expressions/types';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { ExprConfig } from 'src/features/expressions/types';
 
 describe('Expressions', () => {
   it('should return default value if expression evaluates to null', () => {
-    const config: ExprConfig<'string'> = {
-      returnType: 'string',
+    const config: ExprConfig<ExprVal.String> = {
+      returnType: ExprVal.String,
       defaultValue: 'hello world',
       resolvePerRow: false,
     };
@@ -60,12 +61,12 @@ describe('Expressions', () => {
         input: { obj: ['instanceContext', 'whatever1'], other: ['instanceContext', 'whatever2'] },
         config: {
           [CONFIG_FOR_ALL_VALUES_IN_OBJ]: {
-            returnType: 'string',
+            returnType: ExprVal.String,
             defaultValue: 'some-default-result',
             resolvePerRow: false,
           },
           obj: {
-            returnType: 'string',
+            returnType: ExprVal.String,
             defaultValue: 'default-for-this-one',
             resolvePerRow: false,
           },

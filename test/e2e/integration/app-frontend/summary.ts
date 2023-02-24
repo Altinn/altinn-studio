@@ -4,7 +4,6 @@ import { Common } from 'test/e2e/pageobjects/common';
 
 import { Triggers } from 'src/types';
 import type { ILayout } from 'src/layout/layout';
-import type { ILayoutCompSummary } from 'src/layout/Summary/types.d';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
@@ -372,8 +371,8 @@ describe('Summary', () => {
   });
 
   it('Can exclude children from group summary', () => {
-    cy.interceptLayout('group', (component: ILayoutCompSummary) => {
-      if (component.id === 'summary-1') {
+    cy.interceptLayout('group', (component) => {
+      if (component.type === 'Summary' && component.id === 'summary-1') {
         component.excludedChildren = ['comments-0-1', 'hideComment'];
       }
     });

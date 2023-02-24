@@ -16,12 +16,12 @@ import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ComponentFromSummary } from 'src/features/form/containers/DisplayGroupContainer';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ComponentExceptGroupAndSummary, ILayoutComponent } from 'src/layout/layout';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
 import type { IRuntimeState } from 'src/types';
-import type { AnyNode } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
 
 export interface ISummaryGroupComponent {
   pageRef?: string;
@@ -89,7 +89,7 @@ export function SummaryGroupComponent({
   const node = useResolvedNode(componentRef);
   const textResourceBindings = node?.item.textResourceBindings;
 
-  const removeExcludedChildren = (n: AnyNode<'resolved'>) =>
+  const removeExcludedChildren = (n: LayoutNode) =>
     !excludedChildren ||
     (!excludedChildren.includes(n.item.id) && !excludedChildren.includes(`${n.item.baseComponentId}`));
 
@@ -141,11 +141,7 @@ export function SummaryGroupComponent({
       const childSummaryComponents = node
         .children(undefined, row.index)
         .filter(removeExcludedChildren)
-        .filter(
-          (node) =>
-            getLayoutComponentObject(node.item.type as ComponentExceptGroupAndSummary)?.getComponentType() ===
-            ComponentType.Form,
-        )
+        .filter((node) => getLayoutComponentObject(node.item.type)?.getComponentType() === ComponentType.Form)
         .map((n) => {
           if (n.isHidden(hiddenFields)) {
             return;
@@ -154,7 +150,7 @@ export function SummaryGroupComponent({
           const formDataForComponent = getDisplayFormDataForComponent(
             formData,
             attachments,
-            n.item as ILayoutComponent,
+            n.item,
             textResources,
             options,
             repeatingGroups,
@@ -196,7 +192,7 @@ export function SummaryGroupComponent({
       const groupContainer = {
         ...node.item,
         children: [],
-      } as ILayoutGroup;
+      } as ExprUnresolved<ILayoutGroup>;
 
       const childSummaryComponents: ComponentFromSummary[] = [];
       node
@@ -214,7 +210,7 @@ export function SummaryGroupComponent({
             formDataForComponent = getFormDataForComponentInRepeatingGroup(
               formData,
               attachments,
-              n.item as ILayoutComponent,
+              n.item,
               row.index,
               groupDataModelBinding,
               textResources,

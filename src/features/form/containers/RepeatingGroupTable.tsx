@@ -21,22 +21,23 @@ import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { setupGroupComponents } from 'src/utils/layout';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation/validation';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutCompInput } from 'src/layout/Input/types';
-import type { ComponentExceptGroupAndSummary, ComponentInGroup, ILayout, ILayoutComponent } from 'src/layout/layout';
+import type { ComponentInGroup, ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IOptions, IRepeatingGroups, ITextResource, ITextResourceBindings, IValidations } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/hierarchy';
+import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
 export interface IRepeatingGroupTableProps {
   id: string;
-  container: ILayoutGroup;
-  components: ComponentInGroup[];
+  container: ExprUnresolved<ILayoutGroup>;
+  components: ExprUnresolved<ComponentInGroup>[];
   repeatingGroupIndex: number;
   repeatingGroups: IRepeatingGroups | null;
-  repeatingGroupDeepCopyComponents: ComponentInGroup[][];
+  repeatingGroupDeepCopyComponents: ExprUnresolved<ComponentInGroup>[][];
   hiddenFields: string[];
   formData: IFormData;
   attachments: IAttachments;
@@ -151,8 +152,11 @@ function getTableTitle(textResourceBindings: ITextResourceBindings) {
   return '';
 }
 
-function getTextAlignment(component: ILayoutComponent): 'left' | 'center' | 'right' {
-  const formatting = (component as ILayoutCompInput).formatting;
+function getTextAlignment(component: ExprUnresolved<ILayoutComponent> | AnyItem): 'left' | 'center' | 'right' {
+  if (component.type !== 'Input') {
+    return 'left';
+  }
+  const formatting = component.formatting;
   if (formatting && formatting.align) {
     return formatting.align;
   }
@@ -193,9 +197,9 @@ export function RepeatingGroupTable({
   const edit = node?.item.type === 'Group' ? node.item.edit : undefined;
   const tableHeaderComponentIds = container.tableHeaders || components.map((c) => c.baseComponentId || c.id) || [];
 
-  const componentsDeepCopy: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
-  const tableComponents = componentsDeepCopy.filter((component) => {
-    const layoutComponent = getLayoutComponentObject(component.type as ComponentExceptGroupAndSummary);
+  const componentsDeepCopy: ExprUnresolved<ILayoutComponent>[] = JSON.parse(JSON.stringify(components));
+  const tableComponents: ExprUnresolved<ILayoutComponent>[] = componentsDeepCopy.filter((component) => {
+    const layoutComponent = getLayoutComponentObject(component.type);
     if (layoutComponent?.getComponentType() !== ComponentType.Form) {
       return false;
     }
@@ -204,7 +208,7 @@ export function RepeatingGroupTable({
   });
   const tableNodes = tableComponents
     .map((c) => node?.children((i) => i.baseComponentId === c.baseComponentId || i.baseComponentId === c.id))
-    .filter((child) => !!child) as LayoutNode<'resolved'>[];
+    .filter((child) => !!child) as LayoutNode[];
 
   // Values adjusted for filter
   const numRows = filteredIndexes ? filteredIndexes.length : repeatingGroupIndex + 1;
@@ -257,14 +261,14 @@ export function RepeatingGroupTable({
     }
   };
 
-  const childElementHasErrors = (element: ILayoutGroup | ILayoutComponent, index: number) => {
+  const childElementHasErrors = (element: ExprUnresolved<ILayoutGroup | ILayoutComponent>, index: number) => {
     if (element.type === 'Group') {
-      return childGroupHasErrors(element as ILayoutGroup, index);
+      return childGroupHasErrors(element, index);
     }
     return componentHasValidations(validations, currentView, `${element.id}`);
   };
 
-  const childGroupHasErrors = (childGroup: ILayoutGroup, index: number) => {
+  const childGroupHasErrors = (childGroup: ExprUnresolved<ILayoutGroup>, index: number) => {
     if (!repeatingGroups || !layout) {
       return;
     }
@@ -272,7 +276,7 @@ export function RepeatingGroupTable({
     const childGroupIndex = repeatingGroups[childGroup.id]?.index;
     const childGroupComponents = layout.filter(
       (childElement) => childGroup.children?.indexOf(childElement.id) > -1,
-    ) as ComponentInGroup[];
+    ) as ExprUnresolved<ComponentInGroup>[];
     const childRenderComponents = setupGroupComponents(
       childGroupComponents,
       childGroup.dataModelBindings?.group,
@@ -337,7 +341,7 @@ export function RepeatingGroupTable({
         {showTableHeader && !mobileView && (
           <TableHeader id={`group-${id}-table-header`}>
             <TableRow>
-              {tableComponents.map((component: ILayoutComponent, tableComponentIndex: number) => (
+              {tableComponents.map((component, tableComponentIndex) => (
                 <TableCell
                   style={{ textAlign: getTextAlignment(component) }}
                   key={component.id}
@@ -364,10 +368,8 @@ export function RepeatingGroupTable({
         <TableBody id={`group-${id}-table-body`}>
           {repeatingGroupIndex >= 0 &&
             [...Array(repeatingGroupIndex + 1)].map((_x: any, index: number) => {
-              const rowHasErrors = repeatingGroupDeepCopyComponents[index].some(
-                (component: ILayoutComponent | ILayoutGroup) => {
-                  return childElementHasErrors(component, index);
-                },
+              const rowHasErrors = repeatingGroupDeepCopyComponents[index].some((component) =>
+                childElementHasErrors(component, index),
               );
 
               // Check if filter is applied and includes specified index.

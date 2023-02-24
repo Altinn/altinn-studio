@@ -8,9 +8,10 @@ import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import { renderWithProviders } from 'src/testUtils';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IRepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponent, ISelectionComponentProps } from 'src/layout/layout';
+import type { ILayoutCompCheckboxes } from 'src/layout/Checkboxes/types';
+import type { ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { RootState } from 'src/store';
 import type { IOption } from 'src/types';
 import type { ILanguage, ITextResource } from 'src/types/shared';
@@ -18,7 +19,7 @@ import type { ILanguage, ITextResource } from 'src/types/shared';
 const user = userEvent.setup();
 
 describe('RepeatingGroupsEditContainer', () => {
-  const multiPageGroup: ILayoutGroup = getMultiPageGroupMock();
+  const multiPageGroup = getMultiPageGroupMock();
   const language: ILanguage = {
     general: {
       delete: 'Delete',
@@ -29,7 +30,7 @@ describe('RepeatingGroupsEditContainer', () => {
   };
   const textResources: ITextResource[] = [{ id: 'option.label', value: 'Value to be shown' }];
   const options: IOption[] = [{ value: 'option.value', label: 'option.label' }];
-  const components: ILayoutComponent[] = [
+  const components: ExprUnresolved<ILayoutComponent>[] = [
     {
       id: 'field1',
       type: 'Input',
@@ -82,7 +83,7 @@ describe('RepeatingGroupsEditContainer', () => {
       required: false,
       disabled: false,
       options: options,
-    } as ISelectionComponentProps,
+    } as ExprUnresolved<ILayoutCompCheckboxes>,
   ];
   const layout: ILayout = [multiPageGroup, ...components];
 

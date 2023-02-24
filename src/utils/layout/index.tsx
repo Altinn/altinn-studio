@@ -5,6 +5,7 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
 import { LayoutStyle } from 'src/types';
 import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type {
   ComponentInGroup,
@@ -17,12 +18,21 @@ import type {
 import type { ILayoutSet, ILayoutSets } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 
-export function getLayoutComponentById(id: string, layouts: ILayouts | null): ILayoutComponentOrGroup | undefined {
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ * @see ResolvedNodesSelector
+ */
+export function getLayoutComponentById(
+  id: string,
+  layouts: ILayouts | null,
+): ExprUnresolved<ILayoutComponentOrGroup> | undefined {
   if (!layouts) {
     return undefined;
   }
 
-  let component: ILayoutComponentOrGroup | undefined;
+  let component: ExprUnresolved<ILayoutComponentOrGroup> | undefined;
   Object.keys(layouts).forEach((layoutId) => {
     if (!component) {
       component = layouts[layoutId]?.find((element) => {
@@ -36,6 +46,12 @@ export function getLayoutComponentById(id: string, layouts: ILayouts | null): IL
   return component;
 }
 
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ * @see ResolvedNodesSelector
+ */
 export function getLayoutIdForComponent(id: string, layouts: ILayouts): string | undefined {
   let foundLayout: string | undefined;
   Object.keys(layouts).forEach((layoutId) => {
@@ -66,7 +82,7 @@ export function matchLayoutComponent(providedId: string, componentId: string) {
 }
 
 interface RenderGenericComponentProps {
-  component: RenderableGenericComponent | ILayoutGroup;
+  component: ExprUnresolved<RenderableGenericComponent | ILayoutGroup>;
   layout?: ILayout | null;
   index?: number;
 }
@@ -84,12 +100,12 @@ export function renderGenericComponent({ component, layout, index = -1 }: Render
   );
 }
 
-export function renderLayoutGroup(layoutGroup: ILayoutGroup, layout?: ILayout, index?: number) {
+export function renderLayoutGroup(layoutGroup: ExprUnresolved<ILayoutGroup>, layout?: ILayout, index?: number) {
   const groupComponents = (layoutGroup.children || [])
     .map((child) => {
       return layout?.find((c) => c.id === child);
     })
-    .filter((item) => item !== undefined) as ComponentInGroup[];
+    .filter((item) => item !== undefined) as ExprUnresolved<ComponentInGroup>[];
 
   const panel = layoutGroup.panel;
   if (panel) {
@@ -119,11 +135,17 @@ export function renderLayoutGroup(layoutGroup: ILayoutGroup, layout?: ILayout, i
   );
 }
 
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ * @see ResolvedNodesSelector
+ */
 export function setupGroupComponents(
-  components: ComponentInGroup[],
+  components: ExprUnresolved<ComponentInGroup>[],
   groupDataModelBinding: string | undefined,
   index: number | undefined,
-): ComponentInGroup[] {
+): ExprUnresolved<ComponentInGroup>[] {
   return components.map((component) => {
     if (component.type === 'Group' && component.panel?.groupReference) {
       // Do not treat as a regular group child as this is merely an option to add elements for another group from this group context
@@ -134,7 +156,7 @@ export function setupGroupComponents(
       return component;
     }
 
-    const componentDeepCopy: ComponentInGroup = JSON.parse(JSON.stringify(component));
+    const componentDeepCopy: ExprUnresolved<ComponentInGroup> = JSON.parse(JSON.stringify(component));
     const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
     Object.keys(dataModelBindings).forEach((key) => {
       const originalGroupBinding = groupDataModelBinding.replace(`[${index}]`, '');
@@ -172,7 +194,16 @@ export function getLayoutsetForDataElement(
   return foundLayout?.id;
 }
 
-export function getHiddenFieldsForGroup(hiddenFields: string[], components: (ILayoutGroup | ILayoutComponent)[]) {
+/**
+ * @deprecated
+ * @see useExprContext
+ * @see useResolvedNode
+ * @see ResolvedNodesSelector
+ */
+export function getHiddenFieldsForGroup(
+  hiddenFields: string[],
+  components: ExprUnresolved<ILayoutGroup | ILayoutComponent>[],
+) {
   const result: string[] = [];
   hiddenFields.forEach((fieldKey) => {
     const fieldKeyWithoutIndex = fieldKey.replace(/-\d+$/, '');

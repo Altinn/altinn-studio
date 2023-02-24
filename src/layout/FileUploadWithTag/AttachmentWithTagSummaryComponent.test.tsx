@@ -5,6 +5,7 @@ import { screen } from '@testing-library/react';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { AttachmentWithTagSummaryComponent } from 'src/layout/FileUploadWithTag/AttachmentWithTagSummaryComponent';
 import { renderWithProviders } from 'src/testUtils';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
 import type { RootState } from 'src/store';
 
@@ -18,9 +19,9 @@ describe('AttachmentWithTagSummaryComponent', () => {
     textResourceBindings: {},
     optionsId: 'a',
     mapping: { a: 'b' },
-  } as unknown as ILayoutCompFileUploadWithTag;
+  } as unknown as ExprUnresolved<ILayoutCompFileUploadWithTag>;
   const initialState = getInitialStateMock();
-  const mockState = (formLayoutItem: ILayoutCompFileUploadWithTag): Pick<RootState, 'formLayout'> => ({
+  const mockState = (formLayoutItem: ExprUnresolved<ILayoutCompFileUploadWithTag>): Pick<RootState, 'formLayout'> => ({
     formLayout: {
       layouts: {
         FormLayout: [formLayoutItem],
@@ -129,7 +130,7 @@ describe('AttachmentWithTagSummaryComponent', () => {
     expect(screen.getByText('ca option value')).toBeInTheDocument();
   });
 
-  const renderHelper = (options: ILayoutCompFileUploadWithTag, extendState?: Partial<RootState>) => {
+  const renderHelper = (options: ExprUnresolved<ILayoutCompFileUploadWithTag>, extendState?: Partial<RootState>) => {
     renderWithProviders(
       <AttachmentWithTagSummaryComponent
         componentRef={typeName}

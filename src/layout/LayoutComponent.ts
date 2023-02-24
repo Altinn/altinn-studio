@@ -42,8 +42,11 @@ export abstract class LayoutComponent<Type extends ComponentExceptGroupAndSummar
   }
 }
 
-export function getLayoutComponentObject<T extends ComponentExceptGroupAndSummary>(
+export function getLayoutComponentObject<T extends string | undefined | ComponentExceptGroupAndSummary>(
   type: T,
-): LayoutComponent<T> | undefined {
-  return components[type];
+): T extends ComponentExceptGroupAndSummary ? LayoutComponent<T> : undefined {
+  if (type && type in components) {
+    return components[type as keyof typeof components] as any;
+  }
+  return undefined as any;
 }

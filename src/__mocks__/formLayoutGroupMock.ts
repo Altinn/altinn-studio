@@ -1,7 +1,11 @@
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 
-export function getFormLayoutGroupMock(customMock?: Partial<ILayoutGroup>, children?: string[]): ILayoutGroup {
-  const mockLayoutGroup: ILayoutGroup = {
+export function getFormLayoutGroupMock(
+  customMock?: Partial<ExprUnresolved<ILayoutGroup>>,
+  children?: string[],
+): ExprUnresolved<ILayoutGroup> {
+  const mockLayoutGroup: ExprUnresolved<ILayoutGroup> = {
     id: 'container-closed-id',
     type: 'Group',
     children: children || ['field1', 'field2', 'field3', 'field4'],
@@ -16,7 +20,7 @@ export function getFormLayoutGroupMock(customMock?: Partial<ILayoutGroup>, child
   };
 }
 
-export function getMultiPageGroupMock(): ILayoutGroup {
+export function getMultiPageGroupMock(): ExprUnresolved<ILayoutGroup> {
   return {
     type: 'Group',
     id: 'multipageGroup',

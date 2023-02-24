@@ -8,6 +8,7 @@ import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { renderWithProviders } from 'src/testUtils';
 import type { ISummaryComponent } from 'src/components/summary/SummaryComponent';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { ILayoutComponent } from 'src/layout/layout';
 import type { IValidations } from 'src/types';
@@ -28,7 +29,7 @@ describe('SummaryComponent', () => {
                 textResourceBindings: {},
                 children: [],
                 maxCount: 10,
-              } as ILayoutComponent),
+              } as ExprUnresolved<ILayoutComponent>),
           ),
         ],
       },

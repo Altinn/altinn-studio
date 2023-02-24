@@ -19,18 +19,19 @@ import { createRepeatingGroupComponents, getRepeatingGroupFilteredIndices } from
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
+import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup, ILayoutComponent } from 'src/layout/layout';
 import type { IRuntimeState } from 'src/types';
 
 export interface IGroupProps {
   id: string;
-  container: ILayoutGroup;
-  components: ComponentInGroup[];
+  container: ExprUnresolved<ILayoutGroup>;
+  components: ExprUnresolved<ComponentInGroup>[];
   triggers?: Triggers[];
 }
 
-const getValidationMethod = (container: ILayoutGroup) => {
+const getValidationMethod = (container: ExprResolved<ILayoutGroup> | ExprUnresolved<ILayoutGroup>) => {
   // Validation for whole group takes precedent over single-row validation if both are present.
   const triggers = container.triggers;
   if (triggers && triggers.includes(Triggers.Validation)) {
@@ -43,7 +44,7 @@ const getValidationMethod = (container: ILayoutGroup) => {
 
 export function GroupContainer({ id, container, components }: IGroupProps): JSX.Element | null {
   const dispatch = useAppDispatch();
-  const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
+  const renderComponents: ExprUnresolved<ILayoutComponent>[] = JSON.parse(JSON.stringify(components));
 
   const node = useResolvedNode(id);
   const resolvedTextBindings = node?.item.textResourceBindings;

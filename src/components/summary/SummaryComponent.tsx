@@ -23,11 +23,11 @@ import {
 } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type { ComponentExceptGroupAndSummary, ILayoutComponent, RenderableGenericComponent } from 'src/layout/layout';
+import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompSummary } from 'src/layout/Summary/types';
 import type { IComponentValidations, IRuntimeState } from 'src/types';
 
-export interface ISummaryComponent extends Omit<ILayoutCompSummary, 'type'> {
+export interface ISummaryComponent extends Omit<ExprUnresolved<ILayoutCompSummary>, 'type'> {
   formData?: any;
 }
 
@@ -79,7 +79,7 @@ export function SummaryComponent(_props: ISummaryComponent) {
   const attachments = useAppSelector((state: IRuntimeState) => state.attachments.attachments);
   const formComponent = useResolvedNode(componentRef)?.item;
   const summaryComponent = useResolvedNode(id)?.item;
-  const layoutComponent = getLayoutComponentObject(formComponent?.type as ComponentExceptGroupAndSummary);
+  const layoutComponent = getLayoutComponentObject(formComponent?.type);
   const formComponentLegacy = useAppSelector(
     (state) =>
       (state.formLayout.layouts &&
@@ -121,7 +121,7 @@ export function SummaryComponent(_props: ISummaryComponent) {
       getDisplayFormDataForComponent(
         state.formData.formData,
         attachments,
-        formComponent as ILayoutComponent,
+        formComponent,
         state.textResources.resources,
         state.optionState.options,
         state.formLayout.uiConfig.repeatingGroups,
@@ -192,9 +192,13 @@ export function SummaryComponent(_props: ISummaryComponent) {
         )}
       />
     );
-  } else if (layoutComponent?.getComponentType() === ComponentType.Presentation) {
+  } else if (
+    layoutComponent?.getComponentType() === ComponentType.Presentation &&
+    formComponentLegacy.type !== 'Summary' &&
+    formComponentLegacy.type !== 'Group'
+  ) {
     // Render non-input components as normal
-    return <GenericComponent {...(formComponentLegacy as RenderableGenericComponent)} />;
+    return <GenericComponent {...formComponentLegacy} />;
   }
 
   const displayGrid = display && display.useComponentGrid ? formComponent?.grid : grid;

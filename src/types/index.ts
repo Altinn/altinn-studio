@@ -1,7 +1,7 @@
 import type { ToolkitStore } from '@reduxjs/toolkit/src/configureStore';
 import type Ajv from 'ajv/dist/core';
 
-import type { ExpressionOr } from 'src/features/expressions/types';
+import type { ExprUnresolved, ExprVal } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { IKeepComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
 import type { RootState } from 'src/store';
@@ -163,7 +163,7 @@ export interface IValidationIssue {
 }
 
 export interface IHiddenLayoutsExpressions {
-  [layoutKey: string]: ExpressionOr<'boolean'> | undefined;
+  [layoutKey: string]: ExprVal.Boolean | undefined;
 }
 
 export interface IUiConfig {
@@ -212,7 +212,7 @@ export interface ITracks {
   /**
    * List of expressions containing logic used to show/hide certain layouts.
    */
-  hiddenExpr: IHiddenLayoutsExpressions;
+  hiddenExpr: ExprUnresolved<IHiddenLayoutsExpressions>;
 }
 
 export interface IValidationResult {
