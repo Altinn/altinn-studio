@@ -283,58 +283,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return convertedJsonSchema;
         }
 
-        [Obsolete("Not in use")]
-        private async Task SaveOriginalXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream)
-        {
-            AssertValidXsd(xsdStream);
-
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var fileNameWithOriginal = GetFileNameWithOrignal(relativeFilePath);
-            await altinnGitRepository.WriteStreamByRelativePathAsync(fileNameWithOriginal, xsdStream, true);
-
-            xsdStream.Seek(0, SeekOrigin.Begin);
-        }
-
-        private static void AssertValidXsd(Stream xsdStream)
-        {
-            XmlReader reader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
-            XDocument.Load(reader, LoadOptions.None);
-            xsdStream.Seek(0, SeekOrigin.Begin);
-        }
-
-        private static string GetFileNameWithOrignal(string relativeFilePath)
-        {
-            var fileExtension = Path.GetExtension(relativeFilePath);
-            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(relativeFilePath);
-            var fileNameWithOriginal = $"{fileNameWithoutExtension}.original{fileExtension}";
-
-            return Path.Combine(Path.GetDirectoryName(relativeFilePath), fileNameWithOriginal);
-        }
-
-        [Obsolete("Not in use")]
-        private static void MergeTexts(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> newTexts, Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> existingTexts)
-        {
-            foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> textResourceElementDict in newTexts)
-            {
-                string textResourceElementId = textResourceElementDict.Key;
-
-                if (!existingTexts.ContainsKey(textResourceElementId))
-                {
-                    existingTexts.Add(textResourceElementId, new Dictionary<string, Designer.Models.TextResourceElement>());
-                }
-
-                foreach (KeyValuePair<string, Designer.Models.TextResourceElement> localizedString in textResourceElementDict.Value)
-                {
-                    string language = localizedString.Key;
-                    Designer.Models.TextResourceElement textResourceElement = localizedString.Value;
-                    if (!existingTexts[textResourceElementId].ContainsKey(language))
-                    {
-                        existingTexts[textResourceElementId].Add(language, textResourceElement);
-                    }
-                }
-            }
-        }
-
         private async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)
         {
             string classes = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
