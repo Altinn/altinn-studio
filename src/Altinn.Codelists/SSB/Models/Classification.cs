@@ -8,7 +8,7 @@ public enum Classification
     /// <summary>
     /// Standard for næringsgruppering
     /// </summary>
-    IndustryGrouping = 9,
+    IndustryGrouping = 6,
     
     /// <summary>
     /// Standard for sivilstand
