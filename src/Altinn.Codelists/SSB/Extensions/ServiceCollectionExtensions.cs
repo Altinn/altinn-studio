@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddOptions<ClassificationSettings>();
         services.AddHttpClient<IClassificationsClient, ClassificationsHttpClient>();
         services.AddTransient<IAppOptionsProvider, MaritalStatusCodelistProvider>();
+        services.AddTransient<IAppOptionsProvider, IndustryGroupingCodelistProvider>();
 
         return services;
     }
