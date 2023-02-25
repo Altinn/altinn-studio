@@ -18,15 +18,20 @@ Accept: application/json;charset=utf-8
 
 ###
 # Kjønn
-GET http://data.ssb.no/api/klass/v1/classifications/2/codes?from=2022-07-10
+GET http://data.ssb.no/api/klass/v1/classifications/2/codes?from=2022-07-10&selectLevel=1
 Accept: application/json;charset=utf-8
 
 ###
 # Næringsgruppering
-GET http://data.ssb.no/api/klass/v1/classifications/6/codes?from=2022-07-10
+GET http://data.ssb.no/api/klass/v1/classifications/6/codesAt?date=2023-02-11&language=en&selectLevel=1
 Accept: application/json;charset=utf-8
 
 ###
 # Sivilstand
-GET http://data.ssb.no/api/klass/v1/classifications/19/codes?from=2022-07-10
+GET http://data.ssb.no/api/klass/v1/classifications/19/codes?from=2000-02-01&to=2023-02-12
+Accept: application/json;charset=utf-8
+
+###
+
+GET http://data.ssb.no/api/klass/v1/classifications/19/codesAt?date=2023-02-11&language=nn
 Accept: application/json;charset=utf-8
