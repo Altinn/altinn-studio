@@ -29,10 +29,19 @@ public abstract class ClassificationCodelistProvider
 
         var classificationCode = await _classificationsClient.GetClassificationCodes(classification, language, dateOnly, level);
 
-        var appOptions = new AppOptions()
+        string parentCode = keyValuePairs.GetValueOrDefault("parentCode") ?? string.Empty;
+        var appOptions = new AppOptions();
+
+        // The api we use doesn't support filtering on partentCode,
+        // hence we need to filter afterwards.
+        if (string.IsNullOrEmpty(parentCode))
         {
-            Options = classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
-        };
+            appOptions.Options = classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList();
+        }
+        else
+        {
+            appOptions.Options = classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList();
+        }
 
         return appOptions;
     }
