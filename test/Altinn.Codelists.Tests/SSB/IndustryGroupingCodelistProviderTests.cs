@@ -3,7 +3,7 @@ using Altinn.Codelists.SSB;
 using Altinn.Codelists.SSB.Clients;
 using Altinn.Codelists.Tests.SSB.Mocks;
 
-namespace Altinn.Codelists.Tests.Kartverket.AdministrativeUnits;
+namespace Altinn.Codelists.Tests.SSB;
 
 public class IndustryGroupingCodelistProviderTests
 {
