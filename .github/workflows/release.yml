@@ -38,7 +38,7 @@ jobs:
         working-directory: app-frontend
         if: "!github.event.release.prerelease"
         run: |
-          bash .github/scripts/release.sh
+          bash .github/scripts/release.sh \
            --frontend . \
            --cdn ../cdn \
            --commit \
