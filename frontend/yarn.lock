@@ -4359,11 +4359,11 @@ __metadata:
     mini-css-extract-plugin: 2.7.2
     monaco-editor: 0.35.0
     monaco-editor-webpack-plugin: 7.0.1
-    msw: 1.0.1
+    msw: 1.1.0
     prettier: 2.8.4
     react: 18.2.0
     react-dom: 18.2.0
-    react-i18next: 12.1.5
+    react-i18next: 12.2.0
     react-select: 5.7.0
     redux-mock-store: 1.5.4
     redux-saga: 1.2.2
@@ -4467,7 +4467,7 @@ __metadata:
     moment: 2.29.4
     react: 18.2.0
     react-dom: 18.2.0
-    react-i18next: 12.1.5
+    react-i18next: 12.2.0
     react-redux: 8.0.5
     react-router-dom: 6.8.1
     react-select: 5.7.0
@@ -9909,9 +9909,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:1.0.1":
-  version: 1.0.1
-  resolution: "msw@npm:1.0.1"
+"msw@npm:1.1.0":
+  version: 1.1.0
+  resolution: "msw@npm:1.1.0"
   dependencies:
     "@mswjs/cookies": ^0.2.2
     "@mswjs/interceptors": ^0.17.5
@@ -9939,7 +9939,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: e5d6cbe67067ca46f42aaa33011f53a4e5a873abcf81c52a6996536b3c41a88f522821d3a4cf589658252581506afddb58fd8c3dfd79a5cbf06e26e14f9570b6
+  checksum: e555547defbc3f07532bdadcbf9f4e3a32b92156d3869e85c9038ecaac220cfc93901727da097b7f9d3ecf9cbbc5a9178c0ecdd3999a9201db4c85c99b92c361
   languageName: node
   linkType: hard
 
@@ -10898,9 +10898,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-i18next@npm:12.1.5":
-  version: 12.1.5
-  resolution: "react-i18next@npm:12.1.5"
+"react-i18next@npm:12.2.0":
+  version: 12.2.0
+  resolution: "react-i18next@npm:12.2.0"
   dependencies:
     "@babel/runtime": ^7.20.6
     html-parse-stringify: ^3.0.1
@@ -10912,7 +10912,7 @@ __metadata:
       optional: true
     react-native:
       optional: true
-  checksum: 90f151dfef237eee4e24d5ca6ddac45869b5025b9173b3cf0403afbc794a448d5ba429105c88e6a539cea1e8ec3f6e18df46d8bee78e7918d79305aa9ec585cb
+  checksum: ed2d6a5bb6746c2ea25cca9531b400d62edef6479631c1113eb7a3c3f6b28d493492171d7dc6d87f61a7d7e9b21d4be3bd7eaf0f7af00392fb546d8c50267345
   languageName: node
   linkType: hard
 
