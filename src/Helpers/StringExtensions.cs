@@ -45,5 +45,17 @@ namespace LocalTest.Helpers
 
             return illegalFileNameCharacters.Aggregate(input, (current, c) => current.Replace(c, '-'));
         }
+
+        private static readonly byte[] _utf8bom = new byte[] { 0xEF, 0xBB, 0xBF };
+        internal static ReadOnlySpan<byte> RemoveBom(this byte[] bytes)
+        {
+            // Remove UTF8 BOM (if present)
+            if (bytes.AsSpan().StartsWith(_utf8bom))
+            {
+                return bytes.AsSpan().Slice(_utf8bom.Length);
+            }
+            
+            return bytes;
+        }
     }
 }

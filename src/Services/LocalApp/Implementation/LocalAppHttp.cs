@@ -10,6 +10,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.TestData;
+using LocalTest.Helpers;
 
 namespace LocalTest.Services.LocalApp.Implementation
 {
@@ -17,7 +18,10 @@ namespace LocalTest.Services.LocalApp.Implementation
     {
         public static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
-            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            PropertyNameCaseInsensitive = false,
         };
         public const string XACML_CACHE_KEY = "/api/v1/meta/authorizationpolicy/";
         public const string APPLICATION_METADATA_CACHE_KEY = "/api/v1/applicationmetadata?checkOrgApp=false";
@@ -139,7 +143,8 @@ namespace LocalTest.Services.LocalApp.Implementation
                     }
 
                     response.EnsureSuccessStatusCode();
-                    return JsonSerializer.Deserialize<AppTestDataModel>(await response.Content.ReadAsByteArrayAsync(), JSON_OPTIONS);
+                    var data = await response.Content.ReadAsByteArrayAsync();
+                    return JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
                 }
                 catch (HttpRequestException e)
                 {
