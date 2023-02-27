@@ -1,9 +1,14 @@
+# Building studio frontend dependencies
+FROM node:alpine AS generate-studio-frontend-deps
+WORKDIR /build
+COPY frontend/package.json frontend/yarn.lock ./
+RUN corepack enable
+RUN yarn install --immutable
+
 # Building studio frontend
-FROM node:alpine AS generate-studio-frontend
+FROM generate-studio-frontend-deps AS generate-studio-frontend
 WORKDIR /build
 COPY frontend .
-RUN corepack enable
-RUN yarn --immutable
 RUN yarn build
 
 # Building the backend
@@ -13,10 +18,12 @@ COPY backend .
 RUN dotnet build src/Designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
+
 # Prepare app template
+FROM generate-studio-frontend-deps AS app-template
 WORKDIR /app_template
 RUN apk add jq zip
-RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip 
+RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip
 
 # Building the final image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final
@@ -32,6 +39,7 @@ COPY --from=generate-studio-frontend /build/dist/dashboard ./wwwroot/designer/fr
 COPY --from=generate-studio-frontend /build/dist/language ./wwwroot/designer/frontend/lang
 
 ## Copying app template
+COPY --from=app-template /build/node_modules ./node_modules
 COPY --from=generate-studio-backend /app_template ./Templates/AspNet
 COPY backend/src/Designer/Migration ./Migration
 
