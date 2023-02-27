@@ -14,9 +14,10 @@ jobs:
           fetch-depth: 0
 
       - name: Install dotnet6
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
+            5.0.x
             6.0.x
       - name: Install deps
         run: |

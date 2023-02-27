@@ -1,4 +1,4 @@
-name: Build and Test on windows and macos
+name: Build and Test on windows, macos and ubuntu
 on:
   push:
     branches: [ main ]
@@ -10,19 +10,19 @@ jobs:
   analyze:
     strategy:
       matrix:
-        os: [macos-latest,windows-latest] # TODO: Fix test to run on ubuntu-latest also
+        os: [macos-latest,windows-latest,ubuntu-latest] # TODO: Fix test to run on ubuntu-latest also
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     env: 
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
             6.0.x
             5.0.x
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build
