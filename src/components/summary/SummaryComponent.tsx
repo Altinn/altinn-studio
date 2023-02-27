@@ -194,11 +194,11 @@ export function SummaryComponent(_props: ISummaryComponent) {
     );
   } else if (
     layoutComponent?.getComponentType() === ComponentType.Presentation &&
-    formComponentLegacy.type !== 'Summary' &&
-    formComponentLegacy.type !== 'Group'
+    formComponent?.type !== 'Summary' &&
+    formComponent?.type !== 'Group'
   ) {
     // Render non-input components as normal
-    return <GenericComponent {...formComponentLegacy} />;
+    return <GenericComponent {...formComponent} />;
   }
 
   const displayGrid = display && display.useComponentGrid ? formComponent?.grid : grid;
