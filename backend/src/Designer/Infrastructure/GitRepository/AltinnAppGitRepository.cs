@@ -20,8 +20,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// </summary>
     /// <remarks>This class knows that the repository is an Altinn application and hence knows
     /// about folders and file names and can map them to their respective models.
-    /// It should however, not have any business logic. The <see cref="GetTextResourcesForAllLanguages"/> method is borderline
-    /// as it merges multiple on-disk models into another structure.</remarks>
+    /// It should however, not have any business logic.</remarks>
     public class AltinnAppGitRepository : AltinnGitRepository
     {
         private const string MODEL_FOLDER_PATH = "App/models/";

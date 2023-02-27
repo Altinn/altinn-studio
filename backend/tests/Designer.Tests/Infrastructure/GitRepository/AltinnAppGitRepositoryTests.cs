@@ -87,23 +87,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public async Task GetTextResourcesForAllLanguages_ResourceExists_ShouldReturn()
-        {
-            string org = "ttd";
-            string repository = "hvem-er-hvem";
-            string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
-
-            var allResources = await altinnAppGitRepository.GetTextResourcesForAllLanguages();
-
-            allResources.Should().NotBeNull();
-            allResources.Should().HaveCount(12);
-            allResources.First(r => r.Key == "ServiceName").Value.Should().HaveCount(2);
-            allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "en").Value.Value.Should().Be("who-is-who");
-            allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "nb").Value.Value.Should().Be("Hvem er hvem?");
-        }
-
-        [Fact]
         public void GetLayoutSetNames_WithAppThatUsesLayoutSet_ShouldReturnLayoutSetNames()
         {
             string org = "ttd";

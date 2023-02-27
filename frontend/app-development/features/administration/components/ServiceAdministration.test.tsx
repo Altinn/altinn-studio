@@ -7,7 +7,6 @@ import type { IHandleServiceInformationState } from '../handleServiceInformation
 import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';
 import { serviceConfigPath } from 'app-shared/api-paths';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../testing/mocks/i18nMock';

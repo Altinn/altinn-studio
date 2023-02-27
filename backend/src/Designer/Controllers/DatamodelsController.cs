@@ -24,17 +24,14 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/datamodels")]
     public class DatamodelsController : ControllerBase
     {
-        private readonly IRepository _repository;
         private readonly ISchemaModelService _schemaModelService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
-        /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
-        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
+        public DatamodelsController(ISchemaModelService schemaModelService)
         {
-            _repository = repository;
             _schemaModelService = schemaModelService;
         }
 
@@ -49,12 +46,49 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("datamodel")]
         public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromQuery] string modelPath)
         {
-            var decodedPath = System.Uri.UnescapeDataString(modelPath);
+            var decodedPath = Uri.UnescapeDataString(modelPath);
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var json = await _schemaModelService.GetSchema(org, repository, developer, decodedPath);
 
             return Ok(json);
+        }
+
+        /// <summary>
+        /// Updates the specified datamodel in the git repository.
+        /// </summary>
+        /// <param name="org">The org owning the repository.</param>
+        /// <param name="repository">The repository name</param>
+        /// <param name="modelPath">The path to the file to be updated.</param>
+        /// <param name="saveOnly">Flag indicating if the model should ONLY be saved (no conversion) </param>
+        [HttpPut]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [Route("datamodel")]
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string content = await ReadRequestBodyContentAsync();
+
+            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Deletes the specified datamodel in the git repository.
+        /// </summary>
+        /// <param name="org">The org owning the repository.</param>
+        /// <param name="repository">The repository</param>
+        /// <param name="modelPath">The path to the file to be deleted.</param>
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [Route("datamodel")]
+        public async Task<IActionResult> Delete(string org, string repository, [FromQuery] string modelPath)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            await _schemaModelService.DeleteSchema(org, repository, developer, modelPath);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -85,8 +119,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("all-xsd")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDatamodels(string org, string repository)
         {
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            IList<AltinnCoreFile> schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
 
             return Ok(schemaFiles);
         }
@@ -110,9 +144,9 @@ namespace Altinn.Studio.Designer.Controllers
             string fileName = GetFileNameFromUploadedFile(thefile);
             Guard.AssertFileExtensionIsOfType(fileName, ".xsd");
 
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, thefile.OpenReadStream());
+            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, thefile.OpenReadStream());
 
             return Created(Uri.EscapeDataString(fileName), jsonSchema);
         }
@@ -133,13 +167,13 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest(ModelState);
             }
 
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
             // Sets the location header and content-type manually instead of using CreatedAtAction
             // because the latter overrides the content type and sets it to text/plain.
-            var baseUrl = GetBaseUrl();
-            var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
+            string baseUrl = GetBaseUrl();
+            string locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
             Response.Headers.Add("Location", locationUrl);
             Response.StatusCode = (int)HttpStatusCode.Created;
 
@@ -165,58 +199,21 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<IActionResult> UseXsdFromRepo(string org, string repository, string filePath)
         {
             Guard.AssertArgumentNotNull(filePath, nameof(filePath));
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
 
-            var xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
+            string xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
             var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
-            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, filePath, xsdStream);
+            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, filePath, xsdStream);
 
             return Created(filePath, jsonSchema);
-        }
-
-        /// <summary>
-        /// Updates the specified datamodel in the git repository.
-        /// </summary>
-        /// <param name="org">The org owning the repository.</param>
-        /// <param name="repository">The repository name</param>
-        /// <param name="modelPath">The path to the file to be updated.</param>
-        /// <param name="saveOnly">Flag indicating if the model should ONLY be saved (no conversion) </param>
-        [HttpPut]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [Route("datamodel")]
-        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
-        {
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var content = await ReadRequestBodyContentAsync();
-
-            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Deletes the specified datamodel in the git repository.
-        /// </summary>
-        /// <param name="org">The org owning the repository.</param>
-        /// <param name="repository">The repository</param>
-        /// <param name="modelPath">The path to the file to be deleted.</param>
-        [HttpDelete]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [Route("datamodel")]
-        public async Task<IActionResult> Delete(string org, string repository, [FromQuery] string modelPath)
-        {
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _schemaModelService.DeleteSchema(org, repository, developer, modelPath);
-
-            return NoContent();
         }
 
         private async Task<string> ReadRequestBodyContentAsync()
         {
             string content;
 
-            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+            using (StreamReader reader = new(Request.Body, Encoding.UTF8))
             {
                 content = await reader.ReadToEndAsync();
             }

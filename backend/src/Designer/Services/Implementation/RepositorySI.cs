@@ -46,6 +46,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="sourceControl">the source control</param>
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
+        /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
         /// <param name="textsService">The service for handling texts</param>
         public RepositorySI(
             ServiceRepositorySettings repositorySettings,

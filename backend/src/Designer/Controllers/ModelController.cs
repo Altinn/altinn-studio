@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -11,6 +12,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// This is the controller responsible for handling model functionality in AltinnCore
     /// </summary>
+    [Obsolete("ModelController is deprecated. Please use DatamodelsController instead.")]
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/model")]
@@ -36,6 +38,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model as JSON</returns>
+        [Obsolete("GetJson is deprecated. Please create new method in SchemaModelService (or AppDevelopmentService?) to serve Studio frontend with the datamodel fields for the specified datamodel.")]
         [HttpGet]
         [Route("metadata")]
         public async Task<ActionResult> GetJson(string org, string app)

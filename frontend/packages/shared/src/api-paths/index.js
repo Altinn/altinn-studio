@@ -5,7 +5,7 @@ export const appMetadataPath = (org, app) => `/designer/api/${org}/${app}/metada
 export const appMetadataAttachmentPath = (org, app) => `/designer/api/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
 
 // Config
-export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/config/service`; // Get, Post
+export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/config`; // Get, Post
 
 // Datamodel
 export const createDatamodelPath = (org, app) => `/designer/api/${org}/${app}/datamodels/new`; // Post
@@ -91,7 +91,7 @@ export const remainingSessionTimePath = () => `/designer/api/session/remaining`;
 export const textLanguagesPath = (org, app) => `/designer/api/${org}/${app}/text/languages`; // Get
 export const textResourcesPath = (org, app, langCode) => `/designer/api/${org}/${app}/text/language/${langCode}`; // Get, Post, Put, Delete
 export const textResourcesAddPath = (org, app) => `/designer/api/${org}/${app}/text/language/add-texts`; // Post
-export const serviceNamePath = (org, app) => `/designer/api/${org}/${app}/text/service-name`; // Get, Post
+export const serviceNamePath = (org, app) => `/designer/api/${org}/${app}/text/service-name`; // Get
 export const textResourceIdsPath = (org, app) => `/designer/api/${org}/${app}/text/keys`; // Put
 
 // Text - new
