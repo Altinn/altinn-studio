@@ -154,26 +154,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Get content of resource file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
-        /// <returns>The resource file content</returns>
-        public string GetLanguageResource(string org, string app, string id)
-        {
-            string filename = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
-            string filedata = null;
-
-            if (File.Exists(filename))
-            {
-                filedata = File.ReadAllText(filename, Encoding.UTF8);
-            }
-
-            return filedata;
-        }
-
-        /// <summary>
         /// Returns the app texts
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -345,41 +325,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return fileData;
         }
 
-        /// <inheritdoc/> TODO: Remove
-        public bool AddTextResources(string org, string app, List<TextResource> textResourcesList)
-        {
-            foreach (TextResource textResource in textResourcesList)
-            {
-                var currentResourceString = GetLanguageResource(org, app, textResource.Language);
-                TextResource currentTextResource = JsonConvert.DeserializeObject<TextResource>(currentResourceString);
-                var duplicateResources = textResource.Resources.FindAll(resource => currentTextResource.Resources.Find(r => r.Id == resource.Id) != null);
-                if (duplicateResources.Count == 0)
-                {
-                    currentTextResource.Resources.AddRange(textResource.Resources);
-                }
-                else
-                {
-                    textResource.Resources.ForEach(resource =>
-                    {
-                        if (duplicateResources.Find(duplicate => duplicate.Id == resource.Id) != null)
-                        {
-                            var duplicate = currentTextResource.Resources.Find(r => r.Id == resource.Id);
-                            duplicate.Value = resource.Value;
-                            duplicate.Variables = resource.Variables;
-                        }
-                        else
-                        {
-                            currentTextResource.Resources.Add(resource);
-                        }
-                    });
-                }
-
-                SaveLanguageResource(org, app, textResource.Language, JsonConvert.SerializeObject(currentTextResource));
-            }
-
-            return true;
-        }
-
         /// <summary>
         /// Save the Rules configuration JSON file to disk
         /// </summary>
@@ -426,23 +371,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string filePath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             File.WriteAllText(filePath, fileContent, Encoding.UTF8);
-            return true;
-        }
-
-        /// <summary>
-        /// Stores the resource for a given language id
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
-        /// <param name="resource">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveLanguageResource(string org, string app, string id, string resource)
-        {
-            string filePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, resource, Encoding.UTF8);
-
             return true;
         }
 

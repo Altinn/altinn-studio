@@ -192,16 +192,8 @@ namespace Altinn.Studio.Designer.Controllers
                 IList<string> langCodes = _repository.GetLanguages(org, app);
                 foreach (string languageCode in langCodes)
                 {
-                    string filename = MakeResourceFilename(languageCode);
                     string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                    string filePath = MakeResourceFilePath(org, app, developer, filename);
-                    if (!System.IO.File.Exists(filePath))
-                    {
-                        continue;
-                    }
-
-                    string textResource = System.IO.File.ReadAllText(filePath, Encoding.UTF8);
-                    TextResource textResourceObject = JsonConvert.DeserializeObject<TextResource>(textResource);
+                    TextResource textResourceObject = await _textsService.GetTextV1(org, app, developer, languageCode);
 
                     foreach (TextIdMutation m in mutations)
                     {
@@ -233,9 +225,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                     await _textsService.UpdateRelatedFiles(org, app, developer, mutations);
 
-                    string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
-
-                    _repository.SaveLanguageResource(org, app, languageCode, resourceString);
+                    await _textsService.SaveTextV1(org, app, developer, textResourceObject, languageCode);
                 }
             }
             catch (ArgumentException exception)
@@ -248,16 +238,6 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return Ok(mutationHasOccured ? "The IDs were updated." : "Nothing was changed.");
-        }
-
-        private static string MakeResourceFilename(string langCode = "nb")
-        {
-            return $"resource.{langCode}.json";
-        }
-
-        private string MakeResourceFilePath(string org, string app, string developer, string filename)
-        {
-            return _settings.GetLanguageResourcePath(org, app, developer) + filename;
         }
 
         /// <summary>
@@ -277,26 +257,6 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return BadRequest($"Resource.{languageCode}.json could not be deleted.");
-        }
-
-        /// <summary>
-        /// Add text resources to existing resource documents
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="textResources">The collection of text resources to be added</param>
-        /// <returns>A success message if the save was successful</returns>
-        [HttpPost]
-        [Route("language/add-texts")]
-        [Obsolete("FormEditorController.AddTextResources is deprecated, please use TextController.UpdateTextsForKeys if only updating texts not keys")]
-        public IActionResult AddTextResources(string org, string app, [FromBody] List<TextResource> textResources)
-        {
-            if (_repository.AddTextResources(org, app, textResources))
-            {
-                return Ok();
-            }
-
-            return BadRequest("Text resource could not be added.");
         }
 
         /// <summary>

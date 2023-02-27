@@ -90,7 +90,6 @@ export const remainingSessionTimePath = () => `/designer/api/session/remaining`;
 // Text - old
 export const textLanguagesPath = (org, app) => `/designer/api/${org}/${app}/text/languages`; // Get
 export const textResourcesPath = (org, app, langCode) => `/designer/api/${org}/${app}/text/language/${langCode}`; // Get, Post, Put, Delete
-export const textResourcesAddPath = (org, app) => `/designer/api/${org}/${app}/text/language/add-texts`; // Post
 export const serviceNamePath = (org, app) => `/designer/api/${org}/${app}/text/service-name`; // Get
 export const textResourceIdsPath = (org, app) => `/designer/api/${org}/${app}/text/keys`; // Put
 
