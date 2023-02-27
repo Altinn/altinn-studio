@@ -18,6 +18,8 @@ import {
 import classes from './VersionControlHeader.module.css';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { emitInvalidCacheEvent } from 'app-shared/events/invalidate-cache';
+import { CacheKey } from 'app-shared/api-paths/cache-key';
 
 export interface IVersionControlHeaderProps {
   type?: 'fetchButton' | 'shareButton' | 'header';
@@ -209,7 +211,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
       });
     }
   };
-
   const pushChanges = () => {
     setModalState({
       ...initialModalState,
@@ -218,6 +219,8 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
     });
     post(repoPushPath(org, app))
       .then(() => {
+        emitInvalidCacheEvent([CacheKey.RepoStatus, org, app]);
+        emitInvalidCacheEvent([CacheKey.BranchStatus, org, app, 'master']);
         setHasChangesInMaster(false);
         setHasChangesInLocalRepo(false);
         setModalState({
@@ -331,10 +334,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
             handleClose={handleSyncModalClose}
             {...modalState}
           />
-          <CloneModal
-            anchorEl={cloneModalAnchor}
-            onClose={closeCloneModal}
-          />
+          <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />
         </div>
       ) : type === 'fetchButton' ? (
         <div data-testid='version-control-fetch-button'>

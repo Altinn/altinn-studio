@@ -1,17 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import classes from './appDeploymentComponent.module.css';
 import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import { AltinnIcon, AltinnLink } from 'app-shared/components';
-import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import { useDispatch } from 'react-redux';
+import { DeployDropdown } from './deploy/DeployDropdown';
+import { ErrorMessage } from './deploy/ErrorMessage';
+import { Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
+import { formatDateTime } from 'app-shared/pure/date-format';
+import { useCreateDeployMutation } from '../hooks/mutation-hooks';
+import { useParams } from 'react-router-dom';
+
 import type {
   ICreateAppDeploymentErrors,
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
-import classes from './appDeploymentComponent.module.css';
-import { formatDateTime } from 'app-shared/pure/date-format';
-import { Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
-import { ErrorMessage } from './deploy/ErrorMessage';
-import { DeployDropdown } from './deploy/DeployDropdown';
+
+export type ImageOption = {
+  value: string;
+  label: string;
+};
+
 import { useTranslation } from 'react-i18next';
 
 interface IAppDeploymentComponentProps {
@@ -23,7 +30,7 @@ interface IAppDeploymentComponentProps {
   deployHistory?: any;
   deployPermission: boolean;
   orgName: string;
-  releases: any;
+  imageOptions: ImageOption[];
 }
 
 export enum DeploymentStatus {
@@ -41,69 +48,47 @@ export const AppDeploymentComponent = ({
   deploymentList,
   deployPermission,
   envName,
-  releases,
+  imageOptions,
   urlToApp,
   urlToAppLinkTxt,
   orgName,
 }: IAppDeploymentComponentProps) => {
-  const dispatch = useDispatch();
-  const [deployInProgress, setDeployInProgress] = useState(null);
-  const [deploymentStatus, setDeploymentStatus] = useState(null);
   const [selectedImageTag, setSelectedImageTag] = useState(null);
-  const [succeededDeployHistory, setSucceededDeployHistory] = useState([]);
   const { t } = useTranslation();
-
-  const [deployButtonHasShownError, setDeployButtonHasShownError] = useState(null);
 
   const appDeployedVersion =
     deploymentList && deploymentList.items && deploymentList.items.length > 0
       ? deploymentList.items[0].version
       : undefined;
+  const { org, app } = useParams();
+  const mutation = useCreateDeployMutation(org, app);
+  const startDeploy = () =>
+    mutation.mutate({
+      tagName: selectedImageTag,
+      envName,
+    });
 
-  const startDeploy = () => {
-    setDeployInProgress(true);
-    setDeployButtonHasShownError(false);
-    dispatch(
-      AppDeploymentActions.createAppDeployment({
-        tagName: selectedImageTag,
-        envName,
-      })
-    );
-  };
-
-  useEffect(() => {
-    setSucceededDeployHistory(
+  const succeededDeployHistory = useMemo(
+    () =>
       deployHistory.filter(
         (deployment: IDeployment) =>
           deployment.build.result === DeploymentStatus.succeeded &&
           deployment.build.finished !== null
-      )
-    );
-  }, [deployHistory]);
-
-  useEffect(() => {
-    if (deployHistory && deployHistory[0] && deployHistory[0].build.finished === null) {
-      setDeployInProgress(true);
-      setDeploymentStatus(DeploymentStatus.inProgress);
-    } else if (
-      deployHistory &&
-      deployHistory[0] &&
-      deployHistory[0].build.finished &&
-      deployHistory[0].build.result
-    ) {
-      setDeployInProgress(false);
-      setDeploymentStatus(deployHistory[0].build.result);
+      ),
+    [deployHistory]
+  );
+  const latestDeploy = deployHistory ? deployHistory[0] : null;
+  const { deployInProgress, deploymentStatus } = useMemo(() => {
+    if (latestDeploy && latestDeploy.build.finished === null) {
+      return { deployInProgress: true, deploymentStatus: DeploymentStatus.inProgress };
+    } else if (latestDeploy && latestDeploy.build.finished && latestDeploy.build.result) {
+      return { deployInProgress: false, deploymentStatus: latestDeploy.build.result };
     } else {
-      setDeployInProgress(false);
-      setDeploymentStatus(null);
+      return { deployInProgress: false, deploymentStatus: null };
     }
-  }, [deployButtonHasShownError, deployError, deployHistory]);
+  }, [latestDeploy]);
 
-  const showDeployFailedMessage =
-    deployButtonHasShownError !== true &&
-    deployError &&
-    deployError[0] &&
-    deployError[0].errorMessage !== null;
+  const showDeployFailedMessage = latestDeploy && latestDeploy.errorMessage;
   return (
     <div className={classes.mainContainer}>
       <div className={classes.headingContainer}>
@@ -142,19 +127,20 @@ export const AppDeploymentComponent = ({
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
           )}
-          {deploymentList && deploymentList.getStatus.success === true && deployPermission && (
+          {imageOptions.length && !deployInProgress && deployPermission && (
             <DeployDropdown
               appDeployedVersion={appDeployedVersion}
               envName={envName}
               disabled={selectedImageTag === null || deployInProgress === true}
-              deployHistoryEntry={deployHistory[0]}
+              deployHistoryEntry={latestDeploy}
               deploymentStatus={deploymentStatus}
               selectedImageTag={selectedImageTag}
-              releases={releases}
+              imageOptions={imageOptions}
               setSelectedImageTag={setSelectedImageTag}
               startDeploy={startDeploy}
             />
           )}
+          {deployInProgress && <div>Deployment in progress...</div>}
           {deploymentList && deploymentList.getStatus.success === false && deployPermission && (
             <div className={classes.deployUnavailableContainer}>
               <div className={classes.deploySpinnerGridItem}>
@@ -171,7 +157,7 @@ export const AppDeploymentComponent = ({
             <ErrorMessage
               message={t('app_deploy_messages.technical_error_1')}
               code={t('app_deploy_messages.technical_error_code', {
-                errorCode: deployError[0].errorCode,
+                errorCode: deployError[0]?.errorCode,
               })}
             />
           )}

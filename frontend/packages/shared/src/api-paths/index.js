@@ -54,16 +54,16 @@ export const datamodelXsdPath = (org, app) => `/designer/api/${org}/${app}/model
 // Organizations
 export const orgsListPath = () => '/designer/api/orgs'; // Get
 
-// Release
+// Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
-
-export const appReleasesPath = (org, app) => `/designer/api/${org}/${app}/releases`;
+export const releasesPath = (org, app) => `/designer/api/${org}/${app}/releases`;
 export const deploymentsPath = (org, app) => `/designer/api/${org}/${app}/deployments`;
 export const deployPermissionsPath = (org, app) => `/designer/api/${org}/${app}/deployments/permissions`;
-export const environmentsConfigPath = () => `/designer/api/environments`;
+export const envConfigPath = () => `/designer/api/environments`;
 
 // Repositories
 export const abortmergePath = (org, app) => `/designer/api/repos/repo/${org}/${app}/abort-merge`;
+export const branchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=${branch}`; // Get
 export const cloneAppPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/clone`; // Get
 export const copyAppPath = (org, sourceRepository, targetRepository) => `/designer/api/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository })}`;
 export const createRepoPath = () => `/designer/api/repos/create-app`; // Post
@@ -71,7 +71,6 @@ export const discardChangesPath = (org, app) => `/designer/api/repos/repo/${org}
 export const discardFileChangesPath = (org, app, filename) => `/designer/api/repos/repo/${org}/${app}/discard/${filename}`; // Get
 export const masterRepoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=master`; // Get
 export const repoBranchesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches`; // Get
-export const repoBranchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=${branch}}`; // Get
 export const repoCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit`; // Post
 export const repoCommitPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit-and-push`; // Post
 export const repoDownloadPath = (org, app, full) => `/designer/api/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;

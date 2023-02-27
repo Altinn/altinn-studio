@@ -24,10 +24,10 @@ export interface ICreateAppDeploymentRejected {
 }
 
 export interface ICreateAppDeploymentEnvObject {
+  appPrefix: string;
   hostname: string;
-  app: string;
-  platformPrefix: string;
   name: string;
+  platformPrefix: string;
   type: string;
 }
 

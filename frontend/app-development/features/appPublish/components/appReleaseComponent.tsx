@@ -1,16 +1,11 @@
 import React from 'react';
 import classes from './appReleaseComponent.module.css';
-import type {
-  IAppReleaseErrors,
-  IBuild,
-  IRelease,
-} from '../../../sharedResources/appRelease/types';
+import type { IBuild, IRelease } from '../../../sharedResources/appRelease/types';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import { CircularProgress } from '@mui/material';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api-paths';
-import { useAppSelector } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -21,7 +16,6 @@ interface IAppReleaseComponent {
 export function ReleaseComponent(props: IAppReleaseComponent) {
   const { release } = props;
 
-  const appReleaseErrors: IAppReleaseErrors = useAppSelector((state) => state.appReleases.errors);
   const { t } = useTranslation();
 
   function renderStatusIcon(status: IBuild) {
@@ -40,14 +34,12 @@ export function ReleaseComponent(props: IAppReleaseComponent) {
   function RenderBodyInprogressOrErrorBody(): string {
     if (
       release.build.status !== BuildStatus.completed &&
-      appReleaseErrors.fetchReleaseErrorCode !== null
+      release.build.result === BuildResult.failed
     ) {
       return t('app_create_release_errors.check_status_on_build_error');
     }
     if (release.build.status !== BuildStatus.completed) {
-      return `${t('app_create_release.release_creating')} ${
-        release.createdBy
-      }`;
+      return `${t('app_create_release.release_creating')} ${release.createdBy}`;
     }
     return release.body;
   }
@@ -55,9 +47,7 @@ export function ReleaseComponent(props: IAppReleaseComponent) {
   return (
     <div className={classes.releaseWrapper}>
       <div className={classes.releaseRow}>
-        <div>
-          {t('app_release.release_version')} {release.tagName}
-        </div>
+        <div>{t('app_release.release_version') + ' ' + release.tagName}</div>
         <time dateTime={release.created}>{formatDateTime(release.created)}</time>
       </div>
       <div className={classes.releaseRow}>

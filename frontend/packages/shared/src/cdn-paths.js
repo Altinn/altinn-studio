@@ -5,3 +5,4 @@ export const layoutSettingsSchemaUrl = () =>
 export const orgsListUrl = () => `https://altinncdn.no/orgs/altinn-orgs.json`;
 export const altinnImgLogoHeaderUrl = () => `https://altinncdn.no/img/Altinn-logo-blue.svg`;
 export const widgetUrl = () => 'https://altinncdn.no/altinn-apps/widgets/message.json';
+export const environmentConfigUrl = () => 'https://altinncdn.no/config/environments.json';
