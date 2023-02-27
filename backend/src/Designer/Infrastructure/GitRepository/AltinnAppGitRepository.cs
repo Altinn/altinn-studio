@@ -464,11 +464,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// it will be stored as if the app does not use layoutsets, meaning under /App/ui/layouts/.
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
-        /// <param name="layoutName">The name of layout file</param>
+        /// <param name="layoutFileName">The name of layout file</param>
         /// <param name="layout">The actual layout that is saved</param>
-        public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutName, FormLayout layout)
+        public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutFileName, FormLayout layout)
         {
-            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
             JsonSerializerOptions jsonOptions = new()
             {
                 WriteIndented = true,

@@ -40,14 +40,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task SaveFormLayout(string org, string app, string developer, string layoutSetName, string layoutName, FormLayout formLayout)
         {
+            string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayout);
+                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutFileName, formLayout);
             }
 
-            await altinnAppGitRepository.SaveLayout(null, layoutName, formLayout);
+            await altinnAppGitRepository.SaveLayout(null, layoutFileName, formLayout);
         }
 
         /// <inheritdoc />
