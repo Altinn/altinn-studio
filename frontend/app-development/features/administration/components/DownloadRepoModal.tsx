@@ -4,7 +4,7 @@ import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react'
 import classes from './RepoModal.module.css';
 import { useParams } from 'react-router-dom';
 import { repoDownloadPath } from 'app-shared/api-paths';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 interface IDownloadRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
@@ -33,7 +33,9 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
       >
         <div className={classes.modalContainer}>
           <h2>{t('administration.download_repo_heading')}</h2>
-          <p>{t('administration.download_repo_info')}</p>
+          <p>
+            <Trans i18nKey={'administration.download_repo_info'}></Trans>
+          </p>
           <p>
             <a href={repoDownloadPath(org, app)}>{t('administration.download_repo_changes')}</a>
           </p>
