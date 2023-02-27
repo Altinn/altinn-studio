@@ -27,6 +27,11 @@ GET http://data.ssb.no/api/klass/v1/classifications/6/codesAt?date=2023-02-11&la
 Accept: application/json;charset=utf-8
 
 ###
+
+GET http://data.ssb.no/api/klass/v1/classifications/6/codesAt?date=2023-02-11&language=nb
+Accept: application/json;charset=utf-8
+
+###
 # Sivilstand
 GET http://data.ssb.no/api/klass/v1/classifications/19/codes?from=2000-02-01&to=2023-02-12
 Accept: application/json;charset=utf-8
