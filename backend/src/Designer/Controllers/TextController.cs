@@ -34,7 +34,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
         private readonly ITextsService _textsService;
-        private readonly JsonSerializerSettings _serializerSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextController"/> class.
@@ -53,11 +52,6 @@ namespace Altinn.Studio.Designer.Controllers
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _textsService = textsService;
-            _serializerSettings = new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                NullValueHandling = NullValueHandling.Ignore
-            };
         }
 
         /// <summary>

@@ -92,7 +92,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     config.AddEnvironmentVariables();
     config.AddCommandLine(args);
 
-    KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
+    KeyVaultSettings keyVaultSettings = new ();
     config.GetSection("kvSetting").Bind(keyVaultSettings);
 
     if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
@@ -100,9 +100,9 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
         !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
     {
-        logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault.");
-        AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
-        KeyVaultClient keyVaultClient = new KeyVaultClient(
+        logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault.");
+        AzureServiceTokenProvider azureServiceTokenProvider = new ($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
+        KeyVaultClient keyVaultClient = new (
             new KeyVaultClient.AuthenticationCallback(
                 azureServiceTokenProvider.KeyVaultTokenCallback));
         config.AddAzureKeyVault(
@@ -252,7 +252,7 @@ void Configure(IConfiguration configuration)
 
     if (configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
     {
-        ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
+        ConsoleTraceService traceService = new () { IsDebugEnabled = true };
 
         string connectionString = string.Format(
             configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
