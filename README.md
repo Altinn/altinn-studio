@@ -131,19 +131,6 @@ In some cases your application might differ from the default setup and require c
 available.
 This section contains the most common changes.
 
-#### Adjust authentication level of logged in test user
-
-This would be required if your app requires a higher than default authentication level. You can also use this to give
-the user a lower authentication level if you want to test the app behaviour for those.
-
-1. Open the `src/Controllers/HomeController.cs` in your preffered text editor or IDE.
-2. Find the function `LogInTestUser`
-3. Modify this
-   line `claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));`,
-   by exchanging `"2"` for a string containing your required authentication level.
-4. Save and close the file
-5. Restart LocalTest
-
 #### Add a missing role for a test user
 
 This would be required if your app requires a role which none of the test users have.
