@@ -5,7 +5,7 @@ import { TextEditor } from '../features/textEditor';
 import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
-import { AppPublishFeature } from '../features/appPublish/AppPublishFeature';
+import { DeployPage } from '../features/appPublish/pages/deployPage';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -72,7 +72,7 @@ const routes: IRoute[] = [
     activeSubHeaderSelection: TopBarMenu.Deploy,
     activeLeftMenuSelection: '',
     menu: 'deploy',
-    subapp: AppPublishFeature,
+    subapp: DeployPage,
   },
   {
     path: '/:org/:app/mergeconflict',

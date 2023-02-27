@@ -140,7 +140,7 @@ export const AppDeploymentComponent = ({
               startDeploy={startDeploy}
             />
           )}
-          {deployInProgress && <div>Deployment in progress...</div>}
+          {deployInProgress && <div>{t('app_publish.deployment_in_progress')}...</div>}
           {deploymentList && deploymentList.getStatus.success === false && deployPermission && (
             <div className={classes.deployUnavailableContainer}>
               <div className={classes.deploySpinnerGridItem}>

@@ -2,9 +2,9 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { IDeployment } from '../../../sharedResources/appDeployment/types';
 import { IRelease } from '../../../sharedResources/appRelease/types';
 import { useQuery } from '@tanstack/react-query';
-import { useServicesContext } from '../contexts/ServiceContext';
 import { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import { CacheKey } from 'app-shared/api-paths/cache-key';
+import { useServicesContext } from '../../../common/ServiceContext';
 
 interface IOrgsState {
   orgs: any;
@@ -29,10 +29,7 @@ export const useOrgList = (): UseQueryResult<IOrgsState> => {
 
 export const useEnvironments = (): UseQueryResult<IEnvironmentItem[]> => {
   const { getEnvironments } = useServicesContext();
-  return useQuery<IEnvironmentItem[]>([CacheKey.Environemnts], async () => {
-    const res = await getEnvironments();
-    return res.environments;
-  });
+  return useQuery<IEnvironmentItem[]>([CacheKey.Environemnts], () => getEnvironments());
 };
 
 export const useDeployPermissions = (owner, app): UseQueryResult<string[]> => {
