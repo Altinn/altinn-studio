@@ -24,8 +24,12 @@ export function ReleaseContainer() {
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
   const { data: releases = [] } = useAppReleases(org, app);
-  const { data: repoStatus } = useRepoStatus(org, app);
-  const { data: masterBranchStatus } = useBranchStatus(org, app, 'master');
+  const { data: repoStatus, isLoading: repoStatusIsLoading } = useRepoStatus(org, app);
+  const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } = useBranchStatus(
+    org,
+    app,
+    'master'
+  );
 
   const latestRelease: IRelease = releases && releases[0] ? releases[0] : null;
 
@@ -46,7 +50,7 @@ export function ReleaseContainer() {
       }
     }, 7777);
     return () => clearInterval(interval);
-  }, [releases]);
+  }, [releases, queryClient, org, app]);
 
   const handlePopoverOpenClicked = (_: MouseEvent) => setPopoverOpenClick(!popoverOpenClick);
   const handlePopoverOpenHover = (_: MouseEvent) => setPopoverOpenHover(true);
@@ -75,7 +79,7 @@ export function ReleaseContainer() {
         </div>
       );
     }
-    if (!masterBranchStatus || !repoStatus?.contentStatus) {
+    if (repoStatusIsLoading || masterBranchStatusIsLoading) {
       return (
         <div style={{ padding: '2rem' }}>
           <div>
@@ -95,7 +99,11 @@ export function ReleaseContainer() {
       latestRelease.build.status === BuildStatus.completed &&
       latestRelease.build.result === BuildResult.succeeded
     ) {
-      return <div style={{ padding: '2rem' }}>No changes on current release</div>;
+      return (
+        <div style={{ padding: '2rem' }}>
+          {t('app_create_release.no_changes_on_current_release')}
+        </div>
+      );
     }
     if (
       latestRelease &&
@@ -104,7 +112,9 @@ export function ReleaseContainer() {
     ) {
       return (
         <div style={{ padding: '2rem' }}>
-          Still building release: {latestRelease.targetCommitish}
+          {t('app_create_release.still_building_release', {
+            version: latestRelease.targetCommitish,
+          })}
         </div>
       );
     }
@@ -160,15 +170,13 @@ export function ReleaseContainer() {
       return (
         <>
           {t('app_release.release_title')} &nbsp;
-          {masterBranchStatus ? (
-            <a
-              href={gitCommitPath(org, app, masterBranchStatus.commit.id)}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              {t('app_release.release_title_link')}
-            </a>
-          ) : null}
+          <a
+            href={gitCommitPath(org, app, masterBranchStatus.commit.id)}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            {t('app_release.release_title_link')}
+          </a>
         </>
       );
     }

@@ -16,5 +16,5 @@ export const useInvalidCacheEvent = (eventHandler: (queryKey: string[]) => void)
     return () => {
       window.removeEventListener(EventName.InvalidateCache, handleEvent, false);
     };
-  }, []);
+  }, [eventHandler]);
 };

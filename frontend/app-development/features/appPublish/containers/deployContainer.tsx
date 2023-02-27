@@ -52,7 +52,7 @@ export const DeployContainerComponent = () => {
       }
     }, 6666);
     return () => clearInterval(interval);
-  }, [appDeployments]);
+  }, [appDeployments, queryClient, org, app]);
 
   const isLoading = () =>
     releasesIsLoading || orgsIsLoading || permissionsIsLoading || envIsLoading || deploysAreLoading;

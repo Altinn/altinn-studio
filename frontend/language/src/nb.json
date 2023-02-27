@@ -46,6 +46,8 @@
   "administration.service_saved_name_administration_description": "Benyttes (sammen med eier) som unik identifikator for appen både i URLer og APIer. Kan ikke endres etter at appen er satt i produksjon.",
   "app_create_release.application_builds_based_on": "Applikasjonen bygges basert på",
   "app_create_release.build_version": "Bygg versjon",
+  "app_create_release.no_changes_on_current_release":"Ingen endringer på nåværende release",
+  "app_create_release.still_building_release": "Bygger fortsatt versjon: {{version}}",
   "app_create_release.check_status": "Sjekker status på applikasjonen din...",
   "app_create_release.last_commit_to_master": "siste commit til master",
   "app_create_release.local_changes_can_build": "Alle endringer er ikke pushet til master. Du må pushe dine lokale endringer til master for å innkludere disse i en ny versjon.",
