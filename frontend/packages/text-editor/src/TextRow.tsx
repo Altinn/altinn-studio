@@ -6,10 +6,13 @@ import {
   Button,
   ButtonVariant,
   ErrorMessage,
+  Popover,
+  PopoverVariant,
   TextArea,
   TextField,
 } from '@digdir/design-system-react';
 import { Variables } from './Variables';
+import { ButtonColor } from '@altinn/altinn-design-system';
 
 export interface LangRowProps {
   textId: string;
@@ -33,6 +36,8 @@ export const TextRow = ({
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textEntryValue, setTextEntryValue] = useState(textData?.value || '');
   const [keyError, setKeyError] = useState('');
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
   useEffect(() => {
     setTextEntryValue(textData?.value || '');
   }, [textData]);
@@ -76,11 +81,16 @@ export const TextRow = ({
     }
   };
 
-  const handleDeleteClick = () => removeEntry({ textId });
+  const handleDeleteClick = () => {
+    removeEntry({ textId });
+  };
+
+  const handleCancelClick = () => {
+    setIsPopoverOpen(false);
+  };
 
   const idForValue = `value-${langName}-${textId}`;
   const variables = textData?.variables || [];
-
   const [infoboxOpen, setInfoboxOpen] = useState(false);
 
   return (
@@ -112,16 +122,48 @@ export const TextRow = ({
         />
         {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
       </div>
+
       <div className={classes.rightCol}>
-        <Button
-          data-testid={'delete-button'}
-          className={classes.deleteButton}
-          onClick={handleDeleteClick}
-          icon={<Delete title={`Slett ${textId}`} />}
-          variant={ButtonVariant.Quiet}
+        <Popover
+          title={'Slett_rad'}
+          variant={PopoverVariant.Warning}
+          placement={'left'}
+          trigger={
+            <Button
+              data-testid={'delete-button'}
+              className={classes.deleteButton}
+              icon={<Delete title={`Slett ${textId}`} />}
+              variant={ButtonVariant.Quiet}
+              onClick={() => setIsPopoverOpen(true)}
+            >
+              <span>{`Slett`}</span>
+            </Button>
+          }
         >
-          <span className={'sr-only'}>{`Slett ${textId}`}</span>
-        </Button>
+          {isPopoverOpen && (
+            <div>
+              <p>Er du sikker på at du vil slette denne raden?</p>
+              <div className={classes.popoverButtons}>
+                <Button
+                  data-testid={'bekreft'}
+                  className={classes.popoverConfirmBtn}
+                  onClick={handleDeleteClick}
+                  color={ButtonColor.Danger}
+                >
+                  Ja, slett raden
+                </Button>
+                <Button
+                  data-testid={'avbryt'}
+                  variant={ButtonVariant.Quiet}
+                  onClick={handleCancelClick}
+                  color={ButtonColor.Secondary}
+                >
+                  Avbryt
+                </Button>
+              </div>
+            </div>
+          )}
+        </Popover>
       </div>
     </li>
   );

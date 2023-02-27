@@ -42,12 +42,29 @@ describe('TextRow', () => {
     });
   });
 
+  test('Popover should be shown when the user clicks the delete button', async () => {
+    const { user } = renderTextRow();
+    const deleteButton = screen.getByTestId('delete-button');
+    await user.click(deleteButton);
+    const popover = screen.getByRole('dialog');
+    expect(popover).toBeInTheDocument();
+  });
+  test('Popover should be closed when the user clicks the cancel button', async () => {
+    const { user } = renderTextRow();
+    const cancelPopoverButton = screen.getByTestId('delete-button');
+    await user.click(cancelPopoverButton);
+    const cancelPopButton = screen.getByTestId('avbryt');
+    await user.click(cancelPopButton);
+    expect(cancelPopButton).not.toBeInTheDocument();
+  });
+
   test('removeEntry should be called when deleting a entry', async () => {
     const removeEntry = jest.fn();
     const { user } = renderTextRow({ removeEntry });
     const deleteButton = screen.getByTestId('delete-button');
-
     await user.click(deleteButton);
+    const confirmPopButton = screen.getByTestId('bekreft');
+    await user.click(confirmPopButton);
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
 

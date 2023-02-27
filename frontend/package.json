@@ -91,6 +91,7 @@
     "packages/ux-editor"
   ],
   "dependencies": {
+    "@material-ui/core": "^4.12.4",
     "react-i18next": "^12.1.5"
   }
 }
