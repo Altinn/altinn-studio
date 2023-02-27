@@ -34,7 +34,7 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
         <div className={classes.modalContainer}>
           <h2>{t('administration.download_repo_heading')}</h2>
           <p>
-            <Trans i18nKey={'administration.download_repo_info'}></Trans>
+            <Trans i18nKey={'administration.download_repo_info'} />
           </p>
           <p>
             <a href={repoDownloadPath(org, app)}>{t('administration.download_repo_changes')}</a>
