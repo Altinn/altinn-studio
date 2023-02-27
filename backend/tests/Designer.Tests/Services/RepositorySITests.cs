@@ -37,7 +37,7 @@ namespace Designer.Tests.Services
         public void GetContents_FindsFolder_ReturnsListOfFileSystemObjects()
         {
             // Arrange
-            List<FileSystemObject> expected = new ()
+            List<FileSystemObject> expected = new()
             {
                 new ()
                 {
@@ -70,7 +70,7 @@ namespace Designer.Tests.Services
         public void GetContents_FindsFile_ReturnsOneFileSystemObject()
         {
             // Arrange
-            List<FileSystemObject> expected = new ()
+            List<FileSystemObject> expected = new()
             {
                new ()
                 {
@@ -247,7 +247,7 @@ namespace Designer.Tests.Services
             string org = "ttd";
             string repository = "apps-test";
 
-            Mock<ISourceControl> mock = new ();
+            Mock<ISourceControl> mock = new();
             mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
@@ -262,12 +262,12 @@ namespace Designer.Tests.Services
 
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
-            List<Claim> claims = new ();
+            List<Claim> claims = new();
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
-            ClaimsIdentity identity = new ("TestUserLogin");
+            ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
 
-            ClaimsPrincipal principal = new (identity);
+            ClaimsPrincipal principal = new(identity);
             HttpContext c = new DefaultHttpContext();
             c.Request.HttpContext.User = principal;
 
@@ -304,21 +304,21 @@ namespace Designer.Tests.Services
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
-            Mock<IHttpContextAccessor> httpContextAccessorMock = new ();
+            Mock<IHttpContextAccessor> httpContextAccessorMock = new();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
 
             sourceControlMock ??= new ISourceControlMock();
 
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
-            ServiceRepositorySettings repoSettings = new ()
+            ServiceRepositorySettings repoSettings = new()
             {
                 RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar
             };
 
 
-            AltinnGitRepositoryFactory altinnGitRepositoryFactory = new (TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-            GeneralSettings generalSettings = new ()
+            GeneralSettings generalSettings = new()
             {
                 TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
                 DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
@@ -327,13 +327,13 @@ namespace Designer.Tests.Services
 
             EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
 
-            AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new (new HttpClient(), environmentsService, new PlatformSettings());
+            AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings());
 
-            ApplicationMetadataService applicationInformationService = new (new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object);
+            ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object);
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService);
 
-            RepositorySI service = new (
+            RepositorySI service = new(
                 repoSettings,
                 generalSettings,
                 httpContextAccessorMock.Object,

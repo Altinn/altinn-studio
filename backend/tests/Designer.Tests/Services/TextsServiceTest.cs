@@ -156,16 +156,16 @@ public class TextsServiceTest : IDisposable
     private static TextsService GetTextsServiceForTest()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        GeneralSettings generalSettings = new ()
+        GeneralSettings generalSettings = new()
         {
             TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
             DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
             AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
         };
         EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
-        AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new (new HttpClient(), environmentsService, new PlatformSettings());
+        AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings());
         ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object);
-        TextsService textsService = new (altinnGitRepositoryFactory, applicationMetadataService);
+        TextsService textsService = new(altinnGitRepositoryFactory, applicationMetadataService);
 
         return textsService;
     }
