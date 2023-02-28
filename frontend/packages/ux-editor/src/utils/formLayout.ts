@@ -2,11 +2,11 @@ import type { Dispatch } from 'redux';
 import type { IComponent } from '../components';
 import { ComponentTypes } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import { LayoutItemType } from '../types/global';
+import { LayoutItemType} from '../types/global';
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
-  IFormLayout,
+  IInternalLayouts,
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
@@ -18,8 +18,8 @@ import i18next from 'i18next';
 
 const { addFormComponent, addFormContainer, addWidget, updateActiveListOrder } = FormLayoutActions;
 
-export function convertFromLayoutToInternalFormat(formLayout: any[], hidden: any): IFormLayout {
-  const convertedLayout: IFormLayout = {
+export function convertFromLayoutToInternalFormat(formLayout: any[], hidden: any): IInternalLayouts {
+  const convertedLayout: IInternalLayouts = {
     containers: {},
     components: {},
     order: {},
@@ -73,7 +73,7 @@ export function topLevelComponents(layout: any[]) {
   return layout.filter((component) => !inGroup.has(component.id));
 }
 
-export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[] {
+export function convertInternalToLayoutFormat(internalFormat: IInternalLayouts): any[] {
   const formLayout: any[] = [];
 
   if (!internalFormat) {
@@ -82,7 +82,7 @@ export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[
 
   const { components, containers, order } = JSON.parse(
     JSON.stringify(internalFormat)
-  ) as IFormLayout;
+  ) as IInternalLayouts;
 
   const baseContainerId = Object.keys(internalFormat.containers)[0];
   let groupChildren: string[] = [];

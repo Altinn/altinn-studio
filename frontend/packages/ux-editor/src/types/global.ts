@@ -222,14 +222,29 @@ export interface IFormDesignerLayout {
 }
 
 export interface IFormLayouts {
-  [id: string]: IFormLayout;
+  [id: string]: IInternalLayouts;
 }
 
-export interface IFormLayout {
+export interface IExternalFormLayouts {
+  [id: string]: IExternalFormLayout;
+}
+
+export interface IInternalLayouts {
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
   order: IFormLayoutOrder;
   hidden?: any;
+}
+
+export interface IExternalFormLayout {
+  schema: string;
+  data: IExternalData;
+  hidden?: any;
+}
+
+export interface IExternalData {
+  layout: any[];
+  hidden?: boolean;
 }
 
 export interface IFormLayoutOrder {

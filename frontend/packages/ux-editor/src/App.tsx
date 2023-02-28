@@ -43,8 +43,6 @@ export function App() {
     (state: IAppState) => state.formDesigner.layout.selectedLayout
   );
 
-  const layouts = useSelector((state: IAppState) => state.formDesigner.layout.layouts);
-
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
 

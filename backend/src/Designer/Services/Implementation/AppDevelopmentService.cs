@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using NuGet.Protocol;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -103,6 +105,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return;
             }
 
+            Console.WriteLine("settings in the middle: " + layoutSettings.ToJson());
             await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
         }
     }

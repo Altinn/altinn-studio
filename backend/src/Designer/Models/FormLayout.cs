@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Models
 {
@@ -11,10 +10,10 @@ namespace Altinn.Studio.Designer.Models
     /// </summary>
     public class FormLayout
     {
-        [JsonProperty(PropertyName = "$schema")]
+        [JsonPropertyName("$schema")]
         public string Schema { get; set; }
         public Data Data { get; set; }
-        [System.Text.Json.Serialization.JsonExtensionData]
+        [JsonExtensionData]
         public Dictionary<string, JsonElement> UnknownProperties { get; set; }
 }
 
@@ -22,7 +21,7 @@ namespace Altinn.Studio.Designer.Models
     {
         public List<Layout> Layout { get; set; }
         [CanBeNull] public object Hidden { get; set; }
-        [System.Text.Json.Serialization.JsonExtensionData]
+        [JsonExtensionData]
         public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 
@@ -46,7 +45,7 @@ namespace Altinn.Studio.Designer.Models
         [CanBeNull] public string DisplayMode { get; set; }
         [CanBeNull] public List<Option> Options { get; set; }
         public int? PreselectedOptionIndex { get; set; }
-        [System.Text.Json.Serialization.JsonExtensionData]
+        [JsonExtensionData]
         public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 
@@ -55,7 +54,7 @@ namespace Altinn.Studio.Designer.Models
         [CanBeNull] public string SimpleBinding { get; set; }
         [CanBeNull] public string Group { get; set; }
         [CanBeNull] public string List { get; set; }
-        [System.Text.Json.Serialization.JsonExtensionData]
+        [JsonExtensionData]
         public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 
@@ -64,7 +63,7 @@ namespace Altinn.Studio.Designer.Models
         [CanBeNull] public object Src { get; set; }
         [CanBeNull] public string Width { get; set; }
         [CanBeNull] public string Align { get; set; }
-        [System.Text.Json.Serialization.JsonExtensionData]
+        [JsonExtensionData]
         public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 
@@ -72,7 +71,7 @@ namespace Altinn.Studio.Designer.Models
     {
         public string Label { get; set; }
         public string Value { get; set; }
-        [System.Text.Json.Serialization.JsonExtensionData]
+        [JsonExtensionData]
         public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 }
