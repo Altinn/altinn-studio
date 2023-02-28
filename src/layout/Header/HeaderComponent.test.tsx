@@ -1,9 +1,12 @@
 import React from 'react';
 
-import { fireEvent, render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
+import ResizeObserverModule from 'resize-observer-polyfill';
 
 import { HeaderComponent } from 'src/layout/Header/HeaderComponent';
 import type { IHeaderProps } from 'src/layout/Header/HeaderComponent';
+
+(global as any).ResizeObserver = ResizeObserverModule;
 
 const render = (props = {}) => {
   const allProps = {
@@ -72,7 +75,7 @@ describe('HeaderComponent', () => {
     render();
 
     const helpButton = screen.queryByRole('button', {
-      name: /popover\.popover_button_helptext/i,
+      name: /helptext\.button_title/i,
     });
 
     expect(helpButton).not.toBeInTheDocument();
@@ -86,7 +89,7 @@ describe('HeaderComponent', () => {
     });
 
     const helpButton = screen.getByRole('button', {
-      name: /popover\.popover_button_helptext/i,
+      name: /helptext\.button_title/i,
     });
 
     expect(helpButton).toBeInTheDocument();
@@ -101,15 +104,13 @@ describe('HeaderComponent', () => {
     });
 
     const helpButton = screen.getByRole('button', {
-      name: /popover\.popover_button_helptext/i,
+      name: /helptext\.button_title/i,
     });
 
     expect(screen.queryByText(helpText)).not.toBeInTheDocument();
     fireEvent.click(helpButton);
     expect(screen.getByText(helpText)).toBeInTheDocument();
     fireEvent.click(helpButton);
-
-    await waitForElementToBeRemoved(() => screen.queryByText(helpText));
 
     expect(screen.queryByText(helpText)).not.toBeInTheDocument();
   });

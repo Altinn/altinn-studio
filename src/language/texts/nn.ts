@@ -213,9 +213,9 @@ export function nn() {
       show_deleted: 'Vis sletta',
       show_sub_unit: 'Vis undereiningar',
     },
-    popover: {
-      popover_button_helptext: 'Hjelp',
-      popover_open: 'Popover open',
+    helptext: {
+      button_title: 'Hjelp',
+      button_title_prefix: 'Hjelpetekst for',
     },
     receipt: {
       attachments: 'Vedlegg',

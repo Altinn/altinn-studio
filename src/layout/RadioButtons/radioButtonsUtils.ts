@@ -49,6 +49,7 @@ export const useRadioStyles = makeStyles((theme) => ({
   },
   legend: {
     color: '#000000',
+    fontFamily: 'Altinn-DIN',
   },
   formControl: {
     alignItems: 'flex-start',

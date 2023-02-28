@@ -1,3 +1,5 @@
+import { Children, isValidElement } from 'react';
+
 export const capitalizeName = (name: string) => {
   return name
     .toLowerCase()
@@ -16,4 +18,18 @@ export const capitalizeName = (name: string) => {
     })
     .join(' ')
     .trim();
+};
+
+export const getPlainTextFromNode = (node: React.ReactNode): string => {
+  if (typeof node === 'string') {
+    return node;
+  }
+  if (isValidElement(node)) {
+    let text = '';
+    Children.forEach(node.props.children, (child) => {
+      text += getPlainTextFromNode(child);
+    });
+    return text;
+  }
+  return '';
 };

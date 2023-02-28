@@ -74,7 +74,8 @@ export function ImageComponent(props: IImageProps) {
         >
           <HelpTextContainer
             language={props.language}
-            helpText={props.getTextResource(props.textResourceBindings.help)}
+            helpText={props.getTextResourceAsString(props.textResourceBindings.help)}
+            title={altText}
           />
         </Grid>
       )}

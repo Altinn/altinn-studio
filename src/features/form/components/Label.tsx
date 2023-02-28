@@ -5,17 +5,18 @@ import { Grid } from '@material-ui/core';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
 import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
+import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { ILabelSettings } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
 export interface IFormLabelProps {
-  labelText: any;
+  labelText: React.ReactNode;
   id: string;
   language: ILanguage;
   required?: boolean;
   readOnly?: boolean;
   labelSettings?: ILabelSettings;
-  helpText: string | number | boolean | React.ReactNode | undefined | null;
+  helpText: React.ReactNode;
 }
 
 export function Label(props: IFormLabelProps) {
@@ -55,6 +56,7 @@ export function Label(props: IFormLabelProps) {
           <HelpTextContainer
             language={props.language}
             helpText={props.helpText}
+            title={getPlainTextFromNode(props.labelText)}
           />
         </Grid>
       )}

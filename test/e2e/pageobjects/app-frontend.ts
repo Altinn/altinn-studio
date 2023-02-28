@@ -32,9 +32,9 @@ export class AppFrontend {
   public designSystemPanel = '[data-testid="panel-content-wrapper"]';
 
   public helpText = {
-    open: '.reg-help-outline',
-    close: '.reg-help-filled',
-    alert: 'div[role="alert"]',
+    open: 'button[aria-expanded=false]',
+    close: 'button[aria-expanded=true]',
+    alert: 'div[role="dialog"]',
   };
 
   public navMenu = '#navigation-menu';

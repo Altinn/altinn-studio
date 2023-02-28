@@ -20,7 +20,7 @@ describe('UI Components', () => {
           .parentsUntil(appFrontend.message.logoFormContent)
           .eq(1)
           .should('have.css', 'justify-content', 'center');
-        cy.wrap(image).parent().siblings().find(appFrontend.helpText.open).parent().click();
+        cy.wrap(image).parent().siblings().find(appFrontend.helpText.open).click();
         cy.get(appFrontend.helpText.alert).contains('Altinn logo').type('{esc}');
         cy.get(appFrontend.helpText.alert).should('not.exist');
       });

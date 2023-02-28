@@ -2,9 +2,11 @@ import React from 'react';
 
 import { Description } from 'src/features/form/components/Description';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import classes from 'src/features/form/components/Legend.module.css';
 import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
 import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
 import { LayoutStyle } from 'src/types';
+import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { ILabelSettings } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
@@ -35,12 +37,6 @@ export function Legend(props: IFormLegendProps) {
         language={props.language}
         required={props.required}
       />
-      {props.helpText && (
-        <HelpTextContainer
-          language={props.language}
-          helpText={props.helpText}
-        />
-      )}
     </>
   );
 
@@ -50,12 +46,21 @@ export function Legend(props: IFormLegendProps) {
 
   return (
     <>
-      <label
-        className='a-form-label title-label'
-        htmlFor={props.id}
-      >
-        {LabelText}
-      </label>
+      <div className={classes.legendHelpTextContainer}>
+        <label
+          className='a-form-label title-label'
+          htmlFor={props.id}
+        >
+          {LabelText}
+        </label>
+        {props.helpText && (
+          <HelpTextContainer
+            language={props.language}
+            helpText={props.helpText}
+            title={getPlainTextFromNode(props.labelText)}
+          />
+        )}
+      </div>
       {props.descriptionText && (
         <Description
           description={props.descriptionText}

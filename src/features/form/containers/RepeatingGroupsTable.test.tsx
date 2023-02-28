@@ -2,7 +2,7 @@ import React from 'react';
 
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import * as ResizeObserverModule from 'resize-observer-polyfill';
+import ResizeObserverModule from 'resize-observer-polyfill';
 
 import { getFormLayoutGroupMock } from 'src/__mocks__/formLayoutGroupMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
@@ -20,7 +20,7 @@ import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IOption, ITextResource } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
-(global as any).ResizeObserver = ResizeObserverModule.default;
+(global as any).ResizeObserver = ResizeObserverModule;
 
 const user = userEvent.setup();
 

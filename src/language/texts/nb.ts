@@ -213,9 +213,9 @@ export function nb() {
       show_deleted: 'Vis slettede',
       show_sub_unit: 'Vis underenheter',
     },
-    popover: {
-      popover_button_helptext: 'Hjelp',
-      popover_open: 'Popover åpen',
+    helptext: {
+      button_title: 'Hjelp',
+      button_title_prefix: 'Hjelpetekst for',
     },
     receipt: {
       attachments: 'Vedlegg',

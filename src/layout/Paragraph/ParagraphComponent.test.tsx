@@ -24,7 +24,7 @@ describe('ParagraphComponent', () => {
 
     expect(
       screen.getByRole('button', {
-        name: /popover\.popover_button_helptext/i,
+        name: /helptext\.button_title/i,
       }),
     ).toBeInTheDocument();
   });

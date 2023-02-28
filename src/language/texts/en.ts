@@ -212,9 +212,9 @@ export function en() {
       show_deleted: 'Show deleted',
       show_sub_unit: 'Show sub units',
     },
-    popover: {
-      popover_button_helptext: 'Help',
-      popover_open: 'Popover open',
+    helptext: {
+      button_title: 'Help',
+      button_title_prefix: 'Helptext for',
     },
     receipt: {
       attachments: 'Attachments',
