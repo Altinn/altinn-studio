@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
+import { AltinnSpinner } from 'app-shared/components';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
@@ -15,24 +16,35 @@ import { Link } from 'react-router-dom';
 import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
 import { User } from 'dashboard/services/userService';
+import { Organization } from 'dashboard/services/organizationService';
+import { useGetStarredRepos } from 'dashboard/hooks/useRepoQueries';
 
 type DashboardProps = {
   user: User;
+  organizations: Organization[];
   disableDebounce?: boolean;
 };
 
-export const Dashboard = ({ user, disableDebounce }: DashboardProps) => {
+export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
+  const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useGetStarredRepos();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
   useDebounce(() => setDebouncedSearchText(searchText), disableDebounce ? 1 : 500, [searchText]);
+
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);
+
   const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleClearSearch = () => setSearchText('');
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
+
+  if (isLoadingStarredRepos) {
+    return <AltinnSpinner spinnerText={t('dashboard.loading')} />;
+  }
+
   return (
     <>
       <CenterContainer>
@@ -78,14 +90,22 @@ export const Dashboard = ({ user, disableDebounce }: DashboardProps) => {
           </div>
 
           {debouncedSearchText ? (
-            <SearchResultReposList searchValue={debouncedSearchText} />
+            <SearchResultReposList searchValue={debouncedSearchText} starredRepos={starredRepos} />
           ) : (
             <>
               <FavoriteReposList />
               <div className={classes.marginTop}>
-                <OrgReposList user={user} />
+                <OrgReposList
+                  user={user}
+                  organizations={organizations}
+                  starredRepos={starredRepos}
+                />
               </div>
-              <DatamodelsReposList user={user} />
+              <DatamodelsReposList
+                user={user}
+                organizations={organizations}
+                starredRepos={starredRepos}
+              />
             </>
           )}
         </div>

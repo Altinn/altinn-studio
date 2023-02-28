@@ -14,10 +14,9 @@ import type { IRepository } from 'app-shared/types/global';
 import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
-import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../services/userApi';
-
-import classes from './RepoList.module.css';
 import { useTranslation } from 'react-i18next';
+import { useSetStarredRepo, useUnsetStarredRepo } from 'dashboard/hooks/useRepoQueries';
+import classes from './RepoList.module.css';
 
 export interface IRepoListProps {
   isLoading: boolean;
@@ -81,8 +80,9 @@ export const RepoList = ({
   disableVirtualization = false,
 }: IRepoListProps) => {
   const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
-  const [setStarredRepo] = useSetStarredRepoMutation();
-  const [unsetStarredRepo] = useUnsetStarredRepoMutation();
+
+  const { mutate: setStarredRepo } = useSetStarredRepo();
+  const { mutate: unsetStarredRepo } = useUnsetStarredRepo();
   const copyModalAnchorRef = useRef(null);
   const { t } = useTranslation();
 

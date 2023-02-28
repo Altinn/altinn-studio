@@ -8,6 +8,8 @@ import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { CreateService } from './CreateService';
 import { orgsListPath, createRepoPath } from 'app-shared/api-paths';
 import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
+// import { Organizations } from 'dashboard/services/organizationApi';
+import { User } from 'dashboard/services/userService';
 
 const server = setupServer(...handlers);
 
@@ -16,7 +18,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 const render = () =>
-  renderWithProviders(<CreateService />, {
+  renderWithProviders(<CreateService organizations={[] as any[]} user={{} as User} />, {
     preloadedState: {
       dashboard: {
         services: [],
