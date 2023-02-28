@@ -1,7 +1,19 @@
 # Building studio frontend dependencies
 FROM node:alpine AS generate-studio-frontend-deps
 WORKDIR /build
-COPY frontend/package.json frontend/yarn.lock ./
+COPY frontend/package.json frontend/yarn.lock frontend/.yarnrc.yml ./
+COPY frontend/.yarn ./.yarn
+COPY frontend/app-development/package.json ./app-development/package.json
+COPY frontend/app-preview/package.json ./app-preview/package.json
+COPY frontend/dashboard/package.json ./dashboard/package.json
+COPY frontend/language/package.json ./language/package.json
+COPY frontend/packages/schema-editor/package.json ./packages/schema-editor/package.json
+COPY frontend/packages/schema-model/package.json ./packages/schema-model/package.json
+COPY frontend/packages/shared/package.json ./packages/shared/package.json
+COPY frontend/packages/text-editor/package.json ./packages/text-editor/package.json
+COPY frontend/packages/ux-editor/package.json ./packages/ux-editor/package.json
+COPY frontend/testing/cypress/package.json ./testing/cypress/package.json
+COPY frontend/testing/mockend/package.json ./testing/mockend/package.json
 RUN corepack enable
 RUN yarn install --immutable
 
@@ -40,7 +52,7 @@ COPY --from=generate-studio-frontend /build/dist/language ./wwwroot/designer/fro
 
 ## Copying app template
 COPY --from=app-template /build/node_modules ./node_modules
-COPY --from=generate-studio-backend /app_template ./Templates/AspNet
+COPY --from=app-template /app_template ./Templates/AspNet
 COPY backend/src/Designer/Migration ./Migration
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]
