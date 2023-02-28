@@ -31,7 +31,6 @@
     "webpack": "5.75.0"
   },
   "scripts": {
-    "compile-ts": "tsc",
     "test": "jest --maxWorkers=50%"
   }
 }
