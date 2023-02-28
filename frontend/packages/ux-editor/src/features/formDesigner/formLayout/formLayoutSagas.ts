@@ -459,7 +459,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
         FormLayoutActions.addFormComponent({
           component: {
             ...navigationButtonComponent,
-            id: generateComponentId(navigationButtonComponent.type, layoutsCopy[layout]),
+            id: generateComponentId(navigationButtonComponent.type, layoutsCopy),
           },
           position: 0,
           containerId: Object.keys(layoutsCopy[layout].containers)[0],
@@ -480,7 +480,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
             FormLayoutActions.addFormComponent({
               component: {
                 ...navigationButtonComponent,
-                id: generateComponentId(navigationButtonComponent.type, layoutsCopy[layout]),
+                id: generateComponentId(navigationButtonComponent.type, layoutsCopy),
               },
               position: Object.keys(layoutsCopy[firstPageKey].components).length,
               containerId: Object.keys(layoutsCopy[firstPageKey].containers)[0],
