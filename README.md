@@ -14,6 +14,7 @@ The policy is set up so that users with `REGNA`/`DAGL` roles in an organization 
 
 - The user `Pengelens Partner` on behalf of `DDG Fitness` has the roles: `REGNA` and `DAGL`.
 - The user `Gjentagende Forelder` on behalf of `DDG Fitness` has the role of `REVAI`.
+- The user `Sophie Salt` on behalf of `DDG Fitness` has all three roles.
 
 ### TT02
 
