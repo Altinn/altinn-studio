@@ -31,7 +31,7 @@
     "income": {
       "type": "integer",
       "title": "Inntekt",
-      "maximum": 0
+      "minimum": 0
     }
   }
 }

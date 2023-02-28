@@ -79,7 +79,7 @@
       "DataBindingName": "income",
       "XPath": "/data/income",
       "Restrictions": {
-        "maximum": {
+        "minimum": {
           "Value": "0"
         }
       },

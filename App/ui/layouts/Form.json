@@ -21,7 +21,10 @@
           "simpleBinding": "firstName"
         },
         "required": false,
-        "readOnly": true
+        "readOnly": true,
+        "grid": {
+          "xs": 6
+        }
       },
       {
         "id": "Input-lastName",
@@ -33,7 +36,10 @@
           "simpleBinding": "lastName"
         },
         "required": false,
-        "readOnly": true
+        "readOnly": true,
+        "grid": {
+          "xs": 6
+        }
       },
       {
         "id": "Input-income",
@@ -45,7 +51,16 @@
           "simpleBinding": "income"
         },
         "required": false,
-        "readOnly": false
+        "readOnly": false,
+        "grid": {
+          "xs": 6 
+        },
+        "formatting": {
+          "align": "right",
+          "number": {
+            "suffix": " 000 kr"
+          }
+        }
       },
       {
         "id": "Button-TW6O0a",
