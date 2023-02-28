@@ -16,6 +16,7 @@ import { PartyActions } from 'src/shared/resources/party/partySlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
 import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
+import { topLevelComponents } from 'src/utils/formLayout';
 import { httpGet } from 'src/utils/network/networking';
 import { pdfPreviewMode, shouldGeneratePdf } from 'src/utils/pdf';
 import { getPdfFormatUrl } from 'src/utils/urls/appUrlHelper';
@@ -64,11 +65,14 @@ function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, lay
     .filter(([pageRef]) => !hiddenPages.has(pageRef))
     .filter(([pageRef]) => pageOrder?.includes(pageRef))
     .sort(([pA], [pB]) => (pageOrder ? pageOrder.indexOf(pA) - pageOrder.indexOf(pB) : 0))
+    .map(([pageRef, layout]) => [
+      pageRef,
+      topLevelComponents(layout ?? []).filter((component) => !excludedComponents.has(component.id)),
+    ])
     .flatMap(
-      ([pageRef, components]) =>
+      ([pageRef, components]: [string, ILayout]) =>
         components?.map((component) => [pageRef, component]) as [string, ILayoutComponentOrGroup][],
     )
-    .filter(([_, component]) => !excludedComponents.has(component.id))
     .map(([pageRef, component]) => {
       const layoutComponent = getLayoutComponentObject(component.type);
 
