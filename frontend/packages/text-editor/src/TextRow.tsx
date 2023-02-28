@@ -13,6 +13,7 @@ import {
 } from '@digdir/design-system-react';
 import { Variables } from './Variables';
 import { ButtonColor } from '@altinn/altinn-design-system';
+import { useTranslation } from 'react-i18next';
 
 export interface LangRowProps {
   textId: string;
@@ -37,6 +38,7 @@ export const TextRow = ({
   const [textEntryValue, setTextEntryValue] = useState(textData?.value || '');
   const [keyError, setKeyError] = useState('');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [t, i18n] = useTranslation();
 
   useEffect(() => {
     setTextEntryValue(textData?.value || '');
@@ -141,21 +143,21 @@ export const TextRow = ({
         >
           {isConfirmDeleteOpen && (
             <div>
-              <p>Er du sikker på at du vil slette denne raden?</p>
+              <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
               <div className={classes.popoverButtons}>
                 <Button
                   className={classes.popoverConfirmBtn}
                   onClick={handleDeleteClick}
                   color={ButtonColor.Danger}
                 >
-                  Ja, slett raden
+                  <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
                 </Button>
                 <Button
                   variant={ButtonVariant.Quiet}
                   onClick={handleCancelClick}
                   color={ButtonColor.Secondary}
                 >
-                  Avbryt
+                  <p>{t('schema_editor.textRow-cancel-popover')}</p>
                 </Button>
               </div>
             </div>
