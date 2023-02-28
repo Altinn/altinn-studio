@@ -130,7 +130,9 @@ export function Form() {
         alignItems='flex-start'
       >
         {mainComponents.map((component) => renderLayoutComponent(component, layout))}
-        <ErrorReport components={errorReportComponents} />
+        <div aria-live='polite'>
+          <ErrorReport components={errorReportComponents} />
+        </div>
       </Grid>
       <ReadyForPrint />
     </>
