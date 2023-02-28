@@ -8,7 +8,7 @@ import { renderWithProviders } from '../../../test/testUtils';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 // Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(), Trans: '' }));
 
 describe('Administration', () => {
   const mockService: IRepository = {

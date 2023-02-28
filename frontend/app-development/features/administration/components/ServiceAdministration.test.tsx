@@ -14,7 +14,7 @@ import userEvent from '@testing-library/user-event';
 const user = userEvent.setup();
 
 // Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(), Trans: '' }));
 
 describe('Administration', () => {
   const mockService: IRepository = {
