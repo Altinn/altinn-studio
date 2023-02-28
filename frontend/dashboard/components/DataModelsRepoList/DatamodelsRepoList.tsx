@@ -9,25 +9,28 @@ import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useGetSearchQuery } from '../../services/repoApi';
 import { useGetUserStarredReposQuery } from '../../services/userApi';
 import { useTranslation } from 'react-i18next';
+import { User } from 'dashboard/services/userService';
 
-export const DatamodelsReposList = () => {
+type DataModelsReposListProps = {
+  user: User;
+};
+export const DatamodelsReposList = ({ user }: DataModelsReposListProps) => {
   const { t } = useTranslation();
   const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
-  const userId = useAppSelector((state) => state.dashboard.user.id);
   const { data: orgs = [] } = useGetOrganizationsQuery();
-  const uid = getUidFilter({ selectedContext, userId });
+  const uid = getUidFilter({ selectedContext, userId: user.id });
 
   const { data: starredRepos, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
 
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
     uid: uid as number,
     keyword: '-datamodels',
-    page: 0
+    page: 0,
   });
 
   const reposWithStarred = useAugmentReposWithStarred({
     repos: repos?.data,
-    starredRepos
+    starredRepos,
   });
 
   if (!reposWithStarred.length) {

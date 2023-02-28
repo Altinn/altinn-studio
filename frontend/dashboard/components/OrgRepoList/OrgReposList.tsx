@@ -11,18 +11,21 @@ import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useGetSearchQuery } from '../../services/repoApi';
 import { useGetUserStarredReposQuery } from '../../services/userApi';
 import { useTranslation } from 'react-i18next';
+import { User } from 'dashboard/services/userService';
 
 const rowsPerPageOptions = [5, 10, 20, 50, 100];
 
-export const OrgReposList = () => {
+type OrgReposListProps = {
+  user: User;
+};
+export const OrgReposList = ({ user }: OrgReposListProps) => {
   const dispatch = useAppDispatch();
   const pageSize = useAppSelector((state) => state.dashboard.repoRowsPerPage);
   const { t } = useTranslation();
   const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
-  const userId = useAppSelector((state) => state.dashboard.user.id);
   const { data: orgs = [] } = useGetOrganizationsQuery();
   const [page, setPage] = useState(0);
-  const uid = getUidFilter({ selectedContext, userId });
+  const uid = getUidFilter({ selectedContext, userId: user.id });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'name', sort: 'asc' }]);
   const { data: starredRepos, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({

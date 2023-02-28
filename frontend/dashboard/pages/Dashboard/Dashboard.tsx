@@ -14,12 +14,14 @@ import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
 import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
+import { User } from 'dashboard/services/userService';
 
 type DashboardProps = {
+  user: User;
   disableDebounce?: boolean;
 };
 
-export const Dashboard = ({ disableDebounce }: DashboardProps) => {
+export const Dashboard = ({ user, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
@@ -69,7 +71,7 @@ export const Dashboard = ({ disableDebounce }: DashboardProps) => {
               <i
                 className={cn('fa', classes.plusIcon, {
                   'fa-circle-plus': isNewLinkFocused,
-                  'fa-circle-plus-outline': !isNewLinkFocused
+                  'fa-circle-plus-outline': !isNewLinkFocused,
                 })}
               />
             </Link>
@@ -81,9 +83,9 @@ export const Dashboard = ({ disableDebounce }: DashboardProps) => {
             <>
               <FavoriteReposList />
               <div className={classes.marginTop}>
-                <OrgReposList />
+                <OrgReposList user={user} />
               </div>
-              <DatamodelsReposList />
+              <DatamodelsReposList user={user} />
             </>
           )}
         </div>

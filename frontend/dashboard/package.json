@@ -13,6 +13,7 @@
     "@digdir/design-system-react": "0.6.0",
     "@mui/x-data-grid": "5.17.25",
     "@reduxjs/toolkit": "1.9.3",
+    "@tanstack/react-query": "^4.24.10",
     "lodash-es": "4.17.21",
     "react": "18.2.0",
     "react-dom": "18.2.0",
