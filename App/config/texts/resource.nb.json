@@ -3,7 +3,27 @@
   "resources": [
     {
       "id": "appName",
-      "value": "signing-test"
+      "value": "Signing test"
+    },
+    {
+      "id": "firstName",
+      "value": "Fornavn"
+    },
+    {
+      "id": "submitToConfirmation",
+      "value": "Send til bekreftelse"
+    },
+    {
+      "id": "income",
+      "value": "Inntekt"
+    },
+    {
+      "id": "incomeHeader",
+      "value": "Personlig inntekt"
+    },
+    {
+      "id": "lastName",
+      "value": "Etternavn"
     }
   ]
 }

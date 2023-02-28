@@ -1,0 +1,61 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "Header-6g4e4O",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "incomeHeader"
+        },
+        "dataModelBindings": {},
+        "size": "L"
+      },
+      {
+        "id": "Input-firstName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "firstName"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "firstName"
+        },
+        "required": false,
+        "readOnly": true
+      },
+      {
+        "id": "Input-lastName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "lastName"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "lastName"
+        },
+        "required": false,
+        "readOnly": true
+      },
+      {
+        "id": "Input-income",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "income"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "income"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "Button-TW6O0a",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "submitToConfirmation"
+        },
+        "dataModelBindings": {}
+      }
+    ],
+    "hidden": false
+  }
+}

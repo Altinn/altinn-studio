@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/signing-test/App/models/data.schema.json",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "data",
+  "type": "object",
+  "required": [
+    "firstName",
+    "lastName",
+    "income"
+  ],
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "title": "Fornavn"
+    },
+    "lastName": {
+      "type": "string",
+      "title": "Etternavn"
+    },
+    "income": {
+      "type": "integer",
+      "title": "Inntekt",
+      "maximum": 0
+    }
+  }
+}

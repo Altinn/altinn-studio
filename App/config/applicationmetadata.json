@@ -2,7 +2,7 @@
   "id": "ttd/signing-test",
   "org": "ttd",
   "title": {
-    "nb": "signing-test"
+    "nb": "Signing test"
   },
   "dataTypes": [
     {
@@ -12,6 +12,24 @@
       ],
       "maxCount": 0,
       "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
+    },
+    {
+      "id": "data",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.data",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
       "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
