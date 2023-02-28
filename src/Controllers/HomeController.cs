@@ -458,7 +458,7 @@ namespace LocalTest.Controllers
                 Domain = _generalSettings.Hostname,
                 Expiration = new TimeSpan(0, 1337, 0)
             };
-            CookieOptions partyCookieOptions = cookieBuilder.Build(HttpContext);
+            CookieOptions partyCookieOptions = partyCookieBuilder.Build(HttpContext);
             cookieManager.AppendResponseCookie(
                 HttpContext,
                 partyCookieBuilder.Name,
