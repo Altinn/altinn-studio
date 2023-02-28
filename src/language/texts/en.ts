@@ -253,8 +253,8 @@ export function en() {
       generic_field: 'this field',
     },
     validation_errors: {
-      min: 'Minimum valid value is {0}',
-      max: 'Maximum valid value is {0}',
+      min: 'Minimum valid number is {0}',
+      max: 'Maximum valid number is {0}',
       minLength: 'Use {0} or more characters',
       maxLength: 'Use {0} or fewer characters',
       length: 'Number of characters allowed is {0}',

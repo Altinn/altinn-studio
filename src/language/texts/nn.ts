@@ -254,8 +254,8 @@ export function nn() {
       generic_field: 'dette feltet',
     },
     validation_errors: {
-      min: 'Minste gyldige verdi er {0}',
-      max: 'Største gyldige verdi er {0}',
+      min: 'Minste gyldige tall er {0}',
+      max: 'Største gyldige tall er {0}',
       minLength: 'Bruk {0} eller fleire teikn',
       maxLength: 'Bruk {0} eller færre teikn',
       length: 'Antall tillatne teikn er {0}',

@@ -254,8 +254,8 @@ export function nb() {
       generic_field: 'dette feltet',
     },
     validation_errors: {
-      min: 'Minste gyldig verdi er {0}',
-      max: 'Største gyldig verdi er {0}',
+      min: 'Minste gyldig tall er {0}',
+      max: 'Største gyldig tall er {0}',
       minLength: 'Bruk {0} eller flere tegn',
       maxLength: 'Bruk {0} eller færre tegn',
       length: 'Antall tillatte tegn er {0}',
