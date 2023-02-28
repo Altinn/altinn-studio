@@ -27,13 +27,35 @@
       "JsonSchemaPointer": "#",
       "DisplayString": "data : [0..1] 0"
     },
-    "data.firstName": {
-      "ID": "data.firstName",
+    "data.form": {
+      "ID": "data.form",
       "ParentElement": "data",
+      "TypeName": "form",
+      "Name": "form",
+      "DataBindingName": null,
+      "XPath": "/data/form",
+      "Restrictions": {},
+      "Type": 1,
+      "XsdValueType": null,
+      "Texts": {},
+      "CustomProperties": {},
+      "MaxOccurs": 1,
+      "MinOccurs": 1,
+      "XName": "form",
+      "IsTagContent": false,
+      "FixedValue": null,
+      "IsReadOnly": false,
+      "XmlSchemaXPath": null,
+      "JsonSchemaPointer": "#/$defs/form",
+      "DisplayString": "data.form : [1..1] form"
+    },
+    "data.form.firstName": {
+      "ID": "data.form.firstName",
+      "ParentElement": "data.form",
       "TypeName": "firstName",
       "Name": "firstName",
-      "DataBindingName": "firstName",
-      "XPath": "/data/firstName",
+      "DataBindingName": "form.firstName",
+      "XPath": "/data/form/firstName",
       "Restrictions": {},
       "Type": 0,
       "XsdValueType": 0,
@@ -46,16 +68,16 @@
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/properties/firstName",
-      "DisplayString": "data.firstName : [1..1] String"
+      "JsonSchemaPointer": "#/$defs/form/properties/firstName",
+      "DisplayString": "data.form.firstName : [1..1] String"
     },
-    "data.lastName": {
-      "ID": "data.lastName",
-      "ParentElement": "data",
+    "data.form.lastName": {
+      "ID": "data.form.lastName",
+      "ParentElement": "data.form",
       "TypeName": "lastName",
       "Name": "lastName",
-      "DataBindingName": "lastName",
-      "XPath": "/data/lastName",
+      "DataBindingName": "form.lastName",
+      "XPath": "/data/form/lastName",
       "Restrictions": {},
       "Type": 0,
       "XsdValueType": 0,
@@ -68,18 +90,18 @@
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/properties/lastName",
-      "DisplayString": "data.lastName : [1..1] String"
+      "JsonSchemaPointer": "#/$defs/form/properties/lastName",
+      "DisplayString": "data.form.lastName : [1..1] String"
     },
-    "data.income": {
-      "ID": "data.income",
-      "ParentElement": "data",
+    "data.form.income": {
+      "ID": "data.form.income",
+      "ParentElement": "data.form",
       "TypeName": "income",
       "Name": "income",
-      "DataBindingName": "income",
-      "XPath": "/data/income",
+      "DataBindingName": "form.income",
+      "XPath": "/data/form/income",
       "Restrictions": {
-        "minimum": {
+        "exclusiveMinimum": {
           "Value": "0"
         }
       },
@@ -94,8 +116,8 @@
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/properties/income",
-      "DisplayString": "data.income : [1..1] Integer"
+      "JsonSchemaPointer": "#/$defs/form/properties/income",
+      "DisplayString": "data.form.income : [1..1] Integer"
     }
   }
 }

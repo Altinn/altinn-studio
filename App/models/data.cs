@@ -12,6 +12,15 @@ namespace Altinn.App.Models
   [XmlRoot(ElementName="data")]
   public class data
   {
+    [XmlElement("form", Order = 1)]
+    [JsonProperty("form")]
+    [JsonPropertyName("form")]
+    public form form { get; set; }
+
+  }
+
+  public class form
+  {
     [XmlElement("firstName", Order = 1)]
     [JsonProperty("firstName")]
     [JsonPropertyName("firstName")]

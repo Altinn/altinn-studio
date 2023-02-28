@@ -18,7 +18,7 @@
           "title": "firstName"
         },
         "dataModelBindings": {
-          "simpleBinding": "firstName"
+          "simpleBinding": "form.firstName"
         },
         "required": false,
         "readOnly": true,
@@ -33,7 +33,7 @@
           "title": "lastName"
         },
         "dataModelBindings": {
-          "simpleBinding": "lastName"
+          "simpleBinding": "form.lastName"
         },
         "required": false,
         "readOnly": true,
@@ -48,12 +48,12 @@
           "title": "income"
         },
         "dataModelBindings": {
-          "simpleBinding": "income"
+          "simpleBinding": "form.income"
         },
         "required": false,
         "readOnly": false,
         "grid": {
-          "xs": 6 
+          "xs": 6
         },
         "formatting": {
           "align": "right",

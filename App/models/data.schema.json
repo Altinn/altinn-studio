@@ -15,23 +15,39 @@
   "@xsdRootElement": "data",
   "type": "object",
   "required": [
-    "firstName",
-    "lastName",
-    "income"
+    "form"
   ],
+  "$defs": {
+    "form": {
+      "type": "object",
+      "title": "Skjema",
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "title": "Fornavn"
+        },
+        "lastName": {
+          "type": "string",
+          "title": "Etternavn"
+        },
+        "income": {
+          "type": "integer",
+          "title": "Inntekt",
+          "description": "",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "firstName",
+        "lastName",
+        "income"
+      ]
+    }
+  },
   "properties": {
-    "firstName": {
-      "type": "string",
-      "title": "Fornavn"
-    },
-    "lastName": {
-      "type": "string",
-      "title": "Etternavn"
-    },
-    "income": {
-      "type": "integer",
-      "title": "Inntekt",
-      "minimum": 0
+    "form": {
+      "$ref": "#/$defs/form",
+      "title": "Skjema"
     }
   }
 }
