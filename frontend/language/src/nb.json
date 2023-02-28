@@ -92,6 +92,7 @@
   "app_deploy_table.deployed_version_history": "Tidligere versjoner deployet til {{envName}}-miljøet",
   "app_deploy_table.deployed_version_history_empty": "Det er ingen deploy historikk i {{envName}}-miljøet",
   "app_deploy_table.version_col": "Versjon",
+  "app_publish.deployment_in_progress": "Deployment er satt i gang",
   "app_publish.missing_rights": "Du har ikke rettigheter til å starte en deploy til {{envName}}-miljøet. Tilgang kan delegeres av eiere i {{orgName}}.",
   "app_publish.no_env_1": "For å opprette miljøer, slik at du kan teste og produksjonssette må du ta kontakt med <a href=\"mailto:tjenesteeier@altinn.no\">Altinn servicedesk</a>. Det er viktig at du oppgir organisasjonnavn og hvilke miljøer du ønsker tilgang til.",
   "app_publish.no_env_2": "Fram til et miljø er på plass, husk at du kan gjøre mye <a href=\"https://docs.altinn.studio/app/testing/local/\" target=\"_new\" rel=\"noopener noreferrer\">testing lokalt</a>.",

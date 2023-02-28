@@ -69,6 +69,7 @@
   "app_data_modelling.select_xsd": "Select XSD",
   "app_data_modelling.upload_xsd": "Upload",
   "app_data_modelling.uploading_xsd": "Uploading XSD...",
+  "app_publish.deployment_in_progress": "Deployment in progress",
   "app_publish.missing_rights": "You do not have permissions to deploy to the {{envName}} environment. Permissions can be granted by owners in {{orgName}}.",
   "app_publish.no_env_1": "To create environments, so you can test and deploy to production, please contact <a href=\"mailto:tjenesteeier@altinn.no\">Altinn servicedesk</a>. Please specify organization name and which environments you want access to.",
   "app_publish.no_env_2": "Until a test environment is ready, remember that you can test an application <a href=\"https://docs.altinn.studio/app/testing/local/\" target=\"_new\" rel=\"noopener noreferrer\">locally</a>.",
