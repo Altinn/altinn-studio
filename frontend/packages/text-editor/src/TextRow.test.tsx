@@ -42,10 +42,9 @@ describe('TextRow', () => {
     });
   });
 
-  /*
   test('Popover should be shown when the user clicks the delete button', async () => {
     const { user } = renderTextRow();
-    const deleteButton = screen.getByRole('button', { name: 'Slett' });
+    const deleteButton = screen.getByRole('button', { name: /Slett/ });
     await user.click(deleteButton);
     const popover = screen.getByRole('dialog');
     expect(popover).toBeInTheDocument();
@@ -53,23 +52,25 @@ describe('TextRow', () => {
 
   test('Popover should be closed when the user clicks the cancel button', async () => {
     const { user } = renderTextRow();
-    const cancelPopoverButton = screen.getByRole('button', { name: 'avbryt' });
+    const cancelPopoverButton = screen.getByRole('button', {
+      name: '/schema_editor.textRow-cancel-popover/',
+    });
     await user.click(cancelPopoverButton);
     const popover = screen.getByRole('dialog');
     expect(popover).not.toBeInTheDocument();
-
   });
 
-  test('removeEntry should be called when deleting a entry', async () => {
+  test('removeEntry should be called when deleting an entry', async () => {
     const removeEntry = jest.fn();
     const { user } = renderTextRow({ removeEntry });
-    const deleteButton = screen.getByRole('button', { name: 'bekreft' });
+    const deleteButton = screen.getByRole('button', { name: /Slett/ });
     await user.click(deleteButton);
-    const confirmPopButton = screen.getByRole('dialog', { name: 'bekreft' });
-    await user.click(confirmPopButton);
+    const confirmDeleteButton = screen.getByRole('button', {
+      name: '/schema_editor.textRow-confirm-cancel-popover/',
+    });
+    await user.click(confirmDeleteButton);
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
-  */
 
   test('that the user is warned if an illegal character is used', async () => {
     const updateEntryId = jest.fn();

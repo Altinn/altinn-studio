@@ -137,7 +137,7 @@ export const TextRow = ({
               variant={ButtonVariant.Quiet}
               onClick={() => setIsConfirmDeleteOpen(true)}
             >
-              <span>{`Slett`}</span>
+              <span>{t('schema_editor.delete')}</span>
             </Button>
           }
         >
@@ -153,6 +153,7 @@ export const TextRow = ({
                   <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
                 </Button>
                 <Button
+                  data-testid={'avbryt'}
                   variant={ButtonVariant.Quiet}
                   onClick={handleCancelClick}
                   color={ButtonColor.Secondary}
