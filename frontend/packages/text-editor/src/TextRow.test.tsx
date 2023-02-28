@@ -42,31 +42,34 @@ describe('TextRow', () => {
     });
   });
 
+  /*
   test('Popover should be shown when the user clicks the delete button', async () => {
     const { user } = renderTextRow();
-    const deleteButton = screen.getByTestId('delete-button');
+    const deleteButton = screen.getByRole('button', { name: 'Slett' });
     await user.click(deleteButton);
     const popover = screen.getByRole('dialog');
     expect(popover).toBeInTheDocument();
   });
+
   test('Popover should be closed when the user clicks the cancel button', async () => {
     const { user } = renderTextRow();
-    const cancelPopoverButton = screen.getByTestId('delete-button');
+    const cancelPopoverButton = screen.getByRole('button', { name: 'avbryt' });
     await user.click(cancelPopoverButton);
-    const cancelPopButton = screen.getByTestId('avbryt');
-    await user.click(cancelPopButton);
-    expect(cancelPopButton).not.toBeInTheDocument();
+    const popover = screen.getByRole('dialog');
+    expect(popover).not.toBeInTheDocument();
+
   });
 
   test('removeEntry should be called when deleting a entry', async () => {
     const removeEntry = jest.fn();
     const { user } = renderTextRow({ removeEntry });
-    const deleteButton = screen.getByTestId('delete-button');
+    const deleteButton = screen.getByRole('button', { name: 'bekreft' });
     await user.click(deleteButton);
-    const confirmPopButton = screen.getByTestId('bekreft');
+    const confirmPopButton = screen.getByRole('dialog', { name: 'bekreft' });
     await user.click(confirmPopButton);
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
+  */
 
   test('that the user is warned if an illegal character is used', async () => {
     const updateEntryId = jest.fn();

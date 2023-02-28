@@ -36,7 +36,7 @@ export const TextRow = ({
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textEntryValue, setTextEntryValue] = useState(textData?.value || '');
   const [keyError, setKeyError] = useState('');
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
     setTextEntryValue(textData?.value || '');
@@ -86,7 +86,7 @@ export const TextRow = ({
   };
 
   const handleCancelClick = () => {
-    setIsPopoverOpen(false);
+    setIsConfirmDeleteOpen((prev) => !prev);
   };
 
   const idForValue = `value-${langName}-${textId}`;
@@ -130,22 +130,20 @@ export const TextRow = ({
           placement={'left'}
           trigger={
             <Button
-              data-testid={'delete-button'}
               className={classes.deleteButton}
               icon={<Delete title={`Slett ${textId}`} />}
               variant={ButtonVariant.Quiet}
-              onClick={() => setIsPopoverOpen(true)}
+              onClick={() => setIsConfirmDeleteOpen(true)}
             >
               <span>{`Slett`}</span>
             </Button>
           }
         >
-          {isPopoverOpen && (
+          {isConfirmDeleteOpen && (
             <div>
               <p>Er du sikker på at du vil slette denne raden?</p>
               <div className={classes.popoverButtons}>
                 <Button
-                  data-testid={'bekreft'}
                   className={classes.popoverConfirmBtn}
                   onClick={handleDeleteClick}
                   color={ButtonColor.Danger}
@@ -153,7 +151,6 @@ export const TextRow = ({
                   Ja, slett raden
                 </Button>
                 <Button
-                  data-testid={'avbryt'}
                   variant={ButtonVariant.Quiet}
                   onClick={handleCancelClick}
                   color={ButtonColor.Secondary}
