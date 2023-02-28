@@ -34,7 +34,7 @@
           "type": "integer",
           "title": "Inntekt",
           "description": "",
-          "exclusiveMinimum": 0
+          "minimum": 0
         }
       },
       "required": [

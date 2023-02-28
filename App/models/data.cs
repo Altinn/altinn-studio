@@ -31,7 +31,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("lastName")]
     public string lastName { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
+    [Range(0,Double.MaxValue)]
     [XmlElement("income", Order = 3)]
     [JsonProperty("income")]
     [JsonPropertyName("income")]

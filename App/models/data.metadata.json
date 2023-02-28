@@ -101,12 +101,12 @@
       "DataBindingName": "form.income",
       "XPath": "/data/form/income",
       "Restrictions": {
-        "exclusiveMinimum": {
+        "minimum": {
           "Value": "0"
         }
       },
       "Type": 0,
-      "XsdValueType": 2,
+      "XsdValueType": 16,
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
