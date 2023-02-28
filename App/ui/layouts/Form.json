@@ -58,7 +58,8 @@
         "formatting": {
           "align": "right",
           "number": {
-            "suffix": " 000 kr"
+            "suffix": " 000 kr",
+            "thousandSeparator": " "
           }
         }
       },
