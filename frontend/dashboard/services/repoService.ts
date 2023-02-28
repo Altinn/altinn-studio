@@ -75,7 +75,7 @@ const buildQueryParams = <T>(params: T): string => {
     .join('');
 };
 
-type RepoService = {
+export type RepoService = {
   addRepo: (repoToAdd: AddRepo) => Promise<IRepository>;
   searchRepos: (filter: Filters) => Promise<SearchRepository>;
   getStarredRepos: () => Promise<IRepository[]>;

@@ -1,67 +1,59 @@
-// import type { PropsWithChildren } from 'react';
-// import React from 'react';
-// import { render as rtlRender } from '@testing-library/react';
-// import { Provider } from 'react-redux';
-// import type { RenderOptions } from '@testing-library/react';
-// import type { PreloadedState } from '@reduxjs/toolkit';
-// import { rest } from 'msw';
-// import { setupServer } from 'msw/node';
-// import { HashRouter as Router } from 'react-router-dom';
-// import { orgsListPath, repoSearchPath, userStarredListPath } from 'app-shared/api-paths';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React, { useMemo } from 'react';
+import { ServicesContextProvider } from './contexts/servicesContext';
+import { OrganizationService } from './services/organizationService';
+import { RepoService } from './services/repoService';
+import { UserService } from './services/userService';
 
-// interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
-//   preloadedState?: PreloadedState<RootState>;
-//   store?: AppStore;
-// }
+export type Services = {
+  userService?: Partial<UserService>;
+  organizationService?: Partial<OrganizationService>;
+  repoService?: Partial<RepoService>;
+};
 
-// export const renderWithProviders = (
-//   component: any,
-//   {
-//     preloadedState = {},
-//     store = setupStore(preloadedState),
-//     ...renderOptions
-//   }: ExtendedRenderOptions = {}
-// ) => {
-//   function Wrapper({ children }: PropsWithChildren<unknown>) {
-//     return (
-//       <Provider store={store}>
-//         <Router>{children}</Router>
-//       </Provider>
-//     );
-//   }
+export type MockServicesContextWrapperProps = {
+  children: React.ReactNode;
+  customServices?: Services;
+};
 
-//   return {
-//     store,
-//     ...rtlRender(component, {
-//       wrapper: Wrapper,
-//       ...renderOptions,
-//     }),
-//   };
-// };
+export const MockServicesContextWrapper = ({
+  children,
+  customServices,
+}: MockServicesContextWrapperProps) => {
+  const client = useMemo(
+    () =>
+      new QueryClient({
+        logger: {
+          log: () => {},
+          warn: () => {},
+          error: () => {},
+        },
+        defaultOptions: {
+          mutations: { retry: false },
+          queries: { retry: false, staleTime: Infinity },
+        },
+      }),
+    []
+  );
 
-// export const handlers = [
-//   rest.get(orgsListPath(), (req, res, ctx) => {
-//     const mockApiResponse = [
-//       {
-//         avatar_url: 'avatar.png',
-//         description: '',
-//         full_name: 'test-org',
-//         id: 1,
-//         location: '',
-//         username: 'org-username',
-//         website: '',
-//       },
-//     ];
-//     return res(ctx.json(mockApiResponse));
-//   }),
-//   rest.get(userStarredListPath(), (req, res, ctx) => {
-//     const mockApiResponse: any = [];
-//     return res(ctx.json(mockApiResponse));
-//   }),
-//   rest.get(repoSearchPath(), (req, res, ctx) => {
-//     const mockApiResponse: any = [];
-//     return res(ctx.json(mockApiResponse));
-//   }),
-// ];
+  const userService: UserService = {
+    getCurrentUser: () =>
+      Promise.resolve({ avatar_url: null, email: '', full_name: '', id: null, login: null }),
+    logout: () => Promise.resolve(),
+    ...customServices?.userService,
+  };
 
-// export { setupServer, rest };
+  const organizationService: OrganizationService = {
+    getOrganizations: () => Promise.resolve([]),
+    ...customServices?.organizationService,
+  };
+
+  return (
+    <QueryClientProvider client={client}>
+      <ServicesContextProvider userService={userService} organizationService={organizationService}>
+        {children}
+      </ServicesContextProvider>
+      ;
+    </QueryClientProvider>
+  );
+};
