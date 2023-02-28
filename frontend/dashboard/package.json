@@ -32,11 +32,10 @@
   "license": "3-Clause BSD",
   "private": true,
   "scripts": {
-    "build": "yarn typeCheck:once && cross-env NODE_ENV=production webpack --config ../webpack.config.prod.js",
-    "compile-ts": "tsc",
-    "start": "yarn typeCheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
+    "build": "cross-env NODE_ENV=production webpack --config ../webpack.config.prod.js",
+    "start": "yarn typecheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
     "test": "jest --maxWorkers=50%",
-    "typeCheck:once": "tsc --noEmit",
-    "typeCheck:watch": "tsc --noEmit -w"
+    "typecheck": "tsc --noEmit",
+    "typecheck:watch": "tsc --noEmit -w"
   }
 }

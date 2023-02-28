@@ -39,7 +39,6 @@
   },
   "private": true,
   "scripts": {
-    "compile-ts": "npx tsc --noEmit",
     "test": "jest --maxWorkers=50%"
   }
 }
