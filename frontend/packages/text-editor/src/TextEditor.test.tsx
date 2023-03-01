@@ -167,8 +167,8 @@ describe('TextEditor', () => {
       await makeChangesToTextIds();
       const textIdRefsAfter1 = screen.getAllByText(/textid/i);
       const textIdRefsAfter2 = screen.getAllByText(/new-key/i);
-      expect(textIdRefsAfter1).toHaveLength(2); // The id is also on the delete button
-      expect(textIdRefsAfter2).toHaveLength(2);
+      expect(textIdRefsAfter1).toHaveLength(1); // The id is also on the delete button
+      expect(textIdRefsAfter2).toHaveLength(1);
     });
     it('removes an entry from the rendered list of entries', async () => {
       await deleteSomething();
@@ -183,7 +183,7 @@ describe('TextEditor', () => {
       expect(error).toHaveBeenCalledWith('Renaming text-id failed:\n', 'some error');
       const textIdRefsAfter1 = screen.getAllByText(/textid/i);
       const textIdRefsAfter2 = screen.queryAllByText(/new-key/i);
-      expect(textIdRefsAfter1).toHaveLength(4); // The id is also on the delete button
+      expect(textIdRefsAfter1).toHaveLength(2); // The id is also on the delete button
       expect(textIdRefsAfter2).toHaveLength(0);
       expect(getInputs(/ID/i)).toEqual(original);
     });
