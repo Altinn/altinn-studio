@@ -221,28 +221,20 @@ function* fetchFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIte
   }
   const convertedLayouts: IFormLayouts = {};
   const invalidLayouts: string[] = [];
-  if (!formLayouts || Object.keys(formLayouts).length === 0) {
-    // Default name if no formlayout exists
-    try {
-      convertedLayouts.FormLayout = convertFromLayoutToInternalFormat(null, false);
-    } catch {
-      invalidLayouts.push('FormLayout');
-    }
-  } else {
-    Object.keys(formLayouts).forEach((layoutName: string) => {
-      if (!formLayouts[layoutName] || !formLayouts[layoutName].data) {
-        convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(null, false);
-      } else {
-        try {
-          convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(
-            formLayouts[layoutName].data.layout, formLayouts[layoutName].data.hidden
-          );
-        } catch {
-          invalidLayouts.push(layoutName);
-        }
+
+  Object.keys(formLayouts).forEach((layoutName: string) => {
+    if (!formLayouts[layoutName] || !formLayouts[layoutName].data) {
+      convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(null, false);
+    } else {
+      try {
+        convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(
+          formLayouts[layoutName].data.layout, formLayouts[layoutName].data.hidden
+        );
+      } catch {
+        invalidLayouts.push(layoutName);
       }
-    });
-  }
+    }
+  });
   yield put(
     FormLayoutActions.fetchFormLayoutFulfilled({
       formLayout: convertedLayouts,
@@ -440,8 +432,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       })
     );
 
-    // Check if keys are bigger than 2 because layout includes keys FormLayout and the FirstPage.
-    const hasFirstPage = Object.keys(layoutsCopy).length > 2;
+    const hasFirstPage = Object.keys(layoutsCopy).length > 1;
 
     if (hasFirstPage && !isReceiptPage) {
       const navigationButtonComponent = {
@@ -454,19 +445,6 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
         dataModelBindings: {},
         showBackButton: true,
       };
-
-      yield put(
-        FormLayoutActions.addFormComponent({
-          component: {
-            ...navigationButtonComponent,
-            id: generateComponentId(navigationButtonComponent.type, layoutsCopy),
-          },
-          position: 0,
-          containerId: Object.keys(layoutsCopy[layout].containers)[0],
-          org,
-          app,
-        })
-      );
 
       const firstPageKey = layoutOrder[0];
       const firstPage = layouts[firstPageKey];
@@ -490,8 +468,22 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
           );
         }
       }
+
+      yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout, org, app }));
+
+      yield put(
+        FormLayoutActions.addFormComponent({
+          component: {
+            ...navigationButtonComponent,
+            id: generateComponentId(navigationButtonComponent.type, layoutsCopy),
+          },
+          position: 0,
+          containerId: Object.keys(layoutsCopy[layout].containers)[0],
+          org,
+          app,
+        })
+      );
     }
-    yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout, org, app }));
   } catch (error) {
     console.error(error);
     yield put(FormLayoutActions.addLayoutRejected({ error }));
