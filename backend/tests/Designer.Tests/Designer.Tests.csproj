@@ -49,6 +49,7 @@
     <None Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="_TestData\Authorization\Policies\Xacml\brg_rrh-innrapportering.xml" />
     <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\directoryList.json" />
     <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\resource.en.json" />
     <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\resource.nb.json" />
