@@ -87,8 +87,8 @@ export const TextRow = ({
     removeEntry({ textId });
   };
 
-  const handleCancelClick = () => {
-    setIsConfirmDeleteOpen(false);
+  const toggleConfirmDeletePopover = () => {
+    setIsConfirmDeleteOpen((prev) => !prev);
   };
 
   const idForValue = `value-${langName}-${textId}`;
@@ -136,7 +136,7 @@ export const TextRow = ({
               className={classes.deleteButton}
               icon={<Delete title={`Slett ${textId}`} />}
               variant={ButtonVariant.Quiet}
-              onClick={() => setIsConfirmDeleteOpen(true)}
+              onClick={toggleConfirmDeletePopover}
             >
               <span>{t('schema_editor.delete')}</span>
             </Button>
@@ -155,7 +155,7 @@ export const TextRow = ({
                 </Button>
                 <Button
                   variant={ButtonVariant.Quiet}
-                  onClick={handleCancelClick}
+                  onClick={toggleConfirmDeletePopover}
                   color={ButtonColor.Secondary}
                 >
                   <p>{t('schema_editor.textRow-cancel-popover')}</p>
