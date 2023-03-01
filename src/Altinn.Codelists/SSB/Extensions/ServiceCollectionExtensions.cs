@@ -1,6 +1,4 @@
 ﻿using Altinn.App.Core.Features;
-using Altinn.Codelists.Kartverket.AdministrativeUnits.Clients;
-using Altinn.Codelists.Kartverket.AdministrativeUnits;
 using Altinn.Codelists.SSB.Clients;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,8 +16,10 @@ public static class ServiceCollectionExtensions
     {   
         services.AddOptions<ClassificationSettings>();
         services.AddHttpClient<IClassificationsClient, ClassificationsHttpClient>();
+
         services.AddTransient<IAppOptionsProvider, MaritalStatusCodelistProvider>();
         services.AddTransient<IAppOptionsProvider, IndustryGroupingCodelistProvider>();
+        services.AddTransient<IAppOptionsProvider, SexCodelistProvider>();
 
         return services;
     }

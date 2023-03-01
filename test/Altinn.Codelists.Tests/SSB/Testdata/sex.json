@@ -1,0 +1,30 @@
+{
+  "codes": [
+    {
+      "code": "1",
+      "parentCode": null,
+      "level": "1",
+      "name": "Mann",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    },
+    {
+      "code": "2",
+      "parentCode": null,
+      "level": "1",
+      "name": "Kvinne",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    }
+  ]
+}

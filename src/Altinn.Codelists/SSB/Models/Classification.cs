@@ -6,6 +6,11 @@
 public enum Classification
 {
     /// <summary>
+    /// Standard for kjønn
+    /// </summary>
+    Sex = 2,
+
+    /// <summary>
     /// Standard for næringsgruppering
     /// </summary>
     IndustryGrouping = 6,

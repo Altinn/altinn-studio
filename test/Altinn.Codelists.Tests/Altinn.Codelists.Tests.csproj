@@ -13,6 +13,7 @@
     <None Remove="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
     <None Remove="SSB\Testdata\industryGrouping.json" />
     <None Remove="SSB\Testdata\maritalStatus.json" />
+    <None Remove="SSB\Testdata\sex.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,5 +42,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Altinn.Codelists\Altinn.Codelists.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="SSB\Testdata\sex.json" />
   </ItemGroup>
 </Project>
