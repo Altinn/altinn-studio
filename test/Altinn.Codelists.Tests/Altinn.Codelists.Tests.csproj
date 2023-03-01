@@ -11,6 +11,7 @@
     <None Remove="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
     <None Remove="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
     <None Remove="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
+    <None Remove="SSB\Testdata\counties.json" />
     <None Remove="SSB\Testdata\industryGrouping.json" />
     <None Remove="SSB\Testdata\maritalStatus.json" />
     <None Remove="SSB\Testdata\sex.json" />
@@ -20,6 +21,7 @@
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
+    <EmbeddedResource Include="SSB\Testdata\counties.json" />
     <EmbeddedResource Include="SSB\Testdata\industryGrouping.json" />
     <EmbeddedResource Include="SSB\Testdata\maritalStatus.json" />
   </ItemGroup>

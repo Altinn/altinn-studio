@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAppOptionsProvider, MaritalStatusCodelistProvider>();
         services.AddTransient<IAppOptionsProvider, IndustryGroupingCodelistProvider>();
         services.AddTransient<IAppOptionsProvider, SexCodelistProvider>();
+        services.AddTransient<IAppOptionsProvider, CountiesCodelistProvider>();
 
         return services;
     }

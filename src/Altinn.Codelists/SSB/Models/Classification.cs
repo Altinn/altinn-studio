@@ -21,6 +21,11 @@ public enum Classification
     MaritalStatus = 19,
 
     /// <summary>
+    /// Standard for fylker
+    /// </summary>
+    Counties = 104,
+
+    /// <summary>
     /// Standard for landkoder (alfa-3)
     /// </summary>
     Countries = 552

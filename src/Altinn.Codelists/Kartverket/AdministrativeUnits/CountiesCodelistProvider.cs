@@ -11,7 +11,7 @@ public class CountiesCodelistProvider : IAppOptionsProvider
     private readonly IAdministrativeUnitsClient _countiesHttpClient;
 
     /// <inheritdoc/>
-    public string Id => "fylker";
+    public string Id => "kv-fylker";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CountiesCodelistProvider"/> class.
