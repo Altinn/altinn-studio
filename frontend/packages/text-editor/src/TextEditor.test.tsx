@@ -4,6 +4,8 @@ import type { TextEditorProps } from './TextEditor';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TextResourceFile } from './types';
+import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 describe('TextEditor', () => {
   const norwegianTranslation: TextResourceFile = {
