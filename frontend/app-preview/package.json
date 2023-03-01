@@ -10,14 +10,14 @@
   ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.27.5",
-    "@digdir/design-system-react": "0.6.0",
+    "@digdir/design-system-react": "0.7.0",
     "axios": "1.3.4",
     "classnames": "2.3.2",
     "qs": "6.11.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-redux": "8.0.5",
-    "react-router-dom": "6.8.1"
+    "react-router-dom": "6.8.2"
   },
   "devDependencies": {
     "cross-env": "7.0.3",
