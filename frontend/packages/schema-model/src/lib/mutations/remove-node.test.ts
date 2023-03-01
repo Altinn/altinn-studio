@@ -54,7 +54,27 @@ test('that removeNodeByPointer throws error on unknown pointer', () => {
   const uiSchemaNodes = buildUiSchema(testComplexSchema);
   expect(() => removeNodeByPointer(uiSchemaNodes, 'fdasdfas')).toThrowError();
 });
+
 test('that removeNodeByPointer throws error on unknown pointer', () => {
   const uiSchemaNodes = buildUiSchema(testComplexSchema);
   expect(() => renameNodePointer(uiSchemaNodes, 'fdasdfas', 'asdfsadfsaasdf')).toThrowError();
+});
+
+test('that we can remove a node with names that start on the same ', () => {
+  const uiSchemaNodes = buildUiSchema({
+    [Keywords.Properties]: {
+      name0: {
+        [Keywords.Type]: FieldType.String,
+      },
+      name: {
+        [Keywords.Type]: FieldType.String,
+      },
+    },
+  });
+  const mutatedSchema = removeNodeByPointer(
+    uiSchemaNodes,
+    makePointer(Keywords.Properties, 'name')
+  );
+  const jsonSchema = buildJsonSchema(mutatedSchema);
+  expect(jsonSchema).toStrictEqual({ properties: { name0: { type: 'string' } } });
 });
