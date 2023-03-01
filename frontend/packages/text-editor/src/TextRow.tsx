@@ -88,7 +88,7 @@ export const TextRow = ({
   };
 
   const handleCancelClick = () => {
-    setIsConfirmDeleteOpen((prev) => !prev);
+    setIsConfirmDeleteOpen(false);
   };
 
   const idForValue = `value-${langName}-${textId}`;
@@ -153,7 +153,7 @@ export const TextRow = ({
                   <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
                 </Button>
                 <Button
-                  data-testid={'avbryt'}
+                  title={`Avbryt`}
                   variant={ButtonVariant.Quiet}
                   onClick={handleCancelClick}
                   color={ButtonColor.Secondary}

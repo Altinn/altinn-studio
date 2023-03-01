@@ -4532,7 +4532,6 @@ __metadata:
   dependencies:
     "@emotion/react": 11.10.5
     "@emotion/styled": 11.10.5
-    "@material-ui/core": ^4.12.4
     "@redux-saga/is": 1.1.3
     "@redux-saga/symbols": 1.1.3
     "@svgr/webpack": 6.5.1

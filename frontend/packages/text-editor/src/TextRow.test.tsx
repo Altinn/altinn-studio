@@ -52,10 +52,15 @@ describe('TextRow', () => {
 
   test('Popover should be closed when the user clicks the cancel button', async () => {
     const { user } = renderTextRow();
+
+    const deleteButton = screen.getByRole('button', { name: /Slett/ });
+    await user.click(deleteButton);
+
     const cancelPopoverButton = screen.getByRole('button', {
       name: '/schema_editor.textRow-cancel-popover/',
     });
     await user.click(cancelPopoverButton);
+
     const popover = screen.getByRole('dialog');
     expect(popover).not.toBeInTheDocument();
   });
@@ -65,9 +70,7 @@ describe('TextRow', () => {
     const { user } = renderTextRow({ removeEntry });
     const deleteButton = screen.getByRole('button', { name: /Slett/ });
     await user.click(deleteButton);
-    const confirmDeleteButton = screen.getByRole('button', {
-      name: '/schema_editor.textRow-confirm-cancel-popover/',
-    });
+    const confirmDeleteButton = screen.getByRole('button', { name: '' });
     await user.click(confirmDeleteButton);
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
