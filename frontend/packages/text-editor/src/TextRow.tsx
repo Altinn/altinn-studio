@@ -38,7 +38,7 @@ export const TextRow = ({
   const [textEntryValue, setTextEntryValue] = useState(textData?.value || '');
   const [keyError, setKeyError] = useState('');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-  const [t, i18n] = useTranslation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     setTextEntryValue(textData?.value || '');
@@ -130,6 +130,7 @@ export const TextRow = ({
           title={'Slett_rad'}
           variant={PopoverVariant.Warning}
           placement={'left'}
+          open={isConfirmDeleteOpen}
           trigger={
             <Button
               className={classes.deleteButton}
@@ -153,7 +154,6 @@ export const TextRow = ({
                   <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
                 </Button>
                 <Button
-                  title={`Avbryt`}
                   variant={ButtonVariant.Quiet}
                   onClick={handleCancelClick}
                   color={ButtonColor.Secondary}
