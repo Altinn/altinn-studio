@@ -432,7 +432,6 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       })
     );
 
-    // Check if keys are bigger than 2 because layout includes keys FormLayout and the FirstPage.
     const hasFirstPage = Object.keys(layoutsCopy).length > 1;
 
     if (hasFirstPage && !isReceiptPage) {
