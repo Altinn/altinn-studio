@@ -153,7 +153,7 @@ export interface IParty {
   isDeleted: boolean;
   onlyHierarchyElementWithNoAccess: boolean;
   person?: IPerson;
-  organisation?: IOrganisation;
+  organization?: IOrganisation;
   childParties?: IParty[];
 }
 

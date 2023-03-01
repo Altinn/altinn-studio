@@ -13,7 +13,7 @@ describe('AltinnAppHeader', () => {
   it('should show organisation name when profile has party, and party has organisation with name, and "type" is not set', () => {
     const profile = getProfileStateMock();
     if (profile.profile.party) {
-      profile.profile.party.organisation = organisationMock;
+      profile.profile.party.organization = organisationMock;
     }
 
     render({
@@ -27,7 +27,7 @@ describe('AltinnAppHeader', () => {
   it('should not show organisation name when profile has party, and party has organisation with name, and "type" is set', () => {
     const profile = getProfileStateMock();
     if (profile.profile.party) {
-      profile.profile.party.organisation = organisationMock;
+      profile.profile.party.organization = organisationMock;
     }
 
     render({

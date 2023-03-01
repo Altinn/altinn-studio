@@ -170,14 +170,14 @@ export const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
                     <span className={`d-block ${blueClass}`}>{renderParty(profile)}</span>
                     <span className={blueClass}>
                       {party &&
-                        party.organisation &&
-                        `${getLanguageFromKey('general.for', language)} ${party.organisation.name.toUpperCase()}`}
+                        party.organization &&
+                        `${getLanguageFromKey('general.for', language)} ${party.organization.name.toUpperCase()}`}
                     </span>
                   </>
                 )}
                 <span className='d-block' />
               </span>
-              {party && party.organisation ? (
+              {party && party.organization ? (
                 <i
                   className={`fa fa-corp-circle-big ${classes.partyIcon} ${blueClass}`}
                   aria-hidden='true'
