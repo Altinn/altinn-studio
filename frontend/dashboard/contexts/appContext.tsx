@@ -13,7 +13,9 @@ type ServicesContextProviderProps = {
   children: React.ReactNode;
 };
 export const AppContextProvider = ({ children }: ServicesContextProviderProps) => {
-  const [selectedContext, setSelectedContext] = useState<SelectedContextType | number>();
+  const [selectedContext, setSelectedContext] = useState<SelectedContextType | number>(
+    SelectedContextType.Self
+  );
 
   const providerValue = useMemo(() => ({ selectedContext, setSelectedContext }), [selectedContext]);
   return <AppProvider value={providerValue}>{children}</AppProvider>;
