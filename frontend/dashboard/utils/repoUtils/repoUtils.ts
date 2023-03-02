@@ -1,11 +1,10 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import type { IRepository } from 'app-shared/types/global';
-import type { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { Organization } from 'dashboard/services/organizationService';
 import i18next from 'i18next';
 
 type GetReposLabel = {
-  selectedContext: SelectedContext;
+  selectedContext: number | SelectedContextType;
   orgs: Organization[];
   t: typeof i18next.t;
   isDatamodelsRepo?: boolean;

@@ -23,7 +23,10 @@ export const DatamodelsReposList = ({
   const { selectedContext } = useAppContext();
   const { t } = useTranslation();
 
-  const uid = getUidFilter({ selectedContext, userId: user.id });
+  const uid = getUidFilter({
+    selectedContext,
+    userId: user.id,
+  });
 
   const { data: repos, isLoading: isLoadingOrgRepos } = useSearchReposQuery({
     uid: uid as number,

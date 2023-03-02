@@ -1,12 +1,11 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import type { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { Organization } from 'dashboard/services/organizationService';
 
 export const userHasAccessToSelectedContext = ({
   selectedContext,
   orgs,
 }: {
-  selectedContext: SelectedContext;
+  selectedContext: number | SelectedContextType;
   orgs: Organization[];
 }): boolean => {
   if (selectedContext == SelectedContextType.Self || selectedContext == SelectedContextType.All) {

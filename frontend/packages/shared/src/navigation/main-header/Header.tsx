@@ -13,7 +13,7 @@ export enum SelectedContextType {
 export interface IHeaderContext {
   selectedContext: string | number;
   selectableOrgs: IGiteaOrganisation[];
-  setSelectedContext: React.Dispatch<React.SetStateAction<number | SelectedContextType>>;
+  setSelectedContext: React.Dispatch<React.SetStateAction<number | string | SelectedContextType>>;
   user: IUser;
 }
 

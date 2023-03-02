@@ -11,12 +11,12 @@ import type {
 import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 import cn from 'classnames';
 import type { IRepository } from 'app-shared/types/global';
-import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { useSetStarredRepo, useUnsetStarredRepo } from 'dashboard/hooks/useRepoQueries';
 import classes from './RepoList.module.css';
+import { User } from 'dashboard/services/userService';
 
 export interface IRepoListProps {
   isLoading: boolean;
