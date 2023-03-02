@@ -4,27 +4,24 @@ import { MockServicesContextWrapper, Services } from '../dashboardTestUtils';
 import { mockUseTranslation } from '../../testing/mocks/i18nMock';
 
 import { App } from './App';
-import { AppContextProvider } from 'dashboard/contexts/appContext';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 type RenderWithMockServicesProps = Services;
 const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
   render(
-    <AppContextProvider>
-      <MockServicesContextWrapper
-        customServices={{
-          userService: {
-            ...services?.userService,
-          },
-          organizationService: {
-            ...services?.organizationService,
-          },
-        }}
-      >
-        <App />
-      </MockServicesContextWrapper>
-    </AppContextProvider>
+    <MockServicesContextWrapper
+      customServices={{
+        userService: {
+          ...services?.userService,
+        },
+        organizationService: {
+          ...services?.organizationService,
+        },
+      }}
+    >
+      <App />
+    </MockServicesContextWrapper>
   );
 };
 
@@ -33,7 +30,7 @@ test('should display spinner while loading', () => {
   expect(screen.getByText(/dashboard.loading/)).toBeInTheDocument();
 });
 
-test.skip('should display error when failing to fetch current user', async () => {
+test('should display error when failing to fetch current user', async () => {
   renderWithMockServices({
     userService: {
       getCurrentUser: () => Promise.reject(),
@@ -62,7 +59,7 @@ test('should display error when failing to fetch organizations', async () => {
   );
 });
 
-test.skip('should display dashboard page if successfully loading data', async () => {
+test('should display dashboard page if successfully loading data', async () => {
   renderWithMockServices();
   await waitForElementToBeRemoved(screen.queryByText(/dashboard.loading/));
   expect(screen.getByRole('heading', { level: 2, name: /dashboard.favourites/i }));
