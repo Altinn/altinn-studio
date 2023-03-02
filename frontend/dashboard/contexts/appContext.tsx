@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { createStrictContext } from '../utils/createStrictContext';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
@@ -14,7 +14,9 @@ type ServicesContextProviderProps = {
 };
 export const AppContextProvider = ({ children }: ServicesContextProviderProps) => {
   const [selectedContext, setSelectedContext] = useState<SelectedContextType | number>();
-  return <AppProvider value={{ selectedContext, setSelectedContext }}>{children}</AppProvider>;
+
+  const providerValue = useMemo(() => ({ selectedContext, setSelectedContext }), [selectedContext]);
+  return <AppProvider value={providerValue}>{children}</AppProvider>;
 };
 
 export { useAppContext };

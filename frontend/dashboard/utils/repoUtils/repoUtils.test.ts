@@ -1,5 +1,4 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-// import type { Organizations } from '../../services/organizationApi';
 import { getReposLabel, mergeRepos, validateRepoName } from './repoUtils';
 
 const texts = {
