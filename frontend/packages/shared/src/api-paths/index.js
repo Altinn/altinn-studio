@@ -17,6 +17,7 @@ export const datamodelAddXsdFromRepoPath = (org, app, filePath) => `/designer/ap
 
 // Deployment
 // See frontend/app-development/utils/urlHelper.ts Deployments
+export const deploymentsInEnvPath = (org, app, env) => `/designer/api/${org}/${app}/deployments/in-environment?env=${env}`; // Get
 
 // FormEditor
 export const ruleHandlerPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-handler`; // Get

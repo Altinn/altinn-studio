@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
@@ -25,6 +26,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpContext _httpContext;
         private readonly IApplicationInformationService _applicationInformationService;
         private readonly IEnvironmentsService _environmentsService;
+
+        private const string PATH_TO_AZURE_ENV = "/kuberneteswrapper/api/v1/deployments";
+        private static readonly HttpClient client = new();
 
         /// <summary>
         /// Constructor
@@ -95,6 +99,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.Build.Finished = deployment.Build.Finished;
 
             await _deploymentRepository.Update(deploymentEntity);
+        }
+
+        public async Task<AzureDeploymentsResponse> GetDeploymentsInEnvAsync(string org, string app, DeployEnvironment env)
+        {
+            string pathToAzureEnv = $"{org}.{env.AppPrefix}.{env.Hostname}.{PATH_TO_AZURE_ENV}?labelSelector=release={org}-{app}&envName={env.Name}";
+            AzureDeploymentsResponse azureDeploymentsResponse = null;
+            HttpResponseMessage response = await client.GetAsync(pathToAzureEnv);
+            if (response.IsSuccessStatusCode)
+            {
+                azureDeploymentsResponse = await response.Content.ReadAsAsync<AzureDeploymentsResponse>();
+            }
+            return azureDeploymentsResponse;
         }
 
         private async Task<Build> QueueDeploymentBuild(

@@ -99,5 +99,21 @@ namespace Altinn.Studio.Designer.Controllers
             }
             return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel()));
         }
+
+        /// <summary>
+        /// Check status of deployment on Azure
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application name</param>
+        /// <param name="env">Environment the deployment is made to</param>
+        /// <returns>Created deployment</returns>
+        [HttpGet]
+        [Route("in-environment")]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        public async Task<ActionResult<List<AzureDeploymentsResponse>>> GetDeploymentsInEnv(string org, string app, [FromQuery] DeployEnvironment env)
+        {
+            AzureDeploymentsResponse azureDeploymentsResponse = await _deploymentService.GetDeploymentsInEnvAsync(org, app, env);
+            return Ok(azureDeploymentsResponse);
+        }
     }
 }

@@ -7,6 +7,7 @@ import {
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
 } from '../appClusterSlice';
+import { deploymentsInEnvPath } from 'app-shared/api-paths';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import type { RootState } from '../../../store';
 
@@ -30,10 +31,7 @@ function* getDeploymentsIntervalSaga(): SagaIterator {
 
 function* fetchEnvironmentDeployments(org: string, app: string, env: any): SagaIterator {
   try {
-    const result = yield call(
-      get,
-      `${window.location.protocol}//${org}.${env.appPrefix}.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}&envName=${env.name}`
-    );
+    const result = yield call(get, deploymentsInEnvPath(org, app, env));
 
     yield put(getDeploymentsFulfilled({ result, env: env.name }));
   } catch (error) {
