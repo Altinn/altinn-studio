@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import classes from './App.module.css';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
 import { AltinnSpinner } from 'app-shared/components';
@@ -34,12 +34,15 @@ export const App = (): JSX.Element => {
     }
   }, [organizations, selectedContext, setSelectedContext]);
 
-  const headerContextValue: IHeaderContext = {
-    selectableOrgs: organizations,
-    selectedContext: 'self',
-    setSelectedContext: () => {},
-    user,
-  };
+  const headerContextValue: IHeaderContext = useMemo(
+    () => ({
+      selectableOrgs: organizations,
+      selectedContext: 'self',
+      setSelectedContext: () => {},
+      user,
+    }),
+    [organizations, user]
+  );
 
   const componentIsReady = user && organizations;
   const componentHasError = isUserError || isOrganizationsError;
