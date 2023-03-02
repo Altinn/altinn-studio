@@ -13,7 +13,7 @@ Accept: application/json;charset=utf-8
 
 ###
 # Fylker
-GET http://data.ssb.no/api/klass/v1/classifications/104/codes?from=1980-07-10
+GET http://data.ssb.no/api/klass/v1/classifications/104/codes?from=2022-07-10
 Accept: application/json;charset=utf-8
 
 ###
