@@ -1,10 +1,10 @@
 {
   "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
   "allowOverwrite": true,
-  "ER": {},
+  "ER": {
+    "Name": "form.name",
+    "OrgNumber": "form.orgNumber"
+  },
   "DSF": {},
-  "UserProfile": {
-    "Party.Person.FirstName": "form.firstName",
-    "Party.Person.LastName": "form.lastName"
-  }
+  "UserProfile": {}
 }

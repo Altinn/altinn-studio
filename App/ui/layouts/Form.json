@@ -21,9 +21,12 @@
         "dataModelBindings": {
           "simpleBinding": "form.name"
         },
-        "required": false,
+        "required": true,
         "readOnly": true,
-        "autocomplete": "off"
+        "autocomplete": "off",
+        "grid": {
+          "xs": 6
+        }
       },
       {
         "id": "Input-orgNumber",
@@ -35,9 +38,12 @@
         "dataModelBindings": {
           "simpleBinding": "form.orgNumber"
         },
-        "required": false,
+        "required": true,
         "readOnly": true,
-        "autocomplete": "off"
+        "autocomplete": "off",
+        "grid": {
+          "xs": 6
+        }
       },
       {
         "id": "Input-year",
@@ -51,7 +57,17 @@
         },
         "required": true,
         "readOnly": false,
-        "autocomplete": "off"
+        "autocomplete": "off",
+        "formatting": {
+          "align": "right",
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0
+          }
+        },
+        "grid": {
+          "xs": 6
+        }
       },
       {
         "id": "Input-income",
@@ -65,7 +81,19 @@
         },
         "required": true,
         "readOnly": false,
-        "autocomplete": "off"
+        "autocomplete": "off",
+        "formatting": {
+          "align": "right",
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0,
+            "suffix": " 000 NOK",
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 6
+        }
       },
       {
         "id": "Button-submit",
