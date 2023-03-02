@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MakeCopyModal } from './MakeCopyModal';
 import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
-import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
+import { MockServicesContextWrapper, Services } from 'dashboard/dashboardTestUtils';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -12,9 +12,10 @@ const originalWindowLocation = window.location;
 // eslint-disable-next-line
 const anchor = document.querySelector('body');
 
-const renderWithMockServices = () => {
+type RenderWithMockServicesProps = Services;
+const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
   render(
-    <MockServicesContextWrapper>
+    <MockServicesContextWrapper customServices={services}>
       <MakeCopyModal anchorEl={anchor} handleClose={() => {}} serviceFullName={`${org}/${app}`} />
     </MockServicesContextWrapper>
   );
@@ -31,10 +32,24 @@ describe('MakeCopyModal', () => {
     };
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-    window.location = originalWindowLocation;
+  test('should not show error message when clicking confirm and name is added', async () => {
+    const copyAppMock = jest.fn(() => Promise.resolve());
+    renderWithMockServices({
+      repoService: {
+        copyApp: copyAppMock,
+      },
+    });
+
+    await user.type(screen.getByRole('textbox'), 'new-repo-name');
+    await user.click(screen.getByRole('button', {
+      name: /dashboard\.make_copy/i,
+    }));
+
+    expect(screen.queryByText(/dashboard\.field_cannot_be_empty/i)).not.toBeInTheDocument();
+    expect(copyAppMock).toHaveBeenCalledTimes(1);
+    expect(copyAppMock).toHaveBeenCalledWith("org", "app", "new-repo-name");
   });
+
   test('should show error message when clicking confirm without adding name', async () => {
     renderWithMockServices();
 
