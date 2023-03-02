@@ -4,13 +4,13 @@ import {
   CircularProgress,
   Grid,
   Popover,
-  TextField,
   Typography,
 } from '@mui/material';
 import classNames from 'classnames';
 import classes from './AltinnPopover.module.css';
+import { TextArea } from '@digdir/design-system-react';
 
-export interface IAltinnPopoverProvidedProps {
+export interface AltinnPopoverProps {
   anchorEl: any;
   anchorOrigin?: {
     horizontal: 'left' | 'center' | 'right' | number;
@@ -21,7 +21,6 @@ export interface IAltinnPopoverProvidedProps {
   btnCancelText?: string;
   btnPrimaryId?: string;
   btnSecondaryId?: string;
-  classes: any;
   descriptionText?: string;
   handleClose: () => void;
   header?: string;
@@ -35,7 +34,7 @@ export interface IAltinnPopoverProvidedProps {
   };
 }
 
-const AltinnPopoverComponent = (props: any) => {
+const AltinnPopoverComponent = (props: AltinnPopoverProps) => {
 
   const [commitMessage, setCommitMessage] = React.useState('');
 
@@ -96,17 +95,10 @@ const AltinnPopoverComponent = (props: any) => {
           {renderSpinnerOrDoneIcon()}
 
           {props.shouldShowCommitBox && (
-            <TextField
-              multiline={true}
+            <TextArea
               value={commitMessage}
               rows={3}
               onChange={handleChange}
-              InputProps={{
-                disableUnderline: true,
-                classes: {
-                  input: classes.commitMessageField,
-                },
-              }}
             />
           )}
 

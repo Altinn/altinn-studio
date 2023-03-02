@@ -8,6 +8,7 @@ import { Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/alti
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { useCreateDeployMutation } from '../hooks/mutation-hooks';
 import { useParams } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 
 import type {
   ICreateAppDeploymentErrors,
@@ -18,8 +19,6 @@ export type ImageOption = {
   value: string;
   label: string;
 };
-
-import { useTranslation } from 'react-i18next';
 
 interface IAppDeploymentComponentProps {
   envName: string;
@@ -140,7 +139,7 @@ export const AppDeploymentComponent = ({
               startDeploy={startDeploy}
             />
           )}
-          {deployInProgress && <div>Deployment in progress...</div>}
+          {deployInProgress && <div>{t('app_publish.deployment_in_progress')}...</div>}
           {deploymentList && deploymentList.getStatus.success === false && deployPermission && (
             <div className={classes.deployUnavailableContainer}>
               <div className={classes.deploySpinnerGridItem}>
@@ -150,12 +149,20 @@ export const AppDeploymentComponent = ({
                   iconSize='3.6rem'
                 />
               </div>
-              <div>{t('app_deploy_messages.unable_to_list_deploys')}</div>
+              <div>
+                <Trans i18nKey={'app_deploy_messages.unable_to_list_deploys'}>
+                  <a href='mailto:tjenesteeier@altinn.no' />
+                </Trans>
+              </div>
             </div>
           )}
           {showDeployFailedMessage && (
             <ErrorMessage
-              message={t('app_deploy_messages.technical_error_1')}
+              message={
+                <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
+                  <a href='mailto:tjenesteeier@altinn.no' />
+                </Trans>
+              }
               code={t('app_deploy_messages.technical_error_code', {
                 errorCode: deployError[0]?.errorCode,
               })}

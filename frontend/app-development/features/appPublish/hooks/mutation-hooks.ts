@@ -1,6 +1,6 @@
-import { useServicesContext } from '../contexts/ServiceContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CacheKey } from 'app-shared/api-paths/cache-key';
+import { useServicesContext } from '../../../common/ServiceContext';
 
 export type CreateReleasePayload = {
   tagName: string;

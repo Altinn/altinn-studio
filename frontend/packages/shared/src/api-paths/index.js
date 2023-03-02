@@ -56,14 +56,14 @@ export const orgsListPath = () => '/designer/api/orgs'; // Get
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
-export const releasesPath = (org, app) => `/designer/api/${org}/${app}/releases`;
-export const deploymentsPath = (org, app) => `/designer/api/${org}/${app}/deployments`;
+export const releasesPath = (org, app, sortDirection) => `/designer/api/${org}/${app}/releases?${s({ sortDirection })}`;
+export const deploymentsPath = (org, app, sortDirection) => `/designer/api/${org}/${app}/deployments?${s({ sortDirection })}`;
 export const deployPermissionsPath = (org, app) => `/designer/api/${org}/${app}/deployments/permissions`;
 export const envConfigPath = () => `/designer/api/environments`;
 
 // Repositories
 export const abortmergePath = (org, app) => `/designer/api/repos/repo/${org}/${app}/abort-merge`;
-export const branchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=${branch}`; // Get
+export const branchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
 export const cloneAppPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/clone`; // Get
 export const copyAppPath = (org, sourceRepository, targetRepository) => `/designer/api/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository })}`;
 export const createRepoPath = () => `/designer/api/repos/create-app`; // Post

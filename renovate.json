@@ -12,5 +12,8 @@
       "groupSlug": "gitea",
       "matchPackageNames": ["gitea/gitea"]
     }
+  ],
+  "ignorePaths": [
+    "testdata/**"
   ]
 }
