@@ -12,7 +12,9 @@ public class IndustryGroupingCodelistProvider : ClassificationCodelistProvider, 
     /// <inheritdoc/>
     public string Id => "næringsgruppering";
 
-    /// Initializes a new instance of the <see cref="MaritalStatusCodelistProvider"/> class.
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IndustryGroupingCodelistProvider"/> class.
+    /// </summary>
     public IndustryGroupingCodelistProvider(IClassificationsClient classificationsClient) : base(classificationsClient)
     {
     }

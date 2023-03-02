@@ -12,7 +12,9 @@ public class MaritalStatusCodelistProvider : ClassificationCodelistProvider, IAp
     /// <inheritdoc/>
     public string Id => "sivilstand";
 
+    /// <summary>
     /// Initializes a new instance of the <see cref="MaritalStatusCodelistProvider"/> class.
+    /// </summary>
     public MaritalStatusCodelistProvider(IClassificationsClient classificationsClient) : base(classificationsClient)
     {
     }

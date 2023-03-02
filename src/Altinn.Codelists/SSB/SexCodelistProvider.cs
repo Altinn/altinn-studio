@@ -12,7 +12,9 @@ public class SexCodelistProvider : ClassificationCodelistProvider, IAppOptionsPr
     /// <inheritdoc/>
     public string Id => "kjonn";
 
+    /// <summary>
     /// Initializes a new instance of the <see cref="MaritalStatusCodelistProvider"/> class.
+    /// </summary>
     public SexCodelistProvider(IClassificationsClient classificationsClient) : base(classificationsClient)
     {
     }

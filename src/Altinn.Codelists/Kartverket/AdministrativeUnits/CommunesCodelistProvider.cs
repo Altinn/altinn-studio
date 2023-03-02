@@ -27,16 +27,9 @@ public class CommunesCodelistProvider : IAppOptionsProvider
     {
         bool hasCountyParam = keyValuePairs.TryGetValue("fnr", out string? countyNumber);
 
-        List<Commune> communes;
-        if (hasCountyParam && countyNumber != null)
-        {
-            communes = await _administrativeUnitsHttpClient.GetCommunes(countyNumber);
-        }
-        else
-        {
-            communes = await _administrativeUnitsHttpClient.GetCommunes();
-        }
-
+        List<Commune> communes = hasCountyParam && countyNumber != null
+            ? await _administrativeUnitsHttpClient.GetCommunes(countyNumber)
+            : await _administrativeUnitsHttpClient.GetCommunes();
 
         var appOptions = new AppOptions()
         {

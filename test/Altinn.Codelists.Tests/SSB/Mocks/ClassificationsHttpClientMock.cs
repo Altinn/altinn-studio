@@ -46,13 +46,8 @@ public class ClassificationsHttpClientMock : IClassificationsClient
     {
         ClassificationCodes classificationCodes = await _client.GetClassificationCodes(classification, language, atDate, level);
 
-        if (level == string.Empty)
-        {
-            return classificationCodes;
-        }
-        else
-        {
-            return new ClassificationCodes() { Codes = classificationCodes.Codes.Where(x => x.Level == level.ToString()).ToList() };
-        }
+        return level == string.Empty
+            ? classificationCodes
+            : new ClassificationCodes() { Codes = classificationCodes.Codes.Where(x => x.Level == level.ToString()).ToList() };
     }
 }

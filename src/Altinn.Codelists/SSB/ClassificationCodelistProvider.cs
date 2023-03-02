@@ -34,14 +34,9 @@ public abstract class ClassificationCodelistProvider
 
         // The api we use doesn't support filtering on partentCode,
         // hence we need to filter afterwards.
-        if (string.IsNullOrEmpty(parentCode))
-        {
-            appOptions.Options = classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList();
-        }
-        else
-        {
-            appOptions.Options = classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList();
-        }
+        appOptions.Options = string.IsNullOrEmpty(parentCode)
+            ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
+            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList();
 
         return appOptions;
     }

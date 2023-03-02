@@ -12,7 +12,9 @@ public class CountiesCodelistProvider : ClassificationCodelistProvider, IAppOpti
     /// <inheritdoc/>
     public string Id => "fylker";
 
+    /// <summary>
     /// Initializes a new instance of the <see cref="CountiesCodelistProvider"/> class.
+    /// </summary>
     public CountiesCodelistProvider(IClassificationsClient classificationsClient) : base(classificationsClient)
     {
     }
