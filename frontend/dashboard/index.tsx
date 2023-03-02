@@ -13,6 +13,7 @@ import { ServicesContextProvider } from './contexts/servicesContext';
 import { userService } from './services/userService';
 import { organizationService } from './services/organizationService';
 import { AppContextProvider } from './contexts/appContext';
+import { repoService } from './services/repoService';
 
 i18next.use(initReactI18next).init({
   lng: DEFAULT_LANGUAGE,
@@ -43,6 +44,7 @@ root.render(
         <ServicesContextProvider
           userService={userService}
           organizationService={organizationService}
+          repoService={repoService}
         >
           <App />
         </ServicesContextProvider>
