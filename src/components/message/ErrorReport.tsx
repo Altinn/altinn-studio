@@ -125,11 +125,7 @@ export const ErrorReport = ({ components }: IErrorReportProps) => {
   };
 
   return (
-    <Grid
-      data-testid='ErrorReport'
-      item={true}
-      xs={12}
-    >
+    <div data-testid='ErrorReport'>
       <FullWidthWrapper isOnBottom={true}>
         <Panel
           title={language && getLanguageFromKey('form_filler.error_report_header', language)}
@@ -175,6 +171,6 @@ export const ErrorReport = ({ components }: IErrorReportProps) => {
           </Grid>
         </Panel>
       </FullWidthWrapper>
-    </Grid>
+    </div>
   );
 };

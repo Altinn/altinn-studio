@@ -125,7 +125,6 @@ describe('Validation', () => {
     cy.get(appFrontend.nextButton).click();
     cy.wait('@validateData');
     cy.get(appFrontend.errorReport)
-      .parent()
       .should('exist')
       .should('be.visible')
       .should('be.inViewport')
