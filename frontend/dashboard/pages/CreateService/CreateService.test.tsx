@@ -162,7 +162,7 @@ describe('CreateService', () => {
     const createButton = await screen.findByText('dashboard.create_service_btn');
     await user.click(createButton);
 
-    expect(addRepoMock).rejects.toEqual({ response: { status: 500 } });
+    await expect(addRepoMock).rejects.toEqual({ response: { status: 500 } });
 
     const emptyFieldErrors = await screen.findAllByText('dashboard.error_when_creating_app');
     expect(emptyFieldErrors.length).toBe(1);

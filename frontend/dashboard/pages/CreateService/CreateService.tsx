@@ -64,7 +64,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
   const [repoName, setRepoName] = useState('');
   const [pageState, setPageState] = useState(PageState.Idle);
-  const { mutateAsync: addRepo } = useAddRepoMutation();
+  const { mutate: addRepo } = useAddRepoMutation();
   const { t } = useTranslation();
 
   const handleServiceOwnerChanged = useCallback((newValue: string) => {
