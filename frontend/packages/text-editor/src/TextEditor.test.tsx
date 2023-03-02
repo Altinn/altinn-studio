@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
-import { act, render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TextResourceFile } from './types';
 import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
