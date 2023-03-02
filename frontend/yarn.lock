@@ -78,7 +78,7 @@ __metadata:
     jsonpointer: 5.0.1
   peerDependencies:
     "@altinn/altinn-design-system": 0.27.5
-    "@digdir/design-system-react": 0.6.0
+    "@digdir/design-system-react": 0.7.0
     "@mui/material": 5.11.10
     "@reduxjs/toolkit": 1.9.3
     axios: 1.3.4
