@@ -6,6 +6,9 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Studio.Designer.Models.Authorization;
+using k8s.Models;
+using Microsoft.ApplicationInsights.AspNetCore;
+using NuGet.Packaging;
 
 namespace Altinn.Studio.Designer.Helpers
 {
@@ -112,13 +115,104 @@ namespace Altinn.Studio.Designer.Helpers
 
             foreach (PolicyRule rule in policyInput.Rules)
             {
-                XacmlRule xacmlRule = new XacmlRule(rule.RuleId, XacmlEffectType.Permit);
-                xacmlRule.Description = rule.Description;
-                policyOutput.Rules.Add(xacmlRule);
+                policyOutput.Rules.Add(ConvertRule(rule));
             }
 
 
             return policyOutput;
+        }
+
+
+        private static XacmlRule ConvertRule(PolicyRule policyRule)
+        {
+            XacmlRule xacmlRule = new XacmlRule(policyRule.RuleId, XacmlEffectType.Permit);
+            xacmlRule.Description = policyRule.Description;
+
+            List<XacmlAnyOf> ruleAnyOfs = new List<XacmlAnyOf>();
+            ruleAnyOfs.Add(GetSubjectAnyOfs(policyRule.Subject));
+            ruleAnyOfs.Add(GetResourceAnyOfs(policyRule.Resources));
+            ruleAnyOfs.Add(GetActionAnyOfs(policyRule.Actions));
+            xacmlRule.Target = new XacmlTarget(ruleAnyOfs);
+
+            return xacmlRule;
+
+        }
+
+
+        private static XacmlAnyOf GetResourceAnyOfs(List<RuleResource> resources)
+        {
+            List<XacmlAllOf> resourceAllOfs = new List<XacmlAllOf>();
+            foreach (RuleResource resource in resources)
+            {
+                List<XacmlMatch> matches = new List<XacmlMatch>();
+                foreach (AttributeMatch x in resource.Attributes)
+                {
+
+                    XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
+                    xacmlAttributeValue.Value = x.Value;
+
+                    XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(x.Designator), new Uri(XacmlConstants.DataTypes.XMLString));
+                    xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Resource);
+
+                    XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase), xacmlAttributeValue, xacmlAttributeDesignator);
+                    matches.Add(xacmlMatch);
+                }
+
+                XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
+                resourceAllOfs.Add(xacmlAllOf);
+
+            }
+
+            return new XacmlAnyOf(resourceAllOfs);
+        }
+
+
+        private static XacmlAnyOf GetSubjectAnyOfs(List<RuleSubject> subjects)
+        {
+            List<XacmlAllOf> subjectAllOfs = new List<XacmlAllOf>();
+            foreach (RuleSubject subject in subjects)
+            {
+                List<XacmlMatch> matches = new List<XacmlMatch>();
+                foreach (AttributeMatch x in subject.Attributes)
+                {
+
+                    XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
+                    xacmlAttributeValue.Value = x.Value;
+
+                    XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(x.Designator), new Uri(XacmlConstants.DataTypes.XMLString));
+                    xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Subject);
+
+                    XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase), xacmlAttributeValue, xacmlAttributeDesignator);
+                    matches.Add(xacmlMatch);
+                }
+
+                XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
+                subjectAllOfs.Add(xacmlAllOf);
+            }
+
+            return new XacmlAnyOf(subjectAllOfs);
+        }
+
+        private static XacmlAnyOf GetActionAnyOfs(List<RuleAction> actions)
+        {
+            List<XacmlAllOf> actionAllOfs = new List<XacmlAllOf>();
+
+                foreach (RuleAction x in actions)
+                {
+                    List<XacmlMatch> matches = new List<XacmlMatch>();
+                    XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
+                    xacmlAttributeValue.Value = x.Attribute.Value;
+
+                    XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(x.Attribute.Designator), new Uri(XacmlConstants.DataTypes.XMLString));
+                    xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Action);
+
+                    XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase), xacmlAttributeValue, xacmlAttributeDesignator);
+                    matches.Add(xacmlMatch);
+                    XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
+                    actionAllOfs.Add(xacmlAllOf);
+                }
+            
+            return new XacmlAnyOf(actionAllOfs);
         }
     }
 }

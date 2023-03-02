@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using IdentityModel.OidcClient;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
@@ -111,6 +112,37 @@ namespace Altinn.AccessManagement.Tests.Utils
         public static void AssertXacmlRulesEqual(XacmlRule expected, XacmlRule actual)
         {
             Assert.Equal(expected.Description, actual.Description);
+            Assert.Equal(expected.Effect, actual.Effect);
+            Assert.Equal(expected.RuleId, actual.RuleId);
+            AssertXacmlTargetEqual(expected.Target, actual.Target);
+        }
+
+
+        public static void AssertXacmlTargetEqual(XacmlTarget expected, XacmlTarget actual)
+        {
+            AssertCollections(expected.AnyOf, actual.AnyOf, AssertXacmlAnyof);
+        }
+
+        public static void AssertXacmlAnyof(XacmlAnyOf expected, XacmlAnyOf actual)
+        {
+            AssertCollections(expected.AllOf, actual.AllOf, AssertXacmlAllof);
+        }
+
+        public static void AssertXacmlAllof(XacmlAllOf expected, XacmlAllOf actual)
+        {
+            AssertCollections(expected.Matches, actual.Matches, AssertXacmlMatch);
+
+        }
+
+        public static void AssertXacmlMatch(XacmlMatch expected, XacmlMatch actual)
+        {
+            AssertXacmlAttriuteDesignator(expected.AttributeDesignator, actual.AttributeDesignator);
+
+        }
+
+        public static void AssertXacmlAttriuteDesignator(XacmlAttributeDesignator expected, XacmlAttributeDesignator actual)
+        {
+            Assert.Equal(expected.Category, actual.Category);
         }
 
 
