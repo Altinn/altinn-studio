@@ -26,7 +26,9 @@ namespace Altinn.App.Models
     [JsonPropertyName("name")]
     public string name { get; set; }
 
-    [RegularExpression(@"^\d{10}$")]
+    [MinLength(9)]
+    [MaxLength(9)]
+    [RegularExpression(@"^\d*$")]
     [XmlElement("orgNumber", Order = 2)]
     [JsonProperty("orgNumber")]
     [JsonPropertyName("orgNumber")]

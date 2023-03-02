@@ -79,8 +79,14 @@
       "DataBindingName": "form.orgNumber",
       "XPath": "/data/form/orgNumber",
       "Restrictions": {
+        "maxLength": {
+          "Value": "9"
+        },
         "pattern": {
-          "Value": "^\\d{10}$"
+          "Value": "^\\d*$"
+        },
+        "minLength": {
+          "Value": "9"
         }
       },
       "Type": 0,
