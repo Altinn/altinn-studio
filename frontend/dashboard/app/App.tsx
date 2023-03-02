@@ -1,5 +1,4 @@
-import React from 'react';
-import './App.css';
+import React, { useEffect } from 'react';
 import classes from './App.module.css';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
 import { AltinnSpinner } from 'app-shared/components';
@@ -18,21 +17,27 @@ import { useOrganizationsQuery } from 'dashboard/hooks/useOrganizationQueries';
 import { ErrorMessage } from 'dashboard/components/ErrorMessage';
 import { useAppContext } from '../contexts/appContext';
 
+import './App.css';
+
 export const App = (): JSX.Element => {
+  const { t } = useTranslation();
   const { selectedContext, setSelectedContext } = useAppContext();
   const { data: user, isError: isUserError } = useUserQuery();
   const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 
-  const { t } = useTranslation();
-
-  if (organizations && !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })) {
-    setSelectedContext(SelectedContextType.Self);
-  }
+  useEffect(() => {
+    if (
+      organizations &&
+      !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })
+    ) {
+      setSelectedContext(SelectedContextType.Self);
+    }
+  }, [organizations, selectedContext, setSelectedContext]);
 
   const headerContextValue: IHeaderContext = {
     selectableOrgs: organizations,
-    selectedContext,
-    setSelectedContext,
+    selectedContext: 'self',
+    setSelectedContext: () => {},
     user,
   };
 
