@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TextResourceFile } from './types';
 import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
@@ -134,8 +134,12 @@ describe('TextEditor', () => {
         name: /Slett textId/i,
       });
       expect(result).toHaveLength(2);
-      await act(async () => {
+      await waitFor(async () => {
         await user.click(result[0]);
+        await screen.findByRole('dialog');
+        await user.click(
+          screen.getByRole('button', { name: /schema_editor.textRow-confirm-cancel-popover/ })
+        );
       });
       expect(onTextIdChange).toHaveBeenCalledWith({ oldId: norwegianTranslation.resources[0].id });
     };
@@ -170,6 +174,7 @@ describe('TextEditor', () => {
       expect(textIdRefsAfter1).toHaveLength(1); // The id is also on the delete button
       expect(textIdRefsAfter2).toHaveLength(1);
     });
+
     it('removes an entry from the rendered list of entries', async () => {
       await deleteSomething();
       const resultAfter = screen.getAllByRole('button', {
@@ -177,6 +182,7 @@ describe('TextEditor', () => {
       });
       expect(resultAfter).toHaveLength(1);
     });
+
     it('reverts the text-id if there was an error on change', async () => {
       const { error, onTextIdChange } = setupError();
       const original = await makeChangesToTextIds(onTextIdChange);
