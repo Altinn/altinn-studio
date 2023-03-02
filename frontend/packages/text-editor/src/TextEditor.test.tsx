@@ -134,15 +134,16 @@ describe('TextEditor', () => {
         name: /Slett textId/i,
       });
       expect(result).toHaveLength(2);
-      await waitFor(async () => {
-        await user.click(result[0]);
-        await screen.findByRole('dialog');
-        await user.click(
-          screen.getByRole('button', { name: /schema_editor.textRow-confirm-cancel-popover/ })
-        );
-      });
+
+      await user.click(result[0]);
+      await screen.findByRole('dialog');
+      await user.click(
+        screen.getByRole('button', { name: /schema_editor.textRow-confirm-cancel-popover/ })
+      );
+
       expect(onTextIdChange).toHaveBeenCalledWith({ oldId: norwegianTranslation.resources[0].id });
     };
+
     const getInputs = (name: RegExp) => screen.getAllByRole('textbox', { name });
     const makeChangesToTextIds = async (onTextIdChange = jest.fn()) => {
       const { user } = renderTextEditor({
