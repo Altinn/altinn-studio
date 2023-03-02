@@ -1,8 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { IRepository } from 'app-shared/types/global';
 import React, { useMemo } from 'react';
+import { MemoryRouter } from 'react-router-dom';
+import { AppContextProvider } from './contexts/appContext';
 import { ServicesContextProvider } from './contexts/servicesContext';
 import { OrganizationService } from './services/organizationService';
-import { RepoService } from './services/repoService';
+import { AddRepo, RepoService, SearchRepository } from './services/repoService';
 import { UserService } from './services/userService';
 
 export type Services = {
@@ -48,12 +51,29 @@ export const MockServicesContextWrapper = ({
     ...customServices?.organizationService,
   };
 
+  const repoService: RepoService = {
+    addRepo: (repoToAdd: AddRepo) => Promise.resolve({} as IRepository),
+    copyApp: () => Promise.resolve(),
+    getStarredRepos: () => Promise.resolve([] as IRepository[]),
+    searchRepos: () => Promise.resolve({} as unknown as SearchRepository),
+    setStarredRepo: () => Promise.resolve([]),
+    unsetStarredRepo: () => Promise.resolve(),
+    ...customServices?.repoService,
+  };
+
   return (
-    <QueryClientProvider client={client}>
-      <ServicesContextProvider userService={userService} organizationService={organizationService}>
-        {children}
-      </ServicesContextProvider>
-      ;
-    </QueryClientProvider>
+    <MemoryRouter>
+      <QueryClientProvider client={client}>
+        <AppContextProvider>
+          <ServicesContextProvider
+            userService={userService}
+            organizationService={organizationService}
+            repoService={repoService}
+          >
+            {children}
+          </ServicesContextProvider>
+        </AppContextProvider>
+      </QueryClientProvider>
+    </MemoryRouter>
   );
 };
