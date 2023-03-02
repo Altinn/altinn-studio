@@ -228,7 +228,7 @@ function* fetchFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIte
     } else {
       try {
         convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(
-          formLayouts[layoutName].data.layout, formLayouts[layoutName].data.hidden
+          formLayouts[layoutName].data.layout, formLayouts[layoutName]?.data?.hidden
         );
       } catch {
         invalidLayouts.push(layoutName);
@@ -262,7 +262,7 @@ function* saveFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIter
       $schema: layoutSchemaUrl(),
       data: {
         layout: convertInternalToLayoutFormat(layouts[selectedLayout]),
-        hidden: layouts[selectedLayout].hidden,
+        hidden: layouts[selectedLayout]?.hidden,
       },
     };
     const url = formLayoutPath(org, app, selectedLayout);
@@ -432,6 +432,8 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       })
     );
 
+    const firstPageKey = layoutOrder[0];
+    const firstPage = layoutsCopy[firstPageKey];
     const hasFirstPage = Object.keys(layoutsCopy).length > 1;
 
     if (hasFirstPage && !isReceiptPage) {
@@ -446,14 +448,12 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
         showBackButton: true,
       };
 
-      const firstPageKey = layoutOrder[0];
-      const firstPage = layouts[firstPageKey];
-
       if (firstPage && firstPage.components) {
         const hasNavigationButton = Object.keys(firstPage.components).some(
           (component: string) => firstPage.components[component].type === 'NavigationButtons'
         );
         if (!hasNavigationButton) {
+          yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: firstPageKey, org, app }));
           yield put(
             FormLayoutActions.addFormComponent({
               component: {
@@ -466,10 +466,9 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
               app,
             })
           );
+          yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout, org, app }));
         }
       }
-
-      yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout, org, app }));
 
       yield put(
         FormLayoutActions.addFormComponent({
@@ -484,6 +483,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
         })
       );
     }
+
   } catch (error) {
     console.error(error);
     yield put(FormLayoutActions.addLayoutRejected({ error }));
@@ -558,9 +558,28 @@ export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
 
 export function* deleteLayoutSaga({ payload }: PayloadAction<IDeleteLayoutAction>): SagaIterator {
   try {
-    const { layout, org, app } = payload;
-    yield put(FormLayoutActions.deleteLayoutFulfilled({ layout, org, app }));
+    const { layout, isReceiptPage, org, app } = payload;
     yield call(del, formLayoutPath(org, app, layout));
+
+    const layoutOrder: string[] = yield select((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
+    const layouts: IFormLayouts = yield select(selectLayouts);
+    const firstPageKey = layoutOrder[0];
+    const firstPage = layouts[firstPageKey];
+    const secondPageIsBeingDeleted = Object.keys(layouts).length === 2;
+
+    if (secondPageIsBeingDeleted && !isReceiptPage){
+      const hasNavigationButton = Object.keys(layouts[firstPageKey].components).some(
+        (component: string) => firstPage.components[component].type === 'NavigationButtons'
+      );
+      if (hasNavigationButton) {
+        const navigationButtonComponent = Object.keys(firstPage.components).find((component: string) => firstPage.components[component].type === 'NavigationButtons');
+        yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: firstPageKey, org, app }));
+        const componentsToDelete = [firstPage.components[navigationButtonComponent].id];
+        yield put(FormLayoutActions.deleteFormComponents({ components: componentsToDelete, org, app }));
+        yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout, org, app }));
+      }
+    }
+    yield put(FormLayoutActions.deleteLayoutFulfilled({ layout, layouts, org, app }));
   } catch (error) {
     yield put(FormLayoutActions.deleteLayoutRejected({ error }));
   }
