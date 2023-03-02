@@ -2,8 +2,9 @@
 <xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <xs:complexType name="form">
     <xs:sequence>
-      <xs:element name="firstName" type="xs:string" />
-      <xs:element name="lastName" type="xs:string" />
+      <xs:element name="name" type="xs:string" />
+      <xs:element name="orgNumber" type="xs:string" />
+      <xs:element name="year" type="xs:long" />
       <xs:element name="income" type="xs:long" />
     </xs:sequence>
   </xs:complexType>

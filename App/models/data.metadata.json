@@ -49,13 +49,13 @@
       "JsonSchemaPointer": "#/$defs/form",
       "DisplayString": "data.form : [1..1] form"
     },
-    "data.form.firstName": {
-      "ID": "data.form.firstName",
+    "data.form.name": {
+      "ID": "data.form.name",
       "ParentElement": "data.form",
-      "TypeName": "firstName",
-      "Name": "firstName",
-      "DataBindingName": "form.firstName",
-      "XPath": "/data/form/firstName",
+      "TypeName": "name",
+      "Name": "name",
+      "DataBindingName": "form.name",
+      "XPath": "/data/form/name",
       "Restrictions": {},
       "Type": 0,
       "XsdValueType": 0,
@@ -63,35 +63,68 @@
       "CustomProperties": {},
       "MaxOccurs": 1,
       "MinOccurs": 1,
-      "XName": "firstName",
+      "XName": "name",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/$defs/form/properties/firstName",
-      "DisplayString": "data.form.firstName : [1..1] String"
+      "JsonSchemaPointer": "#/$defs/form/properties/name",
+      "DisplayString": "data.form.name : [1..1] String"
     },
-    "data.form.lastName": {
-      "ID": "data.form.lastName",
+    "data.form.orgNumber": {
+      "ID": "data.form.orgNumber",
       "ParentElement": "data.form",
-      "TypeName": "lastName",
-      "Name": "lastName",
-      "DataBindingName": "form.lastName",
-      "XPath": "/data/form/lastName",
-      "Restrictions": {},
+      "TypeName": "orgNumber",
+      "Name": "orgNumber",
+      "DataBindingName": "form.orgNumber",
+      "XPath": "/data/form/orgNumber",
+      "Restrictions": {
+        "pattern": {
+          "Value": "^\\d{10}$"
+        }
+      },
       "Type": 0,
       "XsdValueType": 0,
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
       "MinOccurs": 1,
-      "XName": "lastName",
+      "XName": "orgNumber",
       "IsTagContent": false,
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/$defs/form/properties/lastName",
-      "DisplayString": "data.form.lastName : [1..1] String"
+      "JsonSchemaPointer": "#/$defs/form/properties/orgNumber",
+      "DisplayString": "data.form.orgNumber : [1..1] String"
+    },
+    "data.form.year": {
+      "ID": "data.form.year",
+      "ParentElement": "data.form",
+      "TypeName": "year",
+      "Name": "year",
+      "DataBindingName": "form.year",
+      "XPath": "/data/form/year",
+      "Restrictions": {
+        "maximum": {
+          "Value": "2022"
+        },
+        "minimum": {
+          "Value": "2000"
+        }
+      },
+      "Type": 0,
+      "XsdValueType": 3,
+      "Texts": {},
+      "CustomProperties": {},
+      "MaxOccurs": 1,
+      "MinOccurs": 1,
+      "XName": "year",
+      "IsTagContent": false,
+      "FixedValue": null,
+      "IsReadOnly": false,
+      "XmlSchemaXPath": null,
+      "JsonSchemaPointer": "#/$defs/form/properties/year",
+      "DisplayString": "data.form.year : [1..1] Integer"
     },
     "data.form.income": {
       "ID": "data.form.income",

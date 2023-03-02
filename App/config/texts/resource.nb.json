@@ -2,28 +2,48 @@
   "language": "nb",
   "resources": [
     {
-      "id": "appName",
-      "value": "Signing test"
-    },
-    {
-      "id": "firstName",
-      "value": "Fornavn"
-    },
-    {
-      "id": "submitToConfirmation",
+      "id": "Form.Button-submit.title",
       "value": "Send til bekreftelse"
     },
     {
-      "id": "income",
+      "id": "Form.Header-form.title",
+      "value": "Inntektsrapportering"
+    },
+    {
+      "id": "Form.Input-income.description",
+      "value": "Inntekt for hele året i NOK."
+    },
+    {
+      "id": "Form.Input-income.title",
       "value": "Inntekt"
     },
     {
-      "id": "incomeHeader",
-      "value": "Bedriftens inntekt"
+      "id": "Form.Input-name.description",
+      "value": "Bedriftens navn"
     },
     {
-      "id": "lastName",
-      "value": "Etternavn"
+      "id": "Form.Input-name.title",
+      "value": "Navn"
+    },
+    {
+      "id": "Form.Input-orgNumber.description",
+      "value": "Bedriftens organisasjonsnummer"
+    },
+    {
+      "id": "Form.Input-orgNumber.title",
+      "value": "Org. nr."
+    },
+    {
+      "id": "Form.Input-year.description",
+      "value": "Hvilket år rapporterer du inntekt for?"
+    },
+    {
+      "id": "Form.Input-year.title",
+      "value": "Inntektsår"
+    },
+    {
+      "id": "appName",
+      "value": "Signeringstest"
     }
   ]
 }

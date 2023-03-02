@@ -22,13 +22,21 @@
       "type": "object",
       "title": "Skjema",
       "properties": {
-        "firstName": {
+        "name": {
           "type": "string",
-          "title": "Fornavn"
+          "title": "Navn"
         },
-        "lastName": {
+        "orgNumber": {
           "type": "string",
-          "title": "Etternavn"
+          "title": "Org. nummer",
+          "format": "regex",
+          "pattern": "^\\d{10}$"
+        },
+        "year": {
+          "type": "integer",
+          "title": "År",
+          "maximum": 2022,
+          "minimum": 2000
         },
         "income": {
           "type": "integer",
@@ -38,8 +46,9 @@
         }
       },
       "required": [
-        "firstName",
-        "lastName",
+        "name",
+        "orgNumber",
+        "year",
         "income"
       ]
     }

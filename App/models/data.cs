@@ -21,18 +21,26 @@ namespace Altinn.App.Models
 
   public class form
   {
-    [XmlElement("firstName", Order = 1)]
-    [JsonProperty("firstName")]
-    [JsonPropertyName("firstName")]
-    public string firstName { get; set; }
+    [XmlElement("name", Order = 1)]
+    [JsonProperty("name")]
+    [JsonPropertyName("name")]
+    public string name { get; set; }
 
-    [XmlElement("lastName", Order = 2)]
-    [JsonProperty("lastName")]
-    [JsonPropertyName("lastName")]
-    public string lastName { get; set; }
+    [RegularExpression(@"^\d{10}$")]
+    [XmlElement("orgNumber", Order = 2)]
+    [JsonProperty("orgNumber")]
+    [JsonPropertyName("orgNumber")]
+    public string orgNumber { get; set; }
+
+    [Range(2000, 2022)]
+    [XmlElement("year", Order = 3)]
+    [JsonProperty("year")]
+    [JsonPropertyName("year")]
+    [Required]
+    public decimal? year { get; set; }
 
     [Range(0,Double.MaxValue)]
-    [XmlElement("income", Order = 3)]
+    [XmlElement("income", Order = 4)]
     [JsonProperty("income")]
     [JsonPropertyName("income")]
     [Required]

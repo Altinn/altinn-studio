@@ -3,71 +3,75 @@
   "data": {
     "layout": [
       {
-        "id": "Header-6g4e4O",
+        "id": "Header-form",
         "type": "Header",
         "textResourceBindings": {
-          "title": "incomeHeader"
+          "title": "Form.Header-form.title"
         },
         "dataModelBindings": {},
         "size": "L"
       },
       {
-        "id": "Input-firstName",
+        "id": "Input-name",
         "type": "Input",
         "textResourceBindings": {
-          "title": "firstName"
+          "title": "Form.Input-name.title",
+          "description": "Form.Input-name.description"
         },
         "dataModelBindings": {
-          "simpleBinding": "form.firstName"
+          "simpleBinding": "form.name"
         },
         "required": false,
         "readOnly": true,
-        "grid": {
-          "xs": 6
-        }
+        "autocomplete": "off"
       },
       {
-        "id": "Input-lastName",
+        "id": "Input-orgNumber",
         "type": "Input",
         "textResourceBindings": {
-          "title": "lastName"
+          "title": "Form.Input-orgNumber.title",
+          "description": "Form.Input-orgNumber.description"
         },
         "dataModelBindings": {
-          "simpleBinding": "form.lastName"
+          "simpleBinding": "form.orgNumber"
         },
         "required": false,
         "readOnly": true,
-        "grid": {
-          "xs": 6
-        }
+        "autocomplete": "off"
+      },
+      {
+        "id": "Input-year",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Form.Input-year.title",
+          "description": "Form.Input-year.description"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "form.year"
+        },
+        "required": true,
+        "readOnly": false,
+        "autocomplete": "off"
       },
       {
         "id": "Input-income",
         "type": "Input",
         "textResourceBindings": {
-          "title": "income"
+          "title": "Form.Input-income.title",
+          "description": "Form.Input-income.description"
         },
         "dataModelBindings": {
           "simpleBinding": "form.income"
         },
-        "required": false,
+        "required": true,
         "readOnly": false,
-        "grid": {
-          "xs": 6
-        },
-        "formatting": {
-          "align": "right",
-          "number": {
-            "suffix": " 000 kr",
-            "thousandSeparator": " "
-          }
-        }
+        "autocomplete": "off"
       },
       {
-        "id": "Button-TW6O0a",
+        "id": "Button-submit",
         "type": "Button",
         "textResourceBindings": {
-          "title": "submitToConfirmation"
+          "title": "Form.Button-submit.title"
         },
         "dataModelBindings": {}
       }
