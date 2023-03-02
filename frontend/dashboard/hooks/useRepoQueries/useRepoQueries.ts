@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { IRepository } from 'app-shared/types/global';
-import { AddRepo, Filters, repoService } from 'dashboard/services/repoService';
+import { useServicesContext } from 'dashboard/contexts/servicesContext';
+import { AddRepo, Filters } from 'dashboard/services/repoService';
 
 enum ServerStateCacheKey {
   SearchRepos = 'GET_ORGANIZATIONS',
@@ -8,16 +9,21 @@ enum ServerStateCacheKey {
 }
 
 export const useAddRepoMutation = () => {
+  const { repoService } = useServicesContext();
   return useMutation((repoToAdd: AddRepo) => repoService.addRepo(repoToAdd));
 };
 
 export const useSearchReposQuery = (filter: Filters) => {
+  const { repoService } = useServicesContext();
+
   return useQuery([ServerStateCacheKey.SearchRepos, filter], () =>
     repoService.searchRepos(mapQueryParams(filter))
   );
 };
 
 export const useGetStarredRepos = () => {
+  const { repoService } = useServicesContext();
+
   const queryResult = useQuery([ServerStateCacheKey.StarredRepos], () =>
     repoService.getStarredRepos()
   );
@@ -28,6 +34,8 @@ export const useGetStarredRepos = () => {
 };
 
 export const useSetStarredRepo = () => {
+  const { repoService } = useServicesContext();
+
   const queryClient = useQueryClient();
   return useMutation((repo: IRepository) => repoService.setStarredRepo(repo), {
     onSuccess: () => {
@@ -37,6 +45,8 @@ export const useSetStarredRepo = () => {
 };
 
 export const useUnsetStarredRepo = () => {
+  const { repoService } = useServicesContext();
+
   const queryClient = useQueryClient();
   return useMutation((repo: IRepository) => repoService.unsetStarredRepo(repo), {
     onSuccess: () => {
@@ -46,6 +56,8 @@ export const useUnsetStarredRepo = () => {
 };
 
 export const useCopyAppMutation = () => {
+  const { repoService } = useServicesContext();
+
   return useMutation(({ org, app, repoName }: { org: string; app: string; repoName: string }) =>
     repoService.copyApp(org, app, repoName)
   );
