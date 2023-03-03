@@ -3,7 +3,9 @@ import type { LangRowProps } from './TextRow';
 import type { TextDetail } from './types';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import { screen, render as rtlRender } from '@testing-library/react';
+import { screen, render as rtlRender, waitFor } from '@testing-library/react';
+import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 describe('TextRow', () => {
   const renderTextRow = (props: Partial<LangRowProps> = {}) => {
@@ -26,6 +28,20 @@ describe('TextRow', () => {
     return { user };
   };
 
+  test('Popover should be closed when the user clicks the cancel button', async () => {
+    const { user } = renderTextRow();
+
+    const deleteButton = screen.getByRole('button', { name: /Slett/ });
+    await user.click(deleteButton);
+
+    const cancelPopoverButton = screen.getByRole('button', {
+      name: /chema_editor.textRow-cancel-popover/,
+    });
+    await user.click(cancelPopoverButton);
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
   test('upsertEntry should be called when changing text', async () => {
     const upsertEntry = jest.fn();
     const { user } = renderTextRow({ upsertEntry });
@@ -42,12 +58,23 @@ describe('TextRow', () => {
     });
   });
 
-  test('removeEntry should be called when deleting a entry', async () => {
+  test('Popover should be shown when the user clicks the delete button', async () => {
+    const { user } = renderTextRow();
+    const deleteButton = screen.getByRole('button', { name: /Slett/ });
+    await user.click(deleteButton);
+    const popover = screen.getByRole('dialog');
+    expect(popover).toBeInTheDocument();
+  });
+
+  test('removeEntry should be called when deleting an entry', async () => {
     const removeEntry = jest.fn();
     const { user } = renderTextRow({ removeEntry });
-    const deleteButton = screen.getByTestId('delete-button');
-
+    const deleteButton = screen.getByRole('button', { name: /Slett/ });
     await user.click(deleteButton);
+    const confirmDeleteButton = screen.getByRole('button', {
+      name: /schema_editor.textRow-confirm-cancel-popover/,
+    });
+    await user.click(confirmDeleteButton);
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
 

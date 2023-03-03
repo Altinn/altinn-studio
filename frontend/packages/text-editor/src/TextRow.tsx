@@ -6,10 +6,14 @@ import {
   Button,
   ButtonVariant,
   ErrorMessage,
+  Popover,
+  PopoverVariant,
   TextArea,
   TextField,
 } from '@digdir/design-system-react';
 import { Variables } from './Variables';
+import { ButtonColor } from '@altinn/altinn-design-system';
+import { useTranslation } from 'react-i18next';
 
 export interface LangRowProps {
   textId: string;
@@ -33,6 +37,9 @@ export const TextRow = ({
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textEntryValue, setTextEntryValue] = useState(textData?.value || '');
   const [keyError, setKeyError] = useState('');
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const { t } = useTranslation();
+
   useEffect(() => {
     setTextEntryValue(textData?.value || '');
   }, [textData]);
@@ -76,11 +83,16 @@ export const TextRow = ({
     }
   };
 
-  const handleDeleteClick = () => removeEntry({ textId });
+  const handleDeleteClick = () => {
+    removeEntry({ textId });
+  };
+
+  const toggleConfirmDeletePopover = () => {
+    setIsConfirmDeleteOpen((prev) => !prev);
+  };
 
   const idForValue = `value-${langName}-${textId}`;
   const variables = textData?.variables || [];
-
   const [infoboxOpen, setInfoboxOpen] = useState(false);
 
   return (
@@ -112,16 +124,46 @@ export const TextRow = ({
         />
         {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
       </div>
+
       <div className={classes.rightCol}>
-        <Button
-          data-testid={'delete-button'}
-          className={classes.deleteButton}
-          onClick={handleDeleteClick}
-          icon={<Delete title={`Slett ${textId}`} />}
-          variant={ButtonVariant.Quiet}
+        <Popover
+          title={'Slett_rad'}
+          variant={PopoverVariant.Warning}
+          placement={'left'}
+          open={isConfirmDeleteOpen}
+          trigger={
+            <Button
+              className={classes.deleteButton}
+              icon={<Delete title={`Slett ${textId}`} />}
+              variant={ButtonVariant.Quiet}
+              onClick={toggleConfirmDeletePopover}
+            >
+              <span>{t('schema_editor.delete')}</span>
+            </Button>
+          }
         >
-          <span className={'sr-only'}>{`Slett ${textId}`}</span>
-        </Button>
+          {isConfirmDeleteOpen && (
+            <div>
+              <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
+              <div className={classes.popoverButtons}>
+                <Button
+                  className={classes.popoverConfirmBtn}
+                  onClick={handleDeleteClick}
+                  color={ButtonColor.Danger}
+                >
+                  <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
+                </Button>
+                <Button
+                  variant={ButtonVariant.Quiet}
+                  onClick={toggleConfirmDeletePopover}
+                  color={ButtonColor.Secondary}
+                >
+                  <p>{t('schema_editor.textRow-cancel-popover')}</p>
+                </Button>
+              </div>
+            </div>
+          )}
+        </Popover>
       </div>
     </li>
   );
