@@ -49,7 +49,7 @@ export const TypesInspector = ({
     <div className={classes.root} data-testid='types-inspector'>
       <div className={classes.types}>
         <div className={classes.addRow}>
-          <span className={classes.addRowText}>Typer</span>
+          <span className={classes.addRowText}>{t('schema_editor.types')}</span>
           <Button
             className={classes.addRowButton}
             variant={ButtonVariant.Quiet}
