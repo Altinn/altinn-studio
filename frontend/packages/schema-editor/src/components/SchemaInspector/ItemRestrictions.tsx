@@ -1,6 +1,6 @@
 import { MouseEvent, useState } from 'react';
 import React from 'react';
-import type { Dict, UiSchemaNode } from '@altinn/schema-model';
+import { Dict, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
 import { FieldType } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import {
@@ -118,12 +118,14 @@ export const ItemRestrictions = ({
   };
   return (
     <>
-      <Checkbox
-        checked={isRequired}
-        label={t('schema_editor.required')}
-        name='checkedRequired'
-        onChange={handleRequiredChanged}
-      />
+      {!pointerIsDefinition(pointer) && (
+        <Checkbox
+          checked={isRequired}
+          label={t('schema_editor.required')}
+          name='checkedRequired'
+          onChange={handleRequiredChanged}
+        />
+      )}
       {reference === undefined &&
         {
           [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
@@ -136,7 +138,9 @@ export const ItemRestrictions = ({
         <>
           <Divider inMenu />
           <FieldSet legend={t('schema_editor.enum_legend')}>
-            {!enums?.length && <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>}
+            {!enums?.length && (
+              <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
+            )}
             {enumError !== null && (
               <ErrorMessage>
                 <p>{t('schema_editor.enum_error_duplicate')}</p>

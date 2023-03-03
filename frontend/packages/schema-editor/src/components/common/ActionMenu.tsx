@@ -1,4 +1,5 @@
 import React from 'react';
+import { AddCircle } from '@navikt/ds-icons';
 import type { IconImage } from './Icon';
 import { Icon } from './Icon';
 import classes from './ActionMenu.module.css';
@@ -21,7 +22,10 @@ export interface IActionMenuItemProps {
 export const ActionMenu = ({ openButtonText, className, items }: IActionMenuProps) => (
   <div className={cn(classes.root, className)}>
     <div className={classes.menu}>
-      <button className={classes.openButton}>{openButtonText}</button>
+      <button className={classes.openButton}>
+        <AddCircle className={classes.openButtonIcon} />
+        <span className={classes.openButtonText}>{openButtonText}</span>
+      </button>
       <ul className={classes.list}>
         {items.map((item) => (
           <ActionMenuItem key={item.text} {...item} />
@@ -32,7 +36,7 @@ export const ActionMenu = ({ openButtonText, className, items }: IActionMenuProp
 );
 
 const ActionMenuItem = ({ action, className, icon, text, testId }: IActionMenuItemProps) => (
-  <li className={cn(classes.item, className)} data-testid="menuitem-action-menu">
+  <li className={cn(classes.item, className)} data-testid='menuitem-action-menu'>
     <button
       className={classes.itemButton}
       name={text}
