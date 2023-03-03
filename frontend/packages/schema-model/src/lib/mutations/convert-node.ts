@@ -1,11 +1,18 @@
 import type { UiSchemaNodes } from '../types';
 import { Keywords, ObjectKind } from '../types';
 import { createNodeBase, getUniqueNodePath, makePointer, pointerIsDefinition } from '../utils';
-import { getNodeIndexByPointer, getParentNodeByPointer } from '../selectors';
+import {
+  getNodeByPointer,
+  getNodeIndexByPointer,
+  getParentNodeByPointer,
+  getReferredNodes,
+} from '../selectors';
 import { renameNodePointer } from './rename-node';
 import { insertSchemaNode } from './create-node';
 import { ROOT_POINTER } from '../constants';
 import { deepCopy } from 'app-shared/pure';
+import { removeNodeByPointer } from './remove-node';
+import { copyNodePointer } from './copy-node';
 
 export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
   const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
@@ -54,4 +61,30 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
       isRequired: false,
     })
   );
+};
+
+export const convertRefToField = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
+  const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
+  if (uiNodeIndex === undefined) {
+    throw new Error(`Pointer ${pointer}, can't be found.`);
+  }
+  const uiNode = uiSchemaNodes[uiNodeIndex];
+  if (uiNode.objectKind !== ObjectKind.Reference) {
+    throw new Error(`Pointer ${pointer} is not a reference.`);
+  }
+  const { reference, isRequired } = uiNode;
+  const otherReferredNodes = getReferredNodes(uiSchemaNodes, reference);
+
+  let updatedUiSchemaNodes = removeNodeByPointer(uiSchemaNodes, pointer);
+  // If there is no other referred nodes, just rename the reference to the pointer
+  // else perform a copy.
+  updatedUiSchemaNodes =
+    otherReferredNodes.length === 1
+      ? renameNodePointer(updatedUiSchemaNodes, reference, pointer)
+      : copyNodePointer(updatedUiSchemaNodes, reference, pointer);
+  const newNode = getNodeByPointer(updatedUiSchemaNodes, pointer);
+  newNode.reference = undefined;
+  newNode.isRequired = isRequired;
+
+  return updatedUiSchemaNodes;
 };
