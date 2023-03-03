@@ -46,7 +46,7 @@ export const TypesInspector = ({
   }
 
   return (
-    <div className={classes.root} data-testid='schema-inspector'>
+    <div className={classes.root} data-testid='types-inspector'>
       <div className={classes.types}>
         <div className={classes.addRow}>
           <span className={classes.addRowText}>Typer</span>
