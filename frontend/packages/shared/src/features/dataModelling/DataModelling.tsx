@@ -52,6 +52,10 @@ export function DataModelling({
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
+  const jsonSchemaState = useSelector((state: any) => {
+    const { error, saving } = state.dataModelling;
+    return { error, saving };
+  });
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
   const metadataLoadingState = useSelector((state: any) => state.dataModelsMetadataState.loadState);
   const [selectedOption, setSelectedOption] = React.useState(undefined);
@@ -172,6 +176,7 @@ export function DataModelling({
         editMode={editMode}
         toggleEditMode={toggleEditMode}
         schema={jsonSchema}
+        schemaState={jsonSchemaState}
         onSaveSchema={handleSaveSchema}
         saveUrl={datamodelPath(org, repo, selectedOption?.value?.repositoryRelativeUrl)}
         name={selectedOption?.label}

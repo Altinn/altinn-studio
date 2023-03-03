@@ -25,6 +25,7 @@ test('renders schema editor app', () => {
   render(
     <SchemaEditorApp
       schema={dataMock}
+      schemaState={{ saving: false }}
       onSaveSchema={jest.fn()}
       name='test'
       LandingPagePanel={<div>landing page panel goes here</div>}

@@ -255,6 +255,8 @@
   "general.preview": "Preview",
   "general.required": "Required",
   "general.save": "Save",
+  "general.saved": "Saved!",
+  "general.saving": "Saving",
   "general.search": "Search",
   "general.select_component": "Select component",
   "general.select_field": "Select field",

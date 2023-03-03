@@ -18,6 +18,7 @@ import {
 } from '@altinn/schema-model';
 import { SchemaItemLabelTestIds } from '@altinn/schema-editor/components/TreeView/SchemaItemLabel';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { GenerateSchemaState } from 'app-shared/types/global';
 
 const typesText = 'Typer';
 const texts = {
@@ -32,6 +33,7 @@ const texts = {
   'schema_editor.types_editing': 'Du redigerer nå på',
 };
 const uiSchema = buildUiSchema(dataMock);
+const schemaState: GenerateSchemaState = { saving: false };
 
 const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) => {
   const mockInitialState = {
@@ -57,6 +59,7 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
         Toolbar={<div>toolbar goes here</div>}
         LandingPagePanel={<div>landing page panel goes here</div>}
         schema={dataMock}
+        schemaState={schemaState}
         saveUrl={''}
         onSaveSchema={onSaveSchema}
         name='test'

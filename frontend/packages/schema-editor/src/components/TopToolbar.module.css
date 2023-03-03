@@ -18,3 +18,29 @@
   font-size: 1em;
   padding-top: 4px;
 }
+
+.spinnerWrapper {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: right;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.statusPopover {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.statusPopover.success {
+  animation: fadeOut 1.5s;
+}
