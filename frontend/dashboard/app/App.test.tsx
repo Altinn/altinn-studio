@@ -10,16 +10,7 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }
 type RenderWithMockServicesProps = Services;
 const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
   render(
-    <MockServicesContextWrapper
-      customServices={{
-        userService: {
-          ...services?.userService,
-        },
-        organizationService: {
-          ...services?.organizationService,
-        },
-      }}
-    >
+    <MockServicesContextWrapper customServices={services}>
       <App />
     </MockServicesContextWrapper>
   );

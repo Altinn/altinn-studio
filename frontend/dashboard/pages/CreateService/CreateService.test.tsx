@@ -17,19 +17,7 @@ const renderWithMockServices = (
   user?: User
 ) => {
   render(
-    <MockServicesContextWrapper
-      customServices={{
-        userService: {
-          ...services?.userService,
-        },
-        organizationService: {
-          ...services?.organizationService,
-        },
-        repoService: {
-          ...services?.repoService,
-        },
-      }}
-    >
+    <MockServicesContextWrapper customServices={services}>
       <CreateService
         organizations={organizations || []}
         user={

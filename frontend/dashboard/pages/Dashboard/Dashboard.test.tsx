@@ -13,19 +13,7 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }
 type RenderWithMockServicesProps = Services;
 const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
   render(
-    <MockServicesContextWrapper
-      customServices={{
-        userService: {
-          ...services?.userService,
-        },
-        organizationService: {
-          ...services?.organizationService,
-        },
-        repoService: {
-          ...services?.repoService,
-        },
-      }}
-    >
+    <MockServicesContextWrapper customServices={services}>
       <Dashboard organizations={[]} user={{} as User} />
     </MockServicesContextWrapper>
   );
@@ -64,4 +52,3 @@ test('should display list of my application', async () => {
   await waitForElementToBeRemoved(() => screen.queryByText(/dashboard.loading/));
   expect(await screen.findAllByRole('menuitem', { name: /dashboard.star/ })).toHaveLength(1);
 });
-

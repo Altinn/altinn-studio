@@ -18,17 +18,7 @@ const renderWithMockServices = (
 ) => {
   render(
     <MockServicesContextWrapper
-      customServices={{
-        userService: {
-          ...services?.userService,
-        },
-        organizationService: {
-          ...services?.organizationService,
-        },
-        repoService: {
-          ...services?.repoService,
-        },
-      }}
+      customServices={services}
     >
       <RepoList repos={[starredRepo] as unknown as IRepository[]} {...componentProps} />
     </MockServicesContextWrapper>
