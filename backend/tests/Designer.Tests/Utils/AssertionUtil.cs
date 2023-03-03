@@ -6,6 +6,7 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using IdentityModel.OidcClient;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Altinn.AccessManagement.Tests.Utils
 {
@@ -102,6 +103,31 @@ namespace Altinn.AccessManagement.Tests.Utils
             Assert.Equal(expected.GetResourceAttributes().Attributes.Count, actual.GetResourceAttributes().Attributes.Count);
             Assert.Equal(expected.GetSubjectAttributes().Attributes.Count, actual.GetSubjectAttributes().Attributes.Count);
             AssertEqual(expected.Attributes, actual.Attributes);
+        }
+
+
+        public static void AssertXacmlPolicy(XacmlPolicy expected, XacmlPolicy actual)
+        {
+            Assert.Equal(expected.Description, actual.Description);
+            Assert.Equal(expected.RuleCombiningAlgId, actual.RuleCombiningAlgId);
+            AssertCollections(expected.Rules, actual.Rules, AssertXacmlRulesEqual);
+            AssertCollections(expected.ObligationExpressions, actual.ObligationExpressions, AsssertXacmlObligationExpressionsEqual);
+        }
+
+
+        public static void AsssertXacmlObligationExpressionsEqual(XacmlObligationExpression expected, XacmlObligationExpression actual)
+        {
+            Assert.Equal(expected.ObligationId, actual.ObligationId);
+            Assert.Equal(expected.FulfillOn, actual.FulfillOn);
+            AssertCollections(expected.AttributeAssignmentExpressions, actual.AttributeAssignmentExpressions, AssertXacmlAttritubeAssignmentExpressionEqual);
+        }
+
+
+        public static void AssertXacmlAttritubeAssignmentExpressionEqual(XacmlAttributeAssignmentExpression expected, XacmlAttributeAssignmentExpression actual)
+        {
+            Assert.Equal(expected.Issuer, actual.Issuer);
+            Assert.Equal(expected.Category, actual.Category);
+            Assert.Equal(expected.AttributeId, actual.AttributeId);
         }
 
         /// <summary>

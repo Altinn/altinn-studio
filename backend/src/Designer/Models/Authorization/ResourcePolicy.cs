@@ -7,5 +7,7 @@ namespace Altinn.Studio.Designer.Models.Authorization
         public List<PolicyRule> Rules  { get; set; }
 
         public List<PolicyObligation> Obligations { get; set;}
+
+        public string RequiredAuthenticationLevelEndUser { get; set; }
     }
 }

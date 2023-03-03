@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Studio.Designer.Models.Authorization;
 using k8s.Models;
@@ -104,6 +105,20 @@ namespace Altinn.Studio.Designer.Helpers
 
                 policy.Rules.Add(rule);
             }
+
+            foreach(XacmlObligationExpression obligationExpression in xacmlPolicy.ObligationExpressions)
+            {
+                foreach (XacmlAttributeAssignmentExpression attributeAssignmentExpression in obligationExpression.AttributeAssignmentExpressions)
+                {
+                    if (attributeAssignmentExpression.Category.Equals(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel))
+                    {
+                        XacmlAttributeValue astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
+                        policy.RequiredAuthenticationLevelEndUser = astr.Value;
+                    }
+
+                }
+            }
+
             return policy;
         }
 
@@ -111,13 +126,14 @@ namespace Altinn.Studio.Designer.Helpers
         public static XacmlPolicy ConvertPolicy(ResourcePolicy policyInput)
         {
 
-            XacmlPolicy policyOutput = new XacmlPolicy(new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"), new Uri(XacmlConstants.CombiningAlgorithms.PolicyDenyOverrides), new XacmlTarget(new List<XacmlAnyOf>()));
+            XacmlPolicy policyOutput = new XacmlPolicy(new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"), new Uri(XacmlConstants.CombiningAlgorithms.RuleDenyOverrides), new XacmlTarget(new List<XacmlAnyOf>()));
 
             foreach (PolicyRule rule in policyInput.Rules)
             {
                 policyOutput.Rules.Add(ConvertRule(rule));
             }
 
+            policyOutput.ObligationExpressions.Add(GetAuthenticationLevelObligation(policyInput.RequiredAuthenticationLevelEndUser));
 
             return policyOutput;
         }
@@ -213,6 +229,21 @@ namespace Altinn.Studio.Designer.Helpers
                 }
             
             return new XacmlAnyOf(actionAllOfs);
+        }
+
+
+        private static  XacmlObligationExpression GetAuthenticationLevelObligation(string level)
+        {
+            XacmlObligationExpression expression = new XacmlObligationExpression(new Uri("urn:altinn:obligation:authenticationLevel1"), XacmlEffectType.Permit);
+
+            XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
+            astr.Value = level;
+
+
+            XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation1-assignment1"), astr);
+            xacmlAttributeAssignmentExpression.Category = new Uri(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel);
+            expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
+            return expression;
         }
     }
 }

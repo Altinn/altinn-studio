@@ -22,10 +22,7 @@ namespace Designer.Tests.Helpers
             ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
             Assert.NotNull(convertedPolicy);
             XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
-            Assert.Equal(policy.Rules.Count, convertedBackPolicy.Rules.Count);
-            AssertionUtil.AssertCollections(policy.Rules, convertedBackPolicy.Rules, AssertionUtil.AssertXacmlRulesEqual);
+            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
         }
-
-
     }
 }
