@@ -29,6 +29,7 @@ const texts = {
   'schema_editor.field': 'Felt',
   'schema_editor.reference': 'Referanse',
   'schema_editor.types': typesText,
+  'schema_editor.types_editing': 'Du redigerer nå på',
 };
 const uiSchema = buildUiSchema(dataMock);
 
@@ -82,6 +83,7 @@ describe('SchemaEditor', () => {
     expect(screen.getByTestId('save-model-button')).toBeDefined();
     expect(screen.getByTestId('save-model-button')).toBeDisabled();
     expect(screen.queryByTestId('schema-inspector')).toBeNull();
+    expect(screen.getByTestId('types-inspector')).toBeDefined();
   });
 
   test('renders schema editor with populated schema in edit mode', () => {
@@ -91,6 +93,7 @@ describe('SchemaEditor', () => {
     expect(screen.getByTestId('save-model-button')).toBeEnabled();
     // eslint-disable-next-line testing-library/prefer-presence-queries
     expect(screen.queryByTestId('schema-inspector')).toBeDefined();
+    expect(screen.getByTestId('types-inspector')).toBeDefined();
   });
 
   test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
@@ -303,5 +306,33 @@ describe('SchemaEditor', () => {
     expect(menuItemIds).not.toContain('add-field-to-node-button');
     expect(menuItemIds).toContain('add-reference-to-node-button');
     expect(menuItemIds).not.toContain('add-combination-to-node-button');
+  });
+
+  test('when a type is selected, the type edit panel should be rendered', async () => {
+    const jsonSchema = {
+      [Keywords.Properties]: {
+        someProp: { [Keywords.Type]: FieldType.String },
+        testProp: { [Keywords.Reference]: `#/${Keywords.Definitions}/TestType` },
+      },
+      [Keywords.Definitions]: {
+        TestType: {
+          [Keywords.Type]: FieldType.Object,
+          [Keywords.Properties]: {
+            prop1: { [Keywords.Type]: FieldType.String },
+            prop2: { [Keywords.Type]: FieldType.String },
+          },
+        },
+      },
+    };
+    const uiSchemaToTest = buildUiSchema(jsonSchema);
+    const { user } = renderEditor({
+      schema: jsonSchema,
+      uiSchema: uiSchemaToTest,
+    });
+    const type = screen.getByTestId(`type-item-#/${Keywords.Definitions}/TestType`);
+
+    await user.click(type);
+
+    expect(screen.getByText('Du redigerer nå på TestType')).toBeDefined();
   });
 });

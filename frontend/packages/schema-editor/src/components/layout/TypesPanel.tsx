@@ -1,13 +1,12 @@
 import type { ChangeEvent } from 'react';
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import type { ISchemaState } from '@altinn/schema-editor/types';
+import { useDispatch } from 'react-redux';
 import {
   addCombinationItem,
   addProperty,
 } from '@altinn/schema-editor/features/editor/schemaEditorSlice';
 
-import { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
+import { CombinationKind, getNameFromPointer, UiSchemaNode } from '@altinn/schema-model';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 
 import { SchemaTreeView } from '../TreeView/SchemaTreeView';
@@ -21,20 +20,17 @@ import { SchemaEditorTestIds } from '../SchemaEditor';
 export type TypesPanelProps = PanelProps & {
   expandedDefNodes: string[];
   setExpandedDefNodes: (nodes: string[]) => void;
-  definitions: UiSchemaNode;
+  uiSchemaNode: UiSchemaNode;
 };
 export const TypesPanel = ({
   editMode,
   expandedDefNodes,
   setExpandedDefNodes,
-  definitions,
+  uiSchemaNode,
 }: TypesPanelProps) => {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
-  const selectedDefinitionNodeId = useSelector(
-    (state: ISchemaState) => state.selectedDefinitionNodeId
-  );
   const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
     setExpandedDefNodes(nodeIds);
 
@@ -47,8 +43,8 @@ export const TypesPanel = ({
       newNode.fieldType = CombinationKind.AllOf;
     }
     newNode.reference = objectKind === ObjectKind.Reference ? '' : undefined;
-    const { pointer } = definitions;
-    definitions.objectKind === ObjectKind.Combination
+    const { pointer } = uiSchemaNode;
+    uiSchemaNode.objectKind === ObjectKind.Combination
       ? dispatch(addCombinationItem({ pointer, props: newNode }))
       : dispatch(addProperty({ pointer, props: newNode }));
   };
@@ -108,11 +104,12 @@ export const TypesPanel = ({
       <SchemaTreeView
         editMode={editMode}
         expanded={expandedDefNodes}
-        items={[definitions]}
+        items={[uiSchemaNode]}
         translate={t}
         onNodeToggle={handleDefinitionsNodeExpanded}
-        selectedPointer={selectedDefinitionNodeId}
+        selectedPointer={uiSchemaNode.pointer}
         isPropertiesView={false}
+        data-testid={`type-treeview-${getNameFromPointer({ pointer: uiSchemaNode.pointer })}`}
       />
     </div>
   );

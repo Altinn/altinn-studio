@@ -4,7 +4,7 @@
   align-items: flex-start;
   padding: 24px 30px;
   gap: 10px;
-  width: 280px;
+  width: 220px;
   height: 1087px;
   background: rgba(224, 224, 224, 0.3);
 }
@@ -20,10 +20,9 @@
 }
 
 .addRow {
-  width: calc(100% + 22px);
+  width: 220px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
   align-items: center;
 }
 

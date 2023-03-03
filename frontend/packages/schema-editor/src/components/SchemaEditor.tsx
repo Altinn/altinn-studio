@@ -199,7 +199,9 @@ export const SchemaEditor = ({
             >
               <div className={classes.typeInfo}>
                 <span>
-                  Du redigerer nå på {getNameFromPointer({ pointer: selectedType.pointer })}
+                  {`${t('types_editing')} ${getNameFromPointer({
+                    pointer: selectedType.pointer,
+                  })}`}
                 </span>
                 <Button
                   onClick={handleResetSelectedType}
@@ -210,7 +212,7 @@ export const SchemaEditor = ({
               </div>
               <TypesPanel
                 editMode={editMode}
-                definitions={selectedType}
+                uiSchemaNode={selectedType}
                 setExpandedDefNodes={setExpandedDefNodes}
                 expandedDefNodes={
                   expandedDefNodes.includes(selectedType?.pointer)
