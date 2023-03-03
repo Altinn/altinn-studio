@@ -162,6 +162,7 @@ namespace Altinn.AccessManagement.Tests.Utils
 
         public static void AssertXacmlMatch(XacmlMatch expected, XacmlMatch actual)
         {
+            Assert.Equal(expected.MatchId, actual.MatchId);
             AssertXacmlAttriuteDesignator(expected.AttributeDesignator, actual.AttributeDesignator);
 
         }
@@ -169,6 +170,9 @@ namespace Altinn.AccessManagement.Tests.Utils
         public static void AssertXacmlAttriuteDesignator(XacmlAttributeDesignator expected, XacmlAttributeDesignator actual)
         {
             Assert.Equal(expected.Category, actual.Category);
+            Assert.Equal(expected.DataType, actual.DataType);
+            Assert.Equal(expected.Issuer, actual.Issuer);
+            Assert.Equal(expected.MustBePresent, actual.MustBePresent);
         }
 
 

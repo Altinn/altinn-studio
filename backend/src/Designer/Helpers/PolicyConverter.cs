@@ -169,8 +169,9 @@ namespace Altinn.Studio.Designer.Helpers
 
                     XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(x.Designator), new Uri(XacmlConstants.DataTypes.XMLString));
                     xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Resource);
+                    xacmlAttributeDesignator.MustBePresent = false;
 
-                    XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase), xacmlAttributeValue, xacmlAttributeDesignator);
+                    XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqual), xacmlAttributeValue, xacmlAttributeDesignator);
                     matches.Add(xacmlMatch);
                 }
 
@@ -197,6 +198,7 @@ namespace Altinn.Studio.Designer.Helpers
 
                     XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(x.Designator), new Uri(XacmlConstants.DataTypes.XMLString));
                     xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Subject);
+                    xacmlAttributeDesignator.MustBePresent = false;
 
                     XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase), xacmlAttributeValue, xacmlAttributeDesignator);
                     matches.Add(xacmlMatch);
@@ -221,8 +223,9 @@ namespace Altinn.Studio.Designer.Helpers
 
                     XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(x.Attribute.Designator), new Uri(XacmlConstants.DataTypes.XMLString));
                     xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Action);
+                    xacmlAttributeDesignator.MustBePresent = false;
 
-                    XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase), xacmlAttributeValue, xacmlAttributeDesignator);
+                    XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqual), xacmlAttributeValue, xacmlAttributeDesignator);
                     matches.Add(xacmlMatch);
                     XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
                     actionAllOfs.Add(xacmlAllOf);
@@ -236,13 +239,14 @@ namespace Altinn.Studio.Designer.Helpers
         {
             XacmlObligationExpression expression = new XacmlObligationExpression(new Uri("urn:altinn:obligation:authenticationLevel1"), XacmlEffectType.Permit);
 
-            XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
+            XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
             astr.Value = level;
 
 
             XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation1-assignment1"), astr);
             xacmlAttributeAssignmentExpression.Category = new Uri(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel);
             expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
+            expression.FulfillOn = XacmlEffectType.Permit;
             return expression;
         }
     }

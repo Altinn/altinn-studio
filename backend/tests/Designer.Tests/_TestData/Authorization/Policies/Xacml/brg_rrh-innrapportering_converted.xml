@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<xacml:Policy xmlns:xsl="http://www.w3.org/2001/XMLSchema-instance" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="urn:altinn:example:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides">
-  <xacml:Target/>
+<xacml:Policy PolicyId="urn:altinn:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
+  <xacml:Target />
   <xacml:Rule RuleId="urn:altinn:example:ruleid:1" Effect="Permit">
     <xacml:Description>A rule giving user with role MEDL, LEDE, NEST, DAGL, DTPR, DTSO, KOMP, FFØR, REPR, KONT or KNUF and the app owner brg the right to instantiate a instance of a given app of brg/rrh-innrapportering</xacml:Description>
     <xacml:Target>
