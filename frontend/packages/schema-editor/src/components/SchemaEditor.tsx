@@ -177,51 +177,47 @@ export const SchemaEditor = ({
       />
       <main className={classes.main}>
         {LandingPagePanel}
-        {schema &&
-          process.env.NODE_ENV !== 'production' && ( // remove NODE_ENV check to toggle feature in production
-            <aside className={classes.inspector}>
-              <TypesInspector
-                schemaItems={definitions}
-                handleSelectType={handleSelectType}
-                key={selectedType?.pointer || ''}
-                selectedNodePointer={selectedType?.pointer}
-              />
-            </aside>
-          )}
-        {name &&
-          schema &&
-          selectedType &&
-          process.env.NODE_ENV !== 'production' && ( // remove NODE_ENV check to toggle feature in production
-            <div
-              data-testid='types-editor'
-              id='types-editor'
-              className={classNames(classes.editor, classes.editorTypes)}
-            >
-              <div className={classes.typeInfo}>
-                <span>
-                  {`${t('types_editing')} ${getNameFromPointer({
-                    pointer: selectedType.pointer,
-                  })}`}
-                </span>
-                <Button
-                  onClick={handleResetSelectedType}
-                  icon={<Close />}
-                  variant={ButtonVariant.Quiet}
-                  color={ButtonColor.Inverted}
-                />
-              </div>
-              <TypesPanel
-                editMode={editMode}
-                uiSchemaNode={selectedType}
-                setExpandedDefNodes={setExpandedDefNodes}
-                expandedDefNodes={
-                  expandedDefNodes.includes(selectedType?.pointer)
-                    ? expandedDefNodes
-                    : expandedDefNodes.concat([selectedType.pointer])
-                }
+        {schema && (
+          <aside className={classes.inspector}>
+            <TypesInspector
+              schemaItems={definitions}
+              handleSelectType={handleSelectType}
+              key={selectedType?.pointer || ''}
+              selectedNodePointer={selectedType?.pointer}
+            />
+          </aside>
+        )}
+        {name && schema && selectedType && (
+          <div
+            data-testid='types-editor'
+            id='types-editor'
+            className={classNames(classes.editor, classes.editorTypes)}
+          >
+            <div className={classes.typeInfo}>
+              <span>
+                {`${t('types_editing')} ${getNameFromPointer({
+                  pointer: selectedType.pointer,
+                })}`}
+              </span>
+              <Button
+                onClick={handleResetSelectedType}
+                icon={<Close />}
+                variant={ButtonVariant.Quiet}
+                color={ButtonColor.Inverted}
               />
             </div>
-          )}
+            <TypesPanel
+              editMode={editMode}
+              uiSchemaNode={selectedType}
+              setExpandedDefNodes={setExpandedDefNodes}
+              expandedDefNodes={
+                expandedDefNodes.includes(selectedType?.pointer)
+                  ? expandedDefNodes
+                  : expandedDefNodes.concat([selectedType.pointer])
+              }
+            />
+          </div>
+        )}
         {name && schema && !selectedType ? (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
             <ModelsPanel
