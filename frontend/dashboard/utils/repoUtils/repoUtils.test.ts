@@ -1,5 +1,4 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import type { Organizations } from '../../services/organizationApi';
 import { getReposLabel, mergeRepos, validateRepoName } from './repoUtils';
 
 const texts = {
@@ -9,7 +8,7 @@ const texts = {
 };
 const t = (key: string) => texts[key];
 
-const orgs: Organizations = [];
+const orgs: any[] = [];
 
 describe('getReposLabel', () => {
   it('should return "all apps" when selectedContext is All', () => {

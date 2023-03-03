@@ -1,1 +1,2 @@
-export { MergeReposProps, getReposLabel, mergeRepos, validateRepoName } from './repoUtils';
+export type { MergeReposProps } from './repoUtils';
+export { getReposLabel, mergeRepos, validateRepoName } from './repoUtils';
