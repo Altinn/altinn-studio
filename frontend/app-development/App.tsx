@@ -44,6 +44,10 @@ i18next.use(initReactI18next).init({
     en: { translation: en },
   },
   fallbackLng: 'nb',
+  react: {
+    transSupportBasicHtmlNodes: true,
+    transKeepBasicHtmlNodesFor: ['em'],
+  },
 });
 
 export function App() {

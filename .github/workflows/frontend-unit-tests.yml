@@ -15,8 +15,8 @@ env:
   CYPRESS_INSTALL_BINARY: 0
 
 jobs:
-  test:
-    name: Lint, Test and build
+  typecheck:
+    name: "Typechecking and linting"
     runs-on: ubuntu-latest
     steps:
       - name: 'Checking Out Code'
@@ -24,33 +24,45 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v3
-
-      - name: Get yarn cache directory path
-        working-directory: frontend
-        id: yarn-cache-dir-path
-        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v3
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
       - name: 'Installing Dependencies'
+        uses: ./.github/actions/yarn-install
+
+      - name: 'Doing the typecheck'
         working-directory: frontend
-        run: yarn install --immutable --inline-builds
-        env:
-          YARN_ENABLE_GLOBAL_CACHE: 'false'
-          YARN_NM_MODE: 'hardlinks-local'
-          HUSKY: '0'
+        run: yarn typecheck
 
       - name: 'Running Eslint'
         working-directory: frontend
         run: yarn lint
 
+  test:
+    name: "Testing"
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checking Out Code'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: 'Installing Dependencies'
+        uses: ./.github/actions/yarn-install
+
       - name: 'Running Unit Tests'
         working-directory: frontend
         run: yarn test:ci
+
+  build:
+    name: "Building"
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checking Out Code'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: 'Installing Dependencies'
+        uses: ./.github/actions/yarn-install
+
+      - name: "Building"
+        working-directory: frontend
+        run: yarn build

@@ -22,7 +22,7 @@ export const generateComponentId = (componentType: string, layouts: IFormLayouts
       const layout = layouts[layoutName];
       if (componentType === ComponentTypes.Group) {
         existsInLayout = !!layout.containers[componentId];
-      } else {
+      } else if (layout.components) {
         existsInLayout = !!layout.components[componentId];
       }
     });

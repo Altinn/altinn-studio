@@ -13,7 +13,7 @@ import { gitCommitPath } from 'app-shared/api-paths';
 import { useMediaQuery } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
 import { useAppReleases, useBranchStatus, useRepoStatus } from '../hooks/query-hooks';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { CacheKey } from 'app-shared/api-paths/cache-key';
 
@@ -68,9 +68,9 @@ export function ReleaseContainer() {
           )}
           <div>
             <div className={classes.cannotCreateReleaseTitle}>
-              {t('app_create_release_errors.fetch_release_failed', {
-                contactLink: 'mailto:tjenesteeier@altinn.no',
-              })}
+              <Trans i18nKey={'app_create_release_errors.fetch_release_failed'}>
+                <a target='_blank' rel='noopener noreferrer' />
+              </Trans>
             </div>
             <div className={classes.cannotCreateReleaseSubTitle}>
               {t('app_create_release_errors.technical_error_code')}

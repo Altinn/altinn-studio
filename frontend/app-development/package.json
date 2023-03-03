@@ -10,8 +10,8 @@
   ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.27.5",
-    "@digdir/design-system-react": "0.6.0",
-    "@mui/material": "5.11.10",
+    "@digdir/design-system-react": "0.7.0",
+    "@mui/material": "5.11.11",
     "@reduxjs/toolkit": "1.9.3",
     "@tanstack/react-query": "4.24.10",
     "axios": "1.3.4",
@@ -23,7 +23,7 @@
     "react-dom": "18.2.0",
     "react-i18next": "12.2.0",
     "react-redux": "8.0.5",
-    "react-router-dom": "6.8.1",
+    "react-router-dom": "6.8.2",
     "react-select": "5.7.0",
     "redux": "4.2.1",
     "redux-saga": "1.2.2",
@@ -40,12 +40,12 @@
   "license": "3-Clause BSD",
   "private": true,
   "scripts": {
-    "build": "yarn typeCheck:once && cross-env NODE_ENV=production webpack --config ../webpack.config.prod.js",
+    "build": "cross-env NODE_ENV=production webpack --config ../webpack.config.prod.js",
     "build-with-profile": "yarn build --profile --json > stats.json",
     "bundle-size": "npx webpack-bundle-analyzer ./stats.json",
-    "start": "yarn typeCheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
+    "start": "yarn typecheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
     "test": "jest --maxWorkers=50%",
-    "typeCheck:once": "tsc --noEmit",
-    "typeCheck:watch": "tsc --noEmit -w"
+    "typecheck:watch": "tsc --noEmit -w",
+    "typecheck": "tsc --noEmit"
   }
 }

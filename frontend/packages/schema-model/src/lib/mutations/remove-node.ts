@@ -28,11 +28,17 @@ export const removeNodeByPointer = (
     throw new Error(`Can't remove ${pointer}, can't find parent node.`);
   }
 
-  // Remove itself decendants... just using the pointer
+  // Remove decendants... just using the pointer
   mutatedUiNodeMap = mutatedUiNodeMap.filter(
-    (uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(justChildren ? `${pointer}/` : pointer)
+    (uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(`${pointer}/`)
   );
 
+  // Removing itself...
+  if (!justChildren) {
+    mutatedUiNodeMap = mutatedUiNodeMap.filter(
+      (uiNode: UiSchemaNode) => uiNode.pointer !== pointer
+    );
+  }
   // dealing with combinations, updating their children is a little more tricky.
   if (parentNode.objectKind === ObjectKind.Combination) {
     parentNode.children.forEach((oldPointerBase, index) => {

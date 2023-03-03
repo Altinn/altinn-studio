@@ -5,7 +5,7 @@ import { InfoCard } from '../components/InfoCard';
 import { ReleaseContainer } from '../containers/releaseContainer';
 import { useOrgList } from '../hooks/query-hooks';
 import { useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { useInvalidator } from '../hooks/invalidator';
 
@@ -30,8 +30,16 @@ export function DeployPage() {
   if (!orgs.orgs[org] || !orgs.orgs[org].environments || !orgs.orgs[org].environments.length) {
     return (
       <InfoCard headerText={t('app_publish.no_env_title')} shadow={true}>
-        <div>{t('app_publish.no_env_1')}</div>
-        <div style={{ paddingTop: '2.4rem' }}>{t('app_publish.no_env_2')}</div>
+        <div>
+          <Trans i18nKey={'app_publish.no_env_1'}>
+            <a href='mailto:tjenesteeier@altinn.no' />
+          </Trans>
+        </div>
+        <div style={{ paddingTop: '2.4rem' }}>
+          <Trans i18nKey={'app_publish.no_env_2'}>
+            <a target='_new' rel='noopener noreferrer' />
+          </Trans>
+        </div>
       </InfoCard>
     );
   }
