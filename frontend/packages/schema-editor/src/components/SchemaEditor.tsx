@@ -167,8 +167,6 @@ export const SchemaEditor = ({
   };
 
   const loadingIndicator = loading ? <AltinnSpinner spinnerText={t('general.loading')} /> : null;
-  console.log('selected item: ', selectedItem?.pointer);
-  console.log('selected type: ', selectedType?.pointer);
   return (
     <div className={classes.root}>
       <TopToolbar

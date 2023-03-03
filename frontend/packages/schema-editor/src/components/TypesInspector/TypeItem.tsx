@@ -12,9 +12,6 @@ export interface TypeItemProps {
 }
 
 export const TypeItem = ({ uiSchemaNode, selected, handleItemClick }: TypeItemProps) => {
-  if (selected) {
-    console.log(uiSchemaNode.pointer);
-  }
   const handleClick = () => {
     handleItemClick(uiSchemaNode);
   };

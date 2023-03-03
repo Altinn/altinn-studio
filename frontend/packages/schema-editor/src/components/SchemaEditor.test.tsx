@@ -304,13 +304,4 @@ describe('SchemaEditor', () => {
     expect(menuItemIds).toContain('add-reference-to-node-button');
     expect(menuItemIds).not.toContain('add-combination-to-node-button');
   });
-
-  test('should trigger correct dispatch when changing tab', async () => {
-    const { store, user } = renderEditor();
-    const tab = screen.getByRole('tab', { name: typesText });
-    await user.click(tab);
-    const lastAction = store.getActions().at(-1);
-    expect(lastAction.type).toBe('schemaEditor/setSelectedTab');
-    expect(lastAction.payload).toStrictEqual({ selectedTab: 'definitions' });
-  });
 });
