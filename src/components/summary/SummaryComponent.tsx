@@ -163,7 +163,7 @@ export function SummaryComponent(_props: ISummaryComponent) {
     }
   }, [formValidations, layout, pageRef, formComponent, componentRef]);
 
-  if (hidden || !formComponent || !formComponentLegacy) {
+  if (hidden || !formComponent || !formComponentLegacy || formComponent.type === 'Summary') {
     return null;
   }
 
@@ -192,11 +192,7 @@ export function SummaryComponent(_props: ISummaryComponent) {
         )}
       />
     );
-  } else if (
-    layoutComponent?.getComponentType() === ComponentType.Presentation &&
-    formComponent?.type !== 'Summary' &&
-    formComponent?.type !== 'Group'
-  ) {
+  } else if (layoutComponent?.getComponentType() === ComponentType.Presentation && formComponent?.type !== 'Group') {
     // Render non-input components as normal
     return <GenericComponent {...formComponent} />;
   }
@@ -222,7 +218,7 @@ export function SummaryComponent(_props: ISummaryComponent) {
         <SummaryComponentSwitch
           id={id}
           change={change}
-          formComponent={formComponentLegacy}
+          formComponent={formComponent}
           label={label}
           hasValidationMessages={hasValidationMessages}
           formData={calculatedFormData}
