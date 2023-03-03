@@ -59,7 +59,7 @@ export const replaceLastPointerSegment = (pointer: string, newLastSegment: strin
 };
 
 export const pointerIsDefinition = (pointer: string) =>
-  pointer.startsWith(makePointer(Keywords.Definitions));
+  pointer.startsWith(makePointer(Keywords.Definitions)) && !pointer.includes(Keywords.Properties);
 
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
   childNodes.some((child) => child.fieldType === FieldType.Null);

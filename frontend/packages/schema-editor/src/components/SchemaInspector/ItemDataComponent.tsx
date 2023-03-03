@@ -27,7 +27,7 @@ import {
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
+import { CombinationKind, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
 import {
   combinationIsNullable,
   FieldType,
@@ -192,7 +192,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
           selectedNode={{ pointer, reference }}
         />
       )}
-      {objectKind !== ObjectKind.Combination && (
+      {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
         <Checkbox
           checked={isArray}
           label={t('schema_editor.multiple_answers')}
