@@ -3,14 +3,6 @@ name: Repositories Scan
 on:
   schedule:
   - cron: '0 8 * * 1,4'
-  push:
-    branches: [ master ]
-    paths:
-      - 'gitea/Dockerfile'
-  pull_request:
-    branches: [ master ]
-    paths:
-      - 'gitea/Dockerfile'
 
 jobs:
   build:

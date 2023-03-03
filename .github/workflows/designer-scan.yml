@@ -3,14 +3,6 @@ name: Designer Scan
 on:
   schedule:
     - cron: '14 8 * * 1,4'
-  push:
-    branches: [ master ]
-    paths:
-      - 'Dockerfile'
-  pull_request:
-    branches: [ master ]
-    paths:
-      - 'Dockerfile'
 
 jobs:
   build:
@@ -19,7 +11,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build . --tag altinn-designer:${{github.sha}}
-      
+
     - uses: Azure/container-scan@v0
       env:
         # See https://github.com/goodwithtech/dockle/issues/188
