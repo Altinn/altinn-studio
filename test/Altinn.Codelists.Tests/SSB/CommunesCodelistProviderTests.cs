@@ -6,17 +6,17 @@ using Altinn.Codelists.Tests.SSB.Mocks;
 
 namespace Altinn.Codelists.Tests.SSB;
 
-public class CountriesStatusCodelistProviderTests
+public class CommunesCodelistProviderTests
 {
     [Fact]
     public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("land", Classification.Countries, httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("kommuner", Classification.Communes, httpClientMock);
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
-        appOptions.Options.Should().HaveCount(252);
-        appOptions.Options.First(x => x.Value == "NOR").Label.Should().Be("Norge");
+        appOptions.Options.Should().HaveCount(357);
+        appOptions.Options.First(x => x.Value == "4640").Label.Should().Be("Sogndal");
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Altinn.App.Core.Features;
 using Altinn.Codelists.SSB;
 using Altinn.Codelists.SSB.Clients;
+using Altinn.Codelists.SSB.Models;
 using Altinn.Codelists.Tests.SSB.Mocks;
 
 namespace Altinn.Codelists.Tests.SSB;
@@ -11,7 +12,7 @@ public class IndustryGroupingCodelistProviderTests
     public async Task GetAppOptionsAsync_AllLevels_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new IndustryGroupingCodelistProvider(httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("næringsgruppering", Classification.IndustryGrouping, httpClientMock);
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
@@ -25,7 +26,7 @@ public class IndustryGroupingCodelistProviderTests
     public async Task GetAppOptionsAsync_FirstLevelOnly_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new IndustryGroupingCodelistProvider(httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("næringsgruppering", Classification.IndustryGrouping, httpClientMock);
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>() { { "level", "1" } });
 

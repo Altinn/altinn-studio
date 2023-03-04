@@ -26,6 +26,11 @@ public enum Classification
     Counties = 104,
 
     /// <summary>
+    /// Standard for kommuner
+    /// </summary>
+    Communes = 131,
+
+    /// <summary>
     /// Standard for landkoder (alfa-3)
     /// </summary>
     Countries = 552
