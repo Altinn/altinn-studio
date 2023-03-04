@@ -21,6 +21,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAppOptionsProvider, IndustryGroupingCodelistProvider>();
         services.AddTransient<IAppOptionsProvider, SexCodelistProvider>();
         services.AddTransient<IAppOptionsProvider, CountiesCodelistProvider>();
+        services.AddTransient<IAppOptionsProvider, CountriesCodelistProvider>();
 
         return services;
     }

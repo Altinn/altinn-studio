@@ -11,6 +11,7 @@ public class ClassificationsHttpClientMock : IClassificationsClient
     private const string INDUSTRY_GROUPING_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.industryGrouping.json";
     private const string SEX_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.sex.json";
     private const string COUNTIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.counties.json";
+    private const string COUNTRIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.countries.json";
 
     private readonly IClassificationsClient _client;
     private readonly IOptions<ClassificationSettings> _options;
@@ -38,6 +39,10 @@ public class ClassificationsHttpClientMock : IClassificationsClient
         HttpMessageHandlerMock
             .When("http://data.ssb.no/api/klass/v1/classifications/104/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(COUNTIES_TESTDATA_RESOURCE).Result);
+
+        HttpMessageHandlerMock
+            .When("http://data.ssb.no/api/klass/v1/classifications/552/*")
+            .Respond("application/json", EmbeddedResource.LoadDataAsString(COUNTRIES_TESTDATA_RESOURCE).Result);
 
         _client = new ClassificationsHttpClient(_options, new HttpClient(HttpMessageHandlerMock));
     }
