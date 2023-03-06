@@ -133,7 +133,7 @@ export function App() {
 
   // Make sure to create a new page when the last one is deleted!
   useEffect(() => {
-    if (!selectedLayout) {
+    if (!selectedLayout && layoutPagesOrder.length === 0) {
       const name = t('general.page') + (layoutPagesOrder.length + 1);
       dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
     }
