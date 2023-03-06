@@ -3,8 +3,8 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IFileSelectorProps } from './FileSelector';
 import FileSelector from './FileSelector';
-import { Button } from '@mui/material';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { Button } from '@digdir/design-system-react';
 
 const user = userEvent.setup();
 
@@ -15,10 +15,7 @@ const texts = {
   'app_data_modelling.upload_xsd': 'Upload button text',
 };
 
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const render = (props: Partial<IFileSelectorProps> = {}) => {
   const allProps: IFileSelectorProps = {
