@@ -11,7 +11,7 @@ App used for testing process flow with different access policy for different pro
 
 ## Testing
 
-The policy is set up so that users with an accountant role in an organization can instantiate and fill out the data step, but do not have read/confirm access to the confirmation step. Users with an auditor role are only allowed to read/confirm the confirmation step but are not allowed to instantiate, read, or fill out the data task. Users with a manager (`DAGL`) role has access to every step. Everyone is allowed to see the receipt.
+The policy is set up so that users with an accountant role in an organization can instantiate and fill out the data step, but do not have confirm access to the confirmation step. Users with an auditor role are only allowed to read/confirm the confirmation step but are not allowed to instantiate, read, or fill out the data task. Users with a manager (`DAGL`) role has access to every step. Everyone is allowed to see the receipt.
 
 ### LocalTest
 
