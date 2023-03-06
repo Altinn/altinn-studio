@@ -4,6 +4,7 @@
 
 [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/altinn-storage-master)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=30)
 
+[![PDF scan](https://github.com/altinn/altinn-studio/actions/workflows/pdf-scan.yml/badge.svg)](https://github.com/Altinn/altinn-studio/actions/workflows/pdf-scan.yml)
 
 An early test version of Altinn Platform is available at http://platform.altinn.cloud
 
@@ -23,9 +24,9 @@ This is documented in the sub section.
 5. Solution is cloned
 
 #### Platform PDF
+
 1. [Java 17](https://jdk.java.net/17/)
 2. [Maven](https://maven.apache.org/download.cgi)
-
 
 #### Running Altinn Platform PDF locally
 

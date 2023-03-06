@@ -164,6 +164,11 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 - [Docker](https://www.docker.com/) - Container platform
 - [Kubernetes](https://kubernetes.io/) - Container orchestration
 
+## Status for container scans
+
+[![Designer scan](https://github.com/altinn/altinn-studio/actions/workflows/designer-scan.yml/badge.svg)](https://github.com/Altinn/altinn-studio/actions/workflows/designer-scan.yml)
+[![Repositories scan](https://github.com/altinn/altinn-studio/actions/workflows/repositories-scan.yml/badge.svg)](https://github.com/Altinn/altinn-studio/actions/workflows/repositories-scan.yml)
+
 ## Contributing
 
 Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
