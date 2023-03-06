@@ -8,6 +8,8 @@ using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using System.Xml;
 using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
+using Altinn.Studio.Designer.Models.Authorization;
+using System.Text.Json;
 
 namespace Designer.Tests.Utils
 {
@@ -41,6 +43,15 @@ namespace Designer.Tests.Utils
 
         }
 
+        public static void WriteJsonPolicy(string policyDocumentTitle, ResourcePolicy policy)
+        {
+            string policyPath = GetPolicyPath();
+
+            string jsonString = JsonSerializer.Serialize(policy, new JsonSerializerOptions() { WriteIndented = true});
+
+            File.WriteAllText(Path.Combine(policyPath, policyDocumentTitle), jsonString);
+        }
+
         public static XacmlPolicy ParsePolicy(string policyDocumentTitle, string policyPath)
         {
             XmlDocument policyDocument = new XmlDocument();
@@ -60,5 +71,6 @@ namespace Designer.Tests.Utils
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AuthorizationUtil).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Authorization", "Policies", "Xacml");
         }
+
     }
 }

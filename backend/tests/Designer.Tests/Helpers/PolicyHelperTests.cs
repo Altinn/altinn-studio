@@ -25,6 +25,7 @@ namespace Designer.Tests.Helpers
             ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
             Assert.NotNull(convertedPolicy);
             XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
+            AuthorizationUtil.WriteJsonPolicy("brg_rrh-innrapportering.json", convertedPolicy);
             AuthorizationUtil.WritePolicy("brg_rrh-innrapportering_converted.xml", convertedBackPolicy);
             AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
         }
