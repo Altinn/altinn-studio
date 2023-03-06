@@ -46,7 +46,7 @@ export function TopToolbar({
   const handleGenerateButtonClick = (event: MouseEvent) => {
     saveAction && saveAction(event);
     setShowGenerationState(true);
-  }
+  };
 
   return (
     <section className={classes.toolbar} role={'toolbar'}>
