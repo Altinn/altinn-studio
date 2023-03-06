@@ -221,6 +221,7 @@ const formLayoutSlice = createSlice({
           }
         });
 
+        delete selectedLayout.components[id];
         selectedLayout.order[containerId].splice(selectedLayout.order[containerId].indexOf(id), 1);
         state.unSavedChanges = true;
         state.error = null;
@@ -303,7 +304,7 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
-    saveFormLayout: (state, action: PayloadAction<{ org, app }>) => {
+    saveFormLayout: (state, action: PayloadAction<{ layoutName?, org, app }>) => {
       state.saving = true;
     },
     saveFormLayoutFulfilled: (state) => {
