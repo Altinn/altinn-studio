@@ -51,6 +51,7 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
     objectKind: ObjectKind.Reference,
     reference: promotedNodePointer,
     isRequired: uiNode.isRequired,
+    isArray: uiNode.isArray,
   });
   // Add the promoted node back to the bottom of the stack.
   return insertSchemaNode(
@@ -59,6 +60,7 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
       pointer: promotedNodePointer,
       children,
       isRequired: false,
+      isArray: false,
     })
   );
 };
