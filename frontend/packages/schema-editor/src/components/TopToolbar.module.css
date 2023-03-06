@@ -10,11 +10,6 @@
   margin-right: 1rem;
 }
 
-.toolbar :global(.MuiButton-root) {
-  color: #0062ba;
-  transition: none;
-}
-
 .toolbar button[class*='selected'] {
   color: #fff;
 }
