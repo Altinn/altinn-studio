@@ -37,11 +37,11 @@ export const App = (): JSX.Element => {
   const headerContextValue: IHeaderContext = useMemo(
     () => ({
       selectableOrgs: organizations,
-      selectedContext: 'self',
-      setSelectedContext: () => {},
+      selectedContext,
+      setSelectedContext,
       user,
     }),
-    [organizations, user]
+    [organizations, user, setSelectedContext, selectedContext]
   );
 
   const componentIsReady = user && organizations;
