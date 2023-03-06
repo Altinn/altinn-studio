@@ -131,15 +131,15 @@ wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/lates
 Start the webpack dev server for the respective app you want to develop:
 
 ```bash
-yarn --cwd "frontend" run start-app-development
-yarn --cwd "frontend" run start-dashboard
+yarn run start-app-development
+yarn run start-dashboard
 ```
 
 If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating
 to `frontend` and then run the following build script, which will build app frontend apps.
 
 ```bash
-yarn --cwd "frontend" run build
+yarn run build
 ```
 
 Some React projects also have various other predefined scripts, which can be viewed in the `package.json` file

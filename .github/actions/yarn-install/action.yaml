@@ -7,7 +7,6 @@ runs:
       uses: actions/setup-node@v3
 
     - name: "Getting yarn cache directory path"
-      working-directory: frontend
       id: yarn-cache-dir-path
       run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
       shell: bash
@@ -21,7 +20,6 @@ runs:
           ${{ runner.os }}-yarn-
 
     - name: 'Installing Dependencies'
-      working-directory: frontend
       run: yarn install --immutable --inline-builds
       shell: bash
       env:
