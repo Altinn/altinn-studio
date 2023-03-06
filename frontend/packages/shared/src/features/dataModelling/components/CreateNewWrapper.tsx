@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { TopToolbarButton } from '@altinn/schema-editor/index';
 import {
   Button,
   ButtonColor,

@@ -21,6 +21,7 @@ export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode }: To
       {Toolbar}
       <Button
         id='save-model-button'
+        data-testid='save-model-button'
         size={ButtonSize.Small}
         onClick={saveAction || (() => undefined)}
         disabled={!editMode || !saveAction}
