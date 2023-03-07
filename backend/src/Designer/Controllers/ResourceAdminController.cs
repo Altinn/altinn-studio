@@ -24,11 +24,13 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<RepositoryModel>> GetRepository(string org)
         {
             IList<RepositoryModel> repositories = await _giteaApi.GetOrgRepos(org);
-            foreach (var repo in from RepositoryModel repo in repositories
-                                 where repo.FullName.ToLower().Contains("resources")
-                                 select repo)
+
+            foreach (RepositoryModel repo in repositories)
             {
-                return repo;
+                if (repo.FullName.ToLower().Contains("resources"))
+                {
+                    return repo;
+                }
             }
 
             return StatusCode(404);
