@@ -57,7 +57,7 @@ export const AppDeploymentComponent = ({
 
   const appDeployedVersion =
     deploymentList && deploymentList.items && deploymentList.items.length > 0
-      ? deploymentList.items[0].version
+      ? deploymentList.items[0].tagName
       : undefined;
   const { org, app } = useParams();
   const mutation = useCreateDeployMutation(org, app);
