@@ -171,7 +171,6 @@ namespace Designer.Tests.Mocks
             {
                 return new List<Repository>();
             }
-            
         }
 
         public async Task<IList<Repository>> GetStarred()
