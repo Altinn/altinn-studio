@@ -161,9 +161,17 @@ namespace Designer.Tests.Mocks
             return await Task.FromResult(branch);
         }
 
-        public Task<IList<Repository>> GetOrgRepos(string org)
+        public async Task<IList<Repository>> GetOrgRepos(string org)
         {
-            throw new NotImplementedException();
+            if (org == "ttd")
+            {
+                return await Task.FromResult(new List<Repository> { new Repository() { FullName = "ttd-resources" } });
+            }
+            else
+            {
+                return new List<Repository>();
+            }
+            
         }
 
         public async Task<IList<Repository>> GetStarred()
