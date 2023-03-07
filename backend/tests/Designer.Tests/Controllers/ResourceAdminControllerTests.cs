@@ -1,5 +1,5 @@
-﻿using System.Net.Http;
-using System.Net;
+﻿using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
