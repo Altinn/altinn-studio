@@ -350,7 +350,7 @@
         "id": "group-2",
         "type": "Group",
         "dataModelBindings": {
-          "group": "Endringsmelding-grp-9786.gruppe2"
+          "group": "Endringsmelding-grp-9786.Gruppe2"
         },
         "textResourceBindings": {
           "title": "Gruppe2",
@@ -364,10 +364,11 @@
         "id": "group2-input",
         "type": "Dropdown",
         "textResourceBindings": {
-          "title": "Velg element fra den andre gruppen"
+          "title": "Velg element fra den andre gruppen",
+          "tableTitle": "Element fra den andre gruppen"
         },
         "dataModelBindings": {
-          "simpleBinding": "Endringsmelding-grp-9786.gruppe2.felt1"
+          "simpleBinding": "Endringsmelding-grp-9786.Gruppe2.felt1.value"
         },
         "grid": {
           "xs": 6
