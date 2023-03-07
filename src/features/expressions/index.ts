@@ -444,7 +444,8 @@ export const ExprFunctions = {
       }
 
       const node = this.failWithoutNode();
-      const component = node.closest((c) => c.id === id || c.baseComponentId === id);
+      const closestComponent = node.closest((c) => c.id === id || c.baseComponentId === id);
+      const component = closestComponent ?? (node instanceof LayoutPage ? node.findById(id) : node.top.findById(id));
       const binding = component?.item?.dataModelBindings?.simpleBinding;
       if (component && binding) {
         if (component.isHidden(this.dataSources.hiddenFields)) {
