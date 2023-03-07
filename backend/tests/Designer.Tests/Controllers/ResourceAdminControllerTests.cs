@@ -33,12 +33,10 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"{_versionPrefix}/ttd/resources/repository";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri)
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -50,12 +48,10 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri)
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
+using System.Linq;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -24,13 +25,11 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<RepositoryModel>> GetRepository(string org)
         {
             IList<RepositoryModel> repositories = await _giteaApi.GetOrgRepos(org);
-
-            foreach (RepositoryModel repo in repositories)
+            foreach (var repo in from RepositoryModel repo in repositories
+                                 where repo.FullName.ToLower().Contains("resources")
+                                 select repo)
             {
-                if (repo.FullName.ToLower().Contains("resources"))
-                {
-                    return repo;
-                }
+                return repo;
             }
 
             return StatusCode(404);

@@ -165,7 +165,7 @@ namespace Designer.Tests.Mocks
         {
             if (org == "ttd")
             {
-                return await Task.FromResult(new List<Repository> { new Repository() { FullName = "ttd-resources" } });
+                return await Task.FromResult(new List<Repository> { new Repository() { FullName = "ttd-resources" } }).ConfigureAwait(false);
             }
             else
             {
