@@ -23,7 +23,7 @@
         },
         "required": true,
         "readOnly": true,
-        "autocomplete": "off",
+        "autocomplete": "organization",
         "grid": {
           "xs": 6
         }
