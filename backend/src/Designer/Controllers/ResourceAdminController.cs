@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
-using System.Linq;
 
 namespace Altinn.Studio.Designer.Controllers
 {
