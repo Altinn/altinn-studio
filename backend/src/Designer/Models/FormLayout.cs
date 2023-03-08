@@ -11,67 +11,67 @@ namespace Altinn.Studio.Designer.Models
     public class FormLayout
     {
         [JsonPropertyName("$schema")]
-        public string schema { get; set; }
-        public Data data { get; set; }
+        public string Schema { get; set; }
+        public Data Data { get; set; }
         [JsonExtensionData]
-        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
+        public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 
     public class Data
     {
-        public List<Layout> layout { get; set; }
-        [CanBeNull] public object hidden { get; set; }
+        public List<Layout> Layout { get; set; }
+        [CanBeNull] public object Hidden { get; set; }
         [JsonExtensionData]
-        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
+        public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 
     public class Layout
     {
-        public string id { get; set; }
-        public string type { get; set; }
-        public Dictionary<string, string> textResourceBindings { get; set; }
-        public DataModelBindings dataModelBindings { get; set; }
-        public bool? required { get; set; }
-        public bool? readOnly { get; set; }
-        [CanBeNull] public object hidden { get; set; }
-        [CanBeNull] public string size { get; set; }
-        [CanBeNull] public Image image { get; set; }
-        public bool? simplified { get; set; }
-        [CanBeNull] public string minDate { get; set; }
-        [CanBeNull] public string maxDate { get; set; }
-        public int? maxFileSizeInMB { get; set; }
-        public int? maxNumberOfAttachments { get; set; }
-        public int? minNumberOfAttachments { get; set; }
-        [CanBeNull] public string displayMode { get; set; }
-        [CanBeNull] public List<Option> options { get; set; }
-        public int? preselectedOptionIndex { get; set; }
+        public string Id { get; set; }
+        public string Type { get; set; }
+        public Dictionary<string, string> TextResourceBindings { get; set; }
+        public DataModelBindings DataModelBindings { get; set; }
+        public bool? Required { get; set; }
+        public bool? ReadOnly { get; set; }
+        [CanBeNull] public object Hidden { get; set; }
+        [CanBeNull] public string Size { get; set; }
+        [CanBeNull] public Image Image { get; set; }
+        public bool? Simplified { get; set; }
+        [CanBeNull] public string MinDate { get; set; }
+        [CanBeNull] public string MaxDate { get; set; }
+        public int? MaxFileSizeInMb { get; set; }
+        public int? MaxNumberOfAttachments { get; set; }
+        public int? MinNumberOfAttachments { get; set; }
+        [CanBeNull] public string DisplayMode { get; set; }
+        [CanBeNull] public List<Option> Options { get; set; }
+        public int? PreselectedOptionIndex { get; set; }
         [JsonExtensionData]
-        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
+        public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 
     public class DataModelBindings
     {
-        [CanBeNull] public string simpleBinding { get; set; }
-        [CanBeNull] public string group { get; set; }
-        [CanBeNull] public string list { get; set; }
+        [CanBeNull] public string SimpleBinding { get; set; }
+        [CanBeNull] public string Group { get; set; }
+        [CanBeNull] public string List { get; set; }
         [JsonExtensionData]
-        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
+        public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 
     public class Image
     {
-        [CanBeNull] public object src { get; set; }
-        [CanBeNull] public string width { get; set; }
-        [CanBeNull] public string align { get; set; }
+        [CanBeNull] public object Src { get; set; }
+        [CanBeNull] public string Width { get; set; }
+        [CanBeNull] public string Align { get; set; }
         [JsonExtensionData]
-        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
+        public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 
     public class Option
     {
-        public string label { get; set; }
-        public string value { get; set; }
+        public string Label { get; set; }
+        public string Value { get; set; }
         [JsonExtensionData]
-        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
+        public Dictionary<string, JsonElement> UnknownProperties { get; set; }
     }
 }

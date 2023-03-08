@@ -203,7 +203,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
             formLayout.Should().NotBeNull();
-            formLayout.data.layout.Should().NotBeNull();
+            formLayout.Data.Layout.Should().NotBeNull();
         }
 
         [Fact]
@@ -218,7 +218,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             FormLayout formLayout = await altinnAppGitRepository.GetLayout(null, layoutName);
 
             formLayout.Should().NotBeNull();
-            formLayout.data.layout.Should().NotBeNull();
+            formLayout.Data.Layout.Should().NotBeNull();
         }
 
         [Fact]
@@ -235,13 +235,13 @@ namespace Designer.Tests.Infrastructure.GitRepository
             {
                 await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
                 AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
-                FormLayout formLayoutToSave = new() { schema = "some-string", data = new Data { layout = new List<Layout> { new() { id = "some-id", type = "some-type" } } } };
+                FormLayout formLayoutToSave = new() { Schema = "some-string", Data = new Data { Layout = new List<Layout> { new() { Id = "some-id", Type = "some-type" } } } };
                 await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayoutToSave);
                 FormLayout formLayoutSaved = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
                 formLayoutSaved.Should().NotBeNull();
-                formLayoutSaved.data.layout.Should().NotBeNull();
-                formLayoutSaved.data.layout.Should().HaveCount(1);
+                formLayoutSaved.Data.Layout.Should().NotBeNull();
+                formLayoutSaved.Data.Layout.Should().HaveCount(1);
             }
             finally
             {

@@ -209,13 +209,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (string layoutName in layoutNames)
             {
                 Designer.Models.FormLayout layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
-                foreach (Designer.Models.Layout layoutObject in layout.data.layout)
+                foreach (Designer.Models.Layout layoutObject in layout.Data.Layout)
                 {
                     foreach (TextIdMutation mutation in keyMutations)
                     {
-                        if (layoutObject.textResourceBindings != null)
+                        if (layoutObject.TextResourceBindings != null)
                         {
-                            UpdateKeyInTextResourceBinding(layoutObject.textResourceBindings, mutation);
+                            UpdateKeyInTextResourceBinding(layoutObject.TextResourceBindings, mutation);
                         }
                     }
                 }
