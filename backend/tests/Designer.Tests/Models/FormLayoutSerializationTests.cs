@@ -1,8 +1,6 @@
-﻿using Altinn.Studio.Designer.Models;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using FluentAssertions;
-using FluentAssertions.Execution;
+using Altinn.Studio.Designer.Models;
 using SharedResources.Tests;
 using Xunit;
 
@@ -48,7 +46,7 @@ namespace Designer.Tests.Models
 
         private FormLayoutSerializationTests FormLayoutObjectSerializedToJson()
         {
-            SerializedFormLayoutContent = JsonSerializer.Serialize(FormLayoutObject,_serializerOptions);
+            SerializedFormLayoutContent = JsonSerializer.Serialize(FormLayoutObject, _serializerOptions);
             return this;
         }
 
