@@ -19,9 +19,7 @@ namespace Designer.Tests.Models
         private string LoadedFromLayoutContent { get; set; }
         private FormLayout FormLayoutObject { get; set; }
         private string SerializedFormLayoutContent { get; set; }
-
-
-
+        
         [Theory]
         [InlineData("FormLayout/layoutWithUnknownProperties.json")]
         public void Deserialize_And_Serialize_ShouldProduceSameJson(string formLayoutPath)
@@ -29,9 +27,9 @@ namespace Designer.Tests.Models
             Given.That.FormLayoutContentLoaded(formLayoutPath)
                 .When.FormLayoutContentDeserialized()
                 .And.FormLayoutObjectSerializedToJson()
-                .Then.SerializedFormLayoutJsonShouldBeEquivalentToOriginalContent();
-
+                .Then.SerializedFormLayoutJsonShouldBeEquivalentToOriginal();
         }
+
         private FormLayoutSerializationTests FormLayoutContentLoaded(string formLayoutPath)
         {
             LoadedFromLayoutContent = SharedResourcesHelper.LoadTestDataAsString(formLayoutPath);
@@ -52,13 +50,11 @@ namespace Designer.Tests.Models
 
         // Using only newtonsoft.json for deep comparison of json since there is no equivalent functionality in System.Text.Json
         // Serialization is done using System.Text.Json
-        private void SerializedFormLayoutJsonShouldBeEquivalentToOriginalContent()
+        private void SerializedFormLayoutJsonShouldBeEquivalentToOriginal()
         {
             Newtonsoft.Json.Linq.JObject result = (Newtonsoft.Json.Linq.JObject)Newtonsoft.Json.JsonConvert.DeserializeObject(LoadedFromLayoutContent);
             Newtonsoft.Json.Linq.JObject expected = (Newtonsoft.Json.Linq.JObject)Newtonsoft.Json.JsonConvert.DeserializeObject(SerializedFormLayoutContent);
             Assert.True(Newtonsoft.Json.Linq.JToken.DeepEquals(expected, result));
         }
-
-
     }
 }
