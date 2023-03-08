@@ -63,11 +63,15 @@ namespace Altinn.Studio.Designer.Models
         [CanBeNull] public object src { get; set; }
         [CanBeNull] public string width { get; set; }
         [CanBeNull] public string align { get; set; }
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
     }
 
     public class Option
     {
         public string label { get; set; }
         public string value { get; set; }
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
     }
 }
