@@ -19,7 +19,7 @@ namespace Designer.Tests.Models
         private string LoadedFromLayoutContent { get; set; }
         private FormLayout FormLayoutObject { get; set; }
         private string SerializedFormLayoutContent { get; set; }
-        
+
         [Theory]
         [InlineData("FormLayout/layoutWithUnknownProperties.json")]
         public void Deserialize_And_Serialize_ShouldProduceSameJson(string formLayoutPath)
