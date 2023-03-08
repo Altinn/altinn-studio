@@ -163,14 +163,7 @@ namespace Designer.Tests.Mocks
 
         public async Task<IList<Repository>> GetOrgRepos(string org)
         {
-            if (org == "ttd")
-            {
-                return await Task.FromResult(new List<Repository> { new Repository() { FullName = "ttd-resources" } }).ConfigureAwait(false);
-            }
-            else
-            {
-                return new List<Repository>();
-            }
+            return org == "ttd" ? await Task.FromResult(new List<Repository> { new Repository() { FullName = "ttd-resources" } }).ConfigureAwait(false) : new List<Repository>();
         }
 
         public async Task<IList<Repository>> GetStarred()
