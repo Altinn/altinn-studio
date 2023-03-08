@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 
@@ -12,12 +13,16 @@ namespace Altinn.Studio.Designer.Models
         [JsonPropertyName("$schema")]
         public string schema { get; set; }
         public Data data { get; set; }
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
     }
 
     public class Data
     {
         public List<Layout> layout { get; set; }
         [CanBeNull] public object hidden { get; set; }
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
     }
 
     public class Layout
@@ -40,6 +45,8 @@ namespace Altinn.Studio.Designer.Models
         [CanBeNull] public string displayMode { get; set; }
         [CanBeNull] public List<Option> options { get; set; }
         public int? preselectedOptionIndex { get; set; }
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
     }
 
     public class DataModelBindings
@@ -47,6 +54,8 @@ namespace Altinn.Studio.Designer.Models
         [CanBeNull] public string simpleBinding { get; set; }
         [CanBeNull] public string group { get; set; }
         [CanBeNull] public string list { get; set; }
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement> AdditionalProperties { get; set; }
     }
 
     public class Image
