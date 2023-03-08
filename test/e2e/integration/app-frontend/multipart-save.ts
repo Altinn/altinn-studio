@@ -1,5 +1,6 @@
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
+import { v4 as uuid } from 'uuid';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
@@ -9,12 +10,15 @@ import type { IBackendFeaturesState } from 'src/shared/resources/applicationMeta
 const appFrontend = new AppFrontend();
 
 interface MultipartReq {
+  id: string;
+  matched: false | string;
   dataModel: IFormData;
   previousValues: IFormData;
 }
 
 describe('Multipart save', () => {
-  const requests: (MultipartReq | undefined)[] = [];
+  const requests: MultipartReq[] = [];
+  const awaitingMatch: { [message: string]: string[] } = {};
 
   /**
    * This is not supported by 'frontend-test' yet, so we'll simulate the functionality by intercepting the requests
@@ -34,6 +38,8 @@ describe('Multipart save', () => {
       if (contentType.startsWith('multipart/form-data')) {
         const { dataModel, previousValues } = dirtyMultiPartParser(contentType, req.body);
         requests.push({
+          id: uuid(),
+          matched: false,
           dataModel: dot.dot(dataModel),
           previousValues,
         });
@@ -46,12 +52,20 @@ describe('Multipart save', () => {
   }
 
   function expectReq(cb: (req: MultipartReq) => boolean, customMessage: string, errorMsg: string) {
+    awaitingMatch[customMessage] = awaitingMatch[customMessage] || [];
+    awaitingMatch[customMessage].push('waiting');
     cy.waitUntil(
       () => {
         for (const idx in requests) {
           const req = requests[idx];
-          if (req && cb(req)) {
-            requests[idx] = undefined;
+          if (!req.matched && cb(req)) {
+            requests[idx].matched = customMessage;
+            const foundIndex = awaitingMatch[customMessage].findIndex((val) => val === 'waiting');
+            if (foundIndex > -1) {
+              awaitingMatch[customMessage][foundIndex] = req.id;
+            } else {
+              throw new Error('Unable to find log item for request waiting for match');
+            }
             return true;
           }
         }
@@ -62,6 +76,7 @@ describe('Multipart save', () => {
         description: 'save',
         customMessage,
         errorMsg,
+        timeout: 20 * 1000,
       },
     );
   }
@@ -124,18 +139,29 @@ describe('Multipart save', () => {
     const subGroupKey = 'nested-grp-1234';
     const commentKey = 'SkattemeldingEndringEtterFristKommentar-datadef-37133.value';
 
-    // Add a simple item to the group
-    cy.addItemToGroup(1, 2, 'first comment');
-    expectSave(`${groupKey}[0].${currentValueKey}`, '1', null);
-    expectSave(`${groupKey}[0].${newValueKey}`, '2', null);
-    expectSave(`${groupKey}[0].${subGroupKey}[0].source`, 'altinn', null);
-    expectSave(`${groupKey}[0].${subGroupKey}[0].${commentKey}`, 'first comment', null);
+    function addRow(index: number, oldValue: string, newValue: string, comment) {
+      cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
+      cy.get(appFrontend.group.mainGroup).find(appFrontend.group.next).click();
+      expectSave(`${groupKey}[${index}].${subGroupKey}[0].source`, 'altinn', null);
+      cy.get(appFrontend.group.mainGroup).find(appFrontend.group.back).click();
 
-    cy.addItemToGroup(1234, 5678, 'second comment');
-    expectSave(`${groupKey}[1].${currentValueKey}`, '1234', null);
-    expectSave(`${groupKey}[1].${newValueKey}`, '5678', null);
-    expectSave(`${groupKey}[1].${subGroupKey}[0].source`, 'altinn', null);
-    expectSave(`${groupKey}[1].${subGroupKey}[0].${commentKey}`, 'second comment', null);
+      cy.get(appFrontend.group.currentValue).should('be.visible').type(oldValue).blur();
+      expectSave(`${groupKey}[${index}].${currentValueKey}`, oldValue, null);
+
+      cy.get(appFrontend.group.newValue).should('be.visible').type(newValue).blur();
+      expectSave(`${groupKey}[${index}].${newValueKey}`, newValue, null);
+
+      cy.get(appFrontend.group.mainGroup).find(appFrontend.group.next).click();
+      cy.get(appFrontend.group.comments).should('be.visible').type(comment).blur();
+      expectSave(`${groupKey}[${index}].${subGroupKey}[0].${commentKey}`, comment, null);
+
+      cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
+      cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
+    }
+
+    // Add some rows to the group
+    addRow(0, '1', '2', 'first comment');
+    addRow(1, '1234', '5678', 'second comment');
 
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.newValue).type('2').blur();
@@ -175,13 +201,14 @@ describe('Multipart save', () => {
     expectReq(
       (req) => {
         const relevantEntries = Object.entries(req.dataModel).filter(([k]) => k.startsWith(groupKey));
-        const expectedEntries = [
+        const relevantModel = Object.fromEntries(relevantEntries);
+        const expectedModel = {
           // Group should now just have one row (we deleted the first one)
-          [`${groupKey}[0].${currentValueKey}`, '1234'],
-          [`${groupKey}[0].${newValueKey}`, '5678'],
-          [`${groupKey}[0].${subGroupKey}[0].source`, 'altinn'],
-          [`${groupKey}[0].${subGroupKey}[0].${commentKey}`, 'second comment'],
-        ];
+          [`${groupKey}[0].${currentValueKey}`]: '1234',
+          [`${groupKey}[0].${newValueKey}`]: '5678',
+          [`${groupKey}[0].${subGroupKey}[0].source`]: 'altinn',
+          [`${groupKey}[0].${subGroupKey}[0].${commentKey}`]: 'second comment',
+        };
 
         const expectedPrevValues = {
           [`${groupKey}[0].${currentValueKey}`]: '1',
@@ -202,7 +229,7 @@ describe('Multipart save', () => {
           [`${groupKey}[1].${subGroupKey}[0].${commentKey}`]: 'second comment',
         };
 
-        return deepEqual(relevantEntries, expectedEntries) && deepEqual(req.previousValues, expectedPrevValues);
+        return deepEqual(relevantModel, expectedModel) && deepEqual(req.previousValues, expectedPrevValues);
       },
       'first row deleted',
       'failed to assert first row deletion',
@@ -225,8 +252,28 @@ describe('Multipart save', () => {
       'failed to assert second row deletion',
     );
 
-    // Ensure there are no more save requests in the queue afterwards
-    cy.waitUntil(() => requests.filter((r) => !!r).length === 0);
+    // Ensure there are no more unmatched save requests in the queue afterwards
+    cy.waitUntil(() => requests.filter((r) => r.matched === false).length === 0, {
+      timeout: 20 * 1000,
+      customMessage: 'All requests to be matched',
+      errorMsg: 'Some requests failed to be matched',
+    });
+  });
+
+  // If the test fails, store a JSON file detailing all the intercepted save requests (in order) along with
+  // which expectation they matched (and which are left to match)
+  afterEach(function () {
+    if (this.currentTest?.state === 'failed') {
+      const random = Math.floor(Math.random() * 1000 * 1000);
+      const fileName = `multiPartSave-requests-${random}.json`;
+      // const onlyAwaitingMatch = Object.entries(awaitingMatch).filter(([, num]) => num !== 0);
+      const debugContent = {
+        requests,
+        awaitingMatch,
+      };
+
+      cy.writeFile(`test/redux-history/${fileName}`, JSON.stringify(debugContent, null, 2));
+    }
   });
 });
 
