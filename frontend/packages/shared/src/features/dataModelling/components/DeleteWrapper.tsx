@@ -1,8 +1,8 @@
 import React from 'react';
-import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { DeleteDialog } from './DeleteDialog';
-import classes from './DeleteWrapper.module.css';
 import { useTranslation } from 'react-i18next';
+import { Button, ButtonColor } from '@digdir/design-system-react';
+import { Delete } from '@navikt/ds-icons';
 
 export interface IDeleteWrapper {
   deleteAction: () => void;
@@ -21,19 +21,17 @@ export function DeleteWrapper(props: IDeleteWrapper) {
 
   return (
     <DeleteDialog
-      trigger={(
-        <TopToolbarButton
+      trigger={
+        <Button
           id='delete-model-button'
           disabled={!props.schemaName}
-          faIcon='ai ai-trash'
-          iconSize={24}
           onClick={onDeleteClick}
-          warning
-          className={classes.root}
+          color={ButtonColor.Danger}
+          icon={<Delete />}
         >
           {t('general.delete_data_model')}
-        </TopToolbarButton>
-      )}
+        </Button>
+      }
       schemaName={props.schemaName}
       onConfirm={onDeleteConfirmClick}
       onCancel={onCancelDelete}

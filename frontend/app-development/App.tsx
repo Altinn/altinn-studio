@@ -11,7 +11,7 @@ import {
   keepAliveSession,
   signOutUser,
 } from './sharedResources/user/userSlice';
-import PageHeader from './layout/PageHeader';
+import { PageHeader } from './layout/PageHeader';
 
 import './App.css';
 import LeftMenu from './layout/LeftMenu';

@@ -1,12 +1,12 @@
 import React from 'react';
-import AltinnButton from 'app-shared/components/AltinnButton';
-import AltinnPopover from 'app-shared/components/AltinnPopover';
+import { AltinnPopover } from 'app-shared/components/AltinnPopover';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import { abortmergePath } from 'app-shared/api-paths';
 import i18next from 'i18next';
 import { withTranslation } from 'react-i18next';
+import { Button, ButtonColor } from '@digdir/design-system-react';
 
 interface IHandleMergeConflictAbortProps {
   disabled?: boolean;
@@ -106,14 +106,15 @@ export class HandleMergeConflictAbort extends React.Component<
     const { popoverState } = this.state;
 
     return (
-      <React.Fragment>
-        <AltinnButton
-          btnText={this.props.t('handle_merge_conflict.abort_merge_button')}
+      <>
+        <Button
           id='abortMergeBtn'
-          onClickFunction={this.AbortPopover}
-          secondaryButton={true}
+          onClick={this.AbortPopover}
+          color={ButtonColor.Secondary}
           disabled={this.props.disabled}
-        />
+        >
+          {this.props.t('handle_merge_conflict.abort_merge_button')}
+        </Button>
 
         <AltinnPopover
           anchorEl={this.state.anchorEl}
@@ -130,7 +131,7 @@ export class HandleMergeConflictAbort extends React.Component<
           shouldShowDoneIcon={popoverState.shouldShowDoneIcon}
           transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         />
-      </React.Fragment>
+      </>
     );
   }
 }
