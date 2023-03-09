@@ -33,4 +33,16 @@ public class IndustryGroupingCodelistProviderTests
         appOptions.Options.Should().HaveCount(21);
         appOptions.Options.First(x => x.Value == "A").Label.Should().Be("Jordbruk, skogbruk og fiske");
     }
+
+    [Fact]
+    public async Task GetAppOptionsAsync_DefaultFirstLevel_ShouldReturnListOfCodes()
+    {
+        var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("næringsgruppering", Classification.IndustryGrouping, httpClientMock, new Dictionary<string, string>() { { "level", "1" } } );
+
+        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+
+        appOptions.Options.Should().HaveCount(21);
+        appOptions.Options.First(x => x.Value == "A").Label.Should().Be("Jordbruk, skogbruk og fiske");
+    }
 }

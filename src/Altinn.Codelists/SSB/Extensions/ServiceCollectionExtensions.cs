@@ -35,10 +35,11 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The <see cref="IServiceCollection"/> to add to</param>
     /// <param name="id">The codelist id</param>
     /// <param name="classification">The <see cref="Classification"/> to return</param>
+    /// <param name="defaultKeyValuePairs">Default set of key/value pairs to be used. Will be overriden by matching qyery parameters runtime.</param>
     /// <returns></returns>
-    public static IServiceCollection AddSSBClassificationCodelistProvider(this IServiceCollection services, string id, Classification classification)
+    public static IServiceCollection AddSSBClassificationCodelistProvider(this IServiceCollection services, string id, Classification classification, Dictionary<string, string>? defaultKeyValuePairs = null)
     {
-        services.AddTransient<IAppOptionsProvider>(sp => new ClassificationCodelistProvider(id, classification, sp.GetRequiredService<IClassificationsClient>()));
+        services.AddTransient<IAppOptionsProvider>(sp => new ClassificationCodelistProvider(id, classification, sp.GetRequiredService<IClassificationsClient>(), defaultKeyValuePairs));
 
         return services;
     }

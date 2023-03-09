@@ -11,15 +11,17 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
 {
     private readonly IClassificationsClient _classificationsClient;
     private readonly Classification _classification;
+    private readonly Dictionary<string, string> _defaultKeyValuePairs;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ClassificationCodelistProvider"/> class.
     /// </summary>
-    public ClassificationCodelistProvider(string id, Classification classification, IClassificationsClient classificationsClient)
+    public ClassificationCodelistProvider(string id, Classification classification, IClassificationsClient classificationsClient, Dictionary<string, string>? defaultKeyValuePairs = null)
     {
         Id = id;
         _classification = classification;
         _classificationsClient = classificationsClient;
+        _defaultKeyValuePairs = defaultKeyValuePairs == null ? new Dictionary<string, string>() : defaultKeyValuePairs;
     }
 
     /// <inheritdoc/>
@@ -28,21 +30,43 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
     /// Gets the <see cref="AppOptions"/> based on the provided classification, options id and key value pairs.
     public async Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
     {
-        string? date = keyValuePairs.GetValueOrDefault("date");
+        Dictionary<string, string> mergedKeyValuePairs = MergeDictionaries(_defaultKeyValuePairs, keyValuePairs);
+
+        string? date = mergedKeyValuePairs.GetValueOrDefault("date");
         DateOnly dateOnly = date == null ? DateOnly.FromDateTime(DateTime.Today) : DateOnly.Parse(date);
-        string level = keyValuePairs.GetValueOrDefault("level") ?? string.Empty;
+        string level = mergedKeyValuePairs.GetValueOrDefault("level") ?? string.Empty;
 
         var classificationCode = await _classificationsClient.GetClassificationCodes(_classification, language, dateOnly, level);
 
-        string parentCode = keyValuePairs.GetValueOrDefault("parentCode") ?? string.Empty;
-        var appOptions = new AppOptions();
-
-        // The api we use doesn't support filtering on partentCode,
-        // hence we need to filter afterwards.
-        appOptions.Options = string.IsNullOrEmpty(parentCode)
+        string parentCode = mergedKeyValuePairs.GetValueOrDefault("parentCode") ?? string.Empty;
+        var appOptions = new AppOptions
+        {
+            // The api we use doesn't support filtering on partentCode,
+            // hence we need to filter afterwards.
+            Options = string.IsNullOrEmpty(parentCode)
             ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
-            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList();
+            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
+        };
 
         return appOptions;
+    }
+
+    private static Dictionary<string, string> MergeDictionaries(Dictionary<string, string> defaultValues, Dictionary<string, string> overridingValues)
+    {
+        var mergedDictionary = new Dictionary<string, string>(defaultValues); 
+
+        foreach (var keyValuePair in overridingValues)
+        {
+            if (mergedDictionary.ContainsKey(keyValuePair.Key))
+            {
+                mergedDictionary[keyValuePair.Key] = keyValuePair.Value; 
+            }
+            else
+            {
+                mergedDictionary.Add(keyValuePair.Key, keyValuePair.Value);
+            }
+        }
+
+        return mergedDictionary;
     }
 }
