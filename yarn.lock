@@ -1474,7 +1474,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.18.9, @babel/runtime@npm:^7.20.6, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.7.6, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.6, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.7.6, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
   version: 7.21.0
   resolution: "@babel/runtime@npm:7.21.0"
   dependencies:
@@ -2454,7 +2454,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/utils@npm:^5.10.3, @mui/utils@npm:^5.11.11":
+"@mui/utils@npm:^5.11.11":
   version: 5.11.11
   resolution: "@mui/utils@npm:5.11.11"
   dependencies:
@@ -2469,7 +2469,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/utils@npm:^5.11.12":
+"@mui/utils@npm:^5.11.12, @mui/utils@npm:^5.11.7":
   version: 5.11.12
   resolution: "@mui/utils@npm:5.11.12"
   dependencies:
@@ -2484,21 +2484,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/x-data-grid@npm:5.17.26":
-  version: 5.17.26
-  resolution: "@mui/x-data-grid@npm:5.17.26"
+"@mui/x-data-grid@npm:6.0.0":
+  version: 6.0.0
+  resolution: "@mui/x-data-grid@npm:6.0.0"
   dependencies:
-    "@babel/runtime": ^7.18.9
-    "@mui/utils": ^5.10.3
+    "@babel/runtime": ^7.20.13
+    "@mui/utils": ^5.11.7
     clsx: ^1.2.1
     prop-types: ^15.8.1
-    reselect: ^4.1.6
+    reselect: ^4.1.7
   peerDependencies:
     "@mui/material": ^5.4.1
     "@mui/system": ^5.4.1
     react: ^17.0.2 || ^18.0.0
     react-dom: ^17.0.2 || ^18.0.0
-  checksum: 521d9c76c7275836dda0b7ace197553142a33de702cb172cfdfbaf505379faa7566da5340eb9bdf7980909e8034b1fe0eae2b7aca6a499667ecb76f4442dc9e7
+  checksum: e6144243a713d679ab784ce996a8b5f4d0e038c393581cc0b0d3ffed836d6e72c987dea384855aa795ea114dfd7805c8b14ac743101f3aa5c4876a275d72d505
   languageName: node
   linkType: hard
 
@@ -6077,7 +6077,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.27.5
     "@digdir/design-system-react": 0.7.0
-    "@mui/x-data-grid": 5.17.26
+    "@mui/x-data-grid": 6.0.0
     "@tanstack/react-query": 4.26.0
     cross-env: 7.0.3
     jest: 29.4.3
@@ -11840,7 +11840,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:4.1.7, reselect@npm:^4.1.6, reselect@npm:^4.1.7":
+"reselect@npm:4.1.7, reselect@npm:^4.1.7":
   version: 4.1.7
   resolution: "reselect@npm:4.1.7"
   checksum: 738d8e2b8f0dca154ad29de6a209c9fbca2d70ae6788fd85df87f2c74b95a65bbf2d16d43a9e2faff39de34d17a29d706ba08a6b2ee5660c09589edbd19af7e1
