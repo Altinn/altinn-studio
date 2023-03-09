@@ -74,6 +74,9 @@ export function getOptionLookupKeys({
   };
 }
 
+/**
+ * @deprecated Move this functionality to the node hierarchy?
+ */
 export function replaceOptionDataField(formData: IFormData, valueString: string, index: number) {
   const indexedValueString = valueString.replace('{0}', index.toString());
   return formData[indexedValueString];
@@ -103,6 +106,9 @@ interface ISetupSourceOptionsParams {
   dataSources: IDataSources;
 }
 
+/**
+ * @deprecated Move this functionality to the node hierarchy?
+ */
 export function setupSourceOptions({
   source,
   relevantTextResource,

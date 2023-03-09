@@ -7,6 +7,7 @@ import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/type
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
 import type { IRepeatingGroups } from 'src/types';
+import type { HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
 
 const { nodesInLayouts } = _private;
 
@@ -47,7 +48,14 @@ function evalAllExpressions(layouts: Layouts) {
       ...generateRepeatingGroups(page.data.layout),
     };
   }
-  const nodes = nodesInLayouts(convertLayouts(layouts), Object.keys(layouts)[0], repeatingGroups);
+  const dataSources: HierarchyDataSources = {
+    formData: {},
+    applicationSettings: {} as any,
+    instanceContext: {} as any,
+    hiddenFields: new Set(),
+    validations: {},
+  };
+  const nodes = nodesInLayouts(convertLayouts(layouts), Object.keys(layouts)[0], repeatingGroups, dataSources);
   for (const page of Object.values(nodes.all())) {
     for (const node of page.flat(true)) {
       evalExprInObj({
@@ -57,12 +65,7 @@ function evalAllExpressions(layouts: Layouts) {
           ...ExprConfigForComponent,
           ...ExprConfigForGroup,
         },
-        dataSources: {
-          formData: {},
-          applicationSettings: {} as any,
-          instanceContext: {} as any,
-          hiddenFields: new Set(),
-        },
+        dataSources,
       });
     }
   }

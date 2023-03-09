@@ -13,48 +13,20 @@ import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import { components, FormComponentContext } from 'src/layout/index';
-import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
-import { makeGetFocus, makeGetHidden } from 'src/selectors/getLayoutData';
+import { makeGetFocus } from 'src/selectors/getLayoutData';
 import { Triggers } from 'src/types';
-import {
-  componentHasValidationMessages,
-  getFormDataForComponent,
-  getTextResource,
-  gridBreakpoints,
-  isComponentValid,
-  pageBreakStyles,
-  selectComponentTexts,
-} from 'src/utils/formComponentUtils';
-import { useResolvedNode } from 'src/utils/layout/ExprContext';
+import { getTextResource, gridBreakpoints, pageBreakStyles, selectComponentTexts } from 'src/utils/formComponentUtils';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { ISingleFieldValidation } from 'src/features/form/data/formDataTypes';
 import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/layout/index';
-import type {
-  ComponentExceptGroupAndSummary,
-  ComponentTypes,
-  IGridStyling,
-  ILayoutCompBase,
-  ILayoutComponent,
-} from 'src/layout/layout';
+import type { ComponentExceptGroupAndSummary, IGridStyling } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
-import type { ILabelSettings, LayoutStyle } from 'src/types';
+import type { HComponent, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
-export interface IGenericComponentProps {
-  labelSettings?: ILabelSettings;
-  layout?: LayoutStyle;
-  groupContainerId?: string;
+export interface IGenericComponentProps<Type extends ComponentExceptGroupAndSummary> {
+  node: LayoutNodeFromType<Type>;
+  overrideItemProps?: Partial<Omit<HComponent<Type>, 'id'>>;
 }
-
-/**
- * The IGenericComponentProps type above defines which properties a GenericComponent gets, but it always also gets the
- * component definition from the layout file as well. Blending these two here.
- */
-export type IActualGenericComponentPropsUnresolved<Type extends ComponentTypes> = IGenericComponentProps &
-  ExprUnresolved<ILayoutCompBase<Type>>;
-
-export type IActualGenericComponentPropsResolved<Type extends ComponentTypes> = IGenericComponentProps &
-  ExprResolved<ILayoutCompBase<Type>>;
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -102,59 +74,52 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
-  passedProps: IActualGenericComponentPropsUnresolved<Type>,
-) {
-  const evaluatedProps = useResolvedNode(passedProps as ILayoutComponent)?.item;
+export function GenericComponent<Type extends ComponentExceptGroupAndSummary = ComponentExceptGroupAndSummary>({
+  node,
+  overrideItemProps,
+}: IGenericComponentProps<Type>) {
+  let item = node.item;
+  const id = item.id;
 
-  const props = {
-    ...passedProps,
-    ...evaluatedProps,
-  } as IActualGenericComponentPropsResolved<Type> & {
-    type: Type;
-  };
+  if (overrideItemProps) {
+    item = {
+      ...item,
+      ...overrideItemProps,
+    };
+  }
 
-  const id = props.id;
   const dispatch = useAppDispatch();
-  const classes = useStyles(props);
+  const classes = useStyles();
   const gridRef = React.useRef<HTMLDivElement>(null);
-  const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
-  const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
+  const hasValidationMessages = node.hasValidationMessages('any');
+  const hidden = node.isHidden();
 
-  const formData = useAppSelector(
-    (state) => getFormDataForComponent(state.formData.formData, props.dataModelBindings),
-    shallowEqual,
-  );
+  const formData = node.getFormData();
   const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
-  const isValid = useAppSelector((state) =>
-    isComponentValid(state.formValidations.validations[currentView]?.[props.id]),
-  );
+
+  const isValid = !node.hasValidationMessages('errors');
   const language = useAppSelector((state) => state.language.language);
   const textResources = useAppSelector((state) => state.textResources.resources);
 
   const texts = useAppSelector((state) =>
-    selectComponentTexts(state.textResources.resources, props.textResourceBindings),
+    selectComponentTexts(state.textResources.resources, item.textResourceBindings),
   );
 
-  const hidden = useAppSelector((state) => GetHiddenSelector(state, props));
-  const shouldFocus = useAppSelector((state) => GetFocusSelector(state, props));
+  const shouldFocus = useAppSelector((state) => GetFocusSelector(state, { id }));
   const componentValidations = useAppSelector(
-    (state) => state.formValidations.validations[currentView]?.[props.id],
+    (state) => state.formValidations.validations[currentView]?.[id],
     shallowEqual,
   );
 
-  const formComponentContext = useMemo<IFormComponentContext>(() => {
-    return {
-      grid: props.grid,
-      id: props.id,
-      baseComponentId: props.baseComponentId,
-    };
-  }, [props.baseComponentId, props.grid, props.id]);
-
-  React.useEffect(() => {
-    setHasValidationMessages(componentHasValidationMessages(componentValidations));
-  }, [componentValidations]);
+  const formComponentContext = useMemo<IFormComponentContext>(
+    () => ({
+      grid: item.grid,
+      id,
+      baseComponentId: item.baseComponentId,
+    }),
+    [item.baseComponentId, item.grid, id],
+  );
 
   React.useLayoutEffect(() => {
     if (!hidden && shouldFocus && gridRef.current) {
@@ -178,11 +143,11 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
   const handleDataChange: IComponentProps['handleDataChange'] = (value, options = {}) => {
     const { key = 'simpleBinding', validate = true } = options;
 
-    if (!props.dataModelBindings || !props.dataModelBindings[key]) {
+    if (!item.dataModelBindings || !item.dataModelBindings[key]) {
       return;
     }
 
-    if (props.readOnly) {
+    if (item.readOnly) {
       return;
     }
 
@@ -191,9 +156,9 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
       return;
     }
 
-    const dataModelBinding = props.dataModelBindings[key];
+    const dataModelBinding = item.dataModelBindings[key];
     const singleFieldValidation: ISingleFieldValidation | undefined =
-      props.triggers && props.triggers.includes(Triggers.Validation)
+      item.triggers && item.triggers.includes(Triggers.Validation)
         ? {
             layoutId: currentView,
             dataModelBinding,
@@ -204,18 +169,18 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
       FormDataActions.update({
         field: dataModelBinding,
         data: value,
-        componentId: props.id,
+        componentId: id,
         skipValidation: !validate,
         singleFieldValidation,
       }),
     );
   };
 
-  const layoutComponent = getLayoutComponentObject(props.type) as LayoutComponent<Type> | undefined;
+  const layoutComponent = node.getComponent() as unknown as LayoutComponent<Type> | undefined;
   if (!layoutComponent) {
     return (
       <div>
-        Unknown component type: {props.type}
+        Unknown component type: {item.type}
         <br />
         Valid component types: {Object.keys(components).join(', ')}
       </div>
@@ -226,25 +191,25 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
 
   const RenderLabel = () => (
     <Label
-      key={`label-${props.id}`}
+      key={`label-${id}`}
       labelText={texts.title}
       helpText={texts.help}
       language={language}
-      id={props.id}
-      readOnly={props.readOnly}
-      required={props.required}
-      labelSettings={props.labelSettings}
+      id={id}
+      readOnly={item.readOnly}
+      required={item.required}
+      labelSettings={item.labelSettings}
     />
   );
 
   const RenderDescription = () => {
-    if (!props.textResourceBindings?.description) {
+    if (!item.textResourceBindings?.description) {
       return null;
     }
 
     return (
       <Description
-        key={`description-${props.id}`}
+        key={`description-${id}`}
         description={texts.description}
         id={id}
       />
@@ -254,15 +219,15 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
   const RenderLegend = () => {
     return (
       <Legend
-        key={`legend-${props.id}`}
+        key={`legend-${id}`}
         labelText={texts.title}
         descriptionText={texts.description}
         helpText={texts.help}
         language={language}
-        id={props.id}
-        required={props.required}
-        labelSettings={props.labelSettings}
-        layout={props.layout}
+        id={id}
+        required={item.required}
+        labelSettings={item.labelSettings}
+        layout={('layout' in item && item.layout) || undefined}
       />
     );
   };
@@ -275,7 +240,7 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
     return getTextResourceByKey(key, textResources);
   };
 
-  const componentProps = {
+  const fixedComponentProps: IComponentProps = {
     handleDataChange,
     getTextResource: getTextResourceWrapper,
     getTextResourceAsString,
@@ -287,7 +252,14 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
     label: RenderLabel,
     legend: RenderLegend,
     componentValidations,
-    ...props,
+  };
+
+  const componentProps = {
+    ...fixedComponentProps,
+    // TODO: Pass on the node object instead of all the properties in it. This could work fairly simply for most
+    // components, but breaks hard on Button and FileUploadWithTag (and possibly more), as they have deep/complex
+    // logic that continues to pass on these properties downstream.
+    ...item,
   } as unknown as PropsFromGenericComponent<Type>;
 
   const showValidationMessages = hasValidationMessages && layoutComponent.renderDefaultValidations();
@@ -306,35 +278,34 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
         ref={gridRef}
         item={true}
         container={true}
-        {...gridBreakpoints(props.grid)}
-        key={`grid-${props.id}`}
+        {...gridBreakpoints(item.grid)}
+        key={`grid-${id}`}
         className={classNames(
           'form-group',
           'a-form-group',
           classes.container,
-          gridToClasses(props.grid?.labelGrid, classes),
-          pageBreakStyles(evaluatedProps?.pageBreak),
+          gridToClasses(item.grid?.labelGrid, classes),
+          pageBreakStyles(item.pageBreak),
         )}
         alignItems='baseline'
       >
         {layoutComponent.renderWithLabel() && (
           <Grid
             item={true}
-            {...gridBreakpoints(props.grid?.labelGrid)}
+            {...gridBreakpoints(item.grid?.labelGrid)}
           >
             <RenderLabel />
             <RenderDescription />
           </Grid>
         )}
         <Grid
-          key={`form-content-${props.id}`}
+          key={`form-content-${id}`}
           item={true}
-          id={`form-content-${props.id}`}
-          {...gridBreakpoints(props.grid?.innerGrid)}
+          id={`form-content-${id}`}
+          {...gridBreakpoints(item.grid?.innerGrid)}
         >
           <RenderComponent {...componentProps} />
-          {showValidationMessages &&
-            renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)}
+          {showValidationMessages && renderValidationMessagesForComponent(componentValidations?.simpleBinding, id)}
         </Grid>
       </Grid>
     </FormComponentContext.Provider>

@@ -25,6 +25,9 @@ export interface IComponentBindingValidation {
   fixed?: string[];
 }
 
+export type ValidationKey = keyof IComponentBindingValidation;
+export type ValidationKeyOrAny = ValidationKey | 'any';
+
 export interface IComponentValidations {
   [id: string]: IComponentBindingValidation | undefined;
 }
@@ -290,9 +293,26 @@ export enum DateFlags {
   Today = 'today',
 }
 
-// source, target dict
+/**
+ * A 'mapping' is an object pointing from data model paths to query parameters. It is used to make options lookups
+ * (and similar) configurable in a way that lets you (for example) implement searching. If you map the data model
+ * path where a search string is stored, you can make the app automatically fetch new options from the backend every
+ * time the search string changes.
+ *
+ * When used in repeating groups, it is expected you put index placeholders inside the data model path, so if your
+ * group is bound to 'MyModel.Persons' and you're looking up 'MyModel.Persons.FirstName', the path to the data model
+ * should be 'MyModel.Persons[{0}].FirstName'. This way, {0} is replaced with the current row index in the repeating
+ * group at runtime.
+ *
+ * Format:
+ * {
+ *   'path.to.dataModel': 'queryParam',
+ * }
+ *
+ * @see https://docs.altinn.studio/app/development/data/options/#pass-query-parameters-when-fetching-options
+ */
 export interface IMapping {
-  [source: string]: string;
+  [dataModelPath: string]: string;
 }
 
 export interface IFetchSpecificOptionSaga {

@@ -1,15 +1,28 @@
 import React from 'react';
 
+import { SummaryItemSimple } from 'src/components/summary/SummaryItemSimple';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
-import { LayoutComponent } from 'src/layout/LayoutComponent';
+import { FormComponent } from 'src/layout/LayoutComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
-export class Address extends LayoutComponent<'AddressComponent'> {
+export class Address extends FormComponent<'AddressComponent'> {
   render(props: PropsFromGenericComponent<'AddressComponent'>): JSX.Element | null {
     return <AddressComponent {...props} />;
   }
 
   renderWithLabel(): boolean {
     return false;
+  }
+
+  useDisplayData(node: LayoutNodeFromType<'AddressComponent'>): string {
+    const data = node.getFormData();
+    return Object.values(data).join(' ');
+  }
+
+  renderSummary({ targetNode }: SummaryRendererProps<'AddressComponent'>): JSX.Element | null {
+    const data = this.useDisplayData(targetNode);
+    return <SummaryItemSimple formDataAsString={data} />;
   }
 }

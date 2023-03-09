@@ -154,7 +154,7 @@ export class AppFrontend {
     summaryText: '#send-in-text',
     next: `button:contains("${texts.next}")`,
     back: `button:contains("${texts.back}")`,
-    mainGroupSummary: '[id^="mainGroup-"][id$="-summary"]',
+    mainGroupSummary: '[data-testid="summary-summary-1"] [data-testid="display-group-container"]',
     mainGroupTableBody: '#group-mainGroup-table-body',
     options: '#reduxOptions',
     tableErrors: '[data-testid=group-table-errors]',

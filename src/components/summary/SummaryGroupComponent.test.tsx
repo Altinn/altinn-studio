@@ -7,7 +7,8 @@ import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { SummaryGroupComponent } from 'src/components/summary/SummaryGroupComponent';
 import { renderWithProviders } from 'src/testUtils';
-import type { ISummaryGroupComponent } from 'src/components/summary/SummaryGroupComponent';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 describe('SummaryGroupComponent', () => {
   let mockHandleDataChange: () => void;
@@ -60,6 +61,13 @@ describe('SummaryGroupComponent', () => {
               title: 'mockField2',
             },
             triggers: [],
+          },
+          {
+            type: 'Summary',
+            id: 'mySummary',
+            pageRef: 'page1',
+            componentRef: 'groupComponent',
+            largeGroup: false,
           },
         ],
       },
@@ -126,21 +134,21 @@ describe('SummaryGroupComponent', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-  function renderSummaryGroupComponent(props: Partial<ISummaryGroupComponent> = {}) {
-    const defaultProps: ISummaryGroupComponent = {
-      pageRef: 'page1',
-      componentRef: 'groupComponent',
-      largeGroup: false,
-      changeText: 'Change',
-      onChangeClick: mockHandleDataChange,
-    };
+  function renderSummaryGroupComponent() {
+    function Wrapper() {
+      const summaryNode = useResolvedNode('mySummary') as LayoutNodeFromType<'Summary'>;
+      const groupNode = useResolvedNode('groupComponent') as LayoutNodeFromType<'Group'>;
 
-    return renderWithProviders(
-      <SummaryGroupComponent
-        {...defaultProps}
-        {...props}
-      />,
-      { store: mockStore },
-    );
+      return (
+        <SummaryGroupComponent
+          changeText={'Change'}
+          onChangeClick={mockHandleDataChange}
+          summaryNode={summaryNode}
+          targetNode={groupNode}
+        />
+      );
+    }
+
+    return renderWithProviders(<Wrapper />, { store: mockStore });
   }
 });

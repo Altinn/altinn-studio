@@ -27,16 +27,13 @@ import { PrintButton } from 'src/layout/PrintButton/index';
 import { RadioButtons } from 'src/layout/RadioButtons/index';
 import { TextArea } from 'src/layout/TextArea/index';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { ComponentExceptGroup, ComponentExceptGroupAndSummary, IGrid, ILayoutComponent } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
 import type { IComponentValidations } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 
-export const components: {
-  [Type in ComponentExceptGroupAndSummary]: LayoutComponent<Type>;
-} = {
+export const components = {
   AddressComponent: new Address(),
   AttachmentList: new AttachmentList(),
   Button: new Button(),
@@ -64,7 +61,22 @@ export const components: {
   List: new List(),
 };
 
-export interface IComponentProps extends IGenericComponentProps {
+export type ComponentClassMap = typeof components;
+
+// noinspection JSUnusedLocalSymbols
+/**
+ * This type is only used to make sure all components exist and are correct in the list above. If any component is
+ * missing above, this type will give you an error.
+ */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const _componentsTypeCheck: {
+  [Type in ComponentExceptGroupAndSummary]: LayoutComponent<Type>;
+} = {
+  ...components,
+};
+
+export interface IComponentProps {
   handleDataChange: (
     value: string | undefined,
     options?: {
@@ -84,7 +96,7 @@ export interface IComponentProps extends IGenericComponentProps {
   componentValidations?: IComponentValidations;
 }
 
-export type PropsFromGenericComponent<T extends ComponentExceptGroup> = IComponentProps &
+export type PropsFromGenericComponent<T extends ComponentExceptGroup = ComponentExceptGroup> = IComponentProps &
   ExprResolved<Omit<ILayoutComponent<T>, 'type'>>;
 
 export interface IFormComponentContext {
@@ -100,11 +112,20 @@ export const FormComponentContext = createContext<IFormComponentContext>({
 });
 
 /**
- * This enum is used to distinguish purly presentational components
+ * This enum is used to distinguish purely presentational components
  * from interactive form components that can have formData etc.
  */
 export enum ComponentType {
   Presentation = 'presentation',
   Form = 'form',
-  Button = 'button',
+  Action = 'action',
+}
+
+export function getLayoutComponentObject<T extends string | undefined | keyof ComponentClassMap>(
+  type: T,
+): T extends keyof ComponentClassMap ? ComponentClassMap[T] : undefined {
+  if (type && type in components) {
+    return components[type as keyof typeof components] as any;
+  }
+  return undefined as any;
 }

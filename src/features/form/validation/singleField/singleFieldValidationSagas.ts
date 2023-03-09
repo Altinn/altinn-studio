@@ -14,7 +14,6 @@ import type { IApplicationMetadata } from 'src/shared/resources/applicationMetad
 import type { ILayoutSets, IRuntimeState, ITextResource, IValidationIssue, IValidations } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 
-export const selectFormLayoutState = (state: IRuntimeState) => state.formLayout;
 export const selectLayoutsState = (state: IRuntimeState) => state.formLayout.layouts;
 export const selectApplicationMetadataState = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 export const selectInstanceState = (state: IRuntimeState) => state.instanceData.instance;

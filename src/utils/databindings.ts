@@ -190,6 +190,11 @@ export function flattenObject(data: any): any {
   return flat;
 }
 
+/**
+ * @deprecated
+ * @see LayoutNode
+ * @see ExprContext
+ */
 export function getGroupDataModelBinding(repeatingGroup: IRepeatingGroup, groupId: string, layout: ILayout) {
   const parentGroup = getParentGroup(repeatingGroup.baseGroupId || groupId, layout);
   if (parentGroup) {

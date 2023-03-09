@@ -7,7 +7,6 @@ import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import {
   runSingleFieldValidationSaga,
   selectApplicationMetadataState,
-  selectFormLayoutState,
   selectHiddenFieldsState,
   selectInstanceState,
   selectLayoutSetsState,
@@ -72,7 +71,6 @@ describe('singleFieldValidationSagas', () => {
     })
       .provide([
         [select(selectApplicationMetadataState), mockState.applicationMetadata.applicationMetadata],
-        [select(selectFormLayoutState), mockState.formLayout],
         [select(selectLayoutsState), mockState.formLayout.layouts],
         [select(selectHiddenFieldsState), mockState.formLayout.uiConfig.hiddenFields],
         [select(selectInstanceState), mockState.instanceData.instance],
@@ -111,7 +109,6 @@ describe('singleFieldValidationSagas', () => {
     })
       .provide([
         [select(selectApplicationMetadataState), mockState.applicationMetadata.applicationMetadata],
-        [select(selectFormLayoutState), mockState.formLayout],
         [select(selectLayoutsState), mockState.formLayout.layouts],
         [select(selectHiddenFieldsState), mockState.formLayout.uiConfig.hiddenFields],
         [select(selectInstanceState), mockState.instanceData.instance],

@@ -1,127 +1,57 @@
 import React from 'react';
 
-import { SingleInputSummary } from 'src/components/summary/SingleInputSummary';
 import { SummaryBoilerplate } from 'src/components/summary/SummaryBoilerplate';
 import { SummaryGroupComponent } from 'src/components/summary/SummaryGroupComponent';
-import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
-import { AttachmentSummaryComponent } from 'src/layout/FileUpload/AttachmentSummaryComponent';
-import { AttachmentWithTagSummaryComponent } from 'src/layout/FileUploadWithTag/AttachmentWithTagSummaryComponent';
-import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
-import type { ExprResolved } from 'src/features/expressions/types';
-import type { ILayoutCompSummary } from 'src/layout/Summary/types';
-import type { AnyItem } from 'src/utils/layout/hierarchy.types';
+import { GenericComponent } from 'src/layout/GenericComponent';
+import { FormComponent } from 'src/layout/LayoutComponent';
+import type { ISummaryComponent } from 'src/components/summary/SummaryComponent';
+import type { ComponentExceptGroupAndSummary } from 'src/layout/layout';
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
-export interface ISummaryComponentSwitch extends Omit<ILayoutCompSummary, 'type'> {
+export interface ISummaryComponentSwitch {
   change: {
     onChangeClick: () => void;
     changeText: string | null;
   };
-  formComponent?: ExprResolved<AnyItem>;
-  hasValidationMessages?: boolean;
-  label?: JSX.Element | JSX.Element[] | null | undefined;
-  formData?: any;
-  groupProps?: {
-    pageRef?: string;
-    largeGroup?: boolean;
-  };
+  summaryNode: LayoutNodeFromType<'Summary'>;
+  targetNode: LayoutNode;
+  label: JSX.Element | JSX.Element[] | null | undefined;
+  overrides: ISummaryComponent['overrides'];
 }
 
-export function SummaryComponentSwitch({
-  change,
-  formComponent,
-  label,
-  componentRef,
-  hasValidationMessages,
-  formData,
-  groupProps = {},
-  display,
-}: ISummaryComponentSwitch) {
-  if (!formComponent) {
-    return null;
-  }
-
-  const hasDataBindings = Object.keys(formComponent.dataModelBindings || {}).length === 0;
-
-  if (hasDataBindings && formComponent.type === 'FileUpload' && componentRef) {
-    return (
-      <>
-        <SummaryBoilerplate
-          {...change}
-          label={label}
-          hasValidationMessages={hasValidationMessages}
-          display={display}
-        />
-        <AttachmentSummaryComponent componentRef={componentRef} />
-      </>
-    );
-  }
-
-  if (hasDataBindings && formComponent.type === 'FileUploadWithTag' && componentRef) {
-    return (
-      <>
-        <SummaryBoilerplate
-          {...change}
-          label={label}
-          hasValidationMessages={hasValidationMessages}
-          display={display}
-        />
-        <AttachmentWithTagSummaryComponent
-          componentRef={componentRef}
-          component={formComponent}
-        />
-      </>
-    );
-  }
-
-  if (formComponent.type === 'Group') {
+export function SummaryComponentSwitch({ change, summaryNode, targetNode, label, overrides }: ISummaryComponentSwitch) {
+  if (targetNode.item.type === 'Group') {
+    const correctNode = targetNode as LayoutNodeFromType<'Group'>;
     return (
       <SummaryGroupComponent
         {...change}
-        {...groupProps}
-        componentRef={componentRef}
-        display={display}
+        summaryNode={summaryNode}
+        targetNode={correctNode}
+        overrides={overrides}
       />
     );
   }
 
-  if (formComponent.type === 'Checkboxes' && typeof formData !== 'string') {
-    return (
-      <MultipleChoiceSummary
-        {...change}
-        label={label}
-        hasValidationMessages={!!hasValidationMessages}
-        formData={formData}
-        readOnlyComponent={formComponent.readOnly}
-        display={display}
-      />
-    );
-  }
-
-  if (formComponent.type === 'Map') {
+  const component = targetNode.getComponent();
+  if (component instanceof FormComponent) {
+    const RenderSummary = component.renderSummary.bind(component);
     return (
       <>
         <SummaryBoilerplate
           {...change}
           label={label}
-          hasValidationMessages={!!hasValidationMessages}
-          display={display}
+          summaryNode={summaryNode}
+          targetNode={targetNode}
+          overrides={overrides}
         />
-        <MapComponentSummary
-          component={formComponent}
-          formData={formData}
+        <RenderSummary
+          summaryNode={summaryNode}
+          targetNode={targetNode as LayoutNodeFromType<ComponentExceptGroupAndSummary>}
         />
       </>
     );
   }
 
-  return (
-    <SingleInputSummary
-      {...change}
-      label={label}
-      hasValidationMessages={!!hasValidationMessages}
-      formData={formData}
-      readOnlyComponent={formComponent.readOnly}
-      display={display}
-    />
-  );
+  return <GenericComponent node={targetNode as LayoutNodeFromType<ComponentExceptGroupAndSummary>} />;
 }

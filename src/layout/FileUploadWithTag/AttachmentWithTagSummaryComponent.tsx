@@ -4,14 +4,12 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useUploaderSummaryData } from 'src/layout/FileUpload/shared/summary';
 import { getOptionLookupKey } from 'src/utils/options';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
-import type { IAttachment } from 'src/shared/resources/attachments';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 export interface IAttachmentWithTagSummaryComponent {
-  componentRef: string;
-  component: ExprUnresolved<ILayoutCompFileUploadWithTag>;
+  targetNode: LayoutNodeFromType<'FileUploadWithTag'>;
 }
 
 const useStyles = makeStyles({
@@ -29,9 +27,10 @@ const useStyles = makeStyles({
   },
 });
 
-export function AttachmentWithTagSummaryComponent({ componentRef, component }: IAttachmentWithTagSummaryComponent) {
+export function AttachmentWithTagSummaryComponent({ targetNode }: IAttachmentWithTagSummaryComponent) {
   const classes = useStyles();
-  const attachments: IAttachment[] | undefined = useAppSelector((state) => state.attachments.attachments[componentRef]);
+  const component = targetNode.item;
+  const attachments = useUploaderSummaryData(targetNode);
   const textResources = useAppSelector((state) => state.textResources.resources);
   const language = useAppSelector((state) => state.language.language);
   const options = useAppSelector(
@@ -51,14 +50,13 @@ export function AttachmentWithTagSummaryComponent({ componentRef, component }: I
     const optionsTagLabel = getOptionsTagLabel(attachment);
     return textResources?.find(({ id }) => id === optionsTagLabel)?.value || optionsTagLabel;
   };
-  const isEmpty = !attachments || attachments.length < 1;
   return (
     <Grid
       item
       xs={12}
       data-testid={'attachment-with-tag-summary'}
     >
-      {isEmpty ? (
+      {attachments.length === 0 ? (
         <Typography
           variant='body1'
           className={classes.emptyField}
@@ -67,7 +65,7 @@ export function AttachmentWithTagSummaryComponent({ componentRef, component }: I
           {getLanguageFromKey('general.empty_summary', language || {})}
         </Typography>
       ) : (
-        attachments?.map((attachment) => (
+        attachments.map((attachment) => (
           <Grid
             container={true}
             className={classes.row}

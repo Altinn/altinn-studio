@@ -8,14 +8,13 @@ import {
   resolvedLayoutsFromState,
   resolvedNodesInLayouts,
 } from 'src/utils/layout/hierarchy';
-import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompHeader } from 'src/layout/Header/types';
 import type { ILayoutCompInput } from 'src/layout/Input/types';
 import type { ILayout } from 'src/layout/layout';
-import type { IRepeatingGroups } from 'src/types';
-import type { AnyItem } from 'src/utils/layout/hierarchy.types';
+import type { IRepeatingGroups, IValidations } from 'src/types';
+import type { AnyItem, HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
 
 const { layoutAsHierarchyWithRows, layoutAsHierarchy, nodesInLayout } = _private;
 
@@ -120,6 +119,19 @@ describe('Hierarchical layout tools', () => {
     components.group3ni,
   ];
   const layouts = { FormLayout: layout };
+
+  const dataSources: HierarchyDataSources = {
+    formData: {},
+    instanceContext: {
+      instanceId: 'abc-123',
+      appId: 'org/app',
+      instanceOwnerPartyId: 'test',
+      instanceOwnerPartyType: 'person',
+    },
+    applicationSettings: {},
+    hiddenFields: new Set(),
+    validations: {},
+  };
 
   describe('layoutAsHierarchy', () => {
     it('should turn a layout into a hierarchy', () => {
@@ -321,17 +333,17 @@ describe('Hierarchical layout tools', () => {
   describe('nodesInLayout', () => {
     it('should resolve a very simple layout', () => {
       const root = new LayoutPage();
-      const top1 = new LayoutNode(components.top1 as AnyItem, root, root);
-      const top2 = new LayoutNode(components.top2 as AnyItem, root, root);
+      const top1 = new LayoutNode(components.top1 as AnyItem, root, root, dataSources);
+      const top2 = new LayoutNode(components.top2 as AnyItem, root, root, dataSources);
       root._addChild(top1);
       root._addChild(top2);
 
-      const result = nodesInLayout([components.top1, components.top2], {});
+      const result = nodesInLayout([components.top1, components.top2], {}, dataSources);
       expect(result).toEqual(root);
     });
 
     it('should resolve a complex layout without groups', () => {
-      const nodes = nodesInLayout(layout, repeatingGroups);
+      const nodes = nodesInLayout(layout, repeatingGroups, dataSources);
       const flatNoGroups = nodes.flat(false);
       expect(flatNoGroups.map((n) => n.item.id)).toEqual([
         // Top-level nodes:
@@ -360,7 +372,7 @@ describe('Hierarchical layout tools', () => {
     });
 
     it('should resolve a complex layout with groups', () => {
-      const nodes = nodesInLayout(layout, repeatingGroups);
+      const nodes = nodesInLayout(layout, repeatingGroups, dataSources);
       const flatWithGroups = nodes.flat(true);
       expect(flatWithGroups.map((n) => n.item.id)).toEqual([
         // Top-level nodes:
@@ -392,7 +404,7 @@ describe('Hierarchical layout tools', () => {
     });
 
     it('should enable traversal of layout', () => {
-      const nodes = nodesInLayout(layout, manyRepeatingGroups);
+      const nodes = nodesInLayout(layout, manyRepeatingGroups, dataSources);
       const flatWithGroups = nodes.flat(true);
       const deepComponent = flatWithGroups.find((node) => node.item.id === `${components.group2nh.id}-2-2`);
       expect(deepComponent?.item.id).toEqual(`${components.group2nh.id}-2-2`);
@@ -500,7 +512,7 @@ describe('Hierarchical layout tools', () => {
           dataModelBindings: { simpleBinding: 'Group.Title' },
         },
       ];
-      const nodes = nodesInLayout(layout, getRepeatingGroups(layout, dataModel));
+      const nodes = nodesInLayout(layout, getRepeatingGroups(layout, dataModel), dataSources);
 
       expect(nodes.findAllById('g1c').length).toEqual(3);
       expect(nodes.findAllById('g2c').length).toEqual(3);
@@ -511,7 +523,7 @@ describe('Hierarchical layout tools', () => {
   });
 
   describe('resolvedNodesInLayout', () => {
-    const dataSources: ContextDataSources = {
+    const dataSources: HierarchyDataSources = {
       formData: {
         'Model.ShouldBeTrue': 'true',
         'Model.ShouldBeFalse': 'false',
@@ -524,6 +536,7 @@ describe('Hierarchical layout tools', () => {
       },
       applicationSettings: {},
       hiddenFields: new Set(),
+      validations: {},
     };
 
     const nodes = resolvedNodesInLayouts(layouts, 'FormLayout', repeatingGroups, dataSources);
@@ -580,8 +593,8 @@ describe('Hierarchical layout tools', () => {
     ];
 
     const layouts = {
-      l1: nodesInLayout(layout1, {}),
-      l2: nodesInLayout(layout2, {}),
+      l1: nodesInLayout(layout1, {}, dataSources),
+      l2: nodesInLayout(layout2, {}, dataSources),
     };
 
     const collection1 = new LayoutPages('l1', layouts);
@@ -611,7 +624,7 @@ describe('Hierarchical layout tools', () => {
   });
 
   describe('transposeDataModel', () => {
-    const nodes = nodesInLayout(layout, manyRepeatingGroups);
+    const nodes = nodesInLayout(layout, manyRepeatingGroups, dataSources);
     const inputNode = nodes.findById(`${components.group2ni.id}-2-2`);
     const topHeaderNode = nodes.findById(components.top1.id);
 
@@ -652,6 +665,59 @@ describe('Hierarchical layout tools', () => {
     // This component doesn't have any repeating group reference point, so it cannot
     // provide any insights (but it should not fail)
     expect(topHeaderNode?.transposeDataModel('MyModel.Group2.Nested.Age')).toEqual('MyModel.Group2.Nested.Age');
+  });
+
+  describe('validation functions', () => {
+    const nestedId = `${components.group3ni.id}-1-2`;
+    const validations: IValidations = {
+      formLayout: {
+        [components.top1.id]: {
+          simpleBinding: {
+            errors: ['Some error'],
+            warnings: ['Some warning'],
+          },
+        },
+        [nestedId]: {
+          simpleBinding: {
+            errors: ['Some nested error'],
+            warnings: ['Some nested warning 1', 'Nested warning 2'],
+          },
+          otherBinding: {
+            warnings: ['Nested warning 3'],
+          },
+        },
+      },
+    };
+    const page = nodesInLayout(layout, manyRepeatingGroups, { ...dataSources, validations });
+    page.registerCollection('formLayout', new LayoutPages<any>());
+    const nestedNode = page.findById(nestedId);
+    const topHeaderNode = page.findById(components.top1.id);
+
+    expect(topHeaderNode?.getValidations()).toEqual(validations.formLayout[components.top1.id]);
+    expect(topHeaderNode?.getUnifiedValidations()).toEqual(validations.formLayout[components.top1.id].simpleBinding);
+    expect(topHeaderNode?.getValidationMessages('warnings')).toEqual(['Some warning']);
+
+    expect(nestedNode?.getValidations()).toEqual(validations.formLayout[nestedId]);
+    expect(nestedNode?.getUnifiedValidations()).toEqual({
+      errors: ['Some nested error'],
+      warnings: ['Some nested warning 1', 'Nested warning 2', 'Nested warning 3'],
+    });
+    expect(nestedNode?.getValidationMessages('warnings')).toEqual([
+      'Some nested warning 1',
+      'Nested warning 2',
+      'Nested warning 3',
+    ]);
+    expect(nestedNode?.getValidationMessages('warnings', 'simpleBinding')).toEqual([
+      'Some nested warning 1',
+      'Nested warning 2',
+    ]);
+
+    expect(nestedNode?.hasDeepValidationMessages()).toEqual(true);
+    expect(page.findById(`${components.group3n.id}-1`)?.hasDeepValidationMessages()).toEqual(true);
+    expect(page.findById(components.group3.id)?.hasDeepValidationMessages()).toEqual(true);
+    expect(page.findById(components.group3.id)?.hasDeepValidationMessages('info')).toEqual(false);
+    expect(page.findById(`${components.group3n.id}-1`)?.hasValidationMessages('errors')).toEqual(false);
+    expect(page.findById(components.group3.id)?.hasValidationMessages('errors')).toEqual(false);
   });
 
   describe('find functions', () => {

@@ -5,14 +5,17 @@ import cn from 'classnames';
 
 import { EditButton } from 'src/components/summary/EditButton';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
-import type { ILayoutCompSummary } from 'src/layout/Summary/types';
+import type { ISummaryComponent } from 'src/components/summary/SummaryComponent';
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
-export interface SummaryBoilerplateProps extends Omit<ILayoutCompSummary, 'type' | 'id'> {
-  hasValidationMessages?: boolean;
+export interface SummaryBoilerplateProps {
   onChangeClick: () => void;
   changeText: string | null;
   label: any;
-  readOnlyComponent?: boolean;
+  summaryNode: LayoutNodeFromType<'Summary'>;
+  targetNode: LayoutNode;
+  overrides: ISummaryComponent['overrides'];
 }
 
 const useStyles = makeStyles({
@@ -32,15 +35,19 @@ const useStyles = makeStyles({
   },
 });
 export function SummaryBoilerplate({
-  hasValidationMessages,
   onChangeClick,
   changeText,
   label,
-  readOnlyComponent,
-  display,
+  summaryNode,
+  targetNode,
+  overrides,
 }: SummaryBoilerplateProps) {
   const classes = useStyles();
+  const display = overrides?.display || summaryNode.item.display;
+  const readOnlyComponent = targetNode.item.readOnly === true;
+  const hasValidationMessages = targetNode.hasValidationMessages();
   const shouldShowChangeButton = !readOnlyComponent && !display?.hideChangeButton;
+
   return (
     <>
       <Grid

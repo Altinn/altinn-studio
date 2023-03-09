@@ -4,14 +4,20 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import { useUploaderSummaryData } from 'src/layout/FileUpload/shared/summary';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
-export interface IAttachmentSummaryComponent {
-  targetNode: LayoutNodeFromType<'FileUpload'>;
+export interface ISummaryItemSimple {
+  formDataAsString: string | undefined;
 }
 
 const useStyles = makeStyles({
+  data: {
+    fontWeight: 500,
+    fontSize: '1.125rem',
+    '& p': {
+      fontWeight: 500,
+      fontSize: '1.125rem',
+    },
+  },
   emptyField: {
     fontStyle: 'italic',
     fontSize: '1rem',
@@ -19,33 +25,30 @@ const useStyles = makeStyles({
   },
 });
 
-export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryComponent) {
+export function SummaryItemSimple({ formDataAsString }: ISummaryItemSimple) {
   const classes = useStyles();
-  const attachments = useUploaderSummaryData(targetNode);
   const language = useAppSelector((state) => state.language.language);
+
   return (
     <Grid
       item
       xs={12}
-      data-testid={'attachment-summary-component'}
+      data-testid={'summary-item-simple'}
     >
-      {attachments.length === 0 ? (
+      {formDataAsString ? (
+        <Typography
+          className={classes.data}
+          variant='body1'
+        >
+          {formDataAsString}
+        </Typography>
+      ) : (
         <Typography
           variant='body1'
           className={classes.emptyField}
-          component='p'
         >
           {getLanguageFromKey('general.empty_summary', language || {})}
         </Typography>
-      ) : (
-        attachments.map((attachment) => (
-          <Typography
-            key={attachment.id}
-            variant='body1'
-          >
-            {attachment.name}
-          </Typography>
-        ))
       )}
     </Grid>
   );

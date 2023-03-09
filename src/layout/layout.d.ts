@@ -82,7 +82,7 @@ export interface IComponentRadioOrCheckbox<T extends Extract<ComponentTypes, 'Ra
   layout?: LayoutStyle;
 }
 
-type NumberFormatProps = Exclude<Parameters<typeof TextField>[0]['formatting'], undefined>['number'];
+export type NumberFormatProps = Exclude<Parameters<typeof TextField>[0]['formatting'], undefined>['number'];
 
 export interface IInputFormatting {
   number?: NumberFormatProps;

@@ -1,21 +1,39 @@
 import type { $Values } from 'utility-types';
 
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions';
+import { getLayoutComponentObject } from 'src/layout';
 import { INDEX_KEY_INDICATOR_REGEX } from 'src/utils/databindings';
 import { DataBinding } from 'src/utils/databindings/DataBinding';
-import { getRepeatingGroupStartStopIndex, getVariableTextKeysForRepeatingGroupComponent } from 'src/utils/formLayout';
+import { getRepeatingGroupStartStopIndex } from 'src/utils/formLayout';
 import { buildInstanceContext } from 'src/utils/instanceContext';
-import type { ContextDataSources } from 'src/features/expressions/ExprContext';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayout, ILayoutComponent, ILayoutComponentOrGroup, ILayouts } from 'src/layout/layout';
-import type { IMapping, IRepeatingGroups, IRuntimeState, ITextResource } from 'src/types';
+import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
+import type { ComponentClassMap } from 'src/layout';
+import type {
+  IDataModelBindings,
+  ILayout,
+  ILayoutComponent,
+  ILayoutComponentOrGroup,
+  ILayouts,
+} from 'src/layout/layout';
+import type { LayoutComponent } from 'src/layout/LayoutComponent';
+import type {
+  IComponentBindingValidation,
+  IComponentValidations,
+  IMapping,
+  IRepeatingGroups,
+  IRuntimeState,
+  ITextResource,
+  ValidationKeyOrAny,
+} from 'src/types';
+import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type {
   AnyItem,
   HComponent,
   HComponentInRepGroup,
+  HierarchyDataSources,
   HNonRepGroup,
   HRepGroup,
-  HRepGroupChildren,
+  HRepGroupChild,
   HRepGroupExtensions,
   ParentNode,
 } from 'src/utils/layout/hierarchy.types';
@@ -113,11 +131,8 @@ type HierarchyWithRows = HComponent | HNonRepGroup | HRepGroup;
  * as if every component is on the same page.
  */
 function layoutAsHierarchyWithRows(formLayout: ILayout, repeatingGroups: IRepeatingGroups | null): HierarchyWithRows[] {
-  /**
-   * @see createRepeatingGroupComponentsForIndex
-   */
   const rewriteDataModelBindings = (
-    main: HNonRepGroup,
+    main: HNonRepGroup | HRepGroup,
     child: HNonRepGroup | HComponent,
     newChild: HComponentInRepGroup,
     parent: HierarchyParent | undefined,
@@ -142,9 +157,6 @@ function layoutAsHierarchyWithRows(formLayout: ILayout, repeatingGroups: IRepeat
     }
   };
 
-  /**
-   * @see setMappingForRepeatingGroupComponent
-   */
   const rewriteMappingReferences = (
     newChild: HComponentInRepGroup,
     parent: HierarchyParent | undefined,
@@ -168,6 +180,8 @@ function layoutAsHierarchyWithRows(formLayout: ILayout, repeatingGroups: IRepeat
     newChild.mapping = newMapping;
   };
 
+  const repGroups: { [id: string]: HRepGroup } = {};
+  const groupReferences: HNonRepGroup[] = [];
   const recurse = (main: ILayoutComponent | HNonRepGroup | HComponentInRepGroup, parent?: HierarchyParent) => {
     if (main.type === 'Group' && main.maxCount && main.maxCount > 1) {
       const rows: HRepGroup['rows'] = [];
@@ -201,13 +215,55 @@ function layoutAsHierarchyWithRows(formLayout: ILayout, repeatingGroups: IRepeat
 
       const out: HRepGroup = { ...main, rows };
       delete out['childComponents'];
+      repGroups[main.id] = out;
       return out;
+    } else if (main.type === 'Group' && main.panel && main.panel.groupReference?.group) {
+      // We need to iterate once more for group references to work, as we don't know if the references group has had
+      // their data model bindings mapped yet.
+      groupReferences.push(main);
     }
 
     return main as HComponentInRepGroup;
   };
 
-  return layoutAsHierarchy(formLayout).map((child) => recurse(child));
+  const resolveGroupReferences = () => {
+    for (const main of groupReferences) {
+      const reference = main.panel?.groupReference?.group;
+      const referencedGroup = reference ? repGroups[reference] : undefined;
+      const referencedGroupState = reference && repeatingGroups ? repeatingGroups[reference] : undefined;
+      if (!reference || !referencedGroup || !referencedGroupState) {
+        // TODO: Show validations like these to the app developers more clearly
+        console.warn(
+          'Found panel with groupReference (',
+          main.id,
+          ') that references a non-existing or non-repeating group (',
+          main.panel?.groupReference?.group,
+          ')',
+        );
+        continue;
+      }
+      main.childComponents = main.childComponents.map((child) => {
+        const nextIndex = referencedGroupState.index + 1;
+        const newChild: HComponentInRepGroup = {
+          ...JSON.parse(JSON.stringify(child)),
+          id: `${child.id}-${nextIndex}`,
+          baseComponentId: child.id,
+        };
+
+        if (child.dataModelBindings) {
+          rewriteDataModelBindings(referencedGroup, child, newChild, undefined, nextIndex);
+        }
+
+        rewriteMappingReferences(newChild, undefined, nextIndex);
+
+        return newChild;
+      });
+    }
+  };
+
+  const out = layoutAsHierarchy(formLayout).map((child) => recurse(child));
+  groupReferences.length && resolveGroupReferences();
+  return out;
 }
 
 /**
@@ -246,7 +302,7 @@ export interface LayoutObject<Item extends AnyItem = AnyItem, Child extends Layo
 export class LayoutPage implements LayoutObject {
   public item: Record<string, undefined> = {};
   public parent: this;
-  public top: { myKey: string; collection: LayoutPages } | undefined;
+  public top: { myKey: string; collection: LayoutPages };
 
   private directChildren: LayoutNode[] = [];
   private allChildren: LayoutNode[] = [];
@@ -377,6 +433,7 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
     public item: Item,
     public parent: ParentNode,
     public top: LayoutPage,
+    private readonly dataSources: HierarchyDataSources,
     public readonly rowIndex?: number,
   ) {}
 
@@ -495,11 +552,12 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
    * Checks if this field should be hidden. This also takes into account the group this component is in, so the
    * methods returns true if the component is inside a hidden group.
    */
-  public isHidden(hiddenFieldIds: Set<string>): boolean {
-    if (this.item.hidden === true || hiddenFieldIds.has(this.item.id)) {
+  public isHidden(): boolean {
+    const hiddenList = this.dataSources.hiddenFields;
+    if (this.item.hidden === true || hiddenList.has(this.item.id)) {
       return true;
     }
-    if (this.item.baseComponentId && hiddenFieldIds.has(this.item.baseComponentId)) {
+    if (this.item.baseComponentId && hiddenList.has(this.item.baseComponentId)) {
       return true;
     }
 
@@ -508,10 +566,10 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
     ) as LayoutNode[];
 
     for (const parent of parentGroups) {
-      if (parent.item.hidden === true || hiddenFieldIds.has(parent.item.id)) {
+      if (parent.item.hidden === true || hiddenList.has(parent.item.id)) {
         return true;
       }
-      if (parent.item.baseComponentId && hiddenFieldIds.has(parent.item.baseComponentId)) {
+      if (parent.item.baseComponentId && hiddenList.has(parent.item.baseComponentId)) {
         return true;
       }
     }
@@ -581,6 +639,123 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
 
     return theirBinding.toString();
   }
+
+  /**
+   * Returns all the current validations for this node. There will be different validations per binding.
+   */
+  public getValidations(binding: keyof IDataModelBindings | string): IComponentBindingValidation;
+  public getValidations(binding?: undefined): IComponentValidations;
+  public getValidations(binding?: string): IComponentBindingValidation | IComponentValidations {
+    const pageKey = this.top.top.myKey;
+    const page = this.dataSources.validations[pageKey] || {};
+    const component = page[this.item.id] || {};
+
+    if (binding) {
+      return component[binding] || {};
+    }
+
+    return component;
+  }
+
+  /**
+   * Returns all the current validations for this node, regardless of the data binding.
+   */
+  public getUnifiedValidations(): IComponentBindingValidation {
+    const out: IComponentBindingValidation = {};
+    const validations = this.getValidations();
+    for (const bindingKey of Object.keys(validations)) {
+      const binding = validations[bindingKey] || {};
+      for (const type of Object.keys(binding) as (keyof IComponentBindingValidation)[]) {
+        const messages = binding[type] || [];
+        if (!messages.length) {
+          continue;
+        }
+        if (type in out && Array.isArray(out[type])) {
+          out[type]?.push(...messages);
+        } else {
+          out[type] = [...messages];
+        }
+      }
+    }
+
+    return out;
+  }
+
+  /**
+   * Get specific validation messages (either unified, from all data model bindings, or from a specific one)
+   */
+  public getValidationMessages(type: ValidationKeyOrAny, bindingKey?: string): string[] {
+    if (bindingKey) {
+      const validations = this.getValidations();
+      const binding = validations[bindingKey] || {};
+      return this.typeFromValidations(binding, type);
+    }
+
+    const validations = this.getUnifiedValidations();
+    return this.typeFromValidations(validations, type);
+  }
+
+  /**
+   * Checks if there are any validation messages for a given type
+   */
+  public hasValidationMessages(type: ValidationKeyOrAny = 'errors'): boolean {
+    return this.getValidationMessages(type).length > 0;
+  }
+
+  /**
+   * Speciality function to check if the component (or possibly any of its child components) has validation any errors
+   */
+  public hasDeepValidationMessages(type: ValidationKeyOrAny = 'errors'): boolean {
+    const thisHasMessages = this.hasValidationMessages(type);
+    const childrenHasMessages =
+      this.children()
+        .map((n) => n.hasDeepValidationMessages(type))
+        .find((b) => b) || false;
+
+    return thisHasMessages || childrenHasMessages;
+  }
+
+  private typeFromValidations(validations: IComponentBindingValidation, type: ValidationKeyOrAny): string[] {
+    if (type === 'any') {
+      const out: string[] = [];
+      for (const key of Object.keys(validations)) {
+        out.push(...(validations[key] || []));
+      }
+      return out;
+    }
+
+    return validations[type] || [];
+  }
+
+  /**
+   * Gets the LayoutComponent object, a toolbox for this specific component
+   */
+  public getComponent(): Item['type'] extends keyof ComponentClassMap
+    ? ComponentClassMap[Item['type']]
+    : LayoutComponent | undefined {
+    return getLayoutComponentObject(this.item.type as any);
+  }
+
+  /**
+   * Gets the current form data for this component
+   */
+  public getFormData(): IComponentFormData {
+    if (!this.item.dataModelBindings) {
+      return {};
+    }
+
+    const formDataObj: IComponentFormData = {};
+    for (const key of Object.keys(this.item.dataModelBindings)) {
+      const binding = this.item.dataModelBindings[key];
+      if (this.dataSources.formData[binding]) {
+        formDataObj[key] = this.dataSources.formData[binding];
+      } else {
+        formDataObj[key] = '';
+      }
+    }
+
+    return formDataObj;
+  }
 }
 
 /**
@@ -602,25 +777,30 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
  * Note: This strips away multiPage functionality and treats every component of a multiPage group
  * as if every component is on the same page.
  */
-function nodesInLayout(formLayout: ILayout | undefined | null, repeatingGroups: IRepeatingGroups | null): LayoutPage {
+function nodesInLayout(
+  formLayout: ILayout | undefined | null,
+  repeatingGroups: IRepeatingGroups | null,
+  dataSources: HierarchyDataSources,
+): LayoutPage {
   const root = new LayoutPage();
 
   const recurse = (
-    list: (ILayoutComponent | HNonRepGroup | HRepGroup | HRepGroupChildren)[],
+    // The typing here is a lie. We don't have resolved expressions yet, that will happen later.
+    list: (ExprResolved<ILayoutComponent> | HNonRepGroup | HRepGroup | HRepGroupChild)[],
     parent: ParentNode,
     rowIndex?: number,
   ) => {
     for (const component of list) {
       if (component.type === 'Group' && 'rows' in component) {
-        const group: ParentNode = new LayoutNode(component, parent, root, rowIndex);
+        const group: ParentNode = new LayoutNode(component, parent, root, dataSources, rowIndex);
         component.rows.forEach((row) => row && recurse(row.items, group, row.index));
         root._addChild(group);
       } else if (component.type === 'Group' && 'childComponents' in component) {
-        const group = new LayoutNode(component, parent, root, rowIndex);
+        const group = new LayoutNode(component, parent, root, dataSources, rowIndex);
         recurse(component.childComponents, group);
         root._addChild(group);
       } else {
-        const node = new LayoutNode(component as AnyItem, parent, root, rowIndex);
+        const node = new LayoutNode(component as AnyItem, parent, root, dataSources, rowIndex);
         root._addChild(node);
       }
     }
@@ -640,12 +820,13 @@ function nodesInLayouts(
   layouts: ILayouts | undefined | null,
   currentView: string,
   repeatingGroups: IRepeatingGroups | null,
+  dataSources: HierarchyDataSources,
 ): LayoutPages {
   const nodes = {};
 
   const _layouts = layouts || {};
   for (const key of Object.keys(_layouts)) {
-    nodes[key] = nodesInLayout(_layouts[key], repeatingGroups);
+    nodes[key] = nodesInLayout(_layouts[key], repeatingGroups, dataSources);
   }
 
   return new LayoutPages(currentView as keyof typeof nodes, nodes);
@@ -662,12 +843,12 @@ export function resolvedNodesInLayouts(
   layouts: ILayouts | null,
   currentLayout: string,
   repeatingGroups: IRepeatingGroups | null,
-  dataSources: ContextDataSources,
+  dataSources: HierarchyDataSources,
 ) {
   // A full copy is needed here because formLayout comes from the redux store, and in production code (not the
   // development server!) the properties are not mutable (but we have to mutate them below).
   const layoutsCopy: ILayouts = JSON.parse(JSON.stringify(layouts || {}));
-  const unresolved = nodesInLayouts(layoutsCopy, currentLayout, repeatingGroups);
+  const unresolved = nodesInLayouts(layoutsCopy, currentLayout, repeatingGroups, dataSources);
 
   const config = {
     ...ExprConfigForComponent,
@@ -729,7 +910,6 @@ export function resolvedNodesInLayouts(
  *
  * @see replaceTextResourcesSaga
  * @see replaceTextResourceParams
- * @see createRepeatingGroupComponentsForIndex
  * @ßee getVariableTextKeysForRepeatingGroupComponent
  */
 export function rewriteTextResourceBindings(collection: LayoutPages, textResources: ITextResource[]) {
@@ -744,11 +924,20 @@ export function rewriteTextResourceBindings(collection: LayoutPages, textResourc
         continue;
       }
 
-      const rewrittenItems = getVariableTextKeysForRepeatingGroupComponent(
-        textResources,
-        node.item.textResourceBindings,
-        node.rowIndex,
-      );
+      const rewrittenItems = { ...node.item.textResourceBindings };
+      if (textResources && node.item.textResourceBindings) {
+        const bindingsWithVariablesForRepeatingGroups = Object.keys(rewrittenItems).filter((key) => {
+          const textKey = rewrittenItems[key];
+          const textResource = textResources.find((text) => text.id === textKey);
+          return (
+            textResource && textResource.variables && textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1)
+          );
+        });
+
+        bindingsWithVariablesForRepeatingGroups.forEach((key) => {
+          rewrittenItems[key] = `${rewrittenItems[key]}-${node.rowIndex}`;
+        });
+      }
 
       node.item.textResourceBindings = { ...rewrittenItems };
     }
@@ -808,7 +997,10 @@ export class LayoutPages<
     return out;
   }
 
-  public findLayout(key: keyof Collection): LayoutPage | undefined {
+  public findLayout(key: keyof Collection | string | undefined): LayoutPage | undefined {
+    if (!key) {
+      return undefined;
+    }
     return this.objects[key];
   }
 
@@ -844,12 +1036,13 @@ export class LayoutPages<
   }
 }
 
-export function dataSourcesFromState(state: IRuntimeState): ContextDataSources {
+export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources {
   return {
     formData: state.formData.formData,
     applicationSettings: state.applicationSettings.applicationSettings,
     instanceContext: buildInstanceContext(state.instanceData?.instance),
     hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
+    validations: state.formValidations.validations,
   };
 }
 

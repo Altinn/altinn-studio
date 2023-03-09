@@ -244,6 +244,7 @@ export function FileUploadWithTagComponent({
       {hasValidationMessages && shouldShowFileUpload() && renderValidationMessagesForComponent(validationMessages, id)}
 
       <FileList
+        // TODO: Avoid tricking the type-system and either pass in required props or make them optional
         {...({} as PropsFromGenericComponent<'FileUploadWithTag'>)}
         id={id}
         attachments={attachments}

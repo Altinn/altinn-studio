@@ -16,9 +16,6 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type IListProps = PropsFromGenericComponent<'List'>;
 
 const defaultDataList: any[] = [];
-export interface rowValue {
-  [key: string]: string;
-}
 
 export const ListComponent = ({
   tableHeaders,

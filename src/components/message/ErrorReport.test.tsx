@@ -21,7 +21,7 @@ describe('ErrorReport', () => {
       formValidations: mockValidationState,
     });
 
-    return renderWithProviders(<ErrorReport components={[]} />, {
+    return renderWithProviders(<ErrorReport nodes={[]} />, {
       preloadedState: initialState,
     });
   };

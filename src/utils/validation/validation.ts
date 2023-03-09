@@ -13,16 +13,14 @@ import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { convertDataBindingToModel, getFormDataFromFieldKey, getKeyWithoutIndex } from 'src/utils/databindings';
 import { getDateConstraint, getDateFormat } from 'src/utils/dateHelpers';
-import { getFieldName, getFormDataForComponent } from 'src/utils/formComponentUtils';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
-import { matchLayoutComponent, setupGroupComponents } from 'src/utils/layout';
+import { getFieldName } from 'src/utils/formComponentUtils';
+import { matchLayoutComponent } from 'src/utils/layout';
 import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type {
-  ComponentInGroup,
   IDataModelBindings,
   ILayout,
   ILayoutComponent,
@@ -208,14 +206,13 @@ export function validateEmptyFields(
   layouts: LayoutPages,
   layoutOrder: string[],
   language: ILanguage,
-  hiddenFields: Set<string>,
   textResources: ITextResource[],
 ) {
   const validations: IValidations = {};
   const allLayouts = layouts.all();
   for (const id of Object.keys(allLayouts)) {
     if (layoutOrder.includes(id)) {
-      validations[id] = validateEmptyFieldsForNodes(formData, allLayouts[id], language, hiddenFields, textResources);
+      validations[id] = validateEmptyFieldsForNodes(formData, allLayouts[id], language, textResources);
     }
   }
   return validations;
@@ -225,7 +222,6 @@ export function validateEmptyFieldsForNodes(
   formData: IFormData,
   nodes: LayoutPage | LayoutNode,
   language: ILanguage,
-  hiddenFields: Set<string>,
   textResources: ITextResource[],
   onlyInRowIndex?: number,
 ): ILayoutValidations {
@@ -238,7 +234,7 @@ export function validateEmptyFieldsForNodes(
       node.item.type === 'FileUploadWithTag' ||
       node.item.required === false ||
       node.item.required === undefined ||
-      node.isHidden(hiddenFields)
+      node.isHidden()
     ) {
       continue;
     }
@@ -325,15 +321,13 @@ export function validateFormComponents(
   attachments: IAttachments,
   nodeLayout: LayoutPages,
   layoutOrder: string[],
-  formData: IFormData,
   language: ILanguage,
-  hiddenFields: Set<string>,
 ) {
   const validations: IValidations = {};
   const layouts = nodeLayout.all();
   for (const id of Object.keys(layouts)) {
     if (layoutOrder.includes(id)) {
-      validations[id] = validateFormComponentsForNodes(attachments, layouts[id], formData, language, hiddenFields);
+      validations[id] = validateFormComponentsForNodes(attachments, layouts[id], language);
     }
   }
 
@@ -346,9 +340,7 @@ export function validateFormComponents(
 function validateFormComponentsForNodes(
   attachments: IAttachments,
   nodes: LayoutPage | LayoutNode,
-  formData: IFormData,
   language: ILanguage,
-  hiddenFields: Set<string>,
   onlyInRowIndex?: number,
 ): ILayoutValidations {
   const validations: ILayoutValidations = {};
@@ -356,7 +348,7 @@ function validateFormComponentsForNodes(
   const flatNodes = nodes.flat(false, onlyInRowIndex);
 
   for (const node of flatNodes) {
-    if (node.isHidden(hiddenFields)) {
+    if (node.isHidden()) {
       continue;
     }
 
@@ -407,7 +399,7 @@ function validateFormComponentsForNodes(
     }
 
     if (node.item.type === 'Datepicker') {
-      const componentFormData = getFormDataForComponent(formData, node.item.dataModelBindings);
+      const componentFormData = node.getFormData();
       validations[node.item.id] = validateDatepickerFormData(componentFormData?.simpleBinding, node.item, language);
     }
   }
@@ -568,7 +560,7 @@ export function validateComponentSpecificValidations(
  * @param error the AJV validation error object
  * @returns a value indicating if the provided error is a "oneOf" error.
  */
-export const isOneOfError = (error: AjvCore.ErrorObject<string, Record<string, any>, unknown>): boolean => {
+export const isOneOfError = (error: AjvCore.ErrorObject): boolean => {
   return error.keyword === 'oneOf' || error.params?.type === 'null';
 };
 
@@ -1125,74 +1117,6 @@ export function hasValidationsOfSeverity(validations: IValidations, severity: Se
   });
 }
 
-/*
-  Checks if a given component has any validation errors. Returns true/false.
-*/
-export function componentHasValidations(
-  validations: IValidations | null,
-  layoutKey: string | null,
-  componentId: string | null,
-): boolean {
-  if (!validations || !componentId || !layoutKey) {
-    return false;
-  }
-
-  return Object.keys(validations[layoutKey]?.[componentId] || {})?.some((bindingKey: string) => {
-    const length = validations[layoutKey][componentId][bindingKey]?.errors?.length;
-    return length && length > 0;
-  });
-}
-
-/*
-  Checks if a given repeating group has any child components with errors.
-*/
-export function repeatingGroupHasValidations(
-  group: ExprUnresolved<ILayoutGroup> | null,
-  repeatingGroupComponents: ExprUnresolved<ILayoutGroup | ILayoutComponent>[][] | null,
-  validations: IValidations | null,
-  currentView: string | null,
-  repeatingGroups: IRepeatingGroups | null,
-  layout: ILayout | null,
-  hiddenFields?: string[],
-): boolean {
-  if (!group || !validations || !layout || !repeatingGroupComponents || !repeatingGroups) {
-    return false;
-  }
-
-  return repeatingGroupComponents.some((groupIndexArray, index) => {
-    return groupIndexArray.some((element) => {
-      if (element.type !== 'Group') {
-        return componentHasValidations(validations, currentView, element.id);
-      }
-
-      if (!element.dataModelBindings?.group) {
-        return false;
-      }
-      const childGroupIndex = repeatingGroups[element.id]?.index;
-      const childGroupComponents = layout.filter(
-        (childElement) => element.children?.indexOf(childElement.id) > -1,
-      ) as ExprUnresolved<ComponentInGroup>[];
-      const renderComponents = setupGroupComponents(childGroupComponents, element.dataModelBindings?.group, index);
-      const deepCopyComponents = createRepeatingGroupComponents(
-        element,
-        renderComponents,
-        childGroupIndex,
-        [],
-        hiddenFields,
-      );
-      return repeatingGroupHasValidations(
-        element,
-        deepCopyComponents,
-        validations,
-        currentView,
-        repeatingGroups,
-        layout,
-        hiddenFields,
-      );
-    });
-  });
-}
-
 export function mergeValidationObjects(...sources: (IValidations | null)[]): IValidations {
   const validations: IValidations = {};
   if (!sources?.length) {
@@ -1319,7 +1243,6 @@ function removeFixedValidations(validations?: string[], fixed?: string[]): strin
 export function validateGroup(groupId: string, state: IRuntimeState, onlyInRowIndex?: number): IValidations {
   const language = state.language.language;
   const textResources = state.textResources.resources;
-  const hiddenFields = new Set<string>(state.formLayout.uiConfig.hiddenFields);
   const attachments = state.attachments.attachments;
   const formData = state.formData.formData;
   const jsonFormData = convertDataBindingToModel(formData);
@@ -1337,22 +1260,8 @@ export function validateGroup(groupId: string, state: IRuntimeState, onlyInRowIn
     layoutSets: state.formLayout.layoutsets,
   });
   const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
-  const emptyFieldsValidations = validateEmptyFieldsForNodes(
-    formData,
-    node,
-    language,
-    hiddenFields,
-    textResources,
-    onlyInRowIndex,
-  );
-  const componentValidations = validateFormComponentsForNodes(
-    attachments,
-    node,
-    formData,
-    language,
-    hiddenFields,
-    onlyInRowIndex,
-  );
+  const emptyFieldsValidations = validateEmptyFieldsForNodes(formData, node, language, textResources, onlyInRowIndex);
+  const componentValidations = validateFormComponentsForNodes(attachments, node, language, onlyInRowIndex);
   const formDataValidations = validateFormDataForLayout(
     jsonFormData,
     node,

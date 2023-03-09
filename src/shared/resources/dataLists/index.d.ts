@@ -27,10 +27,6 @@ export interface IFetchingDataListsAction {
   metaData: IOptionsMetaData;
 }
 
-export interface IFetchDataListCountFulfilledAction {
-  count: number;
-}
-
 export interface ISetDataListsWithIndexIndicators {
   dataListsWithIndexIndicators: IDataListsMetaData[];
 }

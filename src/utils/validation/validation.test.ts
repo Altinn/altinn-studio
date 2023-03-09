@@ -10,13 +10,12 @@ import * as refOnRootSchema from 'src/__mocks__/json-schema/ref-on-root.json';
 import { getMockValidationState } from 'src/__mocks__/validationStateMock';
 import { getParsedLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
 import { Severity } from 'src/types';
-import { createRepeatingGroupComponents, getRepeatingGroups } from 'src/utils/formLayout';
+import { getRepeatingGroups } from 'src/utils/formLayout';
 import { _private } from 'src/utils/layout/hierarchy';
 import * as validation from 'src/utils/validation/validation';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponent, ILayouts } from 'src/layout/layout';
+import type { ILayoutComponent, ILayouts } from 'src/layout/layout';
 import type {
   IComponentBindingValidation,
   IComponentValidations,
@@ -31,8 +30,18 @@ import type { LayoutPages } from 'src/utils/layout/hierarchy';
 
 const { nodesInLayouts } = _private;
 
-function toCollection(mockLayouts: ILayouts, repeatingGroups: IRepeatingGroups = {}) {
-  return nodesInLayouts(mockLayouts, Object.keys(mockLayouts)[0], repeatingGroups) as unknown as LayoutPages;
+function toCollection(
+  mockLayouts: ILayouts,
+  repeatingGroups: IRepeatingGroups = {},
+  hiddenFields: Set<string> = new Set<string>(),
+) {
+  return nodesInLayouts(mockLayouts, Object.keys(mockLayouts)[0], repeatingGroups, {
+    instanceContext: null,
+    formData: {},
+    applicationSettings: null,
+    hiddenFields,
+    validations: {},
+  }) as unknown as LayoutPages;
 }
 
 function toCollectionFromData(mockLayout: ILayouts, formDataAsObject: any) {
@@ -747,9 +756,7 @@ describe('utils > validation', () => {
         mockFormAttachments.attachments,
         toCollection(mockLayout),
         Object.keys(mockLayoutState.layouts),
-        mockFormData,
         mockLanguage.language,
-        new Set(),
       );
 
       const mockResult = {
@@ -774,9 +781,7 @@ describe('utils > validation', () => {
         mockFormAttachments.attachments,
         toCollection(mockLayout),
         Object.keys(mockLayoutState.layouts),
-        mockFormData,
         mockLanguage.language,
-        new Set(),
       );
 
       const mockResult = {
@@ -809,9 +814,7 @@ describe('utils > validation', () => {
         mockFormAttachments.attachments,
         toCollection(mockLayout),
         Object.keys(mockLayout),
-        mockFormData,
         mockLanguage.language,
-        new Set(),
       );
 
       const mockResult = {
@@ -835,11 +838,9 @@ describe('utils > validation', () => {
       };
       const componentSpecificValidations = validation.validateFormComponents(
         mockFormAttachments.attachments,
-        toCollection(mockLayout),
+        toCollection(mockLayout, {}, new Set(['componentId_4'])),
         Object.keys(mockLayout),
-        mockFormData,
         mockLanguage.language,
-        new Set(['componentId_4']),
       );
 
       const mockResult = {
@@ -865,9 +866,7 @@ describe('utils > validation', () => {
         mockFormAttachments.attachments,
         toCollection(mockLayout),
         [],
-        mockFormData,
         mockLanguage.language,
-        new Set(),
       );
 
       expect(componentSpecificValidations).toEqual({});
@@ -888,7 +887,6 @@ describe('utils > validation', () => {
         toCollection(mockLayout, repeatingGroups),
         Object.keys(mockLayout),
         mockLanguage.language,
-        new Set(),
         mockTextResources,
       );
 
@@ -926,10 +924,9 @@ describe('utils > validation', () => {
     it('should not return error for repeating group if child is hidden', () => {
       const componentSpecificValidations = validation.validateEmptyFields(
         mockFormData,
-        toCollection(mockLayout, repeatingGroups),
+        toCollection(mockLayout, repeatingGroups, new Set(['componentId_4-0'])),
         Object.keys(mockLayout),
         mockLanguage.language,
-        new Set(['componentId_4-0']),
         mockTextResources,
       );
 
@@ -964,7 +961,6 @@ describe('utils > validation', () => {
         toCollection(mockLayout, repeatingGroups),
         [],
         mockLanguage.language,
-        new Set(),
         mockTextResources,
       );
 
@@ -1039,17 +1035,11 @@ describe('utils > validation', () => {
       hiddenFields = [],
       repeatingGroups = {},
     }: Partial<RenderWith>) => {
-      const layout = toCollection({ FormLayout: formLayout }, repeatingGroups).current();
+      const layout = toCollection({ FormLayout: formLayout }, repeatingGroups, new Set(hiddenFields)).current();
       if (!layout) {
         throw new Error('No layout found - check your test data!');
       }
-      return validation.validateEmptyFieldsForNodes(
-        formData,
-        layout,
-        mockLanguage.language,
-        new Set(hiddenFields),
-        mockTextResources,
-      );
+      return validation.validateEmptyFieldsForNodes(formData, layout, mockLanguage.language, mockTextResources);
     };
 
     const requiredFieldInSimpleGroup = 'required_in_group_simple';
@@ -1496,235 +1486,6 @@ describe('utils > validation', () => {
     it('should return index for field in repeating group', () => {
       const dataModelBinding = 'group_1[2].dataModelField_1';
       expect(validation.getIndex(dataModelBinding)).toBe('2');
-    });
-  });
-
-  describe('componentHasValidations', () => {
-    it('should return true if component has validations', () => {
-      const validations: IValidations = {
-        FormLayout: {
-          dummyId: {
-            simpleBinding: {
-              errors: ['Some error'],
-            },
-          },
-        },
-      };
-      expect(validation.componentHasValidations(validations, 'FormLayout', 'dummyId')).toBeTruthy();
-    });
-
-    it('should return false if component has no validations', () => {
-      const validations: IValidations = {
-        FormLayout: {
-          dummyId: {
-            simpleBinding: {
-              errors: ['Some error'],
-            },
-          },
-        },
-      };
-      expect(validation.componentHasValidations(validations, 'FormLayout', 'someOtherId')).toBeFalsy();
-    });
-
-    it('should return false when supplied with null values', () => {
-      expect(validation.componentHasValidations(null, null, null)).toBeFalsy();
-    });
-  });
-
-  describe('repeatingGroupHasValidations', () => {
-    it('should return true when components in group has errors', () => {
-      const group: ExprUnresolved<ILayoutGroup> = {
-        id: 'group',
-        type: 'Group',
-        dataModelBindings: { group: 'group' },
-        children: ['child1', 'child2'],
-      };
-
-      const validations: IValidations = {
-        FormLayout: {
-          'child1-0': {
-            simpleBinding: {
-              errors: ['some error'],
-            },
-          },
-        },
-      };
-
-      const repeatingGroups: IRepeatingGroups = {
-        group: {
-          index: 0,
-          editIndex: -1,
-        },
-      };
-
-      const layout: ILayout = [
-        {
-          id: 'group',
-          type: 'Group',
-          dataModelBindings: { group: 'group' },
-          children: ['child1', 'child2'],
-        },
-        {
-          id: 'child1',
-          type: 'Input',
-          dataModelBindings: { simpleBinding: 'group.child1' },
-        },
-        {
-          id: 'child2',
-          type: 'Input',
-          dataModelBindings: { simpleBinding: 'group.child2' },
-        },
-      ];
-
-      // this parsing is handled internally in GroupContainer. Is done manually here to test util function
-      const groupChildren = createRepeatingGroupComponents(
-        group,
-        layout.filter((element) => group.children.includes(element.id)),
-        0,
-        [],
-      );
-      expect(
-        validation.repeatingGroupHasValidations(
-          group,
-          groupChildren,
-          validations,
-          'FormLayout',
-          repeatingGroups,
-          layout,
-        ),
-      ).toBeTruthy();
-    });
-
-    it('should return true when a child group has validations', () => {
-      const group: ExprUnresolved<ILayoutGroup> = {
-        id: 'group',
-        type: 'Group',
-        dataModelBindings: { group: 'group' },
-        children: ['child1', 'group2'],
-      };
-
-      const validations: IValidations = {
-        FormLayout: {
-          'child2-0-0': {
-            simpleBinding: {
-              errors: ['some error'],
-            },
-          },
-        },
-      };
-
-      const repeatingGroups: IRepeatingGroups = {
-        group: {
-          index: 0,
-          editIndex: -1,
-        },
-        'group2-0': {
-          index: 0,
-          editIndex: -1,
-        },
-      };
-
-      const layout: ILayout = [
-        {
-          id: 'group',
-          type: 'Group',
-          dataModelBindings: { group: 'group' },
-          children: ['child1', 'group2'],
-        },
-        {
-          id: 'child1',
-          type: 'Input',
-          dataModelBindings: { simpleBinding: 'group.child1' },
-        },
-        {
-          id: 'group2',
-          type: 'Group',
-          dataModelBindings: { group: 'group.group2' },
-          children: ['child2'],
-        },
-        {
-          id: 'child2',
-          type: 'Input',
-          dataModelBindings: { simpleBinding: 'group.group2.child2' },
-        },
-      ];
-      const groupChildren = createRepeatingGroupComponents(
-        group,
-        layout.filter((element) => group.children.includes(element.id)),
-        0,
-        [],
-      );
-      expect(
-        validation.repeatingGroupHasValidations(
-          group,
-          groupChildren,
-          validations,
-          'FormLayout',
-          repeatingGroups,
-          layout,
-        ),
-      ).toBeTruthy();
-    });
-
-    it('should return false when no children has validations', () => {
-      const group: ExprUnresolved<ILayoutGroup> = {
-        id: 'group',
-        type: 'Group',
-        dataModelBindings: { group: 'group' },
-        children: ['child1'],
-      };
-
-      const validations: IValidations = {
-        FormLayout: {
-          'some-random-field': {
-            simpleBinding: {
-              errors: ['some error'],
-            },
-          },
-        },
-      };
-
-      const repeatingGroups: IRepeatingGroups = {
-        group: {
-          index: 0,
-          editIndex: -1,
-        },
-      };
-
-      const layout: ILayout = [
-        {
-          id: 'group',
-          type: 'Group',
-          dataModelBindings: { group: 'group' },
-          children: ['child1', 'child2'],
-        },
-        {
-          id: 'child1',
-          type: 'Input',
-          dataModelBindings: { simpleBinding: 'group.child1' },
-        },
-      ];
-
-      const groupChildren = createRepeatingGroupComponents(
-        group,
-        layout.filter((element) => group.children.includes(element.id)),
-        0,
-        [],
-      );
-      expect(
-        validation.repeatingGroupHasValidations(
-          group,
-          groupChildren,
-          validations,
-          'FormLayout',
-          repeatingGroups,
-          layout,
-        ),
-      ).toBeFalsy();
-    });
-
-    it('should return false when supplied with null values', () => {
-      expect(validation.repeatingGroupHasValidations(null, null, null, null, null, null)).toBeFalsy();
     });
   });
 

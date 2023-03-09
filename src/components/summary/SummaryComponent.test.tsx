@@ -7,20 +7,20 @@ import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { renderWithProviders } from 'src/testUtils';
-import type { ISummaryComponent } from 'src/components/summary/SummaryComponent';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { ILayoutComponent } from 'src/layout/layout';
 import type { IValidations } from 'src/types';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 describe('SummaryComponent', () => {
-  const defaultId = 'default';
   const pageId = 'FormLayout';
   const layoutMock = (): ILayoutState =>
     getFormLayoutStateMock({
       layouts: {
         [pageId]: [
-          ...[defaultId, 'Group', 'FileUpload', 'FileUploadWithTag', 'Checkboxes'].map(
+          ...['Input', 'Group', 'FileUpload', 'FileUploadWithTag', 'Checkboxes'].map(
             (t) =>
               ({
                 id: t,
@@ -51,15 +51,15 @@ describe('SummaryComponent', () => {
     expect(screen.getByTestId('multiple-choice-summary')).toBeInTheDocument();
   });
   test('should render default', () => {
-    renderHelper({ componentRef: defaultId });
-    expect(screen.getByTestId('single-input-summary')).toBeInTheDocument();
+    renderHelper({ componentRef: 'Input' });
+    expect(screen.getByTestId('summary-item-simple')).toBeInTheDocument();
   });
   test('should render with validation message', () => {
     renderHelper(
-      { componentRef: defaultId },
+      { componentRef: 'Input' },
       {
         [pageId]: {
-          [defaultId]: {
+          ['Input']: {
             simpleBinding: {
               errors: ['Error message'],
               warnings: [],
@@ -74,8 +74,8 @@ describe('SummaryComponent', () => {
     const otherLayout = {
       ...layoutMock(),
     };
-    otherLayout.uiConfig.hiddenFields = [defaultId];
-    const { container } = renderHelper({ componentRef: defaultId }, {}, otherLayout);
+    otherLayout.uiConfig.hiddenFields = ['Input'];
+    const { container } = renderHelper({ componentRef: 'Input' }, {}, otherLayout);
     expect(container.firstChild).toBeNull();
     expect(container.childElementCount).toBe(0);
   });
@@ -93,7 +93,7 @@ describe('SummaryComponent', () => {
       };
     }
 
-    renderHelper({ componentRef: defaultId }, {}, otherLayout);
+    renderHelper({ componentRef: 'Input' }, {}, otherLayout);
     expect(screen.getByText('default title')).toBeInTheDocument();
   });
 
@@ -103,38 +103,41 @@ describe('SummaryComponent', () => {
       ...layoutMock(),
     };
     otherLayout.uiConfig.currentView = 'otherPage';
-    const theRender = renderHelper({ componentRef: defaultId }, {}, otherLayout);
+    const theRender = renderHelper({ componentRef: 'Input' }, {}, otherLayout);
     const button = theRender.container.querySelector<HTMLButtonElement>('button');
     button && fireEvent.click(button);
     expect(spy).toHaveBeenCalledWith({
       newView: pageId,
       returnToView: 'otherPage',
-      focusComponentId: defaultId,
+      focusComponentId: 'Input',
     });
   });
 
-  const renderHelper = (
-    extendProps: Partial<ISummaryComponent>,
-    validations: IValidations = {},
-    mockLayout = layoutMock(),
-  ) => {
-    return renderWithProviders(
-      <SummaryComponent
-        id={defaultId}
-        pageRef={pageId}
-        {...extendProps}
-      />,
-      {
-        preloadedState: {
-          ...getInitialStateMock(),
-          formLayout: mockLayout,
-          formValidations: {
-            validations,
-            error: null,
-            invalidDataTypes: [],
-          },
+  const renderHelper = (props: { componentRef: string }, validations: IValidations = {}, mockLayout = layoutMock()) => {
+    function Wrapper() {
+      const node = useResolvedNode('mySummary') as LayoutNodeFromType<'Summary'>;
+
+      return <SummaryComponent summaryNode={node} />;
+    }
+
+    const layoutPage = mockLayout.layouts && mockLayout.layouts[pageId];
+    layoutPage?.push({
+      type: 'Summary',
+      id: 'mySummary',
+      componentRef: props.componentRef,
+      pageRef: pageId,
+    });
+
+    return renderWithProviders(<Wrapper />, {
+      preloadedState: {
+        ...getInitialStateMock(),
+        formLayout: mockLayout,
+        formValidations: {
+          validations,
+          error: null,
+          invalidDataTypes: [],
         },
       },
-    );
+    });
   };
 });

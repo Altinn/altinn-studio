@@ -1,19 +1,16 @@
-import { INDEX_KEY_INDICATOR_REGEX } from 'src/utils/databindings';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { IGroupEditProperties, IGroupFilter, ILayoutGroup } from 'src/layout/Group/types';
-import type { ComponentInGroup, ComponentTypes, ILayout, ILayoutComponent } from 'src/layout/layout';
+import type { ComponentTypes, ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type {
   IFileUploadersWithTag,
   ILayoutNavigation,
   ILayoutSets,
-  IMapping,
   IOptionsChosen,
   IRepeatingGroups,
-  ITextResourceBindings,
 } from 'src/types';
-import type { ITextResource } from 'src/types/shared';
+import type { LayoutNode, LayoutPage } from 'src/utils/layout/hierarchy';
 
 interface SplitKey {
   baseComponentId: string;
@@ -281,155 +278,11 @@ export const getRepeatingGroupStartStopIndex = (
 };
 
 /**
- * @deprecated
- * @see useExprContext
- * @see useResolvedNode
- */
-export function createRepeatingGroupComponents(
-  container: ExprUnresolved<ILayoutGroup>,
-  renderComponents: ExprUnresolved<ILayoutComponent | ILayoutGroup>[],
-  repeatingGroupIndex: number,
-  textResources: ITextResource[],
-  hiddenFields?: string[],
-): ExprUnresolved<ComponentInGroup>[][] {
-  const componentArray: ExprUnresolved<ComponentInGroup>[][] = [];
-  const { startIndex, stopIndex } = getRepeatingGroupStartStopIndex(repeatingGroupIndex, container.edit);
-  for (let index = startIndex; index <= stopIndex; index++) {
-    componentArray.push(
-      createRepeatingGroupComponentsForIndex({
-        container,
-        renderComponents,
-        textResources,
-        index,
-        hiddenFields,
-      }),
-    );
-  }
-  return componentArray;
-}
-
-interface ICreateRepeatingGroupComponentsForIndexProps {
-  container: ExprUnresolved<ILayoutGroup>;
-  renderComponents: ExprUnresolved<ILayoutComponent | ILayoutGroup>[];
-  textResources: ITextResource[];
-  index: number;
-  hiddenFields?: string[];
-}
-
-/**
- * @deprecated
- * @see useExprContext
- * @see useResolvedNode
- */
-export function createRepeatingGroupComponentsForIndex({
-  container,
-  renderComponents,
-  textResources,
-  index,
-  hiddenFields,
-}: ICreateRepeatingGroupComponentsForIndexProps) {
-  return renderComponents.map((component) => {
-    if (component.type === 'Group' && component.panel?.groupReference) {
-      // Do not treat as a regular group child as this is merely an option
-      // to add elements for another group from this group context
-      return {
-        ...component,
-        id: `${component.id}-${index}`,
-        baseComponentId: component.id, // used to indicate that it is a child group
-      };
-    }
-
-    const componentDeepCopy: ExprUnresolved<ILayoutComponent | ILayoutGroup> = JSON.parse(JSON.stringify(component));
-    const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
-    const groupDataModelBinding = container.dataModelBindings?.group;
-    Object.keys(dataModelBindings).forEach((key) => {
-      dataModelBindings[key] = dataModelBindings[key].replace(
-        groupDataModelBinding,
-        `${groupDataModelBinding}[${index}]`,
-      );
-    });
-    const deepCopyId = `${componentDeepCopy.id}-${index}`;
-    componentDeepCopy.textResourceBindings = getVariableTextKeysForRepeatingGroupComponent(
-      textResources,
-      componentDeepCopy.textResourceBindings as ITextResourceBindings,
-      index,
-    );
-    const hidden = !!hiddenFields?.find((field) => field === `${deepCopyId}[${index}]`);
-    let mapping: IMapping | undefined;
-    if ('mapping' in componentDeepCopy) {
-      mapping = setMappingForRepeatingGroupComponent(componentDeepCopy.mapping, index);
-    }
-    return {
-      ...componentDeepCopy,
-      textResourceBindings: componentDeepCopy.textResourceBindings,
-      dataModelBindings,
-      id: deepCopyId,
-      baseComponentId: componentDeepCopy.baseComponentId || componentDeepCopy.id,
-      hidden,
-      mapping,
-    } as ExprUnresolved<ComponentInGroup>;
-  });
-}
-
-/**
- * @deprecated
- * @see useExprContext
- * @see useResolvedNode
- */
-export function setMappingForRepeatingGroupComponent(mapping: IMapping | undefined, index: number | undefined) {
-  if (mapping) {
-    const indexedMapping: IMapping = {
-      ...mapping,
-    };
-    const mappingsWithRepeatingGroupSources = Object.keys(mapping).filter((source) =>
-      source.match(INDEX_KEY_INDICATOR_REGEX),
-    );
-    mappingsWithRepeatingGroupSources.forEach((sourceMapping) => {
-      delete indexedMapping[sourceMapping];
-      const newSource = sourceMapping.replace(INDEX_KEY_INDICATOR_REGEX, `[${index}]`);
-      indexedMapping[newSource] = mapping[sourceMapping];
-      delete indexedMapping[sourceMapping];
-    });
-    return indexedMapping;
-  } else {
-    return undefined;
-  }
-}
-
-/**
- * @deprecated
- * @see useExprContext
- * @see useResolvedNode
- */
-export function getVariableTextKeysForRepeatingGroupComponent(
-  textResources: ITextResource[],
-  textResourceBindings: ITextResourceBindings | undefined,
-  index: number,
-) {
-  const copyTextResourceBindings = { ...textResourceBindings };
-  if (textResources && textResourceBindings) {
-    const bindingsWithVariablesForRepeatingGroups = Object.keys(copyTextResourceBindings).filter((key) => {
-      const textKey = copyTextResourceBindings[key];
-      const textResource = textResources.find((text) => text.id === textKey);
-      return textResource && textResource.variables && textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1);
-    });
-
-    bindingsWithVariablesForRepeatingGroups.forEach((key) => {
-      copyTextResourceBindings[key] = `${copyTextResourceBindings[key]}-${index}`;
-    });
-  }
-  return copyTextResourceBindings;
-}
-
-/**
  * Checks if there are required fields in this layout (or fields that potentially can be marked as required if some
  * dynamic behaviour dictates it).
- * @deprecated The 'required' property for components can be adjusted dynamically using expressions, so this function
- *   is no longer reliable. Rewrite to look at the 'readOnly' property in resolved nodes instead.
- * @see useExprContext
  */
-export function hasRequiredFields(layout: ILayout): boolean {
-  return !!layout.find((c: ExprUnresolved<ILayoutComponent>) => c.required === true || Array.isArray(c.required));
+export function hasRequiredFields(page: LayoutPage): boolean {
+  return !!page.flat(true).find((n) => n.item.required === true);
 }
 
 /**
@@ -520,16 +373,17 @@ export function topLevelComponents(layout: ILayout) {
  * all the buttons on the bottom of the input layout, while the first returned
  * value is the input layout except for these extracted components.
  */
-export function extractBottomButtons(layout: ILayout) {
+export function extractBottomButtons(page: LayoutPage) {
   const extract = new Set<ComponentTypes>(['NavigationButtons', 'Button', 'PrintButton']);
 
-  const toMainLayout: ILayout = [];
-  const toErrorReport: ILayout = [];
-  for (const component of [...layout].reverse()) {
-    if (extract.has(component.type) && toMainLayout.length === 0) {
-      toErrorReport.push(component);
+  const all = [...page.children()];
+  const toMainLayout: LayoutNode[] = [];
+  const toErrorReport: LayoutNode[] = [];
+  for (const node of all.reverse()) {
+    if (extract.has(node.item.type) && toMainLayout.length === 0) {
+      toErrorReport.push(node);
     } else {
-      toMainLayout.push(component);
+      toMainLayout.push(node);
     }
   }
 

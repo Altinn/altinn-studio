@@ -24,8 +24,6 @@ import type { IRepeatingGroups, IRuntimeState } from 'src/types';
 export const formLayoutSelector = (state: IRuntimeState): ILayouts | null => state.formLayout?.layouts;
 export const formDataSelector = (state: IRuntimeState) => state.formData.formData;
 export const dataListsSelector = (state: IRuntimeState): IDataLists => state.dataListState.dataLists;
-export const dataListsWithIndexIndicatorsSelector = (state: IRuntimeState) =>
-  state.dataListState.dataListsWithIndexIndicator;
 export const instanceIdSelector = (state: IRuntimeState): string | undefined => state.instanceData.instance?.id;
 export const repeatingGroupsSelector = (state: IRuntimeState) => state.formLayout?.uiConfig.repeatingGroups;
 

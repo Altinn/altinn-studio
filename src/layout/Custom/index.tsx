@@ -1,15 +1,28 @@
 import React from 'react';
 
+import { SummaryItemSimple } from 'src/components/summary/SummaryItemSimple';
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
-import { LayoutComponent } from 'src/layout/LayoutComponent';
+import { FormComponent } from 'src/layout/LayoutComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
-export class Custom extends LayoutComponent<'Custom'> {
+export class Custom extends FormComponent<'Custom'> {
   render(props: PropsFromGenericComponent<'Custom'>): JSX.Element | null {
     return <CustomWebComponent {...props} />;
   }
 
   renderWithLabel(): boolean {
     return false;
+  }
+
+  useDisplayData(node: LayoutNodeFromType<'Custom'>): string {
+    const data = node.getFormData();
+    return Object.values(data).join(', ');
+  }
+
+  renderSummary({ targetNode }: SummaryRendererProps<'Custom'>): JSX.Element | null {
+    const displayData = this.useDisplayData(targetNode);
+    return <SummaryItemSimple formDataAsString={displayData} />;
   }
 }

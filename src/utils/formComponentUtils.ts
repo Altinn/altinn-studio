@@ -1,344 +1,20 @@
 import type React from 'react';
 
-import { formatNumericText } from '@digdir/design-system-react';
-
 import { getLanguageFromKey, getParsedLanguageFromText, getTextResourceByKey } from 'src/language/sharedLanguage';
 import printStyles from 'src/styles/print.module.css';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
-import { getDateFormat } from 'src/utils/dateHelpers';
-import { formatISOString } from 'src/utils/formatDate';
-import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
-import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from 'src/utils/options';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
-import type { IFormData } from 'src/features/form/data';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type {
-  IDataModelBindings,
-  IGridStyling,
-  ILayoutComponent,
-  ISelectionComponentProps,
-  NumberFormatProps,
-} from 'src/layout/layout';
+import type { ExprResolved } from 'src/features/expressions/types';
+import type { IGridStyling } from 'src/layout/layout';
 import type { IPageBreak } from 'src/layout/layout.d';
-import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
-import type {
-  IComponentValidations,
-  IOption,
-  IOptions,
-  IRepeatingGroups,
-  ITextResource,
-  ITextResourceBindings,
-  IValidations,
-} from 'src/types';
+import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IComponentValidations, ITextResource, ITextResourceBindings } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 import type { AnyItem } from 'src/utils/layout/hierarchy.types';
-
-export const componentHasValidationMessages = (componentValidations: IComponentValidations | undefined) => {
-  if (!componentValidations) {
-    return false;
-  }
-  return Object.keys(componentValidations).some((key: string) => {
-    const bindings = componentValidations[key] || {};
-    return Object.keys(bindings).some((validationKey) => {
-      const messages = bindings && bindings[validationKey];
-      return messages && messages.length > 0;
-    });
-  });
-};
-
-export const getComponentValidations = (validations: IValidations, componentId: string, pageId: string) => {
-  if (validations[pageId]) {
-    return validations[pageId][componentId];
-  }
-
-  return undefined;
-};
 
 export interface IComponentFormData {
   [binding: string]: string | undefined;
 }
-
-export const getFormDataForComponent = (formData: IFormData, dataModelBindings: IDataModelBindings | undefined) => {
-  if (!dataModelBindings) {
-    return {} as IComponentFormData;
-  }
-
-  const formDataObj: IComponentFormData = {};
-  Object.keys(dataModelBindings).forEach((key: any) => {
-    const binding = dataModelBindings[key];
-    if (formData[binding]) {
-      formDataObj[key] = formData[binding];
-    } else {
-      formDataObj[key] = '';
-    }
-  });
-  return formDataObj;
-};
-
-export const getDisplayFormDataForComponent = (
-  formData: IFormData,
-  attachments: IAttachments,
-  component: ExprUnresolved<ILayoutComponent> | AnyItem,
-  textResources: ITextResource[],
-  options: IOptions,
-  repeatingGroups: IRepeatingGroups | null,
-  multiChoice?: boolean,
-) => {
-  if (!component.dataModelBindings) {
-    return '';
-  }
-
-  if (component.dataModelBindings?.simpleBinding || component.dataModelBindings?.list) {
-    return getDisplayFormData(
-      component.dataModelBindings?.simpleBinding || component.dataModelBindings?.list,
-      component,
-      component.id,
-      attachments,
-      formData,
-      options,
-      textResources,
-      repeatingGroups,
-      multiChoice,
-    );
-  }
-
-  const formDataObj = {};
-  Object.keys(component.dataModelBindings).forEach((key: any) => {
-    const binding = component.dataModelBindings && component.dataModelBindings[key];
-
-    if (component.type == 'List' && component.bindingToShowInSummary !== binding) {
-      return;
-    }
-
-    formDataObj[key] = getDisplayFormData(
-      binding,
-      component,
-      component.id,
-      attachments,
-      formData,
-      options,
-      textResources,
-      repeatingGroups,
-    );
-  });
-  return formDataObj;
-};
-
-export const getDisplayFormData = (
-  dataModelBinding: string | undefined,
-  component: ExprUnresolved<ILayoutComponent | ILayoutGroup> | AnyItem,
-  componentId: string,
-  attachments: IAttachments,
-  formData: any,
-  options: IOptions,
-  textResources: ITextResource[],
-  repeatingGroups: IRepeatingGroups | null,
-  asObject?: boolean,
-) => {
-  if (!dataModelBinding) {
-    return '';
-  }
-
-  let formDataValue = formData[dataModelBinding] || '';
-  if (component.dataModelBindings?.list) {
-    formDataValue = Object.keys(formData)
-      .filter((key) => key.startsWith(dataModelBinding))
-      .map((key) => formData[key]);
-  }
-
-  if (formDataValue) {
-    if (component.type === 'Dropdown' || component.type === 'RadioButtons' || component.type === 'Likert') {
-      const selectionComponent = component as ISelectionComponentProps;
-      let label: string | undefined;
-      if (selectionComponent.optionsId) {
-        label = options[
-          getOptionLookupKey({
-            id: selectionComponent.optionsId,
-            mapping: selectionComponent.mapping,
-          })
-        ]?.options?.find((option: IOption) => option.value === formDataValue)?.label;
-      } else if (selectionComponent.options) {
-        label = selectionComponent.options.find((option: IOption) => option.value === formDataValue)?.label;
-      } else if (selectionComponent.source) {
-        const relevantTextResource = textResources.find((e) => e.id === selectionComponent.source?.label);
-        const reduxOptions =
-          relevantTextResource &&
-          setupSourceOptions({
-            source: selectionComponent.source,
-            relevantTextResource,
-            relevantFormData: getRelevantFormDataForOptionSource(formData, selectionComponent.source),
-            repeatingGroups,
-            dataSources: {
-              dataModel: formData,
-            },
-          });
-        label = reduxOptions?.find((option) => option.value === formDataValue)?.label;
-      }
-
-      if (!label) {
-        return undefined;
-      }
-
-      return getTextResourceByKey(label, textResources) || formDataValue;
-    }
-    if (component.type === 'Checkboxes' || component.type === 'MultipleSelect') {
-      const selectionComponent = component as ISelectionComponentProps;
-      let label = '';
-      const data: string = formData[dataModelBinding];
-      const split = data?.split(',');
-      if (asObject) {
-        const displayFormData = {};
-        split?.forEach((value: string) => {
-          const key =
-            selectionComponent.optionsId &&
-            getOptionLookupKey({
-              id: selectionComponent.optionsId,
-              mapping: selectionComponent.mapping,
-            });
-          const optionsForComponent =
-            selectionComponent?.optionsId && key ? options[key]?.options : selectionComponent.options;
-          const textKey = optionsForComponent?.find((option: IOption) => option.value === value)?.label || '';
-          displayFormData[value] = getTextResourceByKey(textKey, textResources) || formDataValue;
-        });
-
-        return displayFormData;
-      }
-
-      split?.forEach((value: string) => {
-        if (selectionComponent?.options) {
-          label +=
-            getTextResourceByKey(
-              selectionComponent.options?.find((option: IOption) => option.value === value)?.label,
-              textResources,
-            ) || '';
-        } else if (selectionComponent.optionsId) {
-          label +=
-            getTextResourceByKey(
-              options[
-                getOptionLookupKey({
-                  id: selectionComponent.optionsId,
-                  mapping: selectionComponent.mapping,
-                })
-              ]?.options?.find((option: IOption) => option.value === value)?.label,
-              textResources,
-            ) || '';
-        }
-        if (split.indexOf(value) < split.length - 1) {
-          label += ', ';
-        }
-      });
-      return label;
-    }
-    if (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') {
-      if (Array.isArray(formDataValue) && !formDataValue.length) {
-        return '';
-      }
-      const attachmentNamesList = (Array.isArray(formDataValue) ? formDataValue : [formDataValue])
-        .map((uuid) => {
-          const attachmentsForComponent = attachments[componentId];
-          if (attachmentsForComponent) {
-            const foundAttachment = attachmentsForComponent.find((a) => a.id === uuid);
-            if (foundAttachment) {
-              return foundAttachment.name;
-            }
-          }
-
-          return '';
-        })
-        .filter((name) => name !== '');
-
-      return attachmentNamesList.join(', ');
-    }
-    if (component.type === 'Input' && component.formatting?.number) {
-      return formatNumericText(formDataValue, component.formatting.number as NumberFormatProps);
-    }
-    if (component.type === 'Datepicker') {
-      const dateFormat = getDateFormat(component.format);
-      return formatISOString(formDataValue, dateFormat) ?? formDataValue;
-    }
-  }
-  return formDataValue;
-};
-
-/**
- * @deprecated
- */
-export const getFormDataForComponentInRepeatingGroup = (
-  formData: IFormData,
-  attachments: IAttachments,
-  component: ExprUnresolved<ILayoutComponent | ILayoutGroup>,
-  index: number,
-  groupDataModelBinding: string | undefined,
-  textResources: ITextResource[],
-  options: IOptions,
-  repeatingGroups: IRepeatingGroups | null,
-) => {
-  if (
-    !component.dataModelBindings ||
-    component.type === 'Group' ||
-    component.type === 'Header' ||
-    component.type === 'Paragraph' ||
-    component.type === 'Image' ||
-    component.type === 'InstantiationButton'
-  ) {
-    return '';
-  }
-  let dataModelBinding =
-    component.type === 'AddressComponent'
-      ? component.dataModelBindings?.address
-      : component.dataModelBindings?.simpleBinding;
-  if (
-    (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') &&
-    component.dataModelBindings?.list
-  ) {
-    dataModelBinding = component.dataModelBindings.list;
-  }
-
-  if (!dataModelBinding || !groupDataModelBinding || !repeatingGroups) {
-    return undefined;
-  }
-
-  const replaced = dataModelBinding.replace(groupDataModelBinding, `${groupDataModelBinding}[${index}]`);
-  const componentId = `${component.id}-${index}`;
-
-  let mapping;
-  if ('mapping' in component) {
-    mapping = setMappingForRepeatingGroupComponent(component.mapping, index);
-  }
-
-  const indexedComponent = {
-    ...component,
-    mapping,
-    id: componentId,
-  };
-
-  return getDisplayFormData(
-    replaced,
-    indexedComponent,
-    componentId,
-    attachments,
-    formData,
-    options,
-    textResources,
-    repeatingGroups,
-  );
-};
-
-export const isComponentValid = (validations: IComponentValidations): boolean => {
-  if (!validations) {
-    return true;
-  }
-  let isValid = true;
-
-  Object.keys(validations).forEach((key: string) => {
-    const errors = validations[key]?.errors;
-    if (errors && errors.length > 0) {
-      isValid = false;
-    }
-  });
-  return isValid;
-};
 
 export const getTextResource = (resourceKey: string, textResources: ITextResource[]): React.ReactNode => {
   const textResourceValue = getTextResourceByKey(resourceKey, textResources);
@@ -571,3 +247,17 @@ export const pageBreakStyles = (pageBreak: ExprResolved<IPageBreak> | undefined)
     [printStyles['break-after-avoid']]: pageBreak.breakAfter === 'avoid',
   };
 };
+
+export function getTextAlignment(component: AnyItem): 'left' | 'center' | 'right' {
+  if (component.type !== 'Input') {
+    return 'left';
+  }
+  const formatting = component.formatting;
+  if (formatting && formatting.align) {
+    return formatting.align;
+  }
+  if (formatting && formatting.number) {
+    return 'right';
+  }
+  return 'left';
+}

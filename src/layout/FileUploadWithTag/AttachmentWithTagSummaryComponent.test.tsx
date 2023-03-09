@@ -5,21 +5,26 @@ import { screen } from '@testing-library/react';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { AttachmentWithTagSummaryComponent } from 'src/layout/FileUploadWithTag/AttachmentWithTagSummaryComponent';
 import { renderWithProviders } from 'src/testUtils';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
 import type { RootState } from 'src/store';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 describe('AttachmentWithTagSummaryComponent', () => {
-  const typeName = 'FileUploadWithTag';
   const attachmentName = 'attachment-name-1';
-  const formLayoutItem = {
-    id: typeName,
-    type: typeName,
+  const formLayoutItem: ExprUnresolved<ILayoutCompFileUploadWithTag> = {
+    id: 'FileUploadWithTag',
+    type: 'FileUploadWithTag',
     dataModelBindings: {},
     textResourceBindings: {},
     optionsId: 'a',
     mapping: { a: 'b' },
-  } as unknown as ExprUnresolved<ILayoutCompFileUploadWithTag>;
+    maxFileSizeInMB: 15,
+    displayMode: 'simple',
+    maxNumberOfAttachments: 12,
+    minNumberOfAttachments: 0,
+  };
   const initialState = getInitialStateMock();
   const mockState = (formLayoutItem: ExprUnresolved<ILayoutCompFileUploadWithTag>): Pick<RootState, 'formLayout'> => ({
     formLayout: {
@@ -34,7 +39,7 @@ describe('AttachmentWithTagSummaryComponent', () => {
   const extendedState: Partial<RootState> = {
     attachments: {
       attachments: {
-        [typeName]: [
+        ['FileUploadWithTag']: [
           {
             name: attachmentName,
             id: 'attachment-id-1',
@@ -131,18 +136,17 @@ describe('AttachmentWithTagSummaryComponent', () => {
   });
 
   const renderHelper = (options: ExprUnresolved<ILayoutCompFileUploadWithTag>, extendState?: Partial<RootState>) => {
-    renderWithProviders(
-      <AttachmentWithTagSummaryComponent
-        componentRef={typeName}
-        component={options}
-      />,
-      {
-        preloadedState: {
-          ...initialState,
-          ...mockState(options),
-          ...extendState,
-        },
+    function Wrapper() {
+      const node = useResolvedNode('FileUploadWithTag') as LayoutNodeFromType<'FileUploadWithTag'>;
+      return <AttachmentWithTagSummaryComponent targetNode={node} />;
+    }
+
+    renderWithProviders(<Wrapper />, {
+      preloadedState: {
+        ...initialState,
+        ...mockState(options),
+        ...extendState,
       },
-    );
+    });
   };
 });

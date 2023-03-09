@@ -40,8 +40,6 @@ export function runClientSideValidation(state: IRuntimeState): ValidationResult 
     layoutSets: state.formLayout.layoutsets,
   });
   const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
-
-  const hiddenFields = new Set(state.formLayout.uiConfig.hiddenFields);
   const layoutOrder = getLayoutOrderFromTracks(state.formLayout.uiConfig.tracks);
 
   if (!layoutOrder || !state.language.language) {
@@ -62,16 +60,13 @@ export function runClientSideValidation(state: IRuntimeState): ValidationResult 
     state.attachments.attachments,
     layouts,
     layoutOrder,
-    state.formData.formData,
     state.language.language,
-    hiddenFields,
   );
   out.emptyFieldsValidations = validateEmptyFields(
     state.formData.formData,
     layouts,
     layoutOrder,
     state.language.language,
-    hiddenFields,
     state.textResources.resources,
   );
 

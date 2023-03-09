@@ -119,7 +119,6 @@ export const mockComponentProps: IComponentProps & { id: string } = {
   shouldFocus: false,
   isValid: undefined,
   language: {},
-  layout: undefined,
   componentValidations: {},
   label: () => {
     throw new Error('Rendered mock label, override this yourself');
@@ -128,6 +127,4 @@ export const mockComponentProps: IComponentProps & { id: string } = {
     throw new Error('Rendered mock legend, override this yourself');
   },
   text: undefined,
-  groupContainerId: undefined,
-  labelSettings: undefined,
 };

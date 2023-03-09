@@ -255,16 +255,9 @@ export const render = ({
   const mockStoreDispatch = jest.fn();
   mockStore.dispatch = mockStoreDispatch;
   setScreenWidth(mobileView ? 600 : 1200);
-  renderWithProviders(
-    <GroupContainer
-      components={components}
-      container={mockLikertContainer}
-      id={mockLikertContainer.id}
-    />,
-    {
-      store: mockStore,
-    },
-  );
+  renderWithProviders(<GroupContainer id={mockLikertContainer.id} />, {
+    store: mockStore,
+  });
 
   return { mockStoreDispatch };
 };

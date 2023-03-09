@@ -6,38 +6,29 @@ import { createTheme, makeStyles, useMediaQuery } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
+import { FormComponent } from 'src/layout/LayoutComponent';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
-import { getFormDataForComponentInRepeatingGroup, getTextResource } from 'src/utils/formComponentUtils';
+import { getTextAlignment, getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
-import type { IFormData } from 'src/features/form/data';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutCompInput } from 'src/layout/Input/types';
-import type { ILayoutComponent } from 'src/layout/layout';
-import type { IAttachments } from 'src/shared/resources/attachments';
-import type { IOptions, IRepeatingGroups, ITextResource, ITextResourceBindings } from 'src/types';
+import type { ITextResource, ITextResourceBindings } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
 
 export interface IRepeatingGroupTableRowProps {
   id: string;
   className?: string;
-  container: ExprUnresolved<ILayoutGroup>;
-  components: ExprUnresolved<ILayoutComponent | ILayoutGroup>[];
-  repeatingGroups: IRepeatingGroups | null;
-  formData: IFormData;
-  attachments: IAttachments;
-  options: IOptions;
-  textResources: ITextResource[];
-  language: ILanguage;
   editIndex: number;
   setEditIndex: (index: number, forceValidation?: boolean) => void;
   onClickRemove: (groupIndex: number) => void;
   deleting: boolean;
   index: number;
   rowHasErrors: boolean;
-  tableComponents: ExprUnresolved<ILayoutComponent>[];
+  getTableNodes: (index: number) => LayoutNode[] | undefined;
   onEditClick: () => void;
   mobileView: boolean;
   deleteFunctionality?: {
@@ -115,73 +106,49 @@ function getEditButtonText(
     : getLanguageFromKey('general.edit_alt', language);
 }
 
-function getTextAlignment(
-  component: ExprUnresolved<ILayoutComponent> | ExprResolved<ILayoutComponent>,
-): 'left' | 'center' | 'right' {
-  const formatting = (component as ILayoutCompInput).formatting;
-  if (formatting && formatting.align) {
-    return formatting.align;
-  }
-  if (formatting && formatting.number) {
-    return 'right';
-  }
-  return 'left';
-}
-
 export function RepeatingGroupTableRow({
   id,
   className,
-  container,
-  components,
   editIndex,
-  formData,
-  attachments,
-  options,
-  textResources,
-  language,
-  repeatingGroups,
   deleting,
   index,
   rowHasErrors,
-  tableComponents,
+  getTableNodes,
   onEditClick,
   mobileView,
   deleteFunctionality,
-}: IRepeatingGroupTableRowProps): JSX.Element {
+}: IRepeatingGroupTableRowProps): JSX.Element | null {
   const classes = useStyles();
   const mobileViewSmall = useMediaQuery('(max-width:768px)');
+  const textResources = useAppSelector((state) => state.textResources.resources);
+  const language = useAppSelector((state) => state.language.language);
 
   const { popoverOpen, popoverPanelIndex, onDeleteClick, setPopoverOpen, onPopoverDeleteClick, onOpenChange } =
     deleteFunctionality || {};
 
   const node = useResolvedNode(id);
-  const row =
-    node?.item.type === 'Group' && 'rows' in node.item && node.item.rows[index] ? node.item.rows[index] : undefined;
+  const group = node?.item.type === 'Group' && 'rows' in node.item ? node.item : undefined;
+  const row = group?.rows[index] ? group.rows[index] : undefined;
   const expressionsForRow = row && row.groupExpressions;
   const edit = {
-    ...(node?.item.type === 'Group' && node.item.edit),
+    ...group?.edit,
     ...expressionsForRow?.edit,
   } as ExprResolved<ILayoutGroup['edit']>;
   const resolvedTextBindings = {
-    ...node?.item.textResourceBindings,
+    ...group?.textResourceBindings,
     ...expressionsForRow?.textResourceBindings,
   } as ExprResolved<ILayoutGroup['textResourceBindings']>;
 
-  const getFormDataForComponent = (
-    component: ExprUnresolved<ILayoutComponent | ILayoutGroup>,
-    index: number,
-  ): string => {
-    return getFormDataForComponentInRepeatingGroup(
-      formData,
-      attachments,
-      component,
-      index,
-      container.dataModelBindings?.group,
-      textResources,
-      options,
-      repeatingGroups,
-    );
-  };
+  const tableNodes = getTableNodes(index) || [];
+  const displayData = tableNodes.map((node) => {
+    const component = node.getComponent();
+    return component instanceof FormComponent ? component.useDisplayData(node as any) : '';
+  });
+  const firstCellData = displayData.find((c) => !!c);
+
+  if (!language) {
+    return null;
+  }
 
   const isEditingRow = index === editIndex;
 
@@ -190,8 +157,6 @@ export function RepeatingGroupTableRow({
     : getEditButtonText(language, editIndex === index, textResources, resolvedTextBindings);
 
   const deleteButtonText = getLanguageFromKey('general.delete', language);
-
-  const firstCellData = getFormDataForComponent(components[0], index);
 
   return (
     <TableRow
@@ -204,29 +169,24 @@ export function RepeatingGroupTableRow({
       )}
     >
       {!mobileView ? (
-        tableComponents.map((component) => (
+        tableNodes.map((n, idx) => (
           <TableCell
-            key={`${component.id}-${index}`}
-            style={{ textAlign: getTextAlignment(component) }}
+            key={`${n.item.id}-${index}`}
+            style={{ textAlign: getTextAlignment(n.item) }}
           >
-            <span className={classes.contentFormatting}>
-              {!isEditingRow ? getFormDataForComponent(component, index) : null}
-            </span>
+            <span className={classes.contentFormatting}>{isEditingRow ? null : displayData[idx]}</span>
           </TableCell>
         ))
       ) : (
         <TableCell>
-          {tableComponents.map((component, i, { length }) => {
-            const componentNode = node?.children(
-              (c) => c.baseComponentId === component.baseComponentId || c.baseComponentId === component.id,
-            );
+          {tableNodes.map((n, i, { length }) => {
             return (
               !isEditingRow && (
-                <React.Fragment key={`${component.id}-${index}`}>
+                <React.Fragment key={`${n.item.id}-${index}`}>
                   <b className={classes.contentFormatting}>
-                    {getTextResource(getTableTitle(componentNode?.item.textResourceBindings || {}), textResources)}:
+                    {getTextResource(getTableTitle(n.item.textResourceBindings || {}), textResources)}:
                   </b>
-                  <span className={classes.contentFormatting}>{getFormDataForComponent(component, index)}</span>
+                  <span className={classes.contentFormatting}>{displayData[i]}</span>
                   {i < length - 1 && <div style={{ height: 8 }} />}
                 </React.Fragment>
               )

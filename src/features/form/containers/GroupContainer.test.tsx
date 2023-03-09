@@ -145,8 +145,6 @@ function render({ container = mockContainer }: IRender = {}) {
 
   const { store } = renderWithProviders(
     <GroupContainer
-      components={mockComponents}
-      container={container}
       id={container.id}
       key='testKey'
     />,
@@ -191,37 +189,10 @@ describe('GroupContainer', () => {
   });
 
   it('should show option label when displaying selection components', () => {
-    render();
+    render({ container: getFormLayoutGroupMock({ id: 'container-in-edit-mode-id' }) });
 
     const item = screen.getByText('Value to be shown');
     expect(item).toBeInTheDocument();
-  });
-
-  it('calls setMultiPageIndex when opening a group', async () => {
-    const user = userEvent.setup();
-    const multiPageContainer: ExprUnresolved<ILayoutGroup> = {
-      ...mockContainer,
-      edit: {
-        ...mockContainer.edit,
-        multiPage: true,
-      },
-    };
-    const store = render({ container: multiPageContainer });
-
-    const editButton = screen.getAllByRole('button', {
-      name: /Rediger/i,
-    })[0];
-    await user.click(editButton);
-
-    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsMultiPageIndex> = {
-      payload: {
-        group: 'container-closed-id',
-        index: 0,
-      },
-      type: FormLayoutActions.updateRepeatingGroupsMultiPageIndex.type,
-    };
-
-    expect(store.dispatch).toHaveBeenLastCalledWith(mockDispatchedAction);
   });
 
   it('calls setMultiPageIndex when adding a group element', async () => {

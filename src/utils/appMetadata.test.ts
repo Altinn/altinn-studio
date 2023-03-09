@@ -2,7 +2,6 @@ import { instanceOwner, partyTypesAllowed } from 'src/__mocks__/constants';
 import {
   getCurrentDataTypeForApplication,
   getCurrentDataTypeId,
-  getCurrentTaskData,
   getCurrentTaskDataElementId,
   getLayoutSetIdForApplication,
   isStatelessApp,
@@ -191,15 +190,6 @@ describe('appMetadata.ts', () => {
     it('should return current task data element id', () => {
       const result = getCurrentTaskDataElementId(application, instance, layoutSets);
       expect(result).toEqual('datamodel-data-guid');
-    });
-  });
-
-  describe('getCurrentTaskData', () => {
-    const layoutSets: ILayoutSets = { sets: [] };
-    it('should return current task data', () => {
-      const result = getCurrentTaskData(application, instance, layoutSets);
-      const expected = instance.data.find((e) => e.id === 'datamodel-data-guid');
-      expect(result).toEqual(expected);
     });
   });
 

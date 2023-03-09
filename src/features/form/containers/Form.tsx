@@ -7,117 +7,95 @@ import { ErrorReport } from 'src/components/message/ErrorReport';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { MessageBanner } from 'src/features/form/components/MessageBanner';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
-import { mapGroupComponents } from 'src/features/form/containers/formUtils';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { extractBottomButtons, hasRequiredFields, topLevelComponents } from 'src/utils/formLayout';
-import { renderGenericComponent } from 'src/utils/layout';
+import { extractBottomButtons, hasRequiredFields } from 'src/utils/formLayout';
+import { useExprContext } from 'src/utils/layout/ExprContext';
 import { getFormHasErrors, missingFieldsInLayoutValidations } from 'src/utils/validation/validation';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponent, RenderableGenericComponent } from 'src/layout/layout';
+import type { ComponentExceptGroupAndSummary } from 'src/layout/layout';
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
-export function renderLayoutComponent(
-  layoutComponent: ExprUnresolved<ILayoutComponent | ILayoutGroup>,
-  layout: ILayout | undefined | null,
-) {
-  switch (layoutComponent.type) {
-    case 'Group': {
-      return RenderLayoutGroup(layoutComponent, layout);
-    }
-    case 'Summary': {
+export function renderLayoutNode(node: LayoutNode) {
+  if (node.item.type === 'Group') {
+    const isRepeatingGroup = node.item.maxCount && node.item.maxCount > 1;
+    if (isRepeatingGroup) {
       return (
-        <SummaryComponent
-          key={layoutComponent.id}
-          {...layoutComponent}
+        <GroupContainer
+          id={node.item.id}
+          key={node.item.id}
         />
       );
     }
-    default: {
+
+    if (node.item.panel) {
       return (
-        <GenericComponent
-          key={layoutComponent.id}
-          {...layoutComponent}
+        <PanelGroupContainer
+          key={node.item.id}
+          id={node.item.id}
         />
       );
     }
-  }
-}
 
-function GenericComponent(component: ExprUnresolved<RenderableGenericComponent>, layout: ILayout) {
-  return renderGenericComponent({ component, layout });
-}
-
-function RenderLayoutGroup(layoutGroup: ExprUnresolved<ILayoutGroup>, layout: ILayout | undefined | null): JSX.Element {
-  const groupComponents = mapGroupComponents(layoutGroup, layout);
-
-  const isRepeatingGroup = layoutGroup.maxCount && layoutGroup.maxCount > 1;
-  if (isRepeatingGroup) {
+    // Treat as regular components
     return (
-      <GroupContainer
-        container={layoutGroup}
-        id={layoutGroup.id}
-        key={layoutGroup.id}
-        components={groupComponents}
+      <DisplayGroupContainer
+        key={node.item.id}
+        groupNode={node}
+        renderLayoutNode={renderLayoutNode}
       />
     );
   }
 
-  const isPanel = layoutGroup.panel;
-  if (isPanel) {
+  if (node.item.type === 'Summary') {
     return (
-      <PanelGroupContainer
-        components={groupComponents}
-        container={layoutGroup}
-        key={layoutGroup.id}
+      <SummaryComponent
+        key={node.item.id}
+        summaryNode={node as LayoutNodeFromType<'Summary'>}
       />
     );
   }
 
-  //treat as regular components
   return (
-    <DisplayGroupContainer
-      key={layoutGroup.id}
-      container={layoutGroup}
-      components={groupComponents}
-      renderLayoutComponent={renderLayoutComponent}
+    <GenericComponent
+      key={node.item.id}
+      node={node as LayoutNodeFromType<ComponentExceptGroupAndSummary>}
     />
   );
 }
 
 export function Form() {
-  const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
-  const layout = useAppSelector(
-    (state) => state.formLayout.layouts && state.formLayout.layouts[state.formLayout.uiConfig.currentView],
-  );
+  const nodes = useExprContext();
   const language = useAppSelector((state) => state.language.language);
   const validations = useAppSelector((state) => state.formValidations.validations);
   const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
+  const page = nodes?.current();
+  const pageKey = page?.top.myKey;
 
   const requiredFieldsMissing = React.useMemo(() => {
-    if (validations && validations[currentView] && language) {
-      return missingFieldsInLayoutValidations(validations[currentView], language);
+    if (validations && pageKey && validations[pageKey] && language) {
+      return missingFieldsInLayoutValidations(validations[pageKey], language);
     }
 
     return false;
-  }, [currentView, language, validations]);
+  }, [pageKey, language, validations]);
 
-  const [mainComponents, errorReportComponents] = React.useMemo(() => {
-    if (!layout) {
+  const [mainNodes, errorReportNodes] = React.useMemo(() => {
+    if (!page) {
       return [[], []];
     }
-    const topLevel = topLevelComponents(layout);
-    return hasErrors ? extractBottomButtons(topLevel) : [topLevel, []];
-  }, [layout, hasErrors]);
+    return hasErrors ? extractBottomButtons(page) : [page.children(), []];
+  }, [page, hasErrors]);
 
-  if (!language || !layout) {
+  if (!language || !page) {
     return null;
   }
 
   return (
     <>
-      {layout && hasRequiredFields(layout) && (
+      {page && hasRequiredFields(page) && (
         <MessageBanner
           language={language}
           error={requiredFieldsMissing}
@@ -129,13 +107,13 @@ export function Form() {
         spacing={3}
         alignItems='flex-start'
       >
-        {mainComponents.map((component) => renderLayoutComponent(component, layout))}
+        {mainNodes.map((n) => renderLayoutNode(n))}
         <Grid
           item={true}
           xs={12}
           aria-live='polite'
         >
-          <ErrorReport components={errorReportComponents} />
+          <ErrorReport nodes={errorReportNodes} />
         </Grid>
       </Grid>
       <ReadyForPrint />

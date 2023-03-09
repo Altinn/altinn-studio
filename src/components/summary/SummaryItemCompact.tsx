@@ -3,16 +3,13 @@ import React from 'react';
 import { makeStyles, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { useDisplayData } from 'src/components/hooks/useDisplayData';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type { ITextResource } from 'src/types';
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
 
-export interface ISingleInputSummary {
-  componentId: string;
-  formData: any;
-  textResources: ITextResource[];
+export interface ICompactSummaryItem {
+  targetNode: LayoutNode;
+  displayData: string;
 }
 
 const useStyles = makeStyles({
@@ -28,21 +25,22 @@ const useStyles = makeStyles({
   },
 });
 
-export function GroupInputSummary({ componentId, formData, textResources }: ISingleInputSummary) {
-  const displayData = useDisplayData({ formData });
+export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryItem) {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
-
-  const node = useResolvedNode(componentId);
-  const textBindings = node?.item.textResourceBindings;
+  const textResources = useAppSelector((state) => state.textResources.resources);
+  const textBindings = targetNode.item.textResourceBindings;
 
   return (
-    <Typography variant='body1'>
+    <Typography
+      variant='body1'
+      data-testid={'summary-item-compact'}
+    >
       <span>
         {textBindings && getTextFromAppOrDefault(textBindings.title, textResources, {}, [], false)}
         {' : '}
       </span>
-      {typeof displayData !== 'undefined' ? (
+      {displayData ? (
         <span className={classes.data}>{displayData}</span>
       ) : (
         <span className={classes.emptyField}>{getLanguageFromKey('general.empty_summary', language || {})}</span>

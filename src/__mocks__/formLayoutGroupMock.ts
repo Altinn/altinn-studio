@@ -20,10 +20,10 @@ export function getFormLayoutGroupMock(
   };
 }
 
-export function getMultiPageGroupMock(): ExprUnresolved<ILayoutGroup> {
+export function getMultiPageGroupMock(id = 'multipageGroup'): ExprUnresolved<ILayoutGroup> {
   return {
     type: 'Group',
-    id: 'multipageGroup',
+    id,
     dataModelBindings: {
       group: 'multipageGroup',
     },

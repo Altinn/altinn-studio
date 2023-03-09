@@ -51,6 +51,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       >
         <p
           class="MuiTypography-root MuiTypography-body1"
+          data-testid="summary-item-compact"
         >
           <span>
             <span>
@@ -66,6 +67,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
         </p>
         <p
           class="MuiTypography-root MuiTypography-body1"
+          data-testid="summary-item-compact"
         >
           <span>
             <span>

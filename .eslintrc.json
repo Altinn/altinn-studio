@@ -169,6 +169,12 @@
       "rules": {
         "@typescript-eslint/no-var-requires": ["off"]
       }
+    },
+    {
+      "files": ["src/layout/*/index.tsx"],
+      "rules": {
+        "react-hooks/rules-of-hooks": "off"
+      }
     }
   ]
 }

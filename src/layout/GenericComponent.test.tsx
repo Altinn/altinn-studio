@@ -6,24 +6,17 @@ import { getFormDataStateMock } from 'src/__mocks__/formDataStateMock';
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { mockComponentProps, renderWithProviders } from 'src/testUtils';
-import type { IActualGenericComponentPropsUnresolved } from 'src/layout/GenericComponent';
+import { renderWithProviders } from 'src/testUtils';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
+import type { ExprUnresolved } from 'src/features/expressions/types';
+import type { ComponentExceptGroupAndSummary, ILayoutComponent } from 'src/layout/layout';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
-const render = (props: Partial<IActualGenericComponentPropsUnresolved<any>> = {}) => {
-  const allProps: IActualGenericComponentPropsUnresolved<'Input'> = {
-    ...mockComponentProps,
-    id: 'mockId',
-    type: 'Input' as any,
-    textResourceBindings: {},
-    dataModelBindings: {},
-    ...props,
-  };
-
+const render = (props: Partial<ExprUnresolved<ILayoutComponent>> = {}) => {
   const formLayout = getFormLayoutStateMock({
     layouts: {
       FormLayout: [
         {
-          ...mockComponentProps,
           type: 'Input',
           id: 'mockId',
           dataModelBindings: {
@@ -48,7 +41,7 @@ const render = (props: Partial<IActualGenericComponentPropsUnresolved<any>> = {}
               xl: 3,
             },
           },
-          ...props,
+          ...(props as any),
         },
       ],
     },
@@ -60,7 +53,13 @@ const render = (props: Partial<IActualGenericComponentPropsUnresolved<any>> = {}
     },
   });
 
-  renderWithProviders(<GenericComponent {...allProps} />, {
+  const Wrapper = () => {
+    const node = useResolvedNode('mockId');
+
+    return <GenericComponent node={node as LayoutNodeFromType<ComponentExceptGroupAndSummary>} />;
+  };
+
+  renderWithProviders(<Wrapper />, {
     preloadedState: {
       ...getInitialStateMock(),
       formLayout,

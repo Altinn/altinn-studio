@@ -4,12 +4,14 @@ import Grid from '@material-ui/core/Grid';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { ErrorReport } from 'src/components/message/ErrorReport';
-import { renderLayoutComponent } from 'src/features/form/containers/Form';
+import { renderLayoutNode } from 'src/features/form/containers/Form';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { extractBottomButtons, topLevelComponents } from 'src/utils/formLayout';
+import { extractBottomButtons } from 'src/utils/formLayout';
+import { useExprContext } from 'src/utils/layout/ExprContext';
 import { getFormHasErrors } from 'src/utils/validation/validation';
 
 export function CustomReceipt() {
+  const page = useExprContext()?.current();
   const customReceipt = useAppSelector(
     (state) =>
       state.formLayout.layouts &&
@@ -19,13 +21,12 @@ export function CustomReceipt() {
   const language = useAppSelector((state) => state.language.language);
   const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
 
-  const [mainComponents, errorReportComponents] = React.useMemo(() => {
-    if (!customReceipt) {
+  const [mainNodes, errorReportNodes] = React.useMemo(() => {
+    if (!customReceipt || !page) {
       return [[], []];
     }
-    const topLevel = topLevelComponents(customReceipt);
-    return hasErrors ? extractBottomButtons(topLevel) : [topLevel, []];
-  }, [customReceipt, hasErrors]);
+    return hasErrors ? extractBottomButtons(page) : [page.children(), []];
+  }, [page, customReceipt, hasErrors]);
 
   if (!language || !customReceipt) {
     return null;
@@ -39,13 +40,13 @@ export function CustomReceipt() {
         spacing={3}
         alignItems='flex-start'
       >
-        {mainComponents.map((component) => renderLayoutComponent(component, customReceipt))}
+        {mainNodes.map((node) => renderLayoutNode(node))}
         <Grid
           item={true}
           xs={12}
           aria-live='polite'
         >
-          <ErrorReport components={errorReportComponents} />
+          <ErrorReport nodes={errorReportNodes} />
         </Grid>
       </Grid>
       <ReadyForPrint />

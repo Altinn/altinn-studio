@@ -4,24 +4,15 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 import cn from 'classnames';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
-import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponent, ILayoutComponentOrGroup } from 'src/layout/layout';
-
-export type ComponentFromSummary = ExprUnresolved<ILayoutComponentOrGroup> & {
-  formData?: any;
-  parentGroup?: string;
-};
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
 
 export interface IDisplayGroupContainer {
+  groupNode: LayoutNode;
   id?: string;
-  container: ExprUnresolved<ILayoutGroup>;
-  components: ComponentFromSummary[];
-  renderLayoutComponent: (components: ExprUnresolved<ILayoutComponent | ILayoutGroup>, layout: ILayout) => JSX.Element;
+  onlyRowIndex?: number | undefined;
+  renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
 
 const useStyles = makeStyles({
@@ -35,24 +26,18 @@ const useStyles = makeStyles({
   },
 });
 
-export function DisplayGroupContainer(props: IDisplayGroupContainer) {
-  const container = useResolvedNode(props.container)?.item;
-
-  const GetHiddenSelector = makeGetHidden();
-  const hidden: boolean = useAppSelector((state) => GetHiddenSelector(state, { id: props.container.id }));
+export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayoutNode }: IDisplayGroupContainer) {
+  const container = groupNode.item;
   const classes = useStyles();
   const title = useAppSelector((state) => {
-    const titleKey = container?.textResourceBindings?.title;
+    const titleKey = container.textResourceBindings?.title;
     if (titleKey && state.language.language) {
       return getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
     }
     return undefined;
   });
-  const layout = useAppSelector(
-    (state) => state.formLayout.layouts && state.formLayout.layouts[state.formLayout.uiConfig.currentView],
-  );
 
-  if (hidden || !layout || !container) {
+  if (groupNode.isHidden()) {
     return null;
   }
 
@@ -60,7 +45,7 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
     <Grid
       container={true}
       item={true}
-      id={props.id || container.id}
+      id={id || container.id}
       className={cn(classes.groupContainer, pageBreakStyles(container.pageBreak))}
       spacing={3}
       alignItems='flex-start'
@@ -79,9 +64,7 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
           </Typography>
         </Grid>
       )}
-      {props.components.map((component) => {
-        return props.renderLayoutComponent(component, layout);
-      })}
+      {groupNode.children(undefined, onlyRowIndex).map((n) => renderLayoutNode(n))}
     </Grid>
   );
 }

@@ -5,74 +5,70 @@ import cn from 'classnames';
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
-import { mapGroupComponents } from 'src/features/form/containers/formUtils';
 import { PDF_LAYOUT_NAME } from 'src/features/pdf/data/pdfSlice';
 import css from 'src/features/pdf/PDFView.module.css';
 import { ComponentType } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { topLevelComponents } from 'src/utils/formLayout';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
+import { useExprContext } from 'src/utils/layout/ExprContext';
+import type { ComponentExceptGroupAndSummary } from 'src/layout/layout';
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 interface PDFViewProps {
   appName: string;
   appOwner?: string;
 }
 
-const PDFComponent = ({
-  component,
-  layout,
-}: {
-  component: ExprUnresolved<ILayoutComponentOrGroup>;
-  layout: ILayout;
-}) => {
-  const layoutComponent = getLayoutComponentObject(component.type);
+const PDFComponent = ({ node }: { node: LayoutNode }) => {
+  const layoutComponent = node.getComponent();
 
-  if (component.type === 'Group') {
+  if (node.item.type === 'Group') {
     return (
       <DisplayGroupContainer
-        container={component}
-        components={mapGroupComponents(component, layout)}
-        renderLayoutComponent={(child) => (
+        groupNode={node}
+        renderLayoutNode={(child) => (
           <PDFComponent
-            key={child.id}
-            component={child}
-            layout={layout}
+            key={child.item.id}
+            node={child}
           />
         )}
       />
     );
-  } else if (component.type === 'Summary') {
+  } else if (node.item.type === 'Summary') {
     return (
       <SummaryComponent
-        {...component}
-        display={{ hideChangeButton: true, hideValidationMessages: true }}
-        grid={{ xs: 12 }}
+        summaryNode={node as LayoutNodeFromType<'Summary'>}
+        overrides={{
+          grid: { xs: 12 },
+          display: { hideChangeButton: true, hideValidationMessages: true },
+        }}
       />
     );
   } else if (layoutComponent?.getComponentType() === ComponentType.Presentation) {
     return (
       <GenericComponent
-        {...component}
-        grid={{ xs: 12 }}
+        node={node as LayoutNodeFromType<ComponentExceptGroupAndSummary>}
+        overrideItemProps={{
+          grid: { xs: 12 },
+        }}
       />
     );
   } else {
-    console.warn(`Type: "${component.type}" is not allowed in PDF.`);
+    console.warn(`Type: "${node.item.type}" is not allowed in PDF.`);
     return null;
   }
 };
 
 export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
   const { readyForPrint, method } = useAppSelector((state) => state.pdf);
-  const { layouts, uiConfig } = useAppSelector((state) => state.formLayout);
+  const { uiConfig } = useAppSelector((state) => state.formLayout);
 
+  const nodes = useExprContext();
   const pdfLayoutName = method === 'custom' ? uiConfig.pdfLayoutName : method === 'auto' ? PDF_LAYOUT_NAME : undefined;
-  const pdfLayout = pdfLayoutName && layouts?.[pdfLayoutName];
+  const pdfPage = nodes?.findLayout(pdfLayoutName);
 
-  if (!readyForPrint || !pdfLayout) {
+  if (!readyForPrint || !pdfPage) {
     return null;
   }
 
@@ -87,15 +83,12 @@ export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
           {appOwner}
         </p>
       )}
-      {topLevelComponents(pdfLayout).map((component) => (
+      {pdfPage.children().map((node) => (
         <div
-          key={component.id}
+          key={node.item.id}
           className={css['component-container']}
         >
-          <PDFComponent
-            component={component}
-            layout={pdfLayout}
-          />
+          <PDFComponent node={node} />
         </div>
       ))}
       <ReadyForPrint />

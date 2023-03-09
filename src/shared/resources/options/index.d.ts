@@ -22,10 +22,6 @@ export interface IFetchingOptionsAction {
   metaData: IOptionsMetaData;
 }
 
-export interface IFetchOptionsCountFulfilledAction {
-  count: number;
-}
-
 export interface ISetOptionsWithIndexIndicators {
   optionsWithIndexIndicators: IOptionsMetaData[];
 }

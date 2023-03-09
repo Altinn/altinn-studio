@@ -1,55 +1,14 @@
 import {
   behavesLikeDataTask,
-  createRepeatingGroupComponents,
-  extractBottomButtons,
   findChildren,
   getRepeatingGroups,
-  hasRequiredFields,
   mapFileUploadersWithTag,
   removeRepeatingGroupFromUIConfig,
-  setMappingForRepeatingGroupComponent,
   topLevelComponents,
 } from 'src/utils/formLayout';
-import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponent } from 'src/layout/layout';
+import type { ILayout } from 'src/layout/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
-import type { ILayoutSets, IMapping, IRepeatingGroups, ITextResource } from 'src/types';
-
-describe('setMappingForRepeatingGroupComponent', () => {
-  it('should replace indexed mapping with the current index', () => {
-    const mapping: IMapping = {
-      'some.group[{0}].field1': 'mappedGroupField1',
-      'some.group[{0}].field2': 'mappedGroupField2',
-      'some.regular.field': 'mappedRegularField',
-    };
-    const expectedResult: IMapping = {
-      'some.group[2].field1': 'mappedGroupField1',
-      'some.group[2].field2': 'mappedGroupField2',
-      'some.regular.field': 'mappedRegularField',
-    };
-    const result = setMappingForRepeatingGroupComponent(mapping, 2);
-    expect(result).toEqual(expectedResult);
-  });
-
-  it('should replace indexed mapping with correct index for nested groups', () => {
-    const mapping: IMapping = {
-      'some.group[{0}].group[{1}].field1': 'mappedGroupField1',
-      'some.group[{0}].group[{1}].field2': 'mappedGroupField2',
-      'some.regular.field': 'mappedRegularField',
-    };
-    const expectedResult: IMapping = {
-      'some.group[2].group[3].field1': 'mappedGroupField1',
-      'some.group[2].group[3].field2': 'mappedGroupField2',
-      'some.regular.field': 'mappedRegularField',
-    };
-
-    const firstIteration = setMappingForRepeatingGroupComponent(mapping, 2);
-    const result = setMappingForRepeatingGroupComponent(firstIteration, 3);
-
-    expect(result).toEqual(expectedResult);
-  });
-});
+import type { ILayoutSets, IRepeatingGroups } from 'src/types';
 
 const testLayout: ILayout = [
   {
@@ -418,225 +377,6 @@ describe('removeRepeatingGroupFromUIConfig', () => {
   });
 });
 
-describe('createRepeatingGroupComponents', () => {
-  it('should handle text resources with variables', () => {
-    const testLayout: ILayout = [
-      {
-        id: 'Group1',
-        type: 'Group',
-        dataModelBindings: {
-          group: 'Group1',
-        },
-        children: ['field1'],
-        maxCount: 3,
-      },
-      {
-        id: 'field1',
-        type: 'Input',
-        dataModelBindings: {
-          simple: 'Group1.prop1',
-        },
-        textResourceBindings: {
-          title: 'title-w-variable',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      },
-    ];
-    const mockTextResources = [
-      {
-        id: 'title-w-variable',
-        value: 'Test 123 {0}',
-        unparsedValue: 'Test 123 {0}',
-        variables: [
-          {
-            key: 'Group1[{0}].prop1',
-            dataSource: 'dataModel.default',
-          },
-        ],
-      },
-    ];
-
-    const container = testLayout[0] as ExprUnresolved<ILayoutGroup>;
-    const component = testLayout[1] as ExprUnresolved<ILayoutComponent>;
-    const expected = [
-      [
-        {
-          ...testLayout[1],
-          id: `${component.id}-0`,
-          hidden: false,
-          baseComponentId: 'field1',
-          dataModelBindings: {
-            simple: 'Group1[0].prop1',
-          },
-          textResourceBindings: {
-            title: 'title-w-variable-0',
-          },
-        },
-      ],
-      [
-        {
-          ...testLayout[1],
-          id: `${component.id}-1`,
-          hidden: false,
-          baseComponentId: 'field1',
-          dataModelBindings: {
-            simple: 'Group1[1].prop1',
-          },
-          textResourceBindings: {
-            title: 'title-w-variable-1',
-          },
-        },
-      ],
-    ];
-
-    const result = createRepeatingGroupComponents(container, [testLayout[1]], 1, mockTextResources);
-
-    expect(result).toEqual(expected);
-  });
-
-  it('should leave panel groups and children untouched', () => {
-    const testLayout: ILayout = [
-      {
-        id: 'Group1',
-        type: 'Group',
-        dataModelBindings: {
-          group: 'Group1',
-        },
-        children: ['field1', 'panel-group'],
-        maxCount: 3,
-      },
-      {
-        id: 'field1',
-        type: 'Input',
-        dataModelBindings: {
-          simple: 'Group1.prop1',
-        },
-        textResourceBindings: {
-          title: 'title-w-variable',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      },
-      {
-        id: 'panel-group',
-        type: 'Group',
-        dataModelBindings: {
-          group: 'Group1',
-        },
-        children: ['panel-group-child'],
-        panel: {
-          groupReference: {
-            group: 'some-group',
-          },
-        },
-      },
-      {
-        id: 'panel-group-child',
-        type: 'Input',
-        dataModelBindings: {
-          simple: 'Group1.prop1',
-        },
-        textResourceBindings: {
-          title: 'title-w-variable',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      },
-    ];
-
-    const container = testLayout[0] as ExprUnresolved<ILayoutGroup>;
-    const components = testLayout.splice(0, 1);
-
-    const result = createRepeatingGroupComponents(container, components, 0, []);
-
-    expect(result[0]).not.toEqual(components[0]);
-    expect(result[1]).toEqual(components[1]);
-    expect(result[2]).toEqual(components[2]);
-  });
-
-  it('baseComponentId should never contain group index', () => {
-    const groupProps: Pick<
-      ExprUnresolved<ILayoutGroup>,
-      'type' | 'dataModelBindings' | 'textResourceBindings' | 'maxCount'
-    > = {
-      type: 'Group',
-      dataModelBindings: {},
-      textResourceBindings: { label: 't' },
-      maxCount: 3,
-    };
-    const layout: (ILayout[number] & {
-      baseComponentId: string;
-    })[] = [
-      {
-        id: 'first-0',
-        baseComponentId: 'first',
-        children: ['second'],
-        ...groupProps,
-      },
-      {
-        id: 'second-0-1',
-        baseComponentId: 'second',
-        children: ['third'],
-        ...groupProps,
-      },
-      {
-        id: 'third-0-1-1',
-        baseComponentId: 'third',
-        children: ['fourth'],
-        ...groupProps,
-      },
-      {
-        id: 'input-0-1-1-2',
-        type: 'Input',
-        baseComponentId: 'input',
-        dataModelBindings: {},
-        textResourceBindings: { label: 't' },
-      },
-    ];
-
-    const mockTextResources: ITextResource[] = [
-      {
-        id: 't',
-        value: 'Text',
-      },
-    ];
-
-    const result = createRepeatingGroupComponents(
-      layout[0] as ExprUnresolved<ILayoutGroup>,
-      layout,
-      1,
-      mockTextResources,
-    );
-
-    const allBaseComponentIds: string[] = [];
-    const findBaseComponentId = (obj: any) => {
-      if (Array.isArray(obj)) {
-        for (const item of obj) {
-          findBaseComponentId(item);
-        }
-        return;
-      }
-      for (const key of Object.keys(obj)) {
-        if (key === 'baseComponentId') {
-          allBaseComponentIds.push(obj[key]);
-        }
-        if (typeof obj[key] === 'object') {
-          findBaseComponentId(obj[key]);
-        }
-      }
-    };
-
-    findBaseComponentId(result);
-    const numericBaseComponentIds = allBaseComponentIds.filter((id) => id.match(/\d+/));
-
-    expect(numericBaseComponentIds).toEqual([]);
-  });
-});
-
 describe('mapFileUploadersWithTag', () => {
   it('should return expected uiConfig', () => {
     const testLayout: ILayout = [
@@ -758,23 +498,6 @@ describe('mapFileUploadersWithTag', () => {
     };
     const result = mapFileUploadersWithTag(testLayout, testAttachments);
     expect(result).toEqual(expected);
-  });
-
-  it('hasRequiredFields should discover required fields', () => {
-    const layout: ILayout = [
-      {
-        id: 'field1',
-        type: 'Input',
-        required: true,
-      },
-      {
-        id: 'field2',
-        type: 'Input',
-        required: false,
-      },
-    ];
-    const result = hasRequiredFields(layout);
-    expect(result).toBeTruthy();
   });
 });
 
@@ -909,39 +632,6 @@ describe('topLevelComponents', () => {
       },
     ]);
     expect(onlyIds(output)).toEqual(['Group1', 'freeStanding']);
-  });
-});
-
-describe('extractBottomButtons', () => {
-  it('should not extract anything from the test layout', () => {
-    expect(extractBottomButtons(testLayout)).toEqual([testLayout, []]);
-  });
-
-  it('should extract a button from the end of the test layout', () => {
-    const [layout, extractedButtons] = extractBottomButtons([
-      ...topLevelComponents(testLayout),
-      {
-        id: 'bottomButton',
-        type: 'Button',
-      },
-    ]);
-    expect(onlyIds(layout)).toEqual(['Group1']);
-    expect(onlyIds(extractedButtons)).toEqual(['bottomButton']);
-  });
-
-  it('should leave a bottom on the top alone', () => {
-    const [, extractedButtons] = extractBottomButtons([
-      {
-        id: 'topButton',
-        type: 'NavigationButtons',
-      },
-      ...testLayout,
-      {
-        id: 'bottomButton',
-        type: 'NavigationButtons',
-      },
-    ]);
-    expect(onlyIds(extractedButtons)).toEqual(['bottomButton']);
   });
 });
 

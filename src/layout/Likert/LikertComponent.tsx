@@ -6,6 +6,7 @@ import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGro
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { StyledRadio } from 'src/layout/RadioButtons/StyledRadio';
 import { LayoutStyle } from 'src/types';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { IControlledRadioGroupProps } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
@@ -37,10 +38,11 @@ const RadioGroupTableRow = ({
   handleChange,
   calculatedOptions,
   handleBlur,
-  groupContainerId,
   componentValidations,
   legend,
 }: IControlledRadioGroupProps) => {
+  const node = useResolvedNode(id);
+  const groupContainerId = node?.closest((n) => n.type === 'Group')?.item.id;
   const RenderLegend = legend;
   const rowLabelId = `row-label-${id}`;
   return (
