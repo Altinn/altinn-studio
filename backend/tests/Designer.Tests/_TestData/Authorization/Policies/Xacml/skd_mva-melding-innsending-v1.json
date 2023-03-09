@@ -1,0 +1,454 @@
+{
+  "Rules": [
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "instantiate",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "read",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "mva-melding-innsending-v1",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0237",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0238",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0240",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "SISKD",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "KNUF",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0239",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:1",
+      "Description": "A rule giving user with role REGNA, A0237, A0238, A0239, A0240, SISKD or KNUF and the app owner skd the right to instantiate a instance of a given app of skd/mva-melding-innsending-v1"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "read",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "mva-melding-innsending-v1",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0237",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0238",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0240",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "SISKD",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "KNUF",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0239",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:2",
+      "Description": "Rule that defines that user with role REGNA, A0237, A0238, A0239, A0240, SISKD or KNUF can read for skd/mva-melding-innsending-v1 in any task or event"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "write",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "delete",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "mva-melding-innsending-v1",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "Task_1",
+              "Designator": "urn:altinn:task"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "mva-melding-innsending-v1",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "EndEvent_1",
+              "Designator": "urn:altinn:end-event"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0237",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0238",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0240",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "SISKD",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "KNUF",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0239",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:3",
+      "Description": "Rule that defines that user with role REGNA, A0237, A0238, A0239, A0240, SISKD or KNUF can write and delete for skd/mva-melding-innsending-v1 when it is in Task_1"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "write",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "confirm",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "delete",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "mva-melding-innsending-v1",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "Task_2",
+              "Designator": "urn:altinn:task"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "SISKD",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "KNUF",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0239",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:4",
+      "Description": "Rule that defines that user with role SISKD, KNUF, A0239 can write, confirm and delete for skd/mva-melding-innsending-v1 when it is in Task_2"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "delete",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "write",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "confirm",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "mva-melding-innsending-v1",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:5",
+      "Description": "Rule that defines that skd can delete, write or confirm an instance of skd/mva-melding-innsending-v1 in any task or event."
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "complete",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "mva-melding-innsending-v1",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "EndEvent_1",
+              "Designator": "urn:altinn:end-event"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "skd",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:6",
+      "Description": "Rule that defines that skd can complete an instance of mva-melding-innsending-v1 which state is at the end event."
+    }
+  ],
+  "Obligations": null,
+  "RequiredAuthenticationLevelEndUser": "2"
+}

@@ -66,5 +66,42 @@ namespace Designer.Tests.Helpers
             AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
         }
 
+        [Fact]
+        public void TestXacmlToJson_dsb_uhell_med_eksplosiver()
+        {
+            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("dsb_uhell_med_eksplosiver.xml");
+            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
+            Assert.NotNull(convertedPolicy);
+            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
+            AuthorizationUtil.WriteJsonPolicy("dsb_uhell_med_eksplosiver.json", convertedPolicy);
+            AuthorizationUtil.WritePolicy("dsb_uhell_med_eksplosiver_converted.xml", convertedBackPolicy);
+            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
+        }
+
+
+        [Fact]
+        public void TestXacmlToJson_skd_sirius_skattemelding_sit_tk()
+        {
+            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("skd_sirius_skattemelding_sit_tk.xml");
+            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
+            Assert.NotNull(convertedPolicy);
+            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
+            AuthorizationUtil.WriteJsonPolicy("skd_sirius_skattemelding_sit_tk.json", convertedPolicy);
+            AuthorizationUtil.WritePolicy("skd_sirius_skattemelding_sit_tk_converted.xml", convertedBackPolicy);
+            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
+        }
+
+        [Fact]
+        public void TestXacmlToJson_skd_mva_melding_innsending_v1()
+        {
+            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("skd_mva-melding-innsending-v1.xml");
+            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
+            Assert.NotNull(convertedPolicy);
+            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
+            AuthorizationUtil.WriteJsonPolicy("skd_mva-melding-innsending-v1.json", convertedPolicy);
+            AuthorizationUtil.WritePolicy("skd_mva-melding-innsending-v1_converted.xml", convertedBackPolicy);
+            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
+        }
+
     }
 }

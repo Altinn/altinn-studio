@@ -1,0 +1,346 @@
+{
+  "Rules": [
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "instantiate",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "read",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "uhell-med-eksplosiver",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "DAGL",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:1",
+      "Description": "A rule giving user with role REGNA or DAGL and the app owner dsb the right to instantiate a instance of a given app of dsb/uhell-med-eksplosiver"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "read",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "write",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "uhell-med-eksplosiver",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "Task_1",
+              "Designator": "urn:altinn:task"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "uhell-med-eksplosiver",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "EndEvent_1",
+              "Designator": "urn:altinn:end-event"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "DAGL",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:2",
+      "Description": "Rule that defines that user with role REGNA or DAGL can read and write for dsb/uhell-med-eksplosiver when it is in Task_1"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "delete",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "uhell-med-eksplosiver",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "DAGL",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:3",
+      "Description": "Rule that defines that user with role REGNA or DAGL can delete instances of dsb/uhell-med-eksplosiver"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "write",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "uhell-med-eksplosiver",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:4",
+      "Description": "Rule that defines that org can write to instances of dsb/uhell-med-eksplosiver for any states"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "complete",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "uhell-med-eksplosiver",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "EndEvent_1",
+              "Designator": "urn:altinn:end-event"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:5",
+      "Description": "Rule that defines that org can complete an instance of dsb/uhell-med-eksplosiver which state is at the end event."
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "read",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "uhell-med-eksplosiver",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "events",
+              "Designator": "urn:altinn:appresource"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "DAGL",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:6",
+      "Description": "A rule giving user with role REGNA or DAGL and the app owner dsb the right to read the appresource events of a given app of dsb/uhell-med-eksplosiver"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "delete",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "uhell-med-eksplosiver",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "dsb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:7",
+      "Description": "dsb can delete an instance of dsb/uhell-med-eksplosiver in any task or event."
+    }
+  ],
+  "Obligations": null,
+  "RequiredAuthenticationLevelEndUser": "2"
+}
