@@ -136,7 +136,9 @@ export const ItemRestrictions = ({
         <>
           <Divider inMenu />
           <FieldSet legend={t('schema_editor.enum_legend')}>
-            {!enums?.length && <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>}
+            {!enums?.length && (
+              <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
+            )}
             {enumError !== null && (
               <ErrorMessage>
                 <p>{t('schema_editor.enum_error_duplicate')}</p>

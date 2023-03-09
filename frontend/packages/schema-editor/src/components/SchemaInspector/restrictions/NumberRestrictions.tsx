@@ -58,6 +58,7 @@ export function NumberRestrictions({
             value={formatState.smallest === undefined ? '' : formatState.smallest.toString()}
           />
           <Checkbox
+            aria-checked='true'
             checked={formatState.smallestIsInclusive}
             label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
@@ -77,6 +78,8 @@ export function NumberRestrictions({
             value={formatState.biggest === undefined ? '' : formatState.biggest.toString()}
           />
           <Checkbox
+            checkboxId='include-minimum-value-checkbox'
+            aria-checked='true'
             checked={formatState.biggestIsInclusive}
             label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
@@ -86,7 +89,7 @@ export function NumberRestrictions({
         </div>
       </div>
       <div>
-        <Label>{t('schema_editor.multipleOf')}</Label>
+        <Label htmlFor='schema_editor.multipleOf'>{t('schema_editor.multipleOf')}</Label>
         <div className={classes.formatFieldsRowContent}>
           <TextField
             id='schema_editor.multipleOf'
