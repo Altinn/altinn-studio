@@ -16,5 +16,8 @@
   "ignorePaths": [
     "testdata/**",
     "src/**"
+  ],
+  "ignoreDeps": [
+    "@mui/x-data-grid"
   ]
 }
