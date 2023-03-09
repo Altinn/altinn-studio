@@ -1,0 +1,414 @@
+{
+  "Rules": [
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "instantiate",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "read",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "ra1000-01",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "DAGL",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:1",
+      "Description": "A rule giving user with role REGNA or DAGL and the app owner ssb the right to instantiate a instance of a given app of ssb/ra1000-01"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "read",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        },
+        {
+          "Attribute": {
+            "Value": "write",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "ra1000-01",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "Task_1",
+              "Designator": "urn:altinn:task"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "ra1000-01",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "EndEvent_1",
+              "Designator": "urn:altinn:end-event"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "UTINN",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0237",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0240",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0239",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "DAGL",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:2",
+      "Description": "Rule that defines that user with role REGNA or DAGL can read and write for ssb/ra1000-01 when it is in Task_1"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "delete",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "ra1000-01",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "UTINN",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0237",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0240",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0239",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "DAGL",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:3",
+      "Description": "Rule that defines that user with role REGNA or DAGL can delete instances of ssb/ra1000-01"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "write",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "ra1000-01",
+              "Designator": "urn:altinn:app"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:4",
+      "Description": "Rule that defines that org can write to instances of ssb/ra1000-01 for any states"
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "complete",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "ra1000-01",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "EndEvent_1",
+              "Designator": "urn:altinn:end-event"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:5",
+      "Description": "Rule that defines that org can complete an instance of ssb/ra1000-01 which state is at the end event."
+    },
+    {
+      "Actions": [
+        {
+          "Attribute": {
+            "Value": "read",
+            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
+          }
+        }
+      ],
+      "Resources": [
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            },
+            {
+              "Value": "ra1000-01",
+              "Designator": "urn:altinn:app"
+            },
+            {
+              "Value": "events",
+              "Designator": "urn:altinn:appresource"
+            }
+          ]
+        }
+      ],
+      "Subject": [
+        {
+          "Attributes": [
+            {
+              "Value": "UTINN",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0237",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0240",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "A0239",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "REGNA",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "DAGL",
+              "Designator": "urn:altinn:rolecode"
+            }
+          ]
+        },
+        {
+          "Attributes": [
+            {
+              "Value": "ssb",
+              "Designator": "urn:altinn:org"
+            }
+          ]
+        }
+      ],
+      "RuleId": "urn:altinn:example:ruleid:6",
+      "Description": "A rule giving user with role REGNA or DAGL and the app owner ssb the right to read the appresource events of a given app of ssb/ra1000-01"
+    }
+  ],
+  "Obligations": null,
+  "RequiredAuthenticationLevelEndUser": "2"
+}
