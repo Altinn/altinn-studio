@@ -170,6 +170,7 @@ AppPackages/
 *.Cache
 ClientBin/
 [Ss]tyle[Cc]op.*
+!stylecop.json
 ~$*
 *.dbmdl
 *.dbproj.schemaview
