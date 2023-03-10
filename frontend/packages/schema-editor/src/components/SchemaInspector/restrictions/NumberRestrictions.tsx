@@ -21,11 +21,11 @@ export function NumberRestrictions({
 }: RestrictionItemProps) {
   const { t } = useTranslation();
   const [formatState, dispatch] = useReducer(numberRestrictionsReducer, {
-    smallestIsInclusive: restrictions[IntRestrictionKeys.exclusiveMinimum] === undefined,
-    biggestIsInclusive: restrictions[IntRestrictionKeys.exclusiveMaximum] === undefined,
-    smallest:
+    isMinInclusive: restrictions[IntRestrictionKeys.exclusiveMinimum] === undefined,
+    isMaxInclusive: restrictions[IntRestrictionKeys.exclusiveMaximum] === undefined,
+    min:
       restrictions[IntRestrictionKeys.exclusiveMinimum] ?? restrictions[IntRestrictionKeys.minimum],
-    biggest:
+    max:
       restrictions[IntRestrictionKeys.exclusiveMaximum] ?? restrictions[IntRestrictionKeys.maximum],
     restrictions: Object.fromEntries(
       Object.values(IntRestrictionKeys).map((key) => [key, restrictions[key]])
@@ -37,29 +37,29 @@ export function NumberRestrictions({
   };
   const dispatchAction = (type: NumberRestrictionsReducerActionType, value: any) =>
     dispatch({ type, value, changeCallback } as NumberRestrictionsReducerAction);
-  const minlabel = `schema_editor_minimum_${
-    formatState.smallestIsInclusive ? 'inclusive' : 'exclusive'
+  const minlabel = `schema_editor.minimum_${
+    formatState.isMinInclusive ? 'inclusive' : 'exclusive'
   }`;
-  const maxlabel = `schema_editor_maximum_${
-    formatState.biggestIsInclusive ? 'inclusive' : 'exclusive'
+  const maxlabel = `schema_editor.maximum_${
+    formatState.isMaxInclusive ? 'inclusive' : 'exclusive'
   }`;
 
   return (
     <>
       <Divider />
       <div>
-        <Label htmlFor='schema_editor_minimum_'>{t(minlabel)}</Label>
+        <Label htmlFor='schema_editor.minimum_'>{t(minlabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <TextField
-            id='schema_editor_minimum_'
-            onChange={(e) =>
-              dispatchAction(NumberRestrictionsReducerActionType.setSmallest, e.target.value)
+            id='schema_editor.minimum_'
+            onChange={
+              (e) => dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.value) // setSmallest
             }
-            value={formatState.smallest === undefined ? '' : formatState.smallest.toString()}
+            value={formatState.min === undefined ? '' : formatState.min.toString()}
           />
           <Checkbox
             aria-checked='true'
-            checked={formatState.smallestIsInclusive}
+            checked={formatState.isMinInclusive}
             label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.checked)
@@ -68,19 +68,19 @@ export function NumberRestrictions({
         </div>
       </div>
       <div>
-        <Label htmlFor='schema_editor_maximum_'>{t(maxlabel)}</Label>
+        <Label htmlFor='schema_editor.maximum_'>{t(maxlabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <TextField
-            id='schema_editor_maximum_'
+            id='schema_editor.maximum_'
             onChange={(e) =>
-              dispatchAction(NumberRestrictionsReducerActionType.setBiggest, e.target.value)
+              dispatchAction(NumberRestrictionsReducerActionType.setMaxIncl, e.target.value)
             }
-            value={formatState.biggest === undefined ? '' : formatState.biggest.toString()}
+            value={formatState.max === undefined ? '' : formatState.max.toString()}
           />
           <Checkbox
             checkboxId='include-minimum-value-checkbox'
             aria-checked='true'
-            checked={formatState.biggestIsInclusive}
+            checked={formatState.isMaxInclusive}
             label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMaxIncl, e.target.checked)

@@ -20,7 +20,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const checkbox = screen.getByLabelText(/schema_editor_minimum_inclusive/);
+    const checkbox = screen.getByLabelText(/schema_editor.minimum_inclusive/);
     expect(checkbox).toBeInTheDocument();
   });
 
@@ -32,7 +32,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const checkbox = screen.getByLabelText(/schema_editor_maximum_inclusive/);
+    const checkbox = screen.getByLabelText(/schema_editor.maximum_inclusive/);
     expect(checkbox).toBeInTheDocument();
   });
 
@@ -44,7 +44,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const textfield = screen.getByLabelText(/schema_editor_minimum_/);
+    const textfield = screen.getByLabelText(/schema_editor.minimum_/);
     expect(textfield).toBeInTheDocument();
   });
 
@@ -56,7 +56,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const textfield = screen.getByLabelText(/schema_editor_maximum_/);
+    const textfield = screen.getByLabelText(/schema_editor.maximum_/);
     expect(textfield).toBeInTheDocument();
   });
 
@@ -80,7 +80,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const checkbox = screen.getByLabelText(/schema_editor_minimum_inclusive/);
+    const checkbox = screen.getByLabelText(/schema_editor.minimum_inclusive/);
     fireEvent.click(checkbox);
     expect(checkbox).toBeCalled;
   });
