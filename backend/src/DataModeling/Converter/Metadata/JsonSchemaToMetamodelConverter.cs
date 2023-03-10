@@ -161,6 +161,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 case XsdRootElementKeyword:
                 case DescriptionKeyword:
                 case TitleKeyword:
+                case XsdMinOccursKeyword:
+                case XsdMaxOccursKeyword:
                     break;
 
                 case RefKeyword k:
