@@ -2,678 +2,174 @@
   "Rules": [
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "instantiate",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        },
-        {
-          "Attribute": {
-            "Value": "read",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "instantiate",
+        "read"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "rrh-innrapportering",
-              "Designator": "urn:altinn:app"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "MEDL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "LEDE",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "NEST",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DAGL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DTPR",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DTSO",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KOMP",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "FF\u00D8R",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "REPR",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KONT",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KNUF",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:rolecode:MEDL",
+        "urn:altinn:rolecode:LEDE",
+        "urn:altinn:rolecode:NEST",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:rolecode:DTPR",
+        "urn:altinn:rolecode:DTSO",
+        "urn:altinn:rolecode:KOMP",
+        "urn:altinn:rolecode:FF\u00D8R",
+        "urn:altinn:rolecode:REPR",
+        "urn:altinn:rolecode:KONT",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:org:brg"
       ],
       "RuleId": "urn:altinn:example:ruleid:1",
       "Description": "A rule giving user with role MEDL, LEDE, NEST, DAGL, DTPR, DTSO, KOMP, FF\u00D8R, REPR, KONT or KNUF and the app owner brg the right to instantiate a instance of a given app of brg/rrh-innrapportering"
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "read",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        },
-        {
-          "Attribute": {
-            "Value": "write",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "read",
+        "write"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "rrh-innrapportering",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "TaskUtfylling",
-              "Designator": "urn:altinn:task"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "rrh-innrapportering",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "BREnd",
-              "Designator": "urn:altinn:end-event"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:task:TaskUtfylling"
+        ],
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:end-event:BREnd"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "MEDL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "LEDE",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "NEST",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DAGL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DTPR",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DTSO",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KOMP",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "FF\u00D8R",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "REPR",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KONT",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KNUF",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:rolecode:MEDL",
+        "urn:altinn:rolecode:LEDE",
+        "urn:altinn:rolecode:NEST",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:rolecode:DTPR",
+        "urn:altinn:rolecode:DTSO",
+        "urn:altinn:rolecode:KOMP",
+        "urn:altinn:rolecode:FF\u00D8R",
+        "urn:altinn:rolecode:REPR",
+        "urn:altinn:rolecode:KONT",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:org:brg"
       ],
       "RuleId": "urn:altinn:example:ruleid:2",
       "Description": "Rule that defines that user with role MEDL, LEDE, NEST, DAGL, DTPR, DTSO, KOMP, FF\u00D8R, REPR, KONT or KNUF can read and write for brg/rrh-innrapportering when it is in TaskUtfylling"
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "read",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        },
-        {
-          "Attribute": {
-            "Value": "confirm",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "read",
+        "confirm"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "rrh-innrapportering",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "TaskBekreftelse",
-              "Designator": "urn:altinn:task"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:task:TaskBekreftelse"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "MEDL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "LEDE",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "NEST",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DAGL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DTPR",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DTSO",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KOMP",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "FF\u00D8R",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "REPR",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KONT",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KNUF",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:rolecode:MEDL",
+        "urn:altinn:rolecode:LEDE",
+        "urn:altinn:rolecode:NEST",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:rolecode:DTPR",
+        "urn:altinn:rolecode:DTSO",
+        "urn:altinn:rolecode:KOMP",
+        "urn:altinn:rolecode:FF\u00D8R",
+        "urn:altinn:rolecode:REPR",
+        "urn:altinn:rolecode:KONT",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:org:brg"
       ],
       "RuleId": "urn:altinn:example:ruleid:2b",
       "Description": "Rule that defines that user with role MEDL, LEDE, NEST, DAGL, DTPR, DTSO, KOMP, FF\u00D8R, REPR, KONT or KNUF can read and confirm for brg/rrh-innrapportering when it is in TaskBekreftelse"
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "delete",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "delete"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "rrh-innrapportering",
-              "Designator": "urn:altinn:app"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "MEDL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "LEDE",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "NEST",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DAGL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DTPR",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DTSO",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KOMP",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "FF\u00D8R",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "REPR",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KONT",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "KNUF",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:rolecode:MEDL",
+        "urn:altinn:rolecode:LEDE",
+        "urn:altinn:rolecode:NEST",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:rolecode:DTPR",
+        "urn:altinn:rolecode:DTSO",
+        "urn:altinn:rolecode:KOMP",
+        "urn:altinn:rolecode:FF\u00D8R",
+        "urn:altinn:rolecode:REPR",
+        "urn:altinn:rolecode:KONT",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:org:brg"
       ],
       "RuleId": "urn:altinn:example:ruleid:3",
       "Description": "Rule that defines that user with role MEDL, LEDE, NEST, DAGL, DTPR, DTSO, KOMP, FF\u00D8R, REPR, KONT or KNUF can delete instances of brg/rrh-innrapportering"
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "write",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "write"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "rrh-innrapportering",
-              "Designator": "urn:altinn:app"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:org:brg"
       ],
       "RuleId": "urn:altinn:example:ruleid:4",
       "Description": "Rule that defines that org can write to instances of brg/rrh-innrapportering for any states"
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "complete",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "complete"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "rrh-innrapportering",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "BREnd",
-              "Designator": "urn:altinn:end-event"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "rrh-innrapportering",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "EndEvent_1",
-              "Designator": "urn:altinn:end-event"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:end-event:BREnd"
+        ],
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:org:brg"
       ],
       "RuleId": "urn:altinn:example:ruleid:5",
       "Description": "Rule that defines that org can complete an instance of brg/rrh-innrapportering which state is at the end event."
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "read",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "read"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "rrh-innrapportering",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "events",
-              "Designator": "urn:altinn:appresource"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:appresource:events"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "DAGL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "brg",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:brg"
       ],
       "RuleId": "urn:altinn:example:ruleid:6",
       "Description": "A rule giving user with role DAGL and the app owner brg the right to read the appresource events of a given app of brg/rrh-innrapportering"

@@ -2,304 +2,112 @@
   "Rules": [
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "instantiate",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        },
-        {
-          "Attribute": {
-            "Value": "read",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "instantiate",
+        "read"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "newsamhandlingsavvik",
-              "Designator": "urn:altinn:app"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "UTINN",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DAGL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:hmrhf"
       ],
       "RuleId": "urn:altinn:example:ruleid:1",
       "Description": "A rule giving user with role UTINN or DAGL and the app owner hmrhf the right to instantiate a instance of a given app of hmrhf/newsamhandlingsavvik"
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "read",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        },
-        {
-          "Attribute": {
-            "Value": "write",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "read",
+        "write"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "newsamhandlingsavvik",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "Task_1",
-              "Designator": "urn:altinn:task"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "newsamhandlingsavvik",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "EndEvent_1",
-              "Designator": "urn:altinn:end-event"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik",
+          "urn:altinn:task:Task_1"
+        ],
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "UTINN",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DAGL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        }
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:DAGL"
       ],
       "RuleId": "urn:altinn:example:ruleid:2",
       "Description": "Rule that defines that user with role UTINN or DAGL can read and write for hmrhf/newsamhandlingsavvik when it is in Task_1"
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "delete",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "delete"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "newsamhandlingsavvik",
-              "Designator": "urn:altinn:app"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "UTINN",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DAGL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        }
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:DAGL"
       ],
       "RuleId": "urn:altinn:example:ruleid:3",
       "Description": "Rule that defines that user with role UTINN or DAGL can delete instances of hmrhf/newsamhandlingsavvik"
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "write",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "write"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "newsamhandlingsavvik",
-              "Designator": "urn:altinn:app"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:org:hmrhf"
       ],
       "RuleId": "urn:altinn:example:ruleid:4",
       "Description": "Rule that defines that org can write to instances of hmrhf/newsamhandlingsavvik for any states"
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "complete",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "complete"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "newsamhandlingsavvik",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "EndEvent_1",
-              "Designator": "urn:altinn:end-event"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:org:hmrhf"
       ],
       "RuleId": "urn:altinn:example:ruleid:5",
       "Description": "Rule that defines that org can complete an instance of hmrhf/newsamhandlingsavvik which state is at the end event."
     },
     {
       "Actions": [
-        {
-          "Attribute": {
-            "Value": "read",
-            "Designator": "urn:oasis:names:tc:xacml:1.0:action:action-id"
-          }
-        }
+        "read"
       ],
       "Resources": [
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            },
-            {
-              "Value": "newsamhandlingsavvik",
-              "Designator": "urn:altinn:app"
-            },
-            {
-              "Value": "events",
-              "Designator": "urn:altinn:appresource"
-            }
-          ]
-        }
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik",
+          "urn:altinn:appresource:events"
+        ]
       ],
       "Subject": [
-        {
-          "Attributes": [
-            {
-              "Value": "UTINN",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "DAGL",
-              "Designator": "urn:altinn:rolecode"
-            }
-          ]
-        },
-        {
-          "Attributes": [
-            {
-              "Value": "hmrhf",
-              "Designator": "urn:altinn:org"
-            }
-          ]
-        }
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:hmrhf"
       ],
       "RuleId": "urn:altinn:example:ruleid:6",
       "Description": "A rule giving user with role UTINN or DAGL and the app owner hmrhf the right to read the appresource events of a given app of hmrhf/newsamhandlingsavvik"
