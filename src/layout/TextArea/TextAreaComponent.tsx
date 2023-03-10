@@ -7,16 +7,8 @@ import 'src/styles/shared.css';
 
 export type ITextAreaProps = PropsFromGenericComponent<'TextArea'>;
 
-export function TextAreaComponent({
-  id,
-  formData,
-  readOnly,
-  isValid,
-  handleDataChange,
-  textResourceBindings,
-  saveWhileTyping,
-  autocomplete,
-}: ITextAreaProps) {
+export function TextAreaComponent({ node, formData, isValid, handleDataChange }: ITextAreaProps) {
+  const { id, readOnly, textResourceBindings, saveWhileTyping, autocomplete } = node.item;
   const suppliedValue = formData?.simpleBinding;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,

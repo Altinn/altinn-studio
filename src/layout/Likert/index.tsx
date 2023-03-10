@@ -16,7 +16,7 @@ export class Likert extends FormComponent<'Likert'> {
   }
 
   directRender(props: PropsFromGenericComponent<'Likert'>): boolean {
-    return props.layout === LayoutStyle.Table;
+    return props.node.item.layout === LayoutStyle.Table || props.overrideItemProps?.layout === LayoutStyle.Table;
   }
 
   renderWithLabel(): boolean {

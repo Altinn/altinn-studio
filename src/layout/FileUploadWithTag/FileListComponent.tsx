@@ -19,7 +19,6 @@ import { EditWindowComponent } from 'src/layout/FileUploadWithTag/EditWindowComp
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IDataModelBindings } from 'src/layout/layout';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IOption } from 'src/types';
 
@@ -139,7 +138,6 @@ export interface FileListProps extends PropsFromGenericComponent<'FileUploadWith
     id: string;
     message: string;
   }[];
-  dataModelBindings?: IDataModelBindings;
 }
 
 export const bytesInOneMB = 1048576;
@@ -149,6 +147,8 @@ export function FileList(props: FileListProps): JSX.Element | null {
   if (!props.attachments || props.attachments.length === 0) {
     return null;
   }
+
+  const { textResourceBindings } = props.node.item;
 
   return (
     <Grid
@@ -167,7 +167,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
                   {getLanguageFromKey('form_filler.file_uploader_list_header_name', props.language)}
                 </TableCell>
                 <TableCell align='left'>
-                  {props.textResourceBindings?.tagTitle && props.getTextResource(props.textResourceBindings.tagTitle)}
+                  {textResourceBindings?.tagTitle && props.getTextResource(textResourceBindings.tagTitle)}
                 </TableCell>
                 {!props.mobileView ? (
                   <TableCell align='left'>
@@ -299,10 +299,13 @@ export function FileList(props: FileListProps): JSX.Element | null {
                     colSpan={!props.mobileView ? 5 : undefined}
                   >
                     <EditWindowComponent
-                      // TODO: Avoid tricking the type-system and either pass in required props or make them optional
-                      {...({} as PropsFromGenericComponent<'FileUploadWithTag'>)}
-                      id={props.id}
-                      dataModelBindings={props.dataModelBindings}
+                      handleDataChange={props.handleDataChange}
+                      formData={props.formData}
+                      label={props.label}
+                      legend={props.legend}
+                      shouldFocus={props.shouldFocus}
+                      text={props.text}
+                      node={props.node}
                       attachment={props.attachments[index]}
                       attachmentValidations={[
                         ...new Map(
@@ -311,14 +314,12 @@ export function FileList(props: FileListProps): JSX.Element | null {
                       ]}
                       language={props.language}
                       mobileView={props.mobileView}
-                      readOnly={props.readOnly}
                       options={props.options}
                       getTextResource={props.getTextResource}
                       getTextResourceAsString={props.getTextResourceAsString}
                       onSave={props.onSave}
                       onDropdownDataChange={props.onDropdownDataChange}
                       setEditIndex={props.setEditIndex}
-                      textResourceBindings={props.textResourceBindings}
                     />
                   </TableCell>
                 </TableRow>

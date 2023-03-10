@@ -16,16 +16,8 @@ export const useStyles = makeStyles(() => ({
   },
 }));
 
-export function MapComponent({
-  formData,
-  handleDataChange,
-  language,
-  isValid,
-  readOnly,
-  layers,
-  centerLocation,
-  zoom,
-}: IMapComponentProps) {
+export function MapComponent({ formData, handleDataChange, language, isValid, node }: IMapComponentProps) {
+  const { readOnly, layers, centerLocation, zoom } = node.item;
   const classes = useStyles();
   const location = formData.simpleBinding ? parseLocation(formData.simpleBinding) : undefined;
 

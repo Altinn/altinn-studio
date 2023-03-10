@@ -1,10 +1,11 @@
 import React from 'react';
 
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { InputComponent } from 'src/layout/Input/InputComponent';
-import type { IInputProps } from 'src/layout/Input/InputComponent';
+import { renderGenericComponentTest } from 'src/testUtils';
+import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 describe('InputComponent', () => {
   jest.useFakeTimers();
@@ -26,8 +27,10 @@ describe('InputComponent', () => {
   it('should have correct value with specified form data', () => {
     const simpleBindingValue = 'it123';
     render({
-      formData: {
-        simpleBinding: simpleBindingValue,
+      genericProps: {
+        formData: {
+          simpleBinding: simpleBindingValue,
+        },
       },
     });
     const inputComponent = screen.getByRole('textbox') as HTMLInputElement;
@@ -48,7 +51,7 @@ describe('InputComponent', () => {
   it('should call supplied dataChanged function after data change', async () => {
     const handleDataChange = jest.fn();
     const typedValue = 'test input';
-    render({ handleDataChange });
+    render({ genericProps: { handleDataChange } });
     const inputComponent = screen.getByRole('textbox');
 
     await act(() => user.type(inputComponent, typedValue));
@@ -62,7 +65,7 @@ describe('InputComponent', () => {
   it('should call supplied dataChanged function immediately after onBlur', async () => {
     const handleDataChange = jest.fn();
     const typedValue = 'test input';
-    render({ handleDataChange });
+    render({ genericProps: { handleDataChange } });
     const inputComponent = screen.getByRole('textbox');
 
     await act(async () => {
@@ -82,15 +85,19 @@ describe('InputComponent', () => {
     const finalValuePlainText = `${inputValuePlainText}${typedValue}`;
     const finalValueFormatted = '$123,456,789';
     render({
-      handleDataChange,
-      formatting: {
-        number: {
-          thousandSeparator: true,
-          prefix: '$',
+      genericProps: {
+        handleDataChange,
+        formData: {
+          simpleBinding: inputValuePlainText,
         },
       },
-      formData: {
-        simpleBinding: inputValuePlainText,
+      component: {
+        formatting: {
+          number: {
+            thousandSeparator: true,
+            prefix: '$',
+          },
+        },
       },
     });
     const inputComponent = screen.getByRole('textbox');
@@ -108,8 +115,10 @@ describe('InputComponent', () => {
 
   it('should show aria-describedby if textResourceBindings.description is present', () => {
     render({
-      textResourceBindings: {
-        description: 'description',
+      component: {
+        textResourceBindings: {
+          description: 'description',
+        },
       },
     });
 
@@ -124,17 +133,22 @@ describe('InputComponent', () => {
     expect(inputComponent).not.toHaveAttribute('aria-describedby');
   });
 
-  function render(props: Partial<IInputProps> = {}) {
-    const allProps = {
-      id: 'mock-id',
-      formData: null,
-      handleDataChange: jest.fn(),
-      isValid: true,
-      readOnly: false,
-      required: false,
-      ...props,
-    } as IInputProps;
+  const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) => {
+    renderGenericComponentTest({
+      type: 'Input',
+      renderer: (props) => <InputComponent {...props} />,
+      component: {
+        id: 'mock-id',
+        readOnly: false,
+        required: false,
 
-    rtlRender(<InputComponent {...allProps} />);
-  }
+        ...component,
+      },
+      genericProps: {
+        handleDataChange: jest.fn(),
+        isValid: true,
+        ...genericProps,
+      },
+    });
+  };
 });

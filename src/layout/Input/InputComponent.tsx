@@ -9,19 +9,9 @@ import type { IInputFormatting } from 'src/layout/layout';
 
 export type IInputProps = PropsFromGenericComponent<'Input'>;
 
-export function InputComponent({
-  id,
-  readOnly,
-  required,
-  isValid,
-  formData,
-  formatting,
-  handleDataChange,
-  variant,
-  textResourceBindings,
-  saveWhileTyping,
-  autocomplete,
-}: IInputProps) {
+export function InputComponent({ node, isValid, formData, handleDataChange }: IInputProps) {
+  const { id, readOnly, required, formatting, variant, textResourceBindings, saveWhileTyping, autocomplete } =
+    node.item;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,
     formData?.simpleBinding ?? '',

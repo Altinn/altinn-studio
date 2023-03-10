@@ -80,21 +80,15 @@ const defaultOptions: IOption[] = [];
 const defaultSelectedOptions: string[] = [];
 
 export const CheckboxContainerComponent = ({
-  id,
-  options,
-  optionsId,
+  node,
   formData,
-  preselectedOptionIndex,
   handleDataChange,
-  layout,
   legend,
-  readOnly,
   getTextResourceAsString,
   getTextResource,
-  mapping,
-  source,
 }: ICheckboxContainerProps) => {
   const classes = useStyles();
+  const { id, options, optionsId, preselectedOptionIndex, layout, readOnly, mapping, source } = node.item;
   const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || defaultOptions;
   const hasSelectedInitial = React.useRef(false);

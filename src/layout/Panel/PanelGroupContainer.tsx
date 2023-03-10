@@ -11,9 +11,9 @@ import { SuccessIconButton } from 'src/components/SuccessIconButton';
 import { FullWidthGroupWrapper } from 'src/features/form/components/FullWidthGroupWrapper';
 import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
 import { getVariant } from 'src/features/form/components/Panel';
-import { renderLayoutNode } from 'src/features/form/containers/Form';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
@@ -155,7 +155,12 @@ export function PanelGroupContainer({ id }: IPanelGroupContainerProps) {
                   {/*  // 2. Actually add a real row to the group when you start filling out stuff.*/}
                   {referencedGroupNode ? (
                     <>
-                      {node.children().map((child) => renderLayoutNode(child))}
+                      {node.children().map((child) => (
+                        <GenericComponent
+                          key={child.item.id}
+                          node={child}
+                        />
+                      ))}
                       <Grid item>
                         <SuccessIconButton
                           id={`save-reference-button-${container.id}`}
@@ -165,7 +170,12 @@ export function PanelGroupContainer({ id }: IPanelGroupContainerProps) {
                       </Grid>
                     </>
                   ) : (
-                    node.children().map((child) => renderLayoutNode(child))
+                    node.children().map((child) => (
+                      <GenericComponent
+                        key={node.item.id}
+                        node={child}
+                      />
+                    ))
                   )}
                 </Grid>
               </Panel>

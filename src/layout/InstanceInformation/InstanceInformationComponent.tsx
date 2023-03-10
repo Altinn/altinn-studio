@@ -43,7 +43,8 @@ export const returnInstanceMetaDataObject = (
   return obj;
 };
 
-export function InstanceInformationComponent({ elements }: PropsFromGenericComponent<'InstanceInformation'>) {
+export function InstanceInformationComponent({ node }: PropsFromGenericComponent<'InstanceInformation'>) {
+  const elements = node.item.elements;
   const { dateSent, sender, receiver, referenceNumber } = elements || {};
 
   const instance: IInstance | null = useAppSelector((state: IRuntimeState) => state.instanceData.instance);

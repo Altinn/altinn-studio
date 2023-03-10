@@ -23,17 +23,16 @@ export interface IControlledRadioGroupProps extends IRadioButtonsContainerProps 
 }
 
 export const ControlledRadioGroup = ({
-  id,
-  layout,
+  node,
   legend,
   getTextResource,
   fetchingOptions,
   selected,
-  readOnly,
   handleBlur,
   handleChange,
   calculatedOptions,
 }: IControlledRadioGroupProps) => {
+  const { id, layout, readOnly } = node.item;
   const classes = useRadioStyles();
   const RenderLegend = legend;
   return (

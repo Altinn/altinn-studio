@@ -2,15 +2,12 @@ import React from 'react';
 
 import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { PreloadedState } from 'redux';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
-import { mockComponentProps, renderWithProviders } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/testUtils';
 import { LayoutStyle } from 'src/types';
-import type { ICheckboxContainerProps } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import type { IOptionsState } from 'src/shared/resources/options';
-import type { RootState } from 'src/store';
+import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const threeOptions = [
   {
@@ -29,23 +26,29 @@ const threeOptions = [
 
 const twoOptions = threeOptions.slice(1);
 
-const render = (props: Partial<ICheckboxContainerProps> = {}, customState: PreloadedState<RootState> = {}) => {
-  const allProps: ICheckboxContainerProps = {
-    ...mockComponentProps,
-    options: [],
-    optionsId: 'countries',
-    preselectedOptionIndex: undefined,
-    legend: () => <span>legend</span>,
-    handleDataChange: jest.fn(),
-    getTextResource: (value) => value,
-    getTextResourceAsString: (value) => value,
-    ...props,
-  };
+interface Props extends Partial<RenderGenericComponentTestProps<'Checkboxes'>> {
+  optionState?: IOptionsState;
+}
 
-  const { container } = renderWithProviders(<CheckboxContainerComponent {...allProps} />, {
-    preloadedState: {
-      ...getInitialStateMock(),
-      optionState: {
+const render = ({ component, genericProps, optionState }: Props = {}) => {
+  return renderGenericComponentTest({
+    type: 'Checkboxes',
+    renderer: (props) => <CheckboxContainerComponent {...props} />,
+    component: {
+      options: [],
+      optionsId: 'countries',
+      preselectedOptionIndex: undefined,
+      ...component,
+    },
+    genericProps: {
+      legend: () => <span>legend</span>,
+      handleDataChange: jest.fn(),
+      getTextResource: (value) => value,
+      getTextResourceAsString: (value) => value,
+      ...genericProps,
+    },
+    manipulateState: (state) => {
+      state.optionState = optionState || {
         options: {
           countries: {
             id: 'countries',
@@ -62,12 +65,9 @@ const render = (props: Partial<ICheckboxContainerProps> = {}, customState: Prelo
           message: '',
         },
         loading: true,
-      },
-      ...customState,
+      };
     },
   });
-
-  return { container };
 };
 
 const getCheckbox = ({ name, isChecked = false }) => {
@@ -90,10 +90,14 @@ describe('CheckboxContainerComponent', () => {
   it('should call handleDataChange with value of preselectedOptionIndex when simpleBinding is not set', () => {
     const handleChange = jest.fn();
     render({
-      handleDataChange: handleChange,
-      preselectedOptionIndex: 1,
-      formData: {
-        simpleBinding: undefined,
+      component: {
+        preselectedOptionIndex: 1,
+      },
+      genericProps: {
+        handleDataChange: handleChange,
+        formData: {
+          simpleBinding: undefined,
+        },
       },
     });
 
@@ -103,10 +107,14 @@ describe('CheckboxContainerComponent', () => {
   it('should not call handleDataChange when simpleBinding is set and preselectedOptionIndex', () => {
     const handleChange = jest.fn();
     render({
-      handleDataChange: handleChange,
-      preselectedOptionIndex: 0,
-      formData: {
-        simpleBinding: 'denmark',
+      component: {
+        preselectedOptionIndex: 0,
+      },
+      genericProps: {
+        handleDataChange: handleChange,
+        formData: {
+          simpleBinding: 'denmark',
+        },
       },
     });
 
@@ -120,9 +128,11 @@ describe('CheckboxContainerComponent', () => {
   it('should show several checkboxes as selected based on values in simpleBinding', () => {
     const handleChange = jest.fn();
     render({
-      handleDataChange: handleChange,
-      formData: {
-        simpleBinding: 'norway,denmark',
+      genericProps: {
+        handleDataChange: handleChange,
+        formData: {
+          simpleBinding: 'norway,denmark',
+        },
       },
     });
 
@@ -135,7 +145,7 @@ describe('CheckboxContainerComponent', () => {
 
   it('should not set any as selected when no binding and no preselectedOptionIndex is set', () => {
     const handleChange = jest.fn();
-    render({ handleDataChange: handleChange });
+    render({ genericProps: { handleDataChange: handleChange } });
 
     expect(getCheckbox({ name: 'Norway' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
@@ -147,9 +157,11 @@ describe('CheckboxContainerComponent', () => {
   it('should call handleDataChange with updated values when selection changes', async () => {
     const handleChange = jest.fn();
     render({
-      handleDataChange: handleChange,
-      formData: {
-        simpleBinding: 'norway',
+      genericProps: {
+        handleDataChange: handleChange,
+        formData: {
+          simpleBinding: 'norway',
+        },
       },
     });
 
@@ -169,9 +181,11 @@ describe('CheckboxContainerComponent', () => {
   it('should call handleDataChange with updated values when deselecting item', async () => {
     const handleChange = jest.fn();
     render({
-      handleDataChange: handleChange,
-      formData: {
-        simpleBinding: 'norway,denmark',
+      genericProps: {
+        handleDataChange: handleChange,
+        formData: {
+          simpleBinding: 'norway,denmark',
+        },
       },
     });
 
@@ -191,9 +205,11 @@ describe('CheckboxContainerComponent', () => {
   it('should call handleDataChange instantly on blur when the value has changed', async () => {
     const handleChange = jest.fn();
     render({
-      handleDataChange: handleChange,
-      formData: {
-        simpleBinding: 'norway',
+      genericProps: {
+        handleDataChange: handleChange,
+        formData: {
+          simpleBinding: 'norway',
+        },
       },
     });
 
@@ -213,7 +229,9 @@ describe('CheckboxContainerComponent', () => {
   it('should not call handleDataChange on blur when the value is unchanged', async () => {
     const handleChange = jest.fn();
     render({
-      handleDataChange: handleChange,
+      genericProps: {
+        handleDataChange: handleChange,
+      },
     });
 
     expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
@@ -229,9 +247,11 @@ describe('CheckboxContainerComponent', () => {
   it('should call handleDataChange onBlur with no commas in string when starting with empty string formData', async () => {
     const handleChange = jest.fn();
     render({
-      handleDataChange: handleChange,
-      formData: {
-        simpleBinding: '',
+      genericProps: {
+        handleDataChange: handleChange,
+        formData: {
+          simpleBinding: '',
+        },
       },
     });
 
@@ -250,7 +270,9 @@ describe('CheckboxContainerComponent', () => {
 
   it('should show spinner while waiting for options', () => {
     render({
-      optionsId: 'loadingOptions',
+      component: {
+        optionsId: 'loadingOptions',
+      },
     });
 
     expect(screen.queryByTestId('altinn-spinner')).toBeInTheDocument();
@@ -258,8 +280,10 @@ describe('CheckboxContainerComponent', () => {
 
   it('should show items in a row when layout is "row" and options count is 3', () => {
     const { container } = render({
-      optionsId: 'countries',
-      layout: LayoutStyle.Row,
+      component: {
+        optionsId: 'countries',
+        layout: LayoutStyle.Row,
+      },
     });
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
@@ -268,21 +292,19 @@ describe('CheckboxContainerComponent', () => {
   });
 
   it('should show items in a row when layout is not defined, and options count is 2', () => {
-    const { container } = render(
-      {
+    const { container } = render({
+      component: {
         optionsId: 'countries',
       },
-      {
-        optionState: {
-          options: {
-            countries: {
-              id: 'countries',
-              options: twoOptions,
-            },
+      optionState: {
+        options: {
+          countries: {
+            id: 'countries',
+            options: twoOptions,
           },
-        } as unknown as IOptionsState,
-      },
-    );
+        },
+      } as unknown as IOptionsState,
+    });
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
@@ -290,22 +312,20 @@ describe('CheckboxContainerComponent', () => {
   });
 
   it('should show items in a column when layout is "column" and options count is 2 ', () => {
-    const { container } = render(
-      {
+    const { container } = render({
+      component: {
         optionsId: 'countries',
         layout: LayoutStyle.Column,
       },
-      {
-        optionState: {
-          options: {
-            countries: {
-              id: 'countries',
-              options: twoOptions,
-            },
+      optionState: {
+        options: {
+          countries: {
+            id: 'countries',
+            options: twoOptions,
           },
-        } as unknown as IOptionsState,
-      },
-    );
+        },
+      } as unknown as IOptionsState,
+    });
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
@@ -314,7 +334,9 @@ describe('CheckboxContainerComponent', () => {
 
   it('should show items in a columns when layout is not defined, and options count is 3', () => {
     const { container } = render({
-      optionsId: 'countries',
+      component: {
+        optionsId: 'countries',
+      },
     });
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
@@ -326,11 +348,13 @@ describe('CheckboxContainerComponent', () => {
     const handleDataChange = jest.fn();
 
     render({
-      handleDataChange,
-      source: {
-        group: 'someGroup',
-        label: 'option.from.rep.group.label',
-        value: 'someGroup[{0}].valueField',
+      genericProps: { handleDataChange },
+      component: {
+        source: {
+          group: 'someGroup',
+          label: 'option.from.rep.group.label',
+          value: 'someGroup[{0}].valueField',
+        },
       },
     });
 

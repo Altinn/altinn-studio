@@ -6,9 +6,9 @@ import { Grid, makeStyles } from '@material-ui/core';
 import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
-import { renderLayoutNode } from 'src/features/form/containers/Form';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getLanguageFromKey, getParsedLanguageFromText } from 'src/language/sharedLanguage';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { useExprContext } from 'src/utils/layout/ExprContext';
 import { getMappedErrors, getUnmappedErrors } from 'src/utils/validation/validation';
@@ -164,7 +164,12 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
                 ))}
               </ul>
             </Grid>
-            {nodes.map((n) => renderLayoutNode(n))}
+            {nodes.map((n) => (
+              <GenericComponent
+                key={n.item.id}
+                node={n}
+              />
+            ))}
           </Grid>
         </Panel>
       </FullWidthWrapper>

@@ -5,119 +5,121 @@ import userEvent from '@testing-library/user-event';
 
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
-import { setupStore } from 'src/store';
-import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
-import type { INavigationBar } from 'src/layout/NavigationBar/NavigationBarComponent';
+import { mockMediaQuery, renderGenericComponentTest } from 'src/testUtils';
+import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const { setScreenWidth } = mockMediaQuery(600);
 
-const render = ({ props = {}, dispatch = jest.fn() } = {}) => {
-  const allProps = {
-    triggers: [],
-    ...(props as any),
-  } as INavigationBar;
+interface Props extends Partial<RenderGenericComponentTestProps<'NavigationBar'>> {
+  dispatch?: (...props: any[]) => any;
+}
 
-  const store = setupStore({
-    formLayout: {
-      error: null,
-      layoutsets: null,
-      uiConfig: {
-        tracks: {
-          order: ['page1', 'page2', 'page3'],
-          hiddenExpr: {},
-          hidden: [],
+const render = ({ dispatch = jest.fn() }: Props = {}) => {
+  renderGenericComponentTest({
+    type: 'NavigationBar',
+    renderer: (props) => <NavigationBarComponent {...props} />,
+    component: {
+      id: 'nav1',
+    },
+    manipulateState: (state) => {
+      state.formLayout = {
+        error: null,
+        layoutsets: null,
+        uiConfig: {
+          tracks: {
+            order: ['page1', 'page2', 'page3'],
+            hiddenExpr: {},
+            hidden: [],
+          },
+          currentView: 'page1',
+          autoSave: false,
+          focus: 'focus',
+          hiddenFields: [],
+          repeatingGroups: {},
+          excludePageFromPdf: [],
+          excludeComponentFromPdf: [],
         },
-        currentView: 'page1',
-        autoSave: false,
-        focus: 'focus',
-        hiddenFields: [],
-        repeatingGroups: null,
-        excludePageFromPdf: [],
-        excludeComponentFromPdf: [],
-      },
-      layouts: {
-        page1: [
-          {
-            id: 'nav1',
-            type: 'NavigationBar',
-            textResourceBindings: {
-              next: 'Kort svar',
-              back: 'back',
+        layouts: {
+          page1: [
+            {
+              id: 'nav1',
+              type: 'NavigationBar',
+              textResourceBindings: {
+                next: 'Kort svar',
+                back: 'back',
+              },
+              dataModelBindings: {},
             },
-            dataModelBindings: {},
-          },
-          {
-            id: 'd966374c-5e22-4b87-9581-0d3d1ccd40ed',
-            type: 'Input',
-            textResourceBindings: {
-              title: 'page1',
+            {
+              id: 'd966374c-5e22-4b87-9581-0d3d1ccd40ed',
+              type: 'Input',
+              textResourceBindings: {
+                title: 'page1',
+              },
+              dataModelBindings: {
+                simpleBinding: 'InternInformasjon.periodeFritekst',
+              },
+              required: true,
+              readOnly: false,
             },
-            dataModelBindings: {
-              simpleBinding: 'InternInformasjon.periodeFritekst',
+          ],
+          page2: [
+            {
+              id: 'nav2',
+              type: 'NavigationBar',
+              textResourceBindings: {
+                next: 'Kort svar',
+                back: 'back',
+              },
+              dataModelBindings: {},
             },
-            required: true,
-            readOnly: false,
-          },
-        ],
-        page2: [
-          {
-            id: 'nav2',
-            type: 'NavigationBar',
-            textResourceBindings: {
-              next: 'Kort svar',
-              back: 'back',
+            {
+              id: '0be94b72-f885-48e6-bd43-e64839a62708',
+              type: 'Input',
+              textResourceBindings: {
+                title: 'page2',
+              },
+              dataModelBindings: {
+                simpleBinding: 'InternInformasjon.raNummer',
+              },
+              required: true,
+              readOnly: false,
             },
-            dataModelBindings: {},
-          },
-          {
-            id: '0be94b72-f885-48e6-bd43-e64839a62708',
-            type: 'Input',
-            textResourceBindings: {
-              title: 'page2',
+          ],
+          page3: [
+            {
+              id: 'nav3',
+              type: 'NavigationBar',
+              textResourceBindings: {
+                next: 'Kort svar',
+                back: 'back',
+              },
+              dataModelBindings: {},
             },
-            dataModelBindings: {
-              simpleBinding: 'InternInformasjon.raNummer',
+            {
+              id: '0bb8b04f-1d57-4c55-94a8-b53290c692d7',
+              type: 'Input',
+              textResourceBindings: {
+                title: 'page3',
+              },
+              dataModelBindings: {
+                simpleBinding: 'InternInformasjon.sendtFraSluttbrukersystem',
+              },
+              required: true,
+              readOnly: false,
             },
-            required: true,
-            readOnly: false,
-          },
-        ],
-        page3: [
-          {
-            id: 'nav3',
-            type: 'NavigationBar',
-            textResourceBindings: {
-              next: 'Kort svar',
-              back: 'back',
-            },
-            dataModelBindings: {},
-          },
-          {
-            id: '0bb8b04f-1d57-4c55-94a8-b53290c692d7',
-            type: 'Input',
-            textResourceBindings: {
-              title: 'page3',
-            },
-            dataModelBindings: {
-              simpleBinding: 'InternInformasjon.sendtFraSluttbrukersystem',
-            },
-            required: true,
-            readOnly: false,
-          },
-        ],
-      },
+          ],
+        },
+      };
+      state.language = {
+        language: {},
+        error: null,
+        selectedAppLanguage: 'nb',
+      };
     },
-    language: {
-      language: {},
-      error: null,
-      selectedAppLanguage: 'nb',
+    manipulateStore: (store) => {
+      store.dispatch = dispatch;
     },
-  });
-
-  store.dispatch = dispatch;
-
-  renderWithProviders(<NavigationBarComponent {...allProps} />, {
-    store,
   });
 };
 

@@ -11,10 +11,17 @@ import { SubmitButton } from 'src/layout/Button/SubmitButton';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAltinnWindow } from 'src/types';
+import type { HComponent } from 'src/utils/layout/hierarchy.types';
 
-export type IButtonProvidedProps = PropsFromGenericComponent<'Button'>;
+export type IButtonReceivedProps = PropsFromGenericComponent<'Button'>;
+export type IButtonProvidedProps =
+  | (PropsFromGenericComponent<'Button'> & HComponent<'Button'>)
+  | (PropsFromGenericComponent<'InstantiationButton'> & HComponent<'InstantiationButton'>);
 
-export const ButtonComponent = ({ mode, ...props }: IButtonProvidedProps) => {
+export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProps) => {
+  const { id, mode } = node.item;
+  const props: IButtonProvidedProps = { ...componentProps, ...node.item, node };
+
   const dispatch = useAppDispatch();
   const autoSave = useAppSelector((state) => state.formLayout.uiConfig.autoSave);
   const submittingId = useAppSelector((state) => state.formData.submittingId);
@@ -73,8 +80,8 @@ export const ButtonComponent = ({ mode, ...props }: IButtonProvidedProps) => {
             </SaveButton>
           )}
           <SubmitButton
-            onClick={() => submitTask({ componentId: props.id })}
-            id={props.id}
+            onClick={() => submitTask({ componentId: id })}
+            id={id}
             language={props.language}
             busyWithId={busyWithId}
           >

@@ -105,7 +105,8 @@ const NavigationButton = React.forwardRef(
 
 NavigationButton.displayName = 'NavigationButton';
 
-export const NavigationBarComponent = ({ triggers, compact }: INavigationBar) => {
+export const NavigationBarComponent = ({ node }: INavigationBar) => {
+  const { triggers, compact } = node.item;
   const classes = useStyles();
   const dispatch = useAppDispatch();
   const pageIds = useAppSelector(selectLayoutOrder);

@@ -1,15 +1,10 @@
 import React from 'react';
 
-import { SortDirection } from '@altinn/altinn-design-system';
 import { screen } from '@testing-library/react';
-import type { PreloadedState } from 'redux';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { ListComponent } from 'src/layout/List/ListComponent';
-import { mockComponentProps, renderWithProviders } from 'src/testUtils';
-import type { IListProps } from 'src/layout/List/ListComponent';
-import type { IDataListsState } from 'src/shared/resources/dataLists';
-import type { RootState } from 'src/store';
+import { renderGenericComponentTest } from 'src/testUtils';
+import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const countries = [
   { Name: 'Norway', Population: 5, HighestMountain: 2469 },
@@ -20,41 +15,27 @@ const countries = [
   { Name: 'France', Population: 67, HighestMountain: 4807 },
 ];
 
-export const testState: IDataListsState = {
-  dataLists: {
-    ['countries']: {
-      listItems: countries,
+const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'List'>> = {}) => {
+  renderGenericComponentTest({
+    type: 'List',
+    renderer: (props) => <ListComponent {...props} />,
+    component: {
+      id: 'list-component-id',
+      tableHeaders: { Name: 'Name', Population: 'Population', HighestMountain: 'HighestMountain' },
+      sortableColumns: ['population', 'highestMountain'],
+      pagination: { alternatives: [2, 5], default: 2 },
       dataListId: 'countries',
-      loading: true,
-      sortColumn: 'HighestMountain',
-      sortDirection: SortDirection.Ascending,
+      ...component,
     },
-  },
-  dataListsWithIndexIndicator: [],
-  error: null,
-  dataListCount: 1,
-  dataListLoadedCount: 1,
-  loading: false,
-};
-
-const render = (props: Partial<IListProps> = {}, customState: PreloadedState<RootState> = {}) => {
-  const allProps: IListProps = {
-    ...mockComponentProps,
-    dataListId: 'countries',
-    tableHeaders: { Name: 'Name', Population: 'Population', HighestMountain: 'HighestMountain' },
-    sortableColumns: ['population', 'highestMountain'],
-    pagination: { alternatives: [2, 5], default: 2 },
-    getTextResourceAsString: (value) => value,
-    legend: () => <span>legend</span>,
-    ...props,
-  };
-
-  renderWithProviders(<ListComponent {...allProps} />, {
-    preloadedState: {
-      ...getInitialStateMock(),
-      dataListState: {
+    genericProps: {
+      getTextResourceAsString: (value) => value,
+      legend: () => <span>legend</span>,
+      ...genericProps,
+    },
+    manipulateState: (state) => {
+      state.dataListState = {
         dataLists: {
-          [allProps.id]: { listItems: countries, id: 'countries' },
+          ['list-component-id']: { listItems: countries, id: 'countries' },
         },
         error: {
           name: '',
@@ -63,8 +44,7 @@ const render = (props: Partial<IListProps> = {}, customState: PreloadedState<Roo
         dataListCount: 1,
         dataListLoadedCount: 1,
         loading: false,
-      },
-      ...customState,
+      };
     },
   });
 };
@@ -73,7 +53,7 @@ describe('ListComponent', () => {
   jest.useFakeTimers();
 
   it('should render rows that is sent in but not rows that is not sent in', async () => {
-    render({});
+    render();
     expect(screen.getByText('Norway')).toBeInTheDocument();
     expect(screen.getByText('Sweden')).toBeInTheDocument();
     expect(screen.queryByText('Italy')).not.toBeInTheDocument();

@@ -62,20 +62,21 @@ export interface EditWindowProps extends PropsFromGenericComponent<'FileUploadWi
 export function EditWindowComponent(props: EditWindowProps): JSX.Element {
   const dispatch = useAppDispatch();
   const classes = useStyles();
+  const { id, baseComponentId, dataModelBindings, readOnly, textResourceBindings } = props.node.item;
 
   const handleDeleteFile = () => {
     dispatch(
       AttachmentActions.deleteAttachment({
         attachment: props.attachment,
-        componentId: props.id,
-        attachmentType: props.baseComponentId || props.id,
-        dataModelBindings: props.dataModelBindings,
+        componentId: id,
+        attachmentType: baseComponentId || id,
+        dataModelBindings: dataModelBindings,
       }),
     );
     props.setEditIndex(-1);
   };
 
-  const saveIsDisabled = props.attachment.updating === true || props.attachment.uploaded === false || props.readOnly;
+  const saveIsDisabled = props.attachment.updating === true || props.attachment.uploaded === false || readOnly;
 
   return (
     <div
@@ -136,7 +137,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
         </Grid>
       </Grid>
       <Grid>
-        {props.textResourceBindings?.tagTitle && <h6>{props.getTextResource(props.textResourceBindings?.tagTitle)}</h6>}
+        {textResourceBindings?.tagTitle && <h6>{props.getTextResource(textResourceBindings?.tagTitle)}</h6>}
         <Grid
           container={true}
           spacing={1}
@@ -152,7 +153,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
               disabled={saveIsDisabled}
               className={classNames(classes.select, 'custom-select a-custom-select', {
                 'validation-error': props.attachmentValidations.filter((i) => i.id === props.attachment.id).length > 0,
-                'disabled !important': props.attachment.updating ? true : props.readOnly,
+                'disabled !important': props.attachment.updating || readOnly,
               })}
               onChange={(e) => props.onDropdownDataChange(props.attachment.id, e.target.value)}
               onBlur={(e) => props.onDropdownDataChange(props.attachment.id, e.target.value)}

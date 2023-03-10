@@ -9,9 +9,9 @@ import { useInstantiateWithPrefillMutation } from 'src/services/InstancesApi';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { mapFormData } from 'src/utils/databindings';
-import type { IInstantiationButtonComponentProps } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
+import type { IInstantiationButtonComponentProvidedProps } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 
-type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProps>, 'text'>;
+type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedProps>, 'text'>;
 
 export const InstantiationButton = ({ children, ...props }: Props) => {
   const dispatch = useAppDispatch();

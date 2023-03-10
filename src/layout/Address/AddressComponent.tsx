@@ -35,16 +35,12 @@ export function AddressComponent({
   language,
   handleDataChange,
   componentValidations,
-  id,
-  required,
-  readOnly,
-  labelSettings,
-  simplified,
-  saveWhileTyping,
+  node,
 }: IAddressComponentProps) {
   // eslint-disable-next-line import/no-named-as-default-member
   const cancelToken = axios.CancelToken;
   const source = cancelToken.source();
+  const { id, required, readOnly, labelSettings, simplified, saveWhileTyping } = node.item;
 
   const handleDataChangeOverride =
     (key: AddressKeys): IAddressComponentProps['handleDataChange'] =>

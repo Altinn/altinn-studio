@@ -9,20 +9,20 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
 
-export function AttachmentListComponent(props: IAttachmentListProps) {
+export function AttachmentListComponent({ node, text }: IAttachmentListProps) {
+  const { dataTypeIds, includePDF } = node.item;
   const currentTaskId = useAppSelector((state) => state.instanceData.instance?.process.currentTask?.elementId);
   const dataForTask = useAppSelector((state) => {
     const dataTypes = state.applicationMetadata.applicationMetadata?.dataTypes.filter((type) => {
       return type.taskId === state.instanceData.instance?.process.currentTask?.elementId;
     });
     return state.instanceData.instance?.data.filter((dataElement) => {
-      if (props.dataTypeIds) {
-        return props.dataTypeIds.findIndex((id) => dataElement.dataType === id) > -1;
+      if (dataTypeIds) {
+        return dataTypeIds.findIndex((id) => dataElement.dataType === id) > -1;
       }
       return dataTypes && dataTypes.findIndex((type) => dataElement.dataType === type.id) > -1;
     });
   });
-  const includePDF = props.includePDF;
   const attachments = useAppSelector((state) => {
     const appLogicDataTypes = state.applicationMetadata.applicationMetadata?.dataTypes.filter((dataType) => {
       return dataType.appLogic && dataType.taskId === currentTaskId;
@@ -41,7 +41,7 @@ export function AttachmentListComponent(props: IAttachmentListProps) {
         className='attachmentList-title'
         component='span'
       >
-        {props.text || ''}
+        {text}
       </Typography>
       <AltinnAttachment attachments={attachments} />
     </Grid>

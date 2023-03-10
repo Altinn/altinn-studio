@@ -28,24 +28,22 @@ import type { IRuntimeState } from 'src/types';
 
 export type IFileUploadWithTagProps = PropsFromGenericComponent<'FileUploadWithTag'>;
 
-export function FileUploadWithTagComponent({
-  id,
-  baseComponentId,
-  componentValidations,
-  language,
-  maxFileSizeInMB,
-  readOnly,
-  maxNumberOfAttachments,
-  minNumberOfAttachments,
-  hasCustomFileEndings,
-  validFileEndings,
-  optionsId,
-  mapping,
-  getTextResource,
-  getTextResourceAsString,
-  textResourceBindings,
-  dataModelBindings,
-}: IFileUploadWithTagProps): JSX.Element {
+export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.Element {
+  const { componentValidations, language, getTextResource, getTextResourceAsString } = props;
+  const {
+    id,
+    baseComponentId,
+    maxFileSizeInMB,
+    readOnly,
+    maxNumberOfAttachments,
+    minNumberOfAttachments,
+    hasCustomFileEndings,
+    validFileEndings,
+    optionsId,
+    mapping,
+    textResourceBindings,
+    dataModelBindings,
+  } = props.node.item;
   const dataDispatch = useAppDispatch();
   const [validations, setValidations] = React.useState<Array<{ id: string; message: string }>>([]);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
@@ -244,15 +242,18 @@ export function FileUploadWithTagComponent({
       {hasValidationMessages && shouldShowFileUpload() && renderValidationMessagesForComponent(validationMessages, id)}
 
       <FileList
-        // TODO: Avoid tricking the type-system and either pass in required props or make them optional
-        {...({} as PropsFromGenericComponent<'FileUploadWithTag'>)}
-        id={id}
+        text={props.text}
+        shouldFocus={props.shouldFocus}
+        legend={props.legend}
+        label={props.label}
+        formData={props.formData}
+        handleDataChange={props.handleDataChange}
+        node={props.node}
         attachments={attachments}
         attachmentValidations={attachmentValidationMessages}
         language={language}
         editIndex={editIndex}
         mobileView={mobileView}
-        readOnly={readOnly}
         options={options}
         getTextResource={getTextResource}
         getTextResourceAsString={getTextResourceAsString}
@@ -260,8 +261,6 @@ export function FileUploadWithTagComponent({
         onSave={handleSave}
         onDropdownDataChange={handleDropdownDataChange}
         setEditIndex={setEditIndex}
-        textResourceBindings={textResourceBindings}
-        dataModelBindings={dataModelBindings}
       />
 
       {!shouldShowFileUpload() &&

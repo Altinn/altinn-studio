@@ -213,9 +213,11 @@ describe('Summary', () => {
         cy.wrap(item).eq(6).should('contain.text', 'Digitaliseringsdirektoratet');
         cy.wrap(item).eq(7).should('contain.text', 'Sophie Salt');
 
-        // Go back to the repeating group in order to set nested options
-        cy.wrap(item).eq(5).find('button').first().should('contain.text', texts.change).click();
+        cy.wrap(item).eq(5).find('button').first().should('contain.text', texts.change);
       });
+
+    // Go back to the repeating group in order to set nested options
+    cy.get(appFrontend.group.mainGroupSummary).first().children(mui.gridItem).eq(5).find('button').first().click();
 
     // Check to show a couple of nested options, then go back to the summary
     cy.get(appFrontend.group.row(0).editBtn).click();

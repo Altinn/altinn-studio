@@ -7,11 +7,15 @@ import { render as rtlRender } from '@testing-library/react';
 import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from 'redux';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { setupStore } from 'src/store';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
-import { ExprContextWrapper } from 'src/utils/layout/ExprContext';
-import type { IComponentProps } from 'src/layout';
+import { ExprContextWrapper, useResolvedNode } from 'src/utils/layout/ExprContext';
+import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
+import type { ComponentTypes } from 'src/layout/layout';
 import type { AppStore, RootState } from 'src/store';
+import type { IRuntimeState } from 'src/types';
+import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
@@ -42,6 +46,54 @@ export const renderWithProviders = (
     }),
   };
 };
+
+export interface RenderGenericComponentTestProps<T extends ComponentTypes> {
+  type: T;
+  renderer: (props: PropsFromGenericComponent<T>) => JSX.Element;
+  component?: Partial<AnyItem<T>>;
+  genericProps?: Partial<PropsFromGenericComponent<T>>;
+  manipulateState?: (state: IRuntimeState) => void;
+  manipulateStore?: (store: ReturnType<typeof setupStore>) => void;
+}
+
+export function renderGenericComponentTest<T extends ComponentTypes>({
+  type,
+  renderer,
+  component,
+  genericProps,
+  manipulateState,
+  manipulateStore,
+}: RenderGenericComponentTestProps<T>) {
+  const realComponentDef = {
+    id: 'my-test-component-id',
+    type,
+    ...component,
+  } as any;
+
+  const Wrapper = () => {
+    const node = useResolvedNode(realComponentDef.id) as any;
+    const props: PropsFromGenericComponent<T> = {
+      node,
+      ...mockComponentProps,
+      getTextResource: (key: string) => key,
+      getTextResourceAsString: (key: string) => key,
+      ...genericProps,
+    };
+
+    return renderer(props);
+  };
+
+  const preloadedState = getInitialStateMock();
+  manipulateState && manipulateState(preloadedState);
+  preloadedState.formLayout.layouts?.FormLayout?.push(realComponentDef);
+
+  const store = setupStore(preloadedState);
+  manipulateStore && manipulateStore(store);
+
+  return {
+    ...renderWithProviders(<Wrapper />, { store }),
+  };
+}
 
 export const mockMediaQuery = (maxWidth: number) => {
   const setScreenWidth = (width: number) => {

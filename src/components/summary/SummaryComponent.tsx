@@ -6,8 +6,10 @@ import cn from 'classnames';
 import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { SummaryComponentSwitch } from 'src/components/summary/SummaryComponentSwitch';
+import { SummaryBoilerplate } from 'src/components/summary/SummaryBoilerplate';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { GenericComponent } from 'src/layout/GenericComponent';
+import { FormComponent } from 'src/layout/LayoutComponent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
@@ -107,13 +109,11 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
     return null;
   }
 
-  const change = {
-    onChangeClick,
-    changeText,
-  };
-
   const displayGrid =
     display && display.useComponentGrid ? overrides?.grid || targetItem?.grid : overrides?.grid || grid;
+
+  const component = targetNode.getComponent();
+  const RenderSummary = component instanceof FormComponent ? component.renderSummary.bind(component) : null;
 
   return (
     <Grid
@@ -132,13 +132,29 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
           [classes.border]: !display?.hideBottomBorder,
         })}
       >
-        <SummaryComponentSwitch
-          summaryNode={summaryNode}
-          targetNode={targetNode}
-          change={change}
-          label={label}
-          overrides={overrides}
-        />
+        {RenderSummary && component instanceof FormComponent ? (
+          <>
+            {component.renderSummaryBoilerplate() ? (
+              <SummaryBoilerplate
+                onChangeClick={onChangeClick}
+                changeText={changeText}
+                label={label}
+                summaryNode={summaryNode}
+                targetNode={targetNode}
+                overrides={overrides}
+              />
+            ) : null}
+            <RenderSummary
+              onChangeClick={onChangeClick}
+              changeText={changeText}
+              summaryNode={summaryNode}
+              targetNode={targetNode as any}
+              overrides={overrides}
+            />
+          </>
+        ) : (
+          <GenericComponent node={targetNode} />
+        )}
         {targetNode?.hasValidationMessages('errors') &&
           targetItem.type !== 'Group' &&
           !display?.hideValidationMessages && (

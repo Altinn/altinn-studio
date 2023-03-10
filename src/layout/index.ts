@@ -10,6 +10,7 @@ import { Datepicker } from 'src/layout/Datepicker/index';
 import { Dropdown } from 'src/layout/Dropdown/index';
 import { FileUpload } from 'src/layout/FileUpload/index';
 import { FileUploadWithTag } from 'src/layout/FileUploadWithTag/index';
+import { Group } from 'src/layout/Group';
 import { Header } from 'src/layout/Header/index';
 import { Image } from 'src/layout/Image/index';
 import { Input } from 'src/layout/Input/index';
@@ -25,13 +26,14 @@ import { Panel } from 'src/layout/Panel/index';
 import { Paragraph } from 'src/layout/Paragraph/index';
 import { PrintButton } from 'src/layout/PrintButton/index';
 import { RadioButtons } from 'src/layout/RadioButtons/index';
+import { Summary } from 'src/layout/Summary';
 import { TextArea } from 'src/layout/TextArea/index';
-import type { ExprResolved } from 'src/features/expressions/types';
-import type { ComponentExceptGroup, ComponentExceptGroupAndSummary, IGrid, ILayoutComponent } from 'src/layout/layout';
+import type { ComponentTypes, IGrid } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
 import type { IComponentValidations } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
+import type { AnyItem, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 export const components = {
   AddressComponent: new Address(),
@@ -59,6 +61,8 @@ export const components = {
   RadioButtons: new RadioButtons(),
   TextArea: new TextArea(),
   List: new List(),
+  Group: new Group(),
+  Summary: new Summary(),
 };
 
 export type ComponentClassMap = typeof components;
@@ -71,7 +75,7 @@ export type ComponentClassMap = typeof components;
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 const _componentsTypeCheck: {
-  [Type in ComponentExceptGroupAndSummary]: LayoutComponent<Type>;
+  [Type in ComponentTypes]: LayoutComponent<Type>;
 } = {
   ...components,
 };
@@ -96,8 +100,10 @@ export interface IComponentProps {
   componentValidations?: IComponentValidations;
 }
 
-export type PropsFromGenericComponent<T extends ComponentExceptGroup = ComponentExceptGroup> = IComponentProps &
-  ExprResolved<Omit<ILayoutComponent<T>, 'type'>>;
+export interface PropsFromGenericComponent<T extends ComponentTypes = ComponentTypes> extends IComponentProps {
+  node: LayoutNodeFromType<T>;
+  overrideItemProps?: Partial<Omit<AnyItem<T>, 'id'>>;
+}
 
 export interface IFormComponentContext {
   grid?: IGrid;
@@ -119,11 +125,10 @@ export enum ComponentType {
   Presentation = 'presentation',
   Form = 'form',
   Action = 'action',
+  Container = 'container',
 }
 
-export function getLayoutComponentObject<T extends string | undefined | keyof ComponentClassMap>(
-  type: T,
-): T extends keyof ComponentClassMap ? ComponentClassMap[T] : undefined {
+export function getLayoutComponentObject<T extends keyof ComponentClassMap>(type: T): ComponentClassMap[T] {
   if (type && type in components) {
     return components[type as keyof typeof components] as any;
   }

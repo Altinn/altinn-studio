@@ -45,14 +45,11 @@ const useStyles = makeStyles({
   },
 });
 
-export function ParagraphComponent(props: IParagraphProps) {
+export function ParagraphComponent({ node, getTextResourceAsString, language }: IParagraphProps) {
+  const { id, textResourceBindings } = node.item;
   const classes = useStyles();
 
-  const text = getParsedLanguageFromText(
-    props.getTextResourceAsString(props?.textResourceBindings?.title ?? ''),
-    {},
-    false,
-  );
+  const text = getParsedLanguageFromText(getTextResourceAsString(textResourceBindings?.title ?? ''), {}, false);
 
   return (
     <Grid
@@ -63,21 +60,21 @@ export function ParagraphComponent(props: IParagraphProps) {
       <Grid item={true}>
         <Typography
           component={'div'}
-          id={props.id}
-          data-testid={`paragraph-component-${props.id}`}
+          id={id}
+          data-testid={`paragraph-component-${id}`}
           className={`${classes.spacing} ${classes.typography}`}
         >
           {text}
         </Typography>
       </Grid>
-      {props.textResourceBindings?.help && (
+      {textResourceBindings?.help && (
         <Grid
           item={true}
           className={classes.spacing}
         >
           <HelpTextContainer
-            language={props.language}
-            helpText={props.getTextResourceAsString(props.textResourceBindings.help)}
+            language={language}
+            helpText={getTextResourceAsString(textResourceBindings.help)}
             title={getPlainTextFromNode(text)}
           />
         </Grid>

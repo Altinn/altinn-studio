@@ -1,17 +1,14 @@
 import React from 'react';
-import { Provider } from 'react-redux';
 
-import { act, fireEvent, render as rtlRender, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
-import configureStore from 'redux-mock-store';
 
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
-import { mockComponentProps } from 'src/testUtils';
-import type { IAddressComponentProps } from 'src/layout/Address/AddressComponent';
+import { renderGenericComponentTest } from 'src/testUtils';
+import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
-const render = (props: Partial<IAddressComponentProps> = {}) => {
-  const createStore = configureStore();
+const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'AddressComponent'>> = {}) => {
   const mockLanguage = {
     ux_editor: {
       modal_configure_address_component_address: 'Adresse',
@@ -27,28 +24,26 @@ const render = (props: Partial<IAddressComponentProps> = {}) => {
     },
   };
 
-  const allProps: IAddressComponentProps = {
-    ...mockComponentProps,
-    formData: {
-      address: 'adresse 1',
+  renderGenericComponentTest({
+    type: 'AddressComponent',
+    renderer: (props) => <AddressComponent {...props} />,
+    component: {
+      simplified: true,
+      dataModelBindings: {},
+      readOnly: false,
+      required: false,
+      textResourceBindings: {},
+      ...component,
     },
-    isValid: true,
-    simplified: true,
-    dataModelBindings: {},
-    language: mockLanguage,
-    readOnly: false,
-    required: false,
-    textResourceBindings: {},
-    ...props,
-  };
-
-  const mockStore = createStore({ language: { language: mockLanguage } });
-
-  rtlRender(
-    <Provider store={mockStore}>
-      <AddressComponent {...allProps} />
-    </Provider>,
-  );
+    genericProps: {
+      formData: {
+        address: 'adresse 1',
+      },
+      isValid: true,
+      language: mockLanguage,
+      ...genericProps,
+    },
+  });
 };
 
 const getField = ({ method, regex }) =>
@@ -125,7 +120,9 @@ describe('AddressComponent', () => {
 
   it('should return simplified version when simplified is true', () => {
     render({
-      simplified: true,
+      component: {
+        simplified: true,
+      },
     });
 
     expect(getAddressField()).toBeInTheDocument();
@@ -138,7 +135,9 @@ describe('AddressComponent', () => {
 
   it('should return complex version when simplified is false', () => {
     render({
-      simplified: false,
+      component: {
+        simplified: false,
+      },
     });
 
     expect(getAddressField()).toBeInTheDocument();
@@ -152,11 +151,15 @@ describe('AddressComponent', () => {
     const handleDataChange = jest.fn();
 
     render({
-      formData: {
-        address: '',
+      component: {
+        simplified: false,
       },
-      simplified: false,
-      handleDataChange,
+      genericProps: {
+        formData: {
+          address: '',
+        },
+        handleDataChange,
+      },
     });
 
     const address = getAddressField();
@@ -174,12 +177,16 @@ describe('AddressComponent', () => {
     const handleDataChange = jest.fn();
 
     render({
-      formData: {
-        address: 'initial address',
+      genericProps: {
+        formData: {
+          address: 'initial address',
+        },
+        handleDataChange,
       },
-      simplified: false,
-      readOnly: true,
-      handleDataChange,
+      component: {
+        simplified: false,
+        readOnly: true,
+      },
     });
 
     const address = getAddressField();
@@ -194,12 +201,16 @@ describe('AddressComponent', () => {
   it('should show error message on blur if zipcode is invalid, and not call handleDataChange', async () => {
     const handleDataChange = jest.fn();
     render({
-      formData: {
-        address: 'a',
+      component: {
+        required: true,
+        simplified: false,
       },
-      required: true,
-      simplified: false,
-      handleDataChange,
+      genericProps: {
+        formData: {
+          address: 'a',
+        },
+        handleDataChange,
+      },
     });
 
     const field = getZipCodeField({ required: true });
@@ -217,13 +228,17 @@ describe('AddressComponent', () => {
   it('should update postplace on mount', async () => {
     const handleDataChange = jest.fn();
     render({
-      formData: {
-        address: 'a',
-        zipCode: '0001',
+      component: {
+        required: true,
+        simplified: false,
       },
-      required: true,
-      simplified: false,
-      handleDataChange,
+      genericProps: {
+        formData: {
+          address: 'a',
+          zipCode: '0001',
+        },
+        handleDataChange,
+      },
     });
 
     mockAxios.mockResponseFor(
@@ -245,14 +260,18 @@ describe('AddressComponent', () => {
     const handleDataChange = jest.fn();
 
     render({
-      formData: {
-        address: 'a',
-        zipCode: '1',
-        postPlace: '',
+      genericProps: {
+        formData: {
+          address: 'a',
+          zipCode: '1',
+          postPlace: '',
+        },
+        handleDataChange,
       },
-      required: true,
-      simplified: false,
-      handleDataChange,
+      component: {
+        required: true,
+        simplified: false,
+      },
     });
 
     const field = getZipCodeField({ required: true });
@@ -268,12 +287,14 @@ describe('AddressComponent', () => {
   it('should call handleDataChange for post place when zip code is cleared', async () => {
     const handleDataChange = jest.fn();
     render({
-      formData: {
-        address: 'a',
-        zipCode: '0001',
-        postPlace: 'Oslo',
+      genericProps: {
+        formData: {
+          address: 'a',
+          zipCode: '0001',
+          postPlace: 'Oslo',
+        },
+        handleDataChange,
       },
-      handleDataChange,
     });
 
     expect(screen.getByDisplayValue('0001')).toBeInTheDocument();
@@ -293,16 +314,20 @@ describe('AddressComponent', () => {
     const errorMessage = 'cannot be empty;';
     const handleDataChange = jest.fn();
     render({
-      formData: {
-        address: '',
-      },
-      required: true,
-      simplified: false,
-      handleDataChange,
-      componentValidations: {
-        address: {
-          errors: [errorMessage],
+      genericProps: {
+        formData: {
+          address: '',
         },
+        handleDataChange,
+        componentValidations: {
+          address: {
+            errors: [errorMessage],
+          },
+        },
+      },
+      component: {
+        required: true,
+        simplified: false,
       },
     });
 
@@ -311,8 +336,10 @@ describe('AddressComponent', () => {
 
   it('should display no extra markings when required is false, and labelSettings.optionalIndicator is not true', () => {
     render({
-      required: false,
-      simplified: false,
+      component: {
+        required: false,
+        simplified: false,
+      },
     });
     expect(getAddressField()).toBeInTheDocument();
     expect(getZipCodeField()).toBeInTheDocument();
@@ -323,8 +350,10 @@ describe('AddressComponent', () => {
 
   it('should display required labels when required is true', () => {
     render({
-      required: true,
-      simplified: false,
+      component: {
+        required: true,
+        simplified: false,
+      },
     });
 
     expect(getAddressField({ required: true })).toBeInTheDocument();
@@ -341,9 +370,11 @@ describe('AddressComponent', () => {
 
   it('should display optional labels when optionalIndicator is true', () => {
     render({
-      simplified: false,
-      labelSettings: {
-        optionalIndicator: true,
+      component: {
+        simplified: false,
+        labelSettings: {
+          optionalIndicator: true,
+        },
       },
     });
 
@@ -361,7 +392,9 @@ describe('AddressComponent', () => {
 
   it('should not display optional labels by default', () => {
     render({
-      simplified: false,
+      component: {
+        simplified: false,
+      },
     });
 
     expect(getAddressField({ useQuery: true, optional: true })).not.toBeInTheDocument();
@@ -378,8 +411,10 @@ describe('AddressComponent', () => {
 
   it('should not display optional labels when readonly is true', () => {
     render({
-      readOnly: true,
-      simplified: false,
+      component: {
+        readOnly: true,
+        simplified: false,
+      },
     });
 
     expect(getAddressField()).toBeInTheDocument();
@@ -396,10 +431,12 @@ describe('AddressComponent', () => {
 
   it('should not display optional labels when readonly is true, even when optionalIndicator is true', () => {
     render({
-      readOnly: true,
-      simplified: false,
-      labelSettings: {
-        optionalIndicator: true,
+      component: {
+        readOnly: true,
+        simplified: false,
+        labelSettings: {
+          optionalIndicator: true,
+        },
       },
     });
 
@@ -417,10 +454,12 @@ describe('AddressComponent', () => {
 
   it('should not display optional labels when required is true, even when optionalIndicator is true', () => {
     render({
-      required: true,
-      simplified: false,
-      labelSettings: {
-        optionalIndicator: true,
+      component: {
+        required: true,
+        simplified: false,
+        labelSettings: {
+          optionalIndicator: true,
+        },
       },
     });
 

@@ -4,13 +4,11 @@ import { screen } from '@testing-library/react';
 
 import { getAttachments } from 'src/__mocks__/attachmentsMock';
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { FileUploadWithTagComponent } from 'src/layout/FileUploadWithTag/FileUploadWithTagComponent';
-import { mockComponentProps, renderWithProviders } from 'src/testUtils';
-import { AsciiUnitSeparator } from 'src/utils/attachment';
-import type { IFileUploadWithTagProps } from 'src/layout/FileUploadWithTag/FileUploadWithTagComponent';
+import { renderGenericComponentTest } from 'src/testUtils';
 import type { IAttachment } from 'src/shared/resources/attachments';
+import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const testId = 'test-id';
 
@@ -20,7 +18,7 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
       attachments[0].uploaded = false;
 
-      render({ initialState: { attachments } });
+      render({ attachments });
 
       expect(screen.getByText(/general\.loading/i)).toBeInTheDocument();
     });
@@ -29,7 +27,7 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
       attachments[0].uploaded = true;
 
-      render({ initialState: { attachments } });
+      render({ attachments });
 
       expect(screen.queryByText(/general\.loading/i)).not.toBeInTheDocument();
     });
@@ -40,7 +38,7 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
       attachments[0].updating = true;
 
-      render({ initialState: { attachments, editIndex: 0 } });
+      render({ attachments, editIndex: 0 });
 
       expect(screen.getByText(/general\.loading/i)).toBeInTheDocument();
     });
@@ -49,7 +47,7 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
       attachments[0].updating = false;
 
-      render({ initialState: { attachments, editIndex: 0 } });
+      render({ attachments, editIndex: 0 });
 
       expect(screen.queryByText(/general\.loading/i)).not.toBeInTheDocument();
     });
@@ -60,17 +58,15 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
       attachments[0].updating = true;
 
-      render({ initialState: { attachments, editIndex: 0 } });
+      render({ attachments, editIndex: 0 });
 
       expect(screen.getByRole('combobox')).toBeDisabled();
     });
 
     it('should not disable dropdown in edit mode when not updating', () => {
       render({
-        initialState: {
-          attachments: getAttachments({ count: 1 }),
-          editIndex: 0,
-        },
+        attachments: getAttachments({ count: 1 }),
+        editIndex: 0,
       });
 
       expect(screen.getByRole('combobox')).not.toBeDisabled();
@@ -78,10 +74,8 @@ describe('FileUploadWithTagComponent', () => {
 
     it('should not disable save button', () => {
       render({
-        initialState: {
-          attachments: getAttachments({ count: 1 }),
-          editIndex: 0,
-        },
+        attachments: getAttachments({ count: 1 }),
+        editIndex: 0,
       });
 
       expect(
@@ -95,8 +89,9 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
 
       render({
-        props: { readOnly: true },
-        initialState: { attachments, editIndex: 0 },
+        component: { readOnly: true },
+        attachments,
+        editIndex: 0,
       });
 
       expect(
@@ -110,7 +105,7 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
       attachments[0].uploaded = false;
 
-      render({ initialState: { attachments, editIndex: 0 } });
+      render({ attachments, editIndex: 0 });
 
       expect(
         screen.getByRole('button', {
@@ -123,7 +118,7 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
       attachments[0].updating = true;
 
-      render({ initialState: { attachments, editIndex: 0 } });
+      render({ attachments, editIndex: 0 });
 
       expect(
         screen.queryByRole('button', {
@@ -136,7 +131,7 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
       attachments[0].tags = [];
 
-      render({ initialState: { attachments } });
+      render({ attachments });
 
       expect(
         screen.getByRole('button', {
@@ -149,7 +144,7 @@ describe('FileUploadWithTagComponent', () => {
       const attachments = getAttachments({ count: 1 });
       attachments[0].tags = ['tag1'];
 
-      render({ initialState: { attachments } });
+      render({ attachments });
 
       expect(
         screen.queryByRole('button', {
@@ -162,8 +157,8 @@ describe('FileUploadWithTagComponent', () => {
   describe('files', () => {
     it('should display drop area when max attachments is not reached', () => {
       render({
-        props: { maxNumberOfAttachments: 3 },
-        initialState: { attachments: getAttachments({ count: 2 }) },
+        component: { maxNumberOfAttachments: 3 },
+        attachments: getAttachments({ count: 2 }),
       });
 
       expect(
@@ -176,8 +171,8 @@ describe('FileUploadWithTagComponent', () => {
 
     it('should not display drop area when max attachments is reached', () => {
       render({
-        props: { maxNumberOfAttachments: 3 },
-        initialState: { attachments: getAttachments({ count: 3 }) },
+        component: { maxNumberOfAttachments: 3 },
+        attachments: getAttachments({ count: 3 }),
       });
 
       expect(
@@ -190,89 +185,74 @@ describe('FileUploadWithTagComponent', () => {
   });
 });
 
-interface IRenderProps {
-  props?: Partial<IFileUploadWithTagProps>;
-  initialState?: {
-    attachments?: IAttachment[];
-    editIndex?: number;
-  };
+interface Props extends Partial<RenderGenericComponentTestProps<'FileUploadWithTag'>> {
+  attachments?: IAttachment[];
+  editIndex?: number;
 }
 
-const render = ({ props = {}, initialState = {} }: IRenderProps = {}) => {
-  const { attachments = getAttachments(), editIndex = -1 } = initialState;
-  const _initialState = {
-    ...getInitialStateMock(),
-    attachments: {
-      attachments: {
-        [testId]: attachments,
+const render = ({ component, genericProps, attachments = getAttachments(), editIndex = -1 }: Props = {}) => {
+  renderGenericComponentTest({
+    type: 'FileUploadWithTag',
+    renderer: (props) => <FileUploadWithTagComponent {...props} />,
+    component: {
+      id: testId,
+      displayMode: 'simple',
+      maxFileSizeInMB: 2,
+      maxNumberOfAttachments: 7,
+      minNumberOfAttachments: 1,
+      readOnly: false,
+      optionsId: 'test-options-id',
+      textResourceBindings: {
+        tagTitle: 'attachment-tag-title',
+        'attachment-tag-label-0': 'attachment-tag-value-0',
+        'attachment-tag-label-1': 'attachment-tag-value-1',
+        'attachment-tag-label-2': 'attachment-tag-value-2',
       },
-      validationResults: {
-        [testId]: {
-          simpleBinding: {
-            errors: ['mock error message', `attachment-id-2${AsciiUnitSeparator}mock error message`],
+      ...component,
+    },
+    genericProps: {
+      isValid: true,
+      getTextResource: jest.fn(),
+      getTextResourceAsString: jest.fn(),
+      ...genericProps,
+    },
+    manipulateState: (state) => {
+      state.attachments = {
+        attachments: {
+          [testId]: attachments,
+        },
+      };
+      state.optionState = {
+        options: {
+          test: {
+            id: testId,
+            options: [
+              { value: 'attachment-tag-0', label: 'attachment-tag-label-0' },
+              { value: 'attachment-tag-1', label: 'attachment-tag-label-1' },
+              { value: 'attachment-tag-2', label: 'attachment-tag-label-2' },
+            ],
+            loading: false,
           },
         },
-      },
-    },
-    optionState: {
-      options: {
-        test: {
-          id: testId,
-          options: [
-            { value: 'attachment-tag-0', label: 'attachment-tag-label-0' },
-            { value: 'attachment-tag-1', label: 'attachment-tag-label-1' },
-            { value: 'attachment-tag-2', label: 'attachment-tag-label-2' },
-          ],
-          loading: false,
-        },
-      },
-      error: null,
-      optionsCount: 1,
-      optionsLoadedCount: 1,
-      loading: false,
-    },
-    formLayout: {
-      ...getFormLayoutStateMock(),
-      uiConfig: {
-        ...getUiConfigStateMock(),
-        fileUploadersWithTag: {
-          [testId]: {
-            editIndex,
-            chosenOptions: {
-              'attachment-id-0': 'attachment-tag-0',
-              'attachment-id-1': 'attachment-tag-1',
-              'attachment-id-2': 'attachment-tag-2',
+        error: null,
+        loading: false,
+      };
+      state.formLayout = {
+        ...getFormLayoutStateMock(),
+        uiConfig: {
+          ...getUiConfigStateMock(),
+          fileUploadersWithTag: {
+            [testId]: {
+              editIndex,
+              chosenOptions: {
+                'attachment-id-0': 'attachment-tag-0',
+                'attachment-id-1': 'attachment-tag-1',
+                'attachment-id-2': 'attachment-tag-2',
+              },
             },
           },
         },
-      },
+      };
     },
-  };
-
-  const textResourceBindings = {
-    tagTitle: 'attachment-tag-title',
-    'attachment-tag-label-0': 'attachment-tag-value-0',
-    'attachment-tag-label-1': 'attachment-tag-value-1',
-    'attachment-tag-label-2': 'attachment-tag-value-2',
-  };
-
-  const allProps: IFileUploadWithTagProps = {
-    ...mockComponentProps,
-    id: testId,
-    displayMode: 'simple',
-    isValid: true,
-    maxFileSizeInMB: 2,
-    maxNumberOfAttachments: 7,
-    minNumberOfAttachments: 1,
-    readOnly: false,
-    optionsId: 'test-options-id',
-    textResourceBindings: textResourceBindings,
-    getTextResource: jest.fn(),
-    getTextResourceAsString: jest.fn(),
-    ...props,
-  };
-
-  renderWithProviders(<FileUploadWithTagComponent {...allProps} />, {
-    preloadedState: _initialState,
   });
 };

@@ -18,17 +18,14 @@ export type IListProps = PropsFromGenericComponent<'List'>;
 const defaultDataList: any[] = [];
 
 export const ListComponent = ({
-  tableHeaders,
-  id,
-  pagination,
+  node,
   formData,
   handleDataChange,
   getTextResourceAsString,
-  sortableColumns,
-  tableHeadersMobile,
   language,
   legend,
 }: IListProps) => {
+  const { tableHeaders, id, pagination, sortableColumns, tableHeadersMobile } = node.item;
   const classes = useRadioStyles();
   const RenderLegend = legend;
   const dynamicDataList = useGetDataList({ id });

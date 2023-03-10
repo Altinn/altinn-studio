@@ -19,13 +19,14 @@ import { getTextResource, gridBreakpoints, pageBreakStyles, selectComponentTexts
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { ISingleFieldValidation } from 'src/features/form/data/formDataTypes';
 import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/layout/index';
-import type { ComponentExceptGroupAndSummary, IGridStyling } from 'src/layout/layout';
+import type { ComponentTypes, IGridStyling } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
-import type { HComponent, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
+import type { AnyItem, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
-export interface IGenericComponentProps<Type extends ComponentExceptGroupAndSummary> {
-  node: LayoutNodeFromType<Type>;
-  overrideItemProps?: Partial<Omit<HComponent<Type>, 'id'>>;
+export interface IGenericComponentProps<Type extends ComponentTypes> {
+  node: LayoutNode | LayoutNodeFromType<Type>;
+  overrideItemProps?: Partial<Omit<AnyItem<Type>, 'id'>>;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -74,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export function GenericComponent<Type extends ComponentExceptGroupAndSummary = ComponentExceptGroupAndSummary>({
+export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
   node,
   overrideItemProps,
 }: IGenericComponentProps<Type>) {
@@ -256,10 +257,8 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary = C
 
   const componentProps = {
     ...fixedComponentProps,
-    // TODO: Pass on the node object instead of all the properties in it. This could work fairly simply for most
-    // components, but breaks hard on Button and FileUploadWithTag (and possibly more), as they have deep/complex
-    // logic that continues to pass on these properties downstream.
-    ...item,
+    node,
+    overrideItemProps,
   } as unknown as PropsFromGenericComponent<Type>;
 
   const showValidationMessages = hasValidationMessages && layoutComponent.renderDefaultValidations();

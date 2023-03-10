@@ -77,8 +77,8 @@ function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, lay
 
       if (
         component.type === 'Group' ||
-        layoutComponent?.getComponentType() === ComponentType.Form ||
-        layoutComponent?.getComponentType() === ComponentType.Presentation
+        layoutComponent.getComponentType() === ComponentType.Form ||
+        layoutComponent.getComponentType() === ComponentType.Presentation
       ) {
         return {
           id: `__pdf__${component.id}`,

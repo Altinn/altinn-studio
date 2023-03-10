@@ -4,7 +4,7 @@ import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGro
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export type IRadioButtonsContainerProps = PropsFromGenericComponent<'RadioButtons'>;
+export type IRadioButtonsContainerProps = PropsFromGenericComponent<'RadioButtons' | 'Likert'>;
 
 export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps) => {
   const useRadioProps = useRadioButtons(props);

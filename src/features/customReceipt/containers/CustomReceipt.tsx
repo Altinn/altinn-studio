@@ -4,7 +4,7 @@ import Grid from '@material-ui/core/Grid';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { ErrorReport } from 'src/components/message/ErrorReport';
-import { renderLayoutNode } from 'src/features/form/containers/Form';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { extractBottomButtons } from 'src/utils/formLayout';
 import { useExprContext } from 'src/utils/layout/ExprContext';
@@ -40,7 +40,12 @@ export function CustomReceipt() {
         spacing={3}
         alignItems='flex-start'
       >
-        {mainNodes.map((node) => renderLayoutNode(node))}
+        {mainNodes.map((node) => (
+          <GenericComponent
+            key={node.item.id}
+            node={node}
+          />
+        ))}
         <Grid
           item={true}
           xs={12}

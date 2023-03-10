@@ -103,21 +103,9 @@ class AltinnMomentUtils extends MomentUtils {
 // We dont use the built-in validation for the 3rd party component, so it is always empty string
 const emptyString = '';
 
-export function DatepickerComponent({
-  minDate,
-  maxDate,
-  format,
-  language,
-  formData,
-  timeStamp = true,
-  handleDataChange,
-  readOnly,
-  required,
-  id,
-  isValid,
-  textResourceBindings,
-}: IDatepickerProps) {
+export function DatepickerComponent({ node, language, formData, handleDataChange, isValid }: IDatepickerProps) {
   const classes = useStyles();
+  const { minDate, maxDate, format, timeStamp = true, readOnly, required, id, textResourceBindings } = node.item;
 
   const calculatedMinDate = getDateConstraint(minDate, 'min');
   const calculatedMaxDate = getDateConstraint(maxDate, 'max');

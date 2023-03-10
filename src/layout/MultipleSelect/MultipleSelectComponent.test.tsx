@@ -1,53 +1,49 @@
 import React from 'react';
 
 import { fireEvent, screen } from '@testing-library/react';
-import type { PreloadedState } from 'redux';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
-import { mockComponentProps, renderWithProviders } from 'src/testUtils';
-import type { IMultipleSelectProps } from 'src/layout/MultipleSelect/MultipleSelectComponent';
-import type { RootState } from 'src/store';
+import { renderGenericComponentTest } from 'src/testUtils';
+import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const dummyLabel = 'dummyLabel';
 
-const render = (props: Partial<IMultipleSelectProps> = {}, customState: PreloadedState<RootState> = {}) => {
-  const allProps: IMultipleSelectProps = {
-    ...mockComponentProps,
-    formData: { simpleBinding: '' },
-    isValid: true,
-    dataModelBindings: { simpleBinding: 'some.field' },
-    options: [
-      { value: 'value1', label: 'label1' },
-      { value: 'value2', label: 'label2' },
-      { value: 'value3', label: 'label3' },
-    ],
-    readOnly: false,
-    required: false,
-    textResourceBindings: {},
-    handleDataChange: jest.fn(),
-    getTextResourceAsString: (key) => key,
-    ...props,
-  };
-
-  return renderWithProviders(
-    <>
-      <label htmlFor={allProps.id}>{dummyLabel}</label>
-      <MultipleSelectComponent {...allProps} />
-    </>,
-    {
-      preloadedState: {
-        ...getInitialStateMock(),
-        ...customState,
-      },
+const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'MultipleSelect'>> = {}) => {
+  renderGenericComponentTest({
+    type: 'MultipleSelect',
+    renderer: (props) => (
+      <>
+        <label htmlFor={props.node.item.id}>{dummyLabel}</label>
+        <MultipleSelectComponent {...props} />
+      </>
+    ),
+    component: {
+      dataModelBindings: { simpleBinding: 'some.field' },
+      options: [
+        { value: 'value1', label: 'label1' },
+        { value: 'value2', label: 'label2' },
+        { value: 'value3', label: 'label3' },
+      ],
+      readOnly: false,
+      required: false,
+      textResourceBindings: {},
+      ...component,
     },
-  );
+    genericProps: {
+      formData: { simpleBinding: '' },
+      isValid: true,
+      handleDataChange: jest.fn(),
+      ...genericProps,
+    },
+  });
 };
 
 describe('MultipleSelect', () => {
   it('should display correct options as selected when supplied with a comma separated form data', () => {
     render({
-      formData: { simpleBinding: 'value1,value3' },
+      genericProps: {
+        formData: { simpleBinding: 'value1,value3' },
+      },
     });
     expect(screen.getByText('label1')).toBeInTheDocument();
     expect(screen.queryByText('label2')).not.toBeInTheDocument();
@@ -57,8 +53,10 @@ describe('MultipleSelect', () => {
   it('should remove item from comma separated form data on delete', () => {
     const handleDataChange = jest.fn();
     render({
-      handleDataChange,
-      formData: { simpleBinding: 'value1,value2,value3' },
+      genericProps: {
+        handleDataChange,
+        formData: { simpleBinding: 'value1,value2,value3' },
+      },
     });
     fireEvent.click(
       screen.getByRole('button', {

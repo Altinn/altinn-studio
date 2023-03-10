@@ -15,15 +15,15 @@ const useStyles = makeStyles({
   },
 });
 
-export function ImageComponent(props: IImageProps) {
+export function ImageComponent({ node, language, getTextResourceAsString }: IImageProps) {
+  const { id, image, textResourceBindings } = node.item;
   const classes = useStyles();
-  const language = useAppSelector((state) => state.profile.profile?.profileSettingPreference.language || 'nb');
-  const width = props.image?.width || '100%';
-  const align = props.image?.align || 'center';
-  const altText =
-    props.textResourceBindings?.altTextImg && props.getTextResourceAsString(props.textResourceBindings.altTextImg);
+  const languageKey = useAppSelector((state) => state.profile.profile?.profileSettingPreference.language || 'nb');
+  const width = image?.width || '100%';
+  const align = image?.align || 'center';
+  const altText = textResourceBindings?.altTextImg && getTextResourceAsString(textResourceBindings.altTextImg);
 
-  let imgSrc = props.image?.src[language] || props.image?.src.nb || '';
+  let imgSrc = image?.src[languageKey] || image?.src.nb || '';
   if (imgSrc.startsWith('wwwroot')) {
     imgSrc = imgSrc.replace(
       'wwwroot',
@@ -44,7 +44,7 @@ export function ImageComponent(props: IImageProps) {
         {renderSvg ? (
           <object
             type='image/svg+xml'
-            id={props.id}
+            id={id}
             data={imgSrc}
             role={'presentation'}
           >
@@ -58,7 +58,7 @@ export function ImageComponent(props: IImageProps) {
           </object>
         ) : (
           <img
-            id={props.id}
+            id={id}
             src={imgSrc}
             alt={altText}
             style={{
@@ -67,14 +67,14 @@ export function ImageComponent(props: IImageProps) {
           />
         )}
       </Grid>
-      {props.textResourceBindings?.help && (
+      {textResourceBindings?.help && (
         <Grid
           item={true}
           className={classes.spacing}
         >
           <HelpTextContainer
-            language={props.language}
-            helpText={props.getTextResourceAsString(props.textResourceBindings.help)}
+            language={language}
+            helpText={getTextResourceAsString(textResourceBindings.help)}
             title={altText}
           />
         </Grid>

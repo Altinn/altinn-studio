@@ -1,16 +1,19 @@
 import React from 'react';
 
-import { render as rtlRender, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 
 import { ParagraphComponent } from 'src/layout/Paragraph/ParagraphComponent';
-import type { IParagraphProps } from 'src/layout/Paragraph/ParagraphComponent';
+import { renderGenericComponentTest } from 'src/testUtils';
+import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 describe('ParagraphComponent', () => {
   it('should render with supplied text', () => {
     const textContent = 'paragraph text content';
     render({
-      textResourceBindings: {
-        title: textContent,
+      component: {
+        textResourceBindings: {
+          title: textContent,
+        },
       },
     });
 
@@ -19,7 +22,9 @@ describe('ParagraphComponent', () => {
 
   it('should render help text if help text is supplied', () => {
     render({
-      textResourceBindings: { help: 'this is the help text' },
+      component: {
+        textResourceBindings: { help: 'this is the help text' },
+      },
     });
 
     expect(
@@ -37,7 +42,7 @@ describe('ParagraphComponent', () => {
 
   it('should render in a <h3> when a header text is supplied', () => {
     const id = 'mock-id';
-    render({ id, textResourceBindings: { title: '### Hello world' } });
+    render({ component: { id, textResourceBindings: { title: '### Hello world' } } });
 
     expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('H3');
   });
@@ -45,31 +50,34 @@ describe('ParagraphComponent', () => {
   it('should render in a <p> when regular text content is supplied', () => {
     const id = 'mock-id';
     render({
-      id,
-      text: (
-        <>
-          Hello world with line
-          <br />
-          break
-        </>
-      ),
+      component: { id },
+      genericProps: {
+        text: (
+          <>
+            Hello world with line
+            <br />
+            break
+          </>
+        ),
+      },
     });
 
     expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('P');
   });
 });
 
-const render = (props: Partial<IParagraphProps> = {}) => {
-  const allProps = {
-    id: 'abc123',
+const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Paragraph'>> = {}) => {
+  renderGenericComponentTest({
     type: 'Paragraph',
-    textResourceBindings: {
-      title: 'paragraph text content',
+    renderer: (props) => <ParagraphComponent {...props} />,
+    component: {
+      id: 'abc123',
+      type: 'Paragraph',
+      textResourceBindings: {
+        title: 'paragraph text content',
+      },
+      ...component,
     },
-    getTextResource: (key: string) => key,
-    getTextResourceAsString: (key: string) => key,
-    ...props,
-  } as IParagraphProps;
-
-  rtlRender(<ParagraphComponent {...allProps} />);
+    genericProps,
+  });
 };

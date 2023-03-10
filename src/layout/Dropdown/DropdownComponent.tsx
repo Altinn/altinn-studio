@@ -12,17 +12,13 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
 
 export function DropdownComponent({
-  optionsId,
+  node,
   formData,
-  preselectedOptionIndex,
   handleDataChange,
-  id,
-  readOnly,
   isValid,
   getTextResourceAsString,
-  mapping,
-  source,
 }: IDropdownProps) {
+  const { optionsId, preselectedOptionIndex, id, readOnly, mapping, source } = node.item;
   const options = useGetOptions({ optionsId, mapping, source });
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions = useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading);

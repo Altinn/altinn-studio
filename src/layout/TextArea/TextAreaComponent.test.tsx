@@ -1,18 +1,21 @@
 import React from 'react';
 
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
-import type { ITextAreaProps } from 'src/layout/TextArea/TextAreaComponent';
+import { renderGenericComponentTest } from 'src/testUtils';
+import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 describe('TextAreaComponent.tsx', () => {
   const user = userEvent.setup();
 
   it('should render with initial text value', () => {
     render({
-      formData: {
-        simpleBinding: 'initial text content',
+      genericProps: {
+        formData: {
+          simpleBinding: 'initial text content',
+        },
       },
     });
 
@@ -27,10 +30,12 @@ describe('TextAreaComponent.tsx', () => {
 
     const handleDataChange = jest.fn();
     render({
-      formData: {
-        simpleBinding: initialText,
+      genericProps: {
+        formData: {
+          simpleBinding: initialText,
+        },
+        handleDataChange,
       },
-      handleDataChange,
     });
 
     const textarea = screen.getByRole('textbox');
@@ -48,11 +53,15 @@ describe('TextAreaComponent.tsx', () => {
 
     const handleDataChange = jest.fn();
     render({
-      formData: {
-        simpleBinding: initialText,
+      component: {
+        readOnly: true,
       },
-      handleDataChange,
-      readOnly: true,
+      genericProps: {
+        formData: {
+          simpleBinding: initialText,
+        },
+        handleDataChange,
+      },
     });
 
     const textarea = screen.getByRole('textbox');
@@ -66,7 +75,10 @@ describe('TextAreaComponent.tsx', () => {
 
   it('should have aria-describedby attribute if textResourceBindings is present', () => {
     render({
-      textResourceBindings: {},
+      component: {
+        id: 'id',
+        textResourceBindings: {},
+      },
     });
 
     const textarea = screen.getByRole('textbox');
@@ -81,14 +93,11 @@ describe('TextAreaComponent.tsx', () => {
   });
 });
 
-const render = (props: Partial<ITextAreaProps> = {}) => {
-  const allProps = {
-    id: 'id',
+const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'TextArea'>> = {}) => {
+  renderGenericComponentTest({
     type: 'TextArea',
-    handleDataChange: jest.fn(),
-    getTextResource: (key: string) => key,
-    ...props,
-  } as ITextAreaProps;
-
-  rtlRender(<TextAreaComponent {...allProps} />);
+    renderer: (props) => <TextAreaComponent {...props} />,
+    component,
+    genericProps,
+  });
 };

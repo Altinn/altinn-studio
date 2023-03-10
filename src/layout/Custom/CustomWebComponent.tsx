@@ -11,16 +11,18 @@ export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
 };
 
 export function CustomWebComponent({
-  tagName,
+  node,
   formData,
   componentValidations,
-  textResourceBindings,
-  dataModelBindings,
   language,
-  hidden,
   handleDataChange,
-  ...passThroughProps
+  ...passThroughPropsFromGenericComponent
 }: ICustomComponentProps) {
+  const { tagName, textResourceBindings, dataModelBindings, ...passThroughPropsFromNode } = node.item;
+  const passThroughProps = {
+    ...passThroughPropsFromGenericComponent,
+    ...passThroughPropsFromNode,
+  };
   const Tag = tagName;
   const wcRef = React.useRef<any>(null);
   const textResources = useAppSelector((state) => state.textResources.resources);
@@ -57,7 +59,7 @@ export function CustomWebComponent({
     }
   }, [formData, componentValidations]);
 
-  if (hidden || !Tag || !textResources) {
+  if (node.isHidden() || !Tag || !textResources) {
     return null;
   }
 

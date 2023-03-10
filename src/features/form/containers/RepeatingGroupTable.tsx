@@ -157,7 +157,7 @@ export function RepeatingGroupTable({
           (baseComponentId && container.tableHeaders.includes(baseComponentId))
         );
       }
-      return child.getComponent()?.getComponentType() === ComponentType.Form;
+      return child.getComponent().getComponentType() === ComponentType.Form;
     });
 
   const tableNodes = getTableNodes(0);

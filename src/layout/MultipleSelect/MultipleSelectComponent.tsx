@@ -16,17 +16,13 @@ const invalidBorderColor = '#D5203B !important';
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
 
 export function MultipleSelectComponent({
-  options,
-  optionsId,
-  mapping,
-  source,
+  node,
   handleDataChange,
   getTextResourceAsString,
   formData,
-  id,
-  readOnly,
   isValid,
 }: IMultipleSelectProps) {
+  const { options, optionsId, mapping, source, id, readOnly } = node.item;
   const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions =
     (apiOptions || options)?.map((option) => ({

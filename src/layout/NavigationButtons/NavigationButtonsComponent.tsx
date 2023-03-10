@@ -15,7 +15,8 @@ import type { ILayoutNavigation, INavigationConfig } from 'src/types';
 
 export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 
-export function NavigationButtonsComponent(props: INavigationButtons) {
+export function NavigationButtonsComponent({ node }: INavigationButtons) {
+  const { id, showBackButton, textResourceBindings, triggers } = node.item;
   const dispatch = useAppDispatch();
 
   const refPrev = React.useRef<HTMLButtonElement>(null);
@@ -37,9 +38,9 @@ export function NavigationButtonsComponent(props: INavigationButtons) {
       state.formLayout.uiConfig.currentView,
     ),
   );
-  const triggers = props.triggers || pageTriggers;
-  const nextTextKey = returnToView ? 'form_filler.back_to_summary' : props.textResourceBindings?.next || 'next';
-  const backTextKey = props.textResourceBindings?.back || 'back';
+  const activeTriggers = triggers || pageTriggers;
+  const nextTextKey = returnToView ? 'form_filler.back_to_summary' : textResourceBindings?.next || 'next';
+  const backTextKey = textResourceBindings?.back || 'back';
 
   React.useEffect(() => {
     const currentViewIndex = orderedLayoutKeys?.indexOf(currentView);
@@ -63,13 +64,13 @@ export function NavigationButtonsComponent(props: INavigationButtons) {
   }, []);
 
   const OnClickNext = () => {
-    const runValidations = reducePageValidations(triggers);
+    const runValidations = reducePageValidations(activeTriggers);
     const keepScrollPosAction: IKeepComponentScrollPos = {
-      componentId: props.id,
+      componentId: id,
       offsetTop: getScrollPosition(),
     };
 
-    if (triggers?.includes(Triggers.CalculatePageOrder)) {
+    if (activeTriggers?.includes(Triggers.CalculatePageOrder)) {
       dispatch(
         FormLayoutActions.calculatePageOrderAndMoveToNextPage({
           runValidations,
@@ -92,7 +93,7 @@ export function NavigationButtonsComponent(props: INavigationButtons) {
   };
 
   React.useLayoutEffect(() => {
-    if (!keepScrollPos || typeof keepScrollPos.offsetTop !== 'number' || keepScrollPos.componentId !== props.id) {
+    if (!keepScrollPos || typeof keepScrollPos.offsetTop !== 'number' || keepScrollPos.componentId !== id) {
       return;
     }
 
@@ -103,7 +104,7 @@ export function NavigationButtonsComponent(props: INavigationButtons) {
 
     window.scrollBy({ top: currentPos - keepScrollPos.offsetTop });
     dispatch(FormLayoutActions.clearKeepScrollPos());
-  }, [keepScrollPos, dispatch, props.id, getScrollPosition]);
+  }, [keepScrollPos, dispatch, id, getScrollPosition]);
 
   if (!language) {
     return null;
@@ -115,7 +116,7 @@ export function NavigationButtonsComponent(props: INavigationButtons) {
       container
       spacing={1}
     >
-      {!disableBack && props.showBackButton && (
+      {!disableBack && showBackButton && (
         <Grid item>
           <Button
             ref={refPrev}

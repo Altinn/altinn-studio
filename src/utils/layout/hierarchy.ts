@@ -732,7 +732,7 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
    */
   public getComponent(): Item['type'] extends keyof ComponentClassMap
     ? ComponentClassMap[Item['type']]
-    : LayoutComponent | undefined {
+    : LayoutComponent {
     return getLayoutComponentObject(this.item.type as any);
   }
 

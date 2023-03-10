@@ -26,21 +26,20 @@ export type IFileUploadProps = PropsFromGenericComponent<'FileUpload'>;
 export const bytesInOneMB = 1048576;
 export const emptyArray = [];
 
-export function FileUploadComponent({
-  id,
-  baseComponentId,
-  componentValidations,
-  readOnly,
-  maxNumberOfAttachments,
-  maxFileSizeInMB,
-  minNumberOfAttachments,
-  validFileEndings,
-  language,
-  displayMode,
-  hasCustomFileEndings,
-  textResourceBindings,
-  dataModelBindings,
-}: IFileUploadProps) {
+export function FileUploadComponent({ node, componentValidations, language }: IFileUploadProps) {
+  const {
+    id,
+    baseComponentId,
+    readOnly,
+    maxNumberOfAttachments,
+    maxFileSizeInMB,
+    minNumberOfAttachments,
+    validFileEndings,
+    displayMode,
+    hasCustomFileEndings,
+    textResourceBindings,
+    dataModelBindings,
+  } = node.item;
   const dispatch = useAppDispatch();
   const [validations, setValidations] = React.useState<string[]>([]);
   const [showFileUpload, setShowFileUpload] = React.useState(false);
