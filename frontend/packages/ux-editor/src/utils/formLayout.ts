@@ -2,7 +2,7 @@ import type { Dispatch } from 'redux';
 import type { IComponent } from '../components';
 import { ComponentTypes } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import { LayoutItemType} from '../types/global';
+import { LayoutItemType } from '../types/global';
 import { v4 as uuidv4 } from 'uuid';
 
 import type {

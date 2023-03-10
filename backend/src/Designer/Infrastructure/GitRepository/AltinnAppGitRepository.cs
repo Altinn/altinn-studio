@@ -10,9 +10,6 @@ using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
 using LibGit2Sharp;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using NuGet.Protocol;
-using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -64,7 +61,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
             string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath);
-            Application applicationMetaData = System.Text.Json.JsonSerializer.Deserialize<Application>(fileContent, _jsonOptions);
+            Application applicationMetaData = JsonSerializer.Deserialize<Application>(fileContent, _jsonOptions);
 
             return applicationMetaData;
         }
@@ -75,7 +72,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="applicationMetadata">The updated application metadata to persist.</param>
         public async Task SaveApplicationMetadata(Application applicationMetadata)
         {
-            string metadataAsJson = System.Text.Json.JsonSerializer.Serialize(applicationMetadata, _jsonOptions);
+            string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, _jsonOptions);
             string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
             await WriteTextByRelativePathAsync(appMetadataRelativeFilePath, metadataAsJson, true);
         }
@@ -185,7 +182,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 throw new NotFoundException("Text resource file not found.");
             }
             string fileContent = await ReadTextByRelativePathAsync(resourcePath);
-            Designer.Models.TextResource textResource = System.Text.Json.JsonSerializer.Deserialize<Designer.Models.TextResource>(fileContent, _jsonOptions);
+            Designer.Models.TextResource textResource = JsonSerializer.Deserialize<Designer.Models.TextResource>(fileContent, _jsonOptions);
 
             return textResource;
         }
@@ -194,7 +191,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string fileName = $"resource.{languageCode}.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-            string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, _jsonOptions);
+            string texts = JsonSerializer.Serialize(jsonTexts, _jsonOptions);
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
         }
 
@@ -209,7 +206,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string fileName = $"{languageCode}.texts.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
             string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
-            Dictionary<string, string> jsonTexts = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(texts, _jsonOptions);
+            Dictionary<string, string> jsonTexts = JsonSerializer.Deserialize<Dictionary<string, string>>(texts, _jsonOptions);
 
             return jsonTexts;
         }
@@ -223,7 +220,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string fileName = $"{languageCode}.texts.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-            string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, _jsonOptions);
+            string texts = JsonSerializer.Serialize(jsonTexts, _jsonOptions);
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
         }
 
@@ -298,7 +295,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
             string fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
-            FormLayout layout = System.Text.Json.JsonSerializer.Deserialize<FormLayout>(fileContent, _jsonOptions);
+            FormLayout layout = JsonSerializer.Deserialize<FormLayout>(fileContent, _jsonOptions);
 
             return layout;
         }
@@ -378,7 +375,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 await CreateLayoutSettings(layoutSetName);
             }
             string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath);
-            LayoutSettings layoutSettings = System.Text.Json.JsonSerializer.Deserialize<LayoutSettings>(fileContent, _jsonOptions);
+            LayoutSettings layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(fileContent, _jsonOptions);
 
             return layoutSettings;
         }
@@ -419,7 +416,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveLayoutSettings(string layoutSetName, LayoutSettings layoutSettings)
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
-            string serializedLayoutSettings = System.Text.Json.JsonSerializer.Serialize(layoutSettings, _jsonOptions);
+            string serializedLayoutSettings = JsonSerializer.Serialize(layoutSettings, _jsonOptions);
             await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
         }
 
@@ -433,30 +430,30 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutFileName, FormLayout layout)
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
-            string serializedLayout = System.Text.Json.JsonSerializer.Serialize(layout, _jsonOptions);
+            string serializedLayout = JsonSerializer.Serialize(layout, _jsonOptions);
             await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true);
         }
 
-        public void UpdateFormLayoutName(string layoutSetName, string layoutName, string newName)
+        public void UpdateFormLayoutName(string layoutSetName, string layoutFileName, string newFileName)
         {
-            string currentFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
-            string newFilePath = GetPathToLayoutFile(layoutSetName, newName);
-            if (!File.Exists(currentFilePath))
+            string currentFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
+            string newFilePath = GetPathToLayoutFile(layoutSetName, newFileName);
+            if (!FileExistsByRelativePath(currentFilePath))
             {
                 throw new FileNotFoundException("Layout does not exist.");
             }
-            if (File.Exists(newFilePath))
+            if (FileExistsByRelativePath(newFilePath))
             {
                 throw new ArgumentException("New layout name must be unique.");
             }
-            File.Move(currentFilePath, newFilePath);
+            File.Move(GetAbsoluteFilePathSanitized(currentFilePath), GetAbsoluteFilePathSanitized(newFilePath));
         }
 
         public async Task<LayoutSets> GetLayoutSetsFile()
         {
             string layoutSetsFilePath = GetPathToLayoutSetsFile();
             string fileContent = await ReadTextByRelativePathAsync(layoutSetsFilePath);
-            LayoutSets layoutSetsFile = System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(fileContent, _jsonOptions);
+            LayoutSets layoutSetsFile = JsonSerializer.Deserialize<LayoutSets>(fileContent, _jsonOptions);
 
             return layoutSetsFile;
         }

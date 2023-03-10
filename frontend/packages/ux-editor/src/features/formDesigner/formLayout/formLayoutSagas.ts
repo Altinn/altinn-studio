@@ -544,7 +544,6 @@ export function* saveFormLayoutSettingSaga({ payload }: PayloadAction<{ org; app
       (state: IAppState) => state.formDesigner.layout.layoutSettings
     );
     yield call(post, layoutSettingsPath(org, app), layoutSettings);
-    debugger;
   } catch (err) {
     console.error(err);
   }

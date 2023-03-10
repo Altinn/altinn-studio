@@ -15,7 +15,7 @@ namespace Altinn.Studio.Designer.Models
         public Data Data { get; set; }
         [JsonExtensionData]
         public Dictionary<string, JsonElement> UnknownProperties { get; set; }
-}
+    }
 
     public class Data
     {

@@ -38,7 +38,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
 
             applicationMetadata.Id.Should().Be("yabbin/hvem-er-hvem");
             applicationMetadata.Org.Should().Be("yabbin");
@@ -61,7 +61,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             applicationMetadata.PartyTypesAllowed.SubUnit.Should().BeFalse();
             applicationMetadata.PartyTypesAllowed.BankruptcyEstate.Should().BeFalse();
 
-            var dataField = applicationMetadata.DataFields.First(d => d.Id == "GeekType");
+            DataField dataField = applicationMetadata.DataFields.First(d => d.Id == "GeekType");
             dataField.Path.Should().Be("InnrapporterteData.geekType");
             dataField.DataTypeId.Should().Be("Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES");
 

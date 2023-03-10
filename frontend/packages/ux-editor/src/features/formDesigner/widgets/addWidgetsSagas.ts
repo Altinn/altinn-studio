@@ -6,7 +6,7 @@ import { FormLayoutActions } from '../formLayout/formLayoutSlice';
 import type { IAddWidgetAction } from '../formDesignerTypes';
 import { convertFromLayoutToInternalFormat } from '../../../utils/formLayout';
 import { addTextResources } from '../../appData/textResources/textResourcesSlice';
-import type { IAppState, IInternalLayout } from '../../../types/global';
+import type { IAppState, IInternalLayouts } from '../../../types/global';
 
 const selectCurrentLayoutId = (state: IAppState): string =>
   state.formDesigner.layout.selectedLayout;
@@ -19,7 +19,7 @@ function* addWidgetSaga(action: PayloadAction<IAddWidgetAction>): SagaIterator {
     const { widget, position } = action.payload;
     let { containerId } = action.payload;
     const layoutId: string = yield select(selectCurrentLayoutId);
-    const currentLayout: IInternalLayout = yield select(selectCurrentLayout);
+    const currentLayout: IInternalLayouts = yield select(selectCurrentLayout);
     const internalComponents = convertFromLayoutToInternalFormat(widget.components, hiddenLayout);
     const components: any = { ...currentLayout.components };
     if (!containerId) {

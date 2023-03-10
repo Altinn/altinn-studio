@@ -56,14 +56,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public void DeleteFormLayout(string org, string app, string developer, string layoutSetName, string layoutName)
         {
+            string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                altinnAppGitRepository.DeleteLayout(layoutSetName, layoutName);
+                altinnAppGitRepository.DeleteLayout(layoutSetName, layoutFileName);
             }
 
-            altinnAppGitRepository.DeleteLayout(null, layoutName);
+            altinnAppGitRepository.DeleteLayout(null, layoutFileName);
         }
 
         /// <inheritdoc />
@@ -73,10 +74,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, layoutName, newName);
+                altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, $"{layoutName}.json", $"{newName}.json");
             }
 
-            altinnAppGitRepository.UpdateFormLayoutName(null, layoutName, newName);
+            altinnAppGitRepository.UpdateFormLayoutName(null, $"{layoutName}.json", $"{newName}.json");
         }
 
         /// <inheritdoc />
@@ -104,8 +105,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await altinnAppGitRepository.SaveLayoutSettings(layoutSetName, layoutSettings);
                 return;
             }
-
-            Console.WriteLine("settings in the middle: " + layoutSettings.ToJson());
             await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
         }
     }

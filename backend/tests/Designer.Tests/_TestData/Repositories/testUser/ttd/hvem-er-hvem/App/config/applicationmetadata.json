@@ -37,9 +37,9 @@
   "autoDeleteOnProcessEnd": false,
   "dataFields": [
     {
-      "Id": "GeekType",
-      "Path": "InnrapporterteData.geekType",
-      "DataTypeId": "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES"
+      "id": "GeekType",
+      "path": "InnrapporterteData.geekType",
+      "dataTypeId": "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES"
     }
   ],
   "created": "2021-04-08T17:42:09.0883842Z",
