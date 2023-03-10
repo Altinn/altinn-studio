@@ -1649,7 +1649,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/react@npm:11.10.6, @emotion/react@npm:^11.8.1":
+"@emotion/react@npm:^11.10.6, @emotion/react@npm:^11.8.1":
   version: 11.10.6
   resolution: "@emotion/react@npm:11.10.6"
   dependencies:
@@ -4441,7 +4441,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-studio@workspace:."
   dependencies:
-    "@emotion/react": 11.10.6
+    "@emotion/react": ^11.10.6
     "@emotion/styled": 11.10.6
     "@redux-saga/is": 1.1.3
     "@redux-saga/symbols": 1.1.3
