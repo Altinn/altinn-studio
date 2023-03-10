@@ -4,8 +4,8 @@ import { put as axiosPut } from 'app-shared/utils/networking';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { ApplicationMetadataActions } from '../applicationMetadataSlice';
 import type { IPutApplicationMetadata } from '../applicationMetadataSlice';
-import { useParams } from 'react-router-dom';
 import { appMetadataPath } from 'app-shared/api-paths';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 export function* putApplicationMetadataSaga(
   action: PayloadAction<IPutApplicationMetadata>
@@ -13,7 +13,7 @@ export function* putApplicationMetadataSaga(
   const { applicationMetadata } = action.payload;
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { org, app } = useParams();
+    const { org, app } = _useParamsClassCompHack();
     const result = yield call(axiosPut, appMetadataPath(org, app), applicationMetadata);
     yield put(
       ApplicationMetadataActions.putApplicationMetadataFulfilled({
