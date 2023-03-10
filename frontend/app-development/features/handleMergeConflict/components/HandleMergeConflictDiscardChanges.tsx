@@ -1,13 +1,12 @@
 import React from 'react';
-import AltinnButton from 'app-shared/components/AltinnButton';
-import AltinnPopover from 'app-shared/components/AltinnPopover';
+import { AltinnPopover } from 'app-shared/components/AltinnPopover';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import { discardChangesPath } from 'app-shared/api-paths';
 import i18next from 'i18next';
 import { withTranslation } from 'react-i18next';
-
+import { Button, ButtonColor } from '@digdir/design-system-react';
 
 interface IHandleMergeConflictDiscardChangesProps {
   disabled?: boolean;
@@ -107,15 +106,15 @@ export class HandleMergeConflictDiscardChanges extends React.Component<
   public render() {
     const { popoverState } = this.state;
     return (
-      <React.Fragment>
-        <AltinnButton
+      <>
+        <Button
           id='discardMergeChangesBtn'
-          btnText={this.props.t('handle_merge_conflict.discard_changes_button')}
-          onClickFunction={this.discardChangesPopover}
-          secondaryButton={true}
+          onClick={this.discardChangesPopover}
+          color={ButtonColor.Secondary}
           disabled={this.props.disabled}
-        />
-
+        >
+          {this.props.t('handle_merge_conflict.discard_changes_button')}
+        </Button>
         <AltinnPopover
           anchorEl={this.state.anchorEl}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
@@ -131,7 +130,7 @@ export class HandleMergeConflictDiscardChanges extends React.Component<
           shouldShowDoneIcon={popoverState.shouldShowDoneIcon}
           transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         />
-      </React.Fragment>
+      </>
     );
   }
 }

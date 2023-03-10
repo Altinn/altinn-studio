@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { AppBar as MuiAppBar, Grid, Toolbar } from '@mui/material';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
-import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
-import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { getTopBarMenu } from './appBarConfig';
 import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
 import { VersionControlHeader } from 'app-shared/version-control/VersionControlHeader';
@@ -16,31 +14,19 @@ import { useTranslation } from 'react-i18next';
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
   activeLeftMenuSelection?: string;
-  logoutButton?: boolean;
   user?: string;
   showSubMenu?: boolean;
-  mainMenuItems?: IMenuItem[];
-  subMenuItems?: { [key: string]: IMenuItem[] };
 }
 
 export const AppBar = ({
   activeLeftMenuSelection,
   activeSubHeaderSelection,
-  logoutButton,
   user,
-  mainMenuItems,
-  subMenuItems,
   showSubMenu,
 }: IAppBarProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const hiddenMdUp = useMediaQuery('(min-width: 1025px)');
   const hiddenSmDown = useMediaQuery('(max-width: 600px)');
-
   const { t } = useTranslation();
-
-  const handleDrawerMenuClick = () => {
-    setIsMenuOpen((prev) => !prev);
-  };
   const { org, app } = useParams();
   const repositoryType = getRepositoryType(org, app);
   const menu = getTopBarMenu(repositoryType);
@@ -84,19 +70,6 @@ export const AppBar = ({
               {hiddenSmDown ? null : (
                 <Grid item>
                   <ProfileMenu showlogout />
-                </Grid>
-              )}
-              {hiddenMdUp ? null : (
-                <Grid item>
-                  <TabletDrawerMenu
-                    handleTabletDrawerMenu={handleDrawerMenuClick}
-                    tabletDrawerOpen={isMenuOpen}
-                    logoutButton={!logoutButton ? false : logoutButton}
-                    activeSubHeaderSelection={activeSubHeaderSelection}
-                    activeLeftMenuSelection={activeLeftMenuSelection}
-                    mainMenuItems={mainMenuItems}
-                    leftDrawerMenuItems={subMenuItems}
-                  />
                 </Grid>
               )}
             </Grid>

@@ -185,7 +185,7 @@ public static class MetamodelRestrictionUtils
     {
         keyword = default;
         return allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword(type))
-            ?.TryGetKeyword(out keyword) ?? false;
+            ?.TryGetKeywordByType(type, out keyword) ?? false;
     }
 
     /// <summary>

@@ -1,1 +1,0 @@
-export { DataModellingContainer } from './DataModelling';

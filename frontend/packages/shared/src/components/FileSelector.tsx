@@ -1,9 +1,9 @@
 import React from 'react';
-import type { StyledComponentProps } from '@mui/material';
-import { TopToolbarButton } from '@altinn/schema-editor/components/TopToolbarButton';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@digdir/design-system-react';
+import { Upload } from '@navikt/ds-icons';
 
-export interface IFileSelectorProps extends StyledComponentProps {
+export interface IFileSelectorProps {
   submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
   formFileName: string;
@@ -22,17 +22,15 @@ function FileSelector({
 }: IFileSelectorProps) {
   const { t } = useTranslation();
   const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
-    <TopToolbarButton
+    <Button
+      id='file-upload-button'
       data-testid='upload-button'
-      faIcon='fa fa-upload'
-      iconSize={38}
-      hideText={false}
+      icon={<Upload />}
       onClick={fileInputClickHandler}
       disabled={disabled}
-      id='file-upload-button'
     >
       {t('app_data_modelling.upload_xsd')}
-    </TopToolbarButton>
+    </Button>
   );
 
   const fileInput = React.useRef<HTMLInputElement>(null);

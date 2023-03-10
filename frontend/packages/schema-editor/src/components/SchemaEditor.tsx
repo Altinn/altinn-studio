@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Close } from '@navikt/ds-icons';
 import { AltinnSpinner } from 'app-shared/components';
 import type { IJsonSchema, ISchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
@@ -7,13 +8,13 @@ import {
   setJsonSchema,
   setSaveSchemaUrl,
   setSchemaName,
-  setSelectedTab,
+  setSelectedId,
   setUiSchema,
   updateJsonSchema,
 } from '../features/editor/schemaEditorSlice';
 import { SchemaInspector } from './SchemaInspector';
 import { TopToolbar } from './TopToolbar';
-import type { UiSchemaNodes } from '@altinn/schema-model';
+import { getNameFromPointer, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   getChildNodesByPointer,
   getNodeByPointer,
@@ -23,9 +24,11 @@ import {
 } from '@altinn/schema-model';
 
 import { createSelector } from '@reduxjs/toolkit';
-import { Tabs } from '@digdir/design-system-react';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { ModelsPanel, TypesPanel } from './layout';
 import { useTranslation } from 'react-i18next';
+import { TypesInspector } from './TypesInspector';
+import classNames from 'classnames';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
@@ -96,14 +99,46 @@ export const SchemaEditor = ({
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
 
+  const [selectedType, setSelectedType] = useState<UiSchemaNode>(null);
+
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
 
-  const selectedEditorTab = useSelector((state: ISchemaState) => state.selectedEditorTab);
+  const rootNodeMap = useSelector(rootNodesSelector);
+  const rootChildren = useSelector(rootChildrenSelector);
+  const properties: UiSchemaNodes = [];
+  const definitions: UiSchemaNodes = [];
+  rootChildren?.forEach((childPointer) =>
+    pointerIsDefinition(childPointer)
+      ? definitions.push(rootNodeMap.get(childPointer))
+      : properties.push(rootNodeMap.get(childPointer))
+  );
 
   const selectedPropertyParent = useSelector((state: ISchemaState) =>
     getParentNodeByPointer(state.uiSchema, state.selectedPropertyNodeId)
   );
+
+  const selectedId = useSelector((state: ISchemaState) =>
+    state.selectedEditorTab === 'properties'
+      ? state.selectedPropertyNodeId
+      : state.selectedDefinitionNodeId
+  );
+  const selectedItem = useSelector((state: ISchemaState) =>
+    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined
+  );
+
+  useEffect(() => {
+    if (selectedType) {
+      setSelectedType(rootNodeMap.get(selectedType.pointer));
+    }
+  }, [rootNodeMap, selectedType]);
+
+  useEffect(() => {
+    if (selectedItem && pointerIsDefinition(selectedItem.pointer)) {
+      setSelectedType(selectedItem);
+    }
+  }, [selectedItem]);
+
   useEffect(() => {
     if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
       setExpandedPropNodes((prevState) => [...prevState, selectedPropertyParent.pointer]);
@@ -121,31 +156,17 @@ export const SchemaEditor = ({
 
   const handleSaveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
 
-  const handleTabChanged = (value: 'definitions' | 'properties') =>
-    dispatch(setSelectedTab({ selectedTab: value }));
+  const handleSelectType = (node: UiSchemaNode) => {
+    setSelectedType(node);
+    dispatch(setSelectedId({ pointer: node.pointer }));
+  };
 
-  const loadingIndicator = loading ? (
-    <AltinnSpinner spinnerText={t('general.loading')} />
-  ) : null;
+  const handleResetSelectedType = () => {
+    setSelectedType(null);
+    dispatch(setSelectedId({ pointer: '' }));
+  };
 
-  const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties'
-      ? state.selectedPropertyNodeId
-      : state.selectedDefinitionNodeId
-  );
-  const selectedItem = useSelector((state: ISchemaState) =>
-    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined
-  );
-  const rootNodeMap = useSelector(rootNodesSelector);
-  const rootChildren = useSelector(rootChildrenSelector);
-  const properties: UiSchemaNodes = [];
-  const definitions: UiSchemaNodes = [];
-  rootChildren?.forEach((childPointer) =>
-    pointerIsDefinition(childPointer)
-      ? definitions.push(rootNodeMap.get(childPointer))
-      : properties.push(rootNodeMap.get(childPointer))
-  );
-
+  const loadingIndicator = loading ? <AltinnSpinner spinnerText={t('general.loading')} /> : null;
   return (
     <div className={classes.root}>
       <TopToolbar
@@ -156,37 +177,54 @@ export const SchemaEditor = ({
       />
       <main className={classes.main}>
         {LandingPagePanel}
-        {name && schema ? (
+        {schema && (
+          <aside className={classes.inspector}>
+            <TypesInspector
+              schemaItems={definitions}
+              handleSelectType={handleSelectType}
+              key={selectedType?.pointer || ''}
+              selectedNodePointer={selectedType?.pointer}
+            />
+          </aside>
+        )}
+        {name && schema && selectedType && (
+          <div
+            data-testid='types-editor'
+            id='types-editor'
+            className={classNames(classes.editor, classes.editorTypes)}
+          >
+            <div className={classes.typeInfo}>
+              <span>
+                {`${t('types_editing')} ${getNameFromPointer({
+                  pointer: selectedType.pointer,
+                })}`}
+              </span>
+              <Button
+                onClick={handleResetSelectedType}
+                icon={<Close />}
+                variant={ButtonVariant.Quiet}
+                color={ButtonColor.Inverted}
+              />
+            </div>
+            <TypesPanel
+              editMode={editMode}
+              uiSchemaNode={selectedType}
+              setExpandedDefNodes={setExpandedDefNodes}
+              expandedDefNodes={
+                expandedDefNodes.includes(selectedType?.pointer)
+                  ? expandedDefNodes
+                  : expandedDefNodes.concat([selectedType.pointer])
+              }
+            />
+          </div>
+        )}
+        {name && schema && !selectedType ? (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
-            <Tabs
-              activeTab={selectedEditorTab}
-              items={[
-                {
-                  name: t('model'),
-                  content: (
-                    <ModelsPanel
-                      editMode={editMode}
-                      setExpandedPropNodes={setExpandedPropNodes}
-                      expandedPropNodes={expandedPropNodes}
-                      properties={properties}
-                    />
-                  ),
-                  value: 'properties',
-                },
-                {
-                  name: t('types'),
-                  content: (
-                    <TypesPanel
-                      editMode={editMode}
-                      definitions={definitions}
-                      setExpandedDefNodes={setExpandedDefNodes}
-                      expandedDefNodes={expandedDefNodes}
-                    />
-                  ),
-                  value: 'definitions',
-                },
-              ]}
-              onChange={handleTabChanged}
+            <ModelsPanel
+              editMode={editMode}
+              setExpandedPropNodes={setExpandedPropNodes}
+              expandedPropNodes={expandedPropNodes}
+              properties={properties}
             />
           </div>
         ) : (
@@ -194,10 +232,7 @@ export const SchemaEditor = ({
         )}
         {schema && editMode && (
           <aside className={classes.inspector}>
-            <SchemaInspector
-              selectedItem={selectedItem}
-              key={selectedItem?.pointer || ''}
-            />
+            <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
           </aside>
         )}
       </main>

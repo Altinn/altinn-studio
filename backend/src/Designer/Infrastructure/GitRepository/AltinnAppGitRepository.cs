@@ -333,7 +333,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
 
             string fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
-            FormLayout layout = System.Text.Json.JsonSerializer.Deserialize<FormLayout>(fileContent);
+            FormLayout layout = System.Text.Json.JsonSerializer.Deserialize<FormLayout>(fileContent,
+                new JsonSerializerOptions()
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                });
 
             return layout;
         }
@@ -463,7 +468,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 WriteIndented = true,
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
             string serializedLayout = System.Text.Json.JsonSerializer.Serialize(layout, jsonOptions);
 

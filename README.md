@@ -131,15 +131,15 @@ wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/lates
 Start the webpack dev server for the respective app you want to develop:
 
 ```bash
-yarn --cwd "frontend" run start-app-development
-yarn --cwd "frontend" run start-dashboard
+yarn run start-app-development
+yarn run start-dashboard
 ```
 
 If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating
 to `frontend` and then run the following build script, which will build app frontend apps.
 
 ```bash
-yarn --cwd "frontend" run build
+yarn run build
 ```
 
 Some React projects also have various other predefined scripts, which can be viewed in the `package.json` file
@@ -163,6 +163,11 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 - [yarn](https://yarnpkg.com/) - Package management
 - [Docker](https://www.docker.com/) - Container platform
 - [Kubernetes](https://kubernetes.io/) - Container orchestration
+
+## Status for container scans
+
+[![Designer scan](https://github.com/altinn/altinn-studio/actions/workflows/designer-scan.yml/badge.svg)](https://github.com/Altinn/altinn-studio/actions/workflows/designer-scan.yml)
+[![Repositories scan](https://github.com/altinn/altinn-studio/actions/workflows/repositories-scan.yml/badge.svg)](https://github.com/Altinn/altinn-studio/actions/workflows/repositories-scan.yml)
 
 ## Contributing
 

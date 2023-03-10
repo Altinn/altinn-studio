@@ -38,7 +38,7 @@ public class TextsServiceTest : IDisposable
         FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
         formLayout.Should().NotBeNull();
-        formLayout.data.layout[0].textResourceBindings["title"].Should().Be("new-id");
+        formLayout.Data.Layout[0].TextResourceBindings["title"].Should().Be("new-id");
     }
 
     [Fact]
@@ -65,8 +65,8 @@ public class TextsServiceTest : IDisposable
 
         formLayout1.Should().NotBeNull();
         formLayout2.Should().NotBeNull();
-        formLayout1.data.layout[0].textResourceBindings["title"].Should().Be("new-id");
-        formLayout2.data.layout[0].textResourceBindings["title"].Should().Be("new-id");
+        formLayout1.Data.Layout[0].TextResourceBindings["title"].Should().Be("new-id");
+        formLayout2.Data.Layout[0].TextResourceBindings["title"].Should().Be("new-id");
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class TextsServiceTest : IDisposable
         FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
         formLayout.Should().NotBeNull();
-        formLayout.data.layout[0].textResourceBindings["title"].Should().Be("new-id");
+        formLayout.Data.Layout[0].TextResourceBindings["title"].Should().Be("new-id");
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class TextsServiceTest : IDisposable
         FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
         formLayout.Should().NotBeNull();
-        formLayout.data.layout[0].textResourceBindings["title"].Should().Be("some-old-id");
+        formLayout.Data.Layout[0].TextResourceBindings["title"].Should().Be("some-old-id");
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public class TextsServiceTest : IDisposable
         FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
         formLayout.Should().NotBeNull();
-        formLayout.data.layout[0].textResourceBindings.Where(trb => trb.Value == "some-old-key").Should().BeEmpty();
+        formLayout.Data.Layout[0].TextResourceBindings.Where(trb => trb.Value == "some-old-key").Should().BeEmpty();
     }
 
     public void Dispose()

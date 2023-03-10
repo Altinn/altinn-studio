@@ -14,7 +14,7 @@
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Update="LibGit2Sharp" Version="0.27.0-preview-0182" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="6.0.0" />
+    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="6.1.0" />
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
     <PackageReference Update="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
@@ -47,6 +47,7 @@
     <PackageReference Update="Fare" Version="2.2.1" />
     <PackageReference Update="Basic.Reference.Assemblies" Version="1.4.1" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.0.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.5.0" />
   </ItemGroup>
 </Project>

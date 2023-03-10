@@ -136,6 +136,8 @@ export interface IDeleteContainerAction {
 
 export interface IDeleteLayoutAction {
   layout: string;
+  layouts?: IFormLayouts;
+  isReceiptPage?: boolean;
   org: string;
   app: string;
 }

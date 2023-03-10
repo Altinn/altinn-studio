@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { TopToolbarButton } from '@altinn/schema-editor/index';
 import {
   Button,
   ButtonColor,
   ButtonVariant,
   ErrorMessage,
-  TextField
+  TextField,
 } from '@digdir/design-system-react';
 import { AltinnPopoverSimple } from '../../../components/molecules/AltinnPopoverSimple';
 import { useTranslation } from 'react-i18next';
+import { Add } from '@navikt/ds-icons';
 
 export interface ICreateNewWrapper {
   createAction: ({
@@ -93,15 +93,14 @@ export function CreateNewWrapper(props: ICreateNewWrapper) {
   };
   return (
     <>
-      <TopToolbarButton
+      <Button
         id='create-new-datamodel-button'
-        faIcon='fa fa-plus'
         onClick={onCreateClick}
-        hideText={false}
         disabled={props.disabled}
+        icon={<Add />}
       >
         {t('general.create_new')}
-      </TopToolbarButton>
+      </Button>
       {createButtonAnchor && (
         <AltinnPopoverSimple
           open={!!createButtonAnchor}

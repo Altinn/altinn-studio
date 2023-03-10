@@ -169,6 +169,7 @@ const formLayoutSlice = createSlice({
       const { layouts, layoutOrder } = action.payload;
       state.layouts = layouts;
       state.layoutSettings.pages.order = layoutOrder;
+      state.selectedLayout = layoutOrder[layoutOrder.length - 1];
     },
     addLayoutRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
@@ -220,6 +221,7 @@ const formLayoutSlice = createSlice({
           }
         });
 
+        delete selectedLayout.components[id];
         selectedLayout.order[containerId].splice(selectedLayout.order[containerId].indexOf(id), 1);
         state.unSavedChanges = true;
         state.error = null;
@@ -245,11 +247,16 @@ const formLayoutSlice = createSlice({
       state.error = error;
     },
     deleteLayoutFulfilled: (state, action: PayloadAction<IDeleteLayoutAction>) => {
-      const { layout } = action.payload;
-      delete state.layouts[layout];
+      const { layout, layouts } = action.payload;
       const pageOrder = state.layoutSettings.pages.order;
+      // update layouts if second last page is deleted so single last page is updated to not include navbutton
+      if (pageOrder.length === 1){
+        state.layouts = layouts;
+      }
+      delete state.layouts[layout];
       if (pageOrder.includes(layout)) {
         pageOrder.splice(pageOrder.indexOf(layout), 1);
+        state.layoutSettings.pages.order = pageOrder;
       }
       if (state.layoutSettings.receiptLayoutName === layout) {
         state.layoutSettings.receiptLayoutName = undefined;
@@ -297,7 +304,7 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
-    saveFormLayout: (state, action: PayloadAction<{ org, app }>) => {
+    saveFormLayout: (state, action: PayloadAction<{ layoutName?, org, app }>) => {
       state.saving = true;
     },
     saveFormLayoutFulfilled: (state) => {

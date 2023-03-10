@@ -58,7 +58,6 @@ export const ModelsPanel = ({
     <>
       {editMode && (
         <ActionMenu
-          className={classes.addMenu}
           items={[
             {
               action: () => handleAddProperty(ObjectKind.Field),

@@ -12,7 +12,7 @@ const selectCurrentLayoutId = (state: IAppState): string =>
   state.formDesigner.layout.selectedLayout;
 const selectCurrentLayout = (state: IAppState) =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
-const hiddenLayout = (state: IAppState) => state.formDesigner.layout.layouts.selectedLayout.hidden;
+const hiddenLayout = (state: IAppState) => state.formDesigner.layout.layouts.selectedLayout?.hidden;
 
 function* addWidgetSaga(action: PayloadAction<IAddWidgetAction>): SagaIterator {
   try {

@@ -158,9 +158,6 @@ publish/
 # NuGet package restore lockfiles
 project.lock.json
 
-# yarn lock file
-/yarn.lock
-package-lock.json
 
 # Windows Azure Build Output
 csx/
@@ -173,6 +170,7 @@ AppPackages/
 *.Cache
 ClientBin/
 [Ss]tyle[Cc]op.*
+!stylecop.json
 ~$*
 *.dbmdl
 *.dbproj.schemaview
@@ -397,3 +395,12 @@ backend/src/Designer/wwwroot/designer/frontend
 src/studio/.devcontainer/**
 
 backend/srcaccesstoken/
+
+## Yarn
+/.pnp.*
+/.yarn/*
+!/.yarn/patches
+!/.yarn/plugins
+!/.yarn/releases
+!/.yarn/sdks
+!/.yarn/versions

@@ -32,7 +32,12 @@ export const LeftMenu = () => {
   const { org, app } = useParams();
 
   function handleAddPage() {
-    const name = t('left_menu.page') + (layoutOrder.length + 1);
+    let count = 1;
+    let name = t('left_menu.page') + (layoutOrder.length + count);
+    while (layoutOrder.indexOf(name) > -1){
+      count += 1;
+      name = t('left_menu.page') + (layoutOrder.length + count);
+    }
     dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
     setSearchParams({ ...deepCopy(searchParams), layout: name });
   }

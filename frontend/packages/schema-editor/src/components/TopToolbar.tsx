@@ -1,8 +1,9 @@
 import React from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
-import { TopToolbarButton } from './TopToolbarButton';
 import classes from './TopToolbar.module.css';
 import { useTranslation } from 'react-i18next';
+import { Button, ButtonSize } from '@digdir/design-system-react';
+import { Settings } from '@navikt/ds-icons';
 
 interface TopToolbarProps {
   Toolbar: JSX.Element;
@@ -11,28 +12,23 @@ interface TopToolbarProps {
   toggleEditMode?: (e: any) => void;
 }
 
-export function TopToolbar({
-  editMode,
-  Toolbar,
-  saveAction,
-  toggleEditMode,
-}: TopToolbarProps) {
+export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode }: TopToolbarProps) {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
 
   return (
     <section className={classes.toolbar} role={'toolbar'}>
       {Toolbar}
-      <TopToolbarButton
+      <Button
         id='save-model-button'
+        data-testid='save-model-button'
+        size={ButtonSize.Small}
         onClick={saveAction || (() => undefined)}
         disabled={!editMode || !saveAction}
-        faIcon='ai ai-document'
-        iconSize={24}
-        className={classes.saveButton}
+        icon={<Settings />}
       >
         {t('generate_model_files')}
-      </TopToolbarButton>
+      </Button>
       {toggleEditMode && (
         <ToggleButtonGroup selectedValue={editMode ? 'edit' : 'view'} onChange={toggleEditMode}>
           <ToggleButton value='view'>{t('view_mode')}</ToggleButton>

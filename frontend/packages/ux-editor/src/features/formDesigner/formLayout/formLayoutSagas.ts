@@ -52,7 +52,7 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
     const { org, app, component, callback } = payload;
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
     const layouts: IFormLayouts = yield select(selectLayouts);
-    const id: string = generateComponentId(component.type, layouts);
+    const id: string = component.id || generateComponentId(component.type, layouts);
 
     if (!containerId) {
       // if not containerId set it to base-container
@@ -228,7 +228,8 @@ function* fetchFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIte
     } else {
       try {
         convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(
-          formLayouts[layoutName].data.layout, formLayouts[layoutName].data.hidden
+          formLayouts[layoutName].data.layout,
+          formLayouts[layoutName]?.data?.hidden
         );
       } catch {
         invalidLayouts.push(layoutName);
@@ -262,7 +263,7 @@ function* saveFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIter
       $schema: layoutSchemaUrl(),
       data: {
         layout: convertInternalToLayoutFormat(layouts[selectedLayout]),
-        hidden: layouts[selectedLayout].hidden,
+        hidden: layouts[selectedLayout]?.hidden,
       },
     };
     const url = formLayoutPath(org, app, selectedLayout);
@@ -284,6 +285,7 @@ export function* watchSaveFormLayoutSaga(): SagaIterator {
       FormLayoutActions.updateFormContainer,
       FormLayoutActions.updateFormComponentOrder,
       FormLayoutActions.updateContainerId,
+      FormLayoutActions.deleteFormComponents,
     ],
     saveFormLayoutSaga
   );
@@ -432,6 +434,8 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       })
     );
 
+    const firstPageKey = layoutOrder[0];
+    const firstPage = layoutsCopy[firstPageKey];
     const hasFirstPage = Object.keys(layoutsCopy).length > 1;
 
     if (hasFirstPage && !isReceiptPage) {
@@ -446,14 +450,14 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
         showBackButton: true,
       };
 
-      const firstPageKey = layoutOrder[0];
-      const firstPage = layouts[firstPageKey];
-
       if (firstPage && firstPage.components) {
         const hasNavigationButton = Object.keys(firstPage.components).some(
           (component: string) => firstPage.components[component].type === 'NavigationButtons'
         );
         if (!hasNavigationButton) {
+          yield put(
+            FormLayoutActions.updateSelectedLayout({ selectedLayout: firstPageKey, org, app })
+          );
           yield put(
             FormLayoutActions.addFormComponent({
               component: {
@@ -469,8 +473,10 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
         }
       }
 
+      // Delay is added so the saga that saves the formlayout after adding the formcomponent is registered
+      // and executed by the watcher before the below action is fired
+      yield delay(500);
       yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout, org, app }));
-
       yield put(
         FormLayoutActions.addFormComponent({
           component: {
@@ -558,9 +564,36 @@ export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
 
 export function* deleteLayoutSaga({ payload }: PayloadAction<IDeleteLayoutAction>): SagaIterator {
   try {
-    const { layout, org, app } = payload;
-    yield put(FormLayoutActions.deleteLayoutFulfilled({ layout, org, app }));
+    const { layout, isReceiptPage, org, app } = payload;
     yield call(del, formLayoutPath(org, app, layout));
+
+    const layoutOrder: string[] = yield select(
+      (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
+    );
+    const layouts: IFormLayouts = yield select(selectLayouts);
+    const lastPageKey = layout === layoutOrder[0] ? layoutOrder[1] : layoutOrder[0];
+    const lastPage = layouts[lastPageKey];
+    const secondLastPageIsBeingDeleted = Object.keys(layouts).length === 2;
+
+    if (secondLastPageIsBeingDeleted && !isReceiptPage) {
+      const hasNavigationButton = Object.keys(layouts[lastPageKey].components).some(
+        (component: string) => lastPage.components[component].type === 'NavigationButtons'
+      );
+      if (hasNavigationButton) {
+        const navigationButtonComponent = Object.keys(lastPage.components).find(
+          (component: string) => lastPage.components[component].type === 'NavigationButtons'
+        );
+        yield put(
+          FormLayoutActions.updateSelectedLayout({ selectedLayout: lastPageKey, org, app })
+        );
+        const componentsToDelete = [lastPage.components[navigationButtonComponent].id];
+        yield put(
+          FormLayoutActions.deleteFormComponents({ components: componentsToDelete, org, app })
+        );
+        yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout, org, app }));
+      }
+    }
+    yield put(FormLayoutActions.deleteLayoutFulfilled({ layout, layouts, org, app }));
   } catch (error) {
     yield put(FormLayoutActions.deleteLayoutRejected({ error }));
   }
