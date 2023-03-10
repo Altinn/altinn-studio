@@ -34,7 +34,7 @@ export class AppFrontend {
   public helpText = {
     open: 'button[aria-expanded=false]',
     close: 'button[aria-expanded=true]',
-    alert: 'div[role="dialog"]',
+    alert: 'div[role="tooltip"]',
   };
 
   public navMenu = '#navigation-menu';
