@@ -12,7 +12,7 @@ public class CommunesCodelistProvider : IAppOptionsProvider
     private readonly IAdministrativeUnitsClient _administrativeUnitsHttpClient;
 
     /// <inheritdoc/>
-    public string Id => "kv-kommuner";
+    public string Id => "kommuner-kv";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CommunesCodelistProvider"/> class.

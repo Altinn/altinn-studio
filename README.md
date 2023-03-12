@@ -2,18 +2,19 @@
 This library contains common code lists for use in Altinn 3 based applications.
 
 ## Getting started
-1. Add reference to [Altinn.Codelists nuget package](https://www.nuget.org/packages/Altinn.Codelists)
+1. Add reference to [Altinn.Codelists nuget package](https://www.nuget.org/packages/Altinn.Codelists)  
    Open command line to the repo of your application and navigate to the App folder where the App.csproj file is located and run the following command:
 
    ```shell
    nuget install Altinn.Codelists
    ```
-2. Register the codelists in your app DI container
+2. Register the codelists in your app DI container  
    Add the following to your Program.cs file:
    ```csharp
    services.AddAltinnCodelists();
    ```
-3. Connect your application to the codelist you would like to use
+   By calling this you will add all codelists accross all sources listed below in available codelists.
+3. Connect your application to the codelist you would like to use  
    See the section below for available codelist id's.
 
    You can either do this using [Altinn Studio](https://altinn.studio) and configure the *Kodeliste-ID* of your component.
@@ -22,11 +23,20 @@ This library contains common code lists for use in Altinn 3 based applications.
 
 ## Available codelists
 
-|  # | Id       | Source | Description                                |
-| ---|--------- | ------ | ------------------------------------------ |
-|  1 | land     | SSB    | The countries of the world                 |
-|  2 | fylker   | SSB    | The counties of Norway                     |
-|  3 | kommuner | SSB    | The communes of Norway                     |
+| Default Codelist Id      | Source       | Description                                               |
+|------------------------- | ------------ | --------------------------------------------------------- |
+| fylker                   | SSB          | The counties of Norway                                    |
+| fylker-kv                | Kartverket   | The counties of Norway                                    |
+| grunnbeløpfolketrygden   | SSB          | National insurance base amount                            |
+| kjønn                    | SSB          | Sex                                                       |
+| kommuner                 | SSB          | The communes of Norway (all)                              |
+| kommuner-kv              | Kartverket   | The communes of Norway with ability to filter on county   |
+| land                     | SSB          | The countries of the world                                |
+| næringsgruppering        | SSB          | Industrical grouping                                      |
+| sivilstand               | SSB          | Marital status                                            |
+| yrker                    | SSB          | Occupations                                               |
+
+
 
 ## Sources
 Below are the sources used for the various codelists above. The underlying api's provide different functionality with regards to query parameters. Espessialy the SSB api's provide a rich set of parameters allowing the query for valid values on a given date or date range.
