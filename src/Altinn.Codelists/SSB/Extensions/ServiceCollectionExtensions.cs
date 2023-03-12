@@ -19,11 +19,13 @@ public static class ServiceCollectionExtensions
         services.AddOptions<ClassificationSettings>();
         services.AddHttpClient<IClassificationsClient, ClassificationsHttpClient>();
 
-        services.AddSSBClassificationCodelistProvider("sivilstand", Classification.MaritalStatus);
-        services.AddSSBClassificationCodelistProvider("næringsgruppering", Classification.IndustryGrouping);
         services.AddSSBClassificationCodelistProvider("kjønn", Classification.Sex);
-        services.AddSSBClassificationCodelistProvider("kommuner", Classification.Communes);
+        services.AddSSBClassificationCodelistProvider("næringsgruppering", Classification.IndustryGrouping);
+        services.AddSSBClassificationCodelistProvider("yrker", Classification.Occupations);
+        services.AddSSBClassificationCodelistProvider("sivilstand", Classification.MaritalStatus);
+        services.AddSSBClassificationCodelistProvider("grunnbeløpfolketrygden", Classification.BaseAmountNationalInsurance);
         services.AddSSBClassificationCodelistProvider("fylker", Classification.Counties);
+        services.AddSSBClassificationCodelistProvider("kommuner", Classification.Communes);
         services.AddSSBClassificationCodelistProvider("land", Classification.Countries);
 
         return services;

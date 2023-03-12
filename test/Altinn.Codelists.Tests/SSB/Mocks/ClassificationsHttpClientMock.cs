@@ -7,13 +7,15 @@ namespace Altinn.Codelists.Tests.SSB.Mocks;
 
 public class ClassificationsHttpClientMock : IClassificationsClient
 {
-    private const string MARITAL_STATUS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.maritalStatus.json";
-    private const string INDUSTRY_GROUPING_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.industryGrouping.json";
     private const string SEX_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.sex.json";
+    private const string INDUSTRY_GROUPING_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.industryGrouping.json";
+    private const string CLASSIFICATIONS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.occupations.json";
+    private const string MARITAL_STATUS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.maritalStatus.json";
+    private const string BASE_AMOUT_NATIONAL_INSURANCE_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.baseAmountNationalInsurance.json";
     private const string COUNTIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.counties.json";
-    private const string COUNTRIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.countries.json";
     private const string COMMUNES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.communes.json";
-
+    private const string COUNTRIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.countries.json";
+    
     private readonly IClassificationsClient _client;
     private readonly IOptions<ClassificationSettings> _options;
 
@@ -35,9 +37,17 @@ public class ClassificationsHttpClientMock : IClassificationsClient
            .When("http://data.ssb.no/api/klass/v1/classifications/6/*")
            .Respond("application/json", EmbeddedResource.LoadDataAsString(INDUSTRY_GROUPING_TESTDATA_RESOURCE).Result);
 
+        HttpMessageHandlerMock
+            .When("http://data.ssb.no/api/klass/v1/classifications/7/*")
+            .Respond("application/json", EmbeddedResource.LoadDataAsString(CLASSIFICATIONS_TESTDATA_RESOURCE).Result);
+
         MockedClassificationsRequest = HttpMessageHandlerMock
             .When("http://data.ssb.no/api/klass/v1/classifications/19/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(MARITAL_STATUS_TESTDATA_RESOURCE).Result);
+        
+        MockedClassificationsRequest = HttpMessageHandlerMock
+            .When("http://data.ssb.no/api/klass/v1/classifications/19/*")
+            .Respond("application/json", EmbeddedResource.LoadDataAsString(BASE_AMOUT_NATIONAL_INSURANCE_TESTDATA_RESOURCE).Result);
 
         HttpMessageHandlerMock
             .When("http://data.ssb.no/api/klass/v1/classifications/104/*")

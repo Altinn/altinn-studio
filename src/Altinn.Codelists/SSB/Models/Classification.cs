@@ -14,11 +14,21 @@ public enum Classification
     /// Standard for næringsgruppering
     /// </summary>
     IndustryGrouping = 6,
-    
+
+    /// <summary>
+    /// Standard for yrkesklassifisering
+    /// </summary>
+    Occupations = 7,
+
     /// <summary>
     /// Standard for sivilstand
     /// </summary>
     MaritalStatus = 19,
+
+    /// <summary>
+    /// Standard for grunnbeløpet i folketrygden (beløp pr. 1.5 )
+    /// </summary>
+    BaseAmountNationalInsurance = 20,
 
     /// <summary>
     /// Standard for fylker
@@ -33,5 +43,5 @@ public enum Classification
     /// <summary>
     /// Standard for landkoder (alfa-3)
     /// </summary>
-    Countries = 552
+    Countries = 552,
 }
