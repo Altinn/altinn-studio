@@ -44,7 +44,7 @@ public class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
             return await _administrativeUnitsClient.GetCounties();
         });
 
-        return counties;
+        return counties ?? new List<County>();
     }
 
     /// <inheritdoc/>

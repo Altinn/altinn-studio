@@ -33,6 +33,7 @@ This library contains common code lists for use in Altinn 3 based applications.
 | kommuner-kv              | Kartverket   | The communes of Norway with ability to filter on county   |
 | land                     | SSB          | The countries of the world                                |
 | næringsgruppering        | SSB          | Industrical grouping                                      |
+| poststed                 | Posten       | Norwegian postal codes                                              |
 | sivilstand               | SSB          | Marital status                                            |
 | yrker                    | SSB          | Occupations                                               |
 

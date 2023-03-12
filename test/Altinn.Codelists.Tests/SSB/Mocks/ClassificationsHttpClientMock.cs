@@ -28,7 +28,6 @@ public class ClassificationsHttpClientMock : IClassificationsClient
 
         HttpMessageHandlerMock = new MockHttpMessageHandler();
 
-
         HttpMessageHandlerMock
              .When("http://data.ssb.no/api/klass/v1/classifications/2/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(SEX_TESTDATA_RESOURCE).Result);

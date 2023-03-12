@@ -8,9 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="SSB\Clients\ClassificationsHttpClientTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
     <None Remove="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
     <None Remove="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
+    <None Remove="Posten\Testdata\Postnummerregister-ansi.txt" />
     <None Remove="SSB\Testdata\baseAmountNationalInsurance.json" />
 		<None Remove="SSB\Testdata\counties.json" />
     <None Remove="SSB\Testdata\countries.json" />
@@ -25,6 +30,8 @@
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
+    <EmbeddedResource Include="Posten\Testdata\Postnummerregister-ansi.txt" />
+    <EmbeddedResource Include="SSB\Clients\ClassificationsHttpClientTests.cs" />
     <EmbeddedResource Include="SSB\Testdata\baseAmountNationalInsurance.json" />
     <EmbeddedResource Include="SSB\Testdata\municipalities.json" />
     <EmbeddedResource Include="SSB\Testdata\counties.json" />
