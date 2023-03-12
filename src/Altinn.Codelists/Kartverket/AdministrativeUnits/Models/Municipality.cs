@@ -3,14 +3,14 @@
 namespace Altinn.Codelists.Kartverket.AdministrativeUnits.Models;
 
 /// <summary>
-/// Holds information about a commune (kommune).
+/// Holds information about a municipality  (kommune).
 /// </summary>
-public class Commune
+public class Municipality
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="Commune"/> class.
+    /// Initializes a new instance of the <see cref="Municipality"/> class.
     /// </summary>
-    public Commune(string number, string name, string nameInNorwegian)
+    public Municipality(string number, string name, string nameInNorwegian)
     {
         Number = number;
         Name = name;
@@ -18,19 +18,19 @@ public class Commune
     }
 
     /// <summary>
-    /// Unique identification number for the commune.
+    /// Unique identification number for the municipality.
     /// </summary>
     [JsonPropertyName("kommunenummer")]
     public string Number { get; set; }
 
     /// <summary>
-    /// The name of the commune in Norwegian or Sami.
+    /// The name of the municipality in Norwegian or Sami.
     /// </summary>
     [JsonPropertyName("kommunenavn")]
     public string Name { get; set; }
 
     /// <summary>
-    /// The name of the commune in Norwegian.
+    /// The name of the municipality in Norwegian.
     /// </summary>
     [JsonPropertyName("kommunenavnNorsk")]
     public string NameInNorwegian { get; set; }

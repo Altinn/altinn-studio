@@ -4,13 +4,13 @@ using Altinn.Codelists.Tests.Kartverket.AdministrativeUnits.Mocks;
 
 namespace Altinn.Codelists.Tests.Kartverket.AdministrativeUnits;
 
-public class CommunesCodelistProviderTests
+public class MunicipalitiesCodelistProviderTests
 {
     [Fact]
-    public async Task GetAppOptionsAsync_NoCountySpecified_ShouldReturnListOfAllCommunes()
+    public async Task GetAppOptionsAsync_NoCountySpecified_ShouldReturnListOfAllMunicipalities()
     {
         var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsSettings()));
-        IAppOptionsProvider appOptionsProvider = new CommunesCodelistProvider(administrativeUnitsHttpClientMock);
+        IAppOptionsProvider appOptionsProvider = new MunicipalitiesCodelistProvider(administrativeUnitsHttpClientMock);
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
@@ -20,10 +20,10 @@ public class CommunesCodelistProviderTests
     }
 
     [Fact]
-    public async Task GetAppOptionsAsync_CountySpecified_ShouldReturnListOfCommunesByCounty()
+    public async Task GetAppOptionsAsync_CountySpecified_ShouldReturnListOfMunicipalitiesByCounty()
     {
         var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(Options.Create(new AdministrativeUnitsSettings()));
-        IAppOptionsProvider appOptionsProvider = new CommunesCodelistProvider(administrativeUnitsHttpClientMock);
+        IAppOptionsProvider appOptionsProvider = new MunicipalitiesCodelistProvider(administrativeUnitsHttpClientMock);
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>() { { "fnr", "46" } });
 

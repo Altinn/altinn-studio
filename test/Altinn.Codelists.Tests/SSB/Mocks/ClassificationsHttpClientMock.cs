@@ -13,7 +13,7 @@ public class ClassificationsHttpClientMock : IClassificationsClient
     private const string MARITAL_STATUS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.maritalStatus.json";
     private const string BASE_AMOUT_NATIONAL_INSURANCE_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.baseAmountNationalInsurance.json";
     private const string COUNTIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.counties.json";
-    private const string COMMUNES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.communes.json";
+    private const string MUNICIPALITIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.municipalities.json";
     private const string COUNTRIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.countries.json";
     
     private readonly IClassificationsClient _client;
@@ -54,7 +54,7 @@ public class ClassificationsHttpClientMock : IClassificationsClient
             .Respond("application/json", EmbeddedResource.LoadDataAsString(COUNTIES_TESTDATA_RESOURCE).Result);
         HttpMessageHandlerMock
             .When("http://data.ssb.no/api/klass/v1/classifications/131/*")
-            .Respond("application/json", EmbeddedResource.LoadDataAsString(COMMUNES_TESTDATA_RESOURCE).Result);
+            .Respond("application/json", EmbeddedResource.LoadDataAsString(MUNICIPALITIES_TESTDATA_RESOURCE).Result);
 
         HttpMessageHandlerMock
             .When("http://data.ssb.no/api/klass/v1/classifications/552/*")

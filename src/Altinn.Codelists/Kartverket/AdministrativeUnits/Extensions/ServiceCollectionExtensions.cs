@@ -10,7 +10,7 @@ namespace Altinn.Codelists.Kartverket.AdministrativeUnits.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the services required to get support for Kartverkets counties(fylker) and communes(kommuner) codelists.
+    /// Registers the services required to get support for Kartverkets counties (fylker) and municipalities (kommuner) codelists.
     /// </summary>
     public static IServiceCollection AddKartverketAdministrativeUnits(this IServiceCollection services)
     {
@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IAdministrativeUnitsClient, AdministrativeUnitsHttpClient>();
         services.Decorate<IAdministrativeUnitsClient, AdministrativeUnitsHttpClientCached>();
         services.AddTransient<IAppOptionsProvider, CountiesCodelistProvider>();
-        services.AddTransient<IAppOptionsProvider, CommunesCodelistProvider>();
+        services.AddTransient<IAppOptionsProvider, MunicipalitiesCodelistProvider>();
 
         return services;
     }

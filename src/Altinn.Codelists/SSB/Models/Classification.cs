@@ -38,7 +38,7 @@ public enum Classification
     /// <summary>
     /// Standard for kommuner
     /// </summary>
-    Communes = 131,
+    Municipalities = 131,
 
     /// <summary>
     /// Standard for landkoder (alfa-3)

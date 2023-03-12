@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -12,11 +12,11 @@
     <None Remove="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
     <None Remove="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
     <None Remove="SSB\Testdata\baseAmountNationalInsurance.json" />
-    <None Remove="SSB\Testdata\communes.json" />
-    <None Remove="SSB\Testdata\counties.json" />
+		<None Remove="SSB\Testdata\counties.json" />
     <None Remove="SSB\Testdata\countries.json" />
     <None Remove="SSB\Testdata\industryGrouping.json" />
     <None Remove="SSB\Testdata\maritalStatus.json" />
+    <None Remove="SSB\Testdata\municipalities.json" />
     <None Remove="SSB\Testdata\occupations.json" />
     <None Remove="SSB\Testdata\sex.json" />
   </ItemGroup>
@@ -26,7 +26,7 @@
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
     <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
     <EmbeddedResource Include="SSB\Testdata\baseAmountNationalInsurance.json" />
-    <EmbeddedResource Include="SSB\Testdata\communes.json" />
+    <EmbeddedResource Include="SSB\Testdata\municipalities.json" />
     <EmbeddedResource Include="SSB\Testdata\counties.json" />
     <EmbeddedResource Include="SSB\Testdata\countries.json" />
     <EmbeddedResource Include="SSB\Testdata\industryGrouping.json" />

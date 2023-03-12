@@ -6,13 +6,13 @@ using Altinn.Codelists.Tests.SSB.Mocks;
 
 namespace Altinn.Codelists.Tests.SSB;
 
-public class CommunesCodelistProviderTests
+public class MunicipalitiesCodelistProviderTests
 {
     [Fact]
     public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("kommuner", Classification.Communes, httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("kommuner", Classification.Municipalities, httpClientMock);
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 

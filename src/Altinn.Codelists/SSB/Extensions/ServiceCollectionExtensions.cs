@@ -1,7 +1,6 @@
 ﻿using Altinn.App.Core.Features;
 using Altinn.Codelists.SSB.Clients;
 using Altinn.Codelists.SSB.Models;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Codelists.SSB.Extensions;
@@ -25,7 +24,7 @@ public static class ServiceCollectionExtensions
         services.AddSSBClassificationCodelistProvider("sivilstand", Classification.MaritalStatus);
         services.AddSSBClassificationCodelistProvider("grunnbeløpfolketrygden", Classification.BaseAmountNationalInsurance);
         services.AddSSBClassificationCodelistProvider("fylker", Classification.Counties);
-        services.AddSSBClassificationCodelistProvider("kommuner", Classification.Communes);
+        services.AddSSBClassificationCodelistProvider("kommuner", Classification.Municipalities);
         services.AddSSBClassificationCodelistProvider("land", Classification.Countries);
 
         return services;

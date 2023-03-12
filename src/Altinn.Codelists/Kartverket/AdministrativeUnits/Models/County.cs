@@ -23,14 +23,14 @@ public class County
     public string Number { get; set; }
 
     /// <summary>
-    /// The name of the commune in Norwegian.
+    /// The name of the county in Norwegian.
     /// </summary>
     [JsonPropertyName("fylkesnavn")]
     public string Name { get; set; }
 
     /// <summary>
-    /// List of communes within the county
+    /// List of municipalities within the county
     /// </summary>
     [JsonPropertyName("kommuner")]
-    public List<Commune> Communes { get; set; } = new List<Commune>();
+    public List<Municipality> Municipalities { get; set; } = new List<Municipality>();
 }

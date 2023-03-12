@@ -5,9 +5,9 @@ using Altinn.Codelists.Kartverket.AdministrativeUnits.Models;
 namespace Altinn.Codelists.Kartverket.AdministrativeUnits;
 
 /// <summary>
-/// Provides a codelist for communes of Norway.
+/// Provides a codelist for municipalities of Norway.
 /// </summary>
-public class CommunesCodelistProvider : IAppOptionsProvider
+public class MunicipalitiesCodelistProvider : IAppOptionsProvider
 {
     private readonly IAdministrativeUnitsClient _administrativeUnitsHttpClient;
 
@@ -15,9 +15,9 @@ public class CommunesCodelistProvider : IAppOptionsProvider
     public string Id => "kommuner-kv";
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CommunesCodelistProvider"/> class.
+    /// Initializes a new instance of the <see cref="MunicipalitiesCodelistProvider"/> class.
     /// </summary>
-    public CommunesCodelistProvider(IAdministrativeUnitsClient administrativeUnitsHttpClient)
+    public MunicipalitiesCodelistProvider(IAdministrativeUnitsClient administrativeUnitsHttpClient)
     {
         _administrativeUnitsHttpClient = administrativeUnitsHttpClient;
     }
@@ -27,13 +27,13 @@ public class CommunesCodelistProvider : IAppOptionsProvider
     {
         bool hasCountyParam = keyValuePairs.TryGetValue("fnr", out string? countyNumber);
 
-        List<Commune> communes = hasCountyParam && countyNumber != null
-            ? await _administrativeUnitsHttpClient.GetCommunes(countyNumber)
-            : await _administrativeUnitsHttpClient.GetCommunes();
+        List<Municipality> municipalities = hasCountyParam && countyNumber != null
+            ? await _administrativeUnitsHttpClient.GetMunicipalities(countyNumber)
+            : await _administrativeUnitsHttpClient.GetMunicipalities();
 
         var appOptions = new AppOptions()
         {
-            Options = communes.Select(x => new AppOption() { Value = x.Number, Label = x.Name }).ToList()
+            Options = municipalities.Select(x => new AppOption() { Value = x.Number, Label = x.Name }).ToList()
         };
 
         return appOptions;

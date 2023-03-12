@@ -16,22 +16,22 @@ public class AdministrativeUnitsClientTests
     }
 
     [Fact(Skip = "Disabled. This actually calls out to the api and is primarily used to test during development.")]
-    public async Task GetCommunes_NothingSpecified_ShouldReturnAllCommunes()
+    public async Task GetMunicipalities_NothingSpecified_ShouldReturnAllMunicipalities()
     {
         var client = new AdministrativeUnitsHttpClient(Options.Create(new AdministrativeUnitsSettings()), new HttpClient());
 
-        var communes = await client.GetCommunes();
+        var municipalities = await client.GetMunicipalities();
 
-        communes.Should().HaveCountGreaterThan(2);
+        municipalities.Should().HaveCountGreaterThan(2);
     }
 
     [Fact(Skip = "Disabled. This actually calls out to the api and is primarily used to test during development.")]
-    public async Task GetCommunes_CountySpecified_ShouldReturnCommunesWithinCounty()
+    public async Task GetMunicipalities_CountySpecified_ShouldReturnMunicipalitiesWithinCounty()
     {
         var client = new AdministrativeUnitsHttpClient(Options.Create(new AdministrativeUnitsSettings()), new HttpClient());
 
-        var communes = await client.GetCommunes("46");
+        var municipalities = await client.GetMunicipalities("46");
 
-        communes.Should().HaveCountGreaterThan(2);
+        municipalities.Should().HaveCountGreaterThan(2);
     }
 }

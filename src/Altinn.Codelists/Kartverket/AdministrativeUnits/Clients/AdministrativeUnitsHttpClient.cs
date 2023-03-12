@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Codelists.Kartverket.AdministrativeUnits.Clients;
 
 /// <summary>
-/// Http client to get information on norways offical administrative units for counties and communes.
+/// Http client to get information on norways offical administrative units for counties and municipalities .
 /// </summary>
 public class AdministrativeUnitsHttpClient : IAdministrativeUnitsClient
 {
@@ -34,29 +34,29 @@ public class AdministrativeUnitsHttpClient : IAdministrativeUnitsClient
     }
 
     /// <summary>
-    /// Sends a asynchronus GET request to get all the communes of Norway.
+    /// Sends a asynchronus GET request to get all the unicipalities of Norway.
     /// </summary>
-    public async Task<List<Commune>> GetCommunes()
+    public async Task<List<Municipality>> GetMunicipalities()
     {
         var response = await _httpClient.GetAsync("kommuner");
         var responseJson = await response.Content.ReadAsStringAsync();
 
-        var communes = JsonSerializer.Deserialize<List<Commune>>(responseJson);
+        var municipalities = JsonSerializer.Deserialize<List<Municipality>>(responseJson);
 
-        return communes ?? new List<Commune>();
+        return municipalities ?? new List<Municipality>();
     }
 
     /// <summary>
-    /// Sends a asynchronus GET request to get all the communes within the specified county.
+    /// Sends a asynchronus GET request to get all the municipalities within the specified county.
     /// </summary>
     /// <param name="countyNumber">County number (string) including leading zero's indentifying the county.</param>
-    public async Task<List<Commune>> GetCommunes(string countyNumber)
+    public async Task<List<Municipality>> GetMunicipalities(string countyNumber)
     {
         var response = await _httpClient.GetAsync($"fylker/{countyNumber}?filtrer=kommuner,fylkesnavn,fylkesnummer");
         var responseJson = await response.Content.ReadAsStringAsync();
 
         var county = JsonSerializer.Deserialize<County>(responseJson);
 
-        return county?.Communes ?? new List<Commune>();
+        return county?.Municipalities ?? new List<Municipality>();
     }
 }
