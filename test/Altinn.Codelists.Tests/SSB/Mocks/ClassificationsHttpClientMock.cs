@@ -46,7 +46,7 @@ public class ClassificationsHttpClientMock : IClassificationsClient
             .Respond("application/json", EmbeddedResource.LoadDataAsString(MARITAL_STATUS_TESTDATA_RESOURCE).Result);
         
         MockedClassificationsRequest = HttpMessageHandlerMock
-            .When("http://data.ssb.no/api/klass/v1/classifications/19/*")
+            .When("http://data.ssb.no/api/klass/v1/classifications/20/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(BASE_AMOUT_NATIONAL_INSURANCE_TESTDATA_RESOURCE).Result);
 
         HttpMessageHandlerMock
