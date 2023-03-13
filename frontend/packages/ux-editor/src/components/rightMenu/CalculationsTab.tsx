@@ -3,16 +3,11 @@ import classes from './CalculationsTab.module.css';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Add } from '@navikt/ds-icons';
 import { RuleModal } from '../toolbar/RuleModal';
-import { LogicMode } from '../../types/global';
 import { Dynamics } from './Dynamics';
 import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
 
-interface CalculationsTabProps {
-  toggleFileEditor: (mode?: LogicMode) => void;
-}
-
-export const CalculationsTab = ({ toggleFileEditor }: CalculationsTabProps) => {
+export const CalculationsTab = () => {
   const [modalOpen, setModalOpen] = React.useState<boolean>(false);
   const t = useText();
   return <div className={classes.calculations}>
@@ -29,6 +24,6 @@ export const CalculationsTab = ({ toggleFileEditor }: CalculationsTabProps) => {
       <RuleModal modalOpen={modalOpen} handleClose={() => setModalOpen(false)} />
     </div>
     <Divider inMenu />
-    <Dynamics toggleFileEditor={toggleFileEditor} />
+    <Dynamics />
   </div>;
 };
