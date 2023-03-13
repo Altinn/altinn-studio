@@ -63,7 +63,7 @@ export const FormDesigner = ({
             This would be the editor
           </div>
           <div className={classes.rightContent + ' ' + classes.item}>
-            <RightMenu toggleFileEditor={() => null} />
+            <RightMenu />
           </div>
         </div>
       </div>

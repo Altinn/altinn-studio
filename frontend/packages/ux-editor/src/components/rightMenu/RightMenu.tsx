@@ -4,7 +4,7 @@ import { Tabs } from '@digdir/design-system-react';
 import { ConditionalRenderingTab } from './ConditionalRenderingTab';
 import { CalculationsTab } from './CalculationsTab';
 import { ContentTab } from './ContentTab';
-import { useTranslation } from "react-i18next";
+import { useTranslation } from 'react-i18next';
 
 export const RightMenu = () => {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ export const RightMenu = () => {
           },
           {
             name: t('right_menu.conditional_rendering'),
-            content: <ConditionalRenderingTab toggleFileEditor={toggleFileEditor} />,
+            content: <ConditionalRenderingTab />,
           },
           {
             name: t('right_menu.calculations'),

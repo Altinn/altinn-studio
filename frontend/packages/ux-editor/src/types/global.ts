@@ -20,25 +20,6 @@ export type IAppState = IFormDesignerNameSpace<
   IWidgetState
 >;
 
-export interface IAltinnEditableComponent {
-  ModalContent: () => JSX.Element;
-}
-
-export interface IContainerProvidedProps {
-  containerIndex: number;
-}
-
-export interface IRowProvidedProps {
-  containerIndex: number;
-  rowIndex: number;
-}
-
-export interface IColumnProvidedProps {
-  containerIndex: number;
-  rowIndex: number;
-  columnIndex: number;
-}
-
 export interface IOption {
   label: string;
   value: any;
@@ -168,12 +149,6 @@ export interface IFormAddressComponent extends IFormComponent {
   simplified: boolean;
 }
 
-export interface IFormGroupComponent extends IFormComponent {
-  type: ComponentTypes.Group;
-  maxCount: number;
-  children: string[];
-}
-
 export interface IFormDatepickerComponent extends IFormComponent {
   type: ComponentTypes.Datepicker;
   timeStamp: boolean;
@@ -237,9 +212,6 @@ export type FormComponentType =
 export interface IFormDesignerComponents {
   [id: string]: IFormComponent;
 }
-export interface IFormDesignerComponentProps {
-  [id: string]: IProperties;
-}
 
 export interface IFormDesignerContainers {
   [id: string]: ICreateFormContainer;
@@ -264,12 +236,6 @@ export interface IFormLayoutOrder {
   [id: string]: string[];
 }
 
-export interface ISelectedLayoutElement {
-  elementId: string;
-  elementType: string;
-  indexes: number[];
-}
-
 export interface IDataModelFieldElement {
   choices?: any;
   customProperties?: any;
@@ -292,20 +258,6 @@ export interface IDataModelFieldElement {
   xName?: string;
   xPath: string;
   xsdValueType?: string;
-}
-
-export interface IDataModelBinding {
-  fieldName: string;
-  parentGroup: string;
-}
-
-/**
- * Defines how each element in the code list element list looks like
- */
-export interface ICodeListListElement {
-  codeListName: string;
-  org: string;
-  id: number;
 }
 
 export interface IRuleModelFieldElement {
@@ -336,8 +288,6 @@ export interface IWidgetTexts {
   language: string;
   resources: ITextResource[];
 }
-
-export type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
 
 export interface IToolbarElement {
   label: string;
