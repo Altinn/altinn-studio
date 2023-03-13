@@ -1,17 +1,11 @@
-import React from 'react';
+import React from "react";
 import classes from './Dynamics.module.css';
-import { LogicMode } from '../../types/global';
 import { ExternalLink } from '@navikt/ds-icons';
-import { useText } from '../../hooks';
-import { Link } from '@mui/material';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from "react-i18next";
 
-interface DynamicsProps {
-  toggleFileEditor: (mode?: LogicMode) => void;
-}
-
-export const Dynamics = ({ toggleFileEditor }: DynamicsProps) => {
-  const t = useText();
+export const Dynamics = () => {
+  const { t } = useTranslation();
   const { app, org } = useParams();
   const dynamicLink = `/repos/${org}/${app}/_edit/master/App/ui/RuleHandler.js`;
   return (
@@ -33,9 +27,9 @@ export const Dynamics = ({ toggleFileEditor }: DynamicsProps) => {
             </span>
           </a>
         </p>
-        <Link className={classes.textLink} href={dynamicLink} target='_blank'>
+        <a className={classes.textLink} href={dynamicLink} target='_blank' rel="noreferrer">
           {t('right_menu.dynamics_edit')}
-        </Link>
+        </a> (Denne lenken åpnes i Gitea)
       </div>
     </div>
   );
