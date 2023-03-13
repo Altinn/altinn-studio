@@ -1,13 +1,15 @@
 import React from 'react';
 
-import { Button } from '@digdir/design-system-react';
-import { Grid, IconButton, makeStyles } from '@material-ui/core';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Grid, makeStyles } from '@material-ui/core';
+import { CheckmarkCircleFillIcon, TrashIcon } from '@navikt/aksel-icons';
 import classNames from 'classnames';
 
 import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { FileName } from 'src/layout/FileUpload/shared/render';
+import css from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { renderValidationMessages } from 'src/utils/render';
@@ -32,11 +34,6 @@ const useStyles = makeStyles({
     width: '100%',
     marginTop: '12px',
     marginBottom: '12px',
-  },
-  deleteButton: {
-    padding: '0px',
-    color: 'black',
-    justifyContent: 'left',
   },
   select: {
     fontSize: '1rem',
@@ -100,17 +97,17 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
           className={classes.textContainer}
           style={{ flexShrink: 0 }}
         >
-          <div style={{ display: 'flex' }}>
+          <div className={css.iconButtonWrapper}>
             {props.attachment.uploaded && (
               <div style={{ marginLeft: '0.9375rem', marginRight: '0.9375rem' }}>
                 {!props.mobileView
                   ? getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)
                   : undefined}
-                <i
-                  className='ai ai-check-circle'
+                <CheckmarkCircleFillIcon
                   role='img'
                   aria-hidden={!props.mobileView}
                   aria-label={getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)}
+                  className={css.checkMark}
                 />
               </div>
             )}
@@ -124,14 +121,15 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
               />
             )}
             <div>
-              <IconButton
-                classes={{ root: classes.deleteButton }}
+              <Button
                 onClick={() => handleDeleteFile()}
-                tabIndex={0}
+                variant={ButtonVariant.Quiet}
+                color={ButtonColor.Danger}
+                icon={<TrashIcon aria-hidden={true} />}
+                iconPlacement='right'
               >
                 {getLanguageFromKey('general.delete', props.language)}
-                <i className='ai ai-trash' />
-              </IconButton>
+              </Button>
             </div>
           </div>
         </Grid>
