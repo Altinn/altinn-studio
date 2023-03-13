@@ -29,6 +29,7 @@ import { ModelsPanel, TypesPanel } from './layout';
 import { useTranslation } from 'react-i18next';
 import { TypesInspector } from './TypesInspector';
 import classNames from 'classnames';
+import { GenerateSchemaState } from 'app-shared/types/global';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
@@ -38,6 +39,7 @@ export interface IEditorProps {
   onSaveSchema: (payload: any) => void;
   saveUrl: string;
   schema: IJsonSchema;
+  schemaState: GenerateSchemaState;
   editMode: boolean;
   toggleEditMode: () => void;
 }
@@ -80,6 +82,7 @@ export const SchemaEditor = ({
   LandingPagePanel,
   loading,
   schema,
+  schemaState,
   onSaveSchema,
   saveUrl,
   name,
@@ -174,6 +177,8 @@ export const SchemaEditor = ({
         saveAction={name ? handleSaveSchema : undefined}
         toggleEditMode={name ? toggleEditMode : undefined}
         editMode={editMode}
+        schema={schema}
+        schemaState={schemaState}
       />
       <main className={classes.main}>
         {LandingPagePanel}
