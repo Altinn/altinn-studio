@@ -1,5 +1,4 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const MonacoPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -63,9 +62,6 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: `${process.env.npm_package_name}.css`,
-    }),
-    new MonacoPlugin({
-      languages: ['typescript', 'javascript', 'csharp'],
     }),
   ],
 };
