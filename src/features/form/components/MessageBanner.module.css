@@ -1,0 +1,15 @@
+.banner {
+  margin-top: calc(var(--modal-padding-y) * -1);
+  margin-right: calc(var(--modal-padding-x) * -1);
+  margin-bottom: var(--modal-padding-y);
+  margin-left: calc(var(--modal-padding-x) * -1);
+  padding: 10px var(--modal-padding-x);
+}
+
+.default {
+  background-color: var(--colors-grey-200);
+}
+
+.error {
+  background-color: var(--colors-red-200);
+}

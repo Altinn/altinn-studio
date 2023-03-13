@@ -1,5 +1,7 @@
 import React from 'react';
 
+import cn from 'classnames';
+
 import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { AltinnSubstatusPaper } from 'src/components/molecules/AltinnSubstatusPaper';
@@ -10,6 +12,7 @@ import { Footer } from 'src/features/footer/Footer';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import { getLayoutOrderFromTracks } from 'src/selectors/getLayoutOrder';
+import classes from 'src/shared/containers/Presentation.module.css';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { PresentationType, ProcessTaskType } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
@@ -24,10 +27,6 @@ export interface IPresentationProvidedProps {
   children?: JSX.Element;
 }
 
-const style = {
-  marginBottom: '0.625rem',
-};
-
 export const PresentationComponent = (props: IPresentationProvidedProps) => {
   const dispatch = useAppDispatch();
   const party = useAppSelector((state) => state.party?.selectedParty);
@@ -35,6 +34,7 @@ export const PresentationComponent = (props: IPresentationProvidedProps) => {
   const instance = useAppSelector((state) => state.instanceData?.instance);
   const userParty = useAppSelector((state) => state.profile.profile?.party);
   const textResources = useAppSelector((state) => state.textResources.resources);
+  const { expandedWidth } = useAppSelector((state) => state.formLayout.uiConfig);
 
   const previousFormPage: string = useAppSelector((state) =>
     getNextView(
@@ -88,10 +88,7 @@ export const PresentationComponent = (props: IPresentationProvidedProps) => {
   document.body.style.background = backgroundColor;
 
   return (
-    <div
-      id='processContainer'
-      style={style}
-    >
+    <div className={cn(classes.container, { [classes.expanded]: expandedWidth })}>
       <AltinnAppHeader
         party={party || undefined}
         userParty={userParty}
@@ -99,37 +96,27 @@ export const PresentationComponent = (props: IPresentationProvidedProps) => {
         headerBackgroundColor={backgroundColor}
         language={language}
       />
-      <main className='container'>
-        <div className='row'>
-          <div className='col-xl-12 a-p-static'>
-            {isProcessStepsArchived && instance?.status?.substatus && (
-              <AltinnSubstatusPaper
-                label={getTextResourceByKey(instance.status.substatus.label, textResources)}
-                description={getTextResourceByKey(instance.status.substatus.description, textResources)}
-              />
-            )}
-            <NavBar
-              handleClose={handleModalCloseButton}
-              handleBack={handleBackArrowButton}
-              showBackArrow={
-                !!previousFormPage && (props.type === ProcessTaskType.Data || props.type === PresentationType.Stateless)
-              }
-            />
-            <div className='a-modal-content-target'>
-              <div className='a-page a-current-page'>
-                <div className='modalPage'>
-                  <section
-                    className='modal-content'
-                    id='main-content'
-                  >
-                    <Header {...props} />
-                    <div className='modal-body a-modal-body'>{props.children}</div>
-                  </section>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <main className={classes.page}>
+        {isProcessStepsArchived && instance?.status?.substatus && (
+          <AltinnSubstatusPaper
+            label={getTextResourceByKey(instance.status.substatus.label, textResources)}
+            description={getTextResourceByKey(instance.status.substatus.description, textResources)}
+          />
+        )}
+        <NavBar
+          handleClose={handleModalCloseButton}
+          handleBack={handleBackArrowButton}
+          showBackArrow={
+            !!previousFormPage && (props.type === ProcessTaskType.Data || props.type === PresentationType.Stateless)
+          }
+        />
+        <section
+          id='main-content'
+          className={classes.modal}
+        >
+          <Header {...props} />
+          <div className={classes.modalBody}>{props.children}</div>
+        </section>
       </main>
       <Footer />
     </div>

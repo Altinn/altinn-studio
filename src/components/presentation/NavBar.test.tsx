@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
@@ -90,7 +90,7 @@ describe('NavBar', () => {
       showLanguageSelector: false,
     });
     const closeButton = screen.getByRole('button', { name: /Lukk Skjema/i });
-    await act(() => userEvent.click(closeButton));
+    await userEvent.click(closeButton);
     expect(mockClose).toHaveBeenCalled();
   });
 
@@ -101,7 +101,7 @@ describe('NavBar', () => {
       showLanguageSelector: false,
     });
     expect(screen.queryAllByRole('button')).toHaveLength(0);
-    expect(screen.queryByTestId('altinn-back-button')).toBeNull();
+    expect(screen.queryByTestId('form-back-button')).toBeNull();
   });
 
   it('should render back button', async () => {
@@ -110,8 +110,8 @@ describe('NavBar', () => {
       showBackArrow: true,
       showLanguageSelector: false,
     });
-    const backButton = screen.getByTestId('altinn-back-button');
-    await act(() => userEvent.click(backButton));
+    const backButton = screen.getByTestId('form-back-button');
+    await userEvent.click(backButton);
     expect(mockBack).toHaveBeenCalled();
   });
   it('should render and change app language', async () => {
@@ -123,7 +123,9 @@ describe('NavBar', () => {
     });
     await waitForElementToBeRemoved(screen.queryByRole('progressbar'));
     const dropdown = screen.getByRole('combobox', { name: /Språk/i });
-    await act(() => userEvent.selectOptions(dropdown, 'en'));
+    await userEvent.click(dropdown);
+    const en = screen.getByText(/Engelsk/i, { selector: '[role=option]' });
+    await userEvent.click(en);
     expect(dropdown).toHaveValue('en');
   });
   it('should render app language with custom labels', async () => {
@@ -149,7 +151,7 @@ describe('NavBar', () => {
     });
     await waitForElementToBeRemoved(screen.queryByRole('progressbar'));
     screen.getByRole('combobox', { name: /Velg språk test/i });
-    screen.getByRole('option', { name: /Norsk test/i });
-    screen.getByRole('option', { name: /Engelsk test/i });
+    screen.getByText(/Norsk test/i, { selector: '[role=option]' });
+    screen.getByText(/Engelsk test/i, { selector: '[role=option]' });
   });
 });

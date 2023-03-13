@@ -16,7 +16,7 @@ import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { PDFView } from 'src/features/pdf/PDFView';
 import { ReceiptContainer } from 'src/features/receipt/containers/ReceiptContainer';
 import { PresentationComponent } from 'src/shared/containers/Presentation';
-import css from 'src/shared/containers/ProcessWrapper.module.css';
+import classes from 'src/shared/containers/ProcessWrapper.module.css';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
@@ -66,8 +66,8 @@ export const ProcessWrapper = () => {
   return (
     <>
       <div
-        className={cn(css['content'], {
-          [css['hide-form']]: previewPDF,
+        className={cn(classes['content'], {
+          [classes['hide-form']]: previewPDF,
         })}
       >
         <PresentationComponent
@@ -96,7 +96,7 @@ export const ProcessWrapper = () => {
         </PresentationComponent>
       </div>
       {previewPDF && (
-        <div className={cn(css['content'], css['hide-pdf'])}>
+        <div className={cn(classes['content'], classes['hide-pdf'])}>
           <PDFView
             appName={appName as string}
             appOwner={appOwner}

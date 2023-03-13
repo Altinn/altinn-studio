@@ -114,6 +114,7 @@ export function nn() {
       empty_summary: 'Du har ikkje lagt inn informasjon her',
       enabled: 'Aktivert',
       error_message_with_colon: 'Feilmelding:',
+      expand_form: 'Utvid skjema',
       for: 'for',
       header_profile_icon_label: 'Profil ikon knapp',
       label: 'Namn',

@@ -19,9 +19,6 @@ const useStyles = makeStyles({
     padding: '5px',
     paddingLeft: '10px',
   },
-  jumpNav: {
-    backgroundColor: '#fff',
-  },
   srOnly: {
     position: 'absolute',
     clip: 'rect(0,0,0,0)',
@@ -50,7 +47,7 @@ export function LandmarkShortcuts({ shortcuts }: ILandmarkShortcutsProps) {
   };
 
   return (
-    <nav className={cn(classes.jumpNav)}>
+    <nav>
       {shortcuts.map((shortcut) => {
         return (
           <button

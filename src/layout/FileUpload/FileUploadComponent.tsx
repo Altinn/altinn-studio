@@ -320,7 +320,6 @@ export function FileUploadComponent({ node, componentValidations, language }: IF
 
   return (
     <div
-      className='container'
       id={`altinn-fileuploader-${id}`}
       style={{ padding: '0px' }}
     >

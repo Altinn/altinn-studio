@@ -6,7 +6,7 @@ import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
 import { PDF_LAYOUT_NAME } from 'src/features/pdf/data/pdfSlice';
-import css from 'src/features/pdf/PDFView.module.css';
+import classes from 'src/features/pdf/PDFView.module.css';
 import { ComponentType } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
@@ -70,12 +70,12 @@ export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
   }
 
   return (
-    <div className={css['pdf-wrapper']}>
-      <h1 className={cn({ [css['title-margin']]: !appOwner })}>{appName}</h1>
+    <div className={classes['pdf-wrapper']}>
+      <h1 className={cn({ [classes['title-margin']]: !appOwner })}>{appName}</h1>
       {appOwner && (
         <p
           role='doc-subtitle'
-          className={css['title-margin']}
+          className={classes['title-margin']}
         >
           {appOwner}
         </p>
@@ -83,7 +83,7 @@ export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
       {pdfPage.children().map((node) => (
         <div
           key={node.item.id}
-          className={css['component-container']}
+          className={classes['component-container']}
         >
           <PDFComponent node={node} />
         </div>

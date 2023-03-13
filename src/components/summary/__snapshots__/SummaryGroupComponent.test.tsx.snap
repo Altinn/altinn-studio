@@ -3,21 +3,17 @@
 exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`] = `
 <DocumentFragment>
   <div
-    class="MuiGrid-root MuiGrid-container"
     data-testid="summary-group-component"
+    style="width: 100%;"
   >
     <div
-      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
+      class="makeStyles-container-2"
     >
       <span
-        class="MuiTypography-root makeStyles-label-2 MuiTypography-body1"
+        class="MuiTypography-root makeStyles-label-3 MuiTypography-body1"
       >
         Mock group
       </span>
-    </div>
-    <div
-      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
-    >
       <button
         class="Button-module_button__2ZuB7 Button-module_small__l39oh Button-module_quiet__1KlhF Button-module_secondary__R0waJ"
         type="button"
@@ -44,7 +40,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       </button>
     </div>
     <div
-      class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+      style="width: 100%;"
     >
       <div
         class="makeStyles-border-1"
@@ -60,7 +56,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
              : 
           </span>
           <span
-            class="makeStyles-data-6"
+            class="makeStyles-data-7"
           >
             1
           </span>
@@ -76,7 +72,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
              : 
           </span>
           <span
-            class="makeStyles-data-6"
+            class="makeStyles-data-7"
           >
             2
           </span>

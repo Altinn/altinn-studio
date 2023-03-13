@@ -2,15 +2,15 @@ import React from 'react';
 
 import { TableCell, TableRow } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { createTheme, makeStyles, useMediaQuery } from '@material-ui/core';
+import { useMediaQuery } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import classes from 'src/features/form/containers/RepeatingGroup.module.css';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
 import { FormComponent } from 'src/layout/LayoutComponent';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getTextAlignment, getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -40,44 +40,6 @@ export interface IRepeatingGroupTableRowProps {
     onPopoverDeleteClick: (index: number) => () => void;
   };
 }
-
-const theme = createTheme(AltinnAppTheme);
-
-const useStyles = makeStyles({
-  popoverCurrentCell: {
-    zIndex: 1,
-    position: 'relative',
-  },
-  buttonCell: {
-    minWidth: 'unset',
-    maxWidth: 'unset',
-    width: '1px', // Shrinks column width
-    '& > div': {
-      margin: 0,
-    },
-  },
-  buttonInCellWrapper: {
-    display: 'inline-flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    width: '100%',
-  },
-  tableRowError: {
-    backgroundColor: theme.altinnPalette.primary.redLight,
-  },
-  tableButton: {
-    width: 'max-content', // Stops column from shrinking too much
-  },
-  contentFormatting: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    lineClamp: 2,
-    WebkitBoxOrient: 'vertical',
-    wordBreak: 'break-word',
-  },
-});
 
 function getTableTitle(textResourceBindings: ITextResourceBindings) {
   if (textResourceBindings.tableTitle) {
@@ -118,7 +80,6 @@ export function RepeatingGroupTableRow({
   mobileView,
   deleteFunctionality,
 }: IRepeatingGroupTableRowProps): JSX.Element | null {
-  const classes = useStyles();
   const mobileViewSmall = useMediaQuery('(max-width:768px)');
   const textResources = useAppSelector((state) => state.textResources.resources);
   const language = useAppSelector((state) => state.language.language);
@@ -178,7 +139,7 @@ export function RepeatingGroupTableRow({
           </TableCell>
         ))
       ) : (
-        <TableCell>
+        <TableCell className={classes.mobileTableCell}>
           {tableNodes.map((n, i, { length }) => {
             return (
               !isEditingRow && (
@@ -274,7 +235,7 @@ export function RepeatingGroupTableRow({
         </>
       ) : (
         <TableCell
-          className={classes.buttonCell}
+          className={cn(classes.buttonCell, classes.mobileTableCell)}
           style={{ verticalAlign: 'top' }}
         >
           <div className={classes.buttonInCellWrapper}>

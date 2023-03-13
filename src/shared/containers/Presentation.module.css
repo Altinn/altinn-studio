@@ -1,0 +1,23 @@
+.container {
+  padding-bottom: 1rem;
+}
+
+.expanded {
+  --page-max-width: none;
+  --page-padding-x: 24px;
+}
+
+.page {
+  max-width: var(--page-max-width);
+  padding: 0 var(--page-padding-x);
+  margin: 0 auto;
+}
+
+.modal {
+  background-color: white;
+  box-shadow: 1px 1px 4px 0 rgb(137 137 137 / 50%);
+}
+
+.modalBody {
+  padding: var(--modal-padding-y) var(--modal-padding-x);
+}

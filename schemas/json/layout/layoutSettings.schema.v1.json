@@ -48,6 +48,9 @@
         "showLanguageSelector": {
           "$ref": "#/definitions/showLanguageSelector"
         },
+        "showExpandWidthButton": {
+          "$ref": "#/definitions/showExpandWidthButton"
+        },
         "pdfLayoutName": {
           "$ref": "#/definitions/pdfLayoutName"
         },
@@ -84,6 +87,11 @@
     "showLanguageSelector": {
       "additionalProperties": false,
       "description": "An attribute specifying if the translation dropdown menu should be visible",
+      "type": "boolean"
+    },
+    "showExpandWidthButton": {
+      "additionalProperties": false,
+      "description": "An attribute for specifying whether the expand width button should be visible",
       "type": "boolean"
     },
     "pdfLayoutName": {

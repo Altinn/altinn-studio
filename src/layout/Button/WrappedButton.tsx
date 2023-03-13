@@ -4,7 +4,7 @@ import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react'
 import classNames from 'classnames';
 
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
-import css from 'src/layout/Button/WrappedButton.module.css';
+import classes from 'src/layout/Button/WrappedButton.module.css';
 import type { ButtonLoaderProps } from 'src/layout/Button/ButtonLoader';
 
 export interface BaseButtonProps {
@@ -43,9 +43,9 @@ export const WrappedButton = ({
   return (
     <span
       className={classNames(
-        css['wrapped-button'],
-        somethingIsLoading && css['wrapped-button--loading'],
-        thisIsLoading && css['wrapped-button--busy'],
+        classes['wrapped-button'],
+        somethingIsLoading && classes['wrapped-button--loading'],
+        thisIsLoading && classes['wrapped-button--busy'],
       )}
     >
       <Button

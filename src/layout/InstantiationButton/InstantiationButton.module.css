@@ -1,11 +1,11 @@
-.button-group {
+.buttonGroup {
   margin-top: 2.25rem;
 }
 @media only screen and (max-width: 640px) {
-  .button-group span {
+  .buttonGroup span {
     width: 100%;
   }
-  .button-group button {
+  .buttonGroup button {
     width: 100%;
   }
 }

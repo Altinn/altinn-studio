@@ -1,0 +1,25 @@
+.nav {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 0.5rem;
+  gap: 1rem;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+button.buttonMargin {
+  margin-top: calc(var(--semantic-tab_focus-outline-offset) + var(--semantic-tab_focus-outline-width));
+}
+
+@media only screen and (max-width: 1200px) {
+  button.hideExpandButtonMaxWidth {
+    display: none;
+  }
+}

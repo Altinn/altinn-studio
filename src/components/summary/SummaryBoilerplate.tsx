@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Grid, makeStyles, Typography } from '@material-ui/core';
+import { makeStyles, Typography } from '@material-ui/core';
 import cn from 'classnames';
 
 import { EditButton } from 'src/components/summary/EditButton';
@@ -19,6 +19,12 @@ export interface SummaryBoilerplateProps {
 }
 
 const useStyles = makeStyles({
+  container: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   label: {
     fontWeight: 500,
     fontSize: '1.125rem',
@@ -50,32 +56,25 @@ export function SummaryBoilerplate({
 
   return (
     <>
-      <Grid
-        item={true}
-        xs={10}
-        {...(hasValidationMessages && {
-          'data-testid': 'has-validation-message',
-        })}
-      >
+      <div className={classes.container}>
         <Typography
           variant='body1'
           className={cn(hasValidationMessages && !display?.hideValidationMessages && classes.labelWithError)}
           component='span'
+          {...(hasValidationMessages && {
+            'data-testid': 'has-validation-message',
+          })}
         >
           {label}
         </Typography>
-      </Grid>
-      <Grid
-        item
-        xs={2}
-      >
+
         {shouldShowChangeButton && (
           <EditButton
             onClick={onChangeClick}
             editText={changeText}
           />
         )}
-      </Grid>
+      </div>
     </>
   );
 }

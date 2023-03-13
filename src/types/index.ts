@@ -68,6 +68,7 @@ export interface IPagesSettings {
   hideCloseButton?: boolean;
   showProgress?: boolean;
   showLanguageSelector?: boolean;
+  showExpandWidthButton?: boolean;
   excludeFromPdf?: string[];
   pdfLayoutName?: string;
 }
@@ -188,6 +189,8 @@ export interface IUiConfig {
   hideCloseButton?: boolean;
   showLanguageSelector?: boolean;
   showProgress?: boolean;
+  showExpandWidthButton?: boolean;
+  expandedWidth?: boolean;
   keepScrollPos?: IKeepComponentScrollPos;
 }
 

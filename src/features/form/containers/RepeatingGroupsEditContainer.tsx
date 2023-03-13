@@ -1,18 +1,17 @@
 import React from 'react';
 
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Grid, makeStyles } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import { Back, Delete as DeleteIcon, Next } from '@navikt/ds-icons';
 import cn from 'classnames';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import classes from 'src/features/form/containers/RepeatingGroup.module.css';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { AltinnStudioTheme } from 'src/theme/altinnStudioTheme';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGroupEditProperties } from 'src/layout/Group/types';
-
 export interface IRepeatingGroupsEditContainer {
   id: string;
   className?: string;
@@ -27,36 +26,6 @@ export interface IRepeatingGroupsEditContainer {
   filteredIndexes?: number[] | null;
 }
 
-const useStyles = makeStyles({
-  editContainer: {
-    backgroundColor: '#f1fbff',
-    width: '100%',
-    display: 'inline-block',
-    padding: '12px 24px',
-    '@media (min-width: 768px)': {
-      padding: '24px 84px',
-    },
-    '@media (min-width: 992px)': {
-      padding: '36px 96px',
-    },
-  },
-  nestedEditContainer: {
-    backgroundColor: '#f1fbff',
-    width: '100%',
-    display: 'inline-block',
-    padding: '12px 24px',
-  },
-  hideTable: {
-    borderTop: `2px dotted ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
-    borderBottom: `2px dotted ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
-    marginBottom: '-2px',
-  },
-  nestedHideTable: {
-    borderRight: `2px dotted ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
-    borderLeft: `2px dotted ${AltinnStudioTheme.altinnPalette.primary.blueMedium}`,
-  },
-});
-
 export function RepeatingGroupsEditContainer({
   id,
   className,
@@ -70,7 +39,6 @@ export function RepeatingGroupsEditContainer({
   setMultiPageIndex,
   filteredIndexes,
 }: IRepeatingGroupsEditContainer): JSX.Element | null {
-  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const textResources = useAppSelector((state) => state.textResources.resources);
   const node = useResolvedNode(id);

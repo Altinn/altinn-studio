@@ -123,7 +123,7 @@ export const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
         position='static'
         className={classes.default}
       >
-        <Toolbar className={`container ${classes.toolbarContainer}`}>
+        <Toolbar className={classes.toolbarContainer}>
           <Grid
             item={true}
             className={classes.logo}

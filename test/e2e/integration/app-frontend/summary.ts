@@ -55,7 +55,7 @@ describe('Summary', () => {
         cy.wrap(summary)
           .children()
           .contains(mui.gridContainer, 'Til:')
-          .children(mui.gridItem)
+          .children()
           .then((items) => {
             cy.wrap(items).should('contain.text', 'a a');
             cy.wrap(items).find('button').should('not.exist');
@@ -65,7 +65,7 @@ describe('Summary', () => {
           .siblings()
           .contains(mui.gridContainer, texts.dateOfEffect)
           .then((summaryDate) => {
-            cy.wrap(summaryDate).children(mui.gridItem).find('button').should('exist').and('be.visible').click();
+            cy.wrap(summaryDate).children().find('button').should('exist').and('be.visible').click();
             cy.get(appFrontend.changeOfName.dateOfEffect).clear();
             cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
             cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {

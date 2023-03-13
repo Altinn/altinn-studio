@@ -1,6 +1,6 @@
 .footer {
-  padding: 60px 24px;
-  max-width: none;
+  max-width: var(--page-max-width);
+  padding: 60px var(--page-padding-x);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -13,12 +13,5 @@
 @media only screen and (min-width: 600px) {
   .footer {
     flex-direction: row;
-  }
-}
-
-@media only screen and (min-width: 1200px) {
-  .footer {
-    max-width: 1056px;
-    padding: 60px 0;
   }
 }

@@ -1,0 +1,140 @@
+.groupContainer {
+  margin-left: calc(var(--modal-padding-x) * -1);
+  margin-right: calc(var(--modal-padding-x) * -1);
+  width: calc(100% + 2 * var(--modal-padding-x));
+
+  overflow-x: auto;
+  margin-bottom: 15px;
+}
+
+.groupContainer > table > tbody > tr > td:first-child,
+.groupContainer > table > thead > tr > th:first-child {
+  padding-left: calc(var(--modal-padding-x) - var(--table-input-margin));
+}
+
+.groupContainer > table > tbody > tr > td:last-child,
+.groupContainer > table > thead > tr > th:last-child {
+  padding-right: calc(var(--modal-padding-x) - var(--table-input-margin));
+}
+
+.nestedGroupContainer {
+  overflow-x: auto;
+  margin: 0 0 15px 0;
+  width: 100%;
+}
+
+.tableEmpty {
+  margin: 0;
+}
+
+.editContainerRow {
+  border-top: 1px solid var(--repeating-group-edit-divider-color);
+  border-bottom: 2px dotted var(--repeating-group-edit-border-color);
+}
+
+.editContainerRow > td > div {
+  margin: 0;
+}
+
+.editingRow {
+  border-top: 2px dotted var(--repeating-group-edit-border-color);
+  background-color: var(--repeating-group-edit-surface-color);
+}
+
+.editingRow > td {
+  border-bottom: 0;
+}
+
+.editingBorder {
+  width: calc(100% - 2px);
+  margin: 0 auto;
+}
+
+.editingBorder .editContainerRow,
+.editingBorder .editingRow {
+  border-right: 2px dotted var(--repeating-group-edit-border-color);
+  border-left: 2px dotted var(--repeating-group-edit-border-color);
+}
+
+.visuallyHidden {
+  border: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px 1px 1px 1px);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.contentFormatting {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+.popoverCurrentCell {
+  z-index: 1;
+  position: relative;
+}
+
+.buttonCell {
+  min-width: unset;
+  max-width: unset;
+  width: 1px;
+}
+
+.buttonCell > div {
+  margin: 0;
+}
+
+.buttonInCellWrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.tableRowError {
+  background-color: var(--repeating-group-error-color);
+}
+
+button.tableButton {
+  width: max-content;
+}
+
+.editContainer {
+  background-color: var(--repeating-group-edit-surface-color);
+  width: 100%;
+  display: inline-block;
+  padding: var(--modal-padding-y) var(--modal-padding-x);
+}
+
+.nestedEditContainer {
+  background-color: var(--repeating-group-edit-surface-color);
+  width: 100%;
+  display: inline-block;
+  padding: 12px 24px;
+}
+
+.hideTable {
+  border-top: 2px dotted var(--repeating-group-edit-border-color);
+  border-bottom: 2px dotted var(--repeating-group-edit-border-color);
+  margin-bottom: -2px;
+}
+
+.nestedHideTable {
+  border-right: 2px dotted var(--repeating-group-edit-border-color);
+  border-left: 2px dotted var(--repeating-group-edit-border-color);
+}
+
+.mobileTableCell {
+  padding-top: var(--table-input-margin);
+  padding-bottom: var(--table-input-margin);
+}

@@ -4,7 +4,7 @@ import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import css from 'src/layout/Button/ButtonComponent.module.css';
+import classes from 'src/layout/Button/ButtonComponent.module.css';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { SaveButton } from 'src/layout/Button/SaveButton';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
@@ -35,11 +35,9 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     }
 
     return (
-      <div className='container pl-0'>
-        <div className={css['button-group']}>
-          <div className={css['button-row']}>
-            <GenericButton {...props}>{props.text}</GenericButton>
-          </div>
+      <div className={classes['button-group']}>
+        <div className={classes['button-row']}>
+          <GenericButton {...props}>{props.text}</GenericButton>
         </div>
       </div>
     );
@@ -66,29 +64,25 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   };
   const busyWithId = savingId || submittingId || '';
   return (
-    <div className='container pl-0'>
-      <div className={css['button-group']}>
-        <div className={css['button-row']}>
-          {autoSave === false && ( // can this be removed from the component?
-            <SaveButton
-              onClick={saveFormData}
-              id='saveBtn'
-              busyWithId={busyWithId}
-              language={props.language}
-            >
-              {getLanguageFromKey('general.save', props.language)}
-            </SaveButton>
-          )}
-          <SubmitButton
-            onClick={() => submitTask({ componentId: id })}
-            id={id}
-            language={props.language}
-            busyWithId={busyWithId}
-          >
-            {props.text}
-          </SubmitButton>
-        </div>
-      </div>
+    <div className={classes['button-group']}>
+      {autoSave === false && ( // can this be removed from the component?
+        <SaveButton
+          onClick={saveFormData}
+          id='saveBtn'
+          busyWithId={busyWithId}
+          language={props.language}
+        >
+          {getLanguageFromKey('general.save', props.language)}
+        </SaveButton>
+      )}
+      <SubmitButton
+        onClick={() => submitTask({ componentId: id })}
+        id={id}
+        language={props.language}
+        busyWithId={busyWithId}
+      >
+        {props.text}
+      </SubmitButton>
     </div>
   );
 };

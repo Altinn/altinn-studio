@@ -1,0 +1,35 @@
+.appBar {
+  box-shadow: none !important;
+}
+
+.appBarText {
+  font-family: 'Altinn-DIN';
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: 12px var(--page-padding-x);
+}
+
+@media only screen and (min-width: 576px) {
+  .container {
+    padding: 24px var(--page-padding-x);
+  }
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}

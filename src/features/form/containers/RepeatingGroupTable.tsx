@@ -1,21 +1,15 @@
 import React, { useState } from 'react';
 
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@altinn/altinn-design-system';
-import { createTheme, Grid, makeStyles, useMediaQuery } from '@material-ui/core';
+import { useMediaQuery } from '@material-ui/core';
 import cn from 'classnames';
 
 import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import {
-  fullWidthWrapper,
-  xPaddingLarge,
-  xPaddingMedium,
-  xPaddingSmall,
-} from 'src/features/form/components/FullWidthWrapper';
+import classes from 'src/features/form/containers/RepeatingGroup.module.css';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import { RepeatingGroupTableRow } from 'src/features/form/containers/RepeatingGroupTableRow';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { ComponentType } from 'src/layout';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getTextAlignment, getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ITextResourceBindings } from 'src/types';
@@ -31,92 +25,6 @@ export interface IRepeatingGroupTableProps {
   deleting: boolean;
   filteredIndexes?: number[] | null;
 }
-
-const theme = createTheme(AltinnAppTheme);
-
-const cellMargin = 15;
-const useStyles = makeStyles({
-  fullWidthWrapper,
-  groupContainer: {
-    overflowX: 'auto',
-    marginBottom: 15,
-
-    // Line up content with page
-    '& > table > tbody > tr > td:first-child, & > table > thead > tr > th:first-child': {
-      paddingLeft: xPaddingSmall - cellMargin,
-      '@media (min-width: 768px)': {
-        paddingLeft: xPaddingMedium - cellMargin,
-      },
-      '@media (min-width: 992px)': {
-        paddingLeft: xPaddingLarge - cellMargin,
-      },
-    },
-    '& > table > tbody > tr > td:last-child, & > table > thead > tr > th:last-child': {
-      paddingRight: xPaddingSmall - cellMargin,
-      '@media (min-width: 768px)': {
-        paddingRight: xPaddingMedium - cellMargin,
-      },
-      '@media (min-width: 992px)': {
-        paddingRight: xPaddingLarge - cellMargin,
-      },
-    },
-  },
-  nestedGroupContainer: {
-    overflowX: 'auto',
-    margin: '0 0 15px 0',
-    width: '100%',
-  },
-  tableEmpty: {
-    margin: 0,
-  },
-  editingBorder: {
-    width: 'calc(100% - 2px)',
-    margin: '0 auto',
-    '& $editContainerRow': {
-      borderRight: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-      borderLeft: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    },
-    '& $editingRow': {
-      borderRight: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-      borderLeft: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    },
-  },
-  editContainerRow: {
-    borderTop: `1px solid ${theme.altinnPalette.primary.blueLight}`,
-    borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    '& > td > div': {
-      margin: 0,
-    },
-  },
-  editingRow: {
-    borderTop: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    backgroundColor: '#f1fbff',
-    '& > td': {
-      borderBottom: 0,
-    },
-  },
-  visuallyHidden: {
-    border: 0,
-    padding: 0,
-    margin: 0,
-    position: 'absolute',
-    height: '1px',
-    width: '1px',
-    overflow: 'hidden',
-    clip: 'rect(1px 1px 1px 1px)',
-    clipPath: 'inset(50%)',
-    whiteSpace: 'nowrap',
-  },
-  contentFormatting: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    lineClamp: 2,
-    WebkitBoxOrient: 'vertical',
-    wordBreak: 'break-word',
-  },
-});
 
 function getTableTitle(textResourceBindings: ITextResourceBindings) {
   if (textResourceBindings.tableTitle) {
@@ -139,7 +47,6 @@ export function RepeatingGroupTable({
   deleting,
   filteredIndexes,
 }: IRepeatingGroupTableProps): JSX.Element | null {
-  const classes = useStyles();
   const mobileView = useMediaQuery('(max-width:992px)');
   const textResources = useAppSelector((state) => state.textResources.resources);
   const language = useAppSelector((state) => state.language.language);
@@ -234,13 +141,10 @@ export function RepeatingGroupTable({
   }
 
   return (
-    <Grid
-      container={true}
-      item={true}
+    <div
       data-testid={`group-${id}`}
       id={`group-${id}`}
       className={cn({
-        [classes.fullWidthWrapper]: !isNested,
         [classes.groupContainer]: !isNested,
         [classes.nestedGroupContainer]: isNested,
         [classes.tableEmpty]: isEmpty,
@@ -330,6 +234,6 @@ export function RepeatingGroupTable({
             })}
         </TableBody>
       </Table>
-    </Grid>
+    </div>
   );
 }
