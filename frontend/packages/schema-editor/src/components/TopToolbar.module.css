@@ -20,10 +20,7 @@
 }
 
 .spinnerWrapper {
-  align-items: center;
-  display: flex;
-  flex: 1;
-  justify-content: right;
+  width: 200px;
 }
 
 @keyframes fadeOut {
@@ -38,7 +35,7 @@
 .statusPopover {
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: 0.5rem;
 }
 
 .statusPopover.success {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, MouseEvent } from 'react';
 import { Panel, PanelVariant, ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
 import classes from './TopToolbar.module.css';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +34,9 @@ export function TopToolbar({
   const schemaString = JSON.stringify(schema);
   const prevSchemaState = usePrevious(schemaState);
 
-  useEffect(() => { setShowGenerationState(false) }, [schemaString]); // Close generation state popover when schema changes
+  useEffect(() => {
+    setShowGenerationState(false);
+  }, [schemaString]); // Close generation state popover when schema changes
 
   useEffect(() => {
     if (prevSchemaState?.saving && generatedSchemaSuccessfully) {
@@ -51,43 +53,43 @@ export function TopToolbar({
   return (
     <section className={classes.toolbar} role={'toolbar'}>
       {Toolbar}
-      {saving ? (
-        <div className={classes.spinnerWrapper}>
-          <Spinner title={t('general.saving')}/>
-        </div>
-      ) : (
-        <Popover
-          className={cn(classes.statusPopover, generatedSchemaSuccessfully && classes.success)}
-          open={showGenerationState}
-          trigger={(
-            <Button
-              id='save-model-button'
-              data-testid='save-model-button'
-              onClick={handleGenerateButtonClick}
-              disabled={!editMode || !saveAction}
-              icon={<Settings />}
-            >
-              {t('schema_editor.generate_model_files')}
-            </Button>
-          )}
-        >
-          {error?.message ? (
-            <>
-              <ErrorMessage>{error.message}</ErrorMessage>
+      <div className={classes.spinnerWrapper}>
+        {saving ? (
+          <Spinner title={t('general.saving')} />
+        ) : (
+          <Popover
+            className={cn(classes.statusPopover, generatedSchemaSuccessfully && classes.success)}
+            open={showGenerationState}
+            trigger={
               <Button
-                onClick={() => setShowGenerationState(false)}
-                variant={ButtonVariant.Outline}
+                id='save-model-button'
+                data-testid='save-model-button'
+                onClick={handleGenerateButtonClick}
+                disabled={!editMode || !saveAction}
+                icon={<Settings />}
               >
-                {t('general.close')}
+                {t('schema_editor.generate_model_files')}
               </Button>
-            </>
-          ) : (
-            <Panel variant={PanelVariant.Success} forceMobileLayout={true}>
-              {t('general.saved')}
-            </Panel>
-          )}
-        </Popover>
-      )}
+            }
+          >
+            {error?.message ? (
+              <>
+                <ErrorMessage>{error.message}</ErrorMessage>
+                <Button
+                  onClick={() => setShowGenerationState(false)}
+                  variant={ButtonVariant.Outline}
+                >
+                  {t('general.close')}
+                </Button>
+              </>
+            ) : (
+              <Panel variant={PanelVariant.Success} forceMobileLayout={true}>
+                {t('general.saved')}
+              </Panel>
+            )}
+          </Popover>
+        )}
+      </div>
       {toggleEditMode && (
         <ToggleButtonGroup selectedValue={editMode ? 'edit' : 'view'} onChange={toggleEditMode}>
           <ToggleButton value='view'>{t('schema_editor.view_mode')}</ToggleButton>
