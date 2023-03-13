@@ -52,8 +52,8 @@ export function NumberRestrictions({
         <div className={classes.formatFieldsRowContent}>
           <TextField
             id='schema_editor.minimum_'
-            onChange={
-              (e) => dispatchAction(NumberRestrictionsReducerActionType.setMinExcl, e.target.value) // setSmallest
+            onChange={(e) =>
+              dispatchAction(NumberRestrictionsReducerActionType.setMinExcl, e.target.value)
             }
             value={formatState.min === undefined ? '' : formatState.min.toString()}
           />
