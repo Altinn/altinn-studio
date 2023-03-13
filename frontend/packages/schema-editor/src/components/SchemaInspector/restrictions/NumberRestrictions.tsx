@@ -37,10 +37,10 @@ export function NumberRestrictions({
   };
   const dispatchAction = (type: NumberRestrictionsReducerActionType, value: any) =>
     dispatch({ type, value, changeCallback } as NumberRestrictionsReducerAction);
-  const minlabel = `schema_editor.minimum_${
+  const minLabel = `schema_editor.minimum_${
     formatState.isMinInclusive ? 'inclusive' : 'exclusive'
   }`;
-  const maxlabel = `schema_editor.maximum_${
+  const maxLabel = `schema_editor.maximum_${
     formatState.isMaxInclusive ? 'inclusive' : 'exclusive'
   }`;
 
@@ -48,12 +48,12 @@ export function NumberRestrictions({
     <>
       <Divider />
       <div>
-        <Label htmlFor='schema_editor.minimum_'>{t(minlabel)}</Label>
+        <Label htmlFor='schema_editor.minimum_'>{t(minLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <TextField
             id='schema_editor.minimum_'
             onChange={
-              (e) => dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.value) // setSmallest
+              (e) => dispatchAction(NumberRestrictionsReducerActionType.setMinExcl, e.target.value) // setSmallest
             }
             value={formatState.min === undefined ? '' : formatState.min.toString()}
           />
@@ -68,12 +68,12 @@ export function NumberRestrictions({
         </div>
       </div>
       <div>
-        <Label htmlFor='schema_editor.maximum_'>{t(maxlabel)}</Label>
+        <Label htmlFor='schema_editor.maximum_'>{t(maxLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <TextField
             id='schema_editor.maximum_'
             onChange={(e) =>
-              dispatchAction(NumberRestrictionsReducerActionType.setMaxIncl, e.target.value)
+              dispatchAction(NumberRestrictionsReducerActionType.setMaxExcl, e.target.value)
             }
             value={formatState.max === undefined ? '' : formatState.max.toString()}
           />
