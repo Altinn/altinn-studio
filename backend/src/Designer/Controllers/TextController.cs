@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -44,6 +43,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
+        /// <param name="textsService">The texts service</param>
         public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, ServiceRepositorySettings repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService)
         {
             _hostingEnvironment = hostingEnvironment;
@@ -205,7 +205,13 @@ namespace Altinn.Studio.Designer.Controllers
                     else
                     {
                         int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
-                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement() { Id = kvp.Key, Value = kvp.Value };
+                        var resourceToUpdate = textResourceObject.Resources[indexTextResourceElementUpdateKey];
+                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement()
+                        {
+                            Id = kvp.Key,
+                            Value = kvp.Value,
+                            Variables = resourceToUpdate.Variables,
+                        };
                     }
                 }
 
