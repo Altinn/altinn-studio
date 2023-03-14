@@ -10,6 +10,8 @@ public class ExpressionEvaluatorTypeErrorException : Exception
 {
     /// <inheritdoc />
     public ExpressionEvaluatorTypeErrorException(string msg) : base(msg) {}
+    /// <inheritdoc />
+    public ExpressionEvaluatorTypeErrorException(string msg, Exception innerException) : base(msg, innerException) {}
 
     /// <inheritdoc />
     protected ExpressionEvaluatorTypeErrorException(SerializationInfo info, StreamingContext ctxt) : base(info, ctxt) { }

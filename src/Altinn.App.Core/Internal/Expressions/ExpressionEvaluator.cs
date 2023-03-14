@@ -17,24 +17,31 @@ public static class ExpressionEvaluator
     /// </summary>
     public static bool EvaluateBooleanExpression(LayoutEvaluatorState state, ComponentContext context, string property, bool defaultReturn)
     {
-        var expr = property switch
+        try
         {
-            "hidden" => context.Component.Hidden,
-            "required" => context.Component.Required,
-            _ => throw new ArgumentException($"unknown boolean expression property {property}")
-        };
-        if (expr is null)
-        {
-            return defaultReturn;
-        }
+            var expr = property switch
+            {
+                "hidden" => context.Component.Hidden,
+                "required" => context.Component.Required,
+                _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}")
+            };
+            if (expr is null)
+            {
+                return defaultReturn;
+            }
 
-        return EvaluateExpression(state, expr, context) switch
+            return EvaluateExpression(state, expr, context) switch
+            {
+                true => true,
+                false => false,
+                null => defaultReturn,
+                _ => throw new ExpressionEvaluatorTypeErrorException($"Return was not boolean (value)")
+            };
+        }
+        catch(Exception e)
         {
-            true => true,
-            false => false,
-            null => defaultReturn,
-            _ => throw new ExpressionEvaluatorTypeErrorException($"Return from evaluating \"{property}\" on \"{context.Component.Id}\" was not boolean (value)")
-        };
+            throw new ExpressionEvaluatorTypeErrorException($"Error while evaluating \"{property}\" on \"{context.Component.PageId}.{context.Component.Id}\"", e);
+        }
     }
 
     /// <summary>
