@@ -10,7 +10,7 @@
   ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.27.6",
-    "@digdir/design-system-react": "0.7.0",
+    "@digdir/design-system-react": "0.9.0",
     "@mui/material": "5.11.13",
     "@reduxjs/toolkit": "1.9.3",
     "@tanstack/react-query": "4.26.1",
