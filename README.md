@@ -31,3 +31,4 @@ The policy is set up so that users with an accountant role in an organization ca
 - The user with test id `12895697972` has the role of accountant in the organization `GRETTEN KUL TIGER AS`.
 - The user with test id `25877799797` has the role of auditor in the organization `GRETTEN KUL TIGER AS`.
 - The user with test id `20827199746` has the role of manager in the organization `GRETTEN KUL TIGER AS`.
+- The partyId for the organization `GRETTEN KUL TIGER AS` is `51826033`.
