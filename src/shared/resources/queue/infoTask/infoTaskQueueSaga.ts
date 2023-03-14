@@ -24,19 +24,23 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
 
   yield put(IsLoadingActions.startDataTaskIsLoading());
 
-  const textResourcesWithVariables = textResources.filter((resource) => {
-    return resource.variables && resource.variables.length > 0;
-  });
+  const textResourcesWithVariables = textResources.filter(
+    (resource) => resource.variables && resource.variables.length > 0,
+  );
   if (textResourcesWithVariables && textResourcesWithVariables.length > 0) {
     const dataElements: string[] = [];
     textResourcesWithVariables.forEach((resource) => {
       resource.variables?.forEach((variable) => {
         const modelName = variable.dataSource.replace('dataModel.', '');
         const dataType = appMetadata.dataTypes.find((d) => d.id === modelName);
-        if (!dataType) return;
+        if (!dataType) {
+          return;
+        }
 
         const dataElement = instance.data.find((e) => e.dataType === dataType.id);
-        if (!dataElement) return;
+        if (!dataElement) {
+          return;
+        }
         dataElements.push(dataElement.id);
       });
     });

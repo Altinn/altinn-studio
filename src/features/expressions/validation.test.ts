@@ -85,9 +85,7 @@ describe('Expression validation', () => {
       const warningsExpected = t.expectsWarnings || [];
       const logSpy = jest.spyOn(console, 'log');
       if (warningsExpected.length > 0) {
-        logSpy.mockImplementation(() => {
-          return undefined;
-        });
+        logSpy.mockImplementation(() => undefined);
       }
 
       const result: (typeof tests)['content'][number]['layouts'] = {};

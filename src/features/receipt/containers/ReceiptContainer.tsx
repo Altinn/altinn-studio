@@ -89,9 +89,9 @@ export const ReceiptContainer = () => {
 
   useEffect(() => {
     if (allOrgs != null && instance && instance.org && allOrgs && parties && instanceGuid) {
-      const instanceOwnerParty = parties.find((party: IParty) => {
-        return party.partyId.toString() === instance.instanceOwner.partyId;
-      });
+      const instanceOwnerParty = parties.find(
+        (party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId,
+      );
 
       const obj = returnInstanceMetaDataObject(
         allOrgs,

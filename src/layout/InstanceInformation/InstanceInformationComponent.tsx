@@ -55,10 +55,7 @@ export function InstanceInformationComponent({ node }: PropsFromGenericComponent
   const language: ILanguage | null = useAppSelector((state) => state.language.language);
 
   const instanceOwnerParty =
-    instance &&
-    parties?.find((party: IParty) => {
-      return party.partyId.toString() === instance.instanceOwner.partyId;
-    });
+    instance && parties?.find((party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId);
 
   const instanceDateSent = dateSent !== false && Moment(instance?.lastChanged).format(getDateFormat());
 

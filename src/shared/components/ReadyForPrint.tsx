@@ -13,12 +13,11 @@ export function ReadyForPrint() {
 
     promises.push(document.fonts.ready);
 
-    const imageLoadPromise = (img: HTMLImageElement) => {
-      return new Promise((res) => {
+    const imageLoadPromise = (img: HTMLImageElement) =>
+      new Promise((res) => {
         img.addEventListener('load', res);
         img.addEventListener('error', res);
       });
-    };
 
     document.querySelectorAll('img').forEach((image) => {
       image.complete || promises.push(imageLoadPromise(image));

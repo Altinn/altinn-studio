@@ -73,7 +73,7 @@ export function* updateAttachmentSaga({
       yield put(
         AttachmentActions.updateAttachmentFulfilled({
           attachment: newAttachment,
-          componentId: componentId,
+          componentId,
           baseComponentId,
         }),
       );

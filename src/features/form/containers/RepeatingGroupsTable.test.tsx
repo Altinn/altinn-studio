@@ -126,7 +126,7 @@ describe('RepeatingGroupTable', () => {
       readOnly: false,
       required: false,
       disabled: false,
-      options: options,
+      options,
     } as ExprUnresolved<ILayoutCompCheckboxes>,
   ];
   const layout: ILayoutState = getLayout(group, components);
@@ -184,7 +184,7 @@ describe('RepeatingGroupTable', () => {
 
     it('should trigger onClickRemove on delete-button click', async () => {
       const onClickRemove = jest.fn();
-      render({ onClickRemove: onClickRemove });
+      render({ onClickRemove });
 
       await act(() => user.click(screen.getAllByRole('button', { name: /delete/i })[0]));
 
@@ -193,7 +193,7 @@ describe('RepeatingGroupTable', () => {
 
     it('should trigger setEditIndex on edit-button click', async () => {
       const setEditIndex = jest.fn();
-      render({ setEditIndex: setEditIndex });
+      render({ setEditIndex });
 
       await act(() => user.click(screen.getAllByRole('button', { name: /edit/i })[0]));
 
@@ -228,7 +228,7 @@ describe('RepeatingGroupTable', () => {
     const allProps: IRepeatingGroupTableProps = {
       editIndex: -1,
       id: group.id,
-      repeatingGroupIndex: repeatingGroupIndex,
+      repeatingGroupIndex,
       deleting: false,
       onClickRemove: jest.fn(),
       setEditIndex: jest.fn(),

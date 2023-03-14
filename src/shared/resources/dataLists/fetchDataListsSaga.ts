@@ -58,7 +58,7 @@ export function* fetchDataListsSaga(): SagaIterator {
       const { secure, id, dataListId, pagination, mapping } = element;
 
       const { keys, keyWithIndexIndicator } = getDataListLookupKeys({
-        id: id,
+        id,
         secure,
         repeatingGroups,
         mapping,
@@ -108,7 +108,7 @@ export function* fetchSpecificDataListSaga({
   const instanceId = yield select(instanceIdSelector);
   try {
     const metaData: IDataListsMetaData = {
-      id: id,
+      id,
       mapping: dataMapping,
       secure,
       dataListId,

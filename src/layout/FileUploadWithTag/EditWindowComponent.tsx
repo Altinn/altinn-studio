@@ -67,7 +67,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
         attachment: props.attachment,
         componentId: id,
         attachmentType: baseComponentId || id,
-        dataModelBindings: dataModelBindings,
+        dataModelBindings,
       }),
     );
     props.setEditIndex(-1);
@@ -199,11 +199,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
           }}
         >
           {renderValidationMessages(
-            props.attachmentValidations
-              .filter((i) => i.id === props.attachment.id)
-              .map((e) => {
-                return e.message;
-              }),
+            props.attachmentValidations.filter((i) => i.id === props.attachment.id).map((e) => e.message),
             `attachment-error-${props.attachment.id}`,
             'error',
           )}

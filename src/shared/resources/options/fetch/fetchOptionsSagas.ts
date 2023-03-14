@@ -127,7 +127,7 @@ export function* fetchSpecificOptionSaga({ optionsId, dataMapping, secure }: IFe
     const options: IOption[] = yield call(httpGet, url);
     yield put(OptionsActions.fetchFulfilled({ key, options }));
   } catch (error) {
-    yield put(OptionsActions.fetchRejected({ key: key, error }));
+    yield put(OptionsActions.fetchRejected({ key, error }));
   }
 }
 

@@ -30,10 +30,10 @@ describe('language.ts', () => {
     'model.group[1].animal': animal1Value,
   };
   const mockApplicationSettings: IApplicationSettings = {
-    homeBaseUrl: homeBaseUrl,
+    homeBaseUrl,
   };
   const mockInstanceContext = {
-    instanceOwnerPartyId: instanceOwnerPartyId,
+    instanceOwnerPartyId,
   } as IInstanceContext;
   const mockDataSources: IDataSources = {
     dataModel: mockDataSource,

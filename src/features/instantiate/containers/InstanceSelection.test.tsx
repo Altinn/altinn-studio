@@ -11,9 +11,8 @@ import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import type { IInstanceSelectionProps } from 'src/features/instantiate/containers/InstanceSelection';
 import type { IRuntimeState, ISimpleInstance } from 'src/types';
 
-const renderInstanceSelection = (store: Store, props: IInstanceSelectionProps) => {
-  return renderWithProviders(<InstanceSelection {...props} />, { store });
-};
+const renderInstanceSelection = (store: Store, props: IInstanceSelectionProps) =>
+  renderWithProviders(<InstanceSelection {...props} />, { store });
 
 const { setScreenWidth } = mockMediaQuery(992);
 const user = userEvent.setup();

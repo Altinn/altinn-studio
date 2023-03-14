@@ -53,8 +53,6 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
   return false;
 };
 
-const getHasErrors = () => {
-  return createSelector([getHasErrorsSelector], (hasErrors: boolean) => hasErrors);
-};
+const getHasErrors = () => createSelector([getHasErrorsSelector], (hasErrors: boolean) => hasErrors);
 
 export const makeGetHasErrorsSelector = getHasErrors;

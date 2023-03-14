@@ -102,9 +102,9 @@ const RenderAttachmentGroupings = ({
 
   return (
     <>
-      {groups.map((element: JSX.Element, index) => {
-        return <React.Fragment key={index}>{element}</React.Fragment>;
-      })}
+      {groups.map((element: JSX.Element, index) => (
+        <React.Fragment key={index}>{element}</React.Fragment>
+      ))}
     </>
   );
 };

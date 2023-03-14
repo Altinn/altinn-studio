@@ -668,9 +668,9 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   });
   // if any groups have been removed as part of calculation we delete the associated validations
   const currentGroupKeys = Object.keys(currentGroups);
-  const groupsToRemoveValidations = currentGroupKeys.filter((key) => {
-    return currentGroups[key].index > -1 && (!newGroups[key] || newGroups[key].index === -1);
-  });
+  const groupsToRemoveValidations = currentGroupKeys.filter(
+    (key) => currentGroups[key].index > -1 && (!newGroups[key] || newGroups[key].index === -1),
+  );
   if (groupsToRemoveValidations.length > 0) {
     let validations = state.formValidations.validations;
     for (const group of groupsToRemoveValidations) {

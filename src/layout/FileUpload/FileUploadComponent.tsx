@@ -135,11 +135,10 @@ export function FileUploadComponent({ node, componentValidations, language }: IF
       }),
     );
   };
-  const NonMobileColumnHeader = () => {
-    return !mobileView ? (
+  const NonMobileColumnHeader = () =>
+    !mobileView ? (
       <th scope='col'>{getLanguageFromKey('form_filler.file_uploader_list_header_file_size', language)}</th>
     ) : null;
-  };
   const NameCell = ({ attachment }: { attachment: { name?: string; size: number } }) => {
     const readableSize = `${(attachment.size / bytesInOneMB).toFixed(2)} ${getLanguageFromKey(
       'form_filler.file_uploader_mb',
@@ -191,36 +190,34 @@ export function FileUploadComponent({ node, componentValidations, language }: IF
       />
     );
   };
-  const DeleteCellContent = ({ attachment, index }: { attachment: { deleting: boolean }; index: number }) => {
-    return (
-      <div
-        onClick={handleDeleteFile.bind(this, index)}
-        onKeyPress={handleDeleteKeypress.bind(this, index)}
-        tabIndex={0}
-        role='button'
-        data-testid={`attachment-delete-${index}`}
-        aria-label={getLanguageFromKey('general.delete', language)}
-      >
-        {attachment.deleting ? (
-          <AltinnLoader
-            id='loader-delete'
-            style={{
-              marginBottom: '1rem',
-              marginRight: '1.0rem',
-            }}
-            srContent={getLanguageFromKey('general.loading', language)}
-          />
-        ) : (
-          <>
-            {mobileView
-              ? getLanguageFromKey('general.delete', language)
-              : getLanguageFromKey('form_filler.file_uploader_list_delete', language)}
-            <i className='ai ai-trash' />
-          </>
-        )}
-      </div>
-    );
-  };
+  const DeleteCellContent = ({ attachment, index }: { attachment: { deleting: boolean }; index: number }) => (
+    <div
+      onClick={handleDeleteFile.bind(this, index)}
+      onKeyPress={handleDeleteKeypress.bind(this, index)}
+      tabIndex={0}
+      role='button'
+      data-testid={`attachment-delete-${index}`}
+      aria-label={getLanguageFromKey('general.delete', language)}
+    >
+      {attachment.deleting ? (
+        <AltinnLoader
+          id='loader-delete'
+          style={{
+            marginBottom: '1rem',
+            marginRight: '1.0rem',
+          }}
+          srContent={getLanguageFromKey('general.loading', language)}
+        />
+      ) : (
+        <>
+          {mobileView
+            ? getLanguageFromKey('general.delete', language)
+            : getLanguageFromKey('form_filler.file_uploader_list_delete', language)}
+          <i className='ai ai-trash' />
+        </>
+      )}
+    </div>
+  );
   const FileList = (): JSX.Element | null => {
     if (!attachments?.length) {
       return null;
@@ -252,27 +249,25 @@ export function FileUploadComponent({ node, componentValidations, language }: IF
             </tr>
           </thead>
           <tbody>
-            {attachments.map((attachment, index: number) => {
-              return (
-                <tr
-                  key={attachment.id}
-                  className='blue-underline-dotted'
-                  id={`altinn-file-list-row-${attachment.id}`}
-                  tabIndex={0}
-                >
-                  <NameCell attachment={attachment} />
-                  <td>
-                    <StatusCellContent attachment={attachment} />
-                  </td>
-                  <td>
-                    <DeleteCellContent
-                      attachment={attachment}
-                      index={index}
-                    />
-                  </td>
-                </tr>
-              );
-            })}
+            {attachments.map((attachment, index: number) => (
+              <tr
+                key={attachment.id}
+                className='blue-underline-dotted'
+                id={`altinn-file-list-row-${attachment.id}`}
+                tabIndex={0}
+              >
+                <NameCell attachment={attachment} />
+                <td>
+                  <StatusCellContent attachment={attachment} />
+                </td>
+                <td>
+                  <DeleteCellContent
+                    attachment={attachment}
+                    index={index}
+                  />
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -341,10 +336,10 @@ export function FileUploadComponent({ node, componentValidations, language }: IF
 
       {shouldShowFileUpload() &&
         AttachmentsCounter({
-          language: language,
+          language,
           currentNumberOfAttachments: attachments.length,
-          minNumberOfAttachments: minNumberOfAttachments,
-          maxNumberOfAttachments: maxNumberOfAttachments,
+          minNumberOfAttachments,
+          maxNumberOfAttachments,
         })}
 
       {validationMessages.simpleBinding?.errors &&
@@ -354,10 +349,10 @@ export function FileUploadComponent({ node, componentValidations, language }: IF
       <FileList />
       {!shouldShowFileUpload() &&
         AttachmentsCounter({
-          language: language,
+          language,
           currentNumberOfAttachments: attachments.length,
-          minNumberOfAttachments: minNumberOfAttachments,
-          maxNumberOfAttachments: maxNumberOfAttachments,
+          minNumberOfAttachments,
+          maxNumberOfAttachments,
         })}
 
       {validationMessages.simpleBinding?.errors &&

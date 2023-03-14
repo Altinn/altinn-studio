@@ -9,13 +9,11 @@ export interface IAltinnContentLoaderProps {
   children?: React.ReactNode;
 }
 
-export const AltinnContentLoader = ({ width = 400, height = 200, children }: IAltinnContentLoaderProps) => {
-  return (
-    <ContentLoader
-      height={height}
-      width={width}
-    >
-      {children ? children : <AltinnContentIcon />}
-    </ContentLoader>
-  );
-};
+export const AltinnContentLoader = ({ width = 400, height = 200, children }: IAltinnContentLoaderProps) => (
+  <ContentLoader
+    height={height}
+    width={width}
+  >
+    {children ? children : <AltinnContentIcon />}
+  </ContentLoader>
+);

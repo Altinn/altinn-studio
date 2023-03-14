@@ -41,8 +41,8 @@ export const useGetOptions = ({ optionsId, mapping, source }: IUseGetOptionsPara
 
     const dataSources: IDataSources = {
       dataModel: relevantFormData,
-      applicationSettings: applicationSettings,
-      instanceContext: instanceContext,
+      applicationSettings,
+      instanceContext,
     };
 
     setOptions(

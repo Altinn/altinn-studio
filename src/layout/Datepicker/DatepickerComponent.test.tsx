@@ -8,13 +8,11 @@ import { mockMediaQuery, renderGenericComponentTest } from 'src/testUtils';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 // Mock dateformat
-jest.mock('src/utils/dateHelpers', () => {
-  return {
-    __esModules: true,
-    ...jest.requireActual('src/utils/dateHelpers'),
-    getDateFormat: jest.fn(() => 'DD.MM.YYYY'),
-  };
-});
+jest.mock('src/utils/dateHelpers', () => ({
+  __esModules: true,
+  ...jest.requireActual('src/utils/dateHelpers'),
+  getDateFormat: jest.fn(() => 'DD.MM.YYYY'),
+}));
 
 const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Datepicker'>> = {}) => {
   renderGenericComponentTest({
@@ -47,11 +45,9 @@ const getOpenCalendarButton = () =>
     name: /date_picker\.aria_label_icon/i,
   });
 
-const getCalendarDayButton = (dayNumber) => {
+const getCalendarDayButton = (dayNumber) =>
   // Getting by role would be better, but it is too slow, because of the big DOM that is generated
-  return screen.getByText(dayNumber);
-};
-
+  screen.getByText(dayNumber);
 const { setScreenWidth } = mockMediaQuery(600);
 
 describe('DatepickerComponent', () => {

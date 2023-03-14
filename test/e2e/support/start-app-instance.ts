@@ -15,9 +15,7 @@ Cypress.Commands.add('startAppInstance', (appName, anonymous = false) => {
     const [min, max] = [10, 1000];
     cy.log(`Response fuzzing on, will delay responses randomly between ${min}ms and ${max}ms`);
 
-    const rand = () => {
-      return Math.floor(Math.random() * (max - min + 1) + min);
-    };
+    const rand = () => Math.floor(Math.random() * (max - min + 1) + min);
 
     const randomDelays = (req) => {
       req.on('response', (res) => {

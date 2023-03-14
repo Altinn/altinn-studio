@@ -8,14 +8,14 @@ describe('instanceContext', () => {
     const instaceId = `${partyId}/super-secret-uuid-000`;
     const mockInstance: IInstance = {
       id: instaceId,
-      appId: appId,
+      appId,
       instanceOwner: {
-        partyId: partyId,
+        partyId,
       },
     } as IInstance;
 
     const expected: IInstanceContext = {
-      appId: appId,
+      appId,
       instanceId: instaceId,
       instanceOwnerPartyId: partyId,
       instanceOwnerPartyType: 'unknown',

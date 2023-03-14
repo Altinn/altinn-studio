@@ -46,9 +46,9 @@ export function splitDashedKey(componentId: string): SplitKey {
       const stringDepth = depth.join('-').toString();
       return {
         baseComponentId: [...parts, toConsider].join('-'),
-        stringDepth: stringDepth,
+        stringDepth,
         stringDepthWithLeadingDash: stringDepth ? `-${stringDepth}` : '',
-        depth: depth,
+        depth,
       };
     }
   }
@@ -92,7 +92,9 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
     group.children?.forEach((childId: string) => {
       formLayout
         .filter((element) => {
-          if (element.type !== 'Group') return false;
+          if (element.type !== 'Group') {
+            return false;
+          }
           if (group.edit?.multiPage) {
             return childId.split(':')[1] === element.id;
           }
@@ -108,9 +110,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   filteredGroups.forEach((groupElement: ExprUnresolved<ILayoutGroup>) => {
     if (groupElement.maxCount && groupElement.maxCount > 1) {
       const groupFormData = Object.keys(formData)
-        .filter((key) => {
-          return groupElement.dataModelBindings?.group && key.startsWith(groupElement.dataModelBindings.group);
-        })
+        .filter((key) => groupElement.dataModelBindings?.group && key.startsWith(groupElement.dataModelBindings.group))
         .sort();
       if (groupFormData && groupFormData.length > 0) {
         const maxIndex = getMaxIndexInKeys(groupFormData);
@@ -204,9 +204,7 @@ function getIndexForNestedRepeatingGroup(
   }
   const indexedGroupBinding = groupBinding.replace(parentGroupBinding, `${parentGroupBinding}[${parentIndex}]`);
   const groupFormData = Object.keys(formData)
-    .filter((key) => {
-      return key.startsWith(indexedGroupBinding);
-    })
+    .filter((key) => key.startsWith(indexedGroupBinding))
     .sort();
   if (groupFormData && groupFormData.length > 0) {
     return getMaxIndexInKeys(groupFormData, true);

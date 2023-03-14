@@ -131,9 +131,7 @@ export const parseFileUploadComponentWithTagValidationObject = (
 
 export const isAttachmentError = (error: { id: string | null; message: string }): boolean => !!error.id;
 
-export const isNotAttachmentError = (error: { id: string | null; message: string }): boolean => {
-  return !error.id;
-};
+export const isNotAttachmentError = (error: { id: string | null; message: string }): boolean => !error.id;
 
 export const atleastOneTagExists = (attachments: IAttachment[]): boolean => {
   const totalTagCount: number = attachments

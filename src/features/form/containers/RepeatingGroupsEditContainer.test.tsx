@@ -81,7 +81,7 @@ describe('RepeatingGroupsEditContainer', () => {
       readOnly: false,
       required: false,
       disabled: false,
-      options: options,
+      options,
     } as ExprUnresolved<ILayoutCompCheckboxes>,
   ];
   const layout: ILayout = [multiPageGroup, ...components];
@@ -103,7 +103,7 @@ describe('RepeatingGroupsEditContainer', () => {
     const allProps: IRepeatingGroupsEditContainer = {
       id: 'group',
       editIndex: 1,
-      repeatingGroupIndex: repeatingGroupIndex,
+      repeatingGroupIndex,
       setEditIndex: jest.fn(),
       onClickRemove: jest.fn(),
       ...props,

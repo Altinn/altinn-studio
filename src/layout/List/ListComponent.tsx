@@ -44,7 +44,7 @@ export const ListComponent = ({
 
   const handleChange = ({ selectedValue: selectedValue }: ChangeProps<Record<string, string>>) => {
     for (const key in formData) {
-      handleDataChange(selectedValue[key], { key: key });
+      handleDataChange(selectedValue[key], { key });
     }
   };
 
@@ -123,7 +123,7 @@ export const ListComponent = ({
     showColumnsMobile: tableHeadersMobile,
     columnSort: {
       onSortChange: ({ column, next, previous }) => {
-        handleSortChange({ previous: previous, next: next, column: column });
+        handleSortChange({ previous, next, column });
       },
       sortable: sortableColumns ? sortableColumns : [],
       currentlySortedColumn: sortColumn,

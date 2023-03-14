@@ -73,9 +73,7 @@ export function keyHasIndexIndicators(key: string): boolean {
  *  SomeField.Group[0].SubGroup[1].Field
  */
 export function replaceIndexIndicatorsWithIndexes(key: string, indexes: number[] = []) {
-  return indexes.reduce((acc, index) => {
-    return acc.replace(INDEX_KEY_INDICATOR_REGEX, `[${index}]`);
-  }, key);
+  return indexes.reduce((acc, index) => acc.replace(INDEX_KEY_INDICATOR_REGEX, `[${index}]`), key);
 }
 
 /*

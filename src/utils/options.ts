@@ -118,9 +118,7 @@ export function setupSourceOptions({
 }: ISetupSourceOptionsParams) {
   const replacedOptionLabels = replaceTextResourceParams([relevantTextResource], dataSources, repeatingGroups);
 
-  const repGroup = Object.values(repeatingGroups || {}).find((group) => {
-    return group.dataModelBinding === source.group;
-  });
+  const repGroup = Object.values(repeatingGroups || {}).find((group) => group.dataModelBinding === source.group);
 
   if (!repGroup) {
     return undefined;
@@ -167,9 +165,9 @@ export function removeGroupOptionsByIndex({
       newOptions[optionKey] = options[optionKey];
       return;
     }
-    const shouldBeDeleted = Object.keys(mapping).some((mappingKey) => {
-      return mappingKey.startsWith(`${groupDataBinding}[${index}]`);
-    });
+    const shouldBeDeleted = Object.keys(mapping).some((mappingKey) =>
+      mappingKey.startsWith(`${groupDataBinding}[${index}]`),
+    );
 
     if (shouldBeDeleted) {
       return;
@@ -182,9 +180,9 @@ export function removeGroupOptionsByIndex({
       };
       // the indexed to be deleted is lower than total indexes, shift all above
       for (let shiftIndex = index + 1; shiftIndex <= repeatingGroup.index + 1; shiftIndex++) {
-        const shouldBeShifted = Object.keys(mapping).filter((mappingKey) => {
-          return mappingKey.startsWith(`${groupDataBinding}[${shiftIndex}]`);
-        });
+        const shouldBeShifted = Object.keys(mapping).filter((mappingKey) =>
+          mappingKey.startsWith(`${groupDataBinding}[${shiftIndex}]`),
+        );
 
         shouldBeShifted?.forEach((key) => {
           const newKey = key.replace(`${groupDataBinding}[${shiftIndex}]`, `${groupDataBinding}[${shiftIndex - 1}]`);

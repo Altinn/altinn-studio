@@ -97,7 +97,7 @@ export function DropzoneComponent({
           return (
             <div
               {...getRootProps({
-                onClick: onClick,
+                onClick,
               })}
               style={styles}
               id={`altinn-drop-zone-${id}`}

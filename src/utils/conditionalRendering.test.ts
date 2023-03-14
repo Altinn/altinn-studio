@@ -11,16 +11,12 @@ describe('conditionalRendering', () => {
 
   beforeAll(() => {
     mockRuleHandlerHelper = {
-      biggerThan10: () => {
-        return {
-          number: 'number',
-        };
-      },
-      lengthBiggerThan4: () => {
-        return {
-          value: 'value',
-        };
-      },
+      biggerThan10: () => ({
+        number: 'number',
+      }),
+      lengthBiggerThan4: () => ({
+        value: 'value',
+      }),
     };
     mockRuleHandler = {
       biggerThan10: (obj) => {

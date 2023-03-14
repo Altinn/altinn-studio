@@ -66,8 +66,8 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
   const targetNode = useResolvedNode(overrides?.targetNode || componentRef);
   const targetItem = targetNode?.item;
 
-  const goToCorrectPageLinkText = useAppSelector((state) => {
-    return (
+  const goToCorrectPageLinkText = useAppSelector(
+    (state) =>
       state.language.language &&
       getTextFromAppOrDefault(
         'form_filler.summary_go_to_correct_page',
@@ -75,9 +75,8 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
         state.language.language,
         [],
         true,
-      )
-    );
-  });
+      ),
+  );
 
   const label = useAppSelector((state) => {
     const titleKey = targetItem?.textResourceBindings?.title;

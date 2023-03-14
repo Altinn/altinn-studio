@@ -42,8 +42,8 @@ Cypress.Commands.add('startStateFullFromStateless', () => {
   cy.wait('@getLayoutSettings');
 });
 
-Cypress.Commands.add('getReduxState', (selector) => {
-  return cy
+Cypress.Commands.add('getReduxState', (selector) =>
+  cy
     .window()
     .its('reduxStore')
     .invoke('getState')
@@ -53,12 +53,10 @@ Cypress.Commands.add('getReduxState', (selector) => {
       }
 
       return state;
-    });
-});
+    }),
+);
 
-Cypress.Commands.add('reduxDispatch', (action) => {
-  return cy.window().its('reduxStore').invoke('dispatch', action);
-});
+Cypress.Commands.add('reduxDispatch', (action) => cy.window().its('reduxStore').invoke('dispatch', action));
 
 Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator) => {
   cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, times: 1 }, (req) => {

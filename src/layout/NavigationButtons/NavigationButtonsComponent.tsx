@@ -59,9 +59,10 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
     }
   };
 
-  const getScrollPosition = React.useCallback(() => {
-    return (refNext.current || refPrev.current)?.getClientRects().item(0)?.y;
-  }, []);
+  const getScrollPosition = React.useCallback(
+    () => (refNext.current || refPrev.current)?.getClientRects().item(0)?.y,
+    [],
+  );
 
   const OnClickNext = () => {
     const runValidations = reducePageValidations(activeTriggers);

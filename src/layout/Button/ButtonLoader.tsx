@@ -9,12 +9,10 @@ export interface ButtonLoaderProps {
   language: ILanguage;
 }
 
-export const ButtonLoader = ({ language }: ButtonLoaderProps) => {
-  return (
-    <AltinnLoader
-      id={'altinn-button-loader'}
-      className={classes['button-loader']}
-      srContent={getLanguageFromKey('general.loading', language)}
-    />
-  );
-};
+export const ButtonLoader = ({ language }: ButtonLoaderProps) => (
+  <AltinnLoader
+    id={'altinn-button-loader'}
+    className={classes['button-loader']}
+    srContent={getLanguageFromKey('general.loading', language)}
+  />
+);

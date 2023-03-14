@@ -43,9 +43,8 @@ export function AttachmentWithTagSummaryComponent({ targetNode }: IAttachmentWit
       ]?.options,
   );
 
-  const getOptionsTagLabel = ({ tags }: { tags: string[] }) => {
-    return options?.find((option) => option.value === tags[0])?.label;
-  };
+  const getOptionsTagLabel = ({ tags }: { tags: string[] }) =>
+    options?.find((option) => option.value === tags[0])?.label;
   const tryToGetTextResource = (attachment) => {
     const optionsTagLabel = getOptionsTagLabel(attachment);
     return textResources?.find(({ id }) => id === optionsTagLabel)?.value || optionsTagLabel;

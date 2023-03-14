@@ -140,8 +140,8 @@ export function RepeatingGroupTableRow({
         ))
       ) : (
         <TableCell className={classes.mobileTableCell}>
-          {tableNodes.map((n, i, { length }) => {
-            return (
+          {tableNodes.map(
+            (n, i, { length }) =>
               !isEditingRow && (
                 <React.Fragment key={`${n.item.id}-${index}`}>
                   <b className={classes.contentFormatting}>
@@ -150,9 +150,8 @@ export function RepeatingGroupTableRow({
                   <span className={classes.contentFormatting}>{displayData[i]}</span>
                   {i < length - 1 && <div style={{ height: 8 }} />}
                 </React.Fragment>
-              )
-            );
-          })}
+              ),
+          )}
         </TableCell>
       )}
       {!mobileView ? (

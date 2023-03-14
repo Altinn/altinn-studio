@@ -88,9 +88,7 @@ export function customEncodeURI(uri: string): string {
   return result;
 }
 
-export const logoutUrlAltinn = (url: string): string => {
-  return `${returnBaseUrlToAltinn(url)}ui/authentication/LogOut`;
-};
+export const logoutUrlAltinn = (url: string): string => `${returnBaseUrlToAltinn(url)}ui/authentication/LogOut`;
 
 // Storage is always returning https:// links for attachments.
 // on localhost (without https) this is a problem, so we make links

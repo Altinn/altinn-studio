@@ -187,22 +187,20 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
               [classes.menuCompact]: isMobile,
             })}
           >
-            {pageIds.map((pageId, index) => {
-              return (
-                <li
-                  key={pageId}
-                  className={classes.containerBase}
+            {pageIds.map((pageId, index) => (
+              <li
+                key={pageId}
+                className={classes.containerBase}
+              >
+                <NavigationButton
+                  current={currentPageId === pageId}
+                  onClick={() => handleNavigationClick(pageId)}
+                  ref={index === 0 ? firstPageLink : null}
                 >
-                  <NavigationButton
-                    current={currentPageId === pageId}
-                    onClick={() => handleNavigationClick(pageId)}
-                    ref={index === 0 ? firstPageLink : null}
-                  >
-                    {index + 1}. {getTextResource(pageId, textResources)}
-                  </NavigationButton>
-                </li>
-              );
-            })}
+                  {index + 1}. {getTextResource(pageId, textResources)}
+                </NavigationButton>
+              </li>
+            ))}
           </ul>
         )}
       </Grid>

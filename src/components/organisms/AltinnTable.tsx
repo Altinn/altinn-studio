@@ -12,15 +12,13 @@ export interface IAltinnTableProps extends StyleProps {
   id: string;
 }
 
-const useStyles = makeStyles(() => {
-  return {
-    table: ({ tableLayout = 'fixed', wordBreak = 'break-word' }: StyleProps) => ({
-      tableLayout: tableLayout,
-      marginBottom: '12px',
-      wordBreak,
-    }),
-  };
-});
+const useStyles = makeStyles(() => ({
+  table: ({ tableLayout = 'fixed', wordBreak = 'break-word' }: StyleProps) => ({
+    tableLayout,
+    marginBottom: '12px',
+    wordBreak,
+  }),
+}));
 
 export function AltinnTable(props: IAltinnTableProps & Omit<TableProps, 'id'>) {
   const { tableLayout, wordBreak, ...tableProps } = props;

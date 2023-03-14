@@ -491,9 +491,7 @@ export function validateComponentFormData(
 
   if (!valid) {
     validator.errors
-      ?.filter((error) => {
-        return processInstancePath(error.instancePath) === dataModelField && !isOneOfError(error);
-      })
+      ?.filter((error) => processInstancePath(error.instancePath) === dataModelField && !isOneOfError(error))
       .forEach((error) => {
         if (error.keyword === 'type' || error.keyword === 'format' || error.keyword === 'maximum') {
           validationResult.invalidDataTypes = true;
@@ -560,9 +558,8 @@ export function validateComponentSpecificValidations(
  * @param error the AJV validation error object
  * @returns a value indicating if the provided error is a "oneOf" error.
  */
-export const isOneOfError = (error: AjvCore.ErrorObject): boolean => {
-  return error.keyword === 'oneOf' || error.params?.type === 'null';
-};
+export const isOneOfError = (error: AjvCore.ErrorObject): boolean =>
+  error.keyword === 'oneOf' || error.params?.type === 'null';
 
 /**
  * Wrapper method around getSchemaPart for schemas made with our old generator tool
@@ -738,9 +735,7 @@ function mapToComponentValidationsGivenComponent(
   validations: ILayoutValidations,
 ) {
   const dataModelBindings = component.dataModelBindings || {};
-  const fieldKey = Object.keys(dataModelBindings).find((name) => {
-    return dataModelBindings[name] === dataBinding;
-  });
+  const fieldKey = Object.keys(dataModelBindings).find((name) => dataModelBindings[name] === dataBinding);
 
   if (!fieldKey) {
     return;
@@ -762,11 +757,10 @@ export function mapToComponentValidationsGivenNode(
   let fieldKey: string | undefined = undefined;
   const component = node.flat(true, onlyInRowIndex).find((item) => {
     if (item.item.dataModelBindings) {
-      fieldKey = Object.keys(item.item.dataModelBindings).find((key) => {
-        return (
-          item.item.dataModelBindings && item.item.dataModelBindings[key].toLowerCase() === dataBinding.toLowerCase()
-        );
-      });
+      fieldKey = Object.keys(item.item.dataModelBindings).find(
+        (key) =>
+          item.item.dataModelBindings && item.item.dataModelBindings[key].toLowerCase() === dataBinding.toLowerCase(),
+      );
     }
     return !!fieldKey;
   });
@@ -790,8 +784,8 @@ export function canFormBeSaved(validationResult: IValidationResult | null, apiMo
   if (!validations || apiMode !== 'Complete') {
     return true;
   }
-  return Object.keys(validations).every((layoutId: string) => {
-    return Object.keys(validations[layoutId])?.every((componentId: string) => {
+  return Object.keys(validations).every((layoutId: string) =>
+    Object.keys(validations[layoutId])?.every((componentId: string) => {
       const componentValidations: IComponentValidations = validations[layoutId][componentId];
       if (componentValidations === null) {
         return true;
@@ -800,8 +794,8 @@ export function canFormBeSaved(validationResult: IValidationResult | null, apiMo
         const componentErrors = componentValidations[bindingKey]?.errors;
         return !componentErrors || componentErrors.length === 0;
       });
-    });
-  });
+    }),
+  );
 }
 
 export function findLayoutIdsFromValidationIssue(layouts: ILayouts, validationIssue: IValidationIssue): string[] {
@@ -1104,17 +1098,17 @@ export function hasValidationsOfSeverity(validations: IValidations, severity: Se
     return false;
   }
 
-  return Object.keys(validations).some((layout) => {
-    return Object.keys(validations[layout]).some((componentKey: string) => {
-      return Object.keys(validations[layout][componentKey] || {}).some((bindingKey: string) => {
+  return Object.keys(validations).some((layout) =>
+    Object.keys(validations[layout]).some((componentKey: string) =>
+      Object.keys(validations[layout][componentKey] || {}).some((bindingKey: string) => {
         const binding = validations[layout][componentKey][bindingKey];
         if (severity === Severity.Error && binding?.errors && binding.errors.length > 0) {
           return true;
         }
         return severity === Severity.Warning && binding?.warnings && binding.warnings.length > 0;
-      });
-    });
-  });
+      }),
+    ),
+  );
 }
 
 export function mergeValidationObjects(...sources: (IValidations | null)[]): IValidations {
@@ -1228,9 +1222,7 @@ function removeFixedValidations(validations?: string[], fixed?: string[]): strin
     return validations;
   }
 
-  return validations?.filter((element) => {
-    return fixed.findIndex((fixedElement) => fixedElement === element) < 0;
-  });
+  return validations?.filter((element) => fixed.findIndex((fixedElement) => fixedElement === element) < 0);
 }
 
 /**

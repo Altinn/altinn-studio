@@ -22,17 +22,15 @@ export const AltinnIcon = ({
   padding,
   margin,
   weight,
-}: IAltinnIconCompontentProvidedProps) => {
-  return (
-    <i
-      className={classNames(iconClass)}
-      style={{
-        color: isActive ? isActiveIconColor : iconColor,
-        fontSize: iconSize,
-        fontWeight: weight,
-        margin: margin,
-        padding: padding,
-      }}
-    />
-  );
-};
+}: IAltinnIconCompontentProvidedProps) => (
+  <i
+    className={classNames(iconClass)}
+    style={{
+      color: isActive ? isActiveIconColor : iconColor,
+      fontSize: iconSize,
+      fontWeight: weight,
+      margin,
+      padding,
+    }}
+  />
+);

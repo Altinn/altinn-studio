@@ -29,15 +29,15 @@ const groupBinding = 'Questions';
 const answerBinding = 'Answer';
 const questionBinding = 'Question';
 
-export const generateMockFormData = (likertQuestions: IQuestion[]): Record<string, string> => {
-  return likertQuestions.reduce((formData, likertQuestion, index) => {
-    return {
+export const generateMockFormData = (likertQuestions: IQuestion[]): Record<string, string> =>
+  likertQuestions.reduce(
+    (formData, likertQuestion, index) => ({
       ...formData,
       [`${groupBinding}[${index}].${answerBinding}`]: likertQuestion.Answer,
       [`${groupBinding}[${index}].${questionBinding}`]: likertQuestion.Question,
-    };
-  }, {});
-};
+    }),
+    {},
+  );
 
 export const mockOptions = [
   {
@@ -66,134 +66,118 @@ export const questionsWithAnswers = ({ questions, selectedAnswers }) => {
 
 const createLikertContainer = (
   props: Partial<ExprUnresolved<ILayoutGroup>> | undefined,
-): ExprUnresolved<ILayoutGroup> => {
-  return {
-    id: 'likert-repeating-group-id',
-    type: 'Group',
-    children: ['field1'],
-    maxCount: 99,
-    dataModelBindings: {
-      group: groupBinding,
-    },
-    edit: {
-      mode: 'likert',
-    },
-    ...props,
-  };
-};
+): ExprUnresolved<ILayoutGroup> => ({
+  id: 'likert-repeating-group-id',
+  type: 'Group',
+  children: ['field1'],
+  maxCount: 99,
+  dataModelBindings: {
+    group: groupBinding,
+  },
+  edit: {
+    mode: 'likert',
+  },
+  ...props,
+});
 
 const createRadioButton = (
   props: Partial<ExprUnresolved<ILayoutCompLikert>> | undefined,
-): ExprUnresolved<ILayoutCompLikert> => {
-  return {
-    id: 'field1',
-    type: 'Likert',
-    dataModelBindings: {
-      simpleBinding: `${groupBinding}.${answerBinding}`,
-    },
-    textResourceBindings: {
-      title: 'likert-questions',
-    },
-    optionsId: 'option-test',
-    readOnly: false,
-    required: false,
-    disabled: false,
-    ...props,
-  };
-};
+): ExprUnresolved<ILayoutCompLikert> => ({
+  id: 'field1',
+  type: 'Likert',
+  dataModelBindings: {
+    simpleBinding: `${groupBinding}.${answerBinding}`,
+  },
+  textResourceBindings: {
+    title: 'likert-questions',
+  },
+  optionsId: 'option-test',
+  readOnly: false,
+  required: false,
+  disabled: false,
+  ...props,
+});
 
-export const createFormDataUpdateAction = (index: number, optionValue: string): PayloadAction<IUpdateFormData> => {
-  return {
-    payload: {
-      componentId: `field1-${index}`,
-      data: optionValue,
-      field: `Questions[${index}].Answer`,
-      skipValidation: false,
-    },
-    type: FormDataActions.update.type,
-  };
-};
+export const createFormDataUpdateAction = (index: number, optionValue: string): PayloadAction<IUpdateFormData> => ({
+  payload: {
+    componentId: `field1-${index}`,
+    data: optionValue,
+    field: `Questions[${index}].Answer`,
+    skipValidation: false,
+  },
+  type: FormDataActions.update.type,
+});
 
 const createLayout = (
   container: ExprUnresolved<ILayoutGroup>,
   components: ExprUnresolved<ILayoutComponent | ComponentInGroup>[],
   groupIndex: number,
-): ILayoutState => {
-  return {
-    error: null,
-    layoutsets: null,
-    layouts: {
-      FormLayout: [container, ...components],
+): ILayoutState => ({
+  error: null,
+  layoutsets: null,
+  layouts: {
+    FormLayout: [container, ...components],
+  },
+  uiConfig: {
+    hiddenFields: [],
+    repeatingGroups: {
+      'likert-repeating-group-id': {
+        index: groupIndex,
+        editIndex: -1,
+      },
     },
-    uiConfig: {
-      hiddenFields: [],
-      repeatingGroups: {
-        'likert-repeating-group-id': {
-          index: groupIndex,
-          editIndex: -1,
+    currentView: 'FormLayout',
+    focus: null,
+    autoSave: null,
+    fileUploadersWithTag: {},
+    navigationConfig: {},
+    tracks: {
+      order: null,
+      hidden: [],
+      hiddenExpr: {},
+    },
+    pageTriggers: [],
+    excludePageFromPdf: [],
+    excludeComponentFromPdf: [],
+  },
+});
+
+export const createFormError = (index: number): ILayoutValidations => ({
+  [`field1-${index}`]: {
+    simpleBinding: {
+      errors: ['Feltet er påkrevd'],
+      warnings: [],
+    },
+  },
+});
+
+const createFormValidationsForCurrentView = (validations: ILayoutValidations = {}): IValidationState => ({
+  error: null,
+  invalidDataTypes: [],
+  validations: { FormLayout: validations },
+});
+
+const createTextResource = (questions: IQuestion[], extraResources: ITextResource[]): ITextResourcesState => ({
+  resources: [
+    {
+      id: 'likert-questions',
+      value: '{0}',
+      variables: [
+        {
+          key: `${groupBinding}[{0}].${questionBinding}`,
+          dataSource: 'dataModel.default',
         },
-      },
-      currentView: 'FormLayout',
-      focus: null,
-      autoSave: null,
-      fileUploadersWithTag: {},
-      navigationConfig: {},
-      tracks: {
-        order: null,
-        hidden: [],
-        hiddenExpr: {},
-      },
-      pageTriggers: [],
-      excludePageFromPdf: [],
-      excludeComponentFromPdf: [],
+      ],
     },
-  };
-};
-
-export const createFormError = (index: number): ILayoutValidations => {
-  return {
-    [`field1-${index}`]: {
-      simpleBinding: {
-        errors: ['Feltet er påkrevd'],
-        warnings: [],
-      },
-    },
-  };
-};
-
-const createFormValidationsForCurrentView = (validations: ILayoutValidations = {}): IValidationState => {
-  return {
-    error: null,
-    invalidDataTypes: [],
-    validations: { FormLayout: validations },
-  };
-};
-
-const createTextResource = (questions: IQuestion[], extraResources: ITextResource[]): ITextResourcesState => {
-  return {
-    resources: [
-      {
-        id: 'likert-questions',
-        value: '{0}',
-        variables: [
-          {
-            key: `${groupBinding}[{0}].${questionBinding}`,
-            dataSource: 'dataModel.default',
-          },
-        ],
-      },
-      ...questions.map((question, index) => {
-        return {
-          id: `likert-questions-${index}`,
-          value: question.Question,
-        };
-      }),
-      ...extraResources,
-    ],
-    language: 'nb',
-    error: null,
-  };
-};
+    ...questions.map((question, index) => ({
+      id: `likert-questions-${index}`,
+      value: question.Question,
+    })),
+    ...extraResources,
+  ],
+  language: 'nb',
+  error: null,
+});
 
 const { setScreenWidth } = mockMediaQuery(992);
 

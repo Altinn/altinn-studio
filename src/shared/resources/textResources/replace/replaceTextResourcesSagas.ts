@@ -31,8 +31,8 @@ export function* replaceTextResourcesSaga(): SagaIterator {
 
     const dataSources: IDataSources = {
       dataModel: formData,
-      applicationSettings: applicationSettings,
-      instanceContext: instanceContext,
+      applicationSettings,
+      instanceContext,
     };
 
     const updatedTextsResources: ITextResource[] = replaceTextResourceParams(

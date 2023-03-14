@@ -29,9 +29,9 @@ export const ConfirmPage = ({
 }: IConfirmPageProps) => {
   const getInstanceMetaObject = () => {
     if (instance?.org && applicationMetadata) {
-      const instanceOwnerParty = parties?.find((party: IParty) => {
-        return party.partyId.toString() === instance.instanceOwner.partyId;
-      });
+      const instanceOwnerParty = parties?.find(
+        (party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId,
+      );
       return returnConfirmSummaryObject({
         languageData: language || undefined,
         instanceOwnerParty,

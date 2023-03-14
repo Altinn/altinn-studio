@@ -55,25 +55,23 @@ describe('fetchLanguageSagas', () => {
     expect(generator.next().done).toBeTruthy();
   });
 
-  it('should fetch default language when defaultLanguage is true', () => {
-    return expectSaga(fetchLanguageSaga, true)
+  it('should fetch default language when defaultLanguage is true', () =>
+    expectSaga(fetchLanguageSaga, true)
       .provide([[select(appLanguageStateSelector), 'en']])
       .put(
         LanguageActions.fetchLanguageFulfilled({
           language: getLanguageFromCode('nb'),
         }),
       )
-      .run();
-  });
+      .run());
 
-  it('should fetch language from app language state', () => {
-    return expectSaga(fetchLanguageSaga)
+  it('should fetch language from app language state', () =>
+    expectSaga(fetchLanguageSaga)
       .provide([[select(appLanguageStateSelector), 'en']])
       .put(
         LanguageActions.fetchLanguageFulfilled({
           language: getLanguageFromCode('en'),
         }),
       )
-      .run();
-  });
+      .run());
 });

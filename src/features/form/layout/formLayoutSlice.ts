@@ -80,7 +80,7 @@ export const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutSt
         state.error = null;
         state.uiConfig.repeatingGroups = null;
       },
-      takeLatest: function* () {
+      *takeLatest() {
         yield put(OptionsActions.fetch());
         yield put(DataListsActions.fetch());
       },
@@ -350,7 +350,7 @@ export const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutSt
       },
     }),
     updateLayouts: mkAction<ILayouts>({
-      takeEvery: function* () {
+      *takeEvery() {
         yield call(checkIfConditionalRulesShouldRunSaga, { payload: {}, type: '' });
       },
       reducer: (state, action) => {

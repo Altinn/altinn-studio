@@ -34,9 +34,7 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions = useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading);
 
-  const getText = (key: string | undefined) => {
-    return key ? getTextResource(key, textResources) : undefined;
-  };
+  const getText = (key: string | undefined) => (key ? getTextResource(key, textResources) : undefined);
 
   const title = getText(node?.item.textResourceBindings?.title);
   const description = getText(node?.item.textResourceBindings?.description);

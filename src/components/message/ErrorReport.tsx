@@ -119,9 +119,8 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
     );
   };
 
-  const errorMessage = (message: string) => {
-    return message.includes(AsciiUnitSeparator) ? message.substring(message.indexOf(AsciiUnitSeparator) + 1) : message;
-  };
+  const errorMessage = (message: string) =>
+    message.includes(AsciiUnitSeparator) ? message.substring(message.indexOf(AsciiUnitSeparator) + 1) : message;
 
   return (
     <div data-testid='ErrorReport'>

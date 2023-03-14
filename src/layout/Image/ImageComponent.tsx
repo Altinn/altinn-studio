@@ -52,7 +52,7 @@ export function ImageComponent({ node, language, getTextResourceAsString }: IIma
               src={imgSrc}
               alt={altText}
               style={{
-                width: width,
+                width,
               }}
             />
           </object>
@@ -62,7 +62,7 @@ export function ImageComponent({ node, language, getTextResourceAsString }: IIma
             src={imgSrc}
             alt={altText}
             style={{
-              width: width,
+              width,
             }}
           />
         )}

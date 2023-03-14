@@ -61,7 +61,7 @@ export const languageSlice = createSagaSlice((mkAction: MkActionType<ILanguageSt
       },
     }),
     updateSelectedAppLanguage: mkAction<IUpdateSelectedAppLanguage>({
-      takeLatest: function* () {
+      *takeLatest() {
         yield put(OptionsActions.fetch());
       },
       reducer: (state, action) => {

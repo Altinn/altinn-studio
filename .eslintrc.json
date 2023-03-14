@@ -52,6 +52,9 @@
     "schemas/**/*.json"
   ],
   "rules": {
+    "curly": ["error", "all"],
+    "object-shorthand": ["error", "always"],
+    "arrow-body-style": ["error", "as-needed"],
     "no-console": [
       "warn",
       {

@@ -18,7 +18,9 @@ const getAllowAnonymous = () => {
       return undefined;
     }
 
-    if (!isStatelessApp(application)) return false;
+    if (!isStatelessApp(application)) {
+      return false;
+    }
     // Require layout sets for stateless apps - return undefined if not yet loaded
     if (!layoutsets?.sets) {
       return undefined;

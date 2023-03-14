@@ -40,7 +40,7 @@ describe('updateFormDataSagas', () => {
         type: FormDataActions.deleteAttachmentReference.type,
         payload: {
           attachmentId: 'abc123',
-          componentId: componentId,
+          componentId,
           dataModelBindings: dataBinding,
         },
       };

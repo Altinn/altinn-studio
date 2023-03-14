@@ -46,9 +46,7 @@ abstract class AnyComponent<Type extends ComponentTypes> {
 }
 
 export abstract class PresentationComponent<Type extends ComponentTypes> extends AnyComponent<Type> {
-  readonly getComponentType = (): ComponentType => {
-    return ComponentType.Presentation;
-  };
+  readonly getComponentType = (): ComponentType => ComponentType.Presentation;
 }
 
 export interface SummaryRendererProps<Type extends ComponentTypes> {
@@ -60,9 +58,7 @@ export interface SummaryRendererProps<Type extends ComponentTypes> {
 }
 
 export abstract class FormComponent<Type extends ComponentTypes> extends AnyComponent<Type> {
-  readonly getComponentType = (): ComponentType => {
-    return ComponentType.Form;
-  };
+  readonly getComponentType = (): ComponentType => ComponentType.Form;
 
   /**
    * Given a node (with group-index-aware data model bindings), this method should return a proper 'value' for the
@@ -103,15 +99,11 @@ export abstract class FormComponent<Type extends ComponentTypes> extends AnyComp
 }
 
 export abstract class ActionComponent<Type extends ComponentTypes> extends AnyComponent<Type> {
-  readonly getComponentType = (): ComponentType => {
-    return ComponentType.Action;
-  };
+  readonly getComponentType = (): ComponentType => ComponentType.Action;
 }
 
 export abstract class ContainerComponent<Type extends ComponentTypes> extends FormComponent<Type> {
-  readonly getComponentType = (): ComponentType => {
-    return ComponentType.Container;
-  };
+  readonly getComponentType = (): ComponentType => ComponentType.Container;
 }
 
 export type LayoutComponent<Type extends ComponentTypes = ComponentTypes> =

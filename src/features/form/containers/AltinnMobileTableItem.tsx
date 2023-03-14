@@ -201,91 +201,89 @@ export function AltinnMobileTableItem({
     >
       <Table className={classes.table}>
         <TableBody>
-          {items.map((item, index) => {
-            return (
-              <TableRow key={item.key}>
-                <TableCell
-                  variant='head'
-                  width='40%'
+          {items.map((item, index) => (
+            <TableRow key={item.key}>
+              <TableCell
+                variant='head'
+                width='40%'
+              >
+                <Typography
+                  variant='body1'
+                  className={`${classes.labelText} ${classes.textContainer}`}
                 >
-                  <Typography
-                    variant='body1'
-                    className={`${classes.labelText} ${classes.textContainer}`}
-                  >
-                    {item.label}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography
-                    variant='body1'
-                    className={classes.textContainer}
-                  >
-                    {item.value}
-                  </Typography>
-                </TableCell>
-                <TableCell
-                  className={classes.editButtonCell}
-                  align='right'
+                  {item.label}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography
+                  variant='body1'
+                  className={classes.textContainer}
                 >
-                  {index == 0 && (
-                    <div className={classes.tableButtonWrapper}>
-                      <Button
-                        data-testid='edit-button'
-                        variant={ButtonVariant.Quiet}
-                        color={ButtonColor.Secondary}
-                        icon={valid ? <EditIcon aria-hidden='true' /> : <WarningIcon aria-hidden='true' />}
-                        iconPlacement={!mobileViewSmall ? 'right' : 'left'}
-                        onClick={onEditClick}
-                        aria-label={`${editButtonText}-${item.value}`}
-                      >
-                        {!mobileViewSmall && editButtonText}
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-                {edit?.deleteButton !== false &&
-                  setPopoverOpen &&
-                  onOpenChange &&
-                  onPopoverDeleteClick &&
-                  language &&
-                  typeof popoverOpen === 'boolean' && (
-                    <TableCell
-                      align='right'
-                      className={cn([classes.deleteButtonCell], {
-                        [classes.popoverCurrentCell]: tableItemIndex == popoverPanelIndex,
-                      })}
+                  {item.value}
+                </Typography>
+              </TableCell>
+              <TableCell
+                className={classes.editButtonCell}
+                align='right'
+              >
+                {index == 0 && (
+                  <div className={classes.tableButtonWrapper}>
+                    <Button
+                      data-testid='edit-button'
+                      variant={ButtonVariant.Quiet}
+                      color={ButtonColor.Secondary}
+                      icon={valid ? <EditIcon aria-hidden='true' /> : <WarningIcon aria-hidden='true' />}
+                      iconPlacement={!mobileViewSmall ? 'right' : 'left'}
+                      onClick={onEditClick}
+                      aria-label={`${editButtonText}-${item.value}`}
                     >
-                      {index == 0 && (
-                        <div className={classes.tableButtonWrapper}>
-                          <DeleteWarningPopover
-                            trigger={
-                              <Button
-                                data-testid='delete-button'
-                                variant={ButtonVariant.Quiet}
-                                color={ButtonColor.Danger}
-                                icon={<DeleteIcon aria-hidden='true' />}
-                                iconPlacement={!mobileViewSmall ? 'right' : 'left'}
-                                onClick={onDeleteClick}
-                                aria-label={`${deleteButtonText}-${item.value}`}
-                              >
-                                {!mobileViewSmall && deleteButtonText}
-                              </Button>
-                            }
-                            language={language}
-                            deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
-                            messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
-                            open={popoverPanelIndex == tableItemIndex && popoverOpen}
-                            setPopoverOpen={setPopoverOpen}
-                            onCancelClick={() => onOpenChange(tableItemIndex)}
-                            onPopoverDeleteClick={onPopoverDeleteClick(tableItemIndex)}
-                          />
-                        </div>
-                      )}
-                    </TableCell>
-                  )}
-              </TableRow>
-            );
-          })}
+                      {!mobileViewSmall && editButtonText}
+                    </Button>
+                  </div>
+                )}
+              </TableCell>
+              {edit?.deleteButton !== false &&
+                setPopoverOpen &&
+                onOpenChange &&
+                onPopoverDeleteClick &&
+                language &&
+                typeof popoverOpen === 'boolean' && (
+                  <TableCell
+                    align='right'
+                    className={cn([classes.deleteButtonCell], {
+                      [classes.popoverCurrentCell]: tableItemIndex == popoverPanelIndex,
+                    })}
+                  >
+                    {index == 0 && (
+                      <div className={classes.tableButtonWrapper}>
+                        <DeleteWarningPopover
+                          trigger={
+                            <Button
+                              data-testid='delete-button'
+                              variant={ButtonVariant.Quiet}
+                              color={ButtonColor.Danger}
+                              icon={<DeleteIcon aria-hidden='true' />}
+                              iconPlacement={!mobileViewSmall ? 'right' : 'left'}
+                              onClick={onDeleteClick}
+                              aria-label={`${deleteButtonText}-${item.value}`}
+                            >
+                              {!mobileViewSmall && deleteButtonText}
+                            </Button>
+                          }
+                          language={language}
+                          deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
+                          messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
+                          open={popoverPanelIndex == tableItemIndex && popoverOpen}
+                          setPopoverOpen={setPopoverOpen}
+                          onCancelClick={() => onOpenChange(tableItemIndex)}
+                          onPopoverDeleteClick={onPopoverDeleteClick(tableItemIndex)}
+                        />
+                      </div>
+                    )}
+                  </TableCell>
+                )}
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </TableContainer>

@@ -62,74 +62,66 @@ export function InstanceSelection({ instances, onNewInstance }: IInstanceSelecti
     return null;
   }
 
-  const renderMobileTable = () => {
-    return (
-      <>
-        <Typography variant='h3'>{getLanguageFromKey('instance_selection.left_of', language)}</Typography>
-        <AltinnMobileTable id='instance-selection-mobile-table'>
-          {instances.map((instance) => {
-            return (
-              <AltinnMobileTableItem
-                items={[
-                  {
-                    key: 1,
-                    label: getLanguageFromKey('instance_selection.last_changed', language),
-                    value: getDateDisplayString(instance.lastChanged),
-                  },
-                  {
-                    key: 2,
-                    label: getLanguageFromKey('instance_selection.changed_by', language),
-                    value: instance.lastChangedBy,
-                  },
-                ]}
-                tableItemIndex={-2}
-                editIndex={-2}
-                onEditClick={() => openInstance(instance.id)}
-                key={instance.id}
-                editButtonText={getLanguageFromKey('instance_selection.continue', language)}
-              />
-            );
-          })}
-        </AltinnMobileTable>
-      </>
-    );
-  };
+  const renderMobileTable = () => (
+    <>
+      <Typography variant='h3'>{getLanguageFromKey('instance_selection.left_of', language)}</Typography>
+      <AltinnMobileTable id='instance-selection-mobile-table'>
+        {instances.map((instance) => (
+          <AltinnMobileTableItem
+            items={[
+              {
+                key: 1,
+                label: getLanguageFromKey('instance_selection.last_changed', language),
+                value: getDateDisplayString(instance.lastChanged),
+              },
+              {
+                key: 2,
+                label: getLanguageFromKey('instance_selection.changed_by', language),
+                value: instance.lastChangedBy,
+              },
+            ]}
+            tableItemIndex={-2}
+            editIndex={-2}
+            onEditClick={() => openInstance(instance.id)}
+            key={instance.id}
+            editButtonText={getLanguageFromKey('instance_selection.continue', language)}
+          />
+        ))}
+      </AltinnMobileTable>
+    </>
+  );
 
-  const renderTable = () => {
-    return (
-      <AltinnTable id='instance-selection-table'>
-        <AltinnTableHeader id='instance-selection-table-header'>
-          <AltinnTableRow>
-            <TableCell>{getLanguageFromKey('instance_selection.last_changed', language)}</TableCell>
-            <TableCell>{getLanguageFromKey('instance_selection.changed_by', language)}</TableCell>
+  const renderTable = () => (
+    <AltinnTable id='instance-selection-table'>
+      <AltinnTableHeader id='instance-selection-table-header'>
+        <AltinnTableRow>
+          <TableCell>{getLanguageFromKey('instance_selection.last_changed', language)}</TableCell>
+          <TableCell>{getLanguageFromKey('instance_selection.changed_by', language)}</TableCell>
+        </AltinnTableRow>
+      </AltinnTableHeader>
+      <AltinnTableBody id='instance-selection-table-body'>
+        {instances.map((instance: ISimpleInstance) => (
+          <AltinnTableRow key={instance.id}>
+            <TableCell>{getDateDisplayString(instance.lastChanged)}</TableCell>
+            <TableCell>{instance.lastChangedBy}</TableCell>
+            <TableCell style={buttonCell}>
+              <div style={tableButtonWrapper}>
+                <Button
+                  variant={ButtonVariant.Quiet}
+                  color={ButtonColor.Secondary}
+                  icon={<EditIcon />}
+                  iconPlacement='right'
+                  onClick={() => openInstance(instance.id)}
+                >
+                  {getLanguageFromKey('instance_selection.continue', language)}
+                </Button>
+              </div>
+            </TableCell>
           </AltinnTableRow>
-        </AltinnTableHeader>
-        <AltinnTableBody id='instance-selection-table-body'>
-          {instances.map((instance: ISimpleInstance) => {
-            return (
-              <AltinnTableRow key={instance.id}>
-                <TableCell>{getDateDisplayString(instance.lastChanged)}</TableCell>
-                <TableCell>{instance.lastChangedBy}</TableCell>
-                <TableCell style={buttonCell}>
-                  <div style={tableButtonWrapper}>
-                    <Button
-                      variant={ButtonVariant.Quiet}
-                      color={ButtonColor.Secondary}
-                      icon={<EditIcon />}
-                      iconPlacement='right'
-                      onClick={() => openInstance(instance.id)}
-                    >
-                      {getLanguageFromKey('instance_selection.continue', language)}
-                    </Button>
-                  </div>
-                </TableCell>
-              </AltinnTableRow>
-            );
-          })}
-        </AltinnTableBody>
-      </AltinnTable>
-    );
-  };
+        ))}
+      </AltinnTableBody>
+    </AltinnTable>
+  );
 
   return (
     <>

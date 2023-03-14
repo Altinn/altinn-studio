@@ -174,7 +174,7 @@ export function DatepickerComponent({ node, language, formData, handleDataChange
             InputProps={{
               disableUnderline: true,
               error: !isValid,
-              readOnly: readOnly,
+              readOnly,
               classes: {
                 root: classes.root + (!isValid ? ` ${classes.invalid}` : '') + (readOnly ? ' disabled' : ''),
                 input: classes.input,

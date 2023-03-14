@@ -19,11 +19,9 @@ describe('rules checkIfRuleShouldRun', () => {
 
   beforeEach(() => {
     mockRuleHandlerHelper = {
-      sum: () => {
-        return {
-          number: '1',
-        };
-      },
+      sum: () => ({
+        number: '1',
+      }),
     };
     mockRuleHandlerObject = {
       sum: ruleHandleFn,
@@ -247,22 +245,18 @@ describe('rules getRuleModelFields', () => {
   let mockRuleHandlerObject: any;
 
   beforeEach(() => {
-    const numberFn = () => {
-      return {
-        number: 'number',
-      };
-    };
+    const numberFn = () => ({
+      number: 'number',
+    });
 
     mockRuleHandlerHelper = {
       sum: numberFn,
     };
     mockConditionalRuleHandlerHelper = {
       biggerThan10: numberFn,
-      lengthBiggerThan4: () => {
-        return {
-          value: 'value',
-        };
-      },
+      lengthBiggerThan4: () => ({
+        value: 'value',
+      }),
     };
     mockConditionalRuleHandlerObject = {
       biggerThan10: (obj) => {

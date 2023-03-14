@@ -86,8 +86,8 @@ describe('Repeating group attachments', () => {
     }
   };
 
-  const getState = (selector?: (state: IRuntimeState) => any) => {
-    return cy.getReduxState((fullState) => {
+  const getState = (selector?: (state: IRuntimeState) => any) =>
+    cy.getReduxState((fullState) => {
       const keys = Object.keys(fullState.attachments.attachments);
       const out: any = {};
 
@@ -104,7 +104,6 @@ describe('Repeating group attachments', () => {
 
       return selector ? selector(out) : out;
     });
-  };
 
   const simplifyFormData = (s: IRuntimeState) => {
     // Find all attachment IDs and add them to a mapping, so we can replace them in formData with their file names,

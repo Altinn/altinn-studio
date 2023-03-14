@@ -28,8 +28,8 @@ describe('infoTaskQueueSaga', () => {
     ];
   });
 
-  it('startInitialInfoTaskQueueSaga, text resources with no variables', () => {
-    return expectSaga(startInitialInfoTaskQueueSaga)
+  it('startInitialInfoTaskQueueSaga, text resources with no variables', () =>
+    expectSaga(startInitialInfoTaskQueueSaga)
       .provide([
         [select(ApplicationMetadataSelector), applicationMetadataMock],
         [select(TextResourceSelector), textResources],
@@ -38,8 +38,7 @@ describe('infoTaskQueueSaga', () => {
       .put(IsLoadingActions.startDataTaskIsLoading())
       .put(QueueActions.startInitialInfoTaskQueueFulfilled())
       .put(IsLoadingActions.finishDataTaskIsLoading())
-      .run();
-  });
+      .run());
 
   it('startInitialInfoTaskQueueSaga, text resources with variables should load form data', () => {
     const textsWithVariables = [

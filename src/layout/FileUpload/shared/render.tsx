@@ -3,26 +3,24 @@ import React from 'react';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
 
-export const FileName = ({ children }: { children: string | undefined }) => {
-  return (
+export const FileName = ({ children }: { children: string | undefined }) => (
+  <div
+    style={{
+      display: 'flex',
+    }}
+  >
     <div
       style={{
-        display: 'flex',
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
       }}
     >
-      <div
-        style={{
-          textOverflow: 'ellipsis',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {removeFileEnding(children)}
-      </div>
-      <div>{getFileEnding(children)}</div>
+      {removeFileEnding(children)}
     </div>
-  );
-};
+    <div>{getFileEnding(children)}</div>
+  </div>
+);
 
 interface IAttachmentsCounterProps {
   language: any;
@@ -35,12 +33,10 @@ export const AttachmentsCounter = ({
   currentNumberOfAttachments,
   minNumberOfAttachments,
   maxNumberOfAttachments,
-}: IAttachmentsCounterProps) => {
-  return (
-    <div className='file-upload-text-bold-small'>
-      {`${getLanguageFromKey('form_filler.file_uploader_number_of_files', language)} ${
-        minNumberOfAttachments ? `${currentNumberOfAttachments}/${maxNumberOfAttachments}` : currentNumberOfAttachments
-      }.`}
-    </div>
-  );
-};
+}: IAttachmentsCounterProps) => (
+  <div className='file-upload-text-bold-small'>
+    {`${getLanguageFromKey('form_filler.file_uploader_number_of_files', language)} ${
+      minNumberOfAttachments ? `${currentNumberOfAttachments}/${maxNumberOfAttachments}` : currentNumberOfAttachments
+    }.`}
+  </div>
+);

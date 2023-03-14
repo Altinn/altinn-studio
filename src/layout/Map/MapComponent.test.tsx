@@ -6,8 +6,8 @@ import { MapComponent } from 'src/layout/Map/MapComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
-const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Map'>> = {}) => {
-  return renderGenericComponentTest({
+const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Map'>> = {}) =>
+  renderGenericComponentTest({
     type: 'Map',
     renderer: (props) => <MapComponent {...props} />,
     component: {
@@ -31,7 +31,6 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
       ...genericProps,
     },
   });
-};
 
 describe('MapComponent', () => {
   it('should show correct footer text when no location is selected', () => {

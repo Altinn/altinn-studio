@@ -61,13 +61,11 @@ function toCollectionFromData(mockLayout: ILayouts, formDataAsObject: any) {
 }
 
 // Mock dateformat
-jest.mock('src/utils/dateHelpers', () => {
-  return {
-    __esModules: true,
-    ...jest.requireActual('src/utils/dateHelpers'),
-    getDateFormat: jest.fn(() => 'DD.MM.YYYY'),
-  };
-});
+jest.mock('src/utils/dateHelpers', () => ({
+  __esModules: true,
+  ...jest.requireActual('src/utils/dateHelpers'),
+  getDateFormat: jest.fn(() => 'DD.MM.YYYY'),
+}));
 
 describe('utils > validation', () => {
   let mockLayout: any;

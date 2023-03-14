@@ -24,12 +24,13 @@ export const mapExtensionToAcceptMime = ({ extensionList }: MapExtensionToAccept
   }
 
   if (Array.isArray(extensionList)) {
-    return extensionList.reduce((list, extension) => {
-      return {
+    return extensionList.reduce(
+      (list, extension) => ({
         ...list,
         ...mapExtToMimeObject(extension.trim()),
-      };
-    }, {});
+      }),
+      {},
+    );
   }
 
   return mapExtToMimeObject(extensionList);

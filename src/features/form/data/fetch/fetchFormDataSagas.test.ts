@@ -69,9 +69,7 @@ describe('fetchFormDataSagas', () => {
       isAxiosError: true,
       message: 'error',
       name: 'error',
-      toJSON: () => {
-        return {};
-      },
+      toJSON: () => ({}),
       response: {
         config: { headers: {} as AxiosRequestHeaders },
         headers: {} as AxiosRequestHeaders,
@@ -118,9 +116,7 @@ describe('fetchFormDataSagas', () => {
       isAxiosError: true,
       message: 'error',
       name: 'error',
-      toJSON: () => {
-        return {};
-      },
+      toJSON: () => ({}),
       response: {
         config: { headers: {} as AxiosRequestHeaders },
         headers: {} as AxiosRequestHeaders,
@@ -233,9 +229,7 @@ describe('fetchFormDataSagas', () => {
       isAxiosError: true,
       message: 'error',
       name: 'error',
-      toJSON: () => {
-        return {};
-      },
+      toJSON: () => ({}),
       response: {
         config: { headers: {} as AxiosRequestHeaders },
         headers: {} as AxiosRequestHeaders,
@@ -281,9 +275,7 @@ describe('fetchFormDataSagas', () => {
       isAxiosError: true,
       message: 'error',
       name: 'error',
-      toJSON: () => {
-        return {};
-      },
+      toJSON: () => ({}),
       response: {
         config: { headers: {} as AxiosRequestHeaders },
         headers: {} as AxiosRequestHeaders,
@@ -297,9 +289,7 @@ describe('fetchFormDataSagas', () => {
       throw error;
     });
 
-    jest.spyOn(appUrlHelper, 'redirectToUpgrade').mockImplementation(() => {
-      return;
-    });
+    jest.spyOn(appUrlHelper, 'redirectToUpgrade').mockImplementation(() => undefined);
 
     expectSaga(fetchFormDataInitialSaga)
       .provide([

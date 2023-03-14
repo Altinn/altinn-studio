@@ -1,7 +1,7 @@
 import { Children, isValidElement } from 'react';
 
-export const capitalizeName = (name: string) => {
-  return name
+export const capitalizeName = (name: string) =>
+  name
     .toLowerCase()
     .split(' ')
     .map((word) => word.trim())
@@ -18,7 +18,6 @@ export const capitalizeName = (name: string) => {
     })
     .join(' ')
     .trim();
-};
 
 export const getPlainTextFromNode = (node: React.ReactNode): string => {
   if (typeof node === 'string') {

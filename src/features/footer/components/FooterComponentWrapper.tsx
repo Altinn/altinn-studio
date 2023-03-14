@@ -8,6 +8,6 @@ interface IFooterComponentWrapper {
   childRenderer: (props: IFooterBaseComponent<IFooterComponentType>) => JSX.Element | null;
 }
 
-export const FooterComponentWrapper = ({ props, childRenderer }: IFooterComponentWrapper) => {
-  return <div className={classes.wrapper}>{React.createElement(childRenderer, props)}</div>;
-};
+export const FooterComponentWrapper = ({ props, childRenderer }: IFooterComponentWrapper) => (
+  <div className={classes.wrapper}>{React.createElement(childRenderer, props)}</div>
+);

@@ -122,34 +122,32 @@ export function SummaryGroupComponent({
   if (summaryNode.item.largeGroup && overrides?.largeGroup !== false && rowIndexes.length) {
     return (
       <>
-        {rowIndexes.map((idx) => {
-          return (
-            <DisplayGroupContainer
-              key={`summary-${targetNode.item.id}-${idx}`}
-              id={`summary-${targetNode.item.id}-${idx}`}
-              groupNode={targetNode}
-              onlyRowIndex={idx}
-              renderLayoutNode={(n) => {
-                if (inExcludedChildren(n) || n.isHidden()) {
-                  return null;
-                }
+        {rowIndexes.map((idx) => (
+          <DisplayGroupContainer
+            key={`summary-${targetNode.item.id}-${idx}`}
+            id={`summary-${targetNode.item.id}-${idx}`}
+            groupNode={targetNode}
+            onlyRowIndex={idx}
+            renderLayoutNode={(n) => {
+              if (inExcludedChildren(n) || n.isHidden()) {
+                return null;
+              }
 
-                return (
-                  <SummaryComponent
-                    key={n.item.id}
-                    summaryNode={summaryNode}
-                    overrides={{
-                      ...overrides,
-                      targetNode: n,
-                      grid: {},
-                      largeGroup: false,
-                    }}
-                  />
-                );
-              }}
-            />
-          );
-        })}
+              return (
+                <SummaryComponent
+                  key={n.item.id}
+                  summaryNode={summaryNode}
+                  overrides={{
+                    ...overrides,
+                    targetNode: n,
+                    grid: {},
+                    largeGroup: false,
+                  }}
+                />
+              );
+            }}
+          />
+        ))}
       </>
     );
   }

@@ -13,21 +13,19 @@ export interface IAltinnTableHeaderProps {
 }
 
 const useStyles = makeStyles({
-  tableHeader: ({ padding }: IAltinnTableHeaderProps) => {
-    return {
-      borderBottom: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
-      '& th': {
+  tableHeader: ({ padding }: IAltinnTableHeaderProps) => ({
+    borderBottom: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
+    '& th': {
+      fontSize: '0.875rem',
+      padding: padding === 'dense' ? '0 12px 4px 12px' : '0 18px 4px 36px',
+      fontFamily: 'Altinn-DIN',
+      '& p': {
+        fontWeight: '500',
         fontSize: '0.875rem',
-        padding: padding === 'dense' ? '0 12px 4px 12px' : '0 18px 4px 36px',
-        fontFamily: 'Altinn-DIN',
-        '& p': {
-          fontWeight: '500',
-          fontSize: '0.875rem',
-          padding: '0px',
-        },
+        padding: '0px',
       },
-    };
-  },
+    },
+  }),
   removeHeader: {
     borderColor: 'transparent !important',
     '& th': {

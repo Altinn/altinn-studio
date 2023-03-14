@@ -74,7 +74,7 @@ export function* uploadAttachmentSaga({
       if (dataModelBindings && (dataModelBindings.simpleBinding || dataModelBindings.list)) {
         yield put(
           FormDataActions.update({
-            componentId: componentId,
+            componentId,
             data: response.data.id,
             field: dataModelBindings.simpleBinding
               ? `${dataModelBindings.simpleBinding}`

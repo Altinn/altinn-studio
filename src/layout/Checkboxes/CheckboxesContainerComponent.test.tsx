@@ -30,8 +30,8 @@ interface Props extends Partial<RenderGenericComponentTestProps<'Checkboxes'>> {
   optionState?: IOptionsState;
 }
 
-const render = ({ component, genericProps, optionState }: Props = {}) => {
-  return renderGenericComponentTest({
+const render = ({ component, genericProps, optionState }: Props = {}) =>
+  renderGenericComponentTest({
     type: 'Checkboxes',
     renderer: (props) => <CheckboxContainerComponent {...props} />,
     component: {
@@ -68,14 +68,12 @@ const render = ({ component, genericProps, optionState }: Props = {}) => {
       };
     },
   });
-};
 
-const getCheckbox = ({ name, isChecked = false }) => {
-  return screen.getByRole('checkbox', {
-    name: name,
+const getCheckbox = ({ name, isChecked = false }) =>
+  screen.getByRole('checkbox', {
+    name,
     checked: isChecked,
   });
-};
 
 describe('CheckboxContainerComponent', () => {
   jest.useFakeTimers();

@@ -12,6 +12,4 @@ const buttons: { [key in ButtonMode]: React.FC<React.PropsWithChildren<IButtonPr
   instantiate: InstantiationButton,
 };
 
-export const getComponentFromMode = (mode: ButtonMode) => {
-  return buttons[mode];
-};
+export const getComponentFromMode = (mode: ButtonMode) => buttons[mode];

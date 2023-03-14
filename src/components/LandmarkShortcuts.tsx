@@ -48,18 +48,16 @@ export function LandmarkShortcuts({ shortcuts }: ILandmarkShortcutsProps) {
 
   return (
     <nav>
-      {shortcuts.map((shortcut) => {
-        return (
-          <button
-            key={shortcut.id}
-            role='link'
-            className={cn(classes.button, classes.srOnly)}
-            onClick={() => handleClick(shortcut.id)}
-          >
-            {shortcut.text}
-          </button>
-        );
-      })}
+      {shortcuts.map((shortcut) => (
+        <button
+          key={shortcut.id}
+          role='link'
+          className={cn(classes.button, classes.srOnly)}
+          onClick={() => handleClick(shortcut.id)}
+        >
+          {shortcut.text}
+        </button>
+      ))}
     </nav>
   );
 }

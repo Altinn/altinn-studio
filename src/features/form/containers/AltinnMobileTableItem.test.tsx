@@ -43,7 +43,7 @@ describe('AltinnMobileTableItem', () => {
   it('triggers onEditClick when editbutton is present and clicked', async () => {
     const onEditClick = jest.fn();
     render({
-      onEditClick: onEditClick,
+      onEditClick,
     });
 
     await user.click(
@@ -59,7 +59,7 @@ describe('AltinnMobileTableItem', () => {
     const onDeleteClick = jest.fn();
     render({
       deleteFunctionality: {
-        onDeleteClick: onDeleteClick,
+        onDeleteClick,
         deleteButtonText: 'Delete',
         popoverOpen: false,
         popoverPanelIndex: -1,
@@ -93,12 +93,12 @@ const render = (props: Partial<IAltinnMobileTableItemProps> = {}) => {
   };
 
   const allProps = {
-    items: items,
+    items,
     onEditClick: jest.fn(),
     onDeleteClick: jest.fn(),
     editIconNode: ' i ',
     editButtonText: 'Edit',
-    language: language,
+    language,
     ...props,
   } as IAltinnMobileTableItemProps;
 

@@ -57,12 +57,11 @@ export function checkIfRuleShouldRun(
             }
             let ruleDataBindingKey: string | undefined = undefined;
             if (layoutElement.dataModelBindings) {
-              ruleDataBindingKey = Object.keys(layoutElement.dataModelBindings).find((dataBindingKey) => {
-                return (
+              ruleDataBindingKey = Object.keys(layoutElement.dataModelBindings).find(
+                (dataBindingKey) =>
                   layoutElement.dataModelBindings &&
-                  layoutElement.dataModelBindings[dataBindingKey] === connectionDef.outParams.outParam0
-                );
-              });
+                  layoutElement.dataModelBindings[dataBindingKey] === connectionDef.outParams.outParam0,
+              );
             }
 
             if (ruleDataBindingKey) {

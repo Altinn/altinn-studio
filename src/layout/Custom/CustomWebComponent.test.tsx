@@ -62,12 +62,8 @@ describe('CustomWebComponent', () => {
         formData: { simpleBinding: 'This is a test' },
         text: 'Title',
         handleDataChange: (value: string) => value,
-        getTextResource: (key: string) => {
-          return key;
-        },
-        getTextResourceAsString: (key: string) => {
-          return key;
-        },
+        getTextResource: (key: string) => key,
+        getTextResourceAsString: (key: string) => key,
         isValid: true,
         language: {},
         shouldFocus: false,

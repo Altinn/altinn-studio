@@ -65,7 +65,7 @@ export const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) 
       },
     }),
     startInitialAppTaskQueue: mkAction<void>({
-      takeEvery: function* (): SagaIterator {
+      *takeEvery(): SagaIterator {
         yield put(ApplicationSettingsActions.fetchApplicationSettings());
         yield put(TextResourcesActions.fetch());
         yield put(LanguageActions.fetchLanguage());
@@ -85,7 +85,7 @@ export const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) 
       },
     }),
     startInitialUserTaskQueue: mkAction<void>({
-      takeEvery: function* (): SagaIterator {
+      *takeEvery(): SagaIterator {
         yield put(ProfileActions.fetch({ url: profileApiUrl }));
         yield put(PartyActions.getCurrentParty());
         yield put(QueueActions.startInitialUserTaskQueueFulfilled());
@@ -100,7 +100,7 @@ export const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) 
       },
     }),
     startInitialDataTaskQueue: mkAction<void>({
-      takeEvery: function* (): SagaIterator {
+      *takeEvery(): SagaIterator {
         yield put(FormDataActions.fetchInitial());
         yield put(DataModelActions.fetchJsonSchema());
         yield put(FormLayoutActions.fetch());
@@ -130,7 +130,7 @@ export const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) 
       },
     }),
     startInitialStatelessQueue: mkAction<void>({
-      takeLatest: function* (): SagaIterator {
+      *takeLatest(): SagaIterator {
         yield put(IsLoadingActions.startStatelessIsLoading());
         yield put(FormDataActions.fetchInitial());
         yield put(DataModelActions.fetchJsonSchema());

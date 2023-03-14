@@ -30,8 +30,8 @@ const render = ({
   component,
   genericProps,
   manipulateState,
-}: Partial<RenderGenericComponentTestProps<'RadioButtons'>> = {}) => {
-  return renderGenericComponentTest({
+}: Partial<RenderGenericComponentTestProps<'RadioButtons'>> = {}) =>
+  renderGenericComponentTest({
     type: 'RadioButtons',
     renderer: (props) => <RadioButtonContainerComponent {...props} />,
     component: {
@@ -69,14 +69,12 @@ const render = ({
           };
         },
   });
-};
 
-const getRadio = ({ name, isChecked = false }) => {
-  return screen.getByRole('radio', {
-    name: name,
+const getRadio = ({ name, isChecked = false }) =>
+  screen.getByRole('radio', {
+    name,
     checked: isChecked,
   });
-};
 
 describe('RadioButtonsContainerComponent', () => {
   jest.useFakeTimers();
