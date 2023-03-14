@@ -30,6 +30,7 @@ interface IAppDeploymentComponentProps {
   deployPermission: boolean;
   orgName: string;
   imageOptions: ImageOption[];
+  showLinkToApp: boolean;
 }
 
 export enum DeploymentStatus {
@@ -51,6 +52,7 @@ export const AppDeploymentComponent = ({
   urlToApp,
   urlToAppLinkTxt,
   orgName,
+  showLinkToApp,
 }: IAppDeploymentComponentProps) => {
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
@@ -106,7 +108,7 @@ export const AppDeploymentComponent = ({
             t('app_deploy.deployed_version_unavailable')}
         </div>
         <div className={classes.gridItem}>
-          {appDeployedVersion && (
+          {showLinkToApp && (
             <AltinnLink
               url={urlToApp}
               linkTxt={urlToAppLinkTxt}
