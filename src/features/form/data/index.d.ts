@@ -22,7 +22,6 @@ export interface IFormDataState {
   savingId: string;
 
   error: Error | null;
-  ignoreWarnings: boolean;
 }
 
 export interface IFormData {

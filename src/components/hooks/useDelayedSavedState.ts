@@ -1,4 +1,4 @@
-import React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { IComponentProps } from 'src/layout';
 
@@ -14,12 +14,12 @@ export function useDelayedSavedState(
   formValue?: string,
   saveAfter?: number | boolean,
 ): DelayedSavedStateRetVal {
-  const [immediateState, _setImmediateState] = React.useState(formValue);
-  const immediateStateRef = React.useRef(formValue);
-  const [saveNextChangeImmediately, setSaveNextChangeImmediately] = React.useState(false);
-  const [skipNextValidation, setSkipNextValidation] = React.useState(false);
+  const [immediateState, _setImmediateState] = useState(formValue);
+  const immediateStateRef = useRef(formValue);
+  const [saveNextChangeImmediately, setSaveNextChangeImmediately] = useState(false);
+  const [skipNextValidation, setSkipNextValidation] = useState(false);
 
-  const setImmediateState = React.useCallback(
+  const setImmediateState = useCallback(
     (value: string | undefined) => {
       immediateStateRef.current = value;
       _setImmediateState(value);
@@ -27,18 +27,19 @@ export function useDelayedSavedState(
     [_setImmediateState],
   );
 
-  const updateFormData = React.useCallback(
-    (value: string | undefined, skipValidation = false) => {
-      const validate = !skipNextValidation && !skipValidation;
-      if (value !== formValue) {
-        validate && handleDataChange(value);
-        !validate && handleDataChange(value, { validate: false });
-        if (skipNextValidation) {
-          setSkipNextValidation(false);
-        }
-        if (saveNextChangeImmediately) {
-          setSaveNextChangeImmediately(false);
-        }
+  const updateFormData = useCallback(
+    (value: string | undefined, skipValidation = false): void => {
+      if (value === formValue) return;
+
+      const shouldValidate = !skipNextValidation && !skipValidation;
+      handleDataChange(value, { validate: shouldValidate });
+
+      if (skipNextValidation) {
+        setSkipNextValidation(false);
+      }
+
+      if (saveNextChangeImmediately) {
+        setSaveNextChangeImmediately(false);
       }
     },
     [
@@ -51,11 +52,11 @@ export function useDelayedSavedState(
     ],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     setImmediateState(formValue);
   }, [formValue, setImmediateState]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (saveAfter === false) {
       return;
     }
@@ -70,17 +71,17 @@ export function useDelayedSavedState(
 
   return {
     value: immediateState,
-    setValue: (newValue, saveImmediately = false, skipValidation = false) => {
+    setValue: (newValue, saveImmediately = false, skipValidation = false): void => {
       setImmediateState(newValue);
       setSkipNextValidation(skipValidation && !saveImmediately && !saveNextChangeImmediately);
       if (saveImmediately || saveNextChangeImmediately) {
         updateFormData(newValue, skipValidation);
       }
     },
-    saveValue: () => {
+    saveValue: (): void => {
       updateFormData(immediateStateRef.current);
     },
-    onPaste: () => {
+    onPaste: (): void => {
       setSaveNextChangeImmediately(true);
     },
   };

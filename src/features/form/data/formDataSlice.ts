@@ -29,7 +29,6 @@ export const initialState: IFormDataState = {
   submittingId: '',
   savingId: '',
   error: null,
-  ignoreWarnings: false,
 };
 
 const isProcessAction = (action: AnyAction) =>
@@ -95,14 +94,10 @@ export const formDataSlice = createSagaSlice((mkAction: MkActionType<IFormDataSt
         state.error = error;
         state.submittingId = '';
         state.savingId = '';
-        state.ignoreWarnings = true;
       },
     }),
     update: mkAction<IUpdateFormData>({
       takeEvery: updateFormDataSaga,
-      reducer: (state) => {
-        state.ignoreWarnings = false;
-      },
     }),
     updateFulfilled: mkAction<IUpdateFormDataFulfilled>({
       takeLatest: [checkIfRuleShouldRunSaga, autoSaveSaga],

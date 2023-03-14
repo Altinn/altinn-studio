@@ -74,7 +74,7 @@ describe('InputComponent', () => {
     });
 
     expect(inputComponent).toHaveValue(typedValue);
-    expect(handleDataChange).toHaveBeenCalledWith(typedValue);
+    expect(handleDataChange).toHaveBeenCalledWith(typedValue, { validate: true });
   });
 
   it('should render input with formatted number when this is specified', async () => {
@@ -110,7 +110,7 @@ describe('InputComponent', () => {
 
     expect(inputComponent).toHaveValue(finalValueFormatted);
     expect(handleDataChange).toHaveBeenCalledTimes(1);
-    expect(handleDataChange).toHaveBeenCalledWith(finalValuePlainText);
+    expect(handleDataChange).toHaveBeenCalledWith(finalValuePlainText, { validate: true });
   });
 
   it('should show aria-describedby if textResourceBindings.description is present', () => {
