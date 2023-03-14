@@ -6,12 +6,17 @@ App used for testing process flow with different access policy for different pro
 
 ![bpmn process](https://dev.altinn.studio/repos/ttd/signing-test/raw/branch/master/process.png)
 
+- The access policy for role user is shown with:
+  - `r`: read
+  - `w`: write
+  - `c`: confirm
+- `DAGL` is the manager.
 - `REGN` refers to the accountant roles: `A0239`, `A0240`, `A0241`.
 - `REVI` refers to the auditor roles: `A0237`, `A0238`.
 
 ## Testing
 
-The policy is set up so that users with an accountant role in an organization can instantiate and fill out the data step, but do not have confirm access to the confirmation step. Users with an auditor role are only allowed to read/confirm the confirmation step but are not allowed to instantiate, read, or fill out the data task. Users with a manager (`DAGL`) role has access to every step. Everyone is allowed to see the receipt.
+The policy is set up so that users with an accountant role in an organization can instantiate and fill out the data step, but do not have confirm access to either confirmation step. Users with a manager (`DAGL`) role has the same access as accountants, but also has confirm access to the first confirmation step. Users with an auditor role are only allowed to read/confirm the second confirmation step but are not allowed to instantiate, read, or fill out the data task. Everyone is allowed to see the receipt.
 
 ### LocalTest
 

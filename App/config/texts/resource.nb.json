@@ -6,8 +6,32 @@
       "value": "Send til bekreftelse"
     },
     {
+      "id": "Form.Button-confirm.title",
+      "value": "Signer"
+    },
+    {
       "id": "Form.Header-form.title",
       "value": "Inntektsrapportering"
+    },
+    {
+      "id": "Form.Panel-confirm1.title",
+      "value": "Daglig leders bekreftelse"
+    },
+    {
+      "id": "Form.Panel-confirm1.body",
+      "value": "Dette steget krever bekreftelse fra daglig leder."
+    },
+    {
+      "id": "Form.Panel-confirm2.title",
+      "value": "Revisors bekreftelse"
+    },
+    {
+      "id": "Form.Panel-confirm2.body",
+      "value": "Dette steget krever bekreftelse fra revisor."
+    },
+    {
+      "id": "Confirm.Paragraph-confirm.title",
+      "value": "<br><br><br>**Jeg bekrefter at opplysningene er korrekt.**"
     },
     {
       "id": "Form.Input-income.description",
