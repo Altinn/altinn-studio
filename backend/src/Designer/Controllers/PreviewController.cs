@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/api")]
+    [Route("preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
     public class PreviewController : Controller
     {
         private readonly IRepository _repository;
@@ -29,7 +29,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// Default action for the preview.
         /// </summary>
         /// <returns>default view for the app preview.</returns>
-        [Route("/preview/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
+        [HttpGet]
+        [Route("gui/{*AllValues}")]
         public IActionResult Index(string org, string app)
         {
             return View();
@@ -43,7 +44,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A view with the React form builder</returns>
         [HttpGet]
-        [Route("applicationmetadata")]
+        [Route("api/applicationmetadata")]
         public IActionResult ApplicationMetadata(string org, string app)
         {
             // var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -59,7 +60,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>200 Ok</returns>
         [HttpGet]
-        [Route("applicationsettings")]
+        [Route("api/applicationsettings")]
         public IActionResult ApplicationSettings(string org, string app)
         {
             return Ok();
@@ -72,7 +73,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>layoutsets example file</returns>
         [HttpGet]
-        [Route("layoutsets")]
+        [Route("api/layoutsets")]
         public IActionResult LayoutSets(string org, string app)
         {
             var layoutsets = _repository.GetFileByRelativePath(org, app, "/App/ui/layout-sets.json");
@@ -86,7 +87,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>datamodel jsonschema example file</returns>
         [HttpGet]
-        [Route("jsonschema/bestilling")]
+        [Route("api/jsonschema/bestilling")]
         public IActionResult JsonSchema(string org, string app)
         {
             var layoutsets = _repository.GetFileByRelativePath(org, app, "/App/models/bestilling.schema.json");
@@ -100,7 +101,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Empty object</returns>
         [HttpGet]
-        [Route("data/anonymous")]
+        [Route("api/data/anonymous")]
         public IActionResult DataModel(string org, string app)
         {
             string user = @"{}";
@@ -114,7 +115,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>200 Ok</returns>
         [HttpGet]
-        [Route("authentication/keepAlive")]
+        [Route("api/authentication/keepAlive")]
         public IActionResult KeepAlive(string org, string app)
         {
             return Ok();
@@ -127,7 +128,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>An example user</returns>
         [HttpGet]
-        [Route("profile/user")]
+        [Route("api/profile/user")]
         public IActionResult CurrentUser(string org, string app)
         {
             string user = @"{
@@ -155,7 +156,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>An example party</returns>
         [HttpGet]
-        [Route("authorization/parties/current")]
+        [Route("api/authorization/parties/current")]
         public IActionResult CurrentParty(string org, string app)
         {
             string party = @"{
@@ -181,7 +182,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>bool</returns>
         [HttpPost]
-        [Route("parties/validateInstantiation")]
+        [Route("api/parties/validateInstantiation")]
         public IActionResult ValidateInstantiation(string org, string app)
         {
             return Content(@"{""valid"": true}");
@@ -194,7 +195,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Nb text resource file</returns>
         [HttpGet]
-        [Route("texts/nb")]
+        [Route("api/texts/nb")]
         public IActionResult Language(string org, string app)
         {
             var resources = _repository.GetFileByRelativePath(org, app, "/App/config/texts/resource.nb.json");
@@ -208,7 +209,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Single text resource file</returns>
         [HttpGet]
-        [Route("textresources")]
+        [Route("api/textresources")]
         public IActionResult TextResources(string org, string app)
         {
             var resources = _repository.GetFileByRelativePath(org, app, "App/config/texts/resource.nb.json");
@@ -223,7 +224,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="modelname">Modelname identifier which is unique within an organisation.</param>
         /// <returns>datamodel as json schema</returns>
         [HttpGet]
-        [Route("jsonschema/{modelname}")]
+        [Route("api/jsonschema/{modelname}")]
         public IActionResult Datamodel(string org, string app, string modelname)
         {
             var resources = _repository.GetFileByRelativePath(org, app, $"/App/models/{modelname}.schema.json");
