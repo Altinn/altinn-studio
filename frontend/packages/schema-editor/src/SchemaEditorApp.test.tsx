@@ -3,12 +3,8 @@ import { unmountComponentAtNode } from 'react-dom';
 import { render, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { dataMock } from './mockData';
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 let container: any = null;
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 beforeEach(() => {
   container = document.createElement('div');

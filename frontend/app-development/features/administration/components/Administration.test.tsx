@@ -5,10 +5,7 @@ import type { ICommit, IRepository } from '../../../types/global';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(), Trans: '' }));
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 describe('Administration', () => {
   const mockService: IRepository = {
@@ -100,7 +97,7 @@ describe('Administration', () => {
         serviceInformation: mockServiceInformation,
       },
     });
-    const serviceIdText = screen.getByText('administration.service_id');
+    const serviceIdText = screen.getByText(textMock('administration.service_id'));
     expect(serviceIdText).not.toBeNull();
   });
 
@@ -111,7 +108,7 @@ describe('Administration', () => {
         serviceInformation: mockServiceInformation,
       },
     });
-    const infoText = screen.getByText('administration.datamodels_info1');
+    const infoText = screen.getByText(textMock('administration.datamodels_info1'));
     expect(infoText).not.toBeNull();
   });
 });

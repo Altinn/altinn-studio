@@ -7,24 +7,10 @@ import userEvent from '@testing-library/user-event';
 import { EditContainer } from './EditContainer';
 import type { IEditContainerProps } from './EditContainer';
 import { IAppState } from '../types/global';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 // Test data:
 const id = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88'
-const texts = {
-  'ux_editor.modal_properties_data_model_helper': 'Lenke til datamodell',
-  'general.for': 'for',
-  'general.edit': 'Endre',
-  'general.delete': 'Slett',
-  'general.save': 'Lagre',
-  'general.cancel': 'Avbryt',
-};
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
 
 describe('EditContainer', () => {
   test('should show edit id when edit button is clicked', async () => {
@@ -35,25 +21,25 @@ describe('EditContainer', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByDisplayValue(id)).not.toBeInTheDocument();
 
-    const editButton = screen.getByRole('button', { name: 'Endre' });
+    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
     await act(() => user.click(editButton));
 
     expect(
       screen.getByText(/ux_editor\.modal_properties_component_change_id/i)
     ).toBeInTheDocument();
     expect(screen.getByDisplayValue(id)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Endre' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: textMock('general.edit') })).not.toBeInTheDocument();
   });
 
   test('should have 3 accessible buttons, edit, cancel and save', async () => {
     const { user } = render();
 
-    const editButton = screen.getByRole('button', { name: 'Endre' });
+    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
     expect(editButton).toBeInTheDocument();
 
     await act(() => user.click(editButton));
-    expect(screen.getByRole('button', { name: 'Avbryt' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Lagre' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('general.save') })).toBeInTheDocument();
   });
 });
 

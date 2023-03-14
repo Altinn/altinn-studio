@@ -6,10 +6,6 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { IAppBarProps } from './AppBar';
 import { AppBar } from './AppBar';
 import { menu } from './appBarConfig';
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 describe('AppBar', () => {
   describe('When using AppBarConfig menu entries', () => {

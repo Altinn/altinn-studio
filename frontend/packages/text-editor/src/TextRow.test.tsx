@@ -4,8 +4,7 @@ import type { TextDetail } from './types';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
 import { screen, render as rtlRender, waitFor } from '@testing-library/react';
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 describe('TextRow', () => {
   const renderTextRow = (props: Partial<LangRowProps> = {}) => {
@@ -35,7 +34,7 @@ describe('TextRow', () => {
     await user.click(deleteButton);
 
     const cancelPopoverButton = screen.getByRole('button', {
-      name: /chema_editor.textRow-cancel-popover/,
+      name: textMock('schema_editor.textRow-cancel-popover'),
     });
     await user.click(cancelPopoverButton);
 

@@ -3,28 +3,22 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { ICreateNewWrapper } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
-import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 
 describe('CreateNewWrapper', () => {
   it('should open the popup when clicking "new" button', async () => {
     render();
 
     const newButton = screen.getByRole('button', {
-      name: /general\.create_new/i,
+      name: textMock('general.create_new'),
     });
 
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       })
     ).not.toBeInTheDocument();
 
@@ -32,14 +26,14 @@ describe('CreateNewWrapper', () => {
 
     expect(
       screen.queryByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       })
     ).not.toBeInTheDocument();
 
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       })
     ).toBeInTheDocument();
   });
@@ -50,13 +44,13 @@ describe('CreateNewWrapper', () => {
       render({ createAction: handleChange });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
       await user.click(newButton);
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       });
       await user.type(textInput, 'new-model');
       await user.click(okButton);
@@ -71,7 +65,7 @@ describe('CreateNewWrapper', () => {
       render({ createAction: handleChange });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
       await user.click(newButton);
 
@@ -90,13 +84,13 @@ describe('CreateNewWrapper', () => {
       render({ createAction: handleChange, createPathOption: true });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
       await user.click(newButton);
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       });
       await user.type(textInput, 'new-model');
       await user.click(okButton);
@@ -113,13 +107,13 @@ describe('CreateNewWrapper', () => {
       render({ createAction: handleChange, dataModelNames: [modelName] });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
       await user.click(newButton);
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       });
 
       await user.type(textInput, modelName);
@@ -140,12 +134,12 @@ describe('CreateNewWrapper', () => {
       render({ createAction: handleChange, dataModelNames: [modelName] });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
       await userWithNoPointerEventCheck.click(newButton);
 
       const okButton = screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       });
 
       await userWithNoPointerEventCheck.click(okButton);
