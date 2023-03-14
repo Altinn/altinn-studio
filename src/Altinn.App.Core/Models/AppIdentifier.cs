@@ -1,4 +1,5 @@
 using Altinn.App.Core.Extensions;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models
 {
@@ -57,6 +58,12 @@ namespace Altinn.App.Core.Models
 
             throw new ArgumentOutOfRangeException(nameof(id), "You must have exactly only one / (forward slash) in your id");
         }
+
+        /// <summary>
+        /// Get an AppIdentifier from an Instance.AppID
+        /// </summary>
+        public AppIdentifier(Instance instance) : this(instance.AppId) {}
+
 
         /// <summary>
         /// Deconstructs an app id into it's two logical parts - org and app.

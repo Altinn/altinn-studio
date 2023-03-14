@@ -6,22 +6,13 @@
 public class PdfGeneratorSettings
 {
     /// <summary>
-    /// The endpoint uri for the PDF generator service.
-    /// </summary>
-    public string ServiceEndpointUri { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The URI that the PDF generator should use when asking the APP for a print.<br/>
+    /// The path part of URI that the PDF generator should use when asking the APP for a print with {instanceid} replaced with `instance.Id`.<br/>
     /// </summary>
     /// <remarks>
-    /// The app logic will perform string replacement for a specific set of tokens. (Tokens can be omitted):
-    /// org - will be taken from current instance.Org.
-    /// hostName - will be taken from GeneralSettings.HostName.
-    /// appId - will be taken from current instance.AppId.
-    /// instanceId - will be taken from current instance.Id.
+    /// {instanceid} will be on the form {instanceownerId}/{instanceGuid}
+    /// eg: 123456/e7e56353-a935-443d-b2dd-7d41739e7d1c
     /// </remarks>
-    public string AppPdfPageUriTemplate { get; set; } =
-        "https://{org}.apps.{hostName}/{appId}/#/instance/{instanceId}?pdf=1";
+    public string AppPdfPagePathTemplate { get; set; } = "#/instance/{instanceId}?pdf=1";
 
     /// <summary>
     /// The name of a DOM element to wait for before triggering PDF-generator.

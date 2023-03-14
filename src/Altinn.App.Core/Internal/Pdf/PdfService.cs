@@ -83,16 +83,12 @@ public class PdfService : IPdfService
     /// <inheritdoc/>
     public async Task GenerateAndStorePdf(Instance instance, CancellationToken ct)
     {
-        StringBuilder address = new StringBuilder(_pdfGeneratorSettings.AppPdfPageUriTemplate.ToLower());
+        var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
+        var pagePath = _pdfGeneratorSettings.AppPdfPagePathTemplate.ToLowerInvariant().Replace("{instanceid}", instance.Id);
 
-        address.Replace("{org}", instance.Org);
-        address.Replace("{hostname}", _generalSettings.HostName);
-        address.Replace("{appid}", instance.AppId);
-        address.Replace("{instanceid}", instance.Id);
+        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(new Uri(baseUrl + pagePath), ct);
 
-        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(new Uri(address.ToString()), ct);
-
-        var appIdentifier = new AppIdentifier(instance.AppId);
+        var appIdentifier = new AppIdentifier(instance);
         var language = await GetLanguage();
         TextResource? textResource = await GetTextResource(appIdentifier.App, appIdentifier.Org, language);
         string fileName = GetFileName(instance, textResource);
@@ -247,7 +243,7 @@ public class PdfService : IPdfService
         return language;
     }
 
-    private async Task<TextResource> GetTextResource(string app, string org, string language)
+    private async Task<TextResource?> GetTextResource(string app, string org, string language)
     {
         TextResource? textResource = await _resourceService.GetTexts(org, app, language);
 
@@ -260,7 +256,7 @@ public class PdfService : IPdfService
         return textResource;
     }
 
-    private static string GetFileName(Instance instance, TextResource textResource)
+    private static string GetFileName(Instance instance, TextResource? textResource)
     {
         string? fileName = null;
         string app = instance.AppId.Split("/")[1];

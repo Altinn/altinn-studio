@@ -113,7 +113,8 @@ namespace Altinn.App.Core.EFormidling.Implementation
 
         private async Task ProcessMoveNext(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier)
         {
-            string url = $"https://{appIdentifier.Org}.apps.{_generalSettings.HostName}/{appIdentifier}/instances/{instanceIdentifier}/process/next";
+            string baseUrl = _generalSettings.FormattedExternalAppBaseUrl(appIdentifier);
+            string url = $"{baseUrl}instances/{instanceIdentifier}/process/next";
 
             TokenResponse altinnToken = await GetOrganizationToken();
             HttpClient httpClient = _httpClientFactory.CreateClient();

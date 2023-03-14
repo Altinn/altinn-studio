@@ -7,6 +7,7 @@ using Altinn.App.Core.Interface;
 
 using Microsoft.Extensions.Options;
 using Altinn.App.Core.Models.Pdf;
+using Altinn.App.Core.Configuration;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Pdf;
 
@@ -18,6 +19,7 @@ public class PdfGeneratorClient : IPdfGeneratorClient
 {
     private readonly HttpClient _httpClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
+    private readonly PlatformSettings _platformSettings;
     private readonly IUserTokenProvider _userTokenProvider;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -32,15 +34,18 @@ public class PdfGeneratorClient : IPdfGeneratorClient
     /// <param name="pdfGeneratorSettings">
     /// All generic settings needed for communication with the PDF generator service.
     /// </param>
+    /// <param name="platformSettings">Links to platform services</param>
     /// <param name="userTokenProvider">A service able to identify the JWT for currently authenticated user.</param>
     public PdfGeneratorClient(
         HttpClient httpClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
+        IOptions<PlatformSettings> platformSettings,
         IUserTokenProvider userTokenProvider)
     {
         _httpClient = httpClient;
         _userTokenProvider = userTokenProvider;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
+        _platformSettings = platformSettings.Value;
     }
 
     /// <inheritdoc/>
@@ -62,7 +67,7 @@ public class PdfGeneratorClient : IPdfGeneratorClient
         string requestContent = JsonSerializer.Serialize(generatorRequest, _jsonSerializerOptions);
         using StringContent stringContent = new(requestContent, Encoding.UTF8, "application/json");
         var httpResponseMessage = await _httpClient.PostAsync(
-            _pdfGeneratorSettings.ServiceEndpointUri,
+            _platformSettings.ApiPdf2Endpoint,
             stringContent,
             ct);
 

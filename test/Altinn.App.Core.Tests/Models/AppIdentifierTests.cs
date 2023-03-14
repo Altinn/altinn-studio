@@ -61,7 +61,7 @@ namespace Altinn.App.PlatformServices.Tests.Models
         [Fact]
         public void Constructor_NullAppId_ShouldThrowException()
         {
-            Action action = () => new AppIdentifier(null);
+            Action action = () => new AppIdentifier((string)null);
 
             action.Should().Throw<ArgumentNullException>();
         }

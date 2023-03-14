@@ -21,6 +21,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
     /// </summary>
     public class EventsClient : IEvents
     {
+        private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly GeneralSettings _generalSettings;
@@ -47,6 +48,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             IOptionsMonitor<AppSettings> settings,
             IOptions<GeneralSettings> generalSettings)
         {
+            _platformSettings = platformSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
             _generalSettings = generalSettings.Value;
@@ -72,6 +74,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
                 alternativeSubject = $"/person/{instance.InstanceOwner.PersonNumber}";
             }
 
+            var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
+
             CloudEvent cloudEvent = new CloudEvent
             {
                 Subject = $"/party/{instance.InstanceOwner.PartyId}",
@@ -79,7 +83,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
                 AlternativeSubject = alternativeSubject,
                 Time = DateTime.UtcNow,
                 SpecVersion = "1.0",
-                Source = new Uri($"https://{instance.Org}.apps.{_generalSettings.HostName}/{instance.AppId}/instances/{instance.Id}")
+                Source = new Uri($"{baseUrl}instances/{instance.Id}")
             };
 
             string accessToken = _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id.Split("/")[1]);

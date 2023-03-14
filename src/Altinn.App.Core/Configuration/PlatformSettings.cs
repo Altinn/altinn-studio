@@ -9,37 +9,42 @@ namespace Altinn.App.Core.Configuration
         /// <summary>
         /// Gets or sets the url for the Storage API endpoint.
         /// </summary>
-        public string ApiStorageEndpoint { get; set; }
+        public string ApiStorageEndpoint { get; set; } = "http://localhost:5101/storage/api/v1/";
 
         /// <summary>
         /// Gets or sets the url for the Register API endpoint.
         /// </summary>
-        public string ApiRegisterEndpoint { get; set; }
+        public string ApiRegisterEndpoint { get; set; } = "http://localhost:5101/register/api/v1/";
 
         /// <summary>
         /// Gets or sets the url for the Profile API endpoint.
         /// </summary>
-        public string ApiProfileEndpoint { get; set; }
+        public string ApiProfileEndpoint { get; set; } = "http://localhost:5101/profile/api/v1/";
 
         /// <summary>
         /// Gets or sets the url for the Authentication API endpoint.
         /// </summary>
-        public string ApiAuthenticationEndpoint { get; set; }
+        public string ApiAuthenticationEndpoint { get; set; } = "http://localhost:5101/authentication/api/v1/";
 
         /// <summary>
         /// Gets or sets the url for the Authorization API endpoint.
         /// </summary>
-        public string ApiAuthorizationEndpoint { get; set; }
+        public string ApiAuthorizationEndpoint { get; set; } = "http://localhost:5101/authorization/api/v1/";
 
         /// <summary>
         /// Gets or sets the url for the Events API endpoint.
         /// </summary>
-        public string ApiEventsEndpoint { get; set; }
+        public string ApiEventsEndpoint { get; set; } = "http://localhost:5101/events/api/v1/";
 
         /// <summary>
         /// Gets or sets the the url for the PDF API endpoint.
         /// </summary>
-        public string ApiPdfEndpoint { get; set; }
+        public string ApiPdfEndpoint { get; set; } = "http://localhost:5070/api/v1/";
+
+        /// <summary>
+        /// Gets or sets tue url for the new browser based PDF API endpoint.
+        /// </summary>
+        public string ApiPdf2Endpoint { get; set; } = "http://localhost:5300/pdf";
 
         /// <summary>
         /// Gets or sets the subscription key value to use in requests against the platform.

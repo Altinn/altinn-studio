@@ -25,7 +25,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         {
             _logger.LogInformation($"CreateNewAppModel {classRef}");
 
-            Type appType = Type.GetType(classRef);
+            Type? appType = Type.GetType(classRef);
             return Activator.CreateInstance(appType);
         }
 

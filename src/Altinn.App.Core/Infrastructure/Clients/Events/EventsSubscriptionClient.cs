@@ -15,6 +15,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
     /// </summary>
     public class EventsSubscriptionClient : IEventsSubscription
     {
+        private readonly PlatformSettings _platformSettings;
         private readonly GeneralSettings _generalSettings;
         private readonly HttpClient _client;
         private readonly IEventSecretCodeProvider _secretCodeProvider;
@@ -30,6 +31,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             IEventSecretCodeProvider secretCodeProvider,
             ILogger<EventsSubscriptionClient> logger)
         {
+            _platformSettings = platformSettings.Value;
             _generalSettings = generalSettings.Value;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiEventsEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
@@ -49,12 +51,12 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
         /// <returns>The created <see cref="Subscription"/></returns>
         public async Task<Subscription> AddSubscription(string org, string app, string eventType)
         {
-            var appBaseUrl = $"https://{org}.apps.{_generalSettings.HostName}/{org}/{app}";
+            var appBaseUrl = _generalSettings.FormattedExternalAppBaseUrl(new Models.AppIdentifier(org, app));
 
             var subscriptionRequest = new SubscriptionRequest()
             {
                 TypeFilter = eventType,
-                EndPoint = new Uri($"{appBaseUrl}/api/v1/eventsreceiver?code={await _secretCodeProvider.GetSecretCode()}"),
+                EndPoint = new Uri($"{appBaseUrl}api/v1/eventsreceiver?code={await _secretCodeProvider.GetSecretCode()}"),
                 SourceFilter = new Uri(appBaseUrl)
             };
 

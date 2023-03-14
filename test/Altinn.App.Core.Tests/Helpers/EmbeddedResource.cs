@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿#nullable enable
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Altinn.App.PlatformServices.Tests.Helpers;
 

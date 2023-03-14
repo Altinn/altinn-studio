@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using System.Net;
-using System.Net.Http.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
@@ -31,26 +30,26 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
         private readonly Mock<IProfile> _profile = new();
         private readonly Mock<IRegister> _register = new();
         private readonly Mock<IPdfFormatter> pdfFormatter = new();
-        private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions;
-        private readonly Mock<IOptions<GeneralSettings>> _generalSettingsOptions;
+        private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Microsoft.Extensions.Options.Options.Create<PdfGeneratorSettings>(new() { });
+
+        private readonly IOptions<GeneralSettings> _generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(new()
+        {
+            HostName = HostName
+        });
+
+        private readonly IOptions<PlatformSettings> _platformSettingsOptions = Microsoft.Extensions.Options.Options.Create<PlatformSettings>(new() { });
+
         private readonly Mock<IUserTokenProvider> _userTokenProvider;
 
         public PdfServiceTests()
         {
-            var resource = Task.FromResult(new TextResource() { Id = "digdir-not-really-an-app-nb", Language = "nb", Org = "digdir", Resources = new List<TextResourceElement>() });
-            _appResources.Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(resource);
+            var resource = new TextResource() { Id = "digdir-not-really-an-app-nb", Language = "nb", Org = "digdir", Resources = new List<TextResourceElement>() };
+            _appResources.Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(resource);
 
             DefaultHttpContext httpContext = new();
             httpContext.Request.Protocol = "https";
             httpContext.Request.Host = new(HostName);
             _httpContextAccessor.Setup(s => s.HttpContext!).Returns(httpContext);
-
-            PdfGeneratorSettings pdfGeneratorSettings = new() { ServiceEndpointUri = "http://real.domain.no" };
-            _pdfGeneratorSettingsOptions = Microsoft.Extensions.Options.Options.Create(pdfGeneratorSettings);
-
-            GeneralSettings generalSettings = new() { HostName = HostName };
-            _generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
-            _generalSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
 
             _userTokenProvider = new Mock<IUserTokenProvider>();
             _userTokenProvider.Setup(s => s.GetUserToken()).Returns("usertoken");
@@ -66,7 +65,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
             });
 
             var httpClient = new HttpClient(delegatingHandler);
-            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _userTokenProvider.Object);
+            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _platformSettingsOptions, _userTokenProvider.Object);
 
             Stream pdf = await pdfGeneratorClient.GeneratePdf(new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"), CancellationToken.None);
 
@@ -83,7 +82,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
             });
 
             var httpClient = new HttpClient(delegatingHandler);
-            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _userTokenProvider.Object);
+            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _platformSettingsOptions, _userTokenProvider.Object);
 
             var func = async () => await pdfGeneratorClient.GeneratePdf(new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"), CancellationToken.None);
 
@@ -95,6 +94,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
         {
             // Arrange
             _pdfGeneratorClient.Setup(s => s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<CancellationToken>()));
+            _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
             var target = new PdfService(
                 _pdf.Object,
@@ -107,7 +107,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
                 pdfFormatter.Object,
                 _pdfGeneratorClient.Object,
                 _pdfGeneratorSettingsOptions,
-                _generalSettingsOptions.Object);
+                _generalSettingsOptions);
 
             Instance instance = new()
             {
