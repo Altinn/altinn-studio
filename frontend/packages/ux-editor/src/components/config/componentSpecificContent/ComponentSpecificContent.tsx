@@ -77,7 +77,7 @@ export function ComponentSpecificContent({
           />
           <SelectComponent
             label={t('ux_editor.choose_variant')}
-            defaultValue={t('ux_editor.info')}
+            defaultValue='info'
             optionKey='variant'
             options={[
               {
@@ -95,6 +95,7 @@ export function ComponentSpecificContent({
             ]}
             component={component}
             handleComponentChange={handleComponentChange}
+            value={component.variant}
           />
         </>
       );

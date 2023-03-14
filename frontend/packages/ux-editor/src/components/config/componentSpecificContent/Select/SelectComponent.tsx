@@ -12,6 +12,7 @@ export interface SelectComponentProps extends IGenericEditComponent {
   optionKey: string;
   options: Option[];
   defaultValue?: string;
+  value: string;
 }
 export const SelectComponent = ({
   label,
@@ -19,15 +20,21 @@ export const SelectComponent = ({
   optionKey,
   options,
   defaultValue,
+  value,
   handleComponentChange,
 }: SelectComponentProps): JSX.Element => {
-  const handleSelectChange = (value: string): void => {
-    handleComponentChange({ ...component, [optionKey]: value });
+  const handleSelectChange = (newValue: string): void => {
+    handleComponentChange({ ...component, [optionKey]: newValue });
   };
 
   return (
     <FieldSet>
-      <Select label={label} options={options} onChange={handleSelectChange} value={defaultValue} />
+      <Select
+        label={label}
+        options={options}
+        onChange={handleSelectChange}
+        value={value || defaultValue}
+      />
     </FieldSet>
   );
 };
