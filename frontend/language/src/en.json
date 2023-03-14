@@ -538,6 +538,7 @@
   "right_menu.dynamics": "Dynamics",
   "right_menu.dynamics_description": "Edit dynamics that can be used in the rules for calculations and show/hide fields.",
   "right_menu.dynamics_edit": "Edit dynamics",
+  "right_menu.dynamics_edit_comment": "This link opens in Gitea",
   "right_menu.dynamics_link": "More information",
   "right_menu.rules_calculations": "Rule for calculations",
   "right_menu.rules_calculations_add_alt": "Add rule for calculations",

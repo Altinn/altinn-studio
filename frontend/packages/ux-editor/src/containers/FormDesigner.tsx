@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
-import FileEditor from 'app-shared/file-editor/FileEditor';
 import { RightMenu } from '../components/rightMenu/RightMenu';
-import { filterDataModelForIntellisense } from '../utils/datamodel';
 import { DesignView } from './DesignView';
-import type { IDataModelFieldElement, IFormLayoutOrder, LogicMode } from '../types/global';
+import type { IDataModelFieldElement, IFormLayoutOrder } from '../types/global';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { deepCopy } from 'app-shared/pure';
@@ -29,8 +27,6 @@ export const FormDesigner = ({
 }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useParams();
-  const [codeEditorOpen, setCodeEditorOpen] = useState<boolean>(false);
-  const [codeEditorMode, setCodeEditorMode] = useState<LogicMode>(null);
   const order = useSelector(makeGetLayoutOrderSelector());
   const layoutOrderCopy = deepCopy(layoutOrder || {});
   const t = useText();
@@ -49,45 +45,6 @@ export const FormDesigner = ({
     }
   }, [app, dispatch, org, selectedLayout, t, layoutOrder]);
 
-  useEffect(() => {
-    if (codeEditorOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-  }, [codeEditorOpen]);
-
-  const toggleCodeEditor = (mode?: LogicMode) => {
-    setCodeEditorOpen(!codeEditorOpen);
-    setCodeEditorMode(mode || null);
-  };
-
-  const getDataModelSuggestions = (filterText: string): IDataModelFieldElement[] => {
-    return filterDataModelForIntellisense(dataModel, filterText);
-  };
-
-  const getEditorHeight = () => {
-    const height = document.getElementById('formFillerGrid').clientHeight;
-    const editorHeight = height - 20;
-    return editorHeight.toString();
-  };
-
-  const renderLogicEditor = () => {
-    return (
-      <div className={classes.logicEditor}>
-        <div>
-          <FileEditor
-            editorHeight={getEditorHeight()}
-            mode={codeEditorMode.toString()}
-            closeFileEditor={toggleCodeEditor}
-            getDataModelSuggestions={getDataModelSuggestions}
-            boxShadow={true}
-          />
-        </div>
-      </div>
-    );
-  };
-
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={classes.root}>
@@ -103,10 +60,10 @@ export const FormDesigner = ({
               isDragging={false}
               layoutOrder={layoutOrderCopy}
             />
-            {codeEditorOpen ? renderLogicEditor() : null}
+            This would be the editor
           </div>
           <div className={classes.rightContent + ' ' + classes.item}>
-            <RightMenu toggleFileEditor={toggleCodeEditor} />
+            <RightMenu />
           </div>
         </div>
       </div>

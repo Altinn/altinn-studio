@@ -42,8 +42,6 @@
     "jest-junit": "15.0.0",
     "lint-staged": "13.1.2",
     "mini-css-extract-plugin": "2.7.2",
-    "monaco-editor": "0.36.1",
-    "monaco-editor-webpack-plugin": "7.0.1",
     "msw": "1.1.0",
     "prettier": "2.8.4",
     "react": "18.2.0",
