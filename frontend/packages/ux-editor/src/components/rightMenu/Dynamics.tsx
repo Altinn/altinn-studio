@@ -1,8 +1,8 @@
-import React from "react";
+import React from 'react';
 import classes from './Dynamics.module.css';
 import { ExternalLink } from '@navikt/ds-icons';
 import { useParams } from 'react-router-dom';
-import { useTranslation } from "react-i18next";
+import { useTranslation } from 'react-i18next';
 
 export const Dynamics = () => {
   const { t } = useTranslation();
@@ -27,9 +27,10 @@ export const Dynamics = () => {
             </span>
           </a>
         </p>
-        <a className={classes.textLink} href={dynamicLink} target='_blank' rel="noreferrer">
+        <a className={classes.textLink} href={dynamicLink} target='_blank' rel='noreferrer'>
           {t('right_menu.dynamics_edit')}
-        </a> (Denne lenken åpnes i Gitea)
+        </a>{' '}
+        ({t('right_menu.dynamics_edit_comment')})
       </div>
     </div>
   );
