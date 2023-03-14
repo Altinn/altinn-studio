@@ -24,4 +24,6 @@ export enum NameError {
   InvalidCharacter = 'InvalidCharacter',
   AlreadyInUse = 'AlreadyInUse',
   NoError = 'NoError',
+  InvalidValue = "InvalidValue",
+  InvalidMaxMinValue = "InvalidMaxMinValue"
 }

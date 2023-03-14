@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { IntRestrictionKeys } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -12,6 +12,8 @@ import {
   NumberRestrictionsReducerAction,
 } from './NumberRestrictionsReducer';
 import type { Dict } from '@altinn/schema-model';
+import { NameError } from '@altinn/schema-editor/types';
+import { ErrorMessage } from '@digdir/design-system-react';
 
 export function NumberRestrictions({
   restrictions,
@@ -44,19 +46,57 @@ export function NumberRestrictions({
     formatState.isMaxInclusive ? 'inclusive' : 'exclusive'
   }`;
 
+  const [nameError, setNameError] = useState(NameError.NoError);
+  const nameErrorMessage = {
+    [NameError.InvalidValue]: t('schema_editor.nameError_InvalidValue'),
+    [NameError.InvalidMaxMinValue]: t('schema_editor.nameError_InvalidMaxMinValue'),
+    [NameError.NoError]: '',
+  }[nameError];
+  const validateMinMax = (): NameError => {
+    if (formatState.min !== undefined && formatState.max !== undefined) {
+      if (formatState.min >= formatState.max) {
+        return NameError.InvalidMaxMinValue;
+      }
+    }
+    return NameError.NoError;
+  };
+  const onChangeMinNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.value.trim();
+    dispatchAction(NumberRestrictionsReducerActionType.setMinExcl, newValue);
+    if (newValue === '' || isNaN(Number(newValue))) {
+      event.target.value = '';
+      setNameError(NameError.InvalidValue);
+    } else {
+      setNameError(validateMinMax());
+    }
+  };
+  const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.value.trim();
+    dispatchAction(NumberRestrictionsReducerActionType.setMaxExcl, newValue);
+    if (newValue === '' || isNaN(Number(newValue))) {
+      event.target.value = '';
+      setNameError(NameError.InvalidValue);
+    } else {
+      setNameError(validateMinMax());
+    }
+  };
+
   return (
     <>
       <Divider />
       <div>
         <Label htmlFor='schema_editor.minimum_'>{t(minLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
-          <TextField
-            id='schema_editor.minimum_'
-            onChange={(e) =>
-              dispatchAction(NumberRestrictionsReducerActionType.setMinExcl, e.target.value)
-            }
-            value={formatState.min === undefined ? '' : formatState.min.toString()}
-          />
+          <div>
+            <TextField
+              id='schema_editor.minimum_'
+              onChange={onChangeMinNumber}
+              value={formatState.min === undefined ? '' : formatState.min.toString()}
+            />
+            <div className={classes.minNumberErrorMassage}>
+              {nameError && <ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
+            </div>
+          </div>
           <Checkbox
             aria-checked='true'
             checked={formatState.isMinInclusive}
@@ -70,13 +110,16 @@ export function NumberRestrictions({
       <div>
         <Label htmlFor='schema_editor.maximum_'>{t(maxLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
-          <TextField
-            id='schema_editor.maximum_'
-            onChange={(e) =>
-              dispatchAction(NumberRestrictionsReducerActionType.setMaxExcl, e.target.value)
-            }
-            value={formatState.max === undefined ? '' : formatState.max.toString()}
-          />
+          <div>
+            <TextField
+              id='schema_editor.maximum_'
+              onChange={onChangeMaxNumber}
+              value={formatState.max === undefined ? '' : formatState.max.toString()}
+            />
+            <div className={classes.minNumberErrorMassage}>
+              {nameError && <ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
+            </div>
+          </div>
           <Checkbox
             checkboxId='include-minimum-value-checkbox'
             aria-checked='true'

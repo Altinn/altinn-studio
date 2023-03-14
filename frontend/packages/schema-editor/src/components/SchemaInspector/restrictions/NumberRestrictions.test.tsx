@@ -4,6 +4,7 @@ import { NumberRestrictions } from './NumberRestrictions';
 import { fireEvent } from '@testing-library/react';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { NameError } from '@altinn/schema-editor/types';
 
 i18n.use(initReactI18next).init({
   lng: 'en',
@@ -84,4 +85,42 @@ describe('NumberRestrictions component', () => {
     fireEvent.click(checkbox);
     expect(checkbox).toBeCalled;
   });
+
+  test('should return NoError if min is less than max', () => {
+    const props = {
+      restrictions: {},
+      path: '',
+      onChangeRestrictions: jest.fn(),
+      onChangeRestrictionValue: jest.fn(),
+    };
+    render(<NumberRestrictions readonly={false} {...props} />);
+
+    const formatState = { min: 4, max: 7 };
+
+    expect(validateMinMax(formatState)).toBe(NameError.NoError);
+  });
+
+  it('should return NoError if min is less than max', () => {
+    const formatState = { min: 4, max: 7 };
+    expect(validateMinMax(formatState)).toBe(NameError.NoError);
+  });
+
+  it('should return error message if min is greater than max', () => {
+    const formatState = { min: 7, max: 4 };
+    expect(validateMinMax(formatState)).toBe(NameError.InvalidMaxMinValue);
+  });
+
+  it('should return error message if min is equal to max', () => {
+    const formatState = { min: 2, max: 2 };
+    expect(validateMinMax(formatState)).toBe(NameError.InvalidMaxMinValue);
+  });
 });
+
+function validateMinMax(formatState: { min: number; max: number }): any {
+  if (formatState.min !== undefined && formatState.max !== undefined) {
+    if (formatState.min >= formatState.max) {
+      return NameError.InvalidMaxMinValue;
+    }
+  }
+  return NameError.NoError;
+}
