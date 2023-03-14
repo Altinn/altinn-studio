@@ -26,6 +26,17 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Default action for the preview.
+        /// </summary>
+        /// <returns>default view for the app preview.</returns>
+        [Route("/preview/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
+        public IActionResult Index(string org, string app)
+        {
+            return View();
+        }
+
+
+        /// <summary>
         /// Action for getting the application metadata
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
