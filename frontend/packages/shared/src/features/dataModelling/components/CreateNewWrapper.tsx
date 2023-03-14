@@ -98,6 +98,7 @@ export function CreateNewWrapper(props: ICreateNewWrapper) {
         onClick={onCreateClick}
         disabled={props.disabled}
         icon={<Add />}
+        variant={ButtonVariant.Quiet}
       >
         {t('general.create_new')}
       </Button>

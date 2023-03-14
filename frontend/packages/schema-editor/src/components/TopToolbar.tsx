@@ -67,6 +67,7 @@ export function TopToolbar({
                 onClick={handleGenerateButtonClick}
                 disabled={!editMode || !saveAction}
                 icon={<Settings />}
+                variant={ButtonVariant.Quiet}
               >
                 {t('schema_editor.generate_model_files')}
               </Button>
