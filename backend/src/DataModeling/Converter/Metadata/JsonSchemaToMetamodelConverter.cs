@@ -334,7 +334,14 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 return;
             }
 
-            foreach (var keyword in singleSchema.Keywords)
+            // If the array has a properties keyword, the type should be created with the node name.
+            if (singleSchema!.Keywords.TryGetKeyword(out PropertiesKeyword propertiesKeyword) && propertiesKeyword.Properties.Any())
+            {
+                ProcessRegularType(path, subSchema, context);
+            }
+
+
+            foreach (var keyword in singleSchema.Keywords!)
             {
                 var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
 
