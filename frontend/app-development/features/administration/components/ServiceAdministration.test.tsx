@@ -7,14 +7,11 @@ import type { IHandleServiceInformationState } from '../handleServiceInformation
 import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';
 import { serviceConfigPath, serviceNamePath } from 'app-shared/api-paths';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(), Trans: '' }));
 
 describe('Administration', () => {
   const mockService: IRepository = {
@@ -101,7 +98,7 @@ describe('Administration', () => {
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
     const mockEvent = { target: { value: 'New name' } };
 
-    const editButton = screen.getByRole('button', { name: 'general.edit' });
+    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
     await user.click(editButton);
 
     const inputElement = screen

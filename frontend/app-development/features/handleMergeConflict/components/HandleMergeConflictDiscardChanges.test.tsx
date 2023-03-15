@@ -3,11 +3,12 @@ import * as networking from 'app-shared/utils/networking';
 import { HandleMergeConflictDiscardChanges } from './HandleMergeConflictDiscardChanges';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../testing/mocks/i18nMock';
+import i18next from 'i18next';
 
 const renderHandleMergeConflictDiscardChanges = () => {
   const user = userEvent.setup();
-  render(<HandleMergeConflictDiscardChanges t={mockUseTranslation().t} />);
+  render(<HandleMergeConflictDiscardChanges t={textMock as typeof i18next.t} />);
   return { user };
 };
 afterEach(() => jest.restoreAllMocks());
@@ -22,7 +23,7 @@ describe('HandleMergeConflictDiscardChanges', () => {
 
     const mockGet = jest.spyOn(networking, 'get').mockImplementationOnce(() => Promise.resolve());
     const discardMergeChangesBtn = screen.getByRole('button', {
-      name: 'handle_merge_conflict.discard_changes_button',
+      name: textMock('handle_merge_conflict.discard_changes_button'),
     });
 
     // Expect discard button to exist
@@ -34,7 +35,7 @@ describe('HandleMergeConflictDiscardChanges', () => {
     expect(screen.getByRole('presentation')).toBeDefined();
 
     const discardMergeChangesConfirmBtn = screen.getByRole('button', {
-      name: 'handle_merge_conflict.discard_changes_button_confirm',
+      name: textMock('handle_merge_conflict.discard_changes_button_confirm'),
     });
     expect(discardMergeChangesConfirmBtn).toBeDefined();
     await user.click(discardMergeChangesConfirmBtn);
@@ -47,13 +48,13 @@ describe('HandleMergeConflictDiscardChanges', () => {
     const mockGet = jest.spyOn(networking, 'get').mockImplementationOnce(() => Promise.reject());
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => 'error');
     const discardMergeChangesBtn = screen.getByRole('button', {
-      name: 'handle_merge_conflict.discard_changes_button',
+      name: textMock('handle_merge_conflict.discard_changes_button'),
     });
 
     await user.click(discardMergeChangesBtn);
 
     const discardMergeChangesConfirmBtn = screen.getByRole('button', {
-      name: 'handle_merge_conflict.discard_changes_button_confirm',
+      name: textMock('handle_merge_conflict.discard_changes_button_confirm'),
     });
 
     await user.click(discardMergeChangesConfirmBtn);

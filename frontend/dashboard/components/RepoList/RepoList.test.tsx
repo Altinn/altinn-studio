@@ -2,14 +2,11 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper, Services } from '../../dashboardTestUtils';
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';;
 import { starredRepo } from '../../data-mocks/starredRepo';
 import { IRepoListProps, RepoList } from './RepoList';
 import { IRepository } from 'app-shared/types/global';
 
 const user = userEvent.setup();
-
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 type RenderWithMockServicesProps = Services;
 const renderWithMockServices = (
@@ -25,35 +22,38 @@ const renderWithMockServices = (
   );
 };
 
-test('should not call onSortModelChange when clicking sort button and isServerSort is false', async () => {
-  const handleSortMock = jest.fn();
-  renderWithMockServices({
-    isLoading: false,
-    isServerSort: false,
-    rowCount: 5,
-    onSortModelChange: handleSortMock,
-  });
-  // eslint-disable-next-line testing-library/no-node-access
-  const sortBtn = document.querySelector('button[aria-label="Sort"]');
-  await user.click(sortBtn);
+describe('RepoList', () => {
 
-  expect(handleSortMock).toHaveBeenCalledTimes(0);
-});
+  test('should not call onSortModelChange when clicking sort button and isServerSort is false', async () => {
+    const handleSortMock = jest.fn();
+    renderWithMockServices({
+      isLoading: false,
+      isServerSort: false,
+      rowCount: 5,
+      onSortModelChange: handleSortMock,
+    });
+    // eslint-disable-next-line testing-library/no-node-access
+    const sortBtn = document.querySelector('button[aria-label="Sort"]');
+    await user.click(sortBtn);
 
-test('should call onSortModelChange when clicking sort button and isServerSort is true', async () => {
-  const handleSortMock = jest.fn();
-  renderWithMockServices({
-    isLoading: false,
-    isServerSort: true,
-    rowCount: 5,
-    onSortModelChange: handleSortMock,
+    expect(handleSortMock).toHaveBeenCalledTimes(0);
   });
 
-  // eslint-disable-next-line testing-library/no-node-access
-  const sortBtn = document.querySelector('button[aria-label="Sort"]');
-  await user.click(sortBtn);
+  test('should call onSortModelChange when clicking sort button and isServerSort is true', async () => {
+    const handleSortMock = jest.fn();
+    renderWithMockServices({
+      isLoading: false,
+      isServerSort: true,
+      rowCount: 5,
+      onSortModelChange: handleSortMock,
+    });
 
-  expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
-    reason: undefined,
+    // eslint-disable-next-line testing-library/no-node-access
+    const sortBtn = document.querySelector('button[aria-label="Sort"]');
+    await user.click(sortBtn);
+
+    expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
+      reason: undefined,
+    });
   });
 });

@@ -2,8 +2,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MakeCopyModal } from './MakeCopyModal';
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 import { MockServicesContextWrapper, Services } from 'dashboard/dashboardTestUtils';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -20,8 +20,6 @@ const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
     </MockServicesContextWrapper>
   );
 };
-
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 describe('MakeCopyModal', () => {
   beforeEach(() => {
@@ -42,10 +40,10 @@ describe('MakeCopyModal', () => {
 
     await user.type(screen.getByRole('textbox'), 'new-repo-name');
     await user.click(screen.getByRole('button', {
-      name: /dashboard\.make_copy/i,
+      name: textMock('dashboard.make_copy'),
     }));
 
-    expect(screen.queryByText(/dashboard\.field_cannot_be_empty/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('dashboard.field_cannot_be_empty'))).not.toBeInTheDocument();
     expect(copyAppMock).toHaveBeenCalledTimes(1);
     expect(copyAppMock).toHaveBeenCalledWith("org", "app", "new-repo-name");
   });
@@ -53,25 +51,25 @@ describe('MakeCopyModal', () => {
   test('should show error message when clicking confirm without adding name', async () => {
     renderWithMockServices();
 
-    expect(screen.queryByText(/dashboard\.field_cannot_be_empty/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('dashboard.field_cannot_be_empty'))).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
       name: /dashboard\.make_copy/i,
     });
     await user.click(confirmButton);
-    expect(screen.getByText(/dashboard\.field_cannot_be_empty/i)).toBeInTheDocument();
+    expect(screen.getByText(textMock('dashboard.field_cannot_be_empty'))).toBeInTheDocument();
   });
 
   test('should show error message when clicking confirm and name is too long', async () => {
     renderWithMockServices();
 
-    expect(screen.queryByText(/dashboard\.service_name_is_too_long/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('dashboard.service_name_is_too_long'))).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
-      name: /dashboard\.make_copy/i,
+      name: textMock('dashboard.make_copy'),
     });
     const inputField = screen.getByRole('textbox');
     await user.type(inputField, 'this-new-name-is-way-too-long-to-be-valid');
     await user.click(confirmButton);
-    expect(screen.getByText(/dashboard\.service_name_is_too_long/i)).toBeInTheDocument();
+    expect(screen.getByText(textMock('dashboard.service_name_is_too_long'))).toBeInTheDocument();
   });
 
   test('should show error message when clicking confirm and name contains invalid characters', async () => {
@@ -81,11 +79,11 @@ describe('MakeCopyModal', () => {
       screen.queryByText(/dashboard\.service_name_has_illegal_characters/i)
     ).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
-      name: /dashboard\.make_copy/i,
+      name: textMock('dashboard.make_copy'),
     });
     const inputField = screen.getByRole('textbox');
     await user.type(inputField, 'this name is invalid');
     await user.click(confirmButton);
-    expect(screen.getByText(/dashboard\.service_name_has_illegal_characters/i)).toBeInTheDocument();
+    expect(screen.getByText(textMock('dashboard.service_name_has_illegal_characters'))).toBeInTheDocument();
   });
 });

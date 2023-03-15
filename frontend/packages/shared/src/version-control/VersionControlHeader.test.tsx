@@ -5,7 +5,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { VersionControlHeader } from './VersionControlHeader';
 import { setWindowLocationForTests, TEST_DOMAIN } from '../../../../testing/testUtils';
 import { datamodelXsdPath, repoMetaPath } from '../api-paths';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 setWindowLocationForTests('test-org', 'test-app');
 
@@ -46,9 +45,6 @@ export const versionControlHeaderAfterEach = () => {
   versionControlHeaderMockServer.resetHandlers();
 };
 export const versionControlHeaderAfterAll = () => versionControlHeaderMockServer.resetHandlers();
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 beforeAll(versionControlHeaderBeforeAll);
 afterEach(versionControlHeaderAfterEach);
