@@ -3,7 +3,7 @@ import { profileStateSelector } from 'src/selectors/simpleSelectors';
 import type { IRuntimeState } from 'src/types';
 import type { IProfile } from 'src/types/shared';
 
-const selectedAppLanguageStateSelector = (state: IRuntimeState) => state.language.selectedAppLanguage;
+const selectedAppLanguageStateSelector = (state: IRuntimeState) => state.profile.selectedAppLanguage;
 
 export const appLanguageStateSelector = (state: IRuntimeState) => {
   let selectedAppLanguage = selectedAppLanguageStateSelector(state);

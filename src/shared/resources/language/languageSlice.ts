@@ -1,36 +1,26 @@
-import { call, put, take } from 'redux-saga/effects';
+import { call, take } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { fetchLanguageSaga, watchFetchLanguageSaga } from 'src/shared/resources/language/fetch/fetchLanguageSagas';
-import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import type { IAltinnWindow } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
 export interface IFetchLanguageFulfilled {
   language: ILanguage;
 }
+
 export interface IFetchLanguageRejected {
   error: Error;
-}
-export interface IUpdateSelectedAppLanguage {
-  selected: string;
 }
 
 export interface ILanguageState {
   language: ILanguage | null;
-  selectedAppLanguage: string;
   error: Error | null;
 }
 
-const altinnWindow = window as Window as IAltinnWindow;
-const { app } = altinnWindow;
-const localStorageSlectedAppLanguageKey = `selectedAppLanguage${app}`;
-
 export const initialState: ILanguageState = {
   language: null,
-  selectedAppLanguage: localStorage.getItem(localStorageSlectedAppLanguageKey) || '',
   error: null,
 };
 
@@ -58,16 +48,6 @@ export const languageSlice = createSagaSlice((mkAction: MkActionType<ILanguageSt
       reducer: (state, action) => {
         const { error } = action.payload;
         state.error = error;
-      },
-    }),
-    updateSelectedAppLanguage: mkAction<IUpdateSelectedAppLanguage>({
-      *takeLatest() {
-        yield put(OptionsActions.fetch());
-      },
-      reducer: (state, action) => {
-        const { selected } = action.payload;
-        localStorage.setItem(localStorageSlectedAppLanguageKey, selected);
-        state.selectedAppLanguage = selected;
       },
     }),
   },

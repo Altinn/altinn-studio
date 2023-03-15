@@ -75,7 +75,6 @@ describe('InstantiateContainer', () => {
             starting: 'instantiate.starting',
           },
         },
-        selectedAppLanguage: '',
         error: null,
       },
     });

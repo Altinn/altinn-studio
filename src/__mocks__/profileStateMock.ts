@@ -16,6 +16,7 @@ export function getProfileStateMock(customStates?: Partial<IProfileState>): IPro
         doNotPromptForParty: false,
       },
     },
+    selectedAppLanguage: '',
   };
 
   return {

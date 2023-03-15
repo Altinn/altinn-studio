@@ -1,6 +1,7 @@
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { statelessAndAllowAnonymousMock } from 'src/__mocks__/statelessAndAllowAnonymousMock';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import type { IRuntimeState } from 'src/types';
 
 describe('appLanguageStateSelector', () => {
   interface ISetupProps {
@@ -23,13 +24,13 @@ describe('appLanguageStateSelector', () => {
             language: profileLanguage,
           },
         },
+        selectedAppLanguage: selectedLanguage,
       },
       language: {
         language: {},
         error: null,
-        selectedAppLanguage: selectedLanguage,
       },
-    };
+    } satisfies IRuntimeState;
   };
 
   it('should select profile language when allowAnonymous false and selected language not set', () => {

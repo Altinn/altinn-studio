@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { partyMock } from 'src/__mocks__/partyMock';
+import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { AltinnParty } from 'src/shared/components/altinnParty';
 import { renderWithProviders } from 'src/testUtils';
 import type { IAltinnPartyProps } from 'src/shared/components/altinnParty';
@@ -111,8 +112,8 @@ const render = (props: Partial<IAltinnPartyProps> = {}) => {
       language: {
         language: {},
         error: null,
-        selectedAppLanguage: 'nb',
       },
+      profile: getProfileStateMock({ selectedAppLanguage: 'nb' }),
     },
   });
 };

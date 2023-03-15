@@ -7,6 +7,7 @@ import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { waitFor } from 'src/utils/sagas';
 
@@ -36,5 +37,5 @@ export function* watchFetchLanguageSaga(): SagaIterator {
   }
 
   yield call(fetchLanguageSaga);
-  yield takeLatest(LanguageActions.updateSelectedAppLanguage, fetchLanguageSaga);
+  yield takeLatest(ProfileActions.updateSelectedAppLanguage, fetchLanguageSaga);
 }

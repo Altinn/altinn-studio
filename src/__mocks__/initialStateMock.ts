@@ -56,7 +56,6 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     },
     language: {
       language: getLanguageFromCode('nb'),
-      selectedAppLanguage: '',
       error: null,
     },
     organisationMetaData: {

@@ -6,7 +6,7 @@ import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { profileStateSelector } from 'src/selectors/simpleSelectors';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
-import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 import {
   fetchTextResources,
   watchFetchTextResourcesSaga,
@@ -31,7 +31,7 @@ describe('fetchTextResourcesSagas', () => {
     expect(generator.next().value).toEqual(waitFor(expect.anything()));
     expect(generator.next().value).toEqual(call(fetchTextResources));
     expect(generator.next().value).toEqual(takeLatest(TextResourcesActions.fetch, fetchTextResources));
-    expect(generator.next().value).toEqual(takeLatest(LanguageActions.updateSelectedAppLanguage, fetchTextResources));
+    expect(generator.next().value).toEqual(takeLatest(ProfileActions.updateSelectedAppLanguage, fetchTextResources));
     expect(generator.next().done).toBeTruthy();
   });
   it('should fetch text resources using default language when allowAnonymous is true', () => {

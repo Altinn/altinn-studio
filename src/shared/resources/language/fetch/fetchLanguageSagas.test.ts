@@ -8,6 +8,7 @@ import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { fetchLanguageSaga, watchFetchLanguageSaga } from 'src/shared/resources/language/fetch/fetchLanguageSagas';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 import { waitFor } from 'src/utils/sagas';
 
 describe('languageActions', () => {
@@ -51,7 +52,7 @@ describe('fetchLanguageSagas', () => {
     expect(generator.next().value).toEqual(select(makeGetAllowAnonymousSelector()));
     expect(generator.next().value).toEqual(waitFor(expect.anything()));
     expect(generator.next().value).toEqual(call(fetchLanguageSaga));
-    expect(generator.next().value).toEqual(takeLatest(LanguageActions.updateSelectedAppLanguage, fetchLanguageSaga));
+    expect(generator.next().value).toEqual(takeLatest(ProfileActions.updateSelectedAppLanguage, fetchLanguageSaga));
     expect(generator.next().done).toBeTruthy();
   });
 

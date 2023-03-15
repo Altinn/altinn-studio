@@ -114,7 +114,6 @@ const render = ({ dispatch = jest.fn() }: Props = {}) => {
       state.language = {
         language: {},
         error: null,
-        selectedAppLanguage: 'nb',
       };
     },
     manipulateStore: (store) => {

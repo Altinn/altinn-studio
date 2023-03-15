@@ -29,7 +29,9 @@ export function useDelayedSavedState(
 
   const updateFormData = useCallback(
     (value: string | undefined, skipValidation = false): void => {
-      if (value === formValue) return;
+      if (value === formValue) {
+        return;
+      }
 
       const shouldValidate = !skipNextValidation && !skipValidation;
       handleDataChange(value, { validate: shouldValidate });

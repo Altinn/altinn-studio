@@ -4,6 +4,7 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { AltinnPartySearch } from 'src/shared/components/altinnPartySearch';
 import { renderWithProviders } from 'src/testUtils';
 import type { IAltinnPartySearchProps } from 'src/shared/components/altinnPartySearch';
@@ -37,8 +38,8 @@ const render = (props: Partial<IAltinnPartySearchProps> = {}) => {
       language: {
         language: {},
         error: null,
-        selectedAppLanguage: 'nb',
       },
+      profile: getProfileStateMock({ selectedAppLanguage: 'nb' }),
     },
   });
 };

@@ -7,7 +7,7 @@ import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { useGetAppLanguageQuery } from 'src/services/LanguageApi';
-import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 export const LanguageSelector = () => {
@@ -19,7 +19,7 @@ export const LanguageSelector = () => {
   const dispatch = useAppDispatch();
 
   const handleAppLanguageChange = (languageCode: string) => {
-    dispatch(LanguageActions.updateSelectedAppLanguage({ selected: languageCode }));
+    dispatch(ProfileActions.updateSelectedAppLanguage({ selected: languageCode }));
   };
 
   if (appLanguageError) {

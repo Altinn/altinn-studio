@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { NavBar } from 'src/components/presentation/NavBar';
 import { getLanguageFromCode } from 'src/language/languages';
@@ -42,10 +43,10 @@ const renderNavBar = ({
     {
       preloadedState: {
         language: {
-          selectedAppLanguage: 'nb',
           language: getLanguageFromCode('nb'),
           error: null,
         },
+        profile: getProfileStateMock({ selectedAppLanguage: 'nb' }),
         textResources: {
           resources: textResources,
           language: 'nb',

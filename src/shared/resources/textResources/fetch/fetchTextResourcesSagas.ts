@@ -5,7 +5,7 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
-import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
 import { httpGet } from 'src/utils/network/networking';
@@ -57,5 +57,5 @@ export function* watchFetchTextResourcesSaga(): SagaIterator {
 
   yield call(fetchTextResources);
   yield takeLatest(TextResourcesActions.fetch, fetchTextResources);
-  yield takeLatest(LanguageActions.updateSelectedAppLanguage, fetchTextResources);
+  yield takeLatest(ProfileActions.updateSelectedAppLanguage, fetchTextResources);
 }
