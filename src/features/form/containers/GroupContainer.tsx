@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
@@ -46,6 +46,7 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
     (state: IRuntimeState) =>
       (state.formLayout.uiConfig.repeatingGroups && state.formLayout.uiConfig.repeatingGroups[id]?.editIndex) ?? -1,
   );
+
   const deletingIndexes = useAppSelector(
     (state: IRuntimeState) =>
       (state.formLayout.uiConfig.repeatingGroups && state.formLayout.uiConfig.repeatingGroups[id]?.deletingIndex) ?? [],
@@ -109,25 +110,26 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
     }
   }, [dispatch, id, edit?.mode, repeatingGroupIndex, setMultiPageIndex]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (edit?.openByDefault && repeatingGroupIndex === -1) {
       onClickAdd();
     }
   }, [edit?.openByDefault, onClickAdd, repeatingGroupIndex]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (edit?.multiPage && multiPageIndex < 0) {
       setMultiPageIndex(0);
     }
   }, [edit?.multiPage, multiPageIndex, setMultiPageIndex]);
 
-  const onKeypressAdd = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+  const onKeypressAdd = (event: React.KeyboardEvent<HTMLButtonElement>): void => {
+    const allowedKeys = ['enter', ' ', 'spacebar'];
+    if (allowedKeys.includes(event.key.toLowerCase())) {
       onClickAdd();
     }
   };
 
-  const onClickRemove = (groupIndex: number) => {
+  const onClickRemove = (groupIndex: number): void => {
     dispatch(
       FormLayoutActions.updateRepeatingGroups({
         layoutElementId: id,
@@ -137,7 +139,7 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
     );
   };
 
-  const setEditIndex = (index: number, forceValidation?: boolean) => {
+  const setEditIndex = (index: number, forceValidation?: boolean): void => {
     dispatch(
       FormLayoutActions.updateRepeatingGroupsEditIndex({
         group: id,

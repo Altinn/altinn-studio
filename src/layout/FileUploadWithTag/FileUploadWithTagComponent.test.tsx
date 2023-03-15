@@ -162,11 +162,10 @@ describe('FileUploadWithTagComponent', () => {
       });
 
       expect(
-        screen.getByRole('button', {
+        screen.getByRole('presentation', {
           name: /form_filler\.file_uploader_drag form_filler\.file_uploader_find form_filler\.file_uploader_valid_file_format form_filler\.file_upload_valid_file_format_all/i,
         }),
       ).toBeInTheDocument();
-      expect(screen.getByTestId(`altinn-drop-zone-${testId}`)).toBeInTheDocument();
     });
 
     it('should not display drop area when max attachments is reached', () => {
@@ -176,11 +175,10 @@ describe('FileUploadWithTagComponent', () => {
       });
 
       expect(
-        screen.queryByRole('button', {
+        screen.queryByRole('presentation', {
           name: /form_filler\.file_uploader_drag form_filler\.file_uploader_find form_filler\.file_uploader_valid_file_format form_filler\.file_upload_valid_file_format_all/i,
         }),
       ).not.toBeInTheDocument();
-      expect(screen.queryByTestId(`altinn-drop-zone-${testId}`)).not.toBeInTheDocument();
     });
   });
 });

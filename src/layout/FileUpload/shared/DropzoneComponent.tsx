@@ -24,6 +24,11 @@ export interface IDropzoneComponentProps {
 
 export const bytesInOneMB = 1048576;
 
+const fileUploadButtonStyle = {
+  background: 'transparent',
+  width: '100%',
+};
+
 export const baseStyle = {
   width: 'auto',
   height: '9.75rem',
@@ -58,7 +63,6 @@ export function DropzoneComponent({
   textResourceBindings,
 }: IDropzoneComponentProps): JSX.Element {
   const maxSizeLabelId = `file-upload-max-size-${id}`;
-
   return (
     <div>
       <div
@@ -81,7 +85,7 @@ export function DropzoneComponent({
         }
       >
         {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
-          let styles = { ...baseStyle };
+          let styles = { ...baseStyle, ...fileUploadButtonStyle };
           styles = isDragActive ? { ...styles, ...activeStyle } : styles;
           styles = isDragReject ? { ...styles, ...rejectStyle } : styles;
           styles = hasValidationMessages ? { ...styles, ...validationErrorStyle } : styles;
@@ -95,7 +99,7 @@ export function DropzoneComponent({
             : `${maxSizeLabelId} ${dragLabelId} ${formatLabelId}`;
 
           return (
-            <div
+            <button
               {...getRootProps({
                 onClick,
               })}
@@ -103,7 +107,6 @@ export function DropzoneComponent({
               id={`altinn-drop-zone-${id}`}
               data-testid={`altinn-drop-zone-${id}`}
               className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}
-              role='button'
               aria-labelledby={labelId}
               aria-describedby={ariaDescribedBy}
             >
@@ -111,11 +114,8 @@ export function DropzoneComponent({
                 {...getInputProps()}
                 id={id}
               />
-              <div>
-                <div
-                  className='col text-center icon'
-                  style={{ marginTop: '2.1875rem' }}
-                >
+              <div className='container'>
+                <div className='col text-center icon'>
                   <i className='ai ai-upload' />
                 </div>
                 <div className='col text-center'>
@@ -147,7 +147,7 @@ export function DropzoneComponent({
                   </span>
                 </div>
               </div>
-            </div>
+            </button>
           );
         }}
       </DropZone>
