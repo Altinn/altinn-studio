@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from 'react';
+import React, { useReducer } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { IntRestrictionKeys } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -32,6 +32,12 @@ export function NumberRestrictions({
     restrictions: Object.fromEntries(
       Object.values(IntRestrictionKeys).map((key) => [key, restrictions[key]])
     ),
+    nameError:
+      restrictions[IntRestrictionKeys.minimum] !== undefined &&
+      restrictions[IntRestrictionKeys.maximum] !== undefined &&
+      restrictions[IntRestrictionKeys.minimum] >= restrictions[IntRestrictionKeys.maximum]
+        ? NameError.InvalidMaxMinValue
+        : NameError.NoError,
   });
 
   const changeCallback = (changedRestrictions: Dict) => {
@@ -46,39 +52,19 @@ export function NumberRestrictions({
     formatState.isMaxInclusive ? 'inclusive' : 'exclusive'
   }`;
 
-  const [nameError, setNameError] = useState(NameError.NoError);
   const nameErrorMessage = {
     [NameError.InvalidValue]: t('schema_editor.nameError_InvalidValue'),
     [NameError.InvalidMaxMinValue]: t('schema_editor.nameError_InvalidMaxMinValue'),
     [NameError.NoError]: '',
-  }[nameError];
-  const validateMinMax = (): NameError => {
-    if (formatState.min !== undefined && formatState.max !== undefined) {
-      if (formatState.min >= formatState.max) {
-        return NameError.InvalidMaxMinValue;
-      }
-    }
-    return NameError.NoError;
-  };
+  }[formatState.nameError];
+
   const onChangeMinNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
     dispatchAction(NumberRestrictionsReducerActionType.setMinExcl, newValue);
-    if (newValue === '' || isNaN(Number(newValue))) {
-      event.target.value = '';
-      setNameError(NameError.InvalidValue);
-    } else {
-      setNameError(validateMinMax());
-    }
   };
   const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
     dispatchAction(NumberRestrictionsReducerActionType.setMaxExcl, newValue);
-    if (newValue === '' || isNaN(Number(newValue))) {
-      event.target.value = '';
-      setNameError(NameError.InvalidValue);
-    } else {
-      setNameError(validateMinMax());
-    }
   };
 
   return (
@@ -94,7 +80,7 @@ export function NumberRestrictions({
               value={formatState.min === undefined ? '' : formatState.min.toString()}
             />
             <div className={classes.minNumberErrorMassage}>
-              {nameError && <ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
+              {<ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
             </div>
           </div>
           <Checkbox
@@ -117,7 +103,7 @@ export function NumberRestrictions({
               value={formatState.max === undefined ? '' : formatState.max.toString()}
             />
             <div className={classes.minNumberErrorMassage}>
-              {nameError && <ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
+              {<ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
             </div>
           </div>
           <Checkbox
