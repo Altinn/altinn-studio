@@ -4,7 +4,7 @@ import axios from 'axios';
 import AltinnIcon from '../components/AltinnIcon';
 import { get } from '../utils/networking';
 import { altinnDocsUrl, dataModelUploadPageUrl } from '../utils/urlHelper';
-import { datamodelXsdPath, repositoryGitPath } from '../api-paths';
+import { datamodelsXsdPath, repositoryGitPath } from '../api-paths';
 import { useParams } from 'react-router-dom';
 import { SimpleContainer } from '../primitives';
 import classes from './CloneModal.module.css';
@@ -28,7 +28,7 @@ export function CloneModal(props: ICloneModalProps) {
     const source = axios.CancelToken.source();
     const checkIfDataModelExists = async () => {
       try {
-        const dataModel: any = await get(datamodelXsdPath(org, app), {
+        const dataModel: any = await get(datamodelsXsdPath(org, app), {
           cancelToken: source.token,
         });
         setHasDataModel(dataModel != null);

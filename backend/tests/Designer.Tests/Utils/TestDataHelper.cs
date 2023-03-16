@@ -13,7 +13,6 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Designer.Tests.Utils
 {

@@ -1,6 +1,11 @@
+using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -13,16 +18,19 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
     public class PreviewController : Controller
     {
-        private readonly IRepository _repository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PreviewController"/> class.
         /// </summary>
-        /// <param name="repositoryService">The service repository service.</param>
+        /// <param name="httpContextAccessor"></param>
+        /// <param name="altinnGitRepositoryFactory">IAltinnGitRepositoryFactory</param>
         /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
-        public PreviewController(IRepository repositoryService)
+        public PreviewController(IHttpContextAccessor httpContextAccessor, IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
-            _repository = repositoryService;
+            _httpContextAccessor = httpContextAccessor;
+            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
         /// <summary>
@@ -45,11 +53,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A view with the React form builder</returns>
         [HttpGet]
         [Route("api/applicationmetadata")]
-        public IActionResult ApplicationMetadata(string org, string app)
+        public async Task<ActionResult<Application>> ApplicationMetadata(string org, string app)
         {
-            // var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            // var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            var applicationMetadata = _repository.GetApplication(org, app);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
             return Ok(applicationMetadata);
         }
 
@@ -74,24 +82,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>layoutsets example file</returns>
         [HttpGet]
         [Route("api/layoutsets")]
-        public IActionResult LayoutSets(string org, string app)
+        public async Task<ActionResult<LayoutSets>> LayoutSets(string org, string app)
         {
-            var layoutsets = _repository.GetFileByRelativePath(org, app, "/App/ui/layout-sets.json");
-            return Content(layoutsets);
-        }
-
-        /// <summary>
-        /// Action for getting an example datamodel json schema named bestilling.schema.json
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>datamodel jsonschema example file</returns>
-        [HttpGet]
-        [Route("api/jsonschema/bestilling")]
-        public IActionResult JsonSchema(string org, string app)
-        {
-            var layoutsets = _repository.GetFileByRelativePath(org, app, "/App/models/bestilling.schema.json");
-            return Content(layoutsets);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+            return Ok(layoutSets);
         }
 
         /// <summary>
@@ -196,10 +192,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Nb text resource file</returns>
         [HttpGet]
         [Route("api/texts/nb")]
-        public IActionResult Language(string org, string app)
+        public async Task<ActionResult<Models.TextResource>> Language(string org, string app)
         {
-            var resources = _repository.GetFileByRelativePath(org, app, "/App/config/texts/resource.nb.json");
-            return Content(resources);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+            return Ok(textResource);
         }
 
         /// <summary>
@@ -210,10 +208,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Single text resource file</returns>
         [HttpGet]
         [Route("api/textresources")]
-        public IActionResult TextResources(string org, string app)
+        public async Task<ActionResult<Models.TextResource>> TextResources(string org, string app)
         {
-            var resources = _repository.GetFileByRelativePath(org, app, "App/config/texts/resource.nb.json");
-            return Content(resources);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+            return Ok(textResource);
         }
 
         /// <summary>
@@ -225,10 +225,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>datamodel as json schema</returns>
         [HttpGet]
         [Route("api/jsonschema/{modelname}")]
-        public IActionResult Datamodel(string org, string app, string modelname)
+        public async Task<ActionResult<string>> Datamodel(string org, string app, string modelname)
         {
-            var resources = _repository.GetFileByRelativePath(org, app, $"/App/models/{modelname}.schema.json");
-            return Content(resources);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            string jsonSchemaContent = await altinnAppGitRepository.GetJsonSchema(modelname);
+            return Ok(jsonSchemaContent);
         }
     }
 }

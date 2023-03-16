@@ -4,7 +4,7 @@ import { setupServer } from 'msw/node';
 import { render, screen, waitFor } from '@testing-library/react';
 import { VersionControlHeader } from './VersionControlHeader';
 import { setWindowLocationForTests, TEST_DOMAIN } from '../../../../testing/testUtils';
-import { datamodelXsdPath, repoMetaPath } from '../api-paths';
+import { datamodelsXsdPath, repoMetaPath } from '../api-paths';
 
 setWindowLocationForTests('test-org', 'test-app');
 
@@ -30,7 +30,7 @@ const handlers = [
       })
     );
   }),
-  rest.get(TEST_DOMAIN + datamodelXsdPath('test-org', 'test-app'), (req, res, ctx) => {
+  rest.get(TEST_DOMAIN + datamodelsXsdPath('test-org', 'test-app'), (req, res, ctx) => {
     versionControllHeaderApiCalls();
     return res(ctx.status(200), ctx.json({}));
   }),

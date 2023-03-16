@@ -28,8 +28,5 @@ public static class MockUtils
         repositoryMock
             .Setup(r => r.WriteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>()))
             .Verifiable();
-        repositoryMock
-            .Setup(r => r.DeleteMetadataForAttachment(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(true);
     }
 }

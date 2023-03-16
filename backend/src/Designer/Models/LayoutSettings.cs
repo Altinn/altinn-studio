@@ -9,10 +9,10 @@ namespace Altinn.Studio.Designer.Models
     public class LayoutSettings
     {
         [JsonPropertyName("$schema")]
-        public string schema { get; set; }
-        public Pages pages { get; set; }
-        [CanBeNull] public Components components { get; set; }
-        [CanBeNull] public string receiptLayoutName { get; set; }
+        public string Schema { get; set; }
+        public Pages Pages { get; set; }
+        [CanBeNull] public Components Components { get; set; }
+        [CanBeNull] public string ReceiptLayoutName { get; set; }
     }
 
     /// <summary>
@@ -20,8 +20,8 @@ namespace Altinn.Studio.Designer.Models
     /// </summary>
     public class Pages
     {
-        public string[] order { get; set; }
-        [CanBeNull] public string[] excludeFromPdf { get; set; }
+        public string[] Order { get; set; }
+        [CanBeNull] public string[] ExcludeFromPdf { get; set; }
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Models
     /// </summary>
     public class Components
     {
-        [CanBeNull] public string[] excludeFromPdf { get; set; }
+        [CanBeNull] public string[] ExcludeFromPdf { get; set; }
     }
 }
 
