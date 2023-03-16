@@ -1,3 +1,7 @@
+// Needed for "useBuiltIns": "entry" in babel.config.json to resolve
+// all the polyfills we need and inject them here
+import 'core-js';
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';

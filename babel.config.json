@@ -1,4 +1,24 @@
 {
-  "presets": ["@babel/preset-env", "@babel/preset-react"],
+  "sourceType": "unambiguous",
+  "plugins": [
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "version": "^7.21.0",
+        "absoluteRuntime": true
+      }
+    ],
+    "@babel/plugin-syntax-dynamic-import"
+  ],
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": "entry",
+        "corejs": 3
+      }
+    ],
+    "@babel/preset-react"
+  ],
   "ignore": ["/**/*.json"]
 }

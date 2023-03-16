@@ -153,7 +153,7 @@ describe('Group', () => {
       cy.get(appFrontend.group.currentValue).should('be.visible').type('123').blur();
 
       cy.get(appFrontend.group.row(0).editBtn).should('exist').and('be.visible').focus().click();
-      cy.get(appFrontend.group.saveMainGroup).focus().should('be.visible').click();
+      cy.get(appFrontend.group.saveMainGroup).click();
 
       cy.wait('@validate');
 
@@ -165,6 +165,7 @@ describe('Group', () => {
           .should('not.contain.text', texts.requiredFieldFromValue);
       } else {
         cy.get(appFrontend.errorReport).should('not.exist');
+        cy.get(appFrontend.group.saveMainGroup).should('not.exist');
       }
 
       cy.get(appFrontend.group.row(0).editBtn).click();

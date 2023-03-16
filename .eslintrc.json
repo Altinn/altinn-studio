@@ -118,7 +118,11 @@
       {
         "groups": [
           [
-            // React related packages come first.
+            // Core-JS should always load its polyfills first.
+            "^\\u0000core.js$"
+          ],
+          [
+            // React then comes next.
             "^react[^\\u0000]*$",
             "^react.*\\u0000$"
           ],

@@ -5,6 +5,7 @@ const path = require('node:path');
 
 module.exports = {
   entry: './src/index.tsx',
+  target: 'web',
   output: {
     filename: 'altinn-app-frontend.js',
   },
@@ -18,11 +19,6 @@ module.exports = {
     rules: [
       {
         test: /\.jsx?/,
-        include: [
-          path.resolve(__dirname, './src'),
-          path.resolve(__dirname, './node_modules/ajv'),
-          path.resolve(__dirname, './node_modules/ajv-formats'),
-        ],
         use: {
           loader: 'babel-loader',
         },
