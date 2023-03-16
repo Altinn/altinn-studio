@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './CalculationsTab.module.css';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 import { RuleModal } from '../toolbar/RuleModal';
 import { Dynamics } from './Dynamics';
 import { Divider } from 'app-shared/primitives';
@@ -16,7 +16,7 @@ export const CalculationsTab = () => {
         <span>{t('right_menu.rules_calculations')}</span>
         <Button
           aria-label={t('right_menu.rules_calculations_add_alt')}
-          icon={<Add />}
+          icon={<PlusIcon />}
           onClick={() => setModalOpen(true)}
           variant={ButtonVariant.Quiet}
         />

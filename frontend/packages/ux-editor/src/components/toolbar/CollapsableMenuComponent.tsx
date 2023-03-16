@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './CollapsableMenuComponent.module.css';
 import type { CollapsableMenus } from '../../types/global';
-import { Expand, Next } from '@navikt/ds-icons';
+import { ChevronDownIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 
@@ -18,7 +18,9 @@ export const CollapsableMenuComponent = (props: ICollapsableMenuProvidedProps) =
       className={classes.collapsableMenuComponent}
       onClick={() => props.onClick(props.menuType)}
     >
-      <div className={classes.icon}>{props.menuIsOpen ? <Expand /> : <Next />}</div>
+      <div className={classes.icon}>
+        {props.menuIsOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
+      </div>
       <div className={classes.text}>{getCollapsableMenuTitleByType(props.menuType, t)}</div>
     </button>
   );

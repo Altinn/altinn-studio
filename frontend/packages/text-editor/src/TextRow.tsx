@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextRow.module.css';
 import type { TextDetail, TextResourceEntry } from './types';
-import { Delete } from '@navikt/ds-icons';
+import { TrashIcon } from '@navikt/aksel-icons';
 import {
   Button,
   ButtonVariant,
@@ -134,7 +134,7 @@ export const TextRow = ({
           trigger={
             <Button
               className={classes.deleteButton}
-              icon={<Delete title={`Slett ${textId}`} />}
+              icon={<TrashIcon title={`Slett ${textId}`} />}
               variant={ButtonVariant.Quiet}
               onClick={toggleConfirmDeletePopover}
             >

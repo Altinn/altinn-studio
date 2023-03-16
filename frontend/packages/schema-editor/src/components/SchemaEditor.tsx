@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Close } from '@navikt/ds-icons';
+import { XMarkIcon } from '@navikt/aksel-icons';
 import { AltinnSpinner } from 'app-shared/components';
 import type { IJsonSchema, ISchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
@@ -206,7 +206,7 @@ export const SchemaEditor = ({
               </span>
               <Button
                 onClick={handleResetSelectedType}
-                icon={<Close />}
+                icon={<XMarkIcon />}
                 variant={ButtonVariant.Quiet}
                 color={ButtonColor.Inverted}
               />

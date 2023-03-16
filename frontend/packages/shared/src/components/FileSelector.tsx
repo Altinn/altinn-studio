@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
-import { Upload } from '@navikt/ds-icons';
+import { UploadIcon } from '@navikt/aksel-icons';
 
 export interface IFileSelectorProps {
   submitHandler: (file: FormData, fileName: string) => void;
@@ -25,7 +25,7 @@ function FileSelector({
     <Button
       id='file-upload-button'
       data-testid='upload-button'
-      icon={<Upload />}
+      icon={<UploadIcon />}
       onClick={fileInputClickHandler}
       disabled={disabled}
       variant={ButtonVariant.Quiet}

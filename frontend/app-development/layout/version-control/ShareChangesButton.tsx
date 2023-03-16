@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
-import { Upload, Cancel } from '@navikt/ds-icons';
+import { UploadIcon, XMarkIcon } from '@navikt/aksel-icons';
 import classes from './VersionControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 
@@ -30,7 +30,7 @@ export const ShareChangesButton = (props: IShareChangesComponentProps) => {
     <Button
       className={classes.button}
       disabled={!props.hasPushRight}
-      icon={props.hasMergeConflict ? <Cancel /> : <Upload />}
+      icon={props.hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
       id='share_changes_button'
       onClick={shareChangesHandler}
       size={ButtonSize.Small}

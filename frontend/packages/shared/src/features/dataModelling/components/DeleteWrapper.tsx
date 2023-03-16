@@ -2,7 +2,7 @@ import React from 'react';
 import { DeleteDialog } from './DeleteDialog';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Delete } from '@navikt/ds-icons';
+import { TrashIcon } from '@navikt/aksel-icons';
 
 export interface IDeleteWrapper {
   deleteAction: () => void;
@@ -27,7 +27,7 @@ export function DeleteWrapper(props: IDeleteWrapper) {
           disabled={!props.schemaName}
           onClick={onDeleteClick}
           color={ButtonColor.Danger}
-          icon={<Delete />}
+          icon={<TrashIcon />}
           variant={ButtonVariant.Quiet}
         >
           {t('general.delete_data_model')}

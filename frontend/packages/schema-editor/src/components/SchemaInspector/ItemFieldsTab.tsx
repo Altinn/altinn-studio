@@ -15,7 +15,7 @@ import classes from './ItemFieldsTab.module.css';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 
 export interface ItemFieldsTabProps {
@@ -103,7 +103,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
         <div className={classes.addButtonCell}>
           <Button
             color={ButtonColor.Secondary}
-            icon={<Add />}
+            icon={<PlusIcon />}
             onClick={onAddPropertyClicked}
             variant={ButtonVariant.Outline}
           >

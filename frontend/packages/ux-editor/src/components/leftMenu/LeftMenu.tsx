@@ -4,7 +4,7 @@ import { IAppState } from '../../types/global';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 import { PagesContainer } from './PagesContainer';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { ReceiptPageElement } from './ReceiptPageElement';
@@ -34,7 +34,7 @@ export const LeftMenu = () => {
   function handleAddPage() {
     let count = 1;
     let name = t('left_menu.page') + (layoutOrder.length + count);
-    while (layoutOrder.indexOf(name) > -1){
+    while (layoutOrder.indexOf(name) > -1) {
       count += 1;
       name = t('left_menu.page') + (layoutOrder.length + count);
     }
@@ -48,7 +48,7 @@ export const LeftMenu = () => {
         <span>{t('left_menu.pages')}</span>
         <Button
           aria-label={t('left_menu.pages_add_alt')}
-          icon={<Add />}
+          icon={<PlusIcon />}
           onClick={handleAddPage}
           variant={ButtonVariant.Quiet}
           color={ButtonColor.Secondary}

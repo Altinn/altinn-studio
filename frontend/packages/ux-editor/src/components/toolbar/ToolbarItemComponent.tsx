@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import classes from './ToolbarItemComponent.module.css';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
-import { Helptext } from '@navikt/ds-icons';
+import { InformationIcon } from '@navikt/aksel-icons';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 
@@ -28,7 +28,7 @@ export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
       <div className={classes.componentHelpIcon}>
         <Button
           onClick={(e: any) => props.onClick(props.componentType, e)}
-          icon={<Helptext />}
+          icon={<InformationIcon />}
           variant={ButtonVariant.Quiet}
         />
       </div>

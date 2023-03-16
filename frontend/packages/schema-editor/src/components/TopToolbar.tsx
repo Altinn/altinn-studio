@@ -2,7 +2,7 @@ import React, { useEffect, useState, MouseEvent } from 'react';
 import { Panel, PanelVariant, ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
 import classes from './TopToolbar.module.css';
 import { useTranslation } from 'react-i18next';
-import { Settings } from '@navikt/ds-icons';
+import { CogIcon } from '@navikt/aksel-icons';
 import { Button, ButtonVariant, ErrorMessage, Popover, Spinner } from '@digdir/design-system-react';
 import { GenerateSchemaState } from 'app-shared/types/global';
 import cn from 'classnames';
@@ -66,7 +66,7 @@ export function TopToolbar({
                 data-testid='save-model-button'
                 onClick={handleGenerateButtonClick}
                 disabled={!editMode || !saveAction}
-                icon={<Settings />}
+                icon={<CogIcon />}
                 variant={ButtonVariant.Quiet}
               >
                 {t('schema_editor.generate_model_files')}

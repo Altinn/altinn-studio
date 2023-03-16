@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import classes from './ConditionalRenderingTab.module.css';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
 import { Dynamics } from './Dynamics';
 import { Divider } from 'app-shared/primitives';
@@ -18,7 +18,7 @@ export const ConditionalRenderingTab = () => {
           <Button
             aria-label={t('right_menu.rules_conditional_rendering_add_alt')}
             className={classes.addIcon}
-            icon={<Add />}
+            icon={<PlusIcon />}
             onClick={() => setModalOpen(true)}
             variant={ButtonVariant.Quiet}
           />

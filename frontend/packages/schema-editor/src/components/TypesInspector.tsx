@@ -1,6 +1,6 @@
 import React, { MouseEvent } from 'react';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 import { FieldType, Keywords, makePointer, UiSchemaNode } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
 import { Divider } from 'app-shared/primitives';
@@ -53,7 +53,7 @@ export const TypesInspector = ({
           <Button
             className={classes.addRowButton}
             variant={ButtonVariant.Quiet}
-            icon={<Add height={40} />}
+            icon={<PlusIcon height={40} />}
             onClick={handleAddDefinition}
           />
         </div>

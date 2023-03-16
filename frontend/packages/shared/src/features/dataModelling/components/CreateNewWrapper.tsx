@@ -8,7 +8,7 @@ import {
   Popover,
 } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 
 export interface ICreateNewWrapper {
   createAction: ({
@@ -84,7 +84,7 @@ export function CreateNewWrapper(props: ICreateNewWrapper) {
         <Button
           id='create-new-datamodel-button'
           disabled={props.disabled}
-          icon={<Add />}
+          icon={<PlusIcon />}
           variant={ButtonVariant.Quiet}
           onClick={() => props.setOpen(!props.open)}
         >
