@@ -42,8 +42,6 @@ services:
     container_name: altinn-pdf-service
     image: browserless/chrome:1-puppeteer-19.2.2
     restart: always
-    profiles:
-        - pdf
     networks:
       - altinntestlocal_network
     ports:
