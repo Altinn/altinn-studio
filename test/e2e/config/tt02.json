@@ -3,9 +3,26 @@
   "baseUrl": "https://tt02.altinn.no",
   "frontendUrl": "http://localhost:8080",
   "env": {
-    "userFullName": "FAGERLAND MAIKEN",
-    "firstName": "MAIKEN",
-    "externalUserFullName": "RISHAUG JULIUS",
-    "externalFistName": "JULIUS"
+    "defaultFullName": "RISHAUG JULIUS",
+    "defaultFirstName": "JULIUS",
+    "defaultUserName": "testuserexternal",
+    "defaultUserPwd": "r@h74Rz7XYQJ",
+
+    "accountantFullName": "FOLE DYPSINDIG",
+    "accountantFirstName": "DYPSINDIG",
+    "accountantUserName": "foledypsindig",
+    "accountantUserPwd": "eVXinPT7Qs8t5Qp",
+
+    "managerFullName": "AMBULANSE ALTERNATIV",
+    "managerFirstName": "ALTERNATIV",
+    "managerUserName": "ambulansealternativ",
+    "managerUserPwd": "vuF7cPiVWq7mWha",
+
+    "auditorFullName": "GLOBUS FORMBAR",
+    "auditorFirstName": "FORMBAR",
+    "auditorUserName": "globusformbar",
+    "auditorUserPwd": "Ks3ek5msjVKkH9V",
+
+    "signingPartyId": "51826033"
   }
 }

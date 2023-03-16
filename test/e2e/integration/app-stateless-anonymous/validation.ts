@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 
 describe('Validation in anonymous stateless app', () => {
   beforeEach(() => {
-    cy.startAppInstance(appFrontend.apps.anonymousStateless, true);
+    cy.startAppInstance(appFrontend.apps.anonymousStateless, null);
     cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
   });
 

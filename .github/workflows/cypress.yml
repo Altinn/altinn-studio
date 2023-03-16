@@ -69,7 +69,7 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}\n
           bash -c 'cd dist/; npx http-server -p 8080 --cors >/dev/null &'\n
           bash -c 'yarn run cy:test:all:headless
-            --env environment=tt02,testUserName=tt02testuser,testUserPwd=${{ secrets.CYPRESS_ALTINN_USERPWD }}
+            --env environment=tt02
             --record
             --parallel
             --tag \"altinn-app-frontend\"
@@ -126,7 +126,7 @@ jobs:
           bash -c 'cd dist/; npx http-server -p 8080 --cors >/dev/null &'\n
           bash -c 'yarn run cy:test:all:headless
               --config watchForFileChanges=false
-              --env environment=tt02,testUserName=testuserexternal,testUserPwd=r@h74Rz7XYQJ'
+              --env environment=tt02
         "
 
       - uses: actions/upload-artifact@v3

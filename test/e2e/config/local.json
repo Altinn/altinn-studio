@@ -3,8 +3,21 @@
   "baseUrl": "http://local.altinn.cloud",
   "frontendUrl": "http://localhost:8080",
   "env": {
-    "userFullName": "Ola Nordmann",
-    "firstName": "Ola"
+    "defaultFullName": "Ola Nordmann",
+    "defaultFirstName": "Ola",
+    "defaultPartyId": "12345.512345",
+
+    "accountantFullName": "Pengelens Partner",
+    "accountantFirstName": "Pengelens",
+    "accountantPartyId": "1001.500000",
+
+    "managerFullName": "Sophie Salt",
+    "managerFirstName": "Sophie",
+    "managerPartyId": "1337.500000",
+
+    "auditorFullName": "Gjentagende Forelder",
+    "auditorFirstName": "Gjentagende",
+    "auditorPartyId": "1002.500000"
   },
   "defaultCommandTimeout": 20000,
   "requestTimeout": 20000

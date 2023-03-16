@@ -3,7 +3,7 @@
   "baseUrl": "https://at21.altinn.cloud",
   "frontendUrl": "http://localhost:8080",
   "env": {
-    "userFullName": "RIBE AMUND",
-    "firstName": "AMUND"
+    "defaultFullName": "RIBE AMUND",
+    "defaultFirstName": "AMUND"
   }
 }

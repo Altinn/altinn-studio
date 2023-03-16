@@ -1,8 +1,9 @@
-import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { login } from 'test/e2e/support/auth';
+import type { user } from 'test/e2e/support/auth';
 
-const appFrontend = new AppFrontend();
+Cypress.Commands.add('startAppInstance', (appName, user: user | null = 'default') => {
+  const anonymous = user === null;
 
-Cypress.Commands.add('startAppInstance', (appName, anonymous = false) => {
   const visitOptions = {
     onBeforeLoad: (win) => {
       cy.spy(win.console, 'log').as('console.log');
@@ -38,44 +39,12 @@ Cypress.Commands.add('startAppInstance', (appName, anonymous = false) => {
     }
   }).as('frontend');
 
+  if (!anonymous) {
+    login(user);
+  }
   if (Cypress.env('environment') === 'local') {
-    if (anonymous) {
-      cy.visit(`${Cypress.config('baseUrl')}/ttd/${appName}/`, visitOptions);
-    } else {
-      cy.visit('/', visitOptions);
-
-      // Selecting 'Ola Nordmann'
-      cy.get('#UserSelect').select('12345.512345');
-
-      cy.get('body')
-        .then(($body) => {
-          const appSelection = $body.find(appFrontend.appSelection);
-          if (appSelection) {
-            appSelection.find(`option[value="${appName}"]`).select();
-          }
-
-          return $body.find(appFrontend.startButton);
-        })
-        .click();
-    }
+    cy.visit(`${Cypress.config('baseUrl')}/ttd/${appName}/`, visitOptions);
   } else {
-    if (!anonymous) {
-      authenticateAltinnII(Cypress.env('testUserName'), Cypress.env('testUserPwd'));
-    }
     cy.visit(`https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}/`, visitOptions);
   }
 });
-
-function authenticateAltinnII(userName, userPwd) {
-  cy.request({
-    method: 'POST',
-    url: `${Cypress.config('baseUrl')}/api/authentication/authenticatewithpassword`,
-    headers: {
-      'Content-Type': 'application/hal+json',
-    },
-    body: JSON.stringify({
-      UserName: userName,
-      UserPassword: userPwd,
-    }),
-  });
-}

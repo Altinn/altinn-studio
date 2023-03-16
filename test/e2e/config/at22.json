@@ -3,7 +3,7 @@
   "baseUrl": "https://at22.altinn.cloud",
   "frontendUrl": "http://localhost:8080",
   "env": {
-    "userFullName": "ÅSLAND DAG",
-    "firstName": "DAG"
+    "defaultFullName": "ÅSLAND DAG",
+    "defaultFirstName": "DAG"
   }
 }

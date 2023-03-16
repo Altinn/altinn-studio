@@ -10,6 +10,9 @@ export class AppFrontend {
 
     /** @see https://dev.altinn.studio/repos/ttd/anonymous-stateless-app */
     anonymousStateless: 'anonymous-stateless-app',
+
+    /** @see https://dev.altinn.studio/repos/ttd/signing-test */
+    signingTest: 'signing-test',
   };
 
   //Start app instance page
@@ -212,6 +215,14 @@ export class AppFrontend {
     table: '#instance-selection-table',
     tableBody: '#instance-selection-table-body',
     newInstance: '#new-instance-button',
+  };
+
+  public signingTest = {
+    incomeField: '#Input-income',
+    submitButton: '#Button-submit',
+    confirmButton: '#Button-confirm',
+    managerConfirmPanel: '#form-content-Panel-confirm1',
+    auditorConfirmPanel: '#form-content-Panel-confirm2',
   };
 }
 

@@ -1,5 +1,7 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 
+import type { user } from 'test/e2e/support/auth';
+
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutComponentOrGroup } from 'src/layout/layout';
 import type { IRuntimeState } from 'src/types';
@@ -43,7 +45,7 @@ declare global {
        * Start an app instance based on the environment selected
        * @example cy.startAppInstance('appName')
        */
-      startAppInstance(appName: string, anonymous?: boolean): Chainable<Element>;
+      startAppInstance(appName: string, user?: user | null): Chainable<Element>;
 
       /**
        * Add an item to group component with an item in nested group
@@ -116,6 +118,9 @@ declare global {
         mutator: (component: ExprUnresolved<ILayoutComponentOrGroup>) => void,
         wholeLayoutMutator?: (layoutSet: any) => void,
       ): Chainable<null>;
+
+      switchUser(user: user): any;
+      assertUser(user: user): any;
     }
   }
 }
