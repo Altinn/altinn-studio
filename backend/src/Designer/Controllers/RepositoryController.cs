@@ -169,7 +169,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The app repository</param>
         /// <returns>The given app repository</returns>
         [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/metadata")]
         public async Task<RepositoryModel> GetRepository(string org, string repository)
         {
             RepositoryModel returnRepository = await _giteaApi.GetRepository(org, repository);

@@ -3,7 +3,7 @@ import { ShareChangesButton } from './ShareChangesButton';
 import type { IShareChangesComponentProps } from './ShareChangesButton';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 

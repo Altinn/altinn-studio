@@ -3,8 +3,8 @@ import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { render, screen, waitFor } from '@testing-library/react';
 import { VersionControlHeader } from './VersionControlHeader';
-import { setWindowLocationForTests, TEST_DOMAIN } from '../../../../testing/testUtils';
-import { datamodelsXsdPath, repoMetaPath } from '../api-paths';
+import { setWindowLocationForTests, TEST_DOMAIN } from '../../../testing/testUtils';
+import { datamodelsXsdPath, repoMetaPath } from 'app-shared/api-paths';
 
 setWindowLocationForTests('test-org', 'test-app');
 
@@ -37,9 +37,8 @@ const handlers = [
 ];
 const versionControlHeaderMockServer = setupServer(...handlers);
 
-export const versionControlHeaderBeforeAll = () => {
-  versionControlHeaderMockServer.listen();
-};
+export const versionControlHeaderBeforeAll = () => versionControlHeaderMockServer.listen();
+
 export const versionControlHeaderAfterEach = () => {
   versionControllHeaderApiCalls.mockReset();
   versionControlHeaderMockServer.resetHandlers();
@@ -60,27 +59,11 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should render header when type is header', async () => {
-    render(<VersionControlHeader type='header' hasPushRight={true} />);
+    render(<VersionControlHeader hasPushRight={true} />);
     await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(1));
     // eslint-disable-next-line testing-library/prefer-presence-queries
     expect(screen.queryByTestId('version-control-header')).not.toBeNull();
     expect(screen.queryByTestId('version-control-fetch-button')).toBeNull();
     expect(screen.queryByTestId('version-control-share-button')).toBeNull();
-  });
-
-  it('should render fetch-button when type is fetch-button', async () => {
-    render(<VersionControlHeader hasPushRight={true} type='fetchButton' />);
-    expect(screen.queryByTestId('version-control-header')).toBeNull();
-    // eslint-disable-next-line testing-library/prefer-presence-queries
-    expect(screen.queryByTestId('version-control-fetch-button')).not.toBeNull();
-    expect(screen.queryByTestId('version-control-share-button')).toBeNull();
-  });
-
-  it('should render share-button when type is share-button', async () => {
-    render(<VersionControlHeader hasPushRight={true} type='shareButton' />);
-    expect(screen.queryByTestId('version-control-header')).toBeNull();
-    expect(screen.queryByTestId('version-control-fetch-button')).toBeNull();
-    // eslint-disable-next-line testing-library/prefer-presence-queries
-    expect(screen.queryByTestId('version-control-share-button')).not.toBeNull();
   });
 });

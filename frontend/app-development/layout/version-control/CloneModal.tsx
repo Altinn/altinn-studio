@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Popover } from '@mui/material';
 import axios from 'axios';
-import AltinnIcon from '../components/AltinnIcon';
-import { get } from '../utils/networking';
-import { altinnDocsUrl, dataModelUploadPageUrl } from '../utils/urlHelper';
-import { datamodelsXsdPath, repositoryGitPath } from '../api-paths';
+import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
+import { get } from 'app-shared/utils/networking';
+import { altinnDocsUrl, dataModelUploadPageUrl } from 'app-shared/utils/urlHelper';
+import { datamodelsXsdPath, repositoryGitPath } from 'app-shared/api-paths';
 import { useParams } from 'react-router-dom';
-import { SimpleContainer } from '../primitives';
+import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
@@ -63,7 +63,7 @@ export function CloneModal(props: ICloneModalProps) {
         {!hasDataModel && (
           <>
             <div className={classes.blackText}>
-              <AltinnIcon
+              <AltinnIconComponent
                 iconClass='ai ai-circle-exclamation'
                 iconColor='#0062BA'
                 iconSize={30}

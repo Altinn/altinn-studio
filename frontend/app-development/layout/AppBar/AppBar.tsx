@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
 import { getTopBarMenu } from './appBarConfig';
 import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
-import { VersionControlHeader } from 'app-shared/version-control/VersionControlHeader';
+import { VersionControlHeader } from '../version-control/VersionControlHeader';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import classes from './AppBar.module.css';
 import { useMediaQuery } from '../../common/hooks';
