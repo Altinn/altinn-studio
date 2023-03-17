@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MakeCopyModal } from './MakeCopyModal';
 import { MockServicesContextWrapper, Services } from 'dashboard/dashboardTestUtils';
@@ -38,10 +38,10 @@ describe('MakeCopyModal', () => {
       },
     });
 
-    await user.type(screen.getByRole('textbox'), 'new-repo-name');
-    await user.click(screen.getByRole('button', {
+    await act(() => user.type(screen.getByRole('textbox'), 'new-repo-name'));
+    await act(() => user.click(screen.getByRole('button', {
       name: textMock('dashboard.make_copy'),
-    }));
+    })));
 
     expect(screen.queryByText(textMock('dashboard.field_cannot_be_empty'))).not.toBeInTheDocument();
     expect(copyAppMock).toHaveBeenCalledTimes(1);
@@ -55,7 +55,7 @@ describe('MakeCopyModal', () => {
     const confirmButton = screen.getByRole('button', {
       name: /dashboard\.make_copy/i,
     });
-    await user.click(confirmButton);
+    await act(() => user.click(confirmButton));
     expect(screen.getByText(textMock('dashboard.field_cannot_be_empty'))).toBeInTheDocument();
   });
 
@@ -67,8 +67,8 @@ describe('MakeCopyModal', () => {
       name: textMock('dashboard.make_copy'),
     });
     const inputField = screen.getByRole('textbox');
-    await user.type(inputField, 'this-new-name-is-way-too-long-to-be-valid');
-    await user.click(confirmButton);
+    await act(() => user.type(inputField, 'this-new-name-is-way-too-long-to-be-valid'));
+    await act(() => user.click(confirmButton));
     expect(screen.getByText(textMock('dashboard.service_name_is_too_long'))).toBeInTheDocument();
   });
 
@@ -82,8 +82,8 @@ describe('MakeCopyModal', () => {
       name: textMock('dashboard.make_copy'),
     });
     const inputField = screen.getByRole('textbox');
-    await user.type(inputField, 'this name is invalid');
-    await user.click(confirmButton);
+    await act(() => user.type(inputField, 'this name is invalid'));
+    await act(() => user.click(confirmButton));
     expect(screen.getByText(textMock('dashboard.service_name_has_illegal_characters'))).toBeInTheDocument();
   });
 });

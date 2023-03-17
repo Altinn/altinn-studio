@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 
 import {
   appDataMock,
@@ -83,9 +83,9 @@ describe('EditDataModelBindings', () => {
     const { user } = render({ onDataModelChange });
 
     const selectElement = screen.getByRole('combobox');
-    await user.click(selectElement);
+    await act(() => user.click(selectElement));
     const selectItem = screen.getByText('testModel.group');
-    await user.click(selectItem);
+    await act(() => user.click(selectItem));
 
     expect(onDataModelChange).toHaveBeenCalledWith('testModel.group', 'group');
   });

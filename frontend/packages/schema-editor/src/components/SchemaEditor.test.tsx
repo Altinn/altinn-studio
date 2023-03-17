@@ -2,7 +2,7 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { dataMock } from '../mockData';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event/dist/types/setup/setup';
 import { SchemaEditor, SchemaEditorTestIds } from './SchemaEditor';
@@ -71,10 +71,10 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
   return { store, user };
 };
 
-const clickMenuItem = (user: UserEvent, testId: string) => user.click(screen.getByTestId(testId));
+const clickMenuItem = (user: UserEvent, testId: string) => act(() =>user.click(screen.getByTestId(testId)));
 
 const clickOpenContextMenuButton = async (user: UserEvent) =>
-  user.click(screen.getAllByTestId('open-context-menu-button')[0]);
+  await act(() => user.click(screen.getAllByTestId('open-context-menu-button')[0]));
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
@@ -334,7 +334,7 @@ describe('SchemaEditor', () => {
     });
     const type = screen.getByTestId(`type-item-#/${Keywords.Definitions}/TestType`);
 
-    await user.click(type);
+    await act(() => user.click(type));
 
     expect(screen.getByText('Du redigerer nå på TestType')).toBeDefined();
   });

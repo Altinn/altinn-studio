@@ -55,7 +55,7 @@ describe('XSDUpload', () => {
 
     const fileInput = screen.getByTestId('FileSelector-input');
 
-    await user.upload(fileInput, file);
+    await act(() => user.upload(fileInput, file));
 
     expect(
       screen.getByText(textMock('form_filler.file_uploader_validation_error_upload'))
@@ -72,7 +72,7 @@ describe('XSDUpload', () => {
 
     const fileInput = screen.getByTestId('FileSelector-input');
 
-    await user.upload(fileInput, file);
+    await act(() => user.upload(fileInput, file));
 
     expect(handleUpload).toHaveBeenCalledWith('hello.xsd');
   });

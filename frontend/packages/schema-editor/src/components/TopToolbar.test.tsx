@@ -54,7 +54,7 @@ describe('TopToolbar', () => {
     expect(topToolbar).toBeDefined();
     const saveButton = screen.getByTestId('save-model-button');
     expect(saveButton).toBeDefined();
-    await user.click(saveButton);
+    await act(() => user.click(saveButton));
     expect(saveAction).toHaveBeenCalledTimes(1);
   });
 
@@ -64,7 +64,7 @@ describe('TopToolbar', () => {
     expect(topToolbar).toBeDefined();
     const toggleEditModeButton = screen.getByText(editText);
     expect(toggleEditModeButton).toBeDefined();
-    await user.click(toggleEditModeButton);
+    await act(() => user.click(toggleEditModeButton));
     expect(toggleEditMode).toHaveBeenCalledTimes(1);
   });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper, Services } from '../../dashboardTestUtils';
 import { starredRepo } from '../../data-mocks/starredRepo';
@@ -34,7 +34,7 @@ describe('RepoList', () => {
     });
     // eslint-disable-next-line testing-library/no-node-access
     const sortBtn = document.querySelector('button[aria-label="Sort"]');
-    await user.click(sortBtn);
+    await act(() => user.click(sortBtn));
 
     expect(handleSortMock).toHaveBeenCalledTimes(0);
   });
@@ -50,7 +50,7 @@ describe('RepoList', () => {
 
     // eslint-disable-next-line testing-library/no-node-access
     const sortBtn = document.querySelector('button[aria-label="Sort"]');
-    await user.click(sortBtn);
+    await act(() => user.click(sortBtn));
 
     expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
       reason: undefined,

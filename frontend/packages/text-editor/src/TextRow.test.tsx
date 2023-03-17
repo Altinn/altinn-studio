@@ -3,7 +3,7 @@ import type { LangRowProps } from './TextRow';
 import type { TextDetail } from './types';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import { screen, render as rtlRender, waitFor } from '@testing-library/react';
+import { screen, render as rtlRender, waitFor, act } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
 describe('TextRow', () => {
@@ -31,12 +31,12 @@ describe('TextRow', () => {
     const { user } = renderTextRow();
 
     const deleteButton = screen.getByRole('button', { name: /Slett/ });
-    await user.click(deleteButton);
+    await act(() => user.click(deleteButton));
 
     const cancelPopoverButton = screen.getByRole('button', {
       name: textMock('schema_editor.textRow-cancel-popover'),
     });
-    await user.click(cancelPopoverButton);
+    await act(() => user.click(cancelPopoverButton));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
@@ -48,8 +48,8 @@ describe('TextRow', () => {
       name: /norsk/i,
     });
 
-    await user.type(valueInput, '-updated');
-    await user.keyboard('{TAB}');
+    await act(() => user.type(valueInput, '-updated'));
+    await act(() => user.keyboard('{TAB}'));
 
     expect(upsertEntry).toHaveBeenCalledWith({
       id: 'key1',
@@ -60,7 +60,7 @@ describe('TextRow', () => {
   test('Popover should be shown when the user clicks the delete button', async () => {
     const { user } = renderTextRow();
     const deleteButton = screen.getByRole('button', { name: /Slett/ });
-    await user.click(deleteButton);
+    await act(() => user.click(deleteButton));
     const popover = screen.getByRole('dialog');
     expect(popover).toBeInTheDocument();
   });
@@ -69,11 +69,11 @@ describe('TextRow', () => {
     const removeEntry = jest.fn();
     const { user } = renderTextRow({ removeEntry });
     const deleteButton = screen.getByRole('button', { name: /Slett/ });
-    await user.click(deleteButton);
+    await act(() => user.click(deleteButton));
     const confirmDeleteButton = screen.getByRole('button', {
       name: /schema_editor.textRow-confirm-cancel-popover/,
     });
-    await user.click(confirmDeleteButton);
+    await act(() => user.click(confirmDeleteButton));
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
 
@@ -85,14 +85,14 @@ describe('TextRow', () => {
     });
     const emptyMsg = 'TextId kan ikke være tom';
     const illegalCharMsg = 'Det er ikke tillat med mellomrom i en textId';
-    await user.dblClick(idInput);
-    await user.keyboard('{BACKSPACE}');
+    await act(() => user.dblClick(idInput));
+    await act(() => user.keyboard('{BACKSPACE}'));
     const error = screen.getByRole('alertdialog');
     expect(error).toBeInTheDocument();
     expect(screen.getByText(emptyMsg)).not.toBeNull();
-    await user.keyboard('2');
+    await act(() => user.keyboard('2'));
     expect(screen.queryByText(emptyMsg)).toBeNull();
-    await user.keyboard(' ');
+    await act(() => user.keyboard(' '));
     expect(screen.getByText(illegalCharMsg)).toBeInTheDocument();
   });
   test('that the text area has 3 rows', async () => {

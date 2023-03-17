@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import type { IPropertyItemProps } from './PropertyItem';
 import { PropertyItem } from './PropertyItem';
 import { renderWithRedux } from '../../../test/renderWithRedux';
@@ -85,16 +85,16 @@ describe('PropertyItem', () => {
   test('onChangeValue is called on blur when text changes', async () => {
     const onChangeValue = jest.fn();
     const { user } = renderPropertyItem({ onChangeValue });
-    await user.type(screen.getByLabelText(textFieldName), 'test');
-    await user.tab();
+    await act(() => user.type(screen.getByLabelText(textFieldName), 'test'));
+    await act(() => user.tab());
     expect(onChangeValue).toHaveBeenCalledTimes(1);
   });
 
   test('onChangeValue is not called when there is no change', async () => {
     const onChangeValue = jest.fn();
     const { user } = renderPropertyItem({ onChangeValue });
-    await user.click(screen.getByLabelText(textFieldName));
-    await user.tab();
+    await act(() => user.click(screen.getByLabelText(textFieldName)));
+    await act(() => user.tab());
     expect(onChangeValue).not.toHaveBeenCalled();
   });
 
@@ -102,8 +102,8 @@ describe('PropertyItem', () => {
     const onEnterKeyPress = jest.fn();
     const { user } = renderPropertyItem({ onEnterKeyPress });
     const textbox = screen.getByLabelText(textFieldName);
-    await user.click(textbox);
-    await user.keyboard('{Enter}');
+    await act(() => user.click(textbox));
+    await act(() => user.keyboard('{Enter}'));
     expect(onEnterKeyPress).toHaveBeenCalled();
   });
 
@@ -111,8 +111,8 @@ describe('PropertyItem', () => {
     const onEnterKeyPress = jest.fn();
     const { user } = renderPropertyItem({ onEnterKeyPress });
     const textbox = screen.getByLabelText(textFieldName);
-    await user.click(textbox);
-    await user.keyboard('a');
+    await act(() => user.click(textbox));
+    await act(() => user.keyboard('a'));
     expect(onEnterKeyPress).not.toHaveBeenCalled();
   });
 
@@ -130,8 +130,8 @@ describe('PropertyItem', () => {
     const onChangeType = jest.fn();
     const { user } = renderPropertyItem({ onChangeType });
     const newType = FieldType.Integer;
-    await user.click(screen.getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: fieldTypeNames[newType] }));
+    await act(() => user.click(screen.getByRole('combobox')));
+    await act(() => user.click(screen.getByRole('option', { name: fieldTypeNames[newType] })));
     expect(onChangeType).toHaveBeenCalledTimes(1);
     expect(onChangeType).toHaveBeenCalledWith(fullPath, newType);
   });
@@ -190,7 +190,7 @@ describe('PropertyItem', () => {
   test('onDeleteField is called when the delete button is clicked', async () => {
     const onDeleteField = jest.fn();
     const { user } = renderPropertyItem({ onDeleteField });
-    await user.click(screen.getByRole('button'));
+    await act(() => user.click(screen.getByRole('button')));
     expect(onDeleteField).toHaveBeenCalledTimes(1);
   });
 

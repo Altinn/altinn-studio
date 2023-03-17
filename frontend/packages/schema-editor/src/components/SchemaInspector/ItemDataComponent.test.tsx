@@ -10,7 +10,7 @@ import {
   ObjectKind,
 } from '@altinn/schema-model';
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 const mockTexts = {
@@ -72,7 +72,7 @@ describe('ItemDataComponent', () => {
     const { store, user } = renderItemDataComponent({}, 3);
     const checkbox = screen.queryByLabelText('Multiple answers');
     if (checkbox === null) fail();
-    await user.click(checkbox);
+    await act(() => user.click(checkbox));
     expect(
       store.getActions().some(({ type }) => type === 'schemaEditor/toggleArrayField')
     ).toBeTruthy();
@@ -92,7 +92,7 @@ describe('ItemDataComponent', () => {
     const { store, user } = renderItemDataComponent({}, 0);
     const checkbox = screen.getByLabelText('Nullable');
     if (checkbox === null) fail();
-    await user.click(checkbox);
+    await act(() => user.click(checkbox));
     expect(
       store.getActions().some(({ type }) => type === 'schemaEditor/addCombinationItem')
     ).toBeTruthy();
@@ -106,8 +106,8 @@ describe('ItemDataComponent', () => {
   test('setTitle action is called with correct payload when the "title" field loses focus', async () => {
     const { store, user } = renderItemDataComponent();
     const inputField = screen.getByLabelText(mockTexts['schema_editor.title']);
-    await user.type(inputField, 'Lorem ipsum');
-    await user.tab();
+    await act(() => user.type(inputField, 'Lorem ipsum'));
+    await act(() => user.tab());
     const setTitleActions = store
       .getActions()
       .filter(({ type }) => type === 'schemaEditor/setTitle');
@@ -123,8 +123,8 @@ describe('ItemDataComponent', () => {
   test('setDescription action is called with correct payload when the "description" text area loses focus', async () => {
     const { store, user } = renderItemDataComponent();
     const textArea = screen.getByLabelText(mockTexts['schema_editor.description']);
-    await user.type(textArea, 'Lorem ipsum dolor sit amet.');
-    await user.tab();
+    await act(() => user.type(textArea, 'Lorem ipsum dolor sit amet.'));
+    await act(() => user.tab());
     const setDescriptionActions = store
       .getActions()
       .filter(({ type }) => type === 'schemaEditor/setDescription');

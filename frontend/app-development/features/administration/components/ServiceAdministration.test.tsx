@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react';
+import { act, fireEvent, waitFor } from '@testing-library/react';
 import { Administration } from './Administration';
 import type { ICommit, IRepository } from '../../../types/global';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -99,7 +99,7 @@ describe('Administration', () => {
     const mockEvent = { target: { value: 'New name' } };
 
     const editButton = screen.getByRole('button', { name: textMock('general.edit') });
-    await user.click(editButton);
+    await act(() => user.click(editButton));
 
     const inputElement = screen
       .getByTestId('service-administration-container')
