@@ -43,7 +43,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
             services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
-            services.AddTransient<IPipelineService, PipelineService>();
             services.AddTransient<ITextResourceService, TextResourceService>();
             services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();

@@ -30,8 +30,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Updates a release document
         /// </summary>
-        /// <param name="release">ReleaseDocument</param>
+        /// <param name="buildNumber">Azure DevOps build number</param>
         /// <param name="appOwner">Application owner</param>
-        Task UpdateAsync(ReleaseEntity release, string appOwner);
+        Task UpdateAsync(string buildNumber, string appOwner);
     }
 }

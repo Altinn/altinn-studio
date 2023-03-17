@@ -82,9 +82,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAsync(DeploymentEntity deployment, string appOwner)
+        public async Task UpdateAsync(string buildNumber, string appOwner)
         {
-            DeploymentEntity deploymentEntity = await _deploymentRepository.Get(appOwner, deployment.Build.Id);
+            DeploymentEntity deploymentEntity = await _deploymentRepository.Get(appOwner, buildNumber);
+
+            BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
+            DeploymentEntity deployment = new () { Build = buildEntity };
+
             deploymentEntity.Build.Status = deployment.Build.Status;
             deploymentEntity.Build.Result = deployment.Build.Result;
             deploymentEntity.Build.Started = deployment.Build.Started;

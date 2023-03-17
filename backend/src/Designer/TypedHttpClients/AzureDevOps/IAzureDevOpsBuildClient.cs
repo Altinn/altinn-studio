@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
@@ -19,10 +20,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             int buildDefinitionId);
 
         /// <summary>
-        /// Gets a build by buildId
+        /// Gets a build entity by buildId
         /// </summary>
         /// <param name="buildId">string</param>
         /// <returns></returns>
-        Task<Build> Get(string buildId);
+        Task<BuildEntity> Get(string buildId);
     }
 }

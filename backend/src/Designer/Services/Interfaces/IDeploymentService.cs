@@ -33,8 +33,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Updates a deployment entity
         /// </summary>
-        /// <param name="deployment">DeploymentEntity</param>
+        /// <param name="buildNumber">Azure DevOps build number</param>
         /// <param name="appOwner">Application ownwer.</param>
-        Task UpdateAsync(DeploymentEntity deployment, string appOwner);
+        Task UpdateAsync(string buildNumber, string appOwner);
+
     }
 }

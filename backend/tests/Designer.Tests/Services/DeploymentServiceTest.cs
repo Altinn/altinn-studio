@@ -16,7 +16,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using AltinnCore.Authentication.Constants;
-using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -49,12 +48,11 @@ namespace Designer.Tests.Services
         public async Task CreateAsync_OK()
         {
             // Arrange
-            DeploymentModel deploymentModel = new DeploymentModel
+            DeploymentModel deploymentModel = new ()
             {
                 TagName = "1",
+                EnvName = "at23"
             };
-
-            deploymentModel.EnvName = "at23";
 
             _releaseRepository.Setup(r => r.GetSucceededReleaseFromDb(
                 It.IsAny<string>(),
@@ -67,7 +65,7 @@ namespace Designer.Tests.Services
                 It.IsAny<string>(),
                 It.IsAny<string>())).Returns(Task.CompletedTask);
 
-            Mock<IAzureDevOpsBuildClient> azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
+            Mock<IAzureDevOpsBuildClient> azureDevOpsBuildClient = new ();
             azureDevOpsBuildClient.Setup(b => b.QueueAsync(
                 It.IsAny<QueueBuildParameters>(),
                 It.IsAny<int>())).ReturnsAsync(GetBuild());
@@ -75,7 +73,7 @@ namespace Designer.Tests.Services
             _deploymentRepository.Setup(r => r.Create(
                 It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
 
-            DeploymentService deploymentService = new DeploymentService(
+            DeploymentService deploymentService = new (
                 GetAzureDevOpsSettings(),
                 azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
@@ -109,7 +107,7 @@ namespace Designer.Tests.Services
             // Arrange
             _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
 
-            DeploymentService deploymentService = new DeploymentService(
+            DeploymentService deploymentService = new (
                 GetAzureDevOpsSettings(),
                 new Mock<IAzureDevOpsBuildClient>().Object,
                 _httpContextAccessor.Object,
@@ -147,7 +145,7 @@ namespace Designer.Tests.Services
                 _applicationInformationService.Object);
 
             // Act
-            await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First(), "ttd");
+            await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First().Build.Id, "ttd");
 
             // Assert
             _deploymentRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
@@ -156,12 +154,11 @@ namespace Designer.Tests.Services
 
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
-            ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
+            List<Claim> claims = new () { new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no") };
+            ClaimsIdentity identity = new ("TestUserLogin");
             identity.AddClaims(claims);
 
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            ClaimsPrincipal principal = new (identity);
             HttpContext c = new DefaultHttpContext();
             c.Request.HttpContext.User = principal;
             c.Request.RouteValues.Add("org", "ttd");
@@ -187,13 +184,14 @@ namespace Designer.Tests.Services
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
             string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", filename);
-            if (File.Exists(path))
+            if (!File.Exists(path))
             {
-                string deployments = File.ReadAllText(path);
-                return JsonConvert.DeserializeObject<List<DeploymentEntity>>(deployments);
+                return null;
             }
 
-            return null;
+            string deployments = File.ReadAllText(path);
+            return JsonConvert.DeserializeObject<List<DeploymentEntity>>(deployments);
+
         }
 
         private static Build GetBuild()
