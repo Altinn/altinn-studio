@@ -48,7 +48,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const [syncModalAnchorEl, setSyncModalAnchorEl] = useState(null);
   const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
   const { data: currentRepo } = useRepoMetadata(org, app);
-  const { data: repoStatus } = useRepoStatus(org, app);
+  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatus(org, app);
   const { refetch: fetchPullData } = useRepoPullData(org, app);
   useEffect(() => {
     if (hasPushRight === undefined && currentRepo) {
@@ -105,9 +105,10 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
     }
   };
 
-  const shareChanges = (currentTarget: any, showNothingToPush: boolean) => {
+  const shareChanges = async (currentTarget: any) => {
     setSyncModalAnchorEl(currentTarget);
-    if (showNothingToPush) {
+    const { data: repoStatusResult } = await refetchRepoStatus();
+    if (!hasLocalChanges(repoStatusResult)) {
       setModalState({
         ...initialModalState,
         shouldShowDoneIcon: true,
@@ -120,15 +121,16 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
         header: t('sync_header.controlling_service_status'),
         isLoading: true,
       });
-      if (repoStatus) {
-        if (!hasLocalChanges(repoStatus) && repoStatus.aheadBy === 0) {
+
+      if (repoStatusResult) {
+        if (!hasLocalChanges(repoStatusResult) && repoStatusResult.aheadBy === 0) {
           // if user has nothing to commit => show nothing to push message
           setModalState({
             ...initialModalState,
             shouldShowDoneIcon: true,
             header: t('sync_header.nothing_to_push'),
           });
-        } else if (!hasLocalChanges(repoStatus) && repoStatus.aheadBy > 0) {
+        } else if (!hasLocalChanges(repoStatusResult) && repoStatusResult.aheadBy > 0) {
           setModalState({
             ...initialModalState,
             header: t('sync_header.validation_completed'),

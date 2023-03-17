@@ -5,7 +5,6 @@ import classes from './VersionControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 
 export interface IShareChangesComponentProps {
-  buttonOnly?: boolean;
   changesInLocalRepo: boolean;
   hasMergeConflict: boolean;
   hasPushRight: boolean;
@@ -15,8 +14,7 @@ export interface IShareChangesComponentProps {
 export const ShareChangesButton = (props: IShareChangesComponentProps) => {
   const { t } = useTranslation();
 
-  const shareChangesHandler = (event: any) =>
-    props.shareChanges(event.currentTarget, !props.changesInLocalRepo);
+  const shareChangesHandler = (event: any) => props.shareChanges(event.currentTarget);
 
   const renderCorrectText = () => {
     if (props.hasMergeConflict) {
