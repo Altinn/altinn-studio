@@ -1,10 +1,8 @@
 import React from 'react';
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
 import { render, screen, waitFor } from '@testing-library/react';
 import { VersionControlHeader } from './VersionControlHeader';
-import { setWindowLocationForTests, TEST_DOMAIN } from '../../../testing/testUtils';
-import { datamodelsXsdPath, repoMetaPath } from 'app-shared/api-paths';
+import { setWindowLocationForTests } from '../../../testing/testUtils';
+import { ServicesContextProps, ServicesContextProvider } from '../../common/ServiceContext';
 
 setWindowLocationForTests('test-org', 'test-app');
 
@@ -16,42 +14,26 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
+/**
+ * This part is probably not ideal. A more scaleable way to mock these calls should be done in a more sentral place
+ * for instance the `renderWithProviders` method.
+ */
 export const versionControllHeaderApiCalls = jest.fn();
 
-const handlers = [
-  rest.get(TEST_DOMAIN + repoMetaPath('test-org', 'test-app'), (req, res, ctx) => {
+const queries: Partial<ServicesContextProps> = {
+  getRepoMetadata: async () => {
     versionControllHeaderApiCalls();
-    return res(
-      ctx.status(200),
-      ctx.json({
-        permissions: {
-          push: false,
-        },
-      })
-    );
-  }),
-  rest.get(TEST_DOMAIN + datamodelsXsdPath('test-org', 'test-app'), (req, res, ctx) => {
-    versionControllHeaderApiCalls();
-    return res(ctx.status(200), ctx.json({}));
-  }),
-];
-const versionControlHeaderMockServer = setupServer(...handlers);
-
-export const versionControlHeaderBeforeAll = () => versionControlHeaderMockServer.listen();
-
-export const versionControlHeaderAfterEach = () => {
-  versionControllHeaderApiCalls.mockReset();
-  versionControlHeaderMockServer.resetHandlers();
+    return {};
+  },
 };
-export const versionControlHeaderAfterAll = () => versionControlHeaderMockServer.resetHandlers();
-
-beforeAll(versionControlHeaderBeforeAll);
-afterEach(versionControlHeaderAfterEach);
-afterAll(versionControlHeaderAfterAll);
 
 describe('Shared > Version Control > VersionControlHeader', () => {
   it('should render header when type is not defined', async () => {
-    render(<VersionControlHeader hasPushRight={true} />);
+    render(
+      <ServicesContextProvider {...queries}>
+        <VersionControlHeader hasPushRight={true} />
+      </ServicesContextProvider>
+    );
     await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(1));
     expect(await screen.findByTestId('version-control-header')).not.toBeNull();
     expect(screen.queryByTestId('version-control-fetch-button')).toBeNull();
@@ -59,7 +41,11 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should render header when type is header', async () => {
-    render(<VersionControlHeader hasPushRight={true} />);
+    render(
+      <ServicesContextProvider {...queries}>
+        <VersionControlHeader hasPushRight={true} />
+      </ServicesContextProvider>
+    );
     await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(1));
     // eslint-disable-next-line testing-library/prefer-presence-queries
     expect(screen.queryByTestId('version-control-header')).not.toBeNull();
