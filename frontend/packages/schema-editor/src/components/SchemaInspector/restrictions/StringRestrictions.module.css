@@ -56,6 +56,7 @@
 
 .regexTestStyleField {
   color: transparent;
+  font-family: var(--font_family-default, Inter);
   left: 14px;
   position: absolute;
   top: 6px;
