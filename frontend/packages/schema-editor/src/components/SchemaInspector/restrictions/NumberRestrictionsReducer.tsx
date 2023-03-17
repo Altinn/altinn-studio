@@ -40,7 +40,7 @@ export type NumberRestrictionsReducerAction =
   | SetMinMaxExclusiveAction
   | SetRestrictionAction;
 
-export type NumberRestrictionReducerState = {
+export type NumberRestrictionsReducerState = {
   isMinInclusive: boolean;
   isMaxInclusive: boolean;
   min: number;
@@ -63,7 +63,7 @@ export const validateMinMax = (formatState): NameError => {
   return NameError.NoError;
 };
 
-const setMinIncl = (state: NumberRestrictionReducerState, action: SetMinMaxInclusiveAction) => {
+const setMinIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxInclusiveAction) => {
   const { restrictions } = state;
   if (action.value) {
     state.isMinInclusive = true;
@@ -81,7 +81,7 @@ const setMinIncl = (state: NumberRestrictionReducerState, action: SetMinMaxInclu
   state.nameError = validateMinMax(state);
 };
 
-const setMaxIncl = (state: NumberRestrictionReducerState, action: SetMinMaxInclusiveAction) => {
+const setMaxIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxInclusiveAction) => {
   const { restrictions } = state;
   if (action.value) {
     state.isMaxInclusive = true;
@@ -99,7 +99,7 @@ const setMaxIncl = (state: NumberRestrictionReducerState, action: SetMinMaxInclu
   state.nameError = validateMinMax(state);
 };
 
-const setMin = (state: NumberRestrictionReducerState, action: SetMinMaxExclusiveAction) => {
+const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxExclusiveAction) => {
   const { value } = action;
   const key = state.isMinInclusive
     ? IntRestrictionKeys.minimum
@@ -109,7 +109,7 @@ const setMin = (state: NumberRestrictionReducerState, action: SetMinMaxExclusive
   state.nameError = validateMinMax(state);
 };
 
-const setMax = (state: NumberRestrictionReducerState, action: SetMinMaxExclusiveAction) => {
+const setMax = (state: NumberRestrictionsReducerState, action: SetMinMaxExclusiveAction) => {
   const { value } = action;
   const key = state.isMaxInclusive
     ? IntRestrictionKeys.maximum
@@ -119,11 +119,11 @@ const setMax = (state: NumberRestrictionReducerState, action: SetMinMaxExclusive
   state.nameError = validateMinMax(state);
 };
 
-const setRestriction = (state: NumberRestrictionReducerState, action: SetRestrictionAction) =>
+const setRestriction = (state: NumberRestrictionsReducerState, action: SetRestrictionAction) =>
   (state.restrictions[action.restriction] = action.value);
 
 export const numberRestrictionsReducer = (
-  state: NumberRestrictionReducerState,
+  state: NumberRestrictionsReducerState,
   action: NumberRestrictionsReducerAction
 ) => {
   switch (action.type) {
