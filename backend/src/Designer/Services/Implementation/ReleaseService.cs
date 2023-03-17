@@ -57,7 +57,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await ValidateUniquenessOfRelease(release);
 
-            QueueBuildParameters queueBuildParameters = new ()
+            QueueBuildParameters queueBuildParameters = new()
             {
                 AppCommitId = release.TargetCommitish,
                 AppOwner = release.Org,
@@ -98,7 +98,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
             BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
-            ReleaseEntity release = new () { Build = buildEntity };
+            ReleaseEntity release = new() { Build = buildEntity };
 
             releaseEntity.Build.Status = release.Build.Status;
             releaseEntity.Build.Result = release.Build.Result;
@@ -110,13 +110,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task ValidateUniquenessOfRelease(ReleaseEntity release)
         {
-            List<string> buildStatus = new ()
+            List<string> buildStatus = new()
                 {
                     BuildStatus.InProgress.ToEnumMemberAttributeValue(),
                     BuildStatus.NotStarted.ToEnumMemberAttributeValue()
                 };
 
-            List<string> buildResult = new () { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
+            List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
 
             IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(release.Org, release.App, release.TagName, buildStatus, buildResult);
             if (existingReleaseEntity.Any())

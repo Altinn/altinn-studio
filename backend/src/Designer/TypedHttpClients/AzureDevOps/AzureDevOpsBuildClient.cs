@@ -91,7 +91,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         }
 
         private static BuildEntity ToBuildEntity(Build build)
-            => new ()
+            => new()
             {
                 Id = build.Id.ToString(),
                 Status = build.Status,

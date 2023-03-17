@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
-        /// <param name="query">DcumentQueryModel</param>
+        /// <param name="query">DocumentQueryModel</param>
         /// <returns>SearchResults of type DeploymentEntity</returns>
         Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query);
 
@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Updates a deployment entity
         /// </summary>
         /// <param name="buildNumber">Azure DevOps build number</param>
-        /// <param name="appOwner">Application ownwer.</param>
+        /// <param name="appOwner">Application owner.</param>
         Task UpdateAsync(string buildNumber, string appOwner);
 
     }

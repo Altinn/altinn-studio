@@ -32,6 +32,7 @@ namespace Designer.Tests.Services
         private readonly Mock<IReleaseRepository> _releaseRepository;
         private readonly Mock<IApplicationInformationService> _applicationInformationService;
         private readonly Mock<IEnvironmentsService> _environementsService;
+        private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
         public DeploymentServiceTest()
         {
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
@@ -40,6 +41,7 @@ namespace Designer.Tests.Services
             _deploymentRepository = new Mock<IDeploymentRepository>();
             _releaseRepository = new Mock<IReleaseRepository>();
             _environementsService = new Mock<IEnvironmentsService>();
+            _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
             _applicationInformationService = new Mock<IApplicationInformationService>();
 
         }
@@ -48,7 +50,7 @@ namespace Designer.Tests.Services
         public async Task CreateAsync_OK()
         {
             // Arrange
-            DeploymentModel deploymentModel = new ()
+            DeploymentModel deploymentModel = new()
             {
                 TagName = "1",
                 EnvName = "at23"
@@ -65,17 +67,16 @@ namespace Designer.Tests.Services
                 It.IsAny<string>(),
                 It.IsAny<string>())).Returns(Task.CompletedTask);
 
-            Mock<IAzureDevOpsBuildClient> azureDevOpsBuildClient = new ();
-            azureDevOpsBuildClient.Setup(b => b.QueueAsync(
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
                 It.IsAny<QueueBuildParameters>(),
                 It.IsAny<int>())).ReturnsAsync(GetBuild());
 
             _deploymentRepository.Setup(r => r.Create(
                 It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
 
-            DeploymentService deploymentService = new (
+            DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
-                azureDevOpsBuildClient.Object,
+                _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
@@ -96,7 +97,7 @@ namespace Designer.Tests.Services
                     It.IsAny<string>(),
                     It.IsAny<string>()),
                 Times.Once);
-            azureDevOpsBuildClient.Verify(
+            _azureDevOpsBuildClient.Verify(
                 b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
             _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Once);
         }
@@ -107,9 +108,9 @@ namespace Designer.Tests.Services
             // Arrange
             _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
 
-            DeploymentService deploymentService = new (
+            DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
-                new Mock<IAzureDevOpsBuildClient>().Object,
+                _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
@@ -135,14 +136,16 @@ namespace Designer.Tests.Services
             _deploymentRepository.Setup(r => r.Update(
                 It.IsAny<DeploymentEntity>())).Returns(Task.CompletedTask);
 
-            DeploymentService deploymentService = new DeploymentService(
+            DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
-                new Mock<IAzureDevOpsBuildClient>().Object,
+                _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object);
+
+            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json").First().Build);
 
             // Act
             await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First().Build.Id, "ttd");
@@ -154,11 +157,11 @@ namespace Designer.Tests.Services
 
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
-            List<Claim> claims = new () { new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no") };
-            ClaimsIdentity identity = new ("TestUserLogin");
+            List<Claim> claims = new() { new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no") };
+            ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
 
-            ClaimsPrincipal principal = new (identity);
+            ClaimsPrincipal principal = new(identity);
             HttpContext c = new DefaultHttpContext();
             c.Request.HttpContext.User = principal;
             c.Request.RouteValues.Add("org", "ttd");

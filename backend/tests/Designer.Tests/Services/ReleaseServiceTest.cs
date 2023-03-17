@@ -28,6 +28,7 @@ namespace Designer.Tests.Services
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
         private readonly Mock<IReleaseRepository> _releaseRepository;
+        private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
         private readonly Mock<ILogger<ReleaseService>> _releaseLogger;
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
@@ -38,13 +39,14 @@ namespace Designer.Tests.Services
             _httpContextAccessor.Setup(req => req.HttpContext).Returns(GetHttpContextForTestUser("testuser"));
             _releaseLogger = new Mock<ILogger<ReleaseService>>();
             _releaseRepository = new Mock<IReleaseRepository>();
+            _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
         }
 
         [Fact]
         public async Task CreateAsync_OK()
         {
             // Arrange
-            ReleaseEntity releaseEntity = new ()
+            ReleaseEntity releaseEntity = new()
             {
                 TagName = "1",
                 Name = "1",
@@ -52,23 +54,22 @@ namespace Designer.Tests.Services
                 TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5"
             };
 
-            List<string> buildStatus = new ()
+            List<string> buildStatus = new()
                 {
                     BuildStatus.InProgress.ToEnumMemberAttributeValue(),
                     BuildStatus.NotStarted.ToEnumMemberAttributeValue()
                 };
 
-            List<string> buildResult = new () { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
+            List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
 
             _releaseRepository.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult)).ReturnsAsync(new List<ReleaseEntity>());
             _releaseRepository.Setup(r => r.Create(It.IsAny<ReleaseEntity>())).ReturnsAsync(GetReleases("createdRelease.json").First());
 
-            Mock<IAzureDevOpsBuildClient> azureDevOpsBuildClient = new ();
-            azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>())).ReturnsAsync(GetBuild());
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>())).ReturnsAsync(GetBuild());
 
-            ReleaseService releaseService = new (
+            ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
-                azureDevOpsBuildClient.Object,
+                _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
                 _releaseLogger.Object);
@@ -79,14 +80,14 @@ namespace Designer.Tests.Services
             // Assert
             _releaseRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult), Times.Once);
             _releaseRepository.Verify(r => r.Create(It.IsAny<ReleaseEntity>()), Times.Once);
-            azureDevOpsBuildClient.Verify(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
+            _azureDevOpsBuildClient.Verify(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
         }
 
         [Fact]
         public async Task CreateAsync_Exception()
         {
             // Arrange
-            ReleaseEntity releaseEntity = new ()
+            ReleaseEntity releaseEntity = new()
             {
                 TagName = "1",
                 Name = "1",
@@ -94,13 +95,13 @@ namespace Designer.Tests.Services
                 TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5"
             };
 
-            List<string> buildStatus = new ()
+            List<string> buildStatus = new()
                 {
                     BuildStatus.InProgress.ToEnumMemberAttributeValue(),
                     BuildStatus.NotStarted.ToEnumMemberAttributeValue()
                 };
 
-            List<string> buildResult = new () { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
+            List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
 
             _releaseRepository.Setup(r => r.Get(
                 It.IsAny<string>(),
@@ -109,9 +110,9 @@ namespace Designer.Tests.Services
                 buildStatus,
                 buildResult)).ReturnsAsync(GetReleases("createdRelease.json"));
 
-            ReleaseService releaseService = new (
+            ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
-                new Mock<IAzureDevOpsBuildClient>().Object,
+                _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
                 _releaseLogger.Object);
@@ -138,9 +139,9 @@ namespace Designer.Tests.Services
             // Arrange
             _releaseRepository.Setup(r => r.Get(_org, _app, It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetReleases("completedReleases.json"));
 
-            ReleaseService releaseService = new (
+            ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
-                new Mock<IAzureDevOpsBuildClient>().Object,
+                _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
                 _releaseLogger.Object);
@@ -160,12 +161,14 @@ namespace Designer.Tests.Services
             _releaseRepository.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json"));
             _releaseRepository.Setup(r => r.Update(It.IsAny<ReleaseEntity>())).Returns(Task.CompletedTask);
 
-            ReleaseService releaseService = new (
+            ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
-                new Mock<IAzureDevOpsBuildClient>().Object,
+                _azureDevOpsBuildClient.Object,
                 _releaseRepository.Object,
                 GetAzureDevOpsSettings(),
                 _releaseLogger.Object);
+
+            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json").First().Build);
 
             // Act
             await releaseService.UpdateAsync(GetReleases("createdRelease.json").First().Build.Id, "ttd");
@@ -177,11 +180,11 @@ namespace Designer.Tests.Services
 
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
-            List<Claim> claims = new () { new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no") };
-            ClaimsIdentity identity = new ("TestUserLogin");
+            List<Claim> claims = new() { new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no") };
+            ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
 
-            ClaimsPrincipal principal = new (identity);
+            ClaimsPrincipal principal = new(identity);
             HttpContext c = new DefaultHttpContext();
             c.Request.HttpContext.User = principal;
             c.Request.RouteValues.Add("org", "ttd");

@@ -87,7 +87,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             DeploymentEntity deploymentEntity = await _deploymentRepository.Get(appOwner, buildNumber);
 
             BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
-            DeploymentEntity deployment = new () { Build = buildEntity };
+            DeploymentEntity deployment = new() { Build = buildEntity };
 
             deploymentEntity.Build.Status = deployment.Build.Status;
             deploymentEntity.Build.Result = deployment.Build.Result;
