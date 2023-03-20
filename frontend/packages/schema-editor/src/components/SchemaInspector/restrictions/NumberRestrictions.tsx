@@ -12,7 +12,6 @@ import {
   NumberRestrictionsReducerAction,
   NumberRestrictionsReducerActionType,
   NumberRestrictionsReducerState,
-  validateMinMax,
 } from './NumberRestrictionsReducer';
 import { NameError } from '@altinn/schema-editor/types';
 
@@ -41,7 +40,6 @@ export function NumberRestrictions({
     ),
     nameError: NameError.NoError
   };
-  initialState.nameError = validateMinMax(initialState);
   const [formatState, dispatch] = useReducer(numberRestrictionsReducer, initialState);
 
   const changeCallback = (changedRestrictions: Dict) => {
@@ -64,11 +62,17 @@ export function NumberRestrictions({
 
   const onChangeMinNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
-    dispatchAction(NumberRestrictionsReducerActionType.setMin, newValue);
+    dispatchAction(
+      NumberRestrictionsReducerActionType.setMin,
+      newValue ? parseInt(newValue) : undefined
+  );
   };
   const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
-    dispatchAction(NumberRestrictionsReducerActionType.setMax, newValue);
+    dispatchAction(
+      NumberRestrictionsReducerActionType.setMax,
+      newValue ? parseInt(newValue) : undefined
+    );
   };
 
   return (
@@ -85,7 +89,7 @@ export function NumberRestrictions({
               formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' }}}
             />
             <div className={classes.minNumberErrorMassage}>
-              {<ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
+              <ErrorMessage>{nameErrorMessage}</ErrorMessage>
             </div>
           </div>
           <Checkbox

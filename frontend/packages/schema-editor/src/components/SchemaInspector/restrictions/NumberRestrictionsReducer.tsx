@@ -44,8 +44,8 @@ export type NumberRestrictionsReducerState = {
   isInteger: boolean;
   isMinInclusive: boolean;
   isMaxInclusive: boolean;
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
   restrictions: { [restriction in IntRestrictionKeys]?: number };
   nameError: NameError;
 };
@@ -145,5 +145,3 @@ export const numberRestrictionsReducer = (
   action.changeCallback(state.restrictions);
   return state;
 };
-
-export default numberRestrictionsReducer;

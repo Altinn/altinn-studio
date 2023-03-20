@@ -33,7 +33,10 @@ const changeCallback = jest.fn();
 const dispatchAction = (
   action: NumberRestrictionsReducerAction,
   state?: Partial<NumberRestrictionsReducerState>
-) => numberRestrictionsReducer(state ? { ...defaultState, ...state } : defaultState, action);
+) => {
+  const defaultStateCopy = { ...defaultState, restrictions: { ...defaultRestrictions } };
+  return numberRestrictionsReducer(state ? { ...defaultStateCopy, ...state } : defaultStateCopy, action);
+};
 
 describe('NumberRestrictionsReducer', () => {
   afterEach(() => jest.clearAllMocks());
@@ -113,7 +116,8 @@ describe('NumberRestrictionsReducer', () => {
       expect(state.max).toBe(maxNumber);
       expect(state.restrictions.maximum).toBeUndefined();
       expect(state.restrictions.exclusiveMaximum).toBe(maxNumber);
-      expect(state.restrictions.exclusiveMinimum).toBe(minNumber);
+      expect(state.restrictions.minimum).toBe(minNumber);
+      expect(state.restrictions.exclusiveMinimum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
       expect(changeCallback).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -139,7 +143,8 @@ describe('NumberRestrictionsReducer', () => {
       expect(state.max).toBe(maxNumber);
       expect(state.restrictions.maximum).toBe(maxNumber);
       expect(state.restrictions.exclusiveMaximum).toBeUndefined();
-      expect(state.restrictions.exclusiveMinimum).toBe(minNumber);
+      expect(state.restrictions.minimum).toBe(minNumber);
+      expect(state.restrictions.exclusiveMinimum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
       expect(changeCallback).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -154,9 +159,18 @@ describe('NumberRestrictionsReducer', () => {
 
   describe('setMin', () => {
     const type = NumberRestrictionsReducerActionType.setMin;
+
     it('Updates state correctly when inclusive', () => {
+      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+        ...defaultRestrictions,
+        minimum: minNumber,
+        exclusiveMinimum: undefined,
+      };
       const value = 2;
-      const state = dispatchAction({ type, value, changeCallback }, { isMinInclusive: true });
+      const state = dispatchAction(
+        { type, value, changeCallback },
+        { isMinInclusive: true, restrictions: initialRestrictions }
+      );
       expect(state.min).toEqual(value);
       expect(state.restrictions.minimum).toEqual(value);
       expect(state.restrictions.exclusiveMinimum).toBeUndefined();
@@ -173,9 +187,17 @@ describe('NumberRestrictionsReducer', () => {
       );
     });
 
-    it('Updates state correctly when inclusive', () => {
+    it('Updates state correctly when exclusive', () => {
+      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+        ...defaultRestrictions,
+        minimum: undefined,
+        exclusiveMinimum: minNumber,
+      };
       const value = 2;
-      const state = dispatchAction({ type, value, changeCallback }, { isMinInclusive: false });
+      const state = dispatchAction(
+        { type, value, changeCallback },
+        { isMinInclusive: false, restrictions: initialRestrictions }
+      );
       expect(state.min).toEqual(value);
       expect(state.restrictions.minimum).toBeUndefined();
       expect(state.restrictions.exclusiveMinimum).toBe(value);
@@ -197,8 +219,16 @@ describe('NumberRestrictionsReducer', () => {
     const type = NumberRestrictionsReducerActionType.setMax;
 
     it('Updates state correctly when inclusive', () => {
+      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+        ...defaultRestrictions,
+        maximum: maxNumber,
+        exclusiveMaximum: undefined,
+      };
       const value = 5;
-      const state = dispatchAction({ type, value, changeCallback }, { isMaxInclusive: true });
+      const state = dispatchAction(
+        { type, value, changeCallback },
+        { isMaxInclusive: true, restrictions: initialRestrictions }
+      );
       expect(state.max).toEqual(value);
       expect(state.restrictions.maximum).toEqual(value);
       expect(state.restrictions.exclusiveMaximum).toBeUndefined();
@@ -216,8 +246,16 @@ describe('NumberRestrictionsReducer', () => {
     });
 
     it('Updates state correctly when exclusive', () => {
+      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+        ...defaultRestrictions,
+        maximum: undefined,
+        exclusiveMaximum: maxNumber,
+      };
       const value = 5;
-      const state = dispatchAction({ type, value, changeCallback }, { isMaxInclusive: false });
+      const state = dispatchAction(
+        { type, value, changeCallback },
+        { isMaxInclusive: false, restrictions: initialRestrictions }
+      );
       expect(state.max).toEqual(value);
       expect(state.restrictions.maximum).toBeUndefined();
       expect(state.restrictions.exclusiveMaximum).toBe(value);
