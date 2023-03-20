@@ -1,6 +1,7 @@
 ﻿using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.Codelists.SSB.Models;
+using static System.Net.WebRequestMethods;
 
 namespace Altinn.Codelists.SSB;
 
@@ -10,16 +11,26 @@ namespace Altinn.Codelists.SSB;
 public class ClassificationCodelistProvider : IAppOptionsProvider
 {
     private readonly IClassificationsClient _classificationsClient;
-    private readonly Classification _classification;
+    private readonly int _classificationId;
     private readonly Dictionary<string, string> _defaultKeyValuePairs;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ClassificationCodelistProvider"/> class.
     /// </summary>
-    public ClassificationCodelistProvider(string id, Classification classification, IClassificationsClient classificationsClient, Dictionary<string, string>? defaultKeyValuePairs = null)
+    public ClassificationCodelistProvider(string id, Classification classification, IClassificationsClient classificationsClient, Dictionary<string, string>? defaultKeyValuePairs = null) : 
+        this(id, (int) classification, classificationsClient, defaultKeyValuePairs)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ClassificationCodelistProvider"/> class.
+    /// For valid id's please consult the SSB classificaionts api by calling
+    /// <see href="http://data.ssb.no/api/klass/v1/classifications?size=150&language=en">the classifications index.</see>
+    /// </summary>
+    public ClassificationCodelistProvider(string id, int classificationId, IClassificationsClient classificationsClient, Dictionary<string, string>? defaultKeyValuePairs = null)
     {
         Id = id;
-        _classification = classification;
+        _classificationId = classificationId;
         _classificationsClient = classificationsClient;
         _defaultKeyValuePairs = defaultKeyValuePairs == null ? new Dictionary<string, string>() : defaultKeyValuePairs;
     }
@@ -36,7 +47,7 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
         DateOnly dateOnly = date == null ? DateOnly.FromDateTime(DateTime.Today) : DateOnly.Parse(date);
         string level = mergedKeyValuePairs.GetValueOrDefault("level") ?? string.Empty;
 
-        var classificationCode = await _classificationsClient.GetClassificationCodes(_classification, language, dateOnly, level);
+        var classificationCode = await _classificationsClient.GetClassificationCodes(_classificationId, language, dateOnly, level);
 
         string parentCode = mergedKeyValuePairs.GetValueOrDefault("parentCode") ?? string.Empty;
         var appOptions = new AppOptions
