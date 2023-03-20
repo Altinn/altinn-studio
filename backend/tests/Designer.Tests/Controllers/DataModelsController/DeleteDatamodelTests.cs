@@ -36,11 +36,11 @@ public class DeleteDatamodelTests : ApiTestsBase<DatamodelsController, DeleteDat
     [Fact]
     public async Task Delete_Datamodel_Ok()
     {
-        string dataPathWithData = $"{VersionPrefix}/ttd/ttd-datamodels/datamodels/do-not-use/deletedatamodel?modelName=41111";
+        string dataPathWithData = $"{VersionPrefix}/ttd/ttd-datamodels/datamodels/datamodel?modelPath=/App/models/41111.schema.json";
 
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
+        HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 }

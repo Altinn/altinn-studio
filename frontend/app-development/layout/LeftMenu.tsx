@@ -1,7 +1,7 @@
 import React from 'react';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import type { IShareChangesComponentProps } from 'app-shared/version-control/ShareChangesButton';
+import type { IShareChangesComponentProps } from './version-control/ShareChangesButton';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
 import HandleMergeConflict from '../features/handleMergeConflict/HandleMergeConflictContainer';

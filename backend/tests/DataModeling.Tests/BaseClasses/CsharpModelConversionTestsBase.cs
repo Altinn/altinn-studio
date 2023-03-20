@@ -50,11 +50,7 @@ namespace DataModeling.Tests.BaseClasses
             var strategy = JsonSchemaConverterStrategyFactory.SelectStrategy(LoadedJsonSchema);
             var metamodelConverter = new JsonSchemaToMetamodelConverter(strategy.GetAnalyzer());
 
-            string jsonSchemaString = JsonSerializer.Serialize(LoadedJsonSchema, new JsonSerializerOptions()
-            {
-                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
-                WriteIndented = true
-            });
+            string jsonSchemaString = SerializeJsonSchema(LoadedJsonSchema);
 
             ModelMetadata = metamodelConverter.Convert(jsonSchemaString);
             return this as TTestType;

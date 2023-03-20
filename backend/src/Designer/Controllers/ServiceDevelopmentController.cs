@@ -100,9 +100,6 @@ namespace Altinn.Studio.Designer.Controllers
                 case FileEditorMode.All:
                     file = _repository.GetConfiguration(org, app, fileName);
                     break;
-                case FileEditorMode.Root:
-                    file = _repository.GetFileByRelativePath(org, app, fileName);
-                    break;
             }
 
             return Content(file, "text/plain", Encoding.UTF8);

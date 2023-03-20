@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -13,7 +12,6 @@ using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers

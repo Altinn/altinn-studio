@@ -3,15 +3,9 @@ import { ShareChangesButton } from './ShareChangesButton';
 import type { IShareChangesComponentProps } from './ShareChangesButton';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 
 describe('shareChanges', () => {
   it('should call mock function when changes in local repo on click button', async () => {
@@ -19,7 +13,7 @@ describe('shareChanges', () => {
     render({ shareChanges: handleShareChanges });
 
     const shareButton = screen.getByRole('button', {
-      name: /sync_header\.changes_to_share/i,
+      name: textMock('sync_header.changes_to_share'),
     });
     await act(() => user.click(shareButton));
 

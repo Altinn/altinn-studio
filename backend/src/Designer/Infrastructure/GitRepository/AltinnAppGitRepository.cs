@@ -1,21 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
-using k8s.Autorest;
+using LibGit2Sharp;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using NuGet.Protocol;
-using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -24,8 +18,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// </summary>
     /// <remarks>This class knows that the repository is an Altinn application and hence knows
     /// about folders and file names and can map them to their respective models.
-    /// It should however, not have any business logic. The <see cref="GetTextResourcesForAllLanguages"/> method is borderline
-    /// as it merges multiple on-disk models into another structure.</remarks>
+    /// It should however, not have any business logic.</remarks>
     public class AltinnAppGitRepository : AltinnGitRepository
     {
         private const string MODEL_FOLDER_PATH = "App/models/";
@@ -37,8 +30,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
+        private const string LAYOUT_SETS_FILENAME = "layout-sets.json";
 
-        private readonly string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+        private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -57,10 +59,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public async Task<Application> GetApplicationMetadata()
         {
-            var appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
-            var fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath);
+            string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
+            string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath);
+            Application applicationMetaData = JsonSerializer.Deserialize<Application>(fileContent, _jsonOptions);
 
-            return JsonConvert.DeserializeObject<Application>(fileContent);
+            return applicationMetaData;
         }
 
         /// <summary>
@@ -69,10 +72,23 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="applicationMetadata">The updated application metadata to persist.</param>
         public async Task SaveApplicationMetadata(Application applicationMetadata)
         {
-            string metadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Formatting.Indented);
-            var appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
-
+            string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, _jsonOptions);
+            string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
             await WriteTextByRelativePathAsync(appMetadataRelativeFilePath, metadataAsJson, true);
+        }
+
+        /// <summary>
+        /// Get the Json Schema file representing the application model to disk.
+        /// </summary>
+        /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
+        /// <returns>A string containing content of the json schema.</returns>
+        [Obsolete("Generic method GetJsonSchema is deprecated. Use a dedicated one instead.")]
+        public async Task<string> GetJsonSchema(string modelName)
+        {
+            string relativeFilePath = GetRelativeModelFilePath(modelName);
+            string jsonSchemaContent = await ReadTextByRelativePathAsync(relativeFilePath);
+
+            return jsonSchemaContent;
         }
 
         /// <summary>
@@ -84,7 +100,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveModelMetadata(string modelMetadata, string modelName)
         {
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
-
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, modelMetadata, true);
         }
 
@@ -96,7 +111,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveCSharpClasses(string csharpClasses, string modelName)
         {
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
-
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, csharpClasses, true);
         }
 
@@ -106,10 +120,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="jsonSchema">The Json Schema that should be persisted</param>
         /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
         /// <returns>A string containing the relative path to the file saved.</returns>
-        public async override Task<string> SaveJsonSchema(string jsonSchema, string modelName)
+        public override async Task<string> SaveJsonSchema(string jsonSchema, string modelName)
         {
             string relativeFilePath = GetRelativeModelFilePath(modelName);
-
             await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
 
             return relativeFilePath;
@@ -136,23 +149,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="xsd">String representing the Xsd to be saved.</param>
         /// <param name="fileName">The filename of the file to be saved excluding path.</param>
-        /// <returns>A string containg the relative path to the file saved.</returns>
-        public async override Task<string> SaveXsd(string xsd, string fileName)
+        /// <returns>A string containing the relative path to the file saved.</returns>
+        public override async Task<string> SaveXsd(string xsd, string fileName)
         {
-            string filePath = Path.Combine(GetRelativeModelFolder(), fileName);
+            string filePath = Path.Combine(MODEL_FOLDER_PATH, fileName);
             await WriteTextByRelativePathAsync(filePath, xsd, true);
 
             return filePath;
-        }
-
-        /// <summary>
-        /// Gets the relative path to a model.
-        /// </summary>
-        /// <param name="modelName">The name of the model without extensions.</param>
-        /// <returns>A string with the relative path to the model file, including file extension. </returns>
-        public string GetRelativeModelFilePath(string modelName)
-        {
-            return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");
         }
 
         /// <summary>
@@ -174,100 +177,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task<Designer.Models.TextResource> GetTextV1(string language)
         {
             string resourcePath = GetPathToJsonTextsFile($"resource.{language}.json");
-
-            var fileContent = await ReadTextByRelativePathAsync(resourcePath);
-            var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(fileContent);
+            if (!FileExistsByRelativePath(resourcePath))
+            {
+                throw new NotFoundException("Text resource file not found.");
+            }
+            string fileContent = await ReadTextByRelativePathAsync(resourcePath);
+            Designer.Models.TextResource textResource = JsonSerializer.Deserialize<Designer.Models.TextResource>(fileContent, _jsonOptions);
 
             return textResource;
         }
 
-        /// <summary>
-        /// Overwrite a V2 texts file with an updated V2 texts file
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        /// <param name="jsonTexts">Text file for language as string</param>
-        public async Task SaveTextsV2(string languageCode, Dictionary<string, string> jsonTexts)
+        public async Task SaveTextV1(string languageCode, Designer.Models.TextResource jsonTexts)
         {
-            string fileName = $"{languageCode}.texts.json";
-            var textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-
-            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
-            string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, jsonOptions);
-
+            string fileName = $"resource.{languageCode}.json";
+            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
+            string texts = JsonSerializer.Serialize(jsonTexts, _jsonOptions);
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
-        }
-
-        /// <summary>
-        /// Overwrite or creates a markdown file for a specific text for a specific language.
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        /// <param name="text">Keyvaluepair containing markdown text</param>
-        public async Task SaveTextMarkdown(string languageCode, KeyValuePair<string, string> text)
-        {
-            string fileName = $"{text.Key}.{languageCode}.texts.md";
-
-            var textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
-
-            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, text.Value, true);
-        }
-
-        /// <summary>
-        /// Gets a merged set of all text resources in the application.
-        /// </summary>
-        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
-        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
-        public async Task<Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>> GetTextResourcesForAllLanguages()
-        {
-            var allResourceTexts = new Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>();
-
-            string textResourcesDirectory = GetPathToJsonTextsFile(null);
-
-            if (!DirectoryExistsByRelativePath(textResourcesDirectory))
-            {
-                return allResourceTexts;
-            }
-
-            string[] files = GetFilesByRelativeDirectory(textResourcesDirectory);
-
-            foreach (string file in files)
-            {
-                if (!IsValidResourceFile(file))
-                {
-                    continue;
-                }
-
-                string content = await ReadTextByAbsolutePathAsync(file);
-                var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(content, new JsonSerializerSettings());
-                string language = textResource.Language;
-
-                GetTextResourceForLanguage(allResourceTexts, textResource, language);
-            }
-
-            return allResourceTexts;
-        }
-
-        private static void GetTextResourceForLanguage(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> allResourceTexts, Designer.Models.TextResource textResource, string language)
-        {
-            foreach (Designer.Models.TextResourceElement textResourceElement in textResource.Resources)
-            {
-                string key = textResourceElement.Id;
-                string value = textResourceElement.Value;
-
-                if (key == null && value == null)
-                {
-                    continue;
-                }
-
-                if (!allResourceTexts.ContainsKey(key))
-                {
-                    allResourceTexts.Add(key, new Dictionary<string, Designer.Models.TextResourceElement>());
-                }
-
-                if (!allResourceTexts[key].ContainsKey(language))
-                {
-                    allResourceTexts[key].Add(language, textResourceElement);
-                }
-            }
         }
 
         /// <summary>
@@ -279,14 +204,36 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task<Dictionary<string, string>> GetTextsV2(string languageCode)
         {
             string fileName = $"{languageCode}.texts.json";
-
-            var textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-
+            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
             string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
-
-            Dictionary<string, string> jsonTexts = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(texts);
+            Dictionary<string, string> jsonTexts = JsonSerializer.Deserialize<Dictionary<string, string>>(texts, _jsonOptions);
 
             return jsonTexts;
+        }
+
+        /// <summary>
+        /// Overwrite a V2 texts file with an updated V2 texts file
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <param name="jsonTexts">Text file for language as string</param>
+        public async Task SaveTextsV2(string languageCode, Dictionary<string, string> jsonTexts)
+        {
+            string fileName = $"{languageCode}.texts.json";
+            string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
+            string texts = JsonSerializer.Serialize(jsonTexts, _jsonOptions);
+            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
+        }
+
+        /// <summary>
+        /// Overwrite or creates a markdown file for a specific text for a specific language.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <param name="text">Keyvaluepair containing markdown text</param>
+        public async Task SaveTextMarkdown(string languageCode, KeyValuePair<string, string> text)
+        {
+            string fileName = $"{text.Key}.{languageCode}.texts.md";
+            string textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
+            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, text.Value, true);
         }
 
         /// <summary>
@@ -296,8 +243,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>Markdown text as a string</returns>
         public async Task<string> GetTextMarkdown(string markdownFileName)
         {
-            var textsFileRelativeFilePath = GetPathToMarkdownTextFile(markdownFileName);
-
+            string textsFileRelativeFilePath = GetPathToMarkdownTextFile(markdownFileName);
             string text = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
 
             return text;
@@ -310,10 +256,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public void DeleteTexts(string languageCode)
         {
             string textsFileName = $"{languageCode}.texts.json";
-            var textsFileRelativeFilePath = GetPathToJsonTextsFile(textsFileName);
+            string textsFileRelativeFilePath = GetPathToJsonTextsFile(textsFileName);
             DeleteFileByRelativePath(textsFileRelativeFilePath);
-
-            var fileNames = FindFiles(new[] { $"*.{languageCode}.texts.md" });
+            IEnumerable<string> fileNames = FindFiles(new[] { $"*.{languageCode}.texts.md" });
             foreach (string fileNamePath in fileNames)
             {
                 string fileName = Path.GetFileName(fileNamePath);
@@ -323,7 +268,25 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Returns the
+        /// Returns all the layouts for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <returns>A list of all layouts for a layoutset</returns>
+        public async Task<Dictionary<string, FormLayout>> GetFormLayouts(string layoutSetName)
+        {
+            Dictionary<string, FormLayout> formLayouts = new();
+            string[] layoutNames = GetLayoutNames(layoutSetName);
+            foreach (string layoutName in layoutNames)
+            {
+                FormLayout layout = await GetLayout(layoutSetName, layoutName);
+                formLayouts[layoutName.Replace(".json", "")] = layout;
+            }
+
+            return formLayouts;
+        }
+
+        /// <summary>
+        /// Returns the layout for a specific layoutset
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <param name="layoutName">The name of layoutfile</param>
@@ -331,16 +294,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task<FormLayout> GetLayout(string layoutSetName, string layoutName)
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
-
             string fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
-            FormLayout layout = System.Text.Json.JsonSerializer.Deserialize<FormLayout>(fileContent,
-                new JsonSerializerOptions()
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                });
+            FormLayout layout = JsonSerializer.Deserialize<FormLayout>(fileContent, _jsonOptions);
 
             return layout;
+        }
+
+        /// <summary>
+        /// Returns the layout for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="layoutName">The name of layoutfile</param>
+        /// <returns>The layout</returns>
+        public void DeleteLayout(string layoutSetName, string layoutName)
+        {
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+            DeleteFileByRelativePath(layoutFilePath);
         }
 
         /// <summary>
@@ -352,6 +321,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string layoutSetsRelativePath = Path.Combine(LAYOUTS_FOLDER_NAME);
             string[] layoutSetNames = GetDirectoriesByRelativeDirectory(layoutSetsRelativePath);
+
             return layoutSetNames;
         }
 
@@ -364,6 +334,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public bool AppUsesLayoutSets()
         {
             string layoutSetJsonFilePath = Path.Combine(LAYOUTS_FOLDER_NAME, "layout-sets.json");
+
             return FileExistsByRelativePath(layoutSetJsonFilePath);
         }
 
@@ -375,15 +346,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public string[] GetLayoutNames([CanBeNull] string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
-            if (!DirectoryExistsByRelativePath(layoutSetPath))
+            if (!DirectoryExistsByRelativePath(layoutSetPath) && AppUsesLayoutSets())
             {
                 throw new FileNotFoundException();
             }
             List<string> layoutNames = new();
-
-            foreach (string layoutPath in GetFilesByRelativeDirectory(layoutSetPath))
+            if (DirectoryExistsByRelativePath(layoutSetPath))
             {
-                layoutNames.Add(Path.GetFileName(layoutPath));
+                foreach (string layoutPath in GetFilesByRelativeDirectory(layoutSetPath))
+                {
+                    layoutNames.Add(Path.GetFileName(layoutPath));
+                }
             }
 
             return layoutNames.ToArray();
@@ -401,13 +374,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 await CreateLayoutSettings(layoutSetName);
             }
-
             string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath);
-            LayoutSettings layoutSettings = System.Text.Json.JsonSerializer.Deserialize<LayoutSettings>(fileContent);
+            LayoutSettings layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(fileContent, _jsonOptions);
+
             return layoutSettings;
         }
 
-        public async Task CreateLayoutSettings(string layoutSetName)
+        private async Task CreateLayoutSettings(string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
             if (!DirectoryExistsByRelativePath(layoutSetPath))
@@ -417,8 +390,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
             LayoutSettings layoutSettings = new()
             {
-                schema = _layoutSettingsSchemaUrl,
-                pages = new Pages() { order = layoutNames }
+                Schema = _layoutSettingsSchemaUrl,
+                Pages = new Pages { Order = layoutNames }
             };
             await SaveLayoutSettings(layoutSetName, layoutSettings);
         }
@@ -443,14 +416,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveLayoutSettings(string layoutSetName, LayoutSettings layoutSettings)
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
-            JsonSerializerOptions jsonOptions = new()
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-            string serializedLayoutSettings = System.Text.Json.JsonSerializer.Serialize(layoutSettings, jsonOptions);
-
+            string serializedLayoutSettings = JsonSerializer.Serialize(layoutSettings, _jsonOptions);
             await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
         }
 
@@ -459,143 +425,92 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// it will be stored as if the app does not use layoutsets, meaning under /App/ui/layouts/.
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
-        /// <param name="layoutName">The name of layout file</param>
+        /// <param name="layoutFileName">The name of layout file</param>
         /// <param name="layout">The actual layout that is saved</param>
-        public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutName, Designer.Models.FormLayout layout)
+        public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutFileName, FormLayout layout)
         {
-            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
-            JsonSerializerOptions jsonOptions = new()
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-            string serializedLayout = System.Text.Json.JsonSerializer.Serialize(layout, jsonOptions);
+            string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
+            string serializedLayout = JsonSerializer.Serialize(layout, _jsonOptions);
+            await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true);
+        }
 
-            await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout);
+        public void UpdateFormLayoutName(string layoutSetName, string layoutFileName, string newFileName)
+        {
+            string currentFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
+            string newFilePath = GetPathToLayoutFile(layoutSetName, newFileName);
+            if (!FileExistsByRelativePath(currentFilePath))
+            {
+                throw new FileNotFoundException("Layout does not exist.");
+            }
+            if (FileExistsByRelativePath(newFilePath))
+            {
+                throw new ArgumentException("New layout name must be unique.");
+            }
+            File.Move(GetAbsoluteFilePathSanitized(currentFilePath), GetAbsoluteFilePathSanitized(newFilePath));
+        }
+
+        public async Task<LayoutSets> GetLayoutSetsFile()
+        {
+            string layoutSetsFilePath = GetPathToLayoutSetsFile();
+            string fileContent = await ReadTextByRelativePathAsync(layoutSetsFilePath);
+            LayoutSets layoutSetsFile = JsonSerializer.Deserialize<LayoutSets>(fileContent, _jsonOptions);
+
+            return layoutSetsFile;
         }
 
         /// <summary>
-        /// Save app texts to resource files
+        /// Gets the relative path to a model.
         /// </summary>
-        /// <param name="allResourceTexts">The texts to be saved</param>
-        public async Task SaveServiceTexts(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> allResourceTexts)
+        /// <param name="modelName">The name of the model without extensions.</param>
+        /// <returns>A string with the relative path to the model file, including file extension. </returns>
+        private string GetRelativeModelFilePath(string modelName)
         {
-            // Language, key, TextResourceElement
-            var resourceTexts = new Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>();
-
-            foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> text in allResourceTexts)
-            {
-                string textResourceElementId = text.Key;
-                foreach (KeyValuePair<string, Designer.Models.TextResourceElement> localizedText in text.Value)
-                {
-                    string language = localizedText.Key;
-                    Designer.Models.TextResourceElement textResourceElement = localizedText.Value;
-                    if (!resourceTexts.ContainsKey(language))
-                    {
-                        resourceTexts.Add(language, new Dictionary<string, Designer.Models.TextResourceElement>());
-                    }
-
-                    if (!resourceTexts[language].ContainsKey(textResourceElementId))
-                    {
-                        resourceTexts[language].Add(textResourceElementId, new Designer.Models.TextResourceElement { Id = textResourceElementId, Value = textResourceElement.Value, Variables = textResourceElement.Variables });
-                    }
-                }
-            }
-
-            string textResourcesDirectory = GetPathToJsonTextsFile(null);
-
-            // loop through each language set of text resources
-            foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> processedResource in resourceTexts)
-            {
-                var textResource = new Designer.Models.TextResource
-                {
-                    Language = processedResource.Key,
-                    Resources = new List<Designer.Models.TextResourceElement>()
-                };
-
-                foreach (KeyValuePair<string, Designer.Models.TextResourceElement> actualResource in processedResource.Value)
-                {
-                    textResource.Resources.Add(actualResource.Value);
-                }
-
-                string resourceString = JsonConvert.SerializeObject(textResource, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented, NullValueHandling = NullValueHandling.Ignore });
-                string resourceFilePath = $"{textResourcesDirectory}/resource.{processedResource.Key}.json";
-                await WriteTextByRelativePathAsync(resourceFilePath, resourceString, true);
-            }
-        }
-
-        private static bool IsValidResourceFile(string filePath)
-        {
-            var fileName = Path.GetFileName(filePath);
-            string[] nameParts = fileName.Split('.');
-            if (nameParts.Length == 3 && nameParts[0] == "resource" && nameParts[2] == "json")
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
-        {
-            string xsd;
-            await using (var sw = new Utf8StringWriter())
-            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
-            {
-                xmlSchema.Write(xw);
-                xsd = sw.ToString();
-            }
-
-            return xsd;
+            return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");
         }
 
         private static string GetPathToJsonTextsFile([CanBeNull] string fileName)
         {
-            string textsFileRelativeFilePath = fileName.IsNullOrEmpty() ? Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME) : Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
-            return textsFileRelativeFilePath;
+            return fileName.IsNullOrEmpty() ?
+                Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME) :
+                Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
         }
 
         private static string GetPathToMarkdownTextFile(string fileName)
         {
-            string mdTextsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
-            return mdTextsFileRelativeFilePath;
+            return Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
         }
 
         // can be null if app does not use layoutset
         private static string GetPathToLayoutSet([CanBeNull] string layoutSetName)
         {
-            if (layoutSetName.IsNullOrEmpty())
-            {
-                return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME);
-            }
-
-            return Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME);
+            return layoutSetName.IsNullOrEmpty() ?
+                Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME) :
+                Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME);
         }
 
         // can be null if app does not use layoutset
         private static string GetPathToLayoutFile([CanBeNull] string layoutSetName, string fileName)
         {
-            if (layoutSetName.IsNullOrEmpty())
-            {
-                return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME, fileName);
-            }
-            return Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME, fileName);
+            return layoutSetName.IsNullOrEmpty() ?
+                Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME, fileName) :
+                Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME, fileName);
         }
 
         // can be null if app does not use layoutset
         private static string GetPathToLayoutSettings([CanBeNull] string layoutSetName)
         {
-            if (layoutSetName.IsNullOrEmpty())
-            {
-                return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETTINGS_FILENAME);
-            }
-            return Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUT_SETTINGS_FILENAME);
+            return layoutSetName.IsNullOrEmpty() ?
+                Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETTINGS_FILENAME) :
+                Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUT_SETTINGS_FILENAME);
+        }
+
+        private static string GetPathToLayoutSetsFile()
+        {
+            return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETS_FILENAME);
         }
 
         /// <summary>
-        /// Stringwriter that ensures UTF8 is used.
+        /// String writer that ensures UTF8 is used.
         /// </summary>
         internal class Utf8StringWriter : StringWriter
         {

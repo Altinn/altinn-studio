@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@digdir/design-system-react';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Upload } from '@navikt/ds-icons';
 
 export interface IFileSelectorProps {
@@ -28,6 +28,7 @@ function FileSelector({
       icon={<Upload />}
       onClick={fileInputClickHandler}
       disabled={disabled}
+      variant={ButtonVariant.Quiet}
     >
       {t('app_data_modelling.upload_xsd')}
     </Button>

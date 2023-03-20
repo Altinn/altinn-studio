@@ -49,17 +49,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             {
                 throw new InvalidDataException("Name is a required property for CreateRepoOption and cannot be null");
             }
-            else
-            {
-                this.Name = name;
-            }
-
-            this.AutoInit = autoInit;
-            this.Description = description;
-            this.Gitignores = gitignores;
-            this.License = license;
-            this.IsPrivate = makePrivate;
-            this.Readme = readme;
+            Name = name;
+            AutoInit = autoInit;
+            Description = description;
+            Gitignores = gitignores;
+            License = license;
+            IsPrivate = makePrivate;
+            Readme = readme;
         }
 
         /// <summary>
@@ -122,15 +118,6 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             sb.AppendLine("}");
 
             return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns the JSON string presentation of the object
-        /// </summary>
-        /// <returns>JSON string presentation of the object</returns>
-        public string ToJson()
-        {
-            return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
 
         /// <summary>
@@ -237,7 +224,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             yield break;
         }

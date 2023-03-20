@@ -4,8 +4,6 @@ import type { TextEditorProps } from './TextEditor';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TextResourceFile } from './types';
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
 
 describe('TextEditor', () => {
   const norwegianTranslation: TextResourceFile = {
@@ -52,7 +50,7 @@ describe('TextEditor', () => {
       name: /ny tekst/i,
     });
 
-    await act(async () => await user.click(addBtn));
+    await act(() => user.click(addBtn));
 
     expect(onTranslationChange).toHaveBeenCalledWith({
       language: 'nb',
@@ -74,7 +72,7 @@ describe('TextEditor', () => {
     });
     const deleteBtn = screen.getByTestId('delete-en');
 
-    await act(async () => await user.click(deleteBtn));
+    await act(() => user.click(deleteBtn));
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
   });
@@ -93,7 +91,7 @@ describe('TextEditor', () => {
     expect(norwegianRadio).toBeChecked();
     expect(englishRadio).not.toBeChecked();
 
-    await act(async () => await user.click(englishRadio));
+    await act(() => user.click(englishRadio));
 
     expect(setSelectedLangCode).toHaveBeenCalledWith('en');
   });
@@ -117,10 +115,8 @@ describe('TextEditor', () => {
     expect(translationsToChange).toHaveLength(2);
     const changedTranslations = [...norwegianTranslation.resources];
     changedTranslations[0].value = 'new translation';
-    await act(async () => {
-      await user.tripleClick(translationsToChange[0]); // select all text
-      await user.keyboard(`${changedTranslations[0].value}{TAB}`); // type new text and blur
-    });
+    await act(() => user.tripleClick(translationsToChange[0])); // select all text
+    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`)); // type new text and blur
     const mutatedTranslation = { ...norwegianTranslation, resources: changedTranslations };
     expect(onTranslationChange).toHaveBeenCalledWith(mutatedTranslation);
   });
@@ -135,11 +131,11 @@ describe('TextEditor', () => {
       });
       expect(result).toHaveLength(2);
 
-      await user.click(result[0]);
+      await act(() => user.click(result[0]));
       await screen.findByRole('dialog');
-      await user.click(
+      await act(() => user.click(
         screen.getByRole('button', { name: /schema_editor.textRow-confirm-cancel-popover/ })
-      );
+      ));
 
       expect(onTextIdChange).toHaveBeenCalledWith({ oldId: norwegianTranslation.resources[0].id });
     };
@@ -151,10 +147,8 @@ describe('TextEditor', () => {
       });
       const textIdInputs = getInputs(/ID/i);
       expect(textIdInputs).toHaveLength(2);
-      await act(async () => {
-        await user.tripleClick(textIdInputs[0]); // select all text
-        await user.keyboard('new-key{TAB}'); // type new text and blur
-      });
+      await act(() => user.tripleClick(textIdInputs[0])); // select all text
+      await act(() => user.keyboard('new-key{TAB}')); // type new text and blur
       expect(onTextIdChange).toHaveBeenCalledWith({
         oldId: norwegianTranslation.resources[0].id,
         newId: 'new-key',

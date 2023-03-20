@@ -5,7 +5,7 @@ export const appMetadataPath = (org, app) => `/designer/api/${org}/${app}/metada
 export const appMetadataAttachmentPath = (org, app) => `/designer/api/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
 
 // Config
-export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/config/service`; // Get, Post
+export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/config`; // Get, Post
 
 // Datamodel
 export const createDatamodelPath = (org, app) => `/designer/api/${org}/${app}/datamodels/new`; // Post
@@ -20,7 +20,7 @@ export const datamodelAddXsdFromRepoPath = (org, app, filePath) => `/designer/ap
 
 // FormEditor
 export const ruleHandlerPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-handler`; // Get
-export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Get
+export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Post
 export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/widget-settings`; // Get
 export const ruleConfigPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-config`; // Get, Post
 export const layoutSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/layout-settings`; // Get, Post
@@ -46,10 +46,7 @@ export const userLogoutAfterPath = () => '/Home/Logout';
 export const languagesPath = (org, app) => `/designer/api/${org}/${app}/languages`; // Get
 
 // Model
-export const datamodelCsharpPath = (org, app) => `/designer/api/${org}/${app}/model/csharp`; // Get
-export const datamodelJsonSchemaPath = (org, app) => `/designer/api/${org}/${app}/model/json-schema`; // Get
 export const datamodelMetadataPath = (org, app) => `/designer/api/${org}/${app}/model/metadata`; // Get
-export const datamodelXsdPath = (org, app) => `/designer/api/${org}/${app}/model/xsd`; // Get
 
 // Organizations
 export const orgsListPath = () => '/designer/api/orgs'; // Get
@@ -77,7 +74,7 @@ export const repoDownloadPath = (org, app, full) => `/designer/api/repos/repo/${
 export const repoInitialCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/initial-commit`; // Get
 export const repoLatestCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/latest-commit`; // Get
 export const repoLogPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/log`; // Get
-export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app}`; // Get
+export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/metadata`; // Get
 export const repoPullPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/pull`; // Get
 export const repoPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/push`; // Post
 export const repoResetPAth = (org, app) => `/designer/api/repos/repo/${org}/${app}/reset`; // Get
@@ -93,8 +90,7 @@ export const remainingSessionTimePath = () => `/designer/api/session/remaining`;
 // Text - old
 export const textLanguagesPath = (org, app) => `/designer/api/${org}/${app}/text/languages`; // Get
 export const textResourcesPath = (org, app, langCode) => `/designer/api/${org}/${app}/text/language/${langCode}`; // Get, Post, Put, Delete
-export const textResourcesAddPath = (org, app) => `/designer/api/${org}/${app}/text/language/add-texts`; // Post
-export const serviceNamePath = (org, app) => `/designer/api/${org}/${app}/text/service-name`; // Get, Post
+export const serviceNamePath = (org, app) => `/designer/api/${org}/${app}/text/service-name`; // Get
 export const textResourceIdsPath = (org, app) => `/designer/api/${org}/${app}/text/keys`; // Put
 
 // Text - new

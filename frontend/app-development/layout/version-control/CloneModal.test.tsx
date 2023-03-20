@@ -2,13 +2,7 @@ import React from 'react';
 import { CloneModal } from './CloneModal';
 import type { ICloneModalProps } from './CloneModal';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 describe('cloneModal', () => {
   it('should show copy link if copy feature is supported', () => {
@@ -19,7 +13,7 @@ describe('cloneModal', () => {
 
     expect(
       screen.getByRole('button', {
-        name: /sync_header\.clone_https_button/i,
+        name: textMock('sync_header.clone_https_button'),
       })
     ).toBeInTheDocument();
   });
@@ -32,7 +26,7 @@ describe('cloneModal', () => {
 
     expect(
       screen.queryByRole('button', {
-        name: /sync_header\.clone_https_button/i,
+        name: textMock('sync_header.clone_https_button'),
       })
     ).not.toBeInTheDocument();
   });
@@ -40,7 +34,7 @@ describe('cloneModal', () => {
 
 const render = (props: Partial<ICloneModalProps> = {}) => {
   const allProps = {
-     // eslint-disable-next-line testing-library/no-node-access
+    // eslint-disable-next-line testing-library/no-node-access
     anchorEl: document.querySelector('body'),
     onClose: jest.fn(),
     open: true,

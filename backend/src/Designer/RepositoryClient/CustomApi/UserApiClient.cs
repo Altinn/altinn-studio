@@ -27,20 +27,20 @@ namespace Altinn.Studio.Designer.RepositoryClient.CustomApi
         /// </summary>
         /// <param name="giteaSession">the gitea session</param>
         /// <returns>The current user</returns>
-        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.User> GetCurrentUser(string giteaSession)
+        public async Task<Model.User> GetCurrentUser(string giteaSession)
         {
-            Altinn.Studio.Designer.RepositoryClient.Model.User user;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Altinn.Studio.Designer.RepositoryClient.Model.User));
+            Model.User user;
+            DataContractJsonSerializer serializer = new(typeof(Model.User));
 
-            Uri giteaUrl = new Uri("http://studio.localhost:3000/api/v1/user");
-            Cookie cookie = new Cookie(giteaCoookieId, giteaSession, "/", "studio.localhost");
-            CookieContainer cookieContainer = new CookieContainer();
+            Uri giteaUrl = new("http://studio.localhost:3000/api/v1/user");
+            Cookie cookie = new(giteaCoookieId, giteaSession, "/", "studio.localhost");
+            CookieContainer cookieContainer = new();
             cookieContainer.Add(cookie);
-            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
-            using (HttpClient client = new HttpClient(handler))
+            HttpClientHandler handler = new() { CookieContainer = cookieContainer };
+            using (HttpClient client = new(handler))
             {
                 var streamTask = client.GetStreamAsync(giteaUrl);
-                user = serializer.ReadObject(await streamTask) as Altinn.Studio.Designer.RepositoryClient.Model.User;
+                user = serializer.ReadObject(await streamTask) as Model.User;
             }
 
             return user;

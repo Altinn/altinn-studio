@@ -116,6 +116,7 @@ export const DeployContainerComponent = () => {
               permissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }
             orgName={orgName}
+            showLinkToApp={appDeployments.length > 0}
           />
         );
       })}

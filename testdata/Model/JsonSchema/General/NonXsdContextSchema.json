@@ -37,16 +37,37 @@
     "integerField": {
       "type": "integer"
     },
-    "restrictionNumberFiled": {
+    "restrictionNumberField": {
       "type": "number",
       "minimum": 0,
       "maximum": 100
     },
-    "restrictionStringFiled": {
+    "restrictionStringField": {
       "type": "string",
       "minLength": 2,
       "maxLength": 10,
       "pattern": "^\\d*$"
+    },
+    "arrayWithProps": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "fish": {
+            "type": "string",
+            "@xsdType": "string"
+          },
+          "stew": {
+            "type": "string",
+            "@xsdType": "string"
+          }
+        },
+        "required": [
+          "fish",
+          "stew"
+        ]
+      },
+      "minItems": 1,
+      "@xsdMaxOccurs": "unbounded"
     }
   },
   "$defs": {

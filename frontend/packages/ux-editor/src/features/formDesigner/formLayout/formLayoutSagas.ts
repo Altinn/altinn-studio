@@ -30,8 +30,8 @@ import { FormLayoutActions } from './formLayoutSlice';
 import type {
   IAppState,
   IFormFileUploaderComponent,
-  IFormLayout,
-  IFormLayouts,
+  IInternalLayouts,
+  IFormLayouts, IExternalFormLayout, IExternalFormLayouts,
 } from '../../../types/global';
 import { generateComponentId } from '../../../utils/generateId';
 import {
@@ -42,7 +42,7 @@ import {
   formLayoutNamePath,
 } from 'app-shared/api-paths';
 
-const selectCurrentLayout = (state: IAppState): IFormLayout =>
+const selectCurrentLayout = (state: IAppState): IInternalLayouts =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
 const selectLayouts = (state: IAppState) => state.formDesigner.layout.layouts;
 
@@ -50,7 +50,7 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
   try {
     let { containerId, position } = payload;
     const { org, app, component, callback } = payload;
-    const currentLayout: IFormLayout = yield select(selectCurrentLayout);
+    const currentLayout: IInternalLayouts = yield select(selectCurrentLayout);
     const layouts: IFormLayouts = yield select(selectLayouts);
     const id: string = component.id || generateComponentId(component.type, layouts);
 
@@ -106,7 +106,7 @@ function* addFormContainerSaga({ payload }: PayloadAction<IAddFormContainerActio
     const { container, positionAfterId, addToId, callback, destinationIndex, org, app } = payload;
     const layouts = yield select(selectLayouts);
     const id = generateComponentId('Group', layouts);
-    const currentLayout: IFormLayout = yield select(selectCurrentLayout);
+    const currentLayout: IInternalLayouts = yield select(selectCurrentLayout);
     let baseContainerId;
     if (Object.keys(currentLayout.order) && Object.keys(currentLayout.order).length > 0) {
       baseContainerId = Object.keys(currentLayout.order)[0];
@@ -138,7 +138,7 @@ function* deleteFormComponentsSaga({
 }: PayloadAction<IDeleteComponentsAction>): SagaIterator {
   try {
     const { components, org, app } = payload;
-    const currentLayout: IFormLayout = yield select(selectCurrentLayout);
+    const currentLayout: IInternalLayouts = yield select(selectCurrentLayout);
 
     for (const id of components) {
       const component = currentLayout.components[id];
@@ -162,7 +162,7 @@ function* deleteFormContainerSaga({
 }: PayloadAction<IDeleteContainerAction>): SagaIterator {
   try {
     const { id, index, org, app } = payload;
-    const currentLayout: IFormLayout = yield select(selectCurrentLayout);
+    const currentLayout: IInternalLayouts = yield select(selectCurrentLayout);
     let parentContainer = Object.keys(currentLayout.order)[0];
     Object.keys(currentLayout.order).forEach((cId) => {
       if (currentLayout.order[cId].find((containerId) => containerId === id)) {
@@ -212,7 +212,7 @@ export function* watchDeleteFormContainerSaga(): SagaIterator {
 
 function* fetchFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIterator {
   const { org, app } = payload;
-  let formLayouts: any;
+  let formLayouts: IExternalFormLayouts;
   try {
     formLayouts = yield call(get, formLayoutsPath(org, app));
   } catch (error) {
@@ -259,8 +259,8 @@ function* saveFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIter
     );
 
     const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
-    const convertedLayout = {
-      $schema: layoutSchemaUrl(),
+    const convertedLayout: IExternalFormLayout = {
+      schema: layoutSchemaUrl(),
       data: {
         layout: convertInternalToLayoutFormat(layouts[selectedLayout]),
         hidden: layouts[selectedLayout]?.hidden,

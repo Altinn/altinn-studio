@@ -1,7 +1,7 @@
 import React from 'react';
 import { DeleteDialog } from './DeleteDialog';
 import { useTranslation } from 'react-i18next';
-import { Button, ButtonColor } from '@digdir/design-system-react';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { Delete } from '@navikt/ds-icons';
 
 export interface IDeleteWrapper {
@@ -28,6 +28,7 @@ export function DeleteWrapper(props: IDeleteWrapper) {
           onClick={onDeleteClick}
           color={ButtonColor.Danger}
           icon={<Delete />}
+          variant={ButtonVariant.Quiet}
         >
           {t('general.delete_data_model')}
         </Button>
