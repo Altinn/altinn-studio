@@ -1,15 +1,10 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { NumberRestrictions } from './NumberRestrictions';
-import { fireEvent } from '@testing-library/react';
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import userEvent from '@testing-library/user-event';
 
-i18n.use(initReactI18next).init({
-  lng: 'en',
-  fallbackLng: 'en',
-  resources: {},
-});
+const user = userEvent.setup();
 
 describe('NumberRestrictions component', () => {
   it('Should render checkbox for minimum', () => {
@@ -21,7 +16,7 @@ describe('NumberRestrictions component', () => {
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const checkbox = screen.getByLabelText(/schema_editor.minimum_inclusive/);
+    const checkbox = screen.getByLabelText(textMock('schema_editor.minimum_inclusive'));
     expect(checkbox).toBeInTheDocument();
   });
 
@@ -34,7 +29,7 @@ describe('NumberRestrictions component', () => {
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const checkbox = screen.getByLabelText(/schema_editor.maximum_inclusive/);
+    const checkbox = screen.getByLabelText(textMock('schema_editor.maximum_inclusive'));
     expect(checkbox).toBeInTheDocument();
   });
 
@@ -47,7 +42,7 @@ describe('NumberRestrictions component', () => {
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const textfield = screen.getByLabelText(/schema_editor.minimum_/);
+    const textfield = screen.getByLabelText(textMock('schema_editor.minimum_inclusive'));
     expect(textfield).toBeInTheDocument();
   });
 
@@ -60,7 +55,7 @@ describe('NumberRestrictions component', () => {
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const textfield = screen.getByLabelText(/schema_editor.maximum_/);
+    const textfield = screen.getByLabelText(textMock('schema_editor.maximum_inclusive'));
     expect(textfield).toBeInTheDocument();
   });
 
@@ -73,21 +68,22 @@ describe('NumberRestrictions component', () => {
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const textfield = screen.getByLabelText(/schema_editor.multipleOf/);
+    const textfield = screen.getByLabelText(textMock('schema_editor.multipleOf'));
     expect(textfield).toBeInTheDocument();
   });
 
-  it('Should checkbox be clicked ', () => {
+  it('Should call onChangeRestrictions when checkbox is clicked', async () => {
+    const onChangeRestrictions = jest.fn();
     const props = {
       restrictions: {},
       path: '',
-      onChangeRestrictions: jest.fn(),
+      onChangeRestrictions,
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const checkbox = screen.getByLabelText(/schema_editor.minimum_inclusive/);
-    fireEvent.click(checkbox);
-    expect(checkbox).toBeCalled();
+    const checkbox = screen.getAllByLabelText(textMock('schema_editor.format_date_inclusive'))[0];
+    await act(() => user.click(checkbox));
+    expect(onChangeRestrictions).toHaveBeenCalled();
   });
 });

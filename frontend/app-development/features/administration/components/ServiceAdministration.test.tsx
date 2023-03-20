@@ -1,20 +1,17 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react';
+import { act, fireEvent, waitFor } from '@testing-library/react';
 import { Administration } from './Administration';
 import type { ICommit, IRepository } from '../../../types/global';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';
-import { serviceConfigPath, serviceNamePath } from 'app-shared/api-paths';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { serviceConfigPath } from 'app-shared/api-paths';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(), Trans: '' }));
 
 describe('Administration', () => {
   const mockService: IRepository = {
@@ -101,8 +98,8 @@ describe('Administration', () => {
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
     const mockEvent = { target: { value: 'New name' } };
 
-    const editButton = screen.getByRole('button', { name: 'general.edit' });
-    await user.click(editButton);
+    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
+    await act(() => user.click(editButton));
 
     const inputElement = screen
       .getByTestId('service-administration-container')
@@ -125,19 +122,9 @@ describe('Administration', () => {
         type: 'handleServiceInformation/saveServiceConfig',
       });
     });
-
-    await waitFor(() => {
-      expect(dispatchSpy).toBeCalledWith({
-        payload: {
-          url: serviceNamePath('my-org', 'my-app'),
-          newServiceName: mockEvent.target.value,
-        },
-        type: 'handleServiceInformation/saveServiceName',
-      });
-    });
   });
 
-  it('should handle sucessfully updating app description', async () => {
+  it('should handle successfully updating app description', async () => {
     const utils = renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {

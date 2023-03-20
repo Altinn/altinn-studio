@@ -38,6 +38,7 @@ export function* watchAutosaveModelSaga(): SagaIterator {
       SchemaEditorActions.setRef,
       SchemaEditorActions.setRequired,
       SchemaEditorActions.setRestriction,
+      SchemaEditorActions.setRestrictions,
       SchemaEditorActions.setTitle,
       SchemaEditorActions.setType,
       SchemaEditorActions.toggleArrayField,

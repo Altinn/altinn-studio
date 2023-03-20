@@ -2,8 +2,6 @@ import React from 'react';
 import { Grid, Typography } from '@mui/material';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
-import FileEditor from 'app-shared/file-editor/FileEditor';
-import { VersionControlHeader } from 'app-shared/version-control/VersionControlHeader';
 import { makeGetRepoStatusSelector } from './handleMergeConflictSelectors';
 import HandleMergeConflictAbortComponent from './components/HandleMergeConflictAbort';
 import HandleMergeConflictDiscardChangesComponent from './components/HandleMergeConflictDiscardChanges';
@@ -62,108 +60,84 @@ export class HandleMergeConflictContainer extends React.Component<
 
   public render() {
     const { t, repoStatus } = this.props;
-    const { selectedFile } = this.state;
 
     return (
       <div className={classes.root} id='handleMergeConflictContainer'>
-          <Grid container={true} justifyContent='flex-start' alignItems='stretch'>
-            <Grid item={true} xs={12}>
-              {repoStatus.hasMergeConflict ? null : <VersionControlHeader />}
+        <Grid container={true} justifyContent='flex-start' alignItems='stretch'>
+          <Grid item={true} xs={12}>
+            <Typography variant='h1'>{t('handle_merge_conflict.container_title')}</Typography>
 
-              <Typography variant='h1'>
-                {t('handle_merge_conflict.container_title')}
-              </Typography>
-
-              {repoStatus.hasMergeConflict ? (
-                <div
-                  className={classNames(
-                    classes.containerMessage,
-                    classes.containerMessageHasConflict
-                  )}
-                >
-                  {t('handle_merge_conflict.container_message_has_conflict')}
-                </div>
-              ) : repoStatus.contentStatus ? (
-                repoStatus.contentStatus.length > 0 ? (
-                  <Grid
-                    item={true}
-                    xs={12}
-                    container={true}
-                    justifyContent='center'
-                    alignItems='center'
-                    className={classes.containerMessage}
-                  >
-                    <Grid item={true}>
-                      <div
-                        className={classNames(
-                          classes.containerMessage,
-                          classes.containerMessageNoConflict
-                        )}
-                      >
-                        {t('handle_merge_conflict.container_message_no_conflict')}
-                      </div>
-                    </Grid>
-                  </Grid>
-                ) : (
-                  <div className={classes.containerMessage}>
-                    {t('handle_merge_conflict.container_message_no_files',)}
-                  </div>
-                )
-              ) : null}
-            </Grid>
-
-            <Grid
-              id='boxtop'
-              container={true}
-              item={true}
-              xs={12}
-              direction='row'
-              className={classes.boxTop}
-            >
-              <Grid
-                id='mergeConflictFileList'
-                item={true}
-                xs={4}
-                className={classes.box}
+            {repoStatus.hasMergeConflict ? (
+              <div
+                className={classNames(
+                  classes.containerMessage,
+                  classes.containerMessageHasConflict
+                )}
               >
-                <HandleMergeConflictFileListComponent
-                  repoStatus={repoStatus}
-                  changeSelectedFile={this.changeSelectedFile}
-                />
-              </Grid>
+                {t('handle_merge_conflict.container_message_has_conflict')}
+              </div>
+            ) : repoStatus.contentStatus ? (
+              repoStatus.contentStatus.length > 0 ? (
+                <Grid
+                  item={true}
+                  xs={12}
+                  container={true}
+                  justifyContent='center'
+                  alignItems='center'
+                  className={classes.containerMessage}
+                >
+                  <Grid item={true}>
+                    <div
+                      className={classNames(
+                        classes.containerMessage,
+                        classes.containerMessageNoConflict
+                      )}
+                    >
+                      {t('handle_merge_conflict.container_message_no_conflict')}
+                    </div>
+                  </Grid>
+                </Grid>
+              ) : (
+                <div className={classes.containerMessage}>
+                  {t('handle_merge_conflict.container_message_no_files')}
+                </div>
+              )
+            ) : null}
+          </Grid>
 
-              <Grid id='monacoEditor' item={true} xs={8} className={classes.box}>
-                <FileEditor
-                  boxShadow={true}
-                  checkRepoStatusAfterSaveFile={true}
-                  editorHeight={this.state.editorHeight}
-                  loadFile={selectedFile}
-                  mode='Root'
-                  showSaveButton={true}
-                  stageAfterSaveFile={true}
-                />
-              </Grid>
-            </Grid>
-
-            <Grid
-              container={true}
-              item={true}
-              xs={12}
-              alignItems='center'
-              justifyContent='flex-start'
-              className={classes.boxBottom}
-            >
-              <Grid item={true}>
-                <HandleMergeConflictDiscardChangesComponent
-                  disabled={!repoStatus.hasMergeConflict}
-                />
-              </Grid>
-              <Grid item={true}>
-                <HandleMergeConflictAbortComponent disabled={!repoStatus.hasMergeConflict} />
-              </Grid>
+          <Grid
+            id='boxtop'
+            container={true}
+            item={true}
+            xs={12}
+            direction='row'
+            className={classes.boxTop}
+          >
+            <Grid id='mergeConflictFileList' item={true} xs={4} className={classes.box}>
+              <HandleMergeConflictFileListComponent
+                repoStatus={repoStatus}
+                changeSelectedFile={this.changeSelectedFile}
+              />
             </Grid>
           </Grid>
-        </div>
+
+          <Grid
+            container={true}
+            item={true}
+            xs={12}
+            alignItems='center'
+            justifyContent='flex-start'
+            className={classes.boxBottom}
+          >
+            <Grid item={true}>
+              <HandleMergeConflictDiscardChangesComponent disabled={!repoStatus.hasMergeConflict} />
+            </Grid>
+            <Grid item={true}>
+              <HandleMergeConflictAbortComponent disabled={!repoStatus.hasMergeConflict} />
+            </Grid>
+          </Grid>
+        </Grid>
+      </div>
     );
   }
 }

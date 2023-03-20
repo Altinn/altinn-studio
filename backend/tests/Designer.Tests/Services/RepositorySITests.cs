@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,15 +15,15 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-
+using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using AltinnCore.Authentication.Constants;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 using Moq;
 
@@ -36,15 +37,15 @@ namespace Designer.Tests.Services
         public void GetContents_FindsFolder_ReturnsListOfFileSystemObjects()
         {
             // Arrange
-            List<FileSystemObject> expected = new List<FileSystemObject>
+            List<FileSystemObject> expected = new()
             {
-                new FileSystemObject
+                new ()
                 {
                     Name = "App",
                     Type = FileSystemObjectType.Dir.ToString(),
                     Path = "App"
                 },
-                new FileSystemObject
+                new ()
                 {
                     Name = "App.sln",
                     Type = FileSystemObjectType.File.ToString(),
@@ -69,9 +70,9 @@ namespace Designer.Tests.Services
         public void GetContents_FindsFile_ReturnsOneFileSystemObject()
         {
             // Arrange
-            List<FileSystemObject> expected = new List<FileSystemObject>
+            List<FileSystemObject> expected = new()
             {
-               new FileSystemObject
+               new ()
                 {
                     Name = "appsettings.json",
                     Type = FileSystemObjectType.File.ToString(),
@@ -246,7 +247,7 @@ namespace Designer.Tests.Services
             string org = "ttd";
             string repository = "apps-test";
 
-            Mock<ISourceControl> mock = new Mock<ISourceControl>();
+            Mock<ISourceControl> mock = new();
             mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
@@ -261,12 +262,12 @@ namespace Designer.Tests.Services
 
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
-            List<Claim> claims = new List<Claim>();
+            List<Claim> claims = new();
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
-            ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
+            ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
 
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            ClaimsPrincipal principal = new(identity);
             HttpContext c = new DefaultHttpContext();
             c.Request.HttpContext.User = principal;
 
@@ -303,36 +304,45 @@ namespace Designer.Tests.Services
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
-            Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            Mock<IHttpContextAccessor> httpContextAccessorMock = new();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
 
             sourceControlMock ??= new ISourceControlMock();
 
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
-            ServiceRepositorySettings repoSettings = new ServiceRepositorySettings()
+            ServiceRepositorySettings repoSettings = new()
             {
                 RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar
             };
 
 
-            var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-            var generalSettings = new GeneralSettings()
+            GeneralSettings generalSettings = new()
             {
                 TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
                 DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
                 AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
             };
 
-            RepositorySI service = new RepositorySI(
+            EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
+
+            AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings());
+
+            ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object);
+
+            TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService);
+
+            RepositorySI service = new(
                 repoSettings,
                 generalSettings,
                 httpContextAccessorMock.Object,
                 new IGiteaMock(),
                 sourceControlMock,
-                new Mock<ILoggerFactory>().Object,
                 new Mock<ILogger<RepositorySI>>().Object,
-                altinnGitRepositoryFactory);
+                altinnGitRepositoryFactory,
+                applicationInformationService,
+                textsService);
 
             return service;
         }

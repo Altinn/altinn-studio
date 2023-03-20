@@ -1,14 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
-using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Designer.Tests.Utils;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -29,7 +35,7 @@ public class TextsServiceTest : IDisposable
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        ITextsService textsService = new TextsService(altinnGitRepositoryFactory);
+        TextsService textsService = GetTextsServiceForTest();
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
         List<TextIdMutation> keyMutations = new() { new() { OldId = "some-old-id", NewId = "new-id" } };
 
@@ -53,11 +59,12 @@ public class TextsServiceTest : IDisposable
         string layoutName2 = "layoutFile1InSet2.json";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        ITextsService textsService = new TextsService(altinnGitRepositoryFactory);
+
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
         List<TextIdMutation> keyMutations = new() { new() { OldId = "some-old-id", NewId = "new-id" } };
 
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        TextsService textsService = GetTextsServiceForTest();
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         FormLayout formLayout1 = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
@@ -80,7 +87,7 @@ public class TextsServiceTest : IDisposable
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        ITextsService textsService = new TextsService(altinnGitRepositoryFactory);
+        TextsService textsService = GetTextsServiceForTest();
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
         List<TextIdMutation> keyMutations = new() { new() { OldId = "some-old-id", NewId = "new-id" } };
 
@@ -103,7 +110,7 @@ public class TextsServiceTest : IDisposable
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        ITextsService textsService = new TextsService(altinnGitRepositoryFactory);
+        TextsService textsService = GetTextsServiceForTest();
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
 
         List<TextIdMutation> keyMutations = new() { new() { OldId = "a-key-that-does-not-exist", NewId = "new-id" } };
@@ -126,7 +133,7 @@ public class TextsServiceTest : IDisposable
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        ITextsService textsService = new TextsService(altinnGitRepositoryFactory);
+        TextsService textsService = GetTextsServiceForTest();
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
 
         List<TextIdMutation> keyMutations = new() { new() { OldId = "some-old-id" } };
@@ -144,5 +151,22 @@ public class TextsServiceTest : IDisposable
         {
             TestDataHelper.DeleteDirectory(CreatedTestRepoPath);
         }
+    }
+
+    private static TextsService GetTextsServiceForTest()
+    {
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        GeneralSettings generalSettings = new()
+        {
+            TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
+            DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
+            AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
+        };
+        EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
+        AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings());
+        ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object);
+        TextsService textsService = new(altinnGitRepositoryFactory, applicationMetadataService);
+
+        return textsService;
     }
 }

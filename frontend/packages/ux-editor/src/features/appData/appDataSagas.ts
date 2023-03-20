@@ -1,4 +1,4 @@
-import { get, post, put as restPut } from 'app-shared/utils/networking';
+import { get, put as restPut } from 'app-shared/utils/networking';
 import type { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
@@ -6,9 +6,6 @@ import {
   ILoadLanguagesAction,
   ILoadTextResourcesAction,
   IUpsertTextResources,
-  addTextResources,
-  addTextResourcesFulfilled,
-  addTextResourcesRejected,
   loadLanguages,
   loadLanguagesFulfilled,
   loadLanguagesRejected,
@@ -31,7 +28,6 @@ import {
 } from './ruleModel/ruleModelSlice';
 import type { IDataModelFieldElement, IRuleModelFieldElement } from '../../types/global';
 import {
-  textResourcesAddPath,
   textResourcesPath,
   ruleHandlerPath,
   datamodelMetadataPath
@@ -145,21 +141,6 @@ export function* watchLoadLanguagesSaga(): SagaIterator {
   yield takeLatest(loadLanguages, loadLanguagesSaga);
 }
 
-export function* addTextResourcesSaga({ payload }: any): SagaIterator {
-  try {
-    const { textResources } = payload;
-    const url = textResourcesAddPath(payload.owner, payload.app);
-    yield call(post, url, textResources);
-    yield put(addTextResourcesFulfilled());
-  } catch (error) {
-    yield put(addTextResourcesRejected({ error }));
-  }
-}
-
-export function* watchAddTextResourcesSaga(): SagaIterator {
-  yield takeLatest(addTextResources.type, addTextResourcesSaga);
-}
-
 export function* upsertTextResourcesSaga({
   payload,
 }: PayloadAction<IUpsertTextResources>): SagaIterator {
@@ -181,6 +162,5 @@ export default function* appDataSagas(): SagaIterator {
   yield fork(watchLoadTextResourcesSaga);
   yield fork(watchLoadLanguagesSaga);
   yield fork(watchFetchRuleModelSaga);
-  yield fork(watchAddTextResourcesSaga);
   yield fork(watchUpsertTextResourcesSaga);
 }

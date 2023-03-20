@@ -37,24 +37,23 @@ export function filterDataModelForIntellisense(
   );
 }
 
-export const getMinOccursFromDataModel = (dataBindingName: string, dataModel: IDataModelFieldElement[]): number => {
-  const parentComponent = dataBindingName
-    .replace('.value', '')
-    .replace(/\./, '/');
+export const getMinOccursFromDataModel = (
+  dataBindingName: string,
+  dataModel: IDataModelFieldElement[]
+): number => {
   const element: IDataModelFieldElement = dataModel.find(
-    (e: IDataModelFieldElement) => {
-      return e.xPath === `/${parentComponent}`;
-    },
+    (e: IDataModelFieldElement) => e.dataBindingName === dataBindingName
   );
   return element?.minOccurs;
 };
 
-export const getXsdDataTypeFromDataModel = (dataBindingName: string, dataModel: IDataModelFieldElement[]): string => {
-  const element: IDataModelFieldElement = dataModel.find(
-    (e: IDataModelFieldElement) => {
-      return e.dataBindingName === dataBindingName;
-    },
-  );
+export const getXsdDataTypeFromDataModel = (
+  dataBindingName: string,
+  dataModel: IDataModelFieldElement[]
+): string => {
+  const element: IDataModelFieldElement = dataModel.find((e: IDataModelFieldElement) => {
+    return e.dataBindingName === dataBindingName;
+  });
 
   return element?.xsdValueType;
-}
+};

@@ -9,7 +9,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 
 using Microsoft.Extensions.Logging;

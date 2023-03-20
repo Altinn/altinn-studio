@@ -78,7 +78,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         public string Login { get; set; }
 
         /// <summary>
-        /// Sets 
+        /// Sets
         /// </summary>
         [DataMember(Name = "UserType", EmitDefaultValue = false)]
         public UserType UserType { get; set; }
@@ -101,22 +101,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         }
 
         /// <summary>
-        /// Returns the JSON string presentation of the object
-        /// </summary>
-        /// <returns>JSON string presentation of the object</returns>
-        public string ToJson()
-        {
-            return JsonConvert.SerializeObject(this, Formatting.Indented);
-        }
-
-        /// <summary>
         /// Returns true if objects are equal
         /// </summary>
         /// <param name="input">Object to be compared</param>
         /// <returns>Boolean</returns>
         public override bool Equals(object input)
         {
-            return this.Equals(input as User);
+            return Equals(input as User);
         }
 
         /// <summary>
@@ -133,25 +124,25 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
 
             return
                 (
-                    this.AvatarUrl == input.AvatarUrl ||
-                    (this.AvatarUrl != null &&
-                    this.AvatarUrl.Equals(input.AvatarUrl))) &&
+                    AvatarUrl == input.AvatarUrl ||
+                    (AvatarUrl != null &&
+                    AvatarUrl.Equals(input.AvatarUrl))) &&
                 (
-                    this.Email == input.Email ||
-                    (this.Email != null &&
-                    this.Email.Equals(input.Email))) &&
+                    Email == input.Email ||
+                    (Email != null &&
+                    Email.Equals(input.Email))) &&
                 (
-                    this.FullName == input.FullName ||
-                    (this.FullName != null &&
-                    this.FullName.Equals(input.FullName))) &&
+                    FullName == input.FullName ||
+                    (FullName != null &&
+                    FullName.Equals(input.FullName))) &&
                 (
-                    this.Id == input.Id ||
-                    (this.Id != null &&
-                    this.Id.Equals(input.Id))) &&
+                    Id == input.Id ||
+                    (Id != null &&
+                    Id.Equals(input.Id))) &&
                 (
-                    this.Login == input.Login ||
-                    (this.Login != null &&
-                    this.Login.Equals(input.Login)));
+                    Login == input.Login ||
+                    (Login != null &&
+                    Login.Equals(input.Login)));
         }
 
         /// <summary>
@@ -164,29 +155,29 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             unchecked
             {
                 int hashCode = 41;
-                if (this.AvatarUrl != null)
+                if (AvatarUrl != null)
                 {
-                    hashCode = (hashCode * 59) + this.AvatarUrl.GetHashCode();
+                    hashCode = (hashCode * 59) + AvatarUrl.GetHashCode();
                 }
 
-                if (this.Email != null)
+                if (Email != null)
                 {
-                    hashCode = (hashCode * 59) + this.Email.GetHashCode();
+                    hashCode = (hashCode * 59) + Email.GetHashCode();
                 }
 
-                if (this.FullName != null)
+                if (FullName != null)
                 {
-                    hashCode = (hashCode * 59) + this.FullName.GetHashCode();
+                    hashCode = (hashCode * 59) + FullName.GetHashCode();
                 }
 
-                if (this.Id != null)
+                if (Id != null)
                 {
-                    hashCode = (hashCode * 59) + this.Id.GetHashCode();
+                    hashCode = (hashCode * 59) + Id.GetHashCode();
                 }
 
-                if (this.Login != null)
+                if (Login != null)
                 {
-                    hashCode = (hashCode * 59) + this.Login.GetHashCode();
+                    hashCode = (hashCode * 59) + Login.GetHashCode();
                 }
 
                 return hashCode;
@@ -198,7 +189,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             yield break;
         }

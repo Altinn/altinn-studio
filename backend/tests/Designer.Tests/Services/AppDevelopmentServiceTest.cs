@@ -39,18 +39,18 @@ public class AppDevelopmentServiceTest : IDisposable
         string developer = "testUser";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         string layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
-        Pages newPages = new() { order = new[] { "layoutFile1", "layoutFile2", "layoutFile3" } };
+        Pages newPages = new() { Order = new[] { "layoutFile1", "layoutFile2", "layoutFile3" } };
 
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
         IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory);
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-        LayoutSettings layoutSettingsUpdated = new() { schema = layoutSettingsSchemaUrl, pages = newPages };
+        LayoutSettings layoutSettingsUpdated = new() { Schema = layoutSettingsSchemaUrl, Pages = newPages };
 
         await appDevelopmentService.SaveLayoutSettings(org, targetRepository, developer, layoutSettingsUpdated, null);
         LayoutSettings layoutSettings = await appDevelopmentService.GetLayoutSettings(org, targetRepository, developer, null);
 
         layoutSettings.Should().NotBeNull();
-        layoutSettings.pages.order.Should().HaveCount(3);
+        layoutSettings.Pages.Order.Should().HaveCount(3);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class AppDevelopmentServiceTest : IDisposable
         LayoutSettings layoutSettings = await appDevelopmentService.GetLayoutSettings(org, targetRepository, developer, layoutSetName);
 
         layoutSettings.Should().NotBeNull();
-        layoutSettings.pages.order.Should().HaveCount(2);
+        layoutSettings.Pages.Order.Should().HaveCount(2);
     }
 
     public void Dispose()

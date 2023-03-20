@@ -93,7 +93,6 @@ export function NumberRestrictions({
             </div>
           </div>
           <Checkbox
-            aria-checked='true'
             checked={formatState.isMinInclusive}
             label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
@@ -118,7 +117,6 @@ export function NumberRestrictions({
           </div>
           <Checkbox
             checkboxId='include-minimum-value-checkbox'
-            aria-checked='true'
             checked={formatState.isMaxInclusive}
             label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>

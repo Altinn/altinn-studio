@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -48,33 +47,51 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Get form layout as JSON
+        /// Get all form layouts
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [Route("form-layouts")]
-        public IActionResult GetFormLayout(string org, string app)
+        public async Task<ActionResult<Dictionary<string, FormLayout>>> GetFormLayouts(string org, string app)
         {
-            return Content(_repository.GetJsonFormLayouts(org, app), "text/plain", Encoding.UTF8);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                Dictionary<string, FormLayout> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, null);
+                return Ok(formLayouts);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
         }
 
         /// <summary>
         /// Save form layout as JSON
         /// </summary>
-        /// <param name="jsonData">The code list data to save</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutName">The name of the form layout to be saved.</param>
+        /// /// <param name="formLayout">The content to be saved to the layout</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("form-layout/{layoutName}")]
-        public IActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app, string layoutName)
+        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromRoute] string layoutName, [FromBody] FormLayout formLayout)
         {
-            _repository.SaveFormLayout(org, app, layoutName, jsonData.ToString());
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            return Ok("From layout successfully saved.");
+            try
+            {
+                await _appDevelopmentService.SaveFormLayout(org, app, developer, null, layoutName, formLayout);
+                return Ok("Layout successfully saved.");
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
         }
 
         /// <summary>
@@ -86,58 +103,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpDelete]
         [Route("form-layout/{layoutName}")]
-        public IActionResult DeleteFormLayout(string org, string app, string layoutName)
+        public ActionResult DeleteFormLayout(string org, string app, string layoutName)
         {
-            if (_repository.DeleteFormLayout(org, app, layoutName))
-            {
-                return Ok("From layout successfully deleted.");
-            }
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            return BadRequest("Form layout could not be deleted.");
-        }
-
-        /// <summary>
-        /// Get rule handler in JSON structure
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The model representation as JSON</returns>
-        [HttpGet]
-        [Route("rule-handler")]
-        public IActionResult GetRuleHandler(string org, string app)
-        {
-            return Content(_repository.GetRuleHandler(org, app), "application/javascript", Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Save rule handler in JSON structure
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The model representation as JSON</returns>
-        [HttpPost]
-        [Route("rule-handler")]
-        public IActionResult SaveRuleHandler(string org, string app, bool stageFile)
-        {
-            string content = string.Empty;
             try
             {
-                using (var reader = new StreamReader(Request.Body))
-                {
-                    content = reader.ReadToEnd();
-                    _repository.SaveRuleHandler(org, app, content);
-                }
-
-                if (stageFile)
-                {
-                    _sourceControl.StageChange(org, app, "RuleHandler.js");
-                }
-
-                return NoContent();
+                _appDevelopmentService.DeleteFormLayout(org, app, developer, null, layoutName);
+                return Ok("Layout successfully deleted.");
             }
-            catch (IOException)
+            catch (FileNotFoundException exception)
             {
-                return BadRequest("Could not save rule handler");
+                return NotFound(exception.Message);
             }
         }
 
@@ -147,18 +124,23 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="newName">The new name of the form layout.</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutName">The current name of the form layuout</param>
+        /// <param name="layoutName">The current name of the form layout</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("form-layout-name/{layoutName}")]
-        public IActionResult UpdateFormLayoutName([FromBody] string newName, string org, string app, string layoutName)
+        public ActionResult UpdateFormLayoutName(string org, string app, string layoutName, [FromBody] string newName)
         {
-            if (_repository.UpdateFormLayoutName(org, app, layoutName, newName))
-            {
-                return Ok("From layout name successfully updated.");
-            }
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            return BadRequest("Form layout name could not be updated.");
+            try
+            {
+                _appDevelopmentService.UpdateFormLayoutName(org, app, developer, null, layoutName, newName);
+                return Ok("Layout name successfully changed.");
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
         }
 
         /// <summary>
@@ -170,7 +152,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("layout-settings")]
-        public async Task<IActionResult> SaveLayoutSettings([FromBody] LayoutSettings layoutSettings, string org, string app)
+        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromBody] LayoutSettings layoutSettings)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -205,6 +187,52 @@ namespace Altinn.Studio.Designer.Controllers
             catch (FileNotFoundException exception)
             {
                 return NotFound(exception.Message);
+            }
+        }
+
+        /// <summary>
+        /// Get rule handler in JSON structure
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The model representation as JSON</returns>
+        [HttpGet]
+        [Route("rule-handler")]
+        public IActionResult GetRuleHandler(string org, string app)
+        {
+            return Content(_repository.GetRuleHandler(org, app), "application/javascript", Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// Save rule handler in JSON structure
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="stageFile"></param>
+        /// <returns>The model representation as JSON</returns>
+        [HttpPost]
+        [Route("rule-handler")]
+        public IActionResult SaveRuleHandler(string org, string app, bool stageFile)
+        {
+            string content = string.Empty;
+            try
+            {
+                using (StreamReader reader = new(Request.Body))
+                {
+                    content = reader.ReadToEnd();
+                    _repository.SaveRuleHandler(org, app, content);
+                }
+
+                if (stageFile)
+                {
+                    _sourceControl.StageChange(org, app, "RuleHandler.js");
+                }
+
+                return NoContent();
+            }
+            catch (IOException)
+            {
+                return BadRequest("Could not save rule handler");
             }
         }
 
@@ -246,51 +274,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("widget-settings")]
         public ActionResult GetWidgetSettings(string org, string app)
         {
-            var widgetSettings = _repository.GetWidgetSettings(org, app);
+            string widgetSettings = _repository.GetWidgetSettings(org, app);
             return Ok(widgetSettings);
-        }
-
-        /// <summary>
-        /// Get text resource as JSON for specified language
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="languageCode">The language id for the text resource file</param>
-        /// <returns>The model representation as JSON</returns>
-        [HttpGet]
-        [Route("text/{languageCode}")]
-        [Obsolete("UiEditorController.GetTextResources is deprecated, please use TextController.GetResource")]
-        public IActionResult GetTextResources(string org, string app, string languageCode)
-        {
-            try
-            {
-                var result = _repository.GetLanguageResource(org, app, languageCode);
-                return Ok(result);
-            }
-            catch
-            {
-                return NotFound($"The text resource, resource.{languageCode}.json, was not found.");
-            }
-        }
-
-        /// <summary>
-        /// Add text resources to existing resource documents
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="textResources">The collection of text resources to be added</param>
-        /// <returns>A success message if the save was successful</returns>
-        [HttpPost]
-        [Route("text/{languageCode}")]
-        [Obsolete("FormEditorController.AddTextResources is deprecated, please use TextController.UpdateTextsForKeys")]
-        public IActionResult AddTextResources(string org, string app, [FromBody] List<TextResource> textResources)
-        {
-            if (_repository.AddTextResources(org, app, textResources))
-            {
-                return Ok();
-            }
-
-            return BadRequest("Text resource could not be added.");
         }
     }
 }

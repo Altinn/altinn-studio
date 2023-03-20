@@ -43,8 +43,8 @@ namespace DataModeling.Tests
         }
 
         [Theory]
-        [InlineData("Model/JsonSchema/General/NonXsdContextSchema.json")]
-        public void JsonSchemaShouldConvertToXsdAndCSharp(string jsonSchemaPath)
+        [InlineData("Model/JsonSchema/General/NonXsdContextSchema.json", "root", "arrayWithProps")]
+        public void JsonSchemaShouldConvertToXsdAndCSharp(string jsonSchemaPath, params string[] typesCreated)
         {
             Given.That.JsonSchemaLoaded(jsonSchemaPath)
                 .When.LoadedJsonSchemaConvertedToModelMetadata()
@@ -52,7 +52,8 @@ namespace DataModeling.Tests
                 .And.CSharpClassesCompiledToAssembly()
                 .Then.CompiledAssembly.Should().NotBeNull();
 
-            And.When.LoadedJsonSchemaConvertedToXsdSchema()
+            And.ClassesShouldBeGenerated(typesCreated)
+                .And.When.LoadedJsonSchemaConvertedToXsdSchema()
                 .Then.ConvertedXsdSchema.Should().NotBeNull();
         }
 
@@ -72,6 +73,17 @@ namespace DataModeling.Tests
         {
             var type = CompiledAssembly.Types().Single(type => type.Name == className);
             TypeAssertions.PropertyShouldContainCustomAnnotationAndHaveTypeType(type, propertyName, propertyType, annotationString);
+        }
+
+
+        private CsharpEnd2EndGenerationTests ClassesShouldBeGenerated(string[] classNames)
+        {
+            foreach (string className in classNames)
+            {
+                var type = CompiledAssembly.Types().Single(type => type.Name == className);
+                type.Should().NotBeNull();
+            }
+            return this;
         }
     }
 }

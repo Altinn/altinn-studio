@@ -4,7 +4,7 @@ import type { IRepository } from '../../../types/global';
 import { AltinnSpinner } from 'app-shared/components';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
-import { serviceConfigPath, serviceNamePath } from 'app-shared/api-paths';
+import { serviceConfigPath } from 'app-shared/api-paths';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
 
@@ -51,12 +51,6 @@ export function ServiceAdministration({ repository }: ServiceAdministrationProps
     if (editAppName && !newName) {
       setAppNameAnchorEl(document.getElementById('administrationInputAppName'));
     } else {
-      dispatch(
-        HandleServiceInformationActions.saveServiceName({
-          url: serviceNamePath(org, app),
-          newServiceName: newName,
-        })
-      );
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
           url: serviceConfigPath(org, app),

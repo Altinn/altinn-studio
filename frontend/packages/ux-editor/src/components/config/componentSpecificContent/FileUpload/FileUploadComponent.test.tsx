@@ -4,7 +4,6 @@ import { IFormFileUploaderComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { FileUploadComponent } from './FileUploadComponent';
 import { ComponentTypes } from '../../../index';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const component: IFormFileUploaderComponent = {
@@ -23,12 +22,6 @@ const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,
 };
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 
 describe('FileUploadComponent', () => {
   it('Renders without errors', () => {

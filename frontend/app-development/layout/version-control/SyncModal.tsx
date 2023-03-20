@@ -3,7 +3,7 @@ import { CircularProgress, Popover } from '@mui/material';
 import classNames from 'classnames';
 import classes from './SyncModal.module.css';
 import { Button, ButtonColor, ButtonVariant, TextArea } from '@digdir/design-system-react';
-import { SimpleContainer } from '../primitives';
+import { SimpleContainer } from 'app-shared/primitives';
 
 export interface ISyncModalComponentProps {
   anchorEl: Element;

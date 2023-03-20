@@ -6,10 +6,7 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { IAppBarProps } from './AppBar';
 import { AppBar } from './AppBar';
 import { menu } from './appBarConfig';
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
+import { ServicesContextProps, ServicesContextProvider } from '../../common/ServiceContext';
 
 describe('AppBar', () => {
   describe('When using AppBarConfig menu entries', () => {
@@ -37,11 +34,19 @@ const render = (props: Partial<IAppBarProps> = {}) => {
   const createStore = configureStore();
   const initialState = {};
   const store = createStore(initialState);
-
+  const queries: Partial<ServicesContextProps> = {
+    getRepoMetadata: async () => ({
+      permissions: {
+        push: true,
+      },
+    }),
+  };
   return rtlRender(
     <MemoryRouter>
       <Provider store={store}>
-        <AppBar {...allProps} />
+        <ServicesContextProvider {...queries}>
+          <AppBar {...allProps} />
+        </ServicesContextProvider>
       </Provider>
     </MemoryRouter>
   );

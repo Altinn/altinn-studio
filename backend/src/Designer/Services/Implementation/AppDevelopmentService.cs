@@ -1,18 +1,83 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using JetBrains.Annotations;
+using NuGet.Protocol;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
+    /// <summary>
+    /// Service to handle functionality concerning app-development
+    /// </summary>
     public class AppDevelopmentService : IAppDevelopmentService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
         public AppDevelopmentService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        }
+
+        /// <inheritdoc />
+        public async Task<Dictionary<string, FormLayout>> GetFormLayouts(string org, string app, string developer, string layoutSetName)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                Dictionary<string, FormLayout> formLayoutsForLayoutSet = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
+                return formLayoutsForLayoutSet;
+            }
+
+            Dictionary<string, FormLayout> formLayouts = await altinnAppGitRepository.GetFormLayouts(null);
+            return formLayouts;
+        }
+
+        /// <inheritdoc />
+        public async Task SaveFormLayout(string org, string app, string developer, string layoutSetName, string layoutName, FormLayout formLayout)
+        {
+            string layoutFileName = $"{layoutName}.json";
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutFileName, formLayout);
+            }
+
+            await altinnAppGitRepository.SaveLayout(null, layoutFileName, formLayout);
+        }
+
+        /// <inheritdoc />
+        public void DeleteFormLayout(string org, string app, string developer, string layoutSetName, string layoutName)
+        {
+            string layoutFileName = $"{layoutName}.json";
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                altinnAppGitRepository.DeleteLayout(layoutSetName, layoutFileName);
+            }
+
+            altinnAppGitRepository.DeleteLayout(null, layoutFileName);
+        }
+
+        /// <inheritdoc />
+        public void UpdateFormLayoutName(string org, string app, string developer, string layoutSetName, string layoutName, string newName)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, $"{layoutName}.json", $"{newName}.json");
+            }
+
+            altinnAppGitRepository.UpdateFormLayoutName(null, $"{layoutName}.json", $"{newName}.json");
         }
 
         /// <inheritdoc />
@@ -40,7 +105,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await altinnAppGitRepository.SaveLayoutSettings(layoutSetName, layoutSettings);
                 return;
             }
-
             await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
         }
     }

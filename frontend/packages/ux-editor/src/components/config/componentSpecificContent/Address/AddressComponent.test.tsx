@@ -4,7 +4,6 @@ import { IFormAddressComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { AddressComponent } from './AddressComponent';
 import { ComponentTypes } from '../../../';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const component: IFormAddressComponent = {
@@ -20,12 +19,6 @@ const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,
 };
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 
 describe('AddressComponent', () => {
   it('Renders without errors', () => {

@@ -38,7 +38,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
 
             applicationMetadata.Id.Should().Be("yabbin/hvem-er-hvem");
             applicationMetadata.Org.Should().Be("yabbin");
@@ -61,7 +61,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             applicationMetadata.PartyTypesAllowed.SubUnit.Should().BeFalse();
             applicationMetadata.PartyTypesAllowed.BankruptcyEstate.Should().BeFalse();
 
-            var dataField = applicationMetadata.DataFields.First(d => d.Id == "GeekType");
+            DataField dataField = applicationMetadata.DataFields.First(d => d.Id == "GeekType");
             dataField.Path.Should().Be("InnrapporterteData.geekType");
             dataField.DataTypeId.Should().Be("Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES");
 
@@ -84,23 +84,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             textResource.Should().NotBeNull();
             textResource.Resources.First(r => r.Id == "ServiceName").Value.Should().Be("Hvem er hvem?");
-        }
-
-        [Fact]
-        public async Task GetTextResourcesForAllLanguages_ResourceExists_ShouldReturn()
-        {
-            string org = "ttd";
-            string repository = "hvem-er-hvem";
-            string developer = "testUser";
-            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
-
-            var allResources = await altinnAppGitRepository.GetTextResourcesForAllLanguages();
-
-            allResources.Should().NotBeNull();
-            allResources.Should().HaveCount(12);
-            allResources.First(r => r.Key == "ServiceName").Value.Should().HaveCount(2);
-            allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "en").Value.Value.Should().Be("who-is-who");
-            allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "nb").Value.Value.Should().Be("Hvem er hvem?");
         }
 
         [Fact]

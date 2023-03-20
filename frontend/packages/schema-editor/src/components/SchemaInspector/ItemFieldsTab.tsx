@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
 import { getChildNodesByPointer, getNameFromPointer } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
-import { usePrevious } from '../../hooks/usePrevious';
+import { usePrevious } from 'app-shared/hooks/usePrevious';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Add } from '@navikt/ds-icons';

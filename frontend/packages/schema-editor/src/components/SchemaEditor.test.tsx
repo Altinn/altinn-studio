@@ -2,7 +2,7 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { dataMock } from '../mockData';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event/dist/types/setup/setup';
 import { SchemaEditor, SchemaEditorTestIds } from './SchemaEditor';
@@ -18,6 +18,7 @@ import {
 } from '@altinn/schema-model';
 import { SchemaItemLabelTestIds } from '@altinn/schema-editor/components/TreeView/SchemaItemLabel';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { GenerateSchemaState } from 'app-shared/types/global';
 
 const typesText = 'Typer';
 const texts = {
@@ -32,6 +33,7 @@ const texts = {
   'schema_editor.types_editing': 'Du redigerer nå på',
 };
 const uiSchema = buildUiSchema(dataMock);
+const schemaState: GenerateSchemaState = { saving: false };
 
 const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) => {
   const mockInitialState = {
@@ -57,6 +59,7 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
         Toolbar={<div>toolbar goes here</div>}
         LandingPagePanel={<div>landing page panel goes here</div>}
         schema={dataMock}
+        schemaState={schemaState}
         saveUrl={''}
         onSaveSchema={onSaveSchema}
         name='test'
@@ -68,10 +71,10 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
   return { store, user };
 };
 
-const clickMenuItem = (user: UserEvent, testId: string) => user.click(screen.getByTestId(testId));
+const clickMenuItem = (user: UserEvent, testId: string) => act(() =>user.click(screen.getByTestId(testId)));
 
 const clickOpenContextMenuButton = async (user: UserEvent) =>
-  user.click(screen.getAllByTestId('open-context-menu-button')[0]);
+  await act(() => user.click(screen.getAllByTestId('open-context-menu-button')[0]));
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
@@ -331,7 +334,7 @@ describe('SchemaEditor', () => {
     });
     const type = screen.getByTestId(`type-item-#/${Keywords.Definitions}/TestType`);
 
-    await user.click(type);
+    await act(() => user.click(type));
 
     expect(screen.getByText('Du redigerer nå på TestType')).toBeDefined();
   });

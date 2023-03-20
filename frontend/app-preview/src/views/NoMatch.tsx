@@ -1,5 +1,5 @@
 import React from 'react';
 
 export const NoMatch = () => {
-  return <div>NO MATCH</div>;
+  return <div>Congratulation, you have reach `app-preview`, but there is no route match.</div>;
 };

@@ -6,12 +6,9 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 using System.Xml.Schema;
 
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
@@ -24,7 +21,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -234,7 +230,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (await altinnGitRepository.GetRepositoryType() == AltinnRepositoryType.App)
             {
                 var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
-                var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
+                var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRelativePath(relativeFilePath);
                 var schemaName = altinnGitRepository.GetSchemaName(relativeFilePath);
 
                 await DeleteDatatypeFromApplicationMetadata(altinnAppGitRepository, schemaName);
@@ -284,56 +280,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return convertedJsonSchema;
         }
 
-        private async Task SaveOriginalXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream)
-        {
-            AssertValidXsd(xsdStream);
-
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var fileNameWithOriginal = GetFileNameWithOrignal(relativeFilePath);
-            await altinnGitRepository.WriteStreamByRelativePathAsync(fileNameWithOriginal, xsdStream, true);
-
-            xsdStream.Seek(0, SeekOrigin.Begin);
-        }
-
-        private static void AssertValidXsd(Stream xsdStream)
-        {
-            XmlReader reader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
-            XDocument.Load(reader, LoadOptions.None);
-            xsdStream.Seek(0, SeekOrigin.Begin);
-        }
-
-        private static string GetFileNameWithOrignal(string relativeFilePath)
-        {
-            var fileExtension = Path.GetExtension(relativeFilePath);
-            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(relativeFilePath);
-            var fileNameWithOriginal = $"{fileNameWithoutExtension}.original{fileExtension}";
-
-            return Path.Combine(Path.GetDirectoryName(relativeFilePath), fileNameWithOriginal);
-        }
-
-        private static void MergeTexts(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> newTexts, Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> existingTexts)
-        {
-            foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> textResourceElementDict in newTexts)
-            {
-                string textResourceElementId = textResourceElementDict.Key;
-
-                if (!existingTexts.ContainsKey(textResourceElementId))
-                {
-                    existingTexts.Add(textResourceElementId, new Dictionary<string, Designer.Models.TextResourceElement>());
-                }
-
-                foreach (KeyValuePair<string, Designer.Models.TextResourceElement> localizedString in textResourceElementDict.Value)
-                {
-                    string language = localizedString.Key;
-                    Designer.Models.TextResourceElement textResourceElement = localizedString.Value;
-                    if (!existingTexts[textResourceElementId].ContainsKey(language))
-                    {
-                        existingTexts[textResourceElementId].Add(language, textResourceElement);
-                    }
-                }
-            }
-        }
-
         private async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)
         {
             string classes = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
@@ -363,7 +309,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 application.DataTypes = new List<DataType>();
             }
 
-            DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic?.ClassRef != null);
+            DataType existingLogicElement = application.DataTypes.FirstOrDefault(d => d.AppLogic?.ClassRef != null);
             DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
 
             if (logicElement == null)
@@ -380,16 +326,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             logicElement.AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef };
-        }
-
-        private static async Task UpdateJsonSchema(AltinnAppGitRepository altinnAppGitRepository, string relativeFilePath, string jsonContent)
-        {
-            await altinnAppGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
-        }
-
-        private static async Task UpdateJsonSchema(AltinnGitRepository altinnGitRepository, string relativeFilePath, string jsonContent)
-        {
-            await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
         }
 
         private static string SerializeJson(Json.Schema.JsonSchema jsonSchema)

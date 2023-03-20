@@ -93,7 +93,7 @@ describe('EditModalContent', () => {
 
     const maxFilesInput = screen.getByLabelText('ux_editor.modal_properties_maximum_files');
 
-    await user.clear(maxFilesInput);
+    await act(() => user.clear(maxFilesInput));
     expect(handleUpdate).toHaveBeenCalledWith({
       ...allComponentProps,
       maxNumberOfAttachments: 1,

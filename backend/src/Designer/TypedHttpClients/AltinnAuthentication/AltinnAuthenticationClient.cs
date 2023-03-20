@@ -4,7 +4,6 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
 {
