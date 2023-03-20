@@ -3,6 +3,26 @@ import { CloneModal } from './CloneModal';
 import type { ICloneModalProps } from './CloneModal';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
+import { ServicesContextProps, ServicesContextProvider } from '../../common/ServiceContext';
+
+const render = (props: Partial<ICloneModalProps> = {}) => {
+  const allProps = {
+    // eslint-disable-next-line testing-library/no-node-access
+    anchorEl: document.querySelector('body'),
+    onClose: jest.fn(),
+    open: true,
+    language: {},
+    ...props,
+  };
+  const queries: Partial<ServicesContextProps> = {
+    getDatamodelsXsd: async () => [],
+  };
+  return rtlRender(
+    <ServicesContextProvider {...queries}>
+      <CloneModal {...allProps} />
+    </ServicesContextProvider>
+  );
+};
 
 describe('cloneModal', () => {
   it('should show copy link if copy feature is supported', () => {
@@ -31,16 +51,3 @@ describe('cloneModal', () => {
     ).not.toBeInTheDocument();
   });
 });
-
-const render = (props: Partial<ICloneModalProps> = {}) => {
-  const allProps = {
-    // eslint-disable-next-line testing-library/no-node-access
-    anchorEl: document.querySelector('body'),
-    onClose: jest.fn(),
-    open: true,
-    language: {},
-    ...props,
-  };
-
-  return rtlRender(<CloneModal {...allProps} />);
-};
