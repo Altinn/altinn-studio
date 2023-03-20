@@ -125,7 +125,7 @@ export function EditContainer(props: IEditContainerProps) {
   };
 
   const handleDiscard = (): void => {
-    setComponent({ ...props.component });
+    setComponent({ ...props.component, id: props.id });
     setMode(EditContainerMode.Closed);
     dispatch(FormLayoutActions.deleteActiveList());
   };
