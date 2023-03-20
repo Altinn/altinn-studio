@@ -2,7 +2,7 @@ import React from 'react';
 import { CloneModal } from './CloneModal';
 import type { ICloneModalProps } from './CloneModal';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 describe('cloneModal', () => {
   it('should show copy link if copy feature is supported', () => {
@@ -34,7 +34,7 @@ describe('cloneModal', () => {
 
 const render = (props: Partial<ICloneModalProps> = {}) => {
   const allProps = {
-     // eslint-disable-next-line testing-library/no-node-access
+    // eslint-disable-next-line testing-library/no-node-access
     anchorEl: document.querySelector('body'),
     onClose: jest.fn(),
     open: true,

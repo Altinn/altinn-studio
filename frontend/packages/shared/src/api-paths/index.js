@@ -74,7 +74,7 @@ export const repoDownloadPath = (org, app, full) => `/designer/api/repos/repo/${
 export const repoInitialCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/initial-commit`; // Get
 export const repoLatestCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/latest-commit`; // Get
 export const repoLogPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/log`; // Get
-export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app}`; // Get
+export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/metadata`; // Get
 export const repoPullPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/pull`; // Get
 export const repoPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/push`; // Post
 export const repoResetPAth = (org, app) => `/designer/api/repos/repo/${org}/${app}/reset`; // Get

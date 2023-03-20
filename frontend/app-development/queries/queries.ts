@@ -6,6 +6,8 @@ import {
   repoStatusPath,
   branchStatusPath,
   envConfigPath,
+  repoMetaPath,
+  repoPullPath,
 } from 'app-shared/api-paths';
 import { orgsListUrl } from 'app-shared/cdn-paths';
 
@@ -16,3 +18,5 @@ export const getDeployments = (owner, app) => get(deploymentsPath(owner, app, 'D
 export const getEnvironments = () => get(envConfigPath());
 export const getOrgList = () => get(orgsListUrl());
 export const getRepoStatus = (owner, app) => get(repoStatusPath(owner, app));
+export const getRepoMetadata = (owner, app) => get(repoMetaPath(owner, app));
+export const getRepoPull = (owner, app) => get(repoPullPath(owner, app));

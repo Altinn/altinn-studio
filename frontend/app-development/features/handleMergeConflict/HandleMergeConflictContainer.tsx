@@ -2,7 +2,6 @@ import React from 'react';
 import { Grid, Typography } from '@mui/material';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
-import { VersionControlHeader } from 'app-shared/version-control/VersionControlHeader';
 import { makeGetRepoStatusSelector } from './handleMergeConflictSelectors';
 import HandleMergeConflictAbortComponent from './components/HandleMergeConflictAbort';
 import HandleMergeConflictDiscardChangesComponent from './components/HandleMergeConflictDiscardChanges';
@@ -66,8 +65,6 @@ export class HandleMergeConflictContainer extends React.Component<
       <div className={classes.root} id='handleMergeConflictContainer'>
         <Grid container={true} justifyContent='flex-start' alignItems='stretch'>
           <Grid item={true} xs={12}>
-            {repoStatus.hasMergeConflict ? null : <VersionControlHeader />}
-
             <Typography variant='h1'>{t('handle_merge_conflict.container_title')}</Typography>
 
             {repoStatus.hasMergeConflict ? (
