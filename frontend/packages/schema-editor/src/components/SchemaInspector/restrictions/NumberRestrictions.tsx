@@ -13,7 +13,7 @@ import {
   NumberRestrictionsReducerActionType,
   NumberRestrictionsReducerState,
 } from './NumberRestrictionsReducer';
-import { NameError } from '@altinn/schema-editor/types';
+import { NumberRestrictionsError } from '@altinn/schema-editor/types';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
   isInteger: boolean;
@@ -38,7 +38,7 @@ export function NumberRestrictions({
     restrictions: Object.fromEntries(
       Object.values(IntRestrictionKeys).map((key) => [key, restrictions[key]])
     ),
-    nameError: NameError.NoError,
+    numberRestrictionsError: NumberRestrictionsError.NoError,
   };
   const [formatState, dispatch] = useReducer(numberRestrictionsReducer, initialState);
 
@@ -55,10 +55,10 @@ export function NumberRestrictions({
   }`;
 
   const nameErrorMessage = {
-    [NameError.InvalidValue]: t('schema_editor.nameError_InvalidValue'),
-    [NameError.InvalidMaxMinValue]: t('schema_editor.nameError_InvalidMaxMinValue'),
-    [NameError.NoError]: '',
-  }[formatState.nameError];
+    [NumberRestrictionsError.InvalidValue]: t('schema_editor.nameError_InvalidValue'),
+    [NumberRestrictionsError.InvalidMaxMinValue]: t('schema_editor.nameError_InvalidMaxMinValue'),
+    [NumberRestrictionsError.NoError]: '',
+  }[formatState.numberRestrictionsError];
 
   const onChangeMinNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
@@ -93,6 +93,7 @@ export function NumberRestrictions({
             </div>
           </div>
           <Checkbox
+            aria-checked='true'
             checked={formatState.isMinInclusive}
             label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
@@ -117,6 +118,7 @@ export function NumberRestrictions({
           </div>
           <Checkbox
             checkboxId='include-minimum-value-checkbox'
+            aria-checked='true'
             checked={formatState.isMaxInclusive}
             label={t('schema_editor.format_date_inclusive')}
             onChange={(e) =>
