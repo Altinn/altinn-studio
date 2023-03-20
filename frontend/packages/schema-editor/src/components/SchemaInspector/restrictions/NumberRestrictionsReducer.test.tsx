@@ -153,41 +153,88 @@ describe('NumberRestrictionsReducer', () => {
   });
 
   describe('setMin', () => {
-    const type = NumberRestrictionsReducerActionType.setMinExcl;
+    const type = NumberRestrictionsReducerActionType.setMin;
     it('Updates state correctly when inclusive', () => {
       const value = 2;
       const state = dispatchAction({ type, value, changeCallback }, { isMinInclusive: true });
       expect(state.min).toEqual(value);
       expect(state.restrictions.minimum).toEqual(value);
-      expect(state.restrictions.minimum).toEqual(value);
+      expect(state.restrictions.exclusiveMinimum).toBeUndefined();
+      expect(state.restrictions.maximum).toEqual(defaultState.max);
+      expect(state.restrictions.exclusiveMaximum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
       expect(changeCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           minimum: value,
-          exclusiveMinimum: defaultRestrictions.exclusiveMinimum,
+          exclusiveMinimum: undefined,
+          maximum: defaultRestrictions.maximum,
+          exclusiveMaximum: defaultRestrictions.exclusiveMaximum,
+        })
+      );
+    });
+
+    it('Updates state correctly when inclusive', () => {
+      const value = 2;
+      const state = dispatchAction({ type, value, changeCallback }, { isMinInclusive: false });
+      expect(state.min).toEqual(value);
+      expect(state.restrictions.minimum).toBeUndefined();
+      expect(state.restrictions.exclusiveMinimum).toBe(value);
+      expect(state.restrictions.maximum).toEqual(defaultState.max);
+      expect(state.restrictions.exclusiveMaximum).toBeUndefined();
+      expect(changeCallback).toHaveBeenCalledTimes(1);
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          minimum: undefined,
+          exclusiveMinimum: value,
+          maximum: defaultRestrictions.maximum,
+          exclusiveMaximum: defaultRestrictions.exclusiveMaximum,
         })
       );
     });
   });
 
   describe('setMax', () => {
-    const type = NumberRestrictionsReducerActionType.setMaxExcl;
+    const type = NumberRestrictionsReducerActionType.setMax;
 
     it('Updates state correctly when inclusive', () => {
       const value = 5;
       const state = dispatchAction({ type, value, changeCallback }, { isMaxInclusive: true });
       expect(state.max).toEqual(value);
       expect(state.restrictions.maximum).toEqual(value);
-      expect(state.restrictions.exclusiveMaximum).toEqual(value);
+      expect(state.restrictions.exclusiveMaximum).toBeUndefined();
+      expect(state.restrictions.minimum).toEqual(defaultState.min);
+      expect(state.restrictions.exclusiveMinimum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
       expect(changeCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           maximum: value,
-          exclusiveMaximum: defaultRestrictions.exclusiveMaximum,
+          exclusiveMaximum: undefined,
+          minimum: defaultRestrictions.minimum,
+          exclusiveMinimum: defaultRestrictions.exclusiveMinimum,
+        })
+      );
+    });
+
+    it('Updates state correctly when exclusive', () => {
+      const value = 5;
+      const state = dispatchAction({ type, value, changeCallback }, { isMaxInclusive: false });
+      expect(state.max).toEqual(value);
+      expect(state.restrictions.maximum).toBeUndefined();
+      expect(state.restrictions.exclusiveMaximum).toBe(value);
+      expect(state.restrictions.minimum).toEqual(defaultState.min);
+      expect(state.restrictions.exclusiveMinimum).toBeUndefined();
+      expect(changeCallback).toHaveBeenCalledTimes(1);
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          maximum: undefined,
+          exclusiveMaximum: value,
+          minimum: defaultRestrictions.minimum,
+          exclusiveMinimum: defaultRestrictions.exclusiveMinimum,
         })
       );
     });
   });
+
   describe('validateMinMax', () => {
     describe('At least one value is undefined', () => {
       describe.each([true, false])('isInteger = %s', (isInteger) => {
@@ -230,7 +277,7 @@ describe('NumberRestrictionsReducer', () => {
         });
         it('Returns InvalidMaxMinValue if min === max - 1', () => {
           const result = validateMinMax({ ...bothExclState, min: 5, max: 6 });
-          expect(result).toBe(NameError.NoError);
+          expect(result).toBe(NameError.InvalidMaxMinValue);
         });
         it('Returns NoError if min < max - 1', () => {
           const result = validateMinMax({ ...bothExclState, min: 5, max: 7 });

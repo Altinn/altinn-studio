@@ -18,6 +18,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getByLabelText(/schema_editor.minimum_inclusive/);
@@ -30,6 +31,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getByLabelText(/schema_editor.maximum_inclusive/);
@@ -42,6 +44,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const textfield = screen.getByLabelText(/schema_editor.minimum_/);
@@ -54,6 +57,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const textfield = screen.getByLabelText(/schema_editor.maximum_/);
@@ -66,6 +70,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const textfield = screen.getByLabelText(/schema_editor.multipleOf/);
@@ -78,10 +83,11 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getByLabelText(/schema_editor.minimum_inclusive/);
     fireEvent.click(checkbox);
-    expect(checkbox).toBeCalled;
+    expect(checkbox).toBeCalled();
   });
 });

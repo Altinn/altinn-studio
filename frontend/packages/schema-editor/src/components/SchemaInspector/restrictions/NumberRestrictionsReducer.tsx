@@ -5,8 +5,8 @@ import type { Dict } from '@altinn/schema-model/src/lib/types';
 type ChangeCallback = (restrictions: Dict) => void;
 
 export enum NumberRestrictionsReducerActionType {
-  setMinExcl = 'setMinExcl',
-  setMaxExcl = 'setMaxExcl ',
+  setMin = 'setMin',
+  setMax = 'setMax',
   setMaxIncl = 'setMaxIncl',
   setMinIncl = 'setMinIncl',
   setRestriction = 'setRestriction',
@@ -20,10 +20,10 @@ interface SetMinMaxInclusiveAction {
   changeCallback: ChangeCallback;
 }
 
-interface SetMinMaxExclusiveAction {
+interface SetMinMaxAction {
   type:
-    | NumberRestrictionsReducerActionType.setMinExcl
-    | NumberRestrictionsReducerActionType.setMaxExcl;
+    | NumberRestrictionsReducerActionType.setMin
+    | NumberRestrictionsReducerActionType.setMax;
   value: number;
   changeCallback: ChangeCallback;
 }
@@ -37,7 +37,7 @@ interface SetRestrictionAction {
 
 export type NumberRestrictionsReducerAction =
   | SetMinMaxInclusiveAction
-  | SetMinMaxExclusiveAction
+  | SetMinMaxAction
   | SetRestrictionAction;
 
 export type NumberRestrictionsReducerState = {
@@ -51,17 +51,14 @@ export type NumberRestrictionsReducerState = {
 };
 
 export const validateMinMax = (formatState: NumberRestrictionsReducerState): NameError => {
-  const maxOrMinInput = formatState.min || formatState.max;
   const minMaxAreInclusive = formatState.isMaxInclusive && formatState.isMinInclusive;
   const minEqualMax = Number(formatState.min) === Number(formatState.max);
-  if (maxOrMinInput !== undefined) {
-    if (isNaN(Number(maxOrMinInput))) {
-      return NameError.InvalidValue;
-    } else if (minMaxAreInclusive && minEqualMax) {
-      return NameError.NoError;
-    } else if (Number(formatState.min) >= Number(formatState.max)) {
-      return NameError.InvalidMaxMinValue;
-    }
+  if (minMaxAreInclusive && minEqualMax) {
+    return NameError.NoError;
+  } else if (Number(formatState.min) >= Number(formatState.max)) {
+    return NameError.InvalidMaxMinValue;
+  } else if (!formatState.isMaxInclusive && !formatState.isMinInclusive && formatState.isInteger && formatState.min === formatState.max - 1) {
+    return NameError.InvalidMaxMinValue;
   }
   return NameError.NoError;
 };
@@ -102,7 +99,7 @@ const setMaxIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxIncl
   state.nameError = validateMinMax(state);
 };
 
-const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxExclusiveAction) => {
+const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) => {
   const { value } = action;
   const key = state.isMinInclusive
     ? IntRestrictionKeys.minimum
@@ -112,7 +109,7 @@ const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxExclusiv
   state.nameError = validateMinMax(state);
 };
 
-const setMax = (state: NumberRestrictionsReducerState, action: SetMinMaxExclusiveAction) => {
+const setMax = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) => {
   const { value } = action;
   const key = state.isMaxInclusive
     ? IntRestrictionKeys.maximum
@@ -136,10 +133,10 @@ export const numberRestrictionsReducer = (
     case NumberRestrictionsReducerActionType.setMaxIncl:
       setMaxIncl(state, action);
       break;
-    case NumberRestrictionsReducerActionType.setMinExcl:
+    case NumberRestrictionsReducerActionType.setMin:
       setMin(state, action);
       break;
-    case NumberRestrictionsReducerActionType.setMaxExcl:
+    case NumberRestrictionsReducerActionType.setMax:
       setMax(state, action);
       break;
     case NumberRestrictionsReducerActionType.setRestriction:

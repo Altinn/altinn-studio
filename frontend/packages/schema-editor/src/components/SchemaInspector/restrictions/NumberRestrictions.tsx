@@ -1,32 +1,35 @@
 import React, { useReducer } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
+import type { Dict } from '@altinn/schema-model';
 import { IntRestrictionKeys } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { Label } from 'app-shared/components/Label';
 import classes from './StringRestrictions.module.css';
-import { Checkbox, TextField } from '@digdir/design-system-react';
+import { Checkbox, ErrorMessage, TextField } from '@digdir/design-system-react';
 import {
   numberRestrictionsReducer,
-  NumberRestrictionsReducerActionType,
   NumberRestrictionsReducerAction,
+  NumberRestrictionsReducerActionType,
+  NumberRestrictionsReducerState,
+  validateMinMax,
 } from './NumberRestrictionsReducer';
-import type { Dict } from '@altinn/schema-model';
 import { NameError } from '@altinn/schema-editor/types';
-import { ErrorMessage } from '@digdir/design-system-react';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
   isInteger: boolean;
 }
+
 export function NumberRestrictions({
   restrictions,
   path,
   onChangeRestrictions,
   onChangeRestrictionValue,
-}: RestrictionItemProps) {
+  isInteger,
+}: NumberRestrictionsProps) {
   const { t } = useTranslation();
-  const [formatState, dispatch] = useReducer(numberRestrictionsReducer, {
-    isInteger: restrictions[IntRestrictionKeys.integer] === undefined,
+  const initialState: NumberRestrictionsReducerState = {
+    isInteger,
     isMinInclusive: restrictions[IntRestrictionKeys.exclusiveMinimum] === undefined,
     isMaxInclusive: restrictions[IntRestrictionKeys.exclusiveMaximum] === undefined,
     min:
@@ -36,13 +39,10 @@ export function NumberRestrictions({
     restrictions: Object.fromEntries(
       Object.values(IntRestrictionKeys).map((key) => [key, restrictions[key]])
     ),
-    nameError:
-      restrictions[IntRestrictionKeys.minimum] !== undefined &&
-      restrictions[IntRestrictionKeys.maximum] !== undefined &&
-      restrictions[IntRestrictionKeys.minimum] >= restrictions[IntRestrictionKeys.maximum]
-        ? NameError.InvalidMaxMinValue
-        : NameError.NoError,
-  });
+    nameError: NameError.NoError
+  };
+  initialState.nameError = validateMinMax(initialState);
+  const [formatState, dispatch] = useReducer(numberRestrictionsReducer, initialState);
 
   const changeCallback = (changedRestrictions: Dict) => {
     onChangeRestrictions(path, changedRestrictions);
@@ -64,11 +64,11 @@ export function NumberRestrictions({
 
   const onChangeMinNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
-    dispatchAction(NumberRestrictionsReducerActionType.setMinExcl, newValue);
+    dispatchAction(NumberRestrictionsReducerActionType.setMin, newValue);
   };
   const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
-    dispatchAction(NumberRestrictionsReducerActionType.setMaxExcl, newValue);
+    dispatchAction(NumberRestrictionsReducerActionType.setMax, newValue);
   };
 
   return (
@@ -82,6 +82,7 @@ export function NumberRestrictions({
               id='schema_editor.minimum_'
               onChange={onChangeMinNumber}
               value={formatState.min === undefined ? '' : formatState.min.toString()}
+              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' }}}
             />
             <div className={classes.minNumberErrorMassage}>
               {<ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
@@ -105,6 +106,7 @@ export function NumberRestrictions({
               id='schema_editor.maximum_'
               onChange={onChangeMaxNumber}
               value={formatState.max === undefined ? '' : formatState.max.toString()}
+              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' }}}
             />
             <div className={classes.minNumberErrorMassage}>
               {<ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
