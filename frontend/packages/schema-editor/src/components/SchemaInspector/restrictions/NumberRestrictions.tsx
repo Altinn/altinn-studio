@@ -38,7 +38,7 @@ export function NumberRestrictions({
     restrictions: Object.fromEntries(
       Object.values(IntRestrictionKeys).map((key) => [key, restrictions[key]])
     ),
-    nameError: NameError.NoError
+    nameError: NameError.NoError,
   };
   const [formatState, dispatch] = useReducer(numberRestrictionsReducer, initialState);
 
@@ -65,7 +65,7 @@ export function NumberRestrictions({
     dispatchAction(
       NumberRestrictionsReducerActionType.setMin,
       newValue ? parseInt(newValue) : undefined
-  );
+    );
   };
   const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
@@ -86,7 +86,7 @@ export function NumberRestrictions({
               id='schema_editor.minimum_'
               onChange={onChangeMinNumber}
               value={formatState.min === undefined ? '' : formatState.min.toString()}
-              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' }}}
+              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
             />
             <div className={classes.minNumberErrorMassage}>
               <ErrorMessage>{nameErrorMessage}</ErrorMessage>
@@ -110,7 +110,7 @@ export function NumberRestrictions({
               id='schema_editor.maximum_'
               onChange={onChangeMaxNumber}
               value={formatState.max === undefined ? '' : formatState.max.toString()}
-              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' }}}
+              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
             />
             <div className={classes.minNumberErrorMassage}>
               {<ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
