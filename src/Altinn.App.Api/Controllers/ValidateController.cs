@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +17,7 @@ namespace Altinn.App.Api.Controllers
     public class ValidateController : ControllerBase
     {
         private readonly IInstance _instanceClient;
-        private readonly IAppResources _appResourceService;
+        private readonly IAppMetadata _appMetadata;
         private readonly IValidation _validationService;
 
         /// <summary>
@@ -29,11 +26,11 @@ namespace Altinn.App.Api.Controllers
         public ValidateController(
             IInstance instanceClient,
             IValidation validationService,
-            IAppResources appResources)
+            IAppMetadata appMetadata)
         {
             _instanceClient = instanceClient;
             _validationService = validationService;
-            _appResourceService = appResources;
+            _appMetadata = appMetadata;
         }
 
         /// <summary>
@@ -110,7 +107,7 @@ namespace Altinn.App.Api.Controllers
                 throw new ValidationException("Unable to validate data element.");
             }
 
-            Application application = _appResourceService.GetApplication();
+            Application application = await _appMetadata.GetApplicationMetadata();
 
             DataType dataType = application.DataTypes.FirstOrDefault(et => et.Id == element.DataType);
 

@@ -6,11 +6,11 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -27,7 +27,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
         private readonly GeneralSettings _generalSettings;
         private readonly HttpClient _client;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
-        private readonly IAppResources _appResources;
+        private readonly IAppMetadata _appMetadata;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsClient"/> class.
@@ -36,7 +36,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="httpClient">A HttpClient.</param>
         /// <param name="accessTokenGenerator">The access token generator service.</param>
-        /// <param name="appResources">The app resoure service.</param>
+        /// <param name="appMetadata">The app metadata service</param>
         /// <param name="settings">The application settings.</param>
         /// <param name="generalSettings">The general settings of the application.</param>
         public EventsClient(
@@ -44,7 +44,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
             IAccessTokenGenerator accessTokenGenerator,
-            IAppResources appResources,
+            IAppMetadata appMetadata,
             IOptionsMonitor<AppSettings> settings,
             IOptions<GeneralSettings> generalSettings)
         {
@@ -53,7 +53,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             _settings = settings.CurrentValue;
             _generalSettings = generalSettings.Value;
             _accessTokenGenerator = accessTokenGenerator;
-            _appResources = appResources;
+            _appMetadata = appMetadata;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiEventsEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -80,13 +80,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             {
                 Subject = $"/party/{instance.InstanceOwner.PartyId}",
                 Type = eventType,
-                AlternativeSubject = alternativeSubject,
+                AlternativeSubject = alternativeSubject!,
                 Time = DateTime.UtcNow,
                 SpecVersion = "1.0",
                 Source = new Uri($"{baseUrl}instances/{instance.Id}")
             };
-
-            string accessToken = _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id.Split("/")[1]);
+            Application app = await _appMetadata.GetApplicationMetadata();
+            string accessToken = _accessTokenGenerator.GenerateAccessToken(app?.Org, app?.Id.Split("/")[1]);
 
             string token =
                 JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);

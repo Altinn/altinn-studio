@@ -14,6 +14,18 @@
     <Content Include="LayoutExpressions/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
     <Watch Include="LayoutExpressions/**/*.json" />
     <Watch Include="**/*.cs" />
+    <Content Update="Implementation\TestData\AppMetadata\default.applicationmetadata.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Implementation\TestData\AppMetadata\invalid.applicationmetadata.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Implementation\TestData\AppPolicy\policy.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Implementation\TestData\AppProcess\process.bpmn">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -54,6 +66,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Internal\Process\TestData\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Internal\App\TestData\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Implementation\TestData\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

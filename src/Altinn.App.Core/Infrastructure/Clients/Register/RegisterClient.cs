@@ -5,6 +5,8 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Utils;
@@ -18,7 +20,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
     /// <summary>
     /// A client for retrieving register data from Altinn Platform.
     /// </summary>
-    public class RegisterClient : Interface.IRegister
+    public class RegisterClient : IRegister
     {
         private readonly IDSF _dsfClient;
         private readonly IER _erClient;
@@ -26,7 +28,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
-        private readonly IAppResources _appResources;
+        private readonly IAppMetadata _appMetadata;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
 
         /// <summary>
@@ -39,7 +41,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
         /// <param name="httpClient">The http client</param>
-        /// <param name="appResources">The app resources service</param>
+        /// <param name="appMetadata">The app metadata service</param>
         /// <param name="accessTokenGenerator">The platform access token generator</param>
         public RegisterClient(
             IOptions<PlatformSettings> platformSettings,
@@ -49,7 +51,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
-            IAppResources appResources,
+            IAppMetadata appMetadata,
             IAccessTokenGenerator accessTokenGenerator)
         {
             _dsfClient = dsf;
@@ -61,7 +63,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
-            _appResources = appResources;
+            _appMetadata = appMetadata;
             _accessTokenGenerator = accessTokenGenerator;
         }
 
@@ -88,7 +90,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
 
             string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id.Split("/")[1]));
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App));
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 party = await response.Content.ReadAsAsync<Party>();
@@ -99,7 +102,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             }
             else
             {
-                _logger.LogError($"// Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
+                _logger.LogError("// Getting party with partyID {PartyId} failed with statuscode {StatusCode}", partyId, response.StatusCode);
             }
 
             return party;
@@ -123,7 +126,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             };
 
             request.Headers.Add("Authorization", "Bearer " + token);
-            request.Headers.Add("PlatformAccessToken", _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id.Split("/")[1]));
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+            request.Headers.Add("PlatformAccessToken", _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App));
 
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.OK)
@@ -133,7 +137,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             else
             {
                 string reason = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"// Getting party with orgNo: {partyLookup.OrgNo} or ssn: {partyLookup.Ssn} failed with statuscode {response.StatusCode} - {reason}");
+                _logger.LogError("// Getting party with orgNo: {OrgNo} or ssn: {Ssn} failed with statuscode {StatusCode} - {Reason}", partyLookup.OrgNo, partyLookup.Ssn, response.StatusCode, reason);
 
                 throw await PlatformHttpException.CreateAsync(response);
             }

@@ -111,7 +111,7 @@ namespace Altinn.App.Core.Configuration
         /// <summary>
         /// Gets the location for the XACML Policy file
         /// </summary>
-        public string ApplicationXACMLPolicyFileName { get; } = "policy.xml";
+        public string ApplicationXACMLPolicyFileName { get; init; } = "policy.xml";
 
         /// <summary>
         /// Gets or sets the filename for process file

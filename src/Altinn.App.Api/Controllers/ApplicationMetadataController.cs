@@ -1,6 +1,7 @@
-using Altinn.App.Core.Interface;
-using Altinn.Platform.Storage.Interface.Models;
+#nullable enable
 
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,15 +15,18 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class ApplicationMetadataController : ControllerBase
     {
-        private readonly IAppResources _appResources;
+        private readonly IAppMetadata _appMetadata;
+        private readonly ILogger<ApplicationMetadataController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class
-        /// <param name="appResources">The app resources service</param>
+        /// <param name="appMetadata">The IAppMetadata service</param>
+        /// <param name="logger">Logger for ApplicationMetadataController</param>
         /// </summary>
-        public ApplicationMetadataController(IAppResources appResources)
+        public ApplicationMetadataController(IAppMetadata appMetadata, ILogger<ApplicationMetadataController> logger)
         {
-            _appResources = appResources;
+            _appMetadata = appMetadata;
+            _logger = logger;
         }
 
         /// <summary>
@@ -35,23 +39,18 @@ namespace Altinn.App.Api.Controllers
         /// <param name="checkOrgApp">Boolean get parameter to skip verification of correct org/app</param>
         /// <returns>Application metadata</returns>
         [HttpGet("{org}/{app}/api/v1/applicationmetadata")]
-        public IActionResult GetAction(string org, string app, [FromQuery] bool checkOrgApp = true)
+        public async Task<IActionResult> GetAction(string org, string app, [FromQuery] bool checkOrgApp = true)
         {
-            Application application = _appResources.GetApplication();
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 
-            if (application != null)
+            string wantedAppId = $"{org}/{app}";
+
+            if (!checkOrgApp || application.Id.Equals(wantedAppId))
             {
-                string wantedAppId = $"{org}/{app}";
-
-                if (!checkOrgApp || application.Id.Equals(wantedAppId))
-                {
-                    return Ok(application);
-                }
-
-                return Conflict($"This is {application.Id}, and not the app you are looking for: {wantedAppId}!");
+                return Ok(application);
             }
 
-            return NotFound();
+            return Conflict($"This is {application.Id}, and not the app you are looking for: {wantedAppId}!");
         }
 
         /// <summary>
@@ -63,13 +62,12 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>XACML policy file</returns>
         [HttpGet("{org}/{app}/api/v1/meta/authorizationpolicy")]
-        public IActionResult GetPolicy(string org, string app)
+        public async Task<IActionResult> GetPolicy(string org, string app)
         {
-            Application application = _appResources.GetApplication();
-            string policy = _appResources.GetApplicationXACMLPolicy();
-
-            if (application != null && policy != null)
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+            try
             {
+                string policy = await _appMetadata.GetApplicationXACMLPolicy();
                 string wantedAppId = $"{org}/{app}";
 
                 if (application.Id.Equals(wantedAppId))
@@ -79,8 +77,10 @@ namespace Altinn.App.Api.Controllers
 
                 return Conflict($"This is {application.Id}, and not the app you are looking for: {wantedAppId}!");
             }
-
-            return NotFound();
+            catch (FileNotFoundException)
+            {
+                return NotFound();
+            }
         }
 
         /// <summary>
@@ -92,24 +92,25 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>BPMN process file</returns>
         [HttpGet("{org}/{app}/api/v1/meta/process")]
-        public IActionResult GetProcess(string org, string app)
+        public async Task<IActionResult> GetProcess(string org, string app)
         {
-            Application application = _appResources.GetApplication();
-            string process = _appResources.GetApplicationBPMNProcess();
-
-            if (application != null && process != null)
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+            string wantedAppId = $"{org}/{app}";
+            try
             {
-                string wantedAppId = $"{org}/{app}";
-
                 if (application.Id.Equals(wantedAppId))
                 {
+                    string process = await _appMetadata.GetApplicationBPMNProcess();
                     return Content(process, "text/xml", System.Text.Encoding.UTF8);
                 }
 
                 return Conflict($"This is {application.Id}, and not the app you are looking for: {wantedAppId}!");
             }
-
-            return NotFound();
+            catch (ApplicationConfigException ex)
+            {
+                _logger.LogError(ex, "Failed to read process from file for appId: ${WantedApp}", wantedAppId);
+                return NotFound();
+            }
         }
     }
 }

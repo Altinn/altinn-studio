@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Security.Claims;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Constants;
@@ -14,13 +8,12 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -39,6 +32,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IInstantiationProcessor _instantiationProcessor;
         private readonly IAppModel _appModel;
         private readonly IAppResources _appResourcesService;
+        private readonly IAppMetadata _appMetadata;
         private readonly IPrefill _prefillService;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -53,6 +47,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataProcessor">Serive implemnting logic during data read/write</param>
         /// <param name="appModel">Service for generating app model</param>
         /// <param name="appResourcesService">The apps resource service</param>
+        /// <param name="appMetadata">The app metadata service</param>
         /// <param name="prefillService">A service with prefill related logic.</param>
         public DataController(
             ILogger<DataController> logger,
@@ -62,6 +57,7 @@ namespace Altinn.App.Api.Controllers
             IDataProcessor dataProcessor,
             IAppModel appModel,
             IAppResources appResourcesService,
+            IAppMetadata appMetadata,
             IPrefill prefillService)
         {
             _logger = logger;
@@ -72,6 +68,7 @@ namespace Altinn.App.Api.Controllers
             _dataProcessor = dataProcessor;
             _appModel = appModel;
             _appResourcesService = appResourcesService;
+            _appMetadata = appMetadata;
             _prefillService = prefillService;
         }
 
@@ -105,12 +102,8 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                Application application = _appResourcesService.GetApplication();
-                if (application == null)
-                {
-                    return NotFound($"AppId {org}/{app} was not found");
-                }
-
+                Application application = await _appMetadata.GetApplicationMetadata();
+                
                 DataType dataTypeFromMetadata = application.DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
 
                 if (dataTypeFromMetadata == null)
@@ -191,7 +184,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = RequiresAppLogic(dataType);
+                bool? appLogic = await RequiresAppLogic(dataType);
 
                 if (appLogic == null)
                 {
@@ -252,7 +245,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = RequiresAppLogic(dataType);
+                bool? appLogic = await RequiresAppLogic(dataType);
 
                 if (appLogic == null)
                 {
@@ -264,7 +257,7 @@ namespace Altinn.App.Api.Controllers
                     return await PutFormData(org, app, instance, dataGuid, dataType);
                 }
 
-                DataType dataTypeFromMetadata = _appResourcesService.GetApplication().DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
+                DataType dataTypeFromMetadata = (await _appMetadata.GetApplicationMetadata()).DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
                 if (!DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata, out ActionResult errorResponse))
                 {
                     return errorResponse;
@@ -318,7 +311,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = RequiresAppLogic(dataType);
+                bool? appLogic = await RequiresAppLogic(dataType);
 
                 if (appLogic == null)
                 {
@@ -461,14 +454,14 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private bool? RequiresAppLogic(string dataType)
+        private async Task<bool?> RequiresAppLogic(string dataType)
         {
             bool? appLogic = false;
 
             try
             {
-                Application application = _appResourcesService.GetApplication();
-                appLogic = application.DataTypes.Where(e => e.Id == dataType).Select(e => e.AppLogic?.ClassRef != null).First();
+                Application application = await _appMetadata.GetApplicationMetadata();
+                appLogic = application?.DataTypes.Where(e => e.Id == dataType).Select(e => e.AppLogic?.ClassRef != null).First();
             }
             catch (Exception)
             {
@@ -485,13 +478,13 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <returns>data element is returned in response body</returns>
         private async Task<ActionResult> GetFormData(
-        string org,
-        string app,
-        int instanceOwnerId,
-        Guid instanceGuid,
-        Guid dataGuid,
-        string dataType,
-        Instance instance)
+            string org,
+            string app,
+            int instanceOwnerId,
+            Guid instanceGuid,
+            Guid dataGuid,
+            string dataType,
+            Instance instance)
         {
             string appModelclassRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
@@ -579,7 +572,7 @@ namespace Altinn.App.Api.Controllers
         private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, object serviceModel)
         {
             var updatedValues = DataHelper.GetUpdatedDataValues(
-                _appResourcesService.GetApplication().PresentationFields,
+                (await _appMetadata.GetApplicationMetadata()).PresentationFields,
                 instance.PresentationTexts,
                 dataType,
                 serviceModel);
@@ -596,7 +589,7 @@ namespace Altinn.App.Api.Controllers
         private async Task UpdateDataValuesOnInstance(Instance instance, string dataType, object serviceModel)
         {
             var updatedValues = DataHelper.GetUpdatedDataValues(
-                _appResourcesService.GetApplication().DataFields,
+                (await _appMetadata.GetApplicationMetadata()).DataFields,
                 instance.DataValues,
                 dataType,
                 serviceModel);

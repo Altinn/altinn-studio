@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 
@@ -24,7 +25,7 @@ public class InstancesController_ActiveInstancesTest
     private readonly Mock<IRegister> _registrer = new();
     private readonly Mock<IInstance> _instanceClient = new();
     private readonly Mock<IData> _data = new();
-    private readonly Mock<IAppResources> _appResources = new();
+    private readonly Mock<IAppMetadata> _appMetadata = new();
     private readonly Mock<IAppModel> _appModel = new();
     private readonly Mock<IInstantiationProcessor> _instantiationProcessor = new();
     private readonly Mock<IInstantiationValidator> _instantiationValidator = new();
@@ -40,7 +41,7 @@ public class InstancesController_ActiveInstancesTest
         _registrer.Object,
         _instanceClient.Object,
         _data.Object,
-        _appResources.Object,
+        _appMetadata.Object,
         _appModel.Object,
         _instantiationProcessor.Object,
         _instantiationValidator.Object,
@@ -57,7 +58,7 @@ public class InstancesController_ActiveInstancesTest
         _registrer.VerifyNoOtherCalls();
         _instanceClient.VerifyNoOtherCalls();
         _data.VerifyNoOtherCalls();
-        _appResources.VerifyNoOtherCalls();
+        _appMetadata.VerifyNoOtherCalls();
         _appModel.VerifyNoOtherCalls();
         _instantiationProcessor.VerifyNoOtherCalls();
         _instantiationValidator.VerifyNoOtherCalls();
@@ -111,7 +112,7 @@ public class InstancesController_ActiveInstancesTest
                 LastChangedBy = "12345",
                 PresentationTexts = new()
                 {
-                    {"periode","1. halvår 2023"}
+                    { "periode", "1. halvår 2023" }
                 }
             }
         };
@@ -163,8 +164,8 @@ public class InstancesController_ActiveInstancesTest
                 LastChangedBy = "12345",
                 PresentationTexts = new()
                 {
-                    {"periode","1. halvår 2023"},
-                    {"kontaktperson","Eirk Blodøks"}
+                    { "periode", "1. halvår 2023" },
+                    { "kontaktperson", "Eirk Blodøks" }
                 }
             }
         };
@@ -351,5 +352,4 @@ public class InstancesController_ActiveInstancesTest
         _registrer.Verify(r => r.ER.GetOrganization("123456789"));
         VerifyNoOtherCalls();
     }
-
 }

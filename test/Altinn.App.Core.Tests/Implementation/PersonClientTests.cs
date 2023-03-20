@@ -1,34 +1,26 @@
 ﻿#nullable enable
-
-using System;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
-using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.Extensions.Options;
-
 using Moq;
-
 using Xunit;
 
-namespace Altinn.App.PlatformServices.Tests.Implementation
+namespace Altinn.App.Core.Tests.Implementation
 {
     public class PersonClientTests
     {
         private readonly Mock<IOptions<PlatformSettings>> _platformSettingsOptions;
-        private readonly Mock<IAppResources> _appResources;
+        private readonly Mock<IAppMetadata> _appMetadata;
         private readonly Mock<IAccessTokenGenerator> _accessTokenGenerator;
         private readonly Mock<IUserTokenProvider> _userTokenProvider;
 
@@ -38,14 +30,14 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             _platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
             _platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 
-            _appResources = new Mock<IAppResources>();
-            _appResources.Setup(s => s.GetApplication())
-                .Returns(new Application { Org = "ttd", Id = "ttd/app" });
+            _appMetadata = new Mock<IAppMetadata>();
+            _appMetadata.Setup(s => s.GetApplicationMetadata())
+                .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd", Id = "ttd/app" });
 
             _accessTokenGenerator = new Mock<IAccessTokenGenerator>();
             _accessTokenGenerator
                 .Setup(s => s.GenerateAccessToken(
-                    It.Is<string>(org => org == "ttd"), 
+                    It.Is<string>(org => org == "ttd"),
                     It.Is<string>(app => app == "app")))
                 .Returns("accesstoken");
 
@@ -68,7 +60,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             var target = new PersonClient(
                 new HttpClient(messageHandler),
                 _platformSettingsOptions.Object,
-                _appResources.Object,
+                _appMetadata.Object,
                 _accessTokenGenerator.Object,
                 _userTokenProvider.Object);
 
@@ -76,7 +68,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             var actual = await target.GetPerson("personnummer", "lastname", CancellationToken.None);
 
             // Assert
-            _appResources.VerifyAll();
+            _appMetadata.VerifyAll();
             _accessTokenGenerator.VerifyAll();
             _userTokenProvider.VerifyAll();
 
@@ -107,7 +99,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             var target = new PersonClient(
                 new HttpClient(messageHandler),
                 _platformSettingsOptions.Object,
-                _appResources.Object,
+                _appMetadata.Object,
                 _accessTokenGenerator.Object,
                 _userTokenProvider.Object);
 
@@ -128,8 +120,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             {
                 platformRequest = request;
                 HttpResponseMessage responseMessage = new HttpResponseMessage
-                { 
-                    StatusCode = HttpStatusCode.TooManyRequests 
+                {
+                    StatusCode = HttpStatusCode.TooManyRequests
                 };
                 return await Task.FromResult(responseMessage);
             });
@@ -137,7 +129,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             var target = new PersonClient(
                 new HttpClient(messageHandler),
                 _platformSettingsOptions.Object,
-                _appResources.Object,
+                _appMetadata.Object,
                 _accessTokenGenerator.Object,
                 _userTokenProvider.Object);
 

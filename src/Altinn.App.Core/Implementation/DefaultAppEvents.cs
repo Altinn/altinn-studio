@@ -1,4 +1,6 @@
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 
@@ -10,29 +12,24 @@ namespace Altinn.App.Core.Implementation;
 public class DefaultAppEvents: IAppEvents
 {
     private readonly ILogger<DefaultAppEvents> _logger;
-    private readonly Application _appMetadata;
+    private readonly IAppMetadata _appMetadata;
     private readonly IInstance _instanceClient;
     private readonly IData _dataClient;
 
-    private readonly string _org;
-    private readonly string _app;
-    
     /// <summary>
     /// Constructor with services from DI
     /// </summary>
     public DefaultAppEvents(
         ILogger<DefaultAppEvents> logger, 
-        IAppResources resourceService, 
+        IAppMetadata appMetadata, 
         IInstance instanceClient,
         IData dataClient)
     {
         _logger = logger;
-        _appMetadata = resourceService.GetApplication();
+        _appMetadata = appMetadata;
         _instanceClient = instanceClient;
         _dataClient = dataClient;
         
-        _org = _appMetadata.Org;
-        _app = _appMetadata.Id.Split("/")[1];
     }
 
     /// <inheritdoc />
@@ -46,18 +43,19 @@ public class DefaultAppEvents: IAppEvents
     {
         await AutoDeleteDataElements(instance);
 
-        _logger.LogInformation($"OnEndProcess for {instance.Id}, endEvent: {endEvent}");
+        _logger.LogInformation("OnEndProcess for {Id}, endEvent: {EndEvent}", instance.Id, endEvent);
     }
     
     private async Task AutoDeleteDataElements(Instance instance)
     {
-        List<string> typesToDelete = _appMetadata.DataTypes
+        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        List<string> typesToDelete = applicationMetadata.DataTypes
             .Where(dt => dt?.AppLogic?.AutoDeleteOnProcessEnd == true).Select(dt => dt.Id).ToList();
         if (typesToDelete.Count == 0)
         {
             return;
         }
-
+        
         instance = await _instanceClient.GetInstance(instance);
         List<DataElement> elementsToDelete = instance.Data.Where(e => typesToDelete.Contains(e.DataType)).ToList();
 
@@ -66,8 +64,8 @@ public class DefaultAppEvents: IAppEvents
         {
             deleteTasks.Add(
                 _dataClient.DeleteData(
-                    _org,
-                    _app,
+                    applicationMetadata.Org,
+                    applicationMetadata.AppIdentifier.App,
                     int.Parse(instance.InstanceOwner.PartyId),
                     Guid.Parse(item.InstanceGuid),
                     Guid.Parse(item.Id),

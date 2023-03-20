@@ -13,6 +13,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -23,12 +24,10 @@ using Altinn.Common.PEP.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -52,7 +51,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IEvents _eventsService;
         private readonly IProfile _profileClientClient;
 
-        private readonly IAppResources _appResourcesService;
+        private readonly IAppMetadata _appMetadata;
         private readonly IAppModel _appModel;
         private readonly IInstantiationProcessor _instantiationProcessor;
         private readonly IInstantiationValidator _instantiationValidator;
@@ -71,7 +70,7 @@ namespace Altinn.App.Api.Controllers
             IRegister registerClient,
             IInstance instanceClient,
             IData dataClient,
-            IAppResources appResourcesService,
+            IAppMetadata appMetadata,
             IAppModel appModel,
             IInstantiationProcessor instantiationProcessor,
             IInstantiationValidator instantiationValidator,
@@ -85,7 +84,7 @@ namespace Altinn.App.Api.Controllers
             _logger = logger;
             _instanceClient = instanceClient;
             _dataClient = dataClient;
-            _appResourcesService = appResourcesService;
+            _appMetadata = appMetadata;
             _registerClient = registerClient;
             _appModel = appModel;
             _instantiationProcessor = instantiationProcessor;
@@ -175,11 +174,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("The path parameter 'app' cannot be empty");
             }
 
-            Application application = _appResourcesService.GetApplication();
-            if (application == null)
-            {
-                return NotFound($"AppId {org}/{app} was not found");
-            }
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 
             MultipartRequestReader parsedRequest = new MultipartRequestReader(Request);
             await parsedRequest.Read();
@@ -332,9 +327,9 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [RequestSizeLimit(RequestSizeLimit)]
         public async Task<ActionResult<Instance>> PostSimplified(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromBody] InstansiationInstance instansiationInstance)
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromBody] InstansiationInstance instansiationInstance)
         {
             if (string.IsNullOrEmpty(org))
             {
@@ -346,11 +341,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("The path parameter 'app' cannot be empty");
             }
 
-            Application application = _appResourcesService.GetApplication();
-            if (application == null)
-            {
-                return NotFound($"AppId {org}/{app} was not found");
-            }
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 
             bool copySourceInstance = !string.IsNullOrEmpty(instansiationInstance.SourceInstanceId);
             if (copySourceInstance && application.CopyInstanceSettings?.Enabled != true)
@@ -484,10 +475,10 @@ namespace Altinn.App.Api.Controllers
             return Created(url, instance);
         }
 
-        private async Task CopyDataFromSourceInstance(Application application, Instance targetInstance, Instance sourceInstance)
+        private async Task CopyDataFromSourceInstance(ApplicationMetadata application, Instance targetInstance, Instance sourceInstance)
         {
             string org = application.Org;
-            string app = application.Id.Split("/")[1];
+            string app = application.AppIdentifier.App;
             int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId);
 
             string[] sourceSplit = sourceInstance.Id.Split("/");
@@ -793,7 +784,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private async Task StorePrefillParts(Instance instance, Application appInfo, List<RequestPart> parts)
+        private async Task StorePrefillParts(Instance instance, ApplicationMetadata appInfo, List<RequestPart> parts)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             int instanceOwnerIdAsInt = int.Parse(instance.InstanceOwner.PartyId);

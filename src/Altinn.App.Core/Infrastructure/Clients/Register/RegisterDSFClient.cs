@@ -3,6 +3,8 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Utils;
@@ -22,7 +24,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
-        private readonly IAppResources _appResource;
+        private readonly IAppMetadata _appMetadata;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterDSFClient"/> class
@@ -32,8 +34,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
         /// <param name="httpClient">The http client</param>
-        /// <param name="appResource">The app resources service</param>
         /// <param name="accessTokenGenerator">The platform access token generator</param>
+        /// <param name="appMetadata">The app metadata service</param>
         public RegisterDSFClient(
             IOptions<PlatformSettings> platformSettings,
             ILogger<RegisterDSFClient> logger,
@@ -41,7 +43,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
             IAccessTokenGenerator accessTokenGenerator,
-            IAppResources appResource)
+            IAppMetadata appMetadata)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
@@ -51,7 +53,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
             _accessTokenGenerator = accessTokenGenerator;
-            _appResource = appResource;
+            _appMetadata = appMetadata;
         }
 
         /// <inheritdoc/>
@@ -63,14 +65,15 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
 
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResource.GetApplication().Org, _appResource.GetApplication().Id.Split("/")[1]));
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App));
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 person = await response.Content.ReadAsAsync<Person>();
             }
             else
             {
-                _logger.LogError($"Getting person with ssn {SSN} failed with statuscode {response.StatusCode}");
+                _logger.LogError("Getting person with ssn {Ssn} failed with statuscode {StatusCode}", SSN, response.StatusCode);
             }
 
             return person;

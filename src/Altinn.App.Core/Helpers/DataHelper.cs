@@ -16,7 +16,7 @@ namespace Altinn.App.Core.Helpers
         /// <param name="dataType">The type of the updated data objects</param>
         /// <param name="updatedData">The updated data object</param>
         /// <returns>A dictionary with the new or changed data values</returns>
-        public static Dictionary<string, string?> GetUpdatedDataValues(List<DataField> dataFields, Dictionary<string, string?> currentDataValues, string dataType, object updatedData)
+        public static Dictionary<string, string?> GetUpdatedDataValues(List<DataField>? dataFields, Dictionary<string, string?> currentDataValues, string dataType, object updatedData)
         {
             Dictionary<string, string?> dataFieldValues = GetDataFieldValues(dataFields, dataType, updatedData);
             return CompareDictionaries(currentDataValues, dataFieldValues);
@@ -72,7 +72,7 @@ namespace Altinn.App.Core.Helpers
         /// <summary>
         /// Retrieves data values from a data object based on a list of data fields.
         /// </summary>
-        private static Dictionary<string, string?> GetDataFieldValues(List<DataField> dataFields, string dataType, object data)
+        private static Dictionary<string, string?> GetDataFieldValues(List<DataField>? dataFields, string dataType, object data)
         {
             Dictionary<string, string?> dataFieldValues = new Dictionary<string, string?>();
 

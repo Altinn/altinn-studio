@@ -19,7 +19,7 @@ namespace Altinn.App.Core.Helpers
         /// <param name="parties">The list of parties to be filtered</param>
         /// <param name="partyTypesAllowed">The allowed party types</param>
         /// <returns>A list with the filtered parties</returns>
-        public static List<Party> FilterPartiesByAllowedPartyTypes(List<Party> parties, PartyTypesAllowed partyTypesAllowed)
+        public static List<Party> FilterPartiesByAllowedPartyTypes(List<Party>? parties, PartyTypesAllowed? partyTypesAllowed)
         {
             List<Party> allowed = new List<Party>();
             if (parties == null || partyTypesAllowed == null)
@@ -73,7 +73,7 @@ namespace Altinn.App.Core.Helpers
         /// <param name="party">The party to check</param>
         /// <param name="partyTypesAllowed">The allowed party types</param>
         /// <returns>True or false</returns>
-        public static bool IsPartyAllowedToInstantiate(Party party, PartyTypesAllowed partyTypesAllowed)
+        public static bool IsPartyAllowedToInstantiate(Party? party, PartyTypesAllowed? partyTypesAllowed)
         {
             if (party == null)
             {
@@ -136,7 +136,7 @@ namespace Altinn.App.Core.Helpers
         /// <param name="partyList">The party list</param>
         /// <param name="partyId">The party id</param>
         /// <returns>party from the party list</returns>
-        public static Party? GetPartyByPartyId(List<Party> partyList, int partyId)
+        public static Party? GetPartyByPartyId(List<Party>? partyList, int partyId)
         {
             if (partyList == null)
             {

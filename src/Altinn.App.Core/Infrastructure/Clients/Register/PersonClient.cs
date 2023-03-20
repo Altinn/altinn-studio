@@ -9,10 +9,10 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
-using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Register
@@ -24,7 +24,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
     public class PersonClient : IPersonRetriever
     {
         private readonly HttpClient _httpClient;
-        private readonly IAppResources _appResources;
+        private readonly IAppMetadata _appMetadata;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
         private readonly IUserTokenProvider _userTokenProvider;
 
@@ -39,13 +39,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         /// </summary>
         /// <param name="httpClient">The HttpClient to be used to send requests to Register.</param>
         /// <param name="platformSettings">The platform settings from loaded configuration.</param>
-        /// <param name="appResources">A service with access to app specific information.</param>
         /// <param name="accessTokenGenerator">An access token generator to create an access token.</param>
         /// <param name="userTokenProvider">A service that can obtain the user JWT token.</param>
+        /// <param name="appMetadata">The service providing appmetadata</param>
         public PersonClient(
             HttpClient httpClient,
             IOptions<PlatformSettings> platformSettings,
-            IAppResources appResources,
+            IAppMetadata appMetadata,
             IAccessTokenGenerator accessTokenGenerator,
             IUserTokenProvider userTokenProvider)
         {
@@ -55,18 +55,16 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
                 General.SubscriptionKeyHeaderName,
                 platformSettings.Value.SubscriptionKey);
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            _appResources = appResources;
             _accessTokenGenerator = accessTokenGenerator;
             _userTokenProvider = userTokenProvider;
+            _appMetadata = appMetadata;
         }
 
         /// <inheritdoc/>
         public async Task<Person?> GetPerson(string nationalIdentityNumber, string lastName, CancellationToken ct)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"persons");
-
-            AddAuthHeaders(request);
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"persons");
+            await AddAuthHeaders(request);
 
             request.Headers.Add("X-Ai-NationalIdentityNumber", nationalIdentityNumber);
             request.Headers.Add("X-Ai-LastName", ConvertToBase64(lastName));
@@ -76,11 +74,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             return await ReadResponse(response, ct);
         }
 
-        private void AddAuthHeaders(HttpRequestMessage request)
+        private async Task AddAuthHeaders(HttpRequestMessage request)
         {
-            Application application = _appResources.GetApplication();
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
             string issuer = application.Org;
-            string appName = application.Id.Split("/")[1];
+            string appName = application.AppIdentifier.App;
             request.Headers.Add(
                 "PlatformAccessToken", _accessTokenGenerator.GenerateAccessToken(issuer, appName));
             request.Headers.Add(

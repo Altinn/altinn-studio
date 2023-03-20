@@ -4,9 +4,11 @@ using System.Linq;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,7 +22,8 @@ public class DefaultTaskEventsTests: IDisposable
 {
     private readonly ILogger<DefaultTaskEvents> _logger = NullLogger<DefaultTaskEvents>.Instance;
     private readonly Mock<IAppResources> _resMock;
-    private readonly Application _application;
+    private readonly Mock<IAppMetadata> _metaMock;
+    private readonly ApplicationMetadata _application;
     private readonly Mock<IData> _dataMock;
     private readonly Mock<IPrefill> _prefillMock;
     private readonly IAppModel _appModel;
@@ -35,8 +38,9 @@ public class DefaultTaskEventsTests: IDisposable
 
     public DefaultTaskEventsTests()
     {
-        _application = new Application();
+        _application = new ApplicationMetadata("ttd/test");
         _resMock = new Mock<IAppResources>();
+        _metaMock = new Mock<IAppMetadata>();
         _dataMock = new Mock<IData>();
         _prefillMock = new Mock<IPrefill>();
         _appModel = new DefaultAppModel(NullLogger<DefaultAppModel>.Instance);
@@ -53,10 +57,11 @@ public class DefaultTaskEventsTests: IDisposable
     [Fact]
     public async void OnAbandonProcessTask_handles_no_IProcessTaskAbandon_injected()
     {
-        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(_application);
         DefaultTaskEvents te = new DefaultTaskEvents(
             _logger,
             _resMock.Object,
+            _metaMock.Object,
             _dataMock.Object,
             _prefillMock.Object,
             _appModel,
@@ -74,13 +79,14 @@ public class DefaultTaskEventsTests: IDisposable
     [Fact]
     public async void OnAbandonProcessTask_calls_all_added_implementations()
     {
-        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(_application);
         Mock<IProcessTaskAbandon> abandonOne = new Mock<IProcessTaskAbandon>();
         Mock<IProcessTaskAbandon> abandonTwo = new Mock<IProcessTaskAbandon>();
         _taskAbandons = new List<IProcessTaskAbandon>() { abandonOne.Object, abandonTwo.Object };
         DefaultTaskEvents te = new DefaultTaskEvents(
             _logger,
             _resMock.Object,
+            _metaMock.Object,
             _dataMock.Object,
             _prefillMock.Object,
             _appModel,
@@ -104,13 +110,14 @@ public class DefaultTaskEventsTests: IDisposable
     public async void OnEndProcessTask_calls_all_added_implementations_of_IProcessTaskEnd()
     {
         _application.DataTypes = new List<DataType>();
-        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(_application);
         Mock<IProcessTaskEnd> endOne = new Mock<IProcessTaskEnd>();
         Mock<IProcessTaskEnd> endTwo = new Mock<IProcessTaskEnd>();
         _taskEnds = new List<IProcessTaskEnd>() { endOne.Object, endTwo.Object };
         DefaultTaskEvents te = new DefaultTaskEvents(
             _logger,
             _resMock.Object,
+            _metaMock.Object,
             _dataMock.Object,
             _prefillMock.Object,
             _appModel,
@@ -127,6 +134,7 @@ public class DefaultTaskEventsTests: IDisposable
             Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d"
         };
         await te.OnEndProcessTask("Task_1", instance);
+        _metaMock.Verify(r => r.GetApplicationMetadata());
         endOne.Verify(a => a.End("Task_1", instance));
         endTwo.Verify(a => a.End("Task_1", instance));
         endOne.VerifyNoOtherCalls();
@@ -137,13 +145,14 @@ public class DefaultTaskEventsTests: IDisposable
     public async void OnEndProcessTask_calls_all_added_implementations_of_IProcessTaskStart()
     {
         _application.DataTypes = new List<DataType>();
-        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(_application);
         Mock<IProcessTaskStart> startOne = new Mock<IProcessTaskStart>();
         Mock<IProcessTaskStart> startTwo = new Mock<IProcessTaskStart>();
         _taskStarts = new List<IProcessTaskStart>() { startOne.Object, startTwo.Object };
         DefaultTaskEvents te = new DefaultTaskEvents(
             _logger,
             _resMock.Object,
+            _metaMock.Object,
             _dataMock.Object,
             _prefillMock.Object,
             _appModel,
@@ -167,6 +176,7 @@ public class DefaultTaskEventsTests: IDisposable
             }
         };
         await te.OnStartProcessTask("Task_1", instance, prefill);
+        _metaMock.Verify(r => r.GetApplicationMetadata());
         startOne.Verify(a => a.Start("Task_1", instance, prefill));
         startTwo.Verify(a => a.Start("Task_1", instance, prefill));
         startOne.VerifyNoOtherCalls();
@@ -178,10 +188,11 @@ public class DefaultTaskEventsTests: IDisposable
     {
         _application.DataTypes = new List<DataType>();
         _application.AutoDeleteOnProcessEnd = false;
-        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(_application);
         DefaultTaskEvents te = new DefaultTaskEvents(
             _logger,
             _resMock.Object,
+            _metaMock.Object,
             _dataMock.Object,
             _prefillMock.Object,
             _appModel,
@@ -206,6 +217,7 @@ public class DefaultTaskEventsTests: IDisposable
             }
         };
         await te.OnEndProcessTask("EndEvent_1", instance);
+        _metaMock.Verify(r => r.GetApplicationMetadata());
         _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
     }
     
@@ -214,10 +226,11 @@ public class DefaultTaskEventsTests: IDisposable
     {
         _application.DataTypes = new List<DataType>();
         _application.AutoDeleteOnProcessEnd = true;
-        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(_application);
         DefaultTaskEvents te = new DefaultTaskEvents(
             _logger,
             _resMock.Object,
+            _metaMock.Object,
             _dataMock.Object,
             _prefillMock.Object,
             _appModel,
@@ -242,6 +255,7 @@ public class DefaultTaskEventsTests: IDisposable
             }
         };
         await te.OnEndProcessTask("EndEvent_1", instance);
+        _metaMock.Verify(r => r.GetApplicationMetadata());
         _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Once);
     }
     
@@ -250,10 +264,11 @@ public class DefaultTaskEventsTests: IDisposable
     {
         _application.DataTypes = new List<DataType>();
         _application.AutoDeleteOnProcessEnd = true;
-        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(_application);
         DefaultTaskEvents te = new DefaultTaskEvents(
             _logger,
             _resMock.Object,
+            _metaMock.Object,
             _dataMock.Object,
             _prefillMock.Object,
             _appModel,
@@ -275,6 +290,7 @@ public class DefaultTaskEventsTests: IDisposable
             Process = new()
         };
         await te.OnEndProcessTask("EndEvent_1", instance);
+        _metaMock.Verify(r => r.GetApplicationMetadata());
         _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
     }
     
@@ -283,10 +299,11 @@ public class DefaultTaskEventsTests: IDisposable
     {
         _application.DataTypes = new List<DataType>();
         _application.AutoDeleteOnProcessEnd = true;
-        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(_application);
         DefaultTaskEvents te = new DefaultTaskEvents(
             _logger,
             _resMock.Object,
+            _metaMock.Object,
             _dataMock.Object,
             _prefillMock.Object,
             _appModel,
@@ -307,12 +324,13 @@ public class DefaultTaskEventsTests: IDisposable
             }
         };
         await te.OnEndProcessTask("EndEvent_1", instance);
+        _metaMock.Verify(r => r.GetApplicationMetadata());
         _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
     }
 
     public void Dispose()
     {
-        _resMock.Verify(r => r.GetApplication());
+        _metaMock.VerifyNoOtherCalls();
         _resMock.VerifyNoOtherCalls();
         _dataMock.VerifyNoOtherCalls();
         _prefillMock.VerifyNoOtherCalls();

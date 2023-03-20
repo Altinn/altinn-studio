@@ -1,16 +1,14 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
+#nullable enable
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -27,23 +25,23 @@ namespace Altinn.App.Api.Controllers
         private readonly UserHelper _userHelper;
         private readonly IProfile _profileClient;
         private readonly GeneralSettings _settings;
-        private readonly IAppResources _appResourcesService;
+        private readonly IAppMetadata _appMetadata;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesController"/> class
         /// </summary>
         public PartiesController(
-                           IAuthorization authorizationClient,
-                           IProfile profileClient,
-                           IRegister registerClient,
-                           IOptions<GeneralSettings> settings,
-                           IAppResources appResourcesService)
+            IAuthorization authorizationClient,
+            IProfile profileClient,
+            IRegister registerClient,
+            IOptions<GeneralSettings> settings,
+            IAppMetadata appMetadata)
         {
             _authorizationClient = authorizationClient;
             _userHelper = new UserHelper(profileClient, registerClient, settings);
             _profileClient = profileClient;
             _settings = settings.Value;
-            _appResourcesService = appResourcesService;
+            _appMetadata = appMetadata;
         }
 
         /// <summary>
@@ -58,11 +56,11 @@ namespace Altinn.App.Api.Controllers
         public async Task<IActionResult> Get(string org, string app, bool allowedToInstantiateFilter = false)
         {
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
-            List<Party> partyList = await _authorizationClient.GetPartyList(userContext.UserId);
+            List<Party>? partyList = await _authorizationClient.GetPartyList(userContext.UserId);
 
             if (allowedToInstantiateFilter)
             {
-                Application application = _appResourcesService.GetApplication();
+                Application application = await _appMetadata.GetApplicationMetadata();
                 List<Party> validParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, application.PartyTypesAllowed);
                 return Ok(validParties);
             }
@@ -83,21 +81,16 @@ namespace Altinn.App.Api.Controllers
         {
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
             UserProfile user = await _profileClient.GetUserProfile(userContext.UserId);
-            List<Party> partyList = await _authorizationClient.GetPartyList(userContext.UserId);
-            Application application = _appResourcesService.GetApplication();
-
-            if (application == null)
-            {
-                return NotFound("Application not found");
-            }
+            List<Party>? partyList = await _authorizationClient.GetPartyList(userContext.UserId);
+            Application application = await _appMetadata.GetApplicationMetadata();
 
             PartyTypesAllowed partyTypesAllowed = application.PartyTypesAllowed;
-            Party partyUserRepresents = null;
+            Party? partyUserRepresents = null;
 
             // Check if the user can represent the supplied partyId
             if (partyId != user.PartyId)
             {
-                Party represents = InstantiationHelper.GetPartyByPartyId(partyList, partyId);
+                Party? represents = InstantiationHelper.GetPartyByPartyId(partyList, partyId);
                 if (represents == null)
                 {
                     // the user does not represent the chosen party id, is not allowed to initiate
@@ -160,12 +153,12 @@ namespace Altinn.App.Api.Controllers
             }
 
             Response.Cookies.Append(
-            _settings.GetAltinnPartyCookieName,
-            partyId.ToString(),
-            new CookieOptions
-            {
-                Domain = _settings.HostName
-            });
+                _settings.GetAltinnPartyCookieName,
+                partyId.ToString(),
+                new CookieOptions
+                {
+                    Domain = _settings.HostName
+                });
 
             return Ok("Party successfully updated");
         }

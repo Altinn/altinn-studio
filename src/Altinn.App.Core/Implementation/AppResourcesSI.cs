@@ -3,6 +3,7 @@ using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -20,9 +21,10 @@ namespace Altinn.App.Core.Implementation
     public class AppResourcesSI : IAppResources
     {
         private readonly AppSettings _settings;
+        private readonly IAppMetadata _appMetadata;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
-        private Application? _application;
+
         private static readonly JsonSerializerOptions DESERIALIZER_OPTIONS = new()
         {
             AllowTrailingCommas = true,
@@ -34,14 +36,17 @@ namespace Altinn.App.Core.Implementation
         /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
         /// </summary>
         /// <param name="settings">The app repository settings.</param>
+        /// <param name="appMetadata">App metadata service</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
         /// <param name="logger">A logger from the built in logger factory.</param>
         public AppResourcesSI(
             IOptions<AppSettings> settings,
+            IAppMetadata appMetadata,
             IWebHostEnvironment hostingEnvironment,
             ILogger<AppResourcesSI> logger)
         {
             _settings = settings.Value;
+            _appMetadata = appMetadata;
             _hostingEnvironment = hostingEnvironment;
             _logger = logger;
         }
@@ -104,67 +109,58 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public Application GetApplication()
         {
-            // Cache application metadata
-            if (_application != null)
-            {
-                return _application;
-            }
-
-            string filedata = string.Empty;
-            string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ApplicationMetadataFileName;
             try
             {
-                if (File.Exists(filename))
-                {
-                    filedata = File.ReadAllText(filename, Encoding.UTF8);
-                }
-
-                _application = JsonConvert.DeserializeObject<Application>(filedata)!;
-                return _application;
+                var task = Task.Run(async () => await _appMetadata.GetApplicationMetadata());
+                task.Wait();
+                return task.Result;
             }
-            catch (Exception ex)
+            catch (AggregateException ex)
             {
-                _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
-                return null;
+                throw new ApplicationConfigException("Failed to read application metadata", ex.InnerException ?? ex);
             }
         }
 
         /// <inheritdoc/>
         public string? GetApplicationXACMLPolicy()
         {
-            string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.AuthorizationFolder + _settings.ApplicationXACMLPolicyFileName;
             try
             {
-                if (File.Exists(filename))
+                var task = Task.Run(async () => await _appMetadata.GetApplicationXACMLPolicy());
+                task.Wait();
+                if (task.IsCompletedSuccessfully)
                 {
-                    return File.ReadAllText(filename, Encoding.UTF8);
+                    return task.Result;
                 }
+                return null;
             }
-            catch (Exception ex)
+            catch (AggregateException ex)
             {
-                _logger.LogError("Something went wrong when fetching XACML Policy. {0}", ex);
+                _logger.LogError(ex, "Something went wrong fetching application policy");
+                return null;
             }
-
-            return null;
         }
 
         /// <inheritdoc/>
         public string? GetApplicationBPMNProcess()
         {
-            string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ProcessFolder + _settings.ProcessFileName;
             try
             {
-                if (File.Exists(filename))
+                var task = Task.Run<string?>(async () => await _appMetadata.GetApplicationBPMNProcess());
+                task.Wait();
+                if (task.IsCompletedSuccessfully || task.Exception != null)
                 {
-                    return File.ReadAllText(filename, Encoding.UTF8);
+                    return task.Result;
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Something went wrong when fetching BPMNProcess. {0}", ex);
-            }
 
-            return null;
+                _logger.LogError(task.Exception, "Something went wrong fetching application policy");
+                return null;
+            }
+            catch (AggregateException ex)
+            {
+                _logger.LogError(ex, "Something went wrong fetching application policy");
+                return null;
+            }
         }
 
         /// <inheritdoc/>
@@ -333,6 +329,7 @@ namespace Altinn.App.Core.Implementation
             {
                 return System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, DESERIALIZER_OPTIONS);
             }
+
             return null;
         }
 

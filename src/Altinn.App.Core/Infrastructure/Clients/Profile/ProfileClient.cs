@@ -3,6 +3,8 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Utils;
@@ -21,7 +23,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
-        private readonly IAppResources _appResources;
+        private readonly IAppMetadata _appMetadata;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
 
         /// <summary>
@@ -32,7 +34,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
         /// <param name="httpClient">A HttpClient provided by the HttpClientFactory.</param>
-        /// <param name="appResources">An instance of the AppResources service.</param>
+        /// <param name="appMetadata">An instance of the IAppMetadata service.</param>
         /// <param name="accessTokenGenerator">An instance of the AccessTokenGenerator service.</param>
         public ProfileClient(
             IOptions<PlatformSettings> platformSettings,
@@ -40,7 +42,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
-            IAppResources appResources,
+            IAppMetadata appMetadata,
             IAccessTokenGenerator accessTokenGenerator)
         {
             _logger = logger;
@@ -50,7 +52,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
-            _appResources = appResources;
+            _appMetadata = appMetadata;
             _accessTokenGenerator = accessTokenGenerator;
         }
 
@@ -62,14 +64,15 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
             string endpointUrl = $"users/{userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id.Split("/")[1]));
+            ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App));
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 userProfile = await response.Content.ReadAsAsync<UserProfile>();
             }
             else
             {
-                _logger.LogError($"Getting user profile with userId {userId} failed with statuscode {response.StatusCode}");
+                _logger.LogError("Getting user profile with userId {UserId} failed with statuscode {StatusCode}", userId, response.StatusCode);
             }
 
             return userProfile;

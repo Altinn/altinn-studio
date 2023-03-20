@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -20,7 +18,7 @@ public class ValidateControllerTests
     {
         // Arrange
         var instanceMock = new Mock<IInstance>();
-        var appResourceMock = new Mock<IAppResources>();
+        var appMetadataMock = new Mock<IAppMetadata>();
         var validationMock = new Mock<IValidation>();
 
         const string org = "ttd";
@@ -32,7 +30,7 @@ public class ValidateControllerTests
 
         // Act
         var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appResourceMock.Object);
+            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
         var result = await validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId);
 
         // Assert
@@ -44,7 +42,7 @@ public class ValidateControllerTests
     {
         // Arrange
         var instanceMock = new Mock<IInstance>();
-        var appResourceMock = new Mock<IAppResources>();
+        var appMetadataMock = new Mock<IAppMetadata>();
         var validationMock = new Mock<IValidation>();
 
         const string org = "ttd";
@@ -63,7 +61,7 @@ public class ValidateControllerTests
 
         // Act
         var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appResourceMock.Object);
+            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
 
         // Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(() =>
@@ -76,7 +74,7 @@ public class ValidateControllerTests
     {
         // Arrange
         var instanceMock = new Mock<IInstance>();
-        var appResourceMock = new Mock<IAppResources>();
+        var appMetadataMock = new Mock<IAppMetadata>();
         var validationMock = new Mock<IValidation>();
 
         const string org = "ttd";
@@ -98,7 +96,7 @@ public class ValidateControllerTests
 
         // Act
         var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appResourceMock.Object);
+            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
 
         // Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(() =>
@@ -111,7 +109,7 @@ public class ValidateControllerTests
     {
         // Arrange
         var instanceMock = new Mock<IInstance>();
-        var appResourceMock = new Mock<IAppResources>();
+        var appMetadataMock = new Mock<IAppMetadata>();
         var validationMock = new Mock<IValidation>();
 
         const string org = "ttd";
@@ -148,7 +146,7 @@ public class ValidateControllerTests
 
         // Act
         var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appResourceMock.Object);
+            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
         var result = await validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId);
 
         // Assert

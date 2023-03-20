@@ -1,5 +1,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Validation;
@@ -26,6 +27,7 @@ namespace Altinn.App.Core.Features.Validation
         private readonly IInstanceValidator _instanceValidator;
         private readonly IAppModel _appModel;
         private readonly IAppResources _appResourcesService;
+        private readonly IAppMetadata _appMetadata;
         private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
         private readonly IObjectModelValidator _objectModelValidator;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -42,6 +44,7 @@ namespace Altinn.App.Core.Features.Validation
             IInstanceValidator instanceValidator,
             IAppModel appModel,
             IAppResources appResourcesService,
+            IAppMetadata appMetadata,
             IObjectModelValidator objectModelValidator,
             LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
             IHttpContextAccessor httpContextAccessor,
@@ -54,6 +57,7 @@ namespace Altinn.App.Core.Features.Validation
             _instanceValidator = instanceValidator;
             _appModel = appModel;
             _appResourcesService = appResourcesService;
+            _appMetadata = appMetadata;
             _objectModelValidator = objectModelValidator;
             _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
             _httpContextAccessor = httpContextAccessor;
@@ -77,7 +81,7 @@ namespace Altinn.App.Core.Features.Validation
             await _instanceValidator.ValidateTask(instance, taskId, validationResults);
             messages.AddRange(MapModelStateToIssueList(validationResults, instance));
 
-            Application application = _appResourcesService.GetApplication();
+            Application application = await _appMetadata.GetApplicationMetadata();
 
             foreach (DataType dataType in application.DataTypes.Where(et => et.TaskId == taskId))
             {
@@ -119,7 +123,7 @@ namespace Altinn.App.Core.Features.Validation
             {
                 // The condition for completion is met if there are no errors (or other weirdnesses).
                 CanCompleteTask = messages.Count == 0 ||
-                    messages.All(m => m.Severity != ValidationIssueSeverity.Error && m.Severity != ValidationIssueSeverity.Unspecified),
+                                  messages.All(m => m.Severity != ValidationIssueSeverity.Error && m.Severity != ValidationIssueSeverity.Unspecified),
                 Timestamp = DateTime.Now
             };
 
@@ -252,7 +256,6 @@ namespace Altinn.App.Core.Features.Validation
                 {
                     messages.AddRange(MapModelStateToIssueList(actionContext.ModelState, instance, dataElement.Id, data.GetType()));
                 }
-
             }
 
             return messages;
@@ -305,41 +308,43 @@ namespace Altinn.App.Core.Features.Validation
             var index = keyWithIndex?.ElementAtOrDefault(1); // with traling ']', eg: "3]"
             var rest = keyParts?.ElementAtOrDefault(1);
 
-            var property = data?.GetProperties()?.FirstOrDefault(p=>p.Name == key);
+            var property = data?.GetProperties()?.FirstOrDefault(p => p.Name == key);
             var jsonPropertyName = property
                 ?.GetCustomAttributes(true)
                 .OfType<System.Text.Json.Serialization.JsonPropertyNameAttribute>()
                 .FirstOrDefault()
                 ?.Name;
-            if(jsonPropertyName is null)
+            if (jsonPropertyName is null)
             {
                 jsonPropertyName = key;
             }
 
-            if(index is not null)
+            if (index is not null)
             {
                 jsonPropertyName = jsonPropertyName + '[' + index;
             }
 
-            if(rest is null)
+            if (rest is null)
             {
                 return jsonPropertyName;
             }
+
             var childType = property?.PropertyType;
 
             // Get the Parameter of IEnumerable properties, if they are not string
             if (childType is not null && childType != typeof(string) && childType.IsAssignableTo(typeof(System.Collections.IEnumerable)))
             {
                 childType = childType.GetInterfaces()
-                .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                .Select(t => t.GetGenericArguments()[0]).FirstOrDefault();
+                    .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    .Select(t => t.GetGenericArguments()[0]).FirstOrDefault();
             }
 
-            if(childType is null)
+            if (childType is null)
             {
                 // Give up and return rest, if the child type is not found.
                 return $"{jsonPropertyName}.{rest}";
             }
+
             return $"{jsonPropertyName}.{ModelKeyToField(rest, childType)}";
         }
 

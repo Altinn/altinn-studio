@@ -3,6 +3,7 @@ using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Pdf;
@@ -21,7 +22,7 @@ public class DefaultTaskEvents : ITaskEvents
 {
     private readonly ILogger<DefaultTaskEvents> _logger;
     private readonly IAppResources _appResources;
-    private readonly Application _appMetadata;
+    private readonly IAppMetadata _appMetadata;
     private readonly IData _dataClient;
     private readonly IPrefill _prefillService;
     private readonly IAppModel _appModel;
@@ -41,7 +42,8 @@ public class DefaultTaskEvents : ITaskEvents
     /// </summary>
     public DefaultTaskEvents(
         ILogger<DefaultTaskEvents> logger,
-        IAppResources resourceService,
+        IAppResources appResources,
+        IAppMetadata appMetadata,
         IData dataClient,
         IPrefill prefillService,
         IAppModel appModel,
@@ -58,8 +60,8 @@ public class DefaultTaskEvents : ITaskEvents
         )
     {
         _logger = logger;
-        _appResources = resourceService;
-        _appMetadata = resourceService.GetApplication();
+        _appResources = appResources;
+        _appMetadata = appMetadata;
         _dataClient = dataClient;
         _prefillService = prefillService;
         _appModel = appModel;
@@ -78,27 +80,28 @@ public class DefaultTaskEvents : ITaskEvents
     /// <inheritdoc />
     public async Task OnStartProcessTask(string taskId, Instance instance, Dictionary<string, string> prefill)
     {
-        _logger.LogDebug("OnStartProcessTask for {instanceId}", instance.Id);
+        _logger.LogDebug("OnStartProcessTask for {InstanceId}", instance.Id);
 
         await RunAppDefinedOnTaskStart(taskId, instance, prefill);
+        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
 
         // If this is a revisit to a previous task we need to unlock data
-        foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId))
+        foreach (DataType dataType in appMetadata.DataTypes.Where(dt => dt.TaskId == taskId))
         {
             DataElement? dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
 
             if (dataElement != null && dataElement.Locked)
             {
                 dataElement.Locked = false;
-                _logger.LogDebug("Unlocking data element {dataElementId} of dataType {dataTypeId}.", dataElement.Id, dataType.Id);
+                _logger.LogDebug("Unlocking data element {DataElementId} of dataType {DataTypeId}", dataElement.Id, dataType.Id);
                 await _dataClient.Update(instance, dataElement);
             }
         }
 
-        foreach (DataType dataType in _appMetadata.DataTypes.Where(dt =>
+        foreach (DataType dataType in appMetadata.DataTypes.Where(dt =>
                      dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
         {
-            _logger.LogDebug("Auto create data element: {dataTypeId}", dataType.Id);
+            _logger.LogDebug("Auto create data element: {DataTypeId}", dataType.Id);
 
             DataElement? dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
 
@@ -119,7 +122,7 @@ public class DefaultTaskEvents : ITaskEvents
                 await UpdatePresentationTextsOnInstance(instance, dataType.Id, data);
                 await UpdateDataValuesOnInstance(instance, dataType.Id, data);
 
-                _logger.LogDebug("Created data element: {createdDataElementId}", createdDataElement.Id);
+                _logger.LogDebug("Created data element: {CreatedDataElementId}", createdDataElement.Id);
             }
         }
     }
@@ -136,7 +139,8 @@ public class DefaultTaskEvents : ITaskEvents
     public async Task OnEndProcessTask(string endEvent, Instance instance)
     {
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        List<DataType> dataTypesToLock = _appMetadata.DataTypes.FindAll(dt => dt.TaskId == endEvent);
+        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        List<DataType> dataTypesToLock = appMetadata.DataTypes.FindAll(dt => dt.TaskId == endEvent);
 
         await RunRemoveHiddenData(instance, instanceGuid, dataTypesToLock);
 
@@ -149,7 +153,7 @@ public class DefaultTaskEvents : ITaskEvents
         await RunAutoDeleteOnProcessEnd(instance, instanceGuid);
     }
 
-    private async Task RunRemoveHiddenData(Instance instance, Guid instanceGuid, List<DataType> dataTypesToLock)
+    private async Task RunRemoveHiddenData(Instance instance, Guid instanceGuid, List<DataType>? dataTypesToLock)
     {
         if (_appSettings?.RemoveHiddenDataPreview == true)
         {
@@ -165,11 +169,11 @@ public class DefaultTaskEvents : ITaskEvents
         }
     }
 
-    private async Task RunLockDataAndGeneratePdf(string endEvent, Instance instance, List<DataType> dataTypesToLock)
+    private async Task RunLockDataAndGeneratePdf(string endEvent, Instance instance, List<DataType>? dataTypesToLock)
     {
         _logger.LogDebug("OnEndProcessTask for {instanceId}. Locking data elements connected to {endEvent}", instance.Id, endEvent);
 
-        foreach (DataType dataType in dataTypesToLock)
+        foreach (DataType dataType in dataTypesToLock ?? Enumerable.Empty<DataType>())
         {
             bool generatePdf = dataType.AppLogic?.ClassRef != null && dataType.EnablePdfCreation;
 
@@ -204,7 +208,8 @@ public class DefaultTaskEvents : ITaskEvents
 
     private async Task RunAutoDeleteOnProcessEnd(Instance instance, Guid instanceGuid)
     {
-        if (_appMetadata.AutoDeleteOnProcessEnd && instance.Process?.Ended != null)
+        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        if (appMetadata.AutoDeleteOnProcessEnd && instance.Process?.Ended != null)
         {
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
@@ -213,7 +218,8 @@ public class DefaultTaskEvents : ITaskEvents
 
     private async Task RunEformidling(string endEvent, Instance instance)
     {
-        if (_appSettings?.EnableEFormidling == true && _appMetadata.EFormidling?.SendAfterTaskId == endEvent && _eFormidlingService != null)
+        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        if (_appSettings?.EnableEFormidling == true && appMetadata.EFormidling?.SendAfterTaskId == endEvent && _eFormidlingService != null)
         {
             // The code above updates data elements on the instance. To ensure
             // we have the latest instance with all the data elements including pdf,
@@ -223,9 +229,9 @@ public class DefaultTaskEvents : ITaskEvents
         }
     }
 
-    private async Task RemoveHiddenData(Instance instance, Guid instanceGuid, List<DataType> dataTypesToLock)
+    private async Task RemoveHiddenData(Instance instance, Guid instanceGuid, List<DataType>? dataTypesToLock)
     {
-        foreach (var dataType in dataTypesToLock.Where(dt => dt.AppLogic != null))
+        foreach (var dataType in dataTypesToLock?.Where(dt => dt.AppLogic != null) ?? Enumerable.Empty<DataType>())
         {
             foreach (Guid dataElementId in instance.Data.Where(de => de.DataType == dataType.Id).Select(dataElement => Guid.Parse(dataElement.Id)))
             {
@@ -264,8 +270,9 @@ public class DefaultTaskEvents : ITaskEvents
 
     private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, dynamic data)
     {
+        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
         var updatedValues = DataHelper.GetUpdatedDataValues(
-            _appMetadata.PresentationFields,
+            appMetadata?.PresentationFields,
             instance.PresentationTexts,
             dataType,
             data);
@@ -283,8 +290,9 @@ public class DefaultTaskEvents : ITaskEvents
 
     private async Task UpdateDataValuesOnInstance(Instance instance, string dataType, object data)
     {
+        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
         var updatedValues = DataHelper.GetUpdatedDataValues(
-            _appMetadata.DataFields,
+            appMetadata?.DataFields,
             instance.DataValues,
             dataType,
             data);

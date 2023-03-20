@@ -1,10 +1,9 @@
 #nullable enable
-using System.Linq;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation;
-using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Validation;
@@ -99,6 +98,7 @@ public class ValidationAppSITests
         var instanceValidator = new Mock<IInstanceValidator>();
         var appModelMock = new Mock<IAppModel>();
         var appResourcesMock = new Mock<IAppResources>();
+        var appMetadataMock = new Mock<IAppMetadata>();
         var objectModelValidatorMock = new Mock<IObjectModelValidator>();
         var layoutEvaluatorStateInitializer = new LayoutEvaluatorStateInitializer(appResourcesMock.Object, Options.Create(new Configuration.FrontEndSettings()));
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
@@ -112,6 +112,7 @@ public class ValidationAppSITests
             instanceValidator.Object,
             appModelMock.Object,
             appResourcesMock.Object,
+            appMetadataMock.Object,
             objectModelValidatorMock.Object,
             layoutEvaluatorStateInitializer,
             httpContextAccessorMock.Object,

@@ -1,17 +1,13 @@
-using System.Collections.Generic;
+#nullable enable
 using System.Text.Json;
 using System.Web;
-
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Controllers
@@ -26,6 +22,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly AppSettings _appSettings;
         private readonly IAppResources _appResources;
+        private readonly IAppMetadata _appMetadata;
         private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
 
         /// <summary>
@@ -36,18 +33,21 @@ namespace Altinn.App.Api.Controllers
         /// <param name="env">The current environment.</param>
         /// <param name="appSettings">The application settings</param>
         /// <param name="appResources">The application resources service</param>
+        /// <param name="appMetadata">The application metadata service</param>
         public HomeController(
-          IAntiforgery antiforgery,
-          IOptions<PlatformSettings> platformSettings,
-          IWebHostEnvironment env,
-          IOptions<AppSettings> appSettings,
-          IAppResources appResources)
+            IAntiforgery antiforgery,
+            IOptions<PlatformSettings> platformSettings,
+            IWebHostEnvironment env,
+            IOptions<AppSettings> appSettings,
+            IAppResources appResources,
+            IAppMetadata appMetadata)
         {
             _antiforgery = antiforgery;
             _platformSettings = platformSettings.Value;
             _env = env;
             _appSettings = appSettings.Value;
             _appResources = appResources;
+            _appMetadata = appMetadata;
         }
 
         /// <summary>
@@ -58,19 +58,22 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
         [HttpGet]
         [Route("{org}/{app}/")]
-        public IActionResult Index(
+        public async Task<IActionResult> Index(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromQuery] bool dontChooseReportee)
         {
             // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-            HttpContext.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions
+            if (tokens.RequestToken != null)
             {
-                HttpOnly = false // Make this cookie readable by Javascript.
-            });
-            
-            if (ShouldShowAppView())
+                HttpContext.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions
+                {
+                    HttpOnly = false // Make this cookie readable by Javascript.
+                });
+            }
+
+            if (await ShouldShowAppView())
             {
                 ViewBag.org = org;
                 ViewBag.app = app;
@@ -95,20 +98,20 @@ namespace Altinn.App.Api.Controllers
             return Redirect(redirectUrl);
         }
 
-        private bool ShouldShowAppView()
+        private async Task<bool> ShouldShowAppView()
         {
-            if (User.Identity.IsAuthenticated)
+            if (User?.Identity?.IsAuthenticated == true)
             {
                 return true;
             }
 
-            Application application = _appResources.GetApplication();
-            if (!IsStatelessApp(application)) 
+            Application application = await _appMetadata.GetApplicationMetadata();
+            if (!IsStatelessApp(application))
             {
                 return false;
             }
 
-            DataType dataType = GetStatelessDataType(application);
+            DataType? dataType = GetStatelessDataType(application);
 
             if (dataType != null && dataType.AppLogic.AllowAnonymousOnStateless)
             {
@@ -120,15 +123,15 @@ namespace Altinn.App.Api.Controllers
 
         private bool IsStatelessApp(Application application)
         {
-            if (application.OnEntry == null)
+            if (application?.OnEntry == null)
             {
                 return false;
             }
 
-            return !_onEntryWithInstance.Contains(application.OnEntry?.Show);
+            return !_onEntryWithInstance.Contains(application.OnEntry.Show);
         }
 
-        private DataType GetStatelessDataType(Application application)
+        private DataType? GetStatelessDataType(Application application)
         {
             string layoutSetsString = _appResources.GetLayoutSets();
             JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -136,8 +139,8 @@ namespace Altinn.App.Api.Controllers
             // Stateless apps only work with layousets
             if (!string.IsNullOrEmpty(layoutSetsString))
             {
-                LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, options);
-                string dataTypeId = layoutSets.Sets.Find(set => set.Id == application.OnEntry?.Show).DataType;
+                LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, options);
+                string? dataTypeId = layoutSets?.Sets?.Find(set => set.Id == application.OnEntry?.Show)?.DataType;
                 return application.DataTypes.Find(d => d.Id == dataTypeId);
             }
 

@@ -1,12 +1,10 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -79,7 +77,7 @@ public class TestScenariosData : IEnumerable<object[]>
                     }
                 }
             },
-            ReceivedApplication = new Application
+            ReceivedApplication = new ApplicationMetadata("ttd/test")
             {
                 DataTypes = new List<DataType>()
             },
@@ -107,7 +105,7 @@ public class TestScenariosData : IEnumerable<object[]>
                     }
                 }
             },
-            ReceivedApplication = new Application
+            ReceivedApplication = new ApplicationMetadata("ttd/test")
             {
                 DataTypes = new List<DataType>
                 {
@@ -156,7 +154,7 @@ public class TestScenariosData : IEnumerable<object[]>
                     }
                 }
             },
-            ReceivedApplication = new Application
+            ReceivedApplication = new ApplicationMetadata("ttd/test")
             {
                 DataTypes = new List<DataType>
                 {
@@ -233,20 +231,20 @@ public class ValidationControllerValidateDataTests
         }
     }
 
-    private ValidateController SetupController(string app, string org, int instanceOwnerId,
+    private static ValidateController SetupController(string app, string org, int instanceOwnerId,
         ValidateDataTestScenario testScenario)
     {
-        (Mock<IInstance> instanceMock, Mock<IAppResources> appResourceMock, Mock<IValidation> validationMock) =
+        (Mock<IInstance> instanceMock, Mock<IAppMetadata> appResourceMock, Mock<IValidation> validationMock) =
             SetupMocks(app, org, instanceOwnerId, testScenario);
 
         return new ValidateController(instanceMock.Object, validationMock.Object, appResourceMock.Object);
     }
 
-    private (Mock<IInstance>, Mock<IAppResources>, Mock<IValidation>) SetupMocks(string app, string org,
+    private static (Mock<IInstance>, Mock<IAppMetadata>, Mock<IValidation>) SetupMocks(string app, string org,
         int instanceOwnerId, ValidateDataTestScenario testScenario)
     {
         var instanceMock = new Mock<IInstance>();
-        var appResourceMock = new Mock<IAppResources>();
+        var appMetadataMock = new Mock<IAppMetadata>();
         var validationMock = new Mock<IValidation>();
         if (testScenario.ReceivedInstance != null)
         {
@@ -255,8 +253,8 @@ public class ValidationControllerValidateDataTests
         }
         if (testScenario.ReceivedApplication != null)
         {
-            appResourceMock.Setup(a => a.GetApplication())
-                .Returns(testScenario.ReceivedApplication);
+            appMetadataMock.Setup(a => a.GetApplicationMetadata())
+                .ReturnsAsync(testScenario.ReceivedApplication);
         }
 
         if (testScenario.ReceivedInstance != null && testScenario.ReceivedApplication != null && testScenario.ReceivedValidationIssues != null)
@@ -268,7 +266,7 @@ public class ValidationControllerValidateDataTests
                 .Returns(Task.FromResult<List<ValidationIssue>>(testScenario.ReceivedValidationIssues));
         }
 
-        return (instanceMock, appResourceMock, validationMock);
+        return (instanceMock, appMetadataMock, validationMock);
     }
 }
 
@@ -282,7 +280,7 @@ public class ValidateDataTestScenario
     public Guid InstanceId { get; init; } = Guid.NewGuid();
     public Guid DataGuid { get; init; } = Guid.NewGuid();
     public Instance? ReceivedInstance { get; init; }
-    public Application? ReceivedApplication { get; init; }
+    public ApplicationMetadata? ReceivedApplication { get; init; }
     public List<ValidationIssue>? ReceivedValidationIssues { get; init; }
     public string? ExpectedExceptionMessage { get; init; }
     public Type? ExpectedResult { get; init; }

@@ -1,12 +1,9 @@
 #nullable enable
-using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Extensions;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 
@@ -24,7 +21,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
         /// <param name="dataType">datatype the files is beeing uploaded to</param>
         /// <param name="errorResponse">Null if validation passed, error response if not</param>
         /// <returns>true with errorResponse = null if all is ok, false with errorResponse if not</returns>
-        public static bool CompliesWithDataRestrictions(HttpRequest request, DataType dataType, out ActionResult? errorResponse)
+        public static bool CompliesWithDataRestrictions(HttpRequest request, DataType? dataType, out ActionResult? errorResponse)
         {
             var errorBaseMessage = "Invalid data provided. Error:";
             errorResponse = null;
@@ -33,8 +30,8 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                 errorResponse = new BadRequestObjectResult($"{errorBaseMessage} The request must include a Content-Disposition header");
                 return false;
             }
-            
-            var maxSize = (long?)dataType.MaxSize * 1024 * 1024;
+
+            var maxSize = (long?)dataType?.MaxSize * 1024 * 1024;
             if (maxSize != null && request.ContentLength > maxSize)
             {
                 errorResponse = new ObjectResult($"{errorBaseMessage} Binary attachment exceeds limit of {maxSize}")
@@ -64,7 +61,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                 return false;
             }
 
-            if (dataType.AllowedContentTypes == null || dataType.AllowedContentTypes.Count == 0)
+            if (dataType?.AllowedContentTypes == null || dataType.AllowedContentTypes.Count == 0)
             {
                 return true;
             }

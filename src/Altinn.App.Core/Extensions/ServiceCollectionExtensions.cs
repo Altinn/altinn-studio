@@ -16,6 +16,7 @@ using Altinn.App.Core.Infrastructure.Clients.Profile;
 using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
@@ -28,7 +29,6 @@ using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
-
 using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -95,7 +95,7 @@ namespace Altinn.App.Core.Extensions
         {
             string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
             JObject appMetadataJObject = JObject.Parse(appMetaDataString);
-            
+
             var id = appMetadataJObject?.SelectToken("id")?.Value<string>();
 
             if (id == null)
@@ -120,6 +120,8 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<IPrefill, PrefillSI>();
             services.TryAddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
             services.TryAddSingleton<IAppResources, AppResourcesSI>();
+            services.TryAddSingleton<IAppMetadata, AppMetadata>();
+            services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
             services.TryAddTransient<IAppEvents, DefaultAppEvents>();
             services.TryAddTransient<ITaskEvents, DefaultTaskEvents>();
             services.TryAddTransient<IPageOrder, DefaultPageOrder>();
@@ -151,7 +153,7 @@ namespace Altinn.App.Core.Extensions
             else
             {
                 services.TryAddSingleton<ISecrets, SecretsLocalClient>();
-            }            
+            }
         }
 
         /// <summary>
@@ -211,7 +213,6 @@ namespace Altinn.App.Core.Extensions
 
             // Services related to instance aware and secure app options
             services.TryAddTransient<InstanceAppOptionsFactory>();
-
         }
 
         private static void AddProcessServices(IServiceCollection services)
