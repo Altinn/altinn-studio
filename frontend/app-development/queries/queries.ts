@@ -8,6 +8,7 @@ import {
   envConfigPath,
   repoMetaPath,
   repoPullPath,
+  datamodelsXsdPath,
 } from 'app-shared/api-paths';
 import { orgsListUrl } from 'app-shared/cdn-paths';
 
@@ -20,3 +21,4 @@ export const getOrgList = () => get(orgsListUrl());
 export const getRepoStatus = (owner, app) => get(repoStatusPath(owner, app));
 export const getRepoMetadata = (owner, app) => get(repoMetaPath(owner, app));
 export const getRepoPull = (owner, app) => get(repoPullPath(owner, app));
+export const getDatamodelsXsd = (owner, app) => get(datamodelsXsdPath(owner, app));
