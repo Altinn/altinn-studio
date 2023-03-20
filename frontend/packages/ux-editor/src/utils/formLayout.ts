@@ -65,9 +65,9 @@ export function topLevelComponents(layout: any[]) {
   layout.forEach((component) => {
     if (component.type === 'Group') {
       const childList = component.edit?.multiPage
-        ? component.children.map((childId) => childId.split(':')[1] || childId)
+        ? component.children?.map((childId) => childId.split(':')[1] || childId)
         : component.children;
-      childList.forEach((childId) => inGroup.add(childId));
+      childList?.forEach((childId) => inGroup.add(childId));
     }
   });
   return layout.filter((component) => !inGroup.has(component.id));
