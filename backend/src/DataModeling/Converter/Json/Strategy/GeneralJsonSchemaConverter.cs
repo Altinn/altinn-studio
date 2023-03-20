@@ -145,7 +145,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         {
             try
             {
-                var schemaToCompile = string.IsNullOrWhiteSpace(schema.TargetNamespace)? schema : ReloadXsdSchema(schema);
+                var schemaToCompile = string.IsNullOrWhiteSpace(schema.TargetNamespace) ? schema : ReloadXsdSchema(schema);
                 var schemaSet = new XmlSchemaSet();
                 schemaSet.Add(schemaToCompile);
                 schemaSet.Compile();
