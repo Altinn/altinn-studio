@@ -18,7 +18,10 @@ import i18next from 'i18next';
 
 const { addFormComponent, addFormContainer, addWidget, updateActiveListOrder } = FormLayoutActions;
 
-export function convertFromLayoutToInternalFormat(formLayout: any[], hidden: any): IInternalLayouts {
+export function convertFromLayoutToInternalFormat(
+  formLayout: any[],
+  hidden: any
+): IInternalLayouts {
   const convertedLayout: IInternalLayouts = {
     containers: {},
     components: {},
@@ -65,9 +68,9 @@ export function topLevelComponents(layout: any[]) {
   layout.forEach((component) => {
     if (component.type === 'Group') {
       const childList = component.edit?.multiPage
-        ? component.children.map((childId) => childId.split(':')[1] || childId)
+        ? component.children?.map((childId) => childId.split(':')[1] || childId)
         : component.children;
-      childList.forEach((childId) => inGroup.add(childId));
+      childList?.forEach((childId) => inGroup.add(childId));
     }
   });
   return layout.filter((component) => !inGroup.has(component.id));
