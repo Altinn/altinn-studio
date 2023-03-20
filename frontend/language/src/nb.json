@@ -654,7 +654,7 @@
   "schema_editor.name": "Navn",
   "schema_editor.nameError_alreadyInUse": "Feltnavnet er allerede brukt",
   "schema_editor.nameError_invalidCharacter": "Feltnavnet kan ikke inneholde spesialtegn eller mellomrom",
-  "schema_editor.nameError_InvalidMaxMinValue": "Minimum verdien kan ikke være lik eller større enn maksimum verdien",
+  "schema_editor.nameError_InvalidMaxMinValue": "Minimumverdien kan ikke være lik eller større enn maksimumverdien",
   "schema_editor.nameError_InvalidValue": "Du må fylle ut med et helt tall",
   "schema_editor.no_item_selected": "Ingen element valgt",
   "schema_editor.nullable": "Kan være ubesvart",

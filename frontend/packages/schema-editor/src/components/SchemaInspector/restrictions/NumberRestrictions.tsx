@@ -15,6 +15,9 @@ import type { Dict } from '@altinn/schema-model';
 import { NameError } from '@altinn/schema-editor/types';
 import { ErrorMessage } from '@digdir/design-system-react';
 
+export interface NumberRestrictionsProps extends RestrictionItemProps {
+  isInteger: boolean;
+}
 export function NumberRestrictions({
   restrictions,
   path,
@@ -23,6 +26,7 @@ export function NumberRestrictions({
 }: RestrictionItemProps) {
   const { t } = useTranslation();
   const [formatState, dispatch] = useReducer(numberRestrictionsReducer, {
+    isInteger: restrictions[IntRestrictionKeys.integer] === undefined,
     isMinInclusive: restrictions[IntRestrictionKeys.exclusiveMinimum] === undefined,
     isMaxInclusive: restrictions[IntRestrictionKeys.exclusiveMaximum] === undefined,
     min:

@@ -41,6 +41,7 @@ export type NumberRestrictionsReducerAction =
   | SetRestrictionAction;
 
 export type NumberRestrictionsReducerState = {
+  isInteger: boolean;
   isMinInclusive: boolean;
   isMaxInclusive: boolean;
   min: number;
@@ -49,16 +50,18 @@ export type NumberRestrictionsReducerState = {
   nameError: NameError;
 };
 
-export const validateMinMax = (formatState): NameError => {
+export const validateMinMax = (formatState: NumberRestrictionsReducerState): NameError => {
   const maxOrMinInput = formatState.min || formatState.max;
-  if (formatState.min !== undefined && formatState.max !== undefined) {
+  const minMaxAreInclusive = formatState.isMaxInclusive && formatState.isMinInclusive;
+  const minEqualMax = Number(formatState.min) === Number(formatState.max);
+  if (maxOrMinInput !== undefined) {
     if (isNaN(Number(maxOrMinInput))) {
       return NameError.InvalidValue;
+    } else if (minMaxAreInclusive && minEqualMax) {
+      return NameError.NoError;
     } else if (Number(formatState.min) >= Number(formatState.max)) {
       return NameError.InvalidMaxMinValue;
     }
-  } else if (isNaN(Number(maxOrMinInput))) {
-    return NameError.InvalidValue;
   }
   return NameError.NoError;
 };

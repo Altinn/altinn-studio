@@ -20,6 +20,7 @@ const defaultRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
   multipleOf: 1,
 };
 const defaultState: NumberRestrictionsReducerState = {
+  isInteger: false,
   isMinInclusive: true,
   isMaxInclusive: true,
   min: minNumber,
@@ -187,65 +188,161 @@ describe('NumberRestrictionsReducer', () => {
       );
     });
   });
-
   describe('validateMinMax', () => {
-    test('Should return no error if min is less than max', () => {
-      const formatState: NumberRestrictionsReducerState = { ...defaultState, min: 4, max: 7 };
-      expect(validateMinMax(formatState)).toBe(NameError.NoError);
+    describe('At least one value is undefined', () => {
+      describe.each([true, false])('isInteger = %s', (isInteger) => {
+        describe.each([true, false])('isMinInclusive = %s', (isMinInclusive) => {
+          describe.each([true, false])('isMaxInclusive = %s', (isMaxInclusive) => {
+            it.each([
+              [undefined, undefined],
+              [undefined, 5],
+              [5, undefined],
+            ])('Returns NoError when min = %s and max = %s', (min, max) => {
+              const result = validateMinMax({
+                ...defaultState,
+                isInteger,
+                isMinInclusive,
+                isMaxInclusive,
+                min,
+                max,
+              });
+              expect(result).toBe(NameError.NoError);
+            });
+          });
+        });
+      });
     });
-
-    it('Should return error if min is equal to the max', () => {
-      const formatState: NumberRestrictionsReducerState = { ...defaultState, min: 7, max: 7 };
-      expect(validateMinMax(formatState)).toBe(NameError.InvalidMaxMinValue);
+    describe('Is integer', () => {
+      describe('Both min and max are exclusive', () => {
+        const bothExclState: NumberRestrictionsReducerState = {
+          ...defaultState,
+          isInteger: true,
+          isMinInclusive: false,
+          isMaxInclusive: false,
+        };
+        it('Returns InvalidMaxMinValue if min > max', () => {
+          const result = validateMinMax({ ...bothExclState, min: 7, max: 5 });
+          expect(result).toBe(NameError.InvalidMaxMinValue);
+        });
+        it('Returns InvalidMaxMinValue if min === max', () => {
+          const result = validateMinMax({ ...bothExclState, min: 5, max: 5 });
+          expect(result).toBe(NameError.InvalidMaxMinValue);
+        });
+        it('Returns InvalidMaxMinValue if min === max - 1', () => {
+          const result = validateMinMax({ ...bothExclState, min: 5, max: 6 });
+          expect(result).toBe(NameError.NoError);
+        });
+        it('Returns NoError if min < max - 1', () => {
+          const result = validateMinMax({ ...bothExclState, min: 5, max: 7 });
+          expect(result).toBe(NameError.NoError);
+        });
+      });
+      describe.each([
+        [true, false],
+        [false, true],
+      ])('isMinInclusive=%s and isMaxInclusive=%s', (isMinInclusive, isMaxInclusive) => {
+        const oneInclState: NumberRestrictionsReducerState = {
+          ...defaultState,
+          isInteger: true,
+          isMinInclusive,
+          isMaxInclusive,
+        };
+        it('Returns InvalidMaxMinValue if min > max', () => {
+          const result = validateMinMax({ ...oneInclState, min: 7, max: 5 });
+          expect(result).toBe(NameError.InvalidMaxMinValue);
+        });
+        it('Returns InvalidMaxMinValue if min === max', () => {
+          const result = validateMinMax({ ...oneInclState, min: 5, max: 5 });
+          expect(result).toBe(NameError.InvalidMaxMinValue);
+        });
+        it('Returns NoError if min === max - 1', () => {
+          const result = validateMinMax({ ...oneInclState, min: 5, max: 6 });
+          expect(result).toBe(NameError.NoError);
+        });
+        it('Returns NoError if min < max - 1', () => {
+          const result = validateMinMax({ ...oneInclState, min: 5, max: 7 });
+          expect(result).toBe(NameError.NoError);
+        });
+      });
+      describe('Both min and max are inclusive', () => {
+        const bothInclState: NumberRestrictionsReducerState = {
+          ...defaultState,
+          isInteger: true,
+          isMinInclusive: true,
+          isMaxInclusive: true,
+        };
+        it('Returns InvalidMaxMinValue if min > max', () => {
+          const result = validateMinMax({ ...bothInclState, min: 7, max: 5 });
+          expect(result).toBe(NameError.InvalidMaxMinValue);
+        });
+        it('Returns NoError if min === max', () => {
+          const result = validateMinMax({ ...bothInclState, min: 5, max: 5 });
+          expect(result).toBe(NameError.NoError);
+        });
+        it('Returns NoError if min === max - 1', () => {
+          const result = validateMinMax({ ...bothInclState, min: 5, max: 6 });
+          expect(result).toBe(NameError.NoError);
+        });
+        it('Returns NoError if min < max - 1', () => {
+          const result = validateMinMax({ ...bothInclState, min: 5, max: 7 });
+          expect(result).toBe(NameError.NoError);
+        });
+      });
     });
-
-    it('Should return error message if min is greater than max', () => {
-      const formatState: NumberRestrictionsReducerState = { ...defaultState, min: 7, max: 4 };
-      expect(validateMinMax(formatState)).toBe(NameError.InvalidMaxMinValue);
-    });
-
-    it('Should return error message if min is equal to max and both are inclusive', () => {
-      const formatState: NumberRestrictionsReducerState = {
-        ...defaultState,
-        min: 7,
-        max: 7,
-        isMinInclusive: true,
-        isMaxInclusive: true,
-      };
-      expect(validateMinMax(formatState)).toBe(NameError.InvalidMaxMinValue);
-    });
-
-    it('Should return error message if min is equal to max and both are exclusive', () => {
-      const formatState: NumberRestrictionsReducerState = {
-        ...defaultState,
-        min: 7,
-        max: 7,
-        isMinInclusive: false,
-        isMaxInclusive: false,
-      };
-      expect(validateMinMax(formatState)).toBe(NameError.InvalidMaxMinValue);
-    });
-
-    it('Should return error message if min is equal to max and min is inclusive and max is exclusive', () => {
-      const formatState: NumberRestrictionsReducerState = {
-        ...defaultState,
-        min: 7,
-        max: 7,
-        isMinInclusive: true,
-        isMaxInclusive: false,
-      };
-      expect(validateMinMax(formatState)).toBe(NameError.InvalidMaxMinValue);
-    });
-
-    it('Should return error message if min is equal to max and min is exclusive and max is inclusive', () => {
-      const formatState: NumberRestrictionsReducerState = {
-        ...defaultState,
-        min: 7,
-        max: 7,
-        isMinInclusive: false,
-        isMaxInclusive: true,
-      };
-      expect(validateMinMax(formatState)).toBe(NameError.InvalidMaxMinValue);
+    describe('Is not integer', () => {
+      describe.each([
+        [false, false],
+        [false, true],
+        [true, false],
+      ])('isMinInclusive=%s and isMaxInclusive=%s', (isMinInclusive, isMaxInclusive) => {
+        const atLeastOneExclusiveState: NumberRestrictionsReducerState = {
+          ...defaultState,
+          isInteger: false,
+          isMinInclusive,
+          isMaxInclusive,
+          max: undefined,
+        };
+        it('Returns InvalidMaxMinValue if min > max', () => {
+          const result = validateMinMax({ ...atLeastOneExclusiveState, min: 5.2, max: 5.1 });
+          expect(result).toBe(NameError.InvalidMaxMinValue);
+        });
+        it('Returns InvalidMaxMinValue if min === max', () => {
+          const result = validateMinMax({ ...atLeastOneExclusiveState, min: 5.1, max: 5.1 });
+          expect(result).toBe(NameError.InvalidMaxMinValue);
+        });
+        it('Returns NoError if min < max', () => {
+          const result1 = validateMinMax({ ...atLeastOneExclusiveState, min: 5.1, max: 7.1 });
+          expect(result1).toBe(NameError.NoError);
+          const result2 = validateMinMax({ ...atLeastOneExclusiveState, min: 5.1, max: 6.1 });
+          expect(result2).toBe(NameError.NoError);
+          const result3 = validateMinMax({ ...atLeastOneExclusiveState, min: 5.1, max: 5.2 });
+          expect(result3).toBe(NameError.NoError);
+        });
+      });
+      describe('Both min and max are inclusive', () => {
+        const bothInclState: NumberRestrictionsReducerState = {
+          ...defaultState,
+          isInteger: false,
+          isMinInclusive: true,
+          isMaxInclusive: true,
+        };
+        it('Returns InvalidMaxMinValue if min > max', () => {
+          const result = validateMinMax({ ...bothInclState, min: 5.2, max: 5.1 });
+          expect(result).toBe(NameError.InvalidMaxMinValue);
+        });
+        it('Returns NoError if min === max', () => {
+          const result = validateMinMax({ ...bothInclState, min: 5.1, max: 5.1 });
+          expect(result).toBe(NameError.NoError);
+        });
+        it('Returns NoError if min < max', () => {
+          const result1 = validateMinMax({ ...bothInclState, min: 5.1, max: 7.1 });
+          expect(result1).toBe(NameError.NoError);
+          const result2 = validateMinMax({ ...bothInclState, min: 5.1, max: 6.1 });
+          expect(result2).toBe(NameError.NoError);
+          const result3 = validateMinMax({ ...bothInclState, min: 5.1, max: 5.2 });
+          expect(result3).toBe(NameError.NoError);
+        });
+      });
     });
   });
 });
