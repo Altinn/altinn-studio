@@ -9,7 +9,6 @@ import appReleaseReducer from '../sharedResources/appRelease/appReleaseSlice';
 import configurationReducer from '../sharedResources/configuration/configurationSlice';
 import repoStatusReducer from '../sharedResources/repoStatus/repoStatusSlice';
 import userReducer from '../sharedResources/user/userSlice';
-import { appDevelopmentApi } from '../services/appDevelopmentApi';
 
 export const rootReducer = {
   handleMergeConflict: handleMergeConflictReducer,
@@ -23,5 +22,4 @@ export const rootReducer = {
   dataModelling: dataModellingReducer,
   dataModelsMetadataState: dataModelsMetadataReducer,
   userState: userReducer,
-  [appDevelopmentApi.reducerPath]: appDevelopmentApi.reducer,
 };

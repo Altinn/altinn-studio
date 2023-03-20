@@ -1,5 +1,12 @@
-import { post } from 'app-shared/utils/networking';
-import { releasesPath, deploymentsPath, repoPushPath, repoCommitPath } from 'app-shared/api-paths';
+import { del, post, put } from 'app-shared/utils/networking';
+import {
+  releasesPath,
+  deploymentsPath,
+  repoPushPath,
+  repoCommitPath,
+  textResourcesPath,
+  textResourceIdsPath,
+} from 'app-shared/api-paths';
 
 export const createRelease = (org, app, payload) => post(releasesPath(org, app), payload);
 
@@ -14,3 +21,14 @@ export const createRepoCommit = (org, app, payload) =>
       'Content-Type': 'application/json',
     },
   });
+
+export const updateTranslationByLangCode = (org, app, langCode, payload) =>
+  post(textResourcesPath(org, app, langCode), payload);
+
+export const updateTextId = (org, app, payload) => put(textResourceIdsPath(org, app), payload);
+
+export const addLanguageCode = (org, app, langCode, payload) =>
+  post(textResourcesPath(org, app, langCode), payload);
+
+export const deleteLanguageCode = (org, app, langCode) =>
+  del(textResourcesPath(org, app, langCode));

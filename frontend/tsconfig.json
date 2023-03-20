@@ -26,5 +26,5 @@
   },
   "files": ["declaration.d.ts"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "tmp", "./testing/cypress/**"]
+  "exclude": ["node_modules", "tmp", "./testing/cypress/**","dist"]
 }
