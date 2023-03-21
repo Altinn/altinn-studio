@@ -97,9 +97,7 @@ export function DataModelling({
         const filename = selectedOption.value.fileName;
         const lowerCaseFileName = filename.toLowerCase();
         const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
-        const schemaName = filename.substring(0, filenameWithoutXsd.length);
-
-        uploadedOrCreatedFileName.current = schemaName;
+        uploadedOrCreatedFileName.current = filename.substring(0, filenameWithoutXsd.length);
       }
     }
   }, [selectedOption, dispatch, org, repo]);
@@ -116,14 +114,13 @@ export function DataModelling({
   const handleCreateSchema = (model: { name: string; relativeDirectory?: string }) => {
     dispatch(createDataModel(model));
     uploadedOrCreatedFileName.current = model.name;
+    setCreateNewOpen(false);
   };
 
   const handleXSDUploaded = (filename: string) => {
     const lowerCaseFileName = filename.toLowerCase();
     const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
-    const schemaName = filename.substring(0, filenameWithoutXsd.length);
-
-    uploadedOrCreatedFileName.current = schemaName;
+    uploadedOrCreatedFileName.current = filename.substring(0, filenameWithoutXsd.length);
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
@@ -197,7 +194,8 @@ export function DataModelling({
           dataModelNames={modelNames}
           createPathOption={createPathOption}
           disabled={shouldDisplayLandingPage}
-          openByDefault={createNewOpen}
+          open={createNewOpen}
+          setOpen={setCreateNewOpen}
         />
         <XSDUpload
           onXSDUploaded={handleXSDUploaded}
