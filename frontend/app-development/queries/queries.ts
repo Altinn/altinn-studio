@@ -1,13 +1,15 @@
 import { get } from 'app-shared/utils/networking';
 import {
-  releasesPath,
-  deploymentsPath,
-  deployPermissionsPath,
-  repoStatusPath,
   branchStatusPath,
+  deployPermissionsPath,
+  deploymentsPath,
   envConfigPath,
+  releasesPath,
   repoMetaPath,
   repoPullPath,
+  repoStatusPath,
+  textLanguagesPath,
+  textResourcesPath,
   datamodelsXsdPath,
 } from 'app-shared/api-paths';
 import { orgsListUrl } from 'app-shared/cdn-paths';
@@ -21,4 +23,6 @@ export const getOrgList = () => get(orgsListUrl());
 export const getRepoStatus = (owner, app) => get(repoStatusPath(owner, app));
 export const getRepoMetadata = (owner, app) => get(repoMetaPath(owner, app));
 export const getRepoPull = (owner, app) => get(repoPullPath(owner, app));
+export const getTextResources = (owner, app, lang) => get(textResourcesPath(owner, app, lang));
+export const getTextLanguages = (owner, app) => get(textLanguagesPath(owner, app));
 export const getDatamodelsXsd = (owner, app) => get(datamodelsXsdPath(owner, app));

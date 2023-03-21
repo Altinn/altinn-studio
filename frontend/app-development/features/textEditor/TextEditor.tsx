@@ -4,28 +4,27 @@ import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-edit
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { AltinnSpinner } from 'app-shared/components';
-import { getOrgApp } from '../../common/hooks';
-import { useGetLanguagesQuery } from '../../services/languagesApi';
-import {
-  useAddByLangCodeMutation,
-  useDeleteByLangCodeMutation,
-  useGetAppTextsByLangCodeQuery,
-  useUpdateTextIdMutation,
-  useUpdateTranslationByLangCodeMutation,
-} from '../../services/textsApi';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import classes from './TextEditor.module.css';
 import { getLocalStorage, setLocalStorage } from 'app-shared/utils/localStorage';
 import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
 import { useTranslation } from 'react-i18next';
+import {
+  useAddLanguageMutation,
+  useDeleteLanguageMutation,
+  useTextIdMutation,
+  useTextLanguages,
+  useTextResources,
+  useTranslationByLangCodeMutation,
+} from '../../query-hooks/text';
 
 const storageGroupName = 'textEditorStorage';
 export const TextEditor = () => {
   const [searchParams, setSearchParams] = useSearchParams({ lang: defaultLangCode });
   const selectedLangCode = searchParams.get('lang');
   const getSearchQuery = () => searchParams.get('search') || '';
-  const orgApp = getOrgApp();
-  const { data: appLangCodes } = useGetLanguagesQuery(orgApp);
+  const { org, app } = useParams();
+  const { data: appLangCodes } = useTextLanguages(org, app);
 
   const setSelectedLangCode = (lang: string) => {
     const params: any = { lang };
@@ -47,18 +46,7 @@ export const TextEditor = () => {
     isLoading: isInitialLoadingLang,
     isFetching: isFetchingTranslations,
     refetch: refetchTextLang,
-  } = useGetAppTextsByLangCodeQuery(
-    {
-      ...orgApp,
-      langCode: selectedLangCode,
-    },
-    { skip: !selectedLangCode }
-  );
-
-  const [updateLang] = useUpdateTranslationByLangCodeMutation();
-  const [deleteLanguage] = useDeleteByLangCodeMutation();
-  const [addLanguage] = useAddByLangCodeMutation();
-  const [updateTextId] = useUpdateTextIdMutation();
+  } = useTextResources(org, app, selectedLangCode);
 
   const { t } = useTranslation();
 
@@ -67,45 +55,38 @@ export const TextEditor = () => {
    * This issue will be fixed when we have implemented React Query with shared state/cache
    */
   useEffect(() => {
-    refetchTextLang();
+    refetchTextLang().then();
   }, [refetchTextLang]);
 
   const [hideIntroPage, setHideIntroPage] = useState(
     () => getLocalStorage(storageGroupName, 'hideTextsIntroPage') ?? false
   );
-  if (isInitialLoadingLang) {
-    return <AltinnSpinner />;
-  }
 
+  const { mutate: addLanguageMutation } = useAddLanguageMutation(org, app);
   const handleAddLanguage = (langCode: LangCode) =>
-    addLanguage({
-      ...orgApp,
+    addLanguageMutation({
       langCode,
-      resources: translations.resources.map(({ id }) => ({
+      resources: translations.resources.map(({ id, value }) => ({
         id,
-        value: '',
+        value: ['appName', 'ServiceName'].includes(id) ? value : '',
       })),
     });
 
-  const handleDeleteLanguage = (langCode: LangCode) =>
-    deleteLanguage({
-      ...orgApp,
-      langCode,
-    });
+  const { mutate: deleteLanguageMutation } = useDeleteLanguageMutation(org, app);
+  const handleDeleteLanguage = (langCode: LangCode) => deleteLanguageMutation({ langCode });
 
-  const handleTranslationChange = (changedTranslations: TextResourceFile) =>
-    updateLang({
-      ...orgApp,
-      langCode: selectedLangCode,
-      data: changedTranslations,
-    });
-  const handleTextIdChange = (mutation: TextResourceIdMutation) =>
-    updateTextId({
-      ...orgApp,
-      mutations: [mutation],
-    });
+  const { mutate: transMutation } = useTranslationByLangCodeMutation(org, app, selectedLangCode);
+  const handleTranslationChange = (data: TextResourceFile) => transMutation(data);
+
+  const { mutate: textIdMutation } = useTextIdMutation(org, app);
+  const handleTextIdChange = (data: TextResourceIdMutation) => textIdMutation([data]);
+
   const handleHideIntroPageButtonClick = () =>
     setHideIntroPage(setLocalStorage(storageGroupName, 'hideTextsIntroPage', true));
+
+  if (isInitialLoadingLang) {
+    return <AltinnSpinner />;
+  }
   return (
     <>
       <PopoverPanel
@@ -119,11 +100,7 @@ export const TextEditor = () => {
       >
         <p>{t('text_editor.info_dialog_1')}</p>
         <p>
-          <Link
-            target={'_blank'}
-            to={`/../designer/${orgApp.org}/${orgApp.app}/Text`}
-            relative={'path'}
-          >
+          <Link target={'_blank'} to={`/../designer/${org}/${app}/Text`} relative={'path'}>
             {t('text_editor.info_dialog_nav_to_old')}
           </Link>
         </p>

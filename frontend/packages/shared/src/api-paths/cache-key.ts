@@ -8,4 +8,6 @@ export enum CacheKey {
   Environemnts = 'ENVIRONMENTS',
   RepoMetaData = 'REPO_METADATA',
   RepoPullData = 'REPO_PULL_DATA',
+  TextResources = 'TEXT_RESOURCES',
+  TextLanguages = 'TEXT_LANGUAGES',
 }
