@@ -37,8 +37,7 @@
         window.app = appId[2];
       }
 
-      function updatePermission() {
-        const permissionFormat = document.querySelector("#permissionInput").value;
+      function updatePermission(format) {
         const permissions = {
           read: false,
           write: false,
@@ -49,7 +48,7 @@
             reject: false,
           },
         };
-        for (const i of permissionFormat) {
+        for (const i of format) {
           switch (i) {
             case 'r':
               permissions.read = true;
@@ -87,8 +86,12 @@
     </script>
     <div id="root" class="media-body flex-column d-flex"></div>
     <div id="permissionContainer" style="display: none; margin: 0 auto;">
-      <input id="permissionInput" value="rw">
-      <button onclick="updatePermission()">Update permissions</button>
+      <span>Set permissions:</span>
+      <button onclick="updatePermission('r')">Read</button>
+      <button onclick="updatePermission('rw')">Write</button>
+      <button onclick="updatePermission('rc')">Confirm</button>
+      <button onclick="updatePermission('rs')">Sign</button>
+      <button onclick="updatePermission('rsj')">Reject</button>
     </div>
     <script>
       loadScript();
