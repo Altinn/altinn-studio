@@ -29,7 +29,6 @@
 </head>
 <body>
   <div class="flex-column d-flex media-body">
-
     <script>
       function loadScript() {
         var appId = window.location.pathname.split('/');
@@ -38,10 +37,64 @@
         window.app = appId[2];
       }
 
+      function updatePermission() {
+        const permissionFormat = document.querySelector("#permissionInput").value;
+        const permissions = {
+          read: false,
+          write: false,
+          actions: {
+            instantiate: false,
+            confirm: false,
+            sign: false,
+            reject: false,
+          },
+        };
+        for (const i of permissionFormat) {
+          switch (i) {
+            case 'r':
+              permissions.read = true;
+              break;
+            case 'w':
+              permissions.write = true;
+              break;
+            case 'i':
+              permissions.actions = { ...permissions.actions, instantiate: true };
+              break;
+            case 'c':
+              permissions.actions = { ...permissions.actions, confirm: true };
+              break;
+            case 's':
+              permissions.actions = { ...permissions.actions, sign: true };
+              break;
+            case 'j':
+              permissions.actions = { ...permissions.actions, reject: true };
+              break;
+          }
+        }
+
+        const { taskType, taskId } = window.reduxStore.getState().process;
+
+        window.reduxStore.dispatch({
+          type: 'process/getFulfilled',
+          payload: {
+            processStep: taskType,
+            taskId,
+            ...permissions
+          },
+        });
+      }
+
     </script>
     <div id="root" class="media-body flex-column d-flex"></div>
+    <div id="permissionContainer" style="display: none; margin: 0 auto;">
+      <input id="permissionInput" value="rw">
+      <button onclick="updatePermission()">Update permissions</button>
+    </div>
     <script>
       loadScript();
+      if (document.location.host === "local.altinn.cloud") {
+        document.querySelector("#permissionContainer").style.display = "block";
+      }
     </script>
   </div>
   <script src="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.js"></script>
