@@ -220,7 +220,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
         />
       )}
       <ItemRestrictions {...props} />
-      <Divider inMenu />
+      <Divider marginless/>
       <FieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
           <TextField

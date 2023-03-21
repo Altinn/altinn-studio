@@ -136,7 +136,7 @@ export const ItemRestrictions = ({
       {isArray && <ArrayRestrictions {...restrictionProps} />}
       {[FieldType.String, FieldType.Integer, FieldType.Number].includes(fieldType as FieldType) && (
         <>
-          <Divider inMenu />
+          <Divider marginless/>
           <FieldSet legend={t('schema_editor.enum_legend')}>
             {!enums?.length && (
               <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>

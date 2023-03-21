@@ -217,7 +217,7 @@ export function Resources() {
   return (
     <SimpleContainer>
       <h2>{t('dashboard.resources')}</h2>
-      <Divider inMenu />
+      <Divider marginless/>
       <div className={classes.resourcesContainer}>
         {resources.map((resource, index) => (
           <ResourceItem

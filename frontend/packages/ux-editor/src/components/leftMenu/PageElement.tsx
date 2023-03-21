@@ -185,7 +185,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           id='edit-page-button'
           disabled={invalid}
         />
-        <Divider inMenu />
+        <Divider marginless/>
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'delete')}
           text={t('left_menu.page_menu_delete')}

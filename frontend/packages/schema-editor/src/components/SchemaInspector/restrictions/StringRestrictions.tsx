@@ -71,7 +71,7 @@ export function StringRestrictions({
 
   return (
     <>
-      <Divider inMenu />
+      <Divider marginless/>
       <Select
         inputId='format-select-input'
         label={t('format')}
@@ -147,7 +147,7 @@ export function StringRestrictions({
           />
         </div>
       </div>
-      <Divider inMenu />
+      <Divider marginless/>
       <FieldSet className={classes.fieldSet} legend={t('regex')}>
         <RestrictionField
           keyName={StrRestrictionKeys.pattern}

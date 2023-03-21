@@ -23,7 +23,6 @@ export function NumberRestrictions({
   restrictions,
   path,
   onChangeRestrictions,
-  onChangeRestrictionValue,
   isInteger,
 }: NumberRestrictionsProps) {
   const { t } = useTranslation();
@@ -54,7 +53,7 @@ export function NumberRestrictions({
     formatState.isMaxInclusive ? 'inclusive' : 'exclusive'
   }`;
 
-  const nameErrorMessage = {
+  const minMaxErrorMessage = {
     [NumberRestrictionsError.InvalidValue]: t('schema_editor.nameError_InvalidValue'),
     [NumberRestrictionsError.InvalidMaxMinValue]: t('schema_editor.nameError_InvalidMaxMinValue'),
     [NumberRestrictionsError.NoError]: '',
@@ -77,7 +76,7 @@ export function NumberRestrictions({
 
   return (
     <>
-      <Divider />
+      <Divider marginless />
       <div>
         <Label htmlFor='schema_editor.minimum_'>{t(minLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
@@ -89,7 +88,7 @@ export function NumberRestrictions({
               formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
             />
             <div className={classes.minNumberErrorMassage}>
-              <ErrorMessage>{nameErrorMessage}</ErrorMessage>
+              <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
           <Checkbox
@@ -113,7 +112,7 @@ export function NumberRestrictions({
               formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
             />
             <div className={classes.minNumberErrorMassage}>
-              {<ErrorMessage>{nameErrorMessage}</ErrorMessage>}{' '}
+              <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
             </div>
           </div>
           <Checkbox
@@ -132,8 +131,9 @@ export function NumberRestrictions({
         <div className={classes.formatFieldsRowContent}>
           <TextField
             id='schema_editor.multipleOf'
+            formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
             onChange={(e) =>
-              onChangeRestrictionValue(IntRestrictionKeys.multipleOf.toString(), e.target.value)
+              dispatchAction(NumberRestrictionsReducerActionType.setRestriction, e.target.value)
             }
             value={formatState.restrictions[IntRestrictionKeys.multipleOf.toString()]}
           />

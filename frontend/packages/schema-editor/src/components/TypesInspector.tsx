@@ -55,7 +55,7 @@ export const TypesInspector = ({
             variant={ButtonVariant.Quiet}
             icon={<Add height={40} />}
             onClick={handleAddDefinition}
-          ></Button>
+          />
         </div>
 
         {schemaItems.map((item) => (
