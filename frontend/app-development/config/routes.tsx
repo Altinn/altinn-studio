@@ -30,7 +30,7 @@ interface IRoute {
   props?: IRouteProps;
 }
 
-const routes: IRoute[] = [
+export const routes: IRoute[] = [
   {
     path: '/:org/:app/ui-editor',
     exact: true,
@@ -58,7 +58,7 @@ const routes: IRoute[] = [
   {
     path: '/:org/:app/accesscontrol',
     exact: true,
-    activeSubHeaderSelection: TopBarMenu.Create,
+    activeSubHeaderSelection: TopBarMenu.None,
     activeLeftMenuSelection: 'Access-Controll',
     menu: 'create',
     subapp: AccessControlContainer,
@@ -100,5 +100,3 @@ const routes: IRoute[] = [
     subapp: TextEditor,
   },
 ];
-
-export default routes;

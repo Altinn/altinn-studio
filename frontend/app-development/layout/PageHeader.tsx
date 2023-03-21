@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppBar } from './AppBar';
 import { Route, Routes } from 'react-router-dom';
-import routes from '../config/routes';
+import { routes } from '../config/routes';
 
 interface IPageHeaderProps {
   repoStatus: any;
