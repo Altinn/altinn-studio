@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -17,6 +19,7 @@ using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NuGet.Protocol;
 using Xunit;
 
 namespace Designer.Tests.Controllers
@@ -65,7 +68,7 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(8, actual.Count());
             Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
-            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<DeploymentEntity>(), It.IsAny<string>()), Times.Never);
             _deploymentServiceMock.Verify(r => r.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
@@ -89,6 +92,7 @@ namespace Designer.Tests.Controllers
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
+            Console.WriteLine("RESPONSE : " + responseString);
             SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, _options);
             IEnumerable<DeploymentEntity> actual = searchResult.Results;
 
@@ -96,7 +100,7 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(8, actual.Count());
             Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
-            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<DeploymentEntity>(), It.IsAny<string>()), Times.Once);
             _deploymentServiceMock.Verify(r => r.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 

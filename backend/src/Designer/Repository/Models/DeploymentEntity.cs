@@ -20,6 +20,18 @@ namespace Altinn.Studio.Designer.Repository.Models
         public string EnvName { get; set; }
 
         /// <summary>
+        /// Application found in environment
+        /// </summary>
+        [JsonProperty("deployed")]
+        public bool Deployed { get; set; }
+
+        /// <summary>
+        /// Application found in environment
+        /// </summary>
+        [JsonProperty("reachable")]
+        public bool Reachable { get; set; }
+
+        /// <summary>
         /// Build
         /// </summary>
         [JsonProperty("build")]

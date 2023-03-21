@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
@@ -79,10 +80,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query)
         {
             IEnumerable<DeploymentEntity> results = await _deploymentRepository.Get(org, app, query);
-            return new SearchResults<DeploymentEntity>
+            IEnumerable<DeploymentEntity> deploymentEntities = results as DeploymentEntity[] ?? results.ToArray();
+
+            EnvironmentModel[] environments = await _environmentsService.GetEnvironments();
+            foreach (EnvironmentModel env in environments)
             {
-                Results = results
-            };
+                deploymentEntities
+                    .Where(deployment => deployment.EnvName == env.Name)
+                    .ToList().ForEach(async deployment => await UpdateDeploymentStatus(deployment, org, app, env));
+            }
+
+            return new SearchResults<DeploymentEntity> { Results = deploymentEntities };
         }
 
         /// <inheritdoc/>
@@ -101,9 +109,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await _deploymentRepository.Update(deploymentEntity);
         }
 
-        public async Task<AzureDeploymentsResponse> GetDeploymentsInEnvAsync(string org, string app, DeployEnvironment env)
+        public async Task<AzureDeploymentsResponse> GetDeploymentsInEnvAsync(string org, string app, EnvironmentModel env)
         {
-            string pathToAzureEnv = $"{org}.{env.AppPrefix}.{env.Hostname}.{PATH_TO_AZURE_ENV}?labelSelector=release={org}-{app}&envName={env.Name}";
+            string pathToAzureEnv = $"{org}.{env.AppPrefix}.{env.Hostname}{PATH_TO_AZURE_ENV}?labelSelector=release={org}-{app}&envName={env.Name}";
             AzureDeploymentsResponse azureDeploymentsResponse = null;
             HttpResponseMessage response = await client.GetAsync(pathToAzureEnv);
             if (response.IsSuccessStatusCode)
@@ -111,6 +119,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 azureDeploymentsResponse = await response.Content.ReadAsAsync<AzureDeploymentsResponse>();
             }
             return azureDeploymentsResponse;
+        }
+
+        private async Task UpdateDeploymentStatus(DeploymentEntity deployment, string org, string app, EnvironmentModel env)
+        {
+            AzureDeploymentsResponse azureDeploymentsResponse = await GetDeploymentsInEnvAsync(org, app, env);
+            deployment.Deployed = !deployment.Deployed ? azureDeploymentsResponse != null : deployment.Deployed;
+            deployment.Reachable = azureDeploymentsResponse != null;
         }
 
         private async Task<Build> QueueDeploymentBuild(
