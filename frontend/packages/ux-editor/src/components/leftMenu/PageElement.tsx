@@ -80,6 +80,9 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     if (!errorMessage && name !== newName) {
       await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName, org, app }));
       setSearchParams({ ...deepCopy(searchParams), layout: newName });
+    } else {
+      setNewName('');
+      setErrorMessage('');
     }
   };
 
@@ -137,7 +140,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           />
         </div>
         {editMode ? (
-          <>
+          <div>
             <TextField
               onBlur={handleOnBlur}
               onKeyDown={handleKeyPress}
@@ -145,8 +148,8 @@ export function PageElement({ name, invalid }: IPageElementProps) {
               defaultValue={name}
               isValid={!errorMessage}
             />
-            <span className={classes.errorMessage}>{errorMessage}</span>
-          </>
+            <div className={classes.errorMessage}>{errorMessage}</div>
+          </div>
         ) : (
           <div onClick={onPageClick}>{name}</div>
         )}
@@ -158,7 +161,6 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           variant={ButtonVariant.Quiet}
         />
       </div>
-
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
         {layoutOrder.includes(name) && (
           <AltinnMenuItem
