@@ -22,6 +22,7 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
       return getDefaultMiddleware({
         serializableCheck: {
           ignoredActionPaths: ['payload.error', 'serviceInformation.error'],
+          warnAfter: 128,
         },
       }).concat(middlewares);
     },

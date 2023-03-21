@@ -9,7 +9,7 @@ module.exports = {
     hints: false,
   },
   optimization: {
-    chunkIds: 'natural',
+    chunkIds: false,
     minimize: true,
     minimizer: [
       new TerserPlugin({
