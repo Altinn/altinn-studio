@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
 
 import { Legend } from 'src/features/form/components/Legend';
@@ -44,27 +44,27 @@ describe('Legend', () => {
   }
 
   it('should render legend', () => {
-    const { queryByText } = renderLegendComponent();
-    expect(queryByText('label.text')).toBeInTheDocument();
+    renderLegendComponent();
+    expect(screen.getByText('label.text')).toBeInTheDocument();
   });
 
   it('should render required marking when field is required', () => {
-    const { queryByText } = renderLegendComponent({ required: true });
-    expect(queryByText(requiredMarking)).toBeTruthy();
+    renderLegendComponent({ required: true });
+    expect(screen.getByText(requiredMarking)).toBeTruthy();
   });
 
   it('should render optional marking when labelSettings.optionalIndicator is true', () => {
-    const { queryByText } = renderLegendComponent({
+    renderLegendComponent({
       labelSettings: { optionalIndicator: true },
     });
-    expect(queryByText(`(${optionalMarking})`)).toBeTruthy();
+    expect(screen.getByText(`(${optionalMarking})`)).toBeTruthy();
   });
 
   it('should not render optional marking when required, even if labelSettings.optionalIndicator is true', () => {
-    const { queryByText } = renderLegendComponent({
+    renderLegendComponent({
       labelSettings: { optionalIndicator: true },
       required: true,
     });
-    expect(queryByText(`(${optionalMarking})`)).toBeFalsy();
+    expect(screen.queryByText(`(${optionalMarking})`)).toBeFalsy();
   });
 });

@@ -49,10 +49,13 @@ describe('InstantiateContainer', () => {
   };
 
   it('should show content loader on initial render and start instantiation if valid party', async () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const mockDispatch = render();
 
     await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledWith(InstantiationActions.instantiate());
+    });
+    await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 
@@ -68,6 +71,7 @@ describe('InstantiateContainer', () => {
   });
 
   it('should show header as "" when translations have not been initialized properly loader on initial render and start instantiation if valid party', async () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const mockDispatch = render({
       language: {
         language: {
@@ -81,6 +85,8 @@ describe('InstantiateContainer', () => {
 
     await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledWith(InstantiationActions.instantiate());
+    });
+    await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 
@@ -93,6 +99,7 @@ describe('InstantiateContainer', () => {
   });
 
   it('should not call InstantiationActions.instantiate when no selected party', async () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const mockDispatch = render({
       party: {
         parties: [],

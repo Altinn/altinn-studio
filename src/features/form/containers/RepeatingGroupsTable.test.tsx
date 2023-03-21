@@ -137,21 +137,25 @@ describe('RepeatingGroupTable', () => {
   const repeatingGroupIndex = 3;
 
   it('should render table header when table has entries', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const container = render();
+    // eslint-disable-next-line testing-library/no-node-access
     const tableHeader = container.querySelector(`#group-${group.id}-table-header`);
     expect(tableHeader).toBeInTheDocument();
   });
 
   it('should not render table header when table has no entries', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const container = render({
       repeatingGroupIndex: -1,
     });
+    // eslint-disable-next-line testing-library/no-node-access
     const tableHeader = container.querySelector(`#group-${group.id}-table-header`);
     expect(tableHeader).not.toBeInTheDocument();
   });
 
   describe('popOver warning', () => {
-    beforeEach(() => {
+    it('should open and close delete-warning on delete click when alertOnDelete is active', async () => {
       const group: ExprUnresolved<ILayoutGroup> = getFormLayoutGroupMock({
         id: 'mock-container-id',
         edit: { alertOnDelete: true },
@@ -163,12 +167,10 @@ describe('RepeatingGroupTable', () => {
       }
 
       render({}, layout);
-    });
 
-    it('should open and close delete-warning on delete click when alertOnDelete is active', async () => {
       await act(() => user.click(screen.getAllByRole('button', { name: /delete/i })[0]));
 
-      expect(screen.queryByText('Are you sure you want to delete this row?')).toBeInTheDocument();
+      expect(screen.getByText('Are you sure you want to delete this row?')).toBeInTheDocument();
 
       await act(() => user.click(screen.getAllByRole('button', { name: /delete/i })[0]));
 

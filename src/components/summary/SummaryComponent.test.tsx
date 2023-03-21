@@ -76,7 +76,9 @@ describe('SummaryComponent', () => {
     };
     otherLayout.uiConfig.hiddenFields = ['Input'];
     const { container } = renderHelper({ componentRef: 'Input' }, {}, otherLayout);
+    // eslint-disable-next-line testing-library/no-node-access
     expect(container.firstChild).toBeNull();
+    // eslint-disable-next-line testing-library/no-node-access
     expect(container.childElementCount).toBe(0);
   });
 
@@ -103,7 +105,10 @@ describe('SummaryComponent', () => {
       ...layoutMock(),
     };
     otherLayout.uiConfig.currentView = 'otherPage';
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const theRender = renderHelper({ componentRef: 'Input' }, {}, otherLayout);
+
+    // eslint-disable-next-line
     const button = theRender.container.querySelector<HTMLButtonElement>('button');
     button && fireEvent.click(button);
     expect(spy).toHaveBeenCalledWith({

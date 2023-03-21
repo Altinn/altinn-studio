@@ -54,6 +54,7 @@ describe('organisms/AltinnAppHeader', () => {
     const profileButton = screen.getByRole('button', {
       name: /profilikon meny/i,
     });
+    // eslint-disable-next-line testing-library/no-node-access
     expect(profileButton.firstChild?.firstChild).toHaveClass('fa-private-circle-big');
   });
 
@@ -62,6 +63,7 @@ describe('organisms/AltinnAppHeader', () => {
     const profileButton = screen.getByRole('button', {
       name: /profilikon meny/i,
     });
+    // eslint-disable-next-line testing-library/no-node-access
     expect(profileButton.firstChild?.firstChild).toHaveClass('fa-private-circle-big');
   });
 
@@ -70,6 +72,7 @@ describe('organisms/AltinnAppHeader', () => {
     const profileButton = screen.getByRole('button', {
       name: /profilikon meny/i,
     });
+    // eslint-disable-next-line testing-library/no-node-access
     expect(profileButton.firstChild?.firstChild).toHaveClass('fa-corp-circle-big');
   });
 
@@ -81,6 +84,7 @@ describe('organisms/AltinnAppHeader', () => {
         hidden: true,
       }),
     ).toBeNull();
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(() =>
       userEvent.click(
         screen.getByRole('button', {

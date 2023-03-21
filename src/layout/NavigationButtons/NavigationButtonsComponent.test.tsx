@@ -132,6 +132,6 @@ describe('NavigationButton', () => {
       },
     });
 
-    expect(screen.queryByText('back')).toBeTruthy();
+    expect(screen.getByText('back')).toBeTruthy();
   });
 });

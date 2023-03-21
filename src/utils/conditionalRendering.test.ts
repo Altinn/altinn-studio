@@ -70,31 +70,37 @@ describe('conditionalRendering', () => {
   });
 
   it('should HIDE element when rule is set to HIDE and condition is TRUE', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(mockHideRules, mockValidFormData);
     expect(result.has('layoutElement_2')).toBe(true);
   });
 
   it('should SHOW element when rule is set to HIDE and condition is FALSE', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(mockHideRules, mockInvalidFormData);
     expect(result.has('layoutElement_2')).toBe(false);
   });
 
   it('should SHOW element when rule is set to SHOW and condition is TRUE', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(mockShowRules, mockValidFormData);
     expect(result.has('layoutElement_1')).toBe(false);
   });
 
   it('should HIDE element when rule is set to SHOW and condition is FALSE', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(mockShowRules, mockInvalidFormData);
     expect(result.has('layoutElement_1')).toBe(true);
   });
 
   it('conditional rendering rules should only return elements to hide', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(mockShowRules, mockValidFormData);
     expect(result.size).toBe(0);
   });
 
   it('conditional rendering rules with several targets should be applied to all connected elements', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(mockHideRules, mockValidFormData);
     expect(result.size).toBe(2);
     expect(result.has('layoutElement_2')).toBe(true);
@@ -102,6 +108,7 @@ describe('conditionalRendering', () => {
   });
 
   it('should run and return empty result array on null values', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(null, null);
     expect(result.size).toBe(0);
   });
@@ -133,6 +140,7 @@ describe('conditionalRendering', () => {
       'mockGroup[0].mockField': '8',
     };
 
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(showRules, formData, repeatingGroups);
     expect([...result.values()]).toEqual(['layoutElement_2-0', 'layoutElement_3-0']);
   });
@@ -176,6 +184,7 @@ describe('conditionalRendering', () => {
       'parentGroup[1].childGroup[2].mockField': '11',
     };
 
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(showRules, formData, repeatingGroups);
 
     expect([...result.values()]).toEqual([

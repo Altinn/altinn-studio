@@ -219,6 +219,7 @@ describe('CheckboxContainerComponent', () => {
 
     expect(handleChange).not.toHaveBeenCalled();
 
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(() => fireEvent.blur(denmark));
 
     expect(handleChange).toHaveBeenCalledWith('norway,denmark', { validate: true });
@@ -234,6 +235,7 @@ describe('CheckboxContainerComponent', () => {
 
     expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
 
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(() => {
       fireEvent.focus(getCheckbox({ name: 'Denmark' }));
       fireEvent.blur(getCheckbox({ name: 'Denmark' }));
@@ -273,7 +275,7 @@ describe('CheckboxContainerComponent', () => {
       },
     });
 
-    expect(screen.queryByTestId('altinn-spinner')).toBeInTheDocument();
+    expect(screen.getByTestId('altinn-spinner')).toBeInTheDocument();
   });
 
   it('should show items in a row when layout is "row" and options count is 3', () => {
@@ -284,8 +286,9 @@ describe('CheckboxContainerComponent', () => {
       },
     });
 
+    // eslint-disable-next-line
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
-
+    // eslint-disable-next-line
     expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(1);
   });
 
@@ -304,8 +307,10 @@ describe('CheckboxContainerComponent', () => {
       } as unknown as IOptionsState,
     });
 
+    // eslint-disable-next-line
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
+    // eslint-disable-next-line
     expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(1);
   });
 
@@ -325,8 +330,10 @@ describe('CheckboxContainerComponent', () => {
       } as unknown as IOptionsState,
     });
 
+    // eslint-disable-next-line
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
+    // eslint-disable-next-line
     expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(0);
   });
 
@@ -337,8 +344,10 @@ describe('CheckboxContainerComponent', () => {
       },
     });
 
+    // eslint-disable-next-line
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
+    // eslint-disable-next-line
     expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(0);
   });
 

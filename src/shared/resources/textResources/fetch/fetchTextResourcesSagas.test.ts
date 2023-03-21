@@ -18,7 +18,7 @@ import { textResourcesUrl } from 'src/utils/urls/appUrlHelper';
 import type { IProfile } from 'src/types/shared';
 
 describe('fetchTextResourcesSagas', () => {
-  it('should dispatch action fetchTextResources', () => {
+  it('should dispatch action fetchTextResources', async () => {
     const generator = watchFetchTextResourcesSaga();
     expect(generator.next().value).toEqual(
       all([
@@ -28,7 +28,7 @@ describe('fetchTextResourcesSagas', () => {
       ]),
     );
     expect(generator.next().value).toEqual(select(makeGetAllowAnonymousSelector()));
-    expect(generator.next().value).toEqual(waitFor(expect.anything()));
+    expect(generator.next().value).toEqual(await waitFor(expect.anything()));
     expect(generator.next().value).toEqual(call(fetchTextResources));
     expect(generator.next().value).toEqual(takeLatest(TextResourcesActions.fetch, fetchTextResources));
     expect(generator.next().value).toEqual(takeLatest(ProfileActions.updateSelectedAppLanguage, fetchTextResources));

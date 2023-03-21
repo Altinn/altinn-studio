@@ -18,7 +18,7 @@ describe('ButtonComponent', () => {
   it('should render loader when submittingId is truthy', () => {
     render('some-id');
 
-    expect(screen.queryByRole('button')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
     expect(screen.getByText('general.loading')).toBeInTheDocument();
   });
 });

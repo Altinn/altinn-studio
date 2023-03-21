@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
@@ -163,9 +163,10 @@ describe('AddressComponent', () => {
     });
 
     const address = getAddressField();
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(async () => {
       await user.type(address, 'Slottsplassen 1');
-      fireEvent.blur(address);
+      await user.tab();
     });
 
     expect(handleDataChange).toHaveBeenCalledWith('Slottsplassen 1', {
@@ -190,9 +191,11 @@ describe('AddressComponent', () => {
     });
 
     const address = getAddressField();
+
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(async () => {
       await user.type(address, 'Slottsplassen 1');
-      fireEvent.blur(address);
+      await user.tab();
     });
 
     expect(handleDataChange).not.toHaveBeenCalled();
@@ -214,9 +217,11 @@ describe('AddressComponent', () => {
     });
 
     const field = getZipCodeField({ required: true });
+
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(async () => {
       await user.type(field, '1');
-      fireEvent.blur(field);
+      await user.tab();
     });
 
     const errorMessage = screen.getByText(/address_component\.validation_error_zipcode/i);
@@ -275,10 +280,11 @@ describe('AddressComponent', () => {
     });
 
     const field = getZipCodeField({ required: true });
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(async () => {
       await user.clear(field);
       await user.type(field, '0001');
-      fireEvent.blur(field);
+      await user.tab();
     });
 
     expect(handleDataChange).toHaveBeenCalledWith('0001', { key: 'zipCode' });
@@ -301,9 +307,11 @@ describe('AddressComponent', () => {
     expect(screen.getByDisplayValue('Oslo')).toBeInTheDocument();
 
     const field = getZipCodeField();
+
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(async () => {
       await user.clear(field);
-      fireEvent.blur(field);
+      await user.tab();
     });
 
     expect(handleDataChange).toHaveBeenCalledWith('', { key: 'zipCode' });
@@ -331,7 +339,7 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(screen.queryByText(errorMessage)).toBeInTheDocument();
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
   it('should display no extra markings when required is false, and labelSettings.optionalIndicator is not true', () => {

@@ -44,6 +44,7 @@ describe('ParagraphComponent', () => {
     const id = 'mock-id';
     render({ component: { id, textResourceBindings: { title: '### Hello world' } } });
 
+    // eslint-disable-next-line testing-library/no-node-access
     expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('H3');
   });
 
@@ -61,7 +62,7 @@ describe('ParagraphComponent', () => {
         ),
       },
     });
-
+    // eslint-disable-next-line testing-library/no-node-access
     expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('P');
   });
 });

@@ -10,12 +10,14 @@ describe('AltinnLoader', () => {
     render({});
     expect(screen.getByText('hidden text')).toBeInTheDocument();
     expect(screen.getByText('hidden text')).toHaveClass('sr-only');
+    // eslint-disable-next-line testing-library/no-node-access
     expect(screen.getByText('hidden text').parentElement).toHaveAttribute('id', 'altinn-loader');
   });
   it('should have the id assigned', () => {
     render({
       id: 'some-id',
     });
+    // eslint-disable-next-line testing-library/no-node-access
     expect(screen.getByText('hidden text').parentElement).toHaveAttribute('id', 'some-id');
   });
 
@@ -23,6 +25,7 @@ describe('AltinnLoader', () => {
     render({
       className: 'some-class',
     });
+    // eslint-disable-next-line testing-library/no-node-access
     expect(screen.getByText('hidden text').parentElement).toHaveClass('some-class');
   });
 

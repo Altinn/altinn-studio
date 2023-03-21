@@ -61,6 +61,7 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
 
 describe('DropdownComponent', () => {
   jest.useFakeTimers();
+
   const user = userEvent.setup({
     advanceTimers: (time) => {
       act(() => {
@@ -143,6 +144,7 @@ describe('DropdownComponent', () => {
 
     expect(handleDataChange).toHaveBeenCalledTimes(1);
 
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(() => fireEvent.blur(select));
 
     expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true });
@@ -156,7 +158,7 @@ describe('DropdownComponent', () => {
       },
     });
 
-    expect(screen.queryByTestId('altinn-spinner')).toBeInTheDocument();
+    expect(screen.getByTestId('altinn-spinner')).toBeInTheDocument();
   });
 
   it('should not show spinner when options are present', () => {

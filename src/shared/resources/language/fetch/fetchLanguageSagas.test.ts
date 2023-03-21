@@ -40,7 +40,7 @@ describe('languageActions', () => {
 });
 
 describe('fetchLanguageSagas', () => {
-  it('should dispatch action "language/fetchLanguage" ', () => {
+  it('should dispatch action "language/fetchLanguage" ', async () => {
     const generator = watchFetchLanguageSaga();
     expect(generator.next().value).toEqual(
       all([
@@ -50,7 +50,7 @@ describe('fetchLanguageSagas', () => {
       ]),
     );
     expect(generator.next().value).toEqual(select(makeGetAllowAnonymousSelector()));
-    expect(generator.next().value).toEqual(waitFor(expect.anything()));
+    expect(generator.next().value).toEqual(await waitFor(expect.anything()));
     expect(generator.next().value).toEqual(call(fetchLanguageSaga));
     expect(generator.next().value).toEqual(takeLatest(ProfileActions.updateSelectedAppLanguage, fetchLanguageSaga));
     expect(generator.next().done).toBeTruthy();

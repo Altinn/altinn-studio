@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
 
 import { Label } from 'src/features/form/components/Label';
@@ -12,44 +12,44 @@ describe('Label', () => {
   const optionalMarking = 'Valgfri';
 
   it('should render label', () => {
-    const { queryByText } = renderLabelComponent();
-    expect(queryByText('label.text')).toBeInTheDocument();
+    renderLabelComponent();
+    expect(screen.getByText('label.text')).toBeInTheDocument();
   });
 
   it('should render required marking when field is required', () => {
-    const { queryByText } = renderLabelComponent({ required: true });
-    expect(queryByText(requiredMarking)).toBeTruthy();
+    renderLabelComponent({ required: true });
+    expect(screen.getByText(requiredMarking)).toBeTruthy();
   });
 
   it('should not render required marking when field is readOnly', () => {
-    const { queryByText } = renderLabelComponent({
+    renderLabelComponent({
       required: true,
       readOnly: true,
     });
-    expect(queryByText(requiredMarking)).toBeFalsy();
+    expect(screen.queryByText(requiredMarking)).toBeFalsy();
   });
 
   it('should render optional marking when labelSettings.optionalIndicator is true, and required, readOnly are both false', () => {
-    const { queryByText } = renderLabelComponent({
+    renderLabelComponent({
       labelSettings: { optionalIndicator: true },
     });
-    expect(queryByText(`(${optionalMarking})`)).toBeTruthy();
+    expect(screen.getByText(`(${optionalMarking})`)).toBeTruthy();
   });
 
   it('should not render optional marking when required, even if labelSettings.optionalIndicator is true', () => {
-    const { queryByText } = renderLabelComponent({
+    renderLabelComponent({
       labelSettings: { optionalIndicator: true },
       required: true,
     });
-    expect(queryByText(` (${optionalMarking})`)).toBeFalsy();
+    expect(screen.queryByText(` (${optionalMarking})`)).toBeFalsy();
   });
 
   it('should not render optional marking when readOnly, even if labelSettings.optionalIndicator is true', () => {
-    const { queryByText } = renderLabelComponent({
+    renderLabelComponent({
       labelSettings: { optionalIndicator: true },
       readOnly: true,
     });
-    expect(queryByText(` (${optionalMarking})`)).toBeFalsy();
+    expect(screen.queryByText(` (${optionalMarking})`)).toBeFalsy();
   });
 
   function renderLabelComponent(props: Partial<IFormLabelProps> = {}) {

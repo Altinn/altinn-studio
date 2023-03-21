@@ -1,31 +1,35 @@
 import React from 'react';
 
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { AltinnInput } from 'src/components/AltinnInput';
 import type { IAltinnInputProps } from 'src/components/AltinnInput';
 
 const render = (props: Partial<IAltinnInputProps> = {}) => {
+  const user = userEvent.setup();
   const allProps = {
     label: 'inputLabel',
     ...props,
   };
 
   rtlRender(<AltinnInput {...allProps} />);
+  return { user };
 };
 
 describe('AltinnInput', () => {
   it('should call onChange when typing in the input field', async () => {
     const handleChange = jest.fn();
-    render({ onChange: handleChange });
+    const { user } = render({ onChange: handleChange });
 
     const input = screen.getByRole('textbox', {
       name: /inputlabel/i,
     });
 
-    await act(() => userEvent.type(input, 'input-text'));
+    await act(() => user.type(input, 'input-text'));
 
+    await waitFor(() => expect(input).toHaveFocus());
+    await waitFor(() => expect(input).toHaveValue('input-text'));
     expect(handleChange).toHaveBeenCalled();
   });
 
@@ -38,7 +42,7 @@ describe('AltinnInput', () => {
   it('should add input-validation-error id when applying inputValidationError class', () => {
     render({ validationError: true });
     expect(screen.getByTestId(/input-validation-error/i)).toBeInTheDocument();
-    expect(screen.queryByTestId(/input-validation-error/i)).not.toBeNull();
+    expect(screen.getByTestId(/input-validation-error/i)).not.toBeNull();
   });
 
   it('should not add input-validation-error id when applying inputValidationError class', () => {

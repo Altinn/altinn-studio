@@ -33,6 +33,7 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
 
 describe('GoToTaskButton', () => {
   it('should show button and it should be possible to click', async () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const dispatch = render({
       component: {
         taskId: 'a',
@@ -43,6 +44,7 @@ describe('GoToTaskButton', () => {
     expect(dispatch).toHaveBeenCalled();
   });
   it('should show button and it should not be possible to click', async () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const dispatch = render({
       component: {
         taskId: 'c',

@@ -47,9 +47,15 @@ export interface IAltinnInputProps extends React.InputHTMLAttributes<any> {
 
 const useStyles = makeStyles(styles);
 
-export function AltinnInput(props: IAltinnInputProps) {
+export function AltinnInput({
+  showLabel = true,
+  validationError = false,
+  label,
+  widthPercentage,
+  iconString,
+  ...rest
+}: IAltinnInputProps) {
   const inputRef = React.createRef<HTMLInputElement>();
-  const { iconString, label, widthPercentage, showLabel, validationError, ...rest } = props;
   const classes = useStyles();
 
   function focusInput() {
@@ -96,8 +102,3 @@ export function AltinnInput(props: IAltinnInputProps) {
     </Grid>
   );
 }
-
-AltinnInput.defaultProps = {
-  showLabel: true,
-  validationError: false,
-};

@@ -204,6 +204,7 @@ describe('GroupContainer', () => {
         multiPage: true,
       },
     };
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const store = render({ container: multiPageContainer });
 
     const addButton = screen.getAllByRole('button', {
@@ -229,6 +230,7 @@ describe('GroupContainer', () => {
       triggers: [Triggers.Validation],
     };
     const user = userEvent.setup();
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const store = render({ container: mockContainerInEditModeWithTrigger });
 
     const editButton = screen.getAllByRole('button', {
@@ -254,6 +256,7 @@ describe('GroupContainer', () => {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
     };
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const store = render({ container: mockContainerInEditMode });
     const user = userEvent.setup();
 
@@ -280,6 +283,7 @@ describe('GroupContainer', () => {
       id: 'container-in-edit-mode-id',
       triggers: [Triggers.Validation],
     };
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const store = render({ container: mockContainerInEditModeWithTrigger });
     const user = userEvent.setup();
 
@@ -307,6 +311,7 @@ describe('GroupContainer', () => {
       id: 'container-in-edit-mode-id',
       triggers: [Triggers.ValidateRow],
     };
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const store = render({ container: mockContainerInEditModeWithTrigger });
     const user = userEvent.setup();
 
@@ -333,6 +338,7 @@ describe('GroupContainer', () => {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
     };
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const store = render({ container: mockContainerInEditMode });
     const user = userEvent.setup();
 

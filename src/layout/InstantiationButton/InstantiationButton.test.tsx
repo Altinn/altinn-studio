@@ -43,6 +43,7 @@ describe('InstantiationButton', () => {
 
     expect(screen.queryByText('general.loading')).toBeNull();
 
+    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(() => userEvent.click(screen.getByRole('button')));
 
     expect(mockAxios).toHaveBeenCalledTimes(1);

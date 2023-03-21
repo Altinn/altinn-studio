@@ -15,6 +15,7 @@ describe('LandmarkShortcuts.tsx', () => {
   it('should set active element to main when nav is clicked', async () => {
     renderMainContentNav();
     await userEvent.click(screen.getByRole('link'));
+    // eslint-disable-next-line testing-library/no-node-access
     expect(document.activeElement).toBe(document.getElementById('main-content'));
   });
 
@@ -23,6 +24,7 @@ describe('LandmarkShortcuts.tsx', () => {
       shortcuts: [{ text: 'Hopp til hovedinnhold', id: 'other-content' }],
     });
     await userEvent.click(screen.getByRole('link'));
+    // eslint-disable-next-line testing-library/no-node-access
     expect(document.getElementById('other-content')?.tabIndex).toBe(-2);
   });
 

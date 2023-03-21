@@ -19,11 +19,13 @@ describe('sharedResources/utils/party', () => {
   });
 
   it('should return party as uppercase person', () => {
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = renderParty(mockProfile.profile);
     expect(result).toEqual('OLA PRIVATPERSON');
   });
   it('should return party as uppercase person with middlename', () => {
     mockProfile.profile.party.person.middleName = 'NOE';
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = renderParty(mockProfile.profile);
     expect(result).toEqual('OLA NOE PRIVATPERSON');
   });
@@ -36,6 +38,7 @@ describe('sharedResources/utils/party', () => {
         },
       },
     };
+    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = renderParty(mockProfile.profile);
     expect(result).toEqual(null);
   });

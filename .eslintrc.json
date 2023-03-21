@@ -32,7 +32,8 @@
     "preferred-import-path",
     "simple-import-sort",
     "cypress",
-    "unused-imports"
+    "unused-imports",
+    "testing-library"
   ],
   "settings": {
     "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
@@ -41,7 +42,8 @@
     },
     "react": {
       "version": "detect"
-    }
+    },
+    "testing-library/custom-queries": "off"
   },
   "ignorePatterns": [
     "node_modules",
@@ -181,6 +183,13 @@
       "files": ["src/layout/*/index.tsx"],
       "rules": {
         "react-hooks/rules-of-hooks": "off"
+      }
+    },
+    {
+      "files": ["*.test.ts", "*.test.tsx"],
+      "extends": ["plugin:testing-library/react"],
+      "rules": {
+        "testing-library/no-unnecessary-act": "error"
       }
     }
   ]

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
 import { MessageBanner } from 'src/features/form/components/MessageBanner';
 import type { ILanguage } from 'src/types/shared';
@@ -15,14 +15,14 @@ describe('MessageBanner', () => {
   const mockMessageKey = 'form_filler.required_description';
 
   it('should have grey background by default', () => {
-    const { getByTestId } = render(
+    render(
       <MessageBanner
         language={mockLanguage}
         messageKey={mockMessageKey}
       />,
     );
 
-    const messageBanner = getByTestId('MessageBanner-container');
+    const messageBanner = screen.getByTestId('MessageBanner-container');
     expect(messageBanner).toBeInTheDocument();
     expect(messageBanner.className).toContain('default');
     const backgroundColor = window.getComputedStyle(messageBanner).backgroundColor;
@@ -31,7 +31,7 @@ describe('MessageBanner', () => {
   });
 
   it('should have red background when error==true', () => {
-    const { getByTestId } = render(
+    render(
       <MessageBanner
         language={mockLanguage}
         messageKey={mockMessageKey}
@@ -39,7 +39,7 @@ describe('MessageBanner', () => {
       />,
     );
 
-    const messageBanner: HTMLElement = getByTestId('MessageBanner-container');
+    const messageBanner: HTMLElement = screen.getByTestId('MessageBanner-container');
     expect(messageBanner).toBeInTheDocument();
     expect(messageBanner.className).toContain('error');
     const backgroundColor = window.getComputedStyle(messageBanner).backgroundColor;

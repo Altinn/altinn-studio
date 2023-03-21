@@ -14,6 +14,7 @@ import {
 
 describe('GroupContainerLikert', () => {
   jest.useFakeTimers();
+
   const user = userEvent.setup({
     advanceTimers: (time) => {
       act(() => {

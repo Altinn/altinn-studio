@@ -74,13 +74,13 @@ describe('PanelGroupContainer', () => {
       },
     });
 
-    const customIcon = await screen.queryByTestId('panel-group-container');
+    const customIcon = screen.queryByTestId('panel-group-container');
     expect(customIcon).toBeInTheDocument();
 
-    const firstInputTitle = await screen.queryByText('Title for first input');
+    const firstInputTitle = screen.queryByText('Title for first input');
     expect(firstInputTitle).toBeInTheDocument();
 
-    const secondInputTitle = await screen.queryByText('Title for second input');
+    const secondInputTitle = screen.queryByText('Title for second input');
     expect(secondInputTitle).toBeInTheDocument();
   });
 
@@ -105,19 +105,19 @@ describe('PanelGroupContainer', () => {
     const user = userEvent.setup();
 
     // save should not be present when panel is closed
-    expect(await screen.queryByText('Lagre')).not.toBeInTheDocument();
+    expect(screen.queryByText('Lagre')).not.toBeInTheDocument();
 
-    await act(async () => user.click(await screen.getByText('Add new item')));
+    await act(() => user.click(screen.getByText('Add new item')));
 
     // save should appear and add should be hidden
-    expect(await screen.getByText('Lagre')).toBeInTheDocument();
+    expect(screen.getByText('Lagre')).toBeInTheDocument();
 
-    expect(await screen.queryByText('Add new item')).not.toBeInTheDocument();
+    expect(screen.queryByText('Add new item')).not.toBeInTheDocument();
 
     // pressing save should close panel and show add button again
-    await act(async () => user.click(await screen.getByText('Lagre')));
+    await act(() => user.click(screen.getByText('Lagre')));
 
-    expect(await screen.getByText('Add new item')).toBeInTheDocument();
+    expect(screen.getByText('Add new item')).toBeInTheDocument();
   });
 
   it('should display nothing if group is hidden', async () => {
@@ -137,7 +137,7 @@ describe('PanelGroupContainer', () => {
       customState: stateWithHidden,
     });
 
-    const customIcon = await screen.queryByTestId('panel-group-container');
+    const customIcon = screen.queryByTestId('panel-group-container');
     expect(customIcon).not.toBeInTheDocument();
   });
 });
