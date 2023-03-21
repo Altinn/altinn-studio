@@ -89,6 +89,7 @@ export interface INavigationConfig {
 export interface IOption {
   label: string;
   value: any;
+  helpText?: string;
 }
 
 export interface IOptions {

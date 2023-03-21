@@ -117,7 +117,7 @@ const completeFormSlow: { [key in FrontendTestTask]: () => void } = {
       .then(() => {
         cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('a').blur();
         cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('a').blur();
-        cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
+        cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check({ force: true });
         cy.get(appFrontend.changeOfName.reasonRelationship).should('be.visible').click().type('test');
         cy.get(appFrontend.changeOfName.dateOfEffect)
           .siblings()
@@ -139,9 +139,7 @@ const completeFormSlow: { [key in FrontendTestTask]: () => void } = {
     });
 
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
-      cy.wrap(checkbox).should('be.visible').find('input').check();
-    });
+    cy.get(appFrontend.group.showGroupToContinue).should('be.visible').find('input').check({ force: true });
     cy.addItemToGroup(1, 2, 'automation');
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();

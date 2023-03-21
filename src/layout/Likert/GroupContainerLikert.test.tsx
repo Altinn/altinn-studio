@@ -230,9 +230,11 @@ describe('GroupContainerLikert', () => {
     it('should render mobile view and click radiobuttons', async () => {
       const { mockStoreDispatch } = render({ mobileView: true });
       validateRadioLayout(defaultMockQuestions, true);
-      const rad1 = screen.getByRole('radiogroup', {
-        name: /Hvordan trives du på skolen/i,
-      });
+      const rad1 = within(
+        screen.getByRole('group', {
+          name: /Hvordan trives du på skolen/i,
+        }),
+      ).getByRole('radiogroup');
       const btn1 = within(rad1).getByRole('radio', {
         name: /Bra/i,
       });
@@ -244,9 +246,11 @@ describe('GroupContainerLikert', () => {
       expect(mockStoreDispatch).toHaveBeenCalledWith(createFormDataUpdateAction(0, '1'));
       mockStoreDispatch.mockClear();
 
-      const rad2 = screen.getByRole('radiogroup', {
-        name: /Har du det bra/i,
-      });
+      const rad2 = within(
+        screen.getByRole('group', {
+          name: /Har du det bra/i,
+        }),
+      ).getByRole('radiogroup');
 
       const btn2 = within(rad2).getByRole('radio', {
         name: /Dårlig/i,
@@ -269,9 +273,11 @@ describe('GroupContainerLikert', () => {
       validateRadioLayout(questions, true);
 
       // Validate that radio is selected
-      const selectedRow = screen.getByRole('radiogroup', {
-        name: questions[2].Question,
-      });
+      const selectedRow = within(
+        screen.getByRole('group', {
+          name: questions[2].Question,
+        }),
+      ).getByRole('radiogroup');
 
       const selectedRadio = within(selectedRow).getByRole('radio', {
         name: /Ok/i,

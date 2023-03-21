@@ -266,9 +266,15 @@ export const validateRadioLayout = (questions: IQuestion[], mobileView = false) 
   }
 
   for (const question of questions) {
-    const row = screen.getByRole(mobileView ? 'radiogroup' : 'row', {
-      name: question.Question,
-    });
+    const row = mobileView
+      ? within(
+          screen.getByRole('group', {
+            name: question.Question,
+          }),
+        ).getByRole('radiogroup')
+      : screen.getByRole('row', {
+          name: question.Question,
+        });
 
     for (const option of mockOptions) {
       // Ideally we should use `getByRole` selector here, but the tests that use this function

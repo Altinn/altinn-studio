@@ -28,9 +28,7 @@ describe('Calculate Page Order', () => {
 
     cy.goto('group');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
-      cy.wrap(checkbox).should('be.visible').find('input').check();
-    });
+    cy.get(appFrontend.group.showGroupToContinue).should('be.visible').find('input').check({ force: true });
 
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
 
@@ -76,7 +74,7 @@ describe('Calculate Page Order', () => {
 
     const reproduceBug = JSON.parse('false');
     if (reproduceBug) {
-      cy.get(appFrontend.group.prefill.liten).click();
+      cy.get(appFrontend.group.prefill.liten).click({ force: true });
       cy.get(appFrontend.nextButton).click();
 
       // And this is, in essence, a bug. Navigating to the next page should consider what the next page is, even if
@@ -114,7 +112,7 @@ describe('Calculate Page Order', () => {
     cy.goto('group');
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
 
-    cy.get(appFrontend.group.prefill.stor).click();
+    cy.get(appFrontend.group.prefill.stor).click({ force: true });
     cy.get(appFrontend.nextButton).click();
 
     // Both pages the 'repeating' and 'hide' pages are now hidden

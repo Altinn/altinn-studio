@@ -23,9 +23,9 @@ describe('Dynamics', () => {
 
   it('Show and hide name change reasons radio buttons', () => {
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('test');
-    cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('test');
-    cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
+    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('test').blur();
+    cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('test').blur();
+    cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check({ force: true });
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
   });
 

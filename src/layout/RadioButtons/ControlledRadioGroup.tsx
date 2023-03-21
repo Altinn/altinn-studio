@@ -1,15 +1,11 @@
 import React from 'react';
 import type { ChangeEventHandler, FocusEventHandler } from 'react';
 
-import { FormLabel } from '@material-ui/core';
-import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import cn from 'classnames';
+import { RadioGroup, RadioGroupVariant } from '@digdir/design-system-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { useRadioStyles } from 'src/layout/RadioButtons/radioButtonsUtils';
-import { StyledRadio } from 'src/layout/RadioButtons/StyledRadio';
+import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
+import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 import type { IOption } from 'src/types';
@@ -19,60 +15,75 @@ export interface IControlledRadioGroupProps extends IRadioButtonsContainerProps 
   selected: string | undefined;
   handleBlur: FocusEventHandler<HTMLInputElement | HTMLButtonElement | HTMLDivElement>;
   handleChange: ChangeEventHandler<HTMLInputElement | HTMLButtonElement>;
+  handleChangeRadioGroup: (value: string) => void;
   calculatedOptions: IOption[];
 }
 
 export const ControlledRadioGroup = ({
   node,
-  legend,
   getTextResource,
   fetchingOptions,
   selected,
+  text,
+  language,
   handleBlur,
-  handleChange,
+  handleChangeRadioGroup,
   calculatedOptions,
+  isValid,
 }: IControlledRadioGroupProps) => {
-  const { id, layout, readOnly } = node.item;
-  const classes = useRadioStyles();
-  const RenderLegend = legend;
+  const { id, layout, readOnly, textResourceBindings, required, labelSettings } = node.item;
+
+  const labelText = (
+    <span style={{ wordBreak: 'break-word' }}>
+      {text}
+      <RequiredIndicator
+        required={required}
+        language={language}
+      />
+      <OptionalIndicator
+        labelSettings={labelSettings}
+        language={language}
+        required={required}
+      />
+    </span>
+  );
+
   return (
-    <FormControl component='fieldset'>
-      <FormLabel
-        component='legend'
-        classes={{ root: cn(classes.legend) }}
-        id={`${id}-label`}
-      >
-        <RenderLegend />
-      </FormLabel>
+    <div>
       {fetchingOptions ? (
         <AltinnSpinner />
       ) : (
-        <RadioGroup
-          aria-labelledby={`${id}-label`}
-          name={id}
-          value={selected}
-          onBlur={handleBlur}
-          onChange={handleChange}
-          row={shouldUseRowLayout({
-            layout,
-            optionsCount: calculatedOptions.length,
-          })}
+        <div
           id={id}
+          onBlur={handleBlur}
         >
-          {calculatedOptions.map((option: any, index: number) => (
-            <React.Fragment key={index}>
-              <FormControlLabel
-                tabIndex={-1}
-                control={<StyledRadio />}
-                disabled={readOnly}
-                label={getTextResource(option.label)}
-                value={option.value}
-                classes={{ root: cn(classes.formControl) }}
-              />
-            </React.Fragment>
-          ))}
-        </RadioGroup>
+          <RadioGroup
+            name={id}
+            aria-labelledby={`${id}-label`}
+            legend={labelText}
+            description={textResourceBindings?.description && getTextResource(textResourceBindings.description)}
+            value={selected}
+            error={!isValid}
+            helpText={textResourceBindings?.help && getTextResource(textResourceBindings.help)}
+            disabled={readOnly}
+            variant={
+              shouldUseRowLayout({
+                layout,
+                optionsCount: calculatedOptions.length,
+              })
+                ? RadioGroupVariant.Horizontal
+                : RadioGroupVariant.Vertical
+            }
+            onChange={handleChangeRadioGroup}
+            items={calculatedOptions.map((option) => ({
+              value: option.value,
+              checkboxId: `${id}-${option.label.replace(/\s/g, '-')}`,
+              label: getTextResource(option.label),
+              helpText: option.helpText && getTextResource(option.helpText),
+            }))}
+          />
+        </div>
       )}
-    </FormControl>
+    </div>
   );
 };

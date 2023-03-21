@@ -122,7 +122,7 @@ option {
   margin-bottom: 0;
 }
 
-.a-form-label.title-label .label-optional {
+.label-optional {
   font-size: 0.875rem;
   font-weight: 400;
   color: #6a6a6a;

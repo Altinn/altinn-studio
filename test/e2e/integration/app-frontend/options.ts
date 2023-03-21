@@ -29,7 +29,7 @@ describe('Options', () => {
     cy.goto('group');
     cy.get(appFrontend.navMenu).should('be.visible');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).find('input').check();
+    cy.get(appFrontend.group.showGroupToContinue).find('input').check({ force: true });
     cy.addItemToGroup(1, 2, 'automation');
     cy.addItemToGroup(3, 4, 'altinn');
     cy.get(appFrontend.group.options).then((options) => {

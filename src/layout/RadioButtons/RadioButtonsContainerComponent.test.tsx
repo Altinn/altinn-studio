@@ -222,22 +222,18 @@ describe('RadioButtonsContainerComponent', () => {
   });
 
   it('should show items in a row when layout is "row" and options count is 3', () => {
-    const { container } = render({
+    render({
       component: {
         optionsId: 'countries',
         layout: LayoutStyle.Row,
       },
     });
 
-    // eslint-disable-next-line
-    expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
-
-    // eslint-disable-next-line
-    expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(1);
+    expect(screen.queryByRole('radiogroup')).toHaveStyle('flex-direction: row;');
   });
 
   it('should show items in a row when layout is not defined, and options count is 2', () => {
-    const { container } = render({
+    render({
       component: {
         optionsId: 'countries',
       },
@@ -253,15 +249,11 @@ describe('RadioButtonsContainerComponent', () => {
       },
     });
 
-    // eslint-disable-next-line
-    expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
-
-    // eslint-disable-next-line
-    expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(1);
+    expect(screen.queryByRole('radiogroup')).toHaveStyle('flex-direction: row;');
   });
 
   it('should show items in a column when layout is "column" and options count is 2 ', () => {
-    const { container } = render({
+    render({
       component: {
         optionsId: 'countries',
         layout: LayoutStyle.Column,
@@ -278,25 +270,17 @@ describe('RadioButtonsContainerComponent', () => {
       },
     });
 
-    // eslint-disable-next-line
-    expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
-
-    // eslint-disable-next-line
-    expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(0);
+    expect(screen.queryByRole('radiogroup')).toHaveStyle('flex-direction: column;');
   });
 
   it('should show items in a columns when layout is not defined, and options count is 3', () => {
-    const { container } = render({
+    render({
       component: {
         optionsId: 'countries',
       },
     });
 
-    // eslint-disable-next-line
-    expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
-
-    // eslint-disable-next-line
-    expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(0);
+    expect(screen.queryByRole('radiogroup')).toHaveStyle('flex-direction: column;');
   });
 
   it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {

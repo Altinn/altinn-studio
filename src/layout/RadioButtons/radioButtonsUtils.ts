@@ -9,44 +9,7 @@ import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState'
 import { getOptionLookupKey } from 'src/utils/options';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 
-export const useRadioStyles = makeStyles((theme) => ({
-  root: {
-    '&:hover': {
-      backgroundColor: 'transparent !important',
-    },
-  },
-  icon: {
-    borderRadius: '50%',
-    border: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
-    width: 24,
-    height: 24,
-    backgroundColor: '#ffffff',
-    '$root.Mui-focusVisible &': {
-      outline: '2px solid #ff0000',
-      outlineOffset: 0,
-      outlineColor: theme.altinnPalette.primary.blueDark,
-    },
-    'input:hover ~ &': {
-      borderColor: theme.altinnPalette.primary.blueDark,
-    },
-    'input:disabled ~ &': {
-      boxShadow: 'none',
-      background: 'rgba(206,217,224,.5)',
-    },
-  },
-  checkedIcon: {
-    backgroundColor: '#ffffff',
-    '&:before': {
-      display: 'block',
-      width: 20,
-      height: 20,
-      backgroundImage: 'radial-gradient(#000,#000 30%,transparent 40%)',
-      content: '""',
-    },
-    'input:hover ~ &': {
-      borderColor: theme.altinnPalette.primary.blueDark,
-    },
-  },
+export const useRadioStyles = makeStyles(() => ({
   legend: {
     color: '#000000',
     fontFamily: 'Altinn-DIN',
@@ -99,6 +62,10 @@ export const useRadioButtons = ({ node, handleDataChange, formData }: IRadioButt
     setValue(event.target.value);
   };
 
+  const handleChangeRadioGroup = (value: string) => {
+    setValue(value);
+  };
+
   const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     // Only set value instantly if moving focus outside of the radio group
     if (!event.currentTarget.contains(event.relatedTarget)) {
@@ -107,6 +74,7 @@ export const useRadioButtons = ({ node, handleDataChange, formData }: IRadioButt
   };
   return {
     handleChange,
+    handleChangeRadioGroup,
     handleBlur,
     fetchingOptions,
     selected,

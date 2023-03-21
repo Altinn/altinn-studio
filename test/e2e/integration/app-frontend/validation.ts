@@ -42,7 +42,7 @@ describe('Validation', () => {
 
     cy.get(appFrontend.changeOfName.newMiddleName).should('be.visible').focus().type('Some middle name').blur();
 
-    cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
+    cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check({ force: true });
     cy.get(appFrontend.changeOfName.reasonRelationship).should('be.visible').click().type('test');
     cy.get(appFrontend.changeOfName.dateOfEffect)
       .siblings()
@@ -118,7 +118,7 @@ describe('Validation', () => {
   it('Page validation on clicking next', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').clear().type('test').blur();
-    cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
+    cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check({ force: true });
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.nextButton).should('be.visible').scrollIntoView();
     cy.get(appFrontend.nextButton).should('be.inViewport');
@@ -221,7 +221,7 @@ describe('Validation', () => {
     // Init and add data to group
     cy.goto('group');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).should('be.visible').find('input').check();
+    cy.get(appFrontend.group.showGroupToContinue).should('be.visible').find('input').check({ force: true });
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
     cy.get(appFrontend.group.currentValue).should('be.visible').type('123');
     cy.get(appFrontend.group.newValue).should('be.visible').type('321');
@@ -240,7 +240,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('exist').should('be.visible');
 
     // Hide field that contains validation error and verify validation messages are gone
-    cy.get(appFrontend.group.hideCommentField).should('be.visible').find('input').check();
+    cy.get(appFrontend.group.hideCommentField).should('be.visible').find('input').check({ force: true });
     cy.get(appFrontend.group.comments).should('not.exist');
     cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');

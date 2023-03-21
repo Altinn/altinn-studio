@@ -20,9 +20,7 @@ describe('Mobile', () => {
     cy.sendIn();
     cy.wait('@getLayoutGroup');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
-      cy.wrap(checkbox).should('be.visible').find('input').check();
-    });
+    cy.get(appFrontend.group.showGroupToContinue).should('be.visible').find('input').check({ force: true });
     cy.addItemToGroup(1, 2, 'automation');
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');

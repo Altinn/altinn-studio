@@ -47,12 +47,7 @@ export function Legend(props: IFormLegendProps) {
   return (
     <>
       <div className={classes.legendHelpTextContainer}>
-        <label
-          className='a-form-label title-label'
-          htmlFor={props.id}
-        >
-          {LabelText}
-        </label>
+        <legend className='a-form-label title-label'>{LabelText}</legend>
         {props.helpText && (
           <HelpTextContainer
             language={props.language}

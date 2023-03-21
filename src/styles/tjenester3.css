@@ -287,18 +287,6 @@ fieldset {
   border: 0;
 }
 
-legend {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  padding: 0;
-  margin-bottom: 0.3125rem;
-  font-size: 0.937rem;
-  line-height: inherit;
-  color: inherit;
-  white-space: normal;
-}
-
 progress {
   vertical-align: baseline;
 }

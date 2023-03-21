@@ -1,12 +1,14 @@
 import React from 'react';
 
+import { RadioButton } from '@digdir/design-system-react';
 import { TableCell, TableRow, Typography } from '@material-ui/core';
 
+import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
-import { StyledRadio } from 'src/layout/RadioButtons/StyledRadio';
 import { LayoutStyle } from 'src/types';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
+import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IControlledRadioGroupProps } from 'src/layout/RadioButtons/ControlledRadioGroup';
 
@@ -27,10 +29,12 @@ export const LikertComponent = (props: PropsFromGenericComponent<'Likert'>) => {
   }
 
   return (
-    <ControlledRadioGroup
-      {...props}
-      {...useRadioProps}
-    />
+    <div className={classes.likertRadioGroupWrapperMobile}>
+      <ControlledRadioGroup
+        {...props}
+        {...useRadioProps}
+      />
+    </div>
   );
 };
 
@@ -42,6 +46,8 @@ const RadioGroupTableRow = ({
   handleBlur,
   componentValidations,
   legend,
+  isValid,
+  text,
 }: IControlledRadioGroupProps) => {
   const id = node.item.id;
   const groupContainerId = node.closest((n) => n.type === 'Group')?.item.id;
@@ -52,7 +58,7 @@ const RadioGroupTableRow = ({
       <th
         scope='row'
         id={rowLabelId}
-        style={{ whiteSpace: 'normal', fontWeight: 400, borderBottom: '1px solid rgb(0, 143, 214)', paddingLeft: 12 }}
+        className={classes.likertTableHeader}
       >
         <Typography component={'div'}>
           <RenderLegend />
@@ -60,34 +66,27 @@ const RadioGroupTableRow = ({
         </Typography>
       </th>
       {calculatedOptions?.map((option, colIndex) => {
-        // column label must reference correct id of header in table
         const colLabelId = `${groupContainerId}-likert-columnheader-${colIndex}`;
-        const inputId = `input-${id}-${colIndex}`;
+        const inputId = `${id}-${colIndex}`;
         const isChecked = selected === option.value;
         return (
-          <TableCell key={option.value}>
-            <label
-              htmlFor={inputId}
-              style={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-            >
-              <StyledRadio
-                inputProps={{
-                  'aria-labelledby': `${rowLabelId} ${colLabelId}`,
-                  id: inputId,
-                  role: 'radio',
-                  name: rowLabelId,
-                  'aria-checked': isChecked,
-                }}
-                checked={isChecked}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={option.value}
-              />
-            </label>
+          <TableCell
+            key={option.value}
+            align={'center'}
+            style={{ padding: '4px 12px' }}
+            onBlur={handleBlur}
+          >
+            <RadioButton
+              aria-labelledby={`${rowLabelId} ${colLabelId}`}
+              checked={isChecked}
+              onChange={handleChange}
+              value={option.value}
+              label={`${getPlainTextFromNode(text)} ${option.label}`}
+              hideLabel={true}
+              name={rowLabelId}
+              radioId={inputId}
+              error={!isValid}
+            />
           </TableCell>
         );
       })}
