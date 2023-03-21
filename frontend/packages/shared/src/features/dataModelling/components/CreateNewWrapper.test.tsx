@@ -9,11 +9,8 @@ const user = userEvent.setup();
 
 describe('CreateNewWrapper', () => {
   it('should open the popup when clicking "new" button', async () => {
-    render();
-
-    const newButton = screen.getByRole('button', {
-      name: textMock('general.create_new'),
-    });
+    const props = { open: false };
+    render(props);
 
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(
@@ -22,22 +19,31 @@ describe('CreateNewWrapper', () => {
       })
     ).not.toBeInTheDocument();
 
-    await act(() => user.click(newButton));
-
-    expect(
-      screen.queryByRole('button', {
-        name: textMock('general.create_new'),
-      })
-    ).not.toBeInTheDocument();
-
+    const newButton = screen.getByRole('button', {
+      name: textMock('general.create_new'),
+    });
+    expect(props.open).toBeFalsy();
+    await user.click(newButton);
+    expect(props.open).toBeTruthy();
+  });
+  it('should close the popup when clicking "new" button', async () => {
+    const props = { open: true };
+    render(props);
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
       })
     ).toBeInTheDocument();
-  });
 
+    const newButton = screen.getByRole('button', {
+      name: textMock('general.create_new'),
+    });
+    expect(props.open).toBeTruthy();
+
+    await act(() => user.click(newButton));
+    expect(props.open).toBeFalsy();
+  });
   describe('createAction', () => {
     it('should call createAction callback when ok button is clicked', async () => {
       const handleChange = jest.fn();
@@ -150,11 +156,12 @@ describe('CreateNewWrapper', () => {
 });
 
 const render = (props: Partial<ICreateNewWrapper> = {}) => {
+  props.open = props.open ?? true;
   const allProps: ICreateNewWrapper = {
     dataModelNames: [],
     createAction: jest.fn(),
+    setOpen: (o) => (props.open = o),
     ...props,
   } as ICreateNewWrapper;
-
   return rtlRender(<CreateNewWrapper {...allProps} />);
 };
