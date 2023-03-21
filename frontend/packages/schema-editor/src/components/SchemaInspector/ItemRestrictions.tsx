@@ -128,8 +128,8 @@ export const ItemRestrictions = ({
       )}
       {reference === undefined &&
         {
-          [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
-          [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,
+          [FieldType.Integer]: <NumberRestrictions {...restrictionProps} isInteger />,
+          [FieldType.Number]: <NumberRestrictions {...restrictionProps} isInteger={false} />,
           [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
           [FieldType.String]: <StringRestrictions {...restrictionProps} />,
         }[fieldType as string]}

@@ -8,6 +8,10 @@
   flex: 1;
 }
 
+.minNumberErrorMassage {
+  margin-top: 5px;
+}
+
 .lengthFields {
   display: flex;
   flex-direction: row;

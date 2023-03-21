@@ -13,6 +13,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getByLabelText(textMock('schema_editor.minimum_inclusive'));
@@ -25,6 +26,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getByLabelText(textMock('schema_editor.maximum_inclusive'));
@@ -37,6 +39,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const textfield = screen.getByLabelText(textMock('schema_editor.minimum_inclusive'));
@@ -49,6 +52,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const textfield = screen.getByLabelText(textMock('schema_editor.maximum_inclusive'));
@@ -61,6 +65,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions: jest.fn(),
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const textfield = screen.getByLabelText(textMock('schema_editor.multipleOf'));
@@ -74,6 +79,7 @@ describe('NumberRestrictions component', () => {
       path: '',
       onChangeRestrictions,
       onChangeRestrictionValue: jest.fn(),
+      isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getAllByLabelText(textMock('schema_editor.format_date_inclusive'))[0];
