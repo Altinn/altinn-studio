@@ -1,4 +1,4 @@
-import { NumberRestrictionsError } from '@altinn/schema-editor/types';
+import { NameError } from '@altinn/schema-editor/types';
 import { IntRestrictionKeys } from '@altinn/schema-model';
 import type { Dict } from '@altinn/schema-model/src/lib/types';
 
@@ -45,27 +45,25 @@ export type NumberRestrictionsReducerState = {
   min?: number;
   max?: number;
   restrictions: { [restriction in IntRestrictionKeys]?: number };
-  numberRestrictionsError: NumberRestrictionsError;
+  nameError: NameError;
 };
 
-export const validateMinMax = (
-  formatState: NumberRestrictionsReducerState
-): NumberRestrictionsError => {
+export const validateMinMax = (formatState: NumberRestrictionsReducerState): NameError => {
   const minMaxAreInclusive = formatState.isMaxInclusive && formatState.isMinInclusive;
   const minEqualMax = Number(formatState.min) === Number(formatState.max);
   if (minMaxAreInclusive && minEqualMax) {
-    return NumberRestrictionsError.NoError;
+    return NameError.NoError;
   } else if (Number(formatState.min) >= Number(formatState.max)) {
-    return NumberRestrictionsError.InvalidMaxMinValue;
+    return NameError.InvalidMaxMinValue;
   } else if (
     !formatState.isMaxInclusive &&
     !formatState.isMinInclusive &&
     formatState.isInteger &&
     formatState.min === formatState.max - 1
   ) {
-    return NumberRestrictionsError.InvalidMaxMinValue;
+    return NameError.InvalidMaxMinValue;
   }
-  return NumberRestrictionsError.NoError;
+  return NameError.NoError;
 };
 
 const setMinIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxInclusiveAction) => {
@@ -83,7 +81,7 @@ const setMinIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxIncl
     restrictions[IntRestrictionKeys.exclusiveMinimum] = newExclMin;
     restrictions[IntRestrictionKeys.minimum] = undefined;
   }
-  state.numberRestrictionsError = validateMinMax(state);
+  state.nameError = validateMinMax(state);
 };
 
 const setMaxIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxInclusiveAction) => {
@@ -101,7 +99,7 @@ const setMaxIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxIncl
     restrictions[IntRestrictionKeys.exclusiveMaximum] = newExclMax;
     restrictions[IntRestrictionKeys.maximum] = undefined;
   }
-  state.numberRestrictionsError = validateMinMax(state);
+  state.nameError = validateMinMax(state);
 };
 
 const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) => {
@@ -111,7 +109,7 @@ const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) 
     : IntRestrictionKeys.exclusiveMinimum;
   state.min = value;
   state.restrictions[key] = value;
-  state.numberRestrictionsError = validateMinMax(state);
+  state.nameError = validateMinMax(state);
 };
 
 const setMax = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) => {
@@ -121,7 +119,7 @@ const setMax = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) 
     : IntRestrictionKeys.exclusiveMaximum;
   state.max = value;
   state.restrictions[key] = value;
-  state.numberRestrictionsError = validateMinMax(state);
+  state.nameError = validateMinMax(state);
 };
 
 const setRestriction = (state: NumberRestrictionsReducerState, action: SetRestrictionAction) =>

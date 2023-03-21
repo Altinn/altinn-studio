@@ -23,14 +23,17 @@ export interface ISchemaState {
 export enum NameError {
   InvalidCharacter = 'InvalidCharacter',
   AlreadyInUse = 'AlreadyInUse',
-  NoError = 'NoError'
+  NoError = 'NoError',
+  InvalidValue = "InvalidValue",
+  InvalidMaxMinValue = "InvalidMaxMinValue"
 }
 
 
-
+/* 
 export enum NumberRestrictionsError {
   NoError = 'NoError',
   InvalidValue = "InvalidValue",
   InvalidMaxMinValue = "InvalidMaxMinValue"
 
 }
+ */

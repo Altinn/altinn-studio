@@ -13,7 +13,7 @@ import {
   NumberRestrictionsReducerActionType,
   NumberRestrictionsReducerState,
 } from './NumberRestrictionsReducer';
-import { NumberRestrictionsError } from '@altinn/schema-editor/types';
+import { NameError } from '@altinn/schema-editor/types';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
   isInteger: boolean;
@@ -38,7 +38,7 @@ export function NumberRestrictions({
     restrictions: Object.fromEntries(
       Object.values(IntRestrictionKeys).map((key) => [key, restrictions[key]])
     ),
-    numberRestrictionsError: NumberRestrictionsError.NoError,
+    nameError: NameError.NoError,
   };
   const [formatState, dispatch] = useReducer(numberRestrictionsReducer, initialState);
 
@@ -55,10 +55,10 @@ export function NumberRestrictions({
   }`;
 
   const nameErrorMessage = {
-    [NumberRestrictionsError.InvalidValue]: t('schema_editor.nameError_InvalidValue'),
-    [NumberRestrictionsError.InvalidMaxMinValue]: t('schema_editor.nameError_InvalidMaxMinValue'),
-    [NumberRestrictionsError.NoError]: '',
-  }[formatState.numberRestrictionsError];
+    [NameError.InvalidValue]: t('schema_editor.nameError_InvalidValue'),
+    [NameError.InvalidMaxMinValue]: t('schema_editor.nameError_InvalidMaxMinValue'),
+    [NameError.NoError]: '',
+  }[formatState.nameError];
 
   const onChangeMinNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
