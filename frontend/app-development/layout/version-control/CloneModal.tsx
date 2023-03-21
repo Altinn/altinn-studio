@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Popover } from '@mui/material';
-import axios from 'axios';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
-import { get } from 'app-shared/utils/networking';
 import { altinnDocsUrl, dataModelUploadPageUrl } from 'app-shared/utils/urlHelper';
-import { datamodelsXsdPath, repositoryGitPath } from 'app-shared/api-paths';
+import { repositoryGitPath } from 'app-shared/api-paths';
 import { useParams } from 'react-router-dom';
 import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { useDatamodelsXsd } from '../../query-hooks/datamodel';
 
 export interface ICloneModalProps {
   anchorEl: Element;
@@ -17,32 +16,11 @@ export interface ICloneModalProps {
 }
 
 export function CloneModal(props: ICloneModalProps) {
-  const [hasDataModel, setHasDataModel] = useState(false);
   const { org, app } = useParams();
   const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
-
   const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;
-
-  useEffect(() => {
-    const source = axios.CancelToken.source();
-    const checkIfDataModelExists = async () => {
-      try {
-        const dataModel: any = await get(datamodelsXsdPath(org, app), {
-          cancelToken: source.token,
-        });
-        setHasDataModel(dataModel != null);
-      } catch (err) {
-        if (!axios.isCancel(err)) {
-          setHasDataModel(false);
-        }
-      }
-    };
-    checkIfDataModelExists().then();
-    return () => {
-      source.cancel('Component got unmounted.');
-    };
-  }, [app, org, props.anchorEl]);
+  const { data: dataModel = [] } = useDatamodelsXsd(org, app);
   const { t } = useTranslation();
   const open = Boolean(props.anchorEl);
   return (
@@ -60,7 +38,7 @@ export function CloneModal(props: ICloneModalProps) {
         <a href={altinnDocsUrl} target='_blank' rel='noopener noreferrer'>
           {t('sync_header.favourite_tool_link')}
         </a>
-        {!hasDataModel && (
+        {dataModel.length === 0 && (
           <>
             <div className={classes.blackText}>
               <AltinnIconComponent

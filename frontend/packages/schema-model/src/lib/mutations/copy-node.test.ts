@@ -18,5 +18,4 @@ test('that it can copy nodes', () => {
   );
   expect(mutatedNodes).toHaveLength(3);
   expect(getRootNode(mutatedNodes).children).toHaveLength(2);
-  console.log(mutatedNodes);
 });
