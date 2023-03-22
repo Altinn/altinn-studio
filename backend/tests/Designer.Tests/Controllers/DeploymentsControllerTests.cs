@@ -53,7 +53,7 @@ namespace Designer.Tests.Controllers
                 .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, uri);
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
