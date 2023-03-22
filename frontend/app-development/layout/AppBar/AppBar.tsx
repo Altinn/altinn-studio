@@ -10,6 +10,7 @@ import { getRepositoryType } from 'app-shared/utils/repository';
 import classes from './AppBar.module.css';
 import { useMediaQuery } from '../../common/hooks';
 import { useTranslation } from 'react-i18next';
+import { Settings } from '@navikt/ds-icons';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -96,7 +97,11 @@ export const AppBar = ({
                       </Link>
                     </Grid>
                   ))}
-                  <Grid xs item /> {/** Used to keep menu centered */}
+                  <Grid xs item>
+                    <Link style={{ float: 'right' }} to={`/${org}/${app}/accesscontrol`}>
+                      <Settings />
+                    </Link>
+                  </Grid>
                 </Grid>
               </Toolbar>
             )}

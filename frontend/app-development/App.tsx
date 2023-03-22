@@ -14,7 +14,6 @@ import {
 import { PageHeader } from './layout/PageHeader';
 
 import './App.css';
-import LeftMenu from './layout/LeftMenu';
 import { matchPath, useLocation } from 'react-router-dom';
 
 import classes from './App.module.css';
@@ -33,6 +32,7 @@ import { initReactI18next, useTranslation } from 'react-i18next';
 import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { PageContainer } from './layout/PageContainer';
 
 const GetRepoStatusSelector = makeGetRepoStatusSelector();
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
@@ -174,11 +174,9 @@ export function App() {
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
       <PageHeader repoStatus={repoStatus} />
-      <LeftMenu
-        className={classes.contentWrapper}
-        repoStatus={repoStatus}
-        subAppClassName={repoStatus.hasMergeConflict ? classes.mergeConflictApp : classes.subApp}
-      />
+      <div className={classes.contentWrapper}>
+        <PageContainer subAppClassName={classes.subApp} />
+      </div>
     </div>
   );
 }
