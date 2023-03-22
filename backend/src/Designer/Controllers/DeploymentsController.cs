@@ -26,19 +26,16 @@ namespace Altinn.Studio.Designer.Controllers
     public class DeploymentsController : ControllerBase
     {
         private readonly IDeploymentService _deploymentService;
-        private readonly IPipelineService _pipelineService;
         private readonly IGitea _giteaService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="deploymentService">IDeploymentService</param>
-        /// <param name="pipelineService">IPipelineService</param>
         /// <param name="giteaService">IGiteaService</param>
-        public DeploymentsController(IDeploymentService deploymentService, IPipelineService pipelineService, IGitea giteaService)
+        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaService)
         {
             _deploymentService = deploymentService;
-            _pipelineService = pipelineService;
             _giteaService = giteaService;
         }
 
@@ -58,7 +55,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             foreach (DeploymentEntity deployment in laggingDeployments)
             {
-                await _pipelineService.UpdateDeploymentStatus(deployment.Build.Id, deployment.Org);
+                await _deploymentService.UpdateAsync(deployment.Build.Id, deployment.Org);
             }
 
             return deployments;
@@ -76,8 +73,8 @@ namespace Altinn.Studio.Designer.Controllers
 
             List<Team> teams = await _giteaService.GetTeams();
             permittedEnvironments = teams.Where(t =>
-            t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
-            && t.Name.StartsWith("Deploy-", System.StringComparison.OrdinalIgnoreCase))
+            t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
+            && t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase))
                 .Select(t => t.Name.Split('-')[1])
                 .ToList();
 

@@ -26,7 +26,6 @@ namespace Designer.Tests.Controllers
         private readonly string _versionPrefix = "/designer/api";
         private readonly JsonSerializerOptions _options;
         private readonly Mock<IDeploymentService> _deploymentServiceMock;
-        private readonly Mock<IPipelineService> _pipelineServiceMock;
         private readonly string _org = "ttd";
         private readonly string _app = "issue-6094";
 
@@ -35,14 +34,12 @@ namespace Designer.Tests.Controllers
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());
             _deploymentServiceMock = new Mock<IDeploymentService>();
-            _pipelineServiceMock = new Mock<IPipelineService>();
         }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
             services.AddSingleton<IGitea, IGiteaMock>();
             services.AddSingleton(_deploymentServiceMock.Object);
-            services.AddSingleton(_pipelineServiceMock.Object);
         }
 
         [Fact]
@@ -56,7 +53,7 @@ namespace Designer.Tests.Controllers
                 .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -68,7 +65,7 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(8, actual.Count());
             Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
-            _pipelineServiceMock.Verify(p => p.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             _deploymentServiceMock.Verify(r => r.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
@@ -79,15 +76,15 @@ namespace Designer.Tests.Controllers
             string uri = $"{_versionPrefix}/{_org}/{_app}/deployments?sortDirection=Descending";
             List<DeploymentEntity> completedDeployments = GetDeploymentsList("singleLaggingDeployment.json");
 
-            _pipelineServiceMock
-                .Setup(ps => ps.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()))
+            _deploymentServiceMock
+                .Setup(ps => ps.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
             _deploymentServiceMock
                 .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -99,20 +96,21 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(8, actual.Count());
             Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
-            _pipelineServiceMock.Verify(p => p.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             _deploymentServiceMock.Verify(r => r.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
         private List<DeploymentEntity> GetDeploymentsList(string filename)
         {
             string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Deployments", filename);
-            if (File.Exists(path))
+            if (!File.Exists(path))
             {
-                string deployments = File.ReadAllText(path);
-                return JsonSerializer.Deserialize<List<DeploymentEntity>>(deployments, _options);
+                return null;
             }
 
-            return null;
+            string deployments = File.ReadAllText(path);
+            return JsonSerializer.Deserialize<List<DeploymentEntity>>(deployments, _options);
+
         }
     }
 }

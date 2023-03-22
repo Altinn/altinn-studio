@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -17,17 +16,23 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("/designer/api/")]
     public class PipelinesController : ControllerBase
     {
-        private readonly IPipelineService _pipelineService;
+        private readonly IReleaseService _releaseService;
+        private readonly IDeploymentService _deploymentService;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="releaseService">IReleaseService</param>
+        /// <param name="deploymentService">IDeploymentService</param>
+        /// <param name="logger"></param>
         public PipelinesController(
-            IPipelineService pipelineService,
+            IReleaseService releaseService,
+            IDeploymentService deploymentService,
             ILogger<PipelinesController> logger)
         {
-            _pipelineService = pipelineService;
+            _releaseService = releaseService;
+            _deploymentService = deploymentService;
             _logger = logger;
         }
 
@@ -43,7 +48,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<IActionResult> CheckReleaseStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
             _logger.LogInformation("checkreleasebuildstatus was with BuildNumber {BuildNumber} and ResourceOwner {ResourceOwner}", model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
-            await _pipelineService.UpdateReleaseStatus(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
+            await _releaseService.UpdateAsync(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             return Ok();
         }
 
@@ -58,7 +63,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("check-deployment-build-status")]
         public async Task<IActionResult> CheckDeploymentStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
-            await _pipelineService.UpdateDeploymentStatus(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
+            await _deploymentService.UpdateAsync(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             return Ok();
         }
     }

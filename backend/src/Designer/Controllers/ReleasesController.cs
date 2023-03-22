@@ -24,17 +24,14 @@ namespace Altinn.Studio.Designer.Controllers
     public class ReleasesController : ControllerBase
     {
         private readonly IReleaseService _releaseService;
-        private readonly IPipelineService _pipelineService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="releaseService">Release service</param>
-        /// <param name="pipelineService">IPipelineService</param>
-        public ReleasesController(IReleaseService releaseService, IPipelineService pipelineService)
+        public ReleasesController(IReleaseService releaseService)
         {
             _releaseService = releaseService;
-            _pipelineService = pipelineService;
         }
 
         /// <summary>
@@ -54,7 +51,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             foreach (ReleaseEntity release in laggingReleases)
             {
-                await _pipelineService.UpdateReleaseStatus(release.Build.Id, release.Org);
+                await _releaseService.UpdateAsync(release.Build.Id, release.Org);
             }
 
             return releases;
