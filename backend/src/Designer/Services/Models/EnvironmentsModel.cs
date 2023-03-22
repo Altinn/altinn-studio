@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Build.Framework;
 using Newtonsoft.Json;
 
@@ -10,5 +11,5 @@ public class EnvironmentsModel
     /// </summary>
     [Required]
     [JsonProperty("environments")]
-    public EnvironmentModel[] Environments { get; set; }
+    public List<EnvironmentModel> Environments { get; set; }
 }

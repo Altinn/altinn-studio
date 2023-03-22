@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -34,7 +35,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>List of environments</returns>
         [HttpGet]
         [Route("designer/api/environments")]
-        public async Task<EnvironmentModel[]> Environments()
+        public async Task<List<EnvironmentModel>> Environments()
         {
             return await _environmentsService.GetEnvironments();
         }
