@@ -1,29 +1,35 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "{{id}}",
-  "type": "object",
-  "@xsdNamespaces": {
-    "xsd": "http://www.w3.org/2001/XMLSchema",
-    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-    "seres": "http://seres.no/xsd/forvaltningsdata"
-  },
-  "@xsdSchemaAttributes": {
-    "AttributeFormDefault": "Unqualified",
-    "ElementFormDefault": "Qualified",
-    "BlockDefault": "None",
-    "FinalDefault": "None"
-  },
-  "@xsdRootElement": "{{rootType}}",
-  "properties": {
-    "property1": {
-      "type": "string"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "{{id}}",
+    "type": "object",
+    "info": {
+        "rootNode": ""
     },
-    "property2": {
-      "type": "string"
+    "@xsdNamespaces": {
+        "xsd": "http://www.w3.org/2001/XMLSchema",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "seres": "http://seres.no/xsd/forvaltningsdata"
     },
-    "property3": {
-      "type": "string"
-    }
-  },
-  "required": ["property1", "property2"]
+    "@xsdSchemaAttributes": {
+        "AttributeFormDefault": "Unqualified",
+        "ElementFormDefault": "Qualified",
+        "BlockDefault": "None",
+        "FinalDefault": "None"
+    },
+    "@xsdRootElement": "{{rootType}}",
+    "properties": {
+        "property1": {
+            "type": "string"
+        },
+        "property2": {
+            "type": "string"
+        },
+        "property3": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "property1",
+        "property2"
+    ]
 }
