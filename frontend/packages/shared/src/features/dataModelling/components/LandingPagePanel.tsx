@@ -3,6 +3,7 @@ import classes from './LandingPagePanel.module.css';
 import { Button, ButtonColor } from '@digdir/design-system-react';
 import { XSDUpload } from './XSDUpload';
 import { useTranslation } from 'react-i18next';
+import { ButtonContainer } from 'app-shared/primitives';
 
 export interface LandingPageProps {
   org: string;
@@ -22,7 +23,7 @@ export function LandingPagePanel({
     <div className={classes.landingDialog}>
       <h1>{t('app_data_modelling.landing_dialog_header')}</h1>
       <p>{t('app_data_modelling.landing_dialog_paragraph')}</p>
-      <div className={classes.buttons}>
+      <ButtonContainer>
         <XSDUpload
           onXSDUploaded={(filename): void => handleXSDUploaded(filename)}
           org={org}
@@ -36,7 +37,7 @@ export function LandingPagePanel({
         <Button color={ButtonColor.Secondary} onClick={(): void => handleCreateModelClick()}>
           {t('app_data_modelling.landing_dialog_create')}
         </Button>
-      </div>
+      </ButtonContainer>
     </div>
   );
 }
