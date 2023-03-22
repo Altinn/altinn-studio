@@ -104,26 +104,20 @@ const addReleaseAndDeployTestDataToDb = async () =>
 
 const script = async () => {
   const env = ensureDotEnv();
+  await dnsIsOk('studio.localhost');
+  await dnsIsOk('host.docker.internal');
   await startingDockerCompose();
-  const dnsOk = await dnsIsOk('studio.localhost');
-  if (dnsOk) {
-    await waitFor('http://studio.localhost/repos/');
-    await createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
-    await ensureUserPassword(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS);
-    await createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
-    await ensureUserPassword(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS);
-    await createTestDepOrg(env);
-    await createTestDepTeams(env);
-    await addUserToSomeTestDepTeams(env);
-    await createCypressEnvFile(env);
-    await addReleaseAndDeployTestDataToDb();
-    process.exit(0);
-  } else {
-    console.error(
-      'DNS entry for studio.localhost does not resolve to 127.0.0.1. Check that it is set in  /etc/hosts'
-    );
-    process.exit(1);
-  }
+  await waitFor('http://studio.localhost/repos/');
+  await createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
+  await ensureUserPassword(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS);
+  await createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
+  await ensureUserPassword(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS);
+  await createTestDepOrg(env);
+  await createTestDepTeams(env);
+  await addUserToSomeTestDepTeams(env);
+  await createCypressEnvFile(env);
+  await addReleaseAndDeployTestDataToDb();
+  process.exit(0);
 };
 
-script().then();
+script().then().catch(console.error);
