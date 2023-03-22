@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -42,16 +43,16 @@ public class EnvironmentsService : IEnvironmentsService
     /// Gets list of environments
     /// </summary>
     /// <returns>List of environments</returns>
-    public async Task<EnvironmentModel[]> GetEnvironments()
+    public async Task<List<EnvironmentModel>> GetEnvironments()
     {
-        EnvironmentModel[] environmentModel = null;
+        List<EnvironmentModel> environmentModel;
         string cachekey = System.Reflection.MethodBase.GetCurrentMethod().Name;
         if (!_cache.TryGetValue(cachekey, out environmentModel))
         {
             HttpResponseMessage response = await _httpClient.GetAsync(_generalSettings.EnvironmentsUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                var result = await response.Content.ReadAsAsync<EnvironmentsModel>();
+                EnvironmentsModel result = await response.Content.ReadAsAsync<EnvironmentsModel>();
                 environmentModel = result.Environments;
             }
         }
@@ -61,7 +62,7 @@ public class EnvironmentsService : IEnvironmentsService
 
     public async Task<EnvironmentModel> GetEnvModelByName(string envName)
     {
-        EnvironmentModel[] environmentModels = await this.GetEnvironments();
+        List<EnvironmentModel> environmentModels = await this.GetEnvironments();
         return environmentModels.SingleOrDefault(item => item.Name == envName);
     }
 
