@@ -60,7 +60,6 @@ export const FormDesigner = ({
               isDragging={false}
               layoutOrder={layoutOrderCopy}
             />
-            This would be the editor
           </div>
           <div className={classes.rightContent + ' ' + classes.item}>
             <RightMenu />
