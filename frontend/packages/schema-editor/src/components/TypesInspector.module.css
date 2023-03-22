@@ -1,26 +1,19 @@
 .root {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  padding: 24px 30px;
-  gap: 10px;
-  width: 220px;
-  height: 1087px;
+  box-sizing: border-box;
+  padding: 24px 24px;
+  width: 280px;
+  min-height: 100%;
   background: rgba(224, 224, 224, 0.3);
 }
 
 .types {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 0px;
+  align-items: stretch;
   gap: 8px;
-  width: 220px;
-  height: 168px;
 }
 
 .addRow {
-  width: 220px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   align-items: center;

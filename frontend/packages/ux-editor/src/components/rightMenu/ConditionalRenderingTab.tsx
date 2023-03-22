@@ -30,7 +30,7 @@ export const ConditionalRenderingTab = () => {
           />
         </div>
       </div>
-      <Divider inMenu />
+      <Divider marginless/>
       <Dynamics />
     </div>
   );

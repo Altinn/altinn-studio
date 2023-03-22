@@ -26,11 +26,8 @@ export enum NameError {
   NoError = 'NoError'
 }
 
-
-
 export enum NumberRestrictionsError {
   NoError = 'NoError',
-  InvalidValue = "InvalidValue",
-  InvalidMaxMinValue = "InvalidMaxMinValue"
-
+  InvalidValue = 'InvalidValue',
+  InvalidMaxMinValue = 'InvalidMaxMinValue'
 }

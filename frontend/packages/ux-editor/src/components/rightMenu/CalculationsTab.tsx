@@ -23,7 +23,7 @@ export const CalculationsTab = () => {
       </div>
       <RuleModal modalOpen={modalOpen} handleClose={() => setModalOpen(false)} />
     </div>
-    <Divider inMenu />
+    <Divider marginless/>
     <Dynamics />
   </div>;
 };
