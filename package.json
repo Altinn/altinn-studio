@@ -57,6 +57,7 @@
     "terser-webpack-plugin": "5.3.7",
     "ts-morph": "17.0.1",
     "typescript": "5.0.2",
+    "typescript-plugin-css-modules": "5.0.0",
     "webpack": "5.76.2",
     "webpack-cli": "5.0.1",
     "webpack-dev-server": "4.13.1",

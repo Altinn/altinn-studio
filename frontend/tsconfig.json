@@ -22,7 +22,8 @@
       "@altinn/schema-model": ["./packages/schema-model/src/*"],
       "@altinn/text-editor": ["./packages/schema-model/src/*"],
       "@altinn/ux-editor": ["./packages/ux-editor/src/*"]
-    }
+    },
+    "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
   "files": ["declaration.d.ts"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
