@@ -5,6 +5,7 @@ import { screen } from '@testing-library/react';
 
 import { dataTypes, instanceOwner, partyMember, partyTypesAllowed, userProfile } from 'src/__mocks__/constants';
 import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
+import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { ReceiptContainer, returnInstanceMetaDataObject } from 'src/features/receipt/containers/ReceiptContainer';
 import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
 import type { ILayout } from 'src/layout/layout';
@@ -102,7 +103,7 @@ function getMockState({
 
   const receiptLayout = receiptLayoutExist ? { receipt } : {};
 
-  const customReceipt = setCustomReceipt ? { hiddenFields: [], receiptLayoutName: 'receipt' } : {};
+  const customReceipt = setCustomReceipt ? { receiptLayoutName: 'receipt' } : {};
 
   return {
     organisationMetaData: {
@@ -138,7 +139,10 @@ function getMockState({
       },
     },
     formLayout: {
-      uiConfig: customReceipt,
+      uiConfig: {
+        ...getUiConfigStateMock(),
+        ...customReceipt,
+      },
       layouts: {
         ...receiptLayout,
       },

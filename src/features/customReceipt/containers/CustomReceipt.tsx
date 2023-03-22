@@ -11,24 +11,19 @@ import { useExprContext } from 'src/utils/layout/ExprContext';
 import { getFormHasErrors } from 'src/utils/validation/validation';
 
 export function CustomReceipt() {
-  const page = useExprContext()?.current();
-  const customReceipt = useAppSelector(
-    (state) =>
-      state.formLayout.layouts &&
-      state.formLayout.uiConfig.receiptLayoutName &&
-      state.formLayout.layouts[state.formLayout.uiConfig.receiptLayoutName],
-  );
+  const receiptLayoutName = useAppSelector((state) => state.formLayout.uiConfig.receiptLayoutName);
+  const page = useExprContext()?.findLayout(receiptLayoutName);
   const language = useAppSelector((state) => state.language.language);
   const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
 
   const [mainNodes, errorReportNodes] = React.useMemo(() => {
-    if (!customReceipt || !page) {
+    if (!page) {
       return [[], []];
     }
     return hasErrors ? extractBottomButtons(page) : [page.children(), []];
-  }, [page, customReceipt, hasErrors]);
+  }, [page, hasErrors]);
 
-  if (!language || !customReceipt) {
+  if (!language || !page) {
     return null;
   }
 
