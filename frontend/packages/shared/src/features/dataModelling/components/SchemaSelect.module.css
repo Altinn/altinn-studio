@@ -1,7 +1,6 @@
-
 .chevron {
   margin: 12px;
-  color: #006BD8;
+  color: #006bd8;
   font-size: 16px !important;
   font-weight: 600;
 }
@@ -13,7 +12,7 @@
 }
 
 .groupBadge {
-  background-color: #0062BA;
+  background-color: #0062ba;
   border-radius: 2em;
   color: white;
   display: inline-block;
@@ -32,5 +31,4 @@
 
 .select {
   min-width: 400px;
-  z-index: 1101;
 }
