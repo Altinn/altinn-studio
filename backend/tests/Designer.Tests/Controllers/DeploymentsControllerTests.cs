@@ -68,7 +68,7 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(8, actual.Count());
             Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
-            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<DeploymentEntity>(), It.IsAny<string>()), Times.Never);
+            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             _deploymentServiceMock.Verify(r => r.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
@@ -100,7 +100,7 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(8, actual.Count());
             Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
-            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<DeploymentEntity>(), It.IsAny<string>()), Times.Once);
+            _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             _deploymentServiceMock.Verify(r => r.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 

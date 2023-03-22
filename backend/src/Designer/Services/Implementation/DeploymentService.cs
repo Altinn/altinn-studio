@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -27,9 +28,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpContext _httpContext;
         private readonly IApplicationInformationService _applicationInformationService;
         private readonly IEnvironmentsService _environmentsService;
-
-        private const string PATH_TO_AZURE_ENV = "/kuberneteswrapper/api/v1/deployments";
-        private static readonly HttpClient client = new();
+        private readonly IKubernetesWrapperService _kubernetesWrapperService;
 
         /// <summary>
         /// Constructor
@@ -41,6 +40,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IDeploymentRepository deploymentRepository,
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
+            IKubernetesWrapperService kubernetesWrapperService,
             IApplicationInformationService applicationInformationService)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
@@ -48,6 +48,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _releaseRepository = releaseRepository;
             _applicationInformationService = applicationInformationService;
             _environmentsService = environmentsService;
+            _kubernetesWrapperService = kubernetesWrapperService;
             _azureDevOpsSettings = azureDevOpsOptions;
             _httpContext = httpContextAccessor.HttpContext;
         }
@@ -82,7 +83,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IEnumerable<DeploymentEntity> results = await _deploymentRepository.Get(org, app, query);
             IEnumerable<DeploymentEntity> deploymentEntities = results as DeploymentEntity[] ?? results.ToArray();
 
-            EnvironmentModel[] environments = await _environmentsService.GetEnvironments();
+            List<EnvironmentModel> environments = await _environmentsService.GetEnvironments();
             foreach (EnvironmentModel env in environments)
             {
                 deploymentEntities
@@ -109,21 +110,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await _deploymentRepository.Update(deploymentEntity);
         }
 
-        public async Task<AzureDeploymentsResponse> GetDeploymentsInEnvAsync(string org, string app, EnvironmentModel env)
-        {
-            string pathToAzureEnv = $"{org}.{env.AppPrefix}.{env.Hostname}{PATH_TO_AZURE_ENV}?labelSelector=release={org}-{app}&envName={env.Name}";
-            AzureDeploymentsResponse azureDeploymentsResponse = null;
-            HttpResponseMessage response = await client.GetAsync(pathToAzureEnv);
-            if (response.IsSuccessStatusCode)
-            {
-                azureDeploymentsResponse = await response.Content.ReadAsAsync<AzureDeploymentsResponse>();
-            }
-            return azureDeploymentsResponse;
-        }
-
         private async Task UpdateDeploymentStatus(DeploymentEntity deployment, string org, string app, EnvironmentModel env)
         {
-            AzureDeploymentsResponse azureDeploymentsResponse = await GetDeploymentsInEnvAsync(org, app, env);
+            AzureDeploymentsResponse azureDeploymentsResponse = await _kubernetesWrapperService.GetDeploymentsInEnvAsync(org, app, env);
             deployment.Deployed = !deployment.Deployed ? azureDeploymentsResponse != null : deployment.Deployed;
             deployment.Reachable = azureDeploymentsResponse != null;
         }
