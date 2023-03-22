@@ -54,8 +54,7 @@ export const AppDeploymentComponent = ({
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
 
-  const deploymentInEnv = deployHistory.find(deployment => deployment.deployed === true);
-  const appDeployedVersion = deploymentInEnv ? deploymentInEnv.tagName : undefined;
+  const deploymentInEnv = deployHistory.find(deployment => deployment.tagName);
   const { org, app } = useParams();
   const mutation = useCreateDeployMutation(org, app);
   const startDeploy = () =>
@@ -85,20 +84,19 @@ export const AppDeploymentComponent = ({
   }, [latestDeploy]);
 
   const showDeployFailedMessage = latestDeploy && latestDeploy.errorMessage;
-  debugger;
   return (
     <div className={classes.mainContainer}>
       <div className={classes.headingContainer}>
         <div className={classes.envTitle}>{t('app_deploy.environment', { envName })}</div>
         <div className={classes.gridItem}>
-          {deploymentInEnv !== undefined &&
+          {deploymentInEnv &&
+            deploymentInEnv.build.finished &&
             deploymentInEnv.reachable &&
-            appDeployedVersion !== undefined &&
-            t('app_deploy.deployed_version', { appDeployedVersion })}
-          {deploymentInEnv === undefined &&
-            appDeployedVersion === undefined &&
+            deploymentInEnv.tagName &&
+            t('app_deploy.deployed_version', { appDeployedVersion: deploymentInEnv.tagName })}
+          {(!deploymentInEnv || (deploymentInEnv && !deploymentInEnv.build.finished)) &&
             t('app_deploy.no_app_deployed')}
-          {deploymentInEnv !== undefined &&
+          {deploymentInEnv &&
             !deploymentInEnv.reachable &&
             t('app_deploy.deployed_version_unavailable')}
         </div>
@@ -125,7 +123,7 @@ export const AppDeploymentComponent = ({
           )}
           {imageOptions.length && !deployInProgress && deployPermission && (
             <DeployDropdown
-              appDeployedVersion={appDeployedVersion}
+              appDeployedVersion={deploymentInEnv.tagName}
               envName={envName}
               disabled={selectedImageTag === null || deployInProgress === true}
               deployHistoryEntry={latestDeploy}

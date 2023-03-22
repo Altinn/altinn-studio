@@ -44,7 +44,6 @@ export interface IDeployment {
   app: string;
   org: string;
   envName: string;
-  deployed: boolean;
   reachable: boolean;
   createdBy: string;
   created: string;

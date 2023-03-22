@@ -9,7 +9,6 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -19,7 +18,6 @@ using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NuGet.Protocol;
 using Xunit;
 
 namespace Designer.Tests.Controllers
@@ -92,7 +90,6 @@ namespace Designer.Tests.Controllers
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
-            Console.WriteLine("RESPONSE : " + responseString);
             SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, _options);
             IEnumerable<DeploymentEntity> actual = searchResult.Results;
 

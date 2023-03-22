@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
+using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
@@ -28,7 +29,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpContext _httpContext;
         private readonly IApplicationInformationService _applicationInformationService;
         private readonly IEnvironmentsService _environmentsService;
-        private readonly IKubernetesWrapperService _kubernetesWrapperService;
+        private readonly IKubernetesWrapperClient _kubernetesWrapperClient;
 
         /// <summary>
         /// Constructor
@@ -40,7 +41,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IDeploymentRepository deploymentRepository,
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
-            IKubernetesWrapperService kubernetesWrapperService,
+            IKubernetesWrapperClient kubernetesWrapperClient,
             IApplicationInformationService applicationInformationService)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
@@ -48,7 +49,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _releaseRepository = releaseRepository;
             _applicationInformationService = applicationInformationService;
             _environmentsService = environmentsService;
-            _kubernetesWrapperService = kubernetesWrapperService;
+            _kubernetesWrapperClient = kubernetesWrapperClient;
             _azureDevOpsSettings = azureDevOpsOptions;
             _httpContext = httpContextAccessor.HttpContext;
         }
@@ -86,9 +87,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<EnvironmentModel> environments = await _environmentsService.GetEnvironments();
             foreach (EnvironmentModel env in environments)
             {
-                deploymentEntities
+                await Parallel.ForEachAsync(deploymentEntities
                     .Where(deployment => deployment.EnvName == env.Name)
-                    .ToList().ForEach(async deployment => await UpdateDeploymentStatus(deployment, org, app, env));
+                    .ToList(), async (d, _) =>
+                    await UpdateDeploymentStatus(d, org, app, env));
             }
 
             return new SearchResults<DeploymentEntity> { Results = deploymentEntities };
@@ -112,9 +114,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task UpdateDeploymentStatus(DeploymentEntity deployment, string org, string app, EnvironmentModel env)
         {
-            AzureDeploymentsResponse azureDeploymentsResponse = await _kubernetesWrapperService.GetDeploymentsInEnvAsync(org, app, env);
-            deployment.Deployed = !deployment.Deployed ? azureDeploymentsResponse != null : deployment.Deployed;
-            deployment.Reachable = azureDeploymentsResponse != null;
+            try
+            {
+                AzureDeploymentsResponse azureDeploymentsResponse = await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, app, env);
+                // Uncomment below line and comment out above line if running locally
+                // AzureDeploymentsResponse azureDeploymentsResponse = new() { Deployment = new() { new() { Release = "autodeploy-v3", Version = "v2" }} };
+                deployment.Reachable = true;
+            }
+            catch (HttpRequestException)
+            {
+                deployment.Reachable = false;
+            }
         }
 
         private async Task<Build> QueueDeploymentBuild(

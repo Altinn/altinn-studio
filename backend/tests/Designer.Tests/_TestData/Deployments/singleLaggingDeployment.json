@@ -2,7 +2,7 @@
   {
     "tagName": "8",
     "envName": "at22",
-    "deployed": false,
+    "reachable": false,
     "build": {
       "id": "142287",
       "status": "inProgress",
@@ -19,7 +19,7 @@
   {
     "tagName": "7",
     "envName": "at22",
-    "deployed": true,
+    "reachable": true,
     "build": {
       "id": "142234",
       "status": "completed",
@@ -36,7 +36,7 @@
   {
     "tagName": "6.1",
     "envName": "at22",
-    "deployed": true,
+    "reachable": true,
     "build": {
       "id": "142224",
       "status": "completed",
@@ -53,7 +53,7 @@
   {
     "tagName": "5",
     "envName": "at22",
-    "deployed": true,
+    "reachable": true,
     "build": {
       "id": "142210",
       "status": "completed",
@@ -70,7 +70,7 @@
   {
     "tagName": "4",
     "envName": "at22",
-    "deployed": true,
+    "reachable": true,
     "build": {
       "id": "142194",
       "status": "completed",
@@ -87,7 +87,7 @@
   {
     "tagName": "3",
     "envName": "at22",
-    "deployed": true,
+    "reachable": true,
     "build": {
       "id": "141706",
       "status": "completed",
@@ -104,7 +104,7 @@
   {
     "tagName": "2.2",
     "envName": "at22",
-    "deployed": true,
+    "reachable": true,
     "build": {
       "id": "141698",
       "status": "completed",
@@ -121,7 +121,7 @@
   {
     "tagName": "1",
     "envName": "at22",
-    "deployed": true,
+    "reachable": true,
     "build": {
       "id": "141674",
       "status": "completed",
