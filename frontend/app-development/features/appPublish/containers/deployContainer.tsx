@@ -12,7 +12,7 @@ import {
   useEnvironments,
   useOrgList,
 } from '../hooks/query-hooks';
-import { ICreateAppDeploymentEnvObject } from '../../../sharedResources/appDeployment/types';
+import { ICreateAppDeploymentEnvObject, IDeployment } from '../../../sharedResources/appDeployment/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { useQueryClient } from '@tanstack/react-query';
 import { CacheKey } from 'app-shared/api-paths/cache-key';
@@ -98,6 +98,7 @@ export const DeployContainerComponent = () => {
   return (
     <div className={classes.deployContainer}>
       {deployEnvironments.map((env: IDeployEnvironment, index: number) => {
+        const deploymentsInEnv: IDeployment[] = appDeployments.filter((x) => x.envName === env.name);
         return (
           <AppDeploymentComponent
             key={index}
@@ -105,13 +106,13 @@ export const DeployContainerComponent = () => {
             urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             imageOptions={imageOptions}
-            deployHistory={appDeployments.filter((x) => x.envName === env.name)}
+            deployHistory={deploymentsInEnv}
             deployError={createAppDeploymentErrors.filter((x) => x.env === env.name)}
             deployPermission={
               permissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }
             orgName={orgName}
-            showLinkToApp={appDeployments.length > 0}
+            showLinkToApp={deploymentsInEnv.length > 0 && deploymentsInEnv[0].reachable && deploymentsInEnv[0].build.finished !== null}
           />
         );
       })}
