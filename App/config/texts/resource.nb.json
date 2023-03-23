@@ -22,6 +22,18 @@
       "value": "Dette steget krever bekreftelse fra daglig leder."
     },
     {
+      "id": "Form.Panel-noaccess.body",
+      "value": "## Du kan **ikke** bekrefte skjemaet\n\nSkjemaet du har fylt ut er lagret, men du kan ikke bekrefte det. Årsaken er at du ikke har blitt tildelt en rolle som har rett til å bekrefte. Vi har derfor sendt skjemaet til noen som har rett til å bekrefte det.<br><br>Den som skal bekrefte kan se, redigere og sende skjemaet du har fylt ut. Det er bare den som bekrefter skjemaet som får kvittering om at det er gjort. Det betyr at du ikke får kvittering."
+    },
+    {
+      "id": "Header-noaccess.title",
+      "value": "Skjemaet er sendt til revisor"
+    },
+    {
+      "id": "Paragraph-noaccess.title",
+      "value": "Du har sendt skjemaet til revisor. Du får en kvittering i arkivet ditt i Altinn når revisor har bekreftet og sendt skjemaet til Testdepartementet."
+    },
+    {
       "id": "Form.Panel-confirm2.title",
       "value": "Revisors bekreftelse"
     },

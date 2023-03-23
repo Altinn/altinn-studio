@@ -37,67 +37,89 @@
         window.app = appId[2];
       }
 
-      function updatePermission(format) {
+      async function waitForSelector(selector) {
+        while ( document.querySelector(selector) === null) {
+          await new Promise( resolve => requestAnimationFrame(resolve) )
+        }
+        return document.querySelector(selector);
+      };
+
+      function updatePermission() {
+        const write = document.querySelector("#writePermission").checked;
+        const confirm = document.querySelector("#confirmPermission").checked;
+        const sign = document.querySelector("#signPermission").checked;
+        const reject = document.querySelector("#rejectPermission").checked;
+
+        localStorage.setItem("writePermission", write);
+        localStorage.setItem("confirmPermission", confirm);
+        localStorage.setItem("signPermission", sign);
+        localStorage.setItem("rejectPermission", reject);
+
         const permissions = {
-          read: false,
-          write: false,
+          read: true,
+          write,
           actions: {
-            instantiate: false,
-            confirm: false,
-            sign: false,
-            reject: false,
+            instantiate: true,
+            confirm,
+            sign,
+            reject,
           },
         };
-        for (const i of format) {
-          switch (i) {
-            case 'r':
-              permissions.read = true;
-              break;
-            case 'w':
-              permissions.write = true;
-              break;
-            case 'i':
-              permissions.actions = { ...permissions.actions, instantiate: true };
-              break;
-            case 'c':
-              permissions.actions = { ...permissions.actions, confirm: true };
-              break;
-            case 's':
-              permissions.actions = { ...permissions.actions, sign: true };
-              break;
-            case 'j':
-              permissions.actions = { ...permissions.actions, reject: true };
-              break;
-          }
-        }
 
         const { taskType, taskId } = window.reduxStore.getState().process;
 
-        window.reduxStore.dispatch({
-          type: 'process/getFulfilled',
-          payload: {
-            processStep: taskType,
-            taskId,
-            ...permissions
-          },
-        });
+        if (taskId) {
+          window.reduxStore.dispatch({
+            type: 'process/getFulfilled',
+            payload: {
+              taskType,
+              taskId,
+              ...permissions
+            },
+          });
+          window.reduxStore.dispatch({
+            type: 'formLayout/updateLayouts',
+            payload: {}
+          });
+        }
       }
 
     </script>
     <div id="root" class="media-body flex-column d-flex"></div>
-    <div id="permissionContainer" style="display: none; margin: 0 auto;">
+    <div id="permissionContainer" style="display: none; margin: 0 auto 50px auto;">
       <span>Set permissions:</span>
-      <button onclick="updatePermission('r')">Read</button>
-      <button onclick="updatePermission('rw')">Write</button>
-      <button onclick="updatePermission('rc')">Confirm</button>
-      <button onclick="updatePermission('rs')">Sign</button>
-      <button onclick="updatePermission('rsj')">Reject</button>
-      <button onclick="updatePermission('rwicsj')">All</button>
+      <input id="writePermission" type="checkbox" onchange="updatePermission()">
+      <label for="writePermission">Write</label>
+      <input id="confirmPermission" type="checkbox" onchange="updatePermission()">
+      <label for="confirmPermission">Confirm</label>
+      <input id="signPermission" type="checkbox" onchange="updatePermission()">
+      <label for="signPermission">Sign</label>
+      <input id="rejectPermission" type="checkbox" onchange="updatePermission()">
+      <label for="rejectPermission">Reject</label>
     </div>
     <script>
       loadScript();
       if (document.location.host === "local.altinn.cloud") {
         document.querySelector("#permissionContainer").style.display = "block";
+        
+        document.querySelector("#writePermission").checked = localStorage.getItem('writePermission') === "true" ?? true;
+        document.querySelector("#confirmPermission").checked = localStorage.getItem('confirmPermission') === "true" ?? true;
+        document.querySelector("#signPermission").checked = localStorage.getItem('signPermission') === "true" ?? true;
+        document.querySelector("#rejectPermission").checked = localStorage.getItem('rejectPermission') === "true" ?? true;
+
+        var prevPermissionValue = 0;
+        waitForSelector('#readyForPrint').then((selector) => {
+          if (window.reduxStore.getState().process.taskId) {
+            updatePermission();
+          }
+          window.reduxStore.subscribe(() => {
+            const {taskId, read} = window.reduxStore.getState().process;
+            if (taskId && read !== true && read !== false) {
+              updatePermission();
+            }
+            prevPermissionValue = read;
+          })
+        });
       }
     </script>
   </div>
