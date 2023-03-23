@@ -92,6 +92,10 @@
   "definitions": {
     "NestedGroup": {
       "properties": {
+        "hideRowValue": {
+          "type": "integer",
+          "@xsdType": "XmlAttribute"
+        },
         "skjemanummer": {
           "const": "1603",
           "type": "integer",

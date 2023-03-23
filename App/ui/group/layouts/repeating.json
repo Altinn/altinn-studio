@@ -27,7 +27,15 @@
       {
         "id": "mainGroup",
         "type": "Group",
-        "children": ["0:currentValue", "0:newValue", "1:mainUploaderSingle", "1:mainUploaderMulti", "1:subGroup", "2:source", "2:reference"],
+        "children": [
+          "0:currentValue",
+          "0:newValue",
+          "1:mainUploaderSingle",
+          "1:mainUploaderMulti",
+          "1:subGroup",
+          "2:source",
+          "2:reference"
+        ],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
@@ -36,37 +44,70 @@
           "title": "Group title",
           "edit_button_open": [
             "if",
-              ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"],
-              "Se innhold",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+            ],
+            "Se innhold",
             "else",
-              "Rediger"
+            "Rediger"
           ],
           "edit_button_close": [
             "if",
-              ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"],
-              "Lukk",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+            ],
+            "Lukk",
             "else",
-              "Lagre og lukk"
+            "Lagre og lukk"
           ],
           "save_button": [
             "if",
-              ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"],
-              "Lukk",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+            ],
+            "Lukk",
             "else",
-              "Lagre og lukk"
+            "Lagre og lukk"
           ]
         },
-        "tableHeaders": ["currentValue", "newValue", "mainUploaderSingle", "mainUploaderMulti"],
+        "tableHeaders": [
+          "currentValue",
+          "newValue",
+          "mainUploaderSingle",
+          "mainUploaderMulti"
+        ],
         "triggers": ["validation"],
+        "hiddenRow": [
+          "greaterThanEq",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+          ],
+          ["dataModel", "hideRowValue"]
+        ],
         "edit": {
           "mode": "showTable",
-          "saveButton": ["not",
-            ["and",
-              [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
-              [ "equals", ["component", "currentValue"], 1]
+          "saveButton": [
+            "not",
+            [
+              "and",
+              [
+                "dataModel",
+                "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+              ],
+              ["equals", ["component", "currentValue"], 1]
             ]
           ],
-          "deleteButton": ["not", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ]],
+          "deleteButton": [
+            "not",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+            ]
+          ],
           "multiPage": true,
           "openByDefault": false
         }
@@ -81,7 +122,10 @@
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
         },
         "required": false,
-        "readOnly": [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
+        "readOnly": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ],
         "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
@@ -105,7 +149,10 @@
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
         },
         "required": false,
-        "readOnly": [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
+        "readOnly": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ],
         "grid": {
           "md": 6
         },
@@ -132,7 +179,10 @@
         "maxNumberOfAttachments": 1,
         "minNumberOfAttachments": 0,
         "displayMode": "simple",
-        "hidden": [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ]
+        "hidden": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ]
       },
       {
         "id": "mainUploaderMulti",
@@ -147,7 +197,10 @@
         "maxNumberOfAttachments": 5,
         "minNumberOfAttachments": 0,
         "displayMode": "simple",
-        "hidden": [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ]
+        "hidden": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ]
       },
       {
         "id": "source",
@@ -191,7 +244,15 @@
       {
         "id": "subGroup",
         "type": "Group",
-        "children": ["comments", "subUploader", "nestedDynamics", "nestedOptions", "nested-source", "nested-reference", "hideComment"],
+        "children": [
+          "comments",
+          "subUploader",
+          "nestedDynamics",
+          "nestedOptions",
+          "nested-source",
+          "nested-reference",
+          "hideComment"
+        ],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
@@ -199,7 +260,12 @@
         "textResourceBindings": {
           "title": "Nested group"
         },
-        "tableHeaders": ["comments", "subUploader", "nestedDynamics", "nestedOptions"],
+        "tableHeaders": [
+          "comments",
+          "subUploader",
+          "nestedDynamics",
+          "nestedOptions"
+        ],
         "triggers": ["validation"],
         "edit": {
           "filter": [
@@ -212,8 +278,11 @@
         },
         "hidden": [
           "and",
-          [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
-          [ "greaterThan", ["component", "currentValue"], 100]
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+          ],
+          ["greaterThan", ["component", "currentValue"], 100]
         ]
       },
       {
@@ -310,27 +379,27 @@
         },
         "required": false,
         "readOnly": false,
-      "labelSettings": { "optionalIndicator": false },
-      "triggers": ["validation"]
-    },
-    {
-      "id": "hideComment",
-      "type": "Checkboxes",
-      "textResourceBindings": {
-        "title": "Skjul kommentar felt"
+        "labelSettings": { "optionalIndicator": false },
+        "triggers": ["validation"]
       },
-      "dataModelBindings": {
-        "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.hideComment"
+      {
+        "id": "hideComment",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Skjul kommentar felt"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.hideComment"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "Ja"
+          }
+        ],
+        "required": false,
+        "readOnly": false
       },
-      "options": [
-        {
-          "label": "Ja",
-          "value": "Ja"
-        }
-      ],
-      "required": false,
-      "readOnly": false
-    },
       {
         "id": "subUploader",
         "type": "FileUploadWithTag",
@@ -437,6 +506,25 @@
           "label": "optionsFromRepeatingGroup",
           "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
         }
+      },
+      {
+        "id": "hideRepeatingGroupRow",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "number-to-be-greaterThanEq"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "hideRowValue"
+        },
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK ",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "readOnly": false
       },
       {
         "id": "nav-page-1",

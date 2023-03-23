@@ -226,6 +226,10 @@
       ]
     },
     {
+      "id": "number-to-be-greaterThanEq",
+      "value": "Hvilket tall må \"Endre fra\" være større enn for å skjule rader?"
+    },
+    {
       "id": "question-1",
       "value": "Gjør du leksene dine?"
     },

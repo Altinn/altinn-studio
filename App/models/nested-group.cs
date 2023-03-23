@@ -20,6 +20,10 @@ namespace Altinn.App.Models
     [BindNever]
     public decimal spesifikasjonsnummer {get; set;} = 12392;
 
+    [XmlAttribute("hideRowValue")]
+    [JsonProperty("hideRowValue")]
+    public int hideRowValue {get; set;} = 1000000;
+
     [XmlAttribute("blankettnummer")]
     [BindNever]
     public  string blankettnummer {get; set; } = "RF-1366";
