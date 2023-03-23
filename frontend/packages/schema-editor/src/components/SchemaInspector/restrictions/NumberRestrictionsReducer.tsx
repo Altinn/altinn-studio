@@ -55,15 +55,17 @@ export const validateMinMax = (
   const minEqualMax = Number(formatState.min) === Number(formatState.max);
   if (minMaxAreInclusive && minEqualMax) {
     return NumberRestrictionsError.NoError;
+  } else if (!minMaxAreInclusive && Number(formatState.max) < Number(formatState.min)) {
+    return NumberRestrictionsError.Integer_both_are_exclusive;
   } else if (Number(formatState.min) >= Number(formatState.max)) {
-    return NumberRestrictionsError.InvalidMaxMinValue;
+    return NumberRestrictionsError.Both_max_and_min_inclusive;
   } else if (
     !formatState.isMaxInclusive &&
     !formatState.isMinInclusive &&
     formatState.isInteger &&
     formatState.min === formatState.max - 1
   ) {
-    return NumberRestrictionsError.InvalidMaxMinValue;
+    return NumberRestrictionsError.Integer_both_are_exclusive;
   }
   return NumberRestrictionsError.NoError;
 };
