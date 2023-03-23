@@ -1,6 +1,7 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
+import { customReceipt } from 'test/e2e/support/customReceipt';
 
 const mui = new Common();
 const appFrontend = new AppFrontend();
@@ -35,5 +36,64 @@ describe('Receipt', () => {
 
     cy.get('body').should('have.css', 'background-color', 'rgb(212, 249, 228)');
     cy.get(appFrontend.header).should('contain.text', texts.ttd);
+  });
+
+  it('Custom receipt shows as expected', () => {
+    let settingsCount = 0;
+    let layoutCount = 0;
+    cy.intercept('**/layoutsettings/**', (req) => {
+      req.on('response', (res) => {
+        settingsCount++;
+        // Layout settings is returned as text/plain for some reason
+        const settings = JSON.parse(res.body);
+        settings.receiptLayoutName = 'receipt';
+        res.body = JSON.stringify(settings);
+      });
+    }).as('LayoutSettings');
+    cy.intercept('**/layouts/**', (req) => {
+      req.on('response', (res) => {
+        layoutCount++;
+        // Layouts are returned as text/plain for some reason
+        const layouts = JSON.parse(res.body);
+        layouts.receipt = { data: { layout: customReceipt } };
+        res.body = JSON.stringify(layouts);
+      });
+    }).as('FormLayout');
+    cy.goto('confirm', 'with-data');
+    cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
+
+    cy.get(appFrontend.receipt.container).should('not.exist');
+    cy.get('[data-testId=custom-receipt]').should('exist').and('be.visible');
+    cy.get('#form-content-r-instance').should('exist').and('be.visible');
+    cy.get('#form-content-r-header').should('exist').and('be.visible').and('contain.text', 'Custom kvittering');
+    cy.get('#form-content-r-paragraph')
+      .should('exist')
+      .and('be.visible')
+      .and('contain.text', 'Takk for din innsending, dette er en veldig fin custom kvittering.');
+    cy.get('#form-content-r-attachments')
+      .should('exist')
+      .and('be.visible')
+      .find('[data-testId=attachment-list]')
+      .children()
+      .should('have.length', 5);
+
+    /*
+      Verify that layout and settings are not fetched on refresh
+      This is a limitation with the current implementation that
+      causes the custom receipt to not show on refresh.
+    */
+
+    let settingsBeforeRefreshCount, layoutBeforeRefreshCount;
+    cy.wrap({}).then(() => {
+      settingsBeforeRefreshCount = settingsCount;
+      layoutBeforeRefreshCount = layoutCount;
+    });
+    cy.reloadAndWait().then(() => {
+      expect(settingsCount).to.eq(settingsBeforeRefreshCount);
+      expect(layoutCount).to.eq(layoutBeforeRefreshCount);
+    });
+
+    cy.get('[data-testId=custom-receipt]').should('not.exist');
+    cy.get(appFrontend.receipt.container).should('exist').and('be.visible');
   });
 });
