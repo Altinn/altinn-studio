@@ -29,21 +29,23 @@ export const LanguageSelector = () => {
 
   if (appLanguages && language) {
     return (
-      <Select
-        label={getTextFromAppOrDefault('language.selector.label', textResources, language, undefined, true)}
-        options={appLanguages.map((lang) => ({
-          value: lang.language,
-          label: getTextFromAppOrDefault(
-            `language.full_name.${lang.language}`,
-            textResources,
-            language,
-            undefined,
-            true,
-          ),
-        }))}
-        onChange={(value) => handleAppLanguageChange(value)}
-        value={selectedAppLanguage}
-      />
+      <div style={{ minWidth: 150 }}>
+        <Select
+          label={getTextFromAppOrDefault('language.selector.label', textResources, language, undefined, true)}
+          options={appLanguages.map((lang) => ({
+            value: lang.language,
+            label: getTextFromAppOrDefault(
+              `language.full_name.${lang.language}`,
+              textResources,
+              language,
+              undefined,
+              true,
+            ),
+          }))}
+          onChange={(value) => handleAppLanguageChange(value)}
+          value={selectedAppLanguage}
+        />
+      </div>
     );
   }
 
