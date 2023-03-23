@@ -112,7 +112,7 @@ export const DeployContainerComponent = () => {
               permissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }
             orgName={orgName}
-            showLinkToApp={deploymentsInEnv.length > 0 && deploymentsInEnv[0].reachable}
+            showLinkToApp={deploymentsInEnv.length > 0 && deploymentsInEnv[0].reachable && deploymentsInEnv[0].build.finished !== null}
           />
         );
       })}

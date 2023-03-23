@@ -83,7 +83,7 @@ export const AppDeploymentComponent = ({
     }
   }, [latestDeploy]);
 
-  const showDeployFailedMessage = latestDeploy && latestDeploy.errorMessage;
+  const showDeployFailedMessage = latestDeploy && !latestDeploy.reachable;
   return (
     <div className={classes.mainContainer}>
       <div className={classes.headingContainer}>
@@ -121,9 +121,9 @@ export const AppDeploymentComponent = ({
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
           )}
-          {imageOptions.length && !deployInProgress && deployPermission && (
+          {imageOptions.length > 0 && !deployInProgress && deployPermission && (
             <DeployDropdown
-              appDeployedVersion={deploymentInEnv && deploymentInEnv.tagName}
+              appDeployedVersion={deploymentInEnv ? deploymentInEnv.tagName : undefined}
               envName={envName}
               disabled={selectedImageTag === null || deployInProgress === true}
               deployHistoryEntry={latestDeploy}
@@ -135,7 +135,7 @@ export const AppDeploymentComponent = ({
             />
           )}
           {deployInProgress && <div>{t('app_publish.deployment_in_progress')}...</div>}
-          {!deploymentInEnv && deployPermission && (
+          {deploymentInEnv && !deploymentInEnv.reachable && deployPermission && (
             <div className={classes.deployUnavailableContainer}>
               <div className={classes.deploySpinnerGridItem}>
                 <AltinnIcon
