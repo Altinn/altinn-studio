@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
 import classes from './deployContainer.module.css';
-import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { AppDeploymentComponent, ImageOption } from '../components/appDeploymentComponent';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
@@ -18,7 +17,8 @@ import { formatDateTime } from 'app-shared/pure/date-format';
 import { useQueryClient } from '@tanstack/react-query';
 import { CacheKey } from 'app-shared/api-paths/cache-key';
 
-type DeployEnvironment = {
+
+export interface IDeployEnvironment {
   appsUrl: string;
   platformUrl: string;
   hostname: string;
@@ -26,11 +26,10 @@ type DeployEnvironment = {
   platformPrefix: string;
   name: string;
   type: string;
-};
+}
 
 export const DeployContainerComponent = () => {
   const { org, app } = useParams();
-  const appCluster: IAppClusterState = useAppSelector((state) => state.appCluster);
   const createAppDeploymentErrors: any = useAppSelector(
     (state) => state.appDeployments.createAppDeploymentErrors
   );
@@ -68,7 +67,7 @@ export const DeployContainerComponent = () => {
   const deployEnvironments: ICreateAppDeploymentEnvObject[] = useMemo(
     () =>
       orgs?.orgs[org]?.environments
-        .map((envName: string) => environmentList.find((env: any) => env.name === envName))
+        .map((envName: string) => environmentList.find((env: IDeployEnvironment) => env.name === envName))
         .filter((element: any) => element != null),
     [orgs, org, environmentList]
   );
@@ -98,17 +97,13 @@ export const DeployContainerComponent = () => {
   }
   return (
     <div className={classes.deployContainer}>
-      {deployEnvironments.map((env: DeployEnvironment, index: number) => {
+      {deployEnvironments.map((env: IDeployEnvironment, index: number) => {
         return (
           <AppDeploymentComponent
             key={index}
             envName={env.name}
             urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
-            deploymentList={
-              appCluster.deploymentList &&
-              appCluster.deploymentList.find((elem: any) => elem.env === env.name)
-            }
             imageOptions={imageOptions}
             deployHistory={appDeployments.filter((x) => x.envName === env.name)}
             deployError={createAppDeploymentErrors.filter((x) => x.env === env.name)}
