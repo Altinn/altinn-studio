@@ -123,7 +123,7 @@ export const AppDeploymentComponent = ({
           )}
           {imageOptions.length && !deployInProgress && deployPermission && (
             <DeployDropdown
-              appDeployedVersion={deploymentInEnv.tagName}
+              appDeployedVersion={deploymentInEnv && deploymentInEnv.tagName}
               envName={envName}
               disabled={selectedImageTag === null || deployInProgress === true}
               deployHistoryEntry={latestDeploy}
