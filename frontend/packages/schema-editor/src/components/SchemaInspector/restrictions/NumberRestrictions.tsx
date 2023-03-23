@@ -55,17 +55,18 @@ export function NumberRestrictions({
 
   const minMaxErrorMessage = {
     [NumberRestrictionsError.NoError]: '',
-    [NumberRestrictionsError.Both_max_and_min_inclusive]: t(
-      'schema_editor.numberRestrictionsError_Both_max_and_min_inclusive'
+    [NumberRestrictionsError.MinMustBeLessThanOrEqualToMax]: t(
+      'schema_editor.numberRestrictionsError_MinMustBeLessThanOrEqualToMax'
     ),
     [NumberRestrictionsError.Decimal_One_value_should_be__exclusive]: t(
       'schema_editor.numberRestrictionsError_Decimal_One_value_should_be__exclusive'
     ),
-    [NumberRestrictionsError.Integer_both_are_exclusive]: t(
-      'schema_editor.numberRestrictionsError_Integer_both_are_exclusive'
+    [NumberRestrictionsError.IntervalMustBeLargeEnough]: t(
+      'schema_editor.numberRestrictionsError_IntervalMustBeLargeEnough'
     ),
-    [NumberRestrictionsError.Integer_one_inclusive_other_exclusive]: t(
-      'schema_editor.numberRestrictionsError_Integer_one_inclusive_other_exclusive'
+
+    [NumberRestrictionsError.MinMustBeLessThanMax]: t(
+      'schema_editor.numberRestrictionsError_MinMustBeLessThanMax'
     ),
   }[formatState.numberRestrictionsError];
 

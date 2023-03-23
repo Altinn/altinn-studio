@@ -56,16 +56,16 @@ export const validateMinMax = (
   if (minMaxAreInclusive && minEqualMax) {
     return NumberRestrictionsError.NoError;
   } else if (!minMaxAreInclusive && Number(formatState.max) < Number(formatState.min)) {
-    return NumberRestrictionsError.Integer_both_are_exclusive;
+    return NumberRestrictionsError.IntervalMustBeLargeEnough;
   } else if (Number(formatState.min) >= Number(formatState.max)) {
-    return NumberRestrictionsError.Both_max_and_min_inclusive;
+    return NumberRestrictionsError.MinMustBeLessThanOrEqualToMax;
   } else if (
     !formatState.isMaxInclusive &&
     !formatState.isMinInclusive &&
     formatState.isInteger &&
     formatState.min === formatState.max - 1
   ) {
-    return NumberRestrictionsError.Integer_both_are_exclusive;
+    return NumberRestrictionsError.IntervalMustBeLargeEnough;
   }
   return NumberRestrictionsError.NoError;
 };
