@@ -22,7 +22,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("hideRowValue")]
     [JsonProperty("hideRowValue")]
-    public int hideRowValue {get; set;} = 1000000;
+    public int hideRowValue {get; set;} = 99999999;
 
     [XmlAttribute("blankettnummer")]
     [BindNever]
