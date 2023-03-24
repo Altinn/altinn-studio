@@ -25,6 +25,7 @@ export interface ILayoutGroup extends ILayoutCompBase<'Group'> {
   tableHeaders?: string[];
   edit?: IGroupEditProperties;
   panel?: IGroupPanel;
+  hiddenRow?: ExprVal.Boolean;
 }
 
 export interface IDataModelBindingsForGroup {

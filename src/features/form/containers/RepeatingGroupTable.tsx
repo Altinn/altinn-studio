@@ -184,6 +184,13 @@ export function RepeatingGroupTable({
                 return null;
               }
 
+              const isTableRowHidden =
+                node.item.type === 'Group' && 'rows' in node.item && node.item.rows[index]?.groupExpressions?.hiddenRow;
+
+              if (isTableRowHidden) {
+                return null;
+              }
+
               const isEditingRow = index === editIndex;
 
               return (

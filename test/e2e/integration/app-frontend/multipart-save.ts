@@ -140,7 +140,7 @@ describe('Multipart save', () => {
     const commentKey = 'SkattemeldingEndringEtterFristKommentar-datadef-37133.value';
 
     function addRow(index: number, oldValue: string, newValue: string, comment) {
-      cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
+      cy.get(appFrontend.group.addNewItem).click();
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.next).click();
       expectSave(`${groupKey}[${index}].${subGroupKey}[0].source`, 'altinn', null);
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.back).click();

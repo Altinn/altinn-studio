@@ -80,7 +80,7 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
     [dispatch, id],
   );
 
-  const addButton = () => (
+  const AddButton = (): JSX.Element => (
     <Button
       id={`add-button-${id}`}
       onClick={onClickAdd}
@@ -187,8 +187,7 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
       {edit?.mode !== 'showAll' &&
         edit?.addButton !== false &&
         editIndex < 0 &&
-        repeatingGroupIndex + 1 < (node.item.maxCount === undefined ? -99 : node.item.maxCount) &&
-        addButton()}
+        repeatingGroupIndex + 1 < (node.item.maxCount === undefined ? -99 : node.item.maxCount) && <AddButton />}
       <ConditionalWrapper
         condition={!isNested}
         wrapper={(children) => <FullWidthWrapper>{children}</FullWidthWrapper>}
@@ -235,8 +234,7 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
       </ConditionalWrapper>
       {edit?.mode === 'showAll' &&
         edit?.addButton !== false &&
-        repeatingGroupIndex + 1 < (node.item.maxCount === undefined ? -99 : node.item.maxCount) &&
-        addButton()}
+        repeatingGroupIndex + 1 < (node.item.maxCount === undefined ? -99 : node.item.maxCount) && <AddButton />}
       <Grid
         item={true}
         xs={12}

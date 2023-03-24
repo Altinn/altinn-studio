@@ -673,6 +673,11 @@ export const ExprConfigForComponent: ExprObjConfig<ILayoutComponent> = {
 
 export const ExprConfigForGroup: ExprObjConfig<ILayoutGroup> = {
   ...ExprConfigForComponent,
+  hiddenRow: {
+    returnType: ExprVal.Boolean,
+    defaultValue: false,
+    resolvePerRow: true,
+  },
   textResourceBindings: {
     [CONFIG_FOR_ALL_VALUES_IN_OBJ]: {
       returnType: ExprVal.String,

@@ -127,13 +127,12 @@ export function* checkIfConditionalRulesShouldRunSaga({
 }
 
 function runExpressionRules(layouts: LayoutPages, future: Set<string>) {
+  const shouldIncludeGroups = true;
+  const shouldRespectLegacyHidden = false;
   for (const layout of Object.values(layouts.all())) {
-    for (const node of layout.flat(true)) {
-      if (node.item.hidden === true || future.has(node.item.id)) {
+    for (const node of layout.flat(shouldIncludeGroups)) {
+      if (node.isHidden(shouldRespectLegacyHidden)) {
         future.add(node.item.id);
-        for (const childNode of node.children().flat()) {
-          future.add(childNode.item.id);
-        }
       }
     }
   }

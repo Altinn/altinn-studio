@@ -552,29 +552,25 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
    * Checks if this field should be hidden. This also takes into account the group this component is in, so the
    * methods returns true if the component is inside a hidden group.
    */
-  public isHidden(): boolean {
-    const hiddenList = this.dataSources.hiddenFields;
-    if (this.item.hidden === true || hiddenList.has(this.item.id)) {
-      return true;
-    }
+  public isHidden(respectLegacy = true): boolean {
+    const hiddenList = respectLegacy ? this.dataSources.hiddenFields : new Set();
+
     if (this.item.baseComponentId && hiddenList.has(this.item.baseComponentId)) {
       return true;
     }
 
-    const parentGroups = this.parents(
-      (parent) => parent instanceof LayoutNode && parent.item.type === 'Group',
-    ) as LayoutNode[];
+    if (this.item.hidden === true || hiddenList.has(this.item.id)) {
+      return true;
+    }
 
-    for (const parent of parentGroups) {
-      if (parent.item.hidden === true || hiddenList.has(parent.item.id)) {
-        return true;
-      }
-      if (parent.item.baseComponentId && hiddenList.has(parent.item.baseComponentId)) {
+    if (this.parent.item.type === 'Group' && 'rows' in this.parent.item && typeof this.rowIndex === 'number') {
+      const isHiddenRow = this.parent.item.rows[this.rowIndex]?.groupExpressions?.hiddenRow;
+      if (isHiddenRow) {
         return true;
       }
     }
 
-    return false;
+    return !!(this.parent instanceof LayoutNode && this.parent.isHidden(respectLegacy));
   }
 
   private firstDataModelBinding() {

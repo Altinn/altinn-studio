@@ -160,6 +160,7 @@ export class AppFrontend {
     mainGroupSummary: '[data-testid="summary-summary-1"] [data-testid="display-group-container"]',
     mainGroupTableBody: '#group-mainGroup-table-body',
     options: '#reduxOptions',
+    hideRepeatingGroupRow: '#hideRepeatingGroupRow',
     tableErrors: '[data-testid=group-table-errors]',
     popOverDeleteButton: '[data-testid="warning-popover-delete-button"]',
     popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
