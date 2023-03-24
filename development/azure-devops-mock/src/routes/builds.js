@@ -79,8 +79,8 @@ export const buildRoute = async (req, res) => {
 export const kubernetesWrapperRoute = async (req, res) => {
   const result = [
     {
-      version: '1000',
-      release: 'this-app-is-not-an-app-just-a-placeholder',
+      version: '2405',
+      release: 'autodeploy-v3',
     },
   ];
   deploys.forEach((deploy) => {

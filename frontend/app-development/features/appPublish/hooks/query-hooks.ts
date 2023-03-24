@@ -29,7 +29,7 @@ export const useOrgList = (): UseQueryResult<IOrgsState> => {
 
 export const useEnvironments = (): UseQueryResult<IDeployEnvironment[]> => {
   const { getEnvironments } = useServicesContext();
-  return useQuery<IDeployEnvironment[]>([CacheKey.Environemnts], () => getEnvironments());
+  return useQuery<IDeployEnvironment[]>([CacheKey.Environments], () => getEnvironments());
 };
 
 export const useDeployPermissions = (owner, app): UseQueryResult<string[]> => {

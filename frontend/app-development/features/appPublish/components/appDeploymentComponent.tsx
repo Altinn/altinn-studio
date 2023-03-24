@@ -2,8 +2,7 @@ import React, { useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
 import { AltinnIcon, AltinnLink } from 'app-shared/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
-import { ErrorMessage } from './deploy/ErrorMessage';
-import { Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
+import { Panel, PanelVariant, Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { useCreateDeployMutation } from '../hooks/mutation-hooks';
 import { useParams } from 'react-router-dom';
@@ -41,7 +40,6 @@ export enum DeploymentStatus {
 }
 
 export const AppDeploymentComponent = ({
-  deployError,
   deployHistory,
   deployPermission,
   envName,
@@ -72,6 +70,7 @@ export const AppDeploymentComponent = ({
     [deployHistory]
   );
   const latestDeploy = deployHistory ? deployHistory[0] : null;
+  const deploymentInEnv = deployHistory ? deployHistory.find(d => d.deployedInEnv) : false;
   const { deployInProgress, deploymentStatus } = useMemo(() => {
     if (latestDeploy && latestDeploy.build.finished === null) {
       return { deployInProgress: true, deploymentStatus: DeploymentStatus.inProgress };
@@ -82,21 +81,21 @@ export const AppDeploymentComponent = ({
     }
   }, [latestDeploy]);
 
-  const showDeployFailedMessage = latestDeploy && !latestDeploy.build.started && !deployInProgress;
+  const appDeployedAndReachable = !!deploymentInEnv;
+  const deployFailed = latestDeploy && deploymentStatus === DeploymentStatus.failed;
+  const deployedVersionNotReachable = latestDeploy && !appDeployedAndReachable && deploymentStatus === DeploymentStatus.succeeded;
+  const noAppDeployed = !latestDeploy || deployInProgress;
+
   return (
     <div className={classes.mainContainer}>
       <div className={classes.headingContainer}>
         <div className={classes.envTitle}>{t('app_deploy.environment', { envName })}</div>
         <div className={classes.gridItem}>
-          {latestDeploy &&
-            latestDeploy.build.finished &&
-            latestDeploy.reachable &&
-            latestDeploy.tagName &&
-            t('app_deploy.deployed_version', { appDeployedVersion: latestDeploy.tagName })}
-          {(!latestDeploy || (latestDeploy && !latestDeploy.build.finished)) &&
+          {appDeployedAndReachable && !deployInProgress &&
+            t('app_deploy.deployed_version', { appDeployedVersion: deploymentInEnv.tagName })}
+          {(noAppDeployed || (deployFailed && !appDeployedAndReachable)) &&
             t('app_deploy.no_app_deployed')}
-          {latestDeploy &&
-            !latestDeploy.reachable &&
+          {deployedVersionNotReachable &&
             t('app_deploy.deployed_version_unavailable')}
         </div>
         <div className={classes.gridItem}>
@@ -120,8 +119,8 @@ export const AppDeploymentComponent = ({
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
           )}
-          {imageOptions.length > 0 &&
-            !deployInProgress && deployPermission && (
+          {deployPermission && imageOptions.length > 0 &&
+            !deployInProgress && (
             <DeployDropdown
               appDeployedVersion={latestDeploy ? latestDeploy.tagName : undefined}
               envName={envName}
@@ -135,33 +134,19 @@ export const AppDeploymentComponent = ({
             />
           )}
           {deployInProgress && <div>{t('app_publish.deployment_in_progress')}...</div>}
-          {latestDeploy &&  !latestDeploy.reachable && deployPermission && (
-            <div className={classes.deployUnavailableContainer}>
-              <div className={classes.deploySpinnerGridItem}>
-                <AltinnIcon
-                  iconClass='ai ai-circle-exclamation'
-                  iconColor='#E23B53'
-                  iconSize='3.6rem'
-                />
-              </div>
-              <div>
-                <Trans i18nKey={'app_deploy_messages.unable_to_list_deploys'}>
-                  <a href='mailto:tjenesteeier@altinn.no' />
-                </Trans>
-              </div>
-            </div>
+          {deployPermission && latestDeploy && deployedVersionNotReachable && (
+            <Panel variant={PanelVariant.Error}>
+              <Trans i18nKey={'app_deploy_messages.unable_to_list_deploys'}>
+                <a href='mailto:tjenesteeier@altinn.no' />
+              </Trans>
+            </Panel>
           )}
-          {showDeployFailedMessage && (
-            <ErrorMessage
-              message={
-                <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
-                  <a href='mailto:tjenesteeier@altinn.no' />
-                </Trans>
-              }
-              code={t('app_deploy_messages.technical_error_code', {
-                errorCode: deployError[0]?.errorCode,
-              })}
-            />
+          {deployPermission && deployFailed && (
+            <Panel variant={PanelVariant.Error}>
+              <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
+                <a href='mailto:tjenesteeier@altinn.no' />
+              </Trans>
+            </Panel>
           )}
         </div>
         <div className={classes.deploymentListGrid}>
