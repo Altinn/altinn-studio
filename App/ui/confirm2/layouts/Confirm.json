@@ -107,7 +107,7 @@
         "dataModelBindings": {}
       },
       {
-        "id": "SigningButtons-revi",
+        "id": "SigningButtons",
         "type": "SigningButtons",
         "textResourceBindings": {
           "sign": "Signer",

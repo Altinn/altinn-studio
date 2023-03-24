@@ -107,7 +107,7 @@
         "dataModelBindings": {}
       },
       {
-        "id": "SigningButtons-dagl",
+        "id": "SigningButtons",
         "type": "SigningButtons",
         "textResourceBindings": {
           "sign": "Signer",
