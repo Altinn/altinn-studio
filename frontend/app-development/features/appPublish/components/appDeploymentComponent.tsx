@@ -54,7 +54,6 @@ export const AppDeploymentComponent = ({
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
 
-  const deploymentInEnv = deployHistory.find(deployment => deployment.tagName);
   const { org, app } = useParams();
   const mutation = useCreateDeployMutation(org, app);
   const startDeploy = () =>
@@ -83,21 +82,21 @@ export const AppDeploymentComponent = ({
     }
   }, [latestDeploy]);
 
-  const showDeployFailedMessage = latestDeploy && !latestDeploy.reachable;
+  const showDeployFailedMessage = latestDeploy && !latestDeploy.build.started && !deployInProgress;
   return (
     <div className={classes.mainContainer}>
       <div className={classes.headingContainer}>
         <div className={classes.envTitle}>{t('app_deploy.environment', { envName })}</div>
         <div className={classes.gridItem}>
-          {deploymentInEnv &&
-            deploymentInEnv.build.finished &&
-            deploymentInEnv.reachable &&
-            deploymentInEnv.tagName &&
-            t('app_deploy.deployed_version', { appDeployedVersion: deploymentInEnv.tagName })}
-          {(!deploymentInEnv || (deploymentInEnv && !deploymentInEnv.build.finished)) &&
+          {latestDeploy &&
+            latestDeploy.build.finished &&
+            latestDeploy.reachable &&
+            latestDeploy.tagName &&
+            t('app_deploy.deployed_version', { appDeployedVersion: latestDeploy.tagName })}
+          {(!latestDeploy || (latestDeploy && !latestDeploy.build.finished)) &&
             t('app_deploy.no_app_deployed')}
-          {deploymentInEnv &&
-            !deploymentInEnv.reachable &&
+          {latestDeploy &&
+            !latestDeploy.reachable &&
             t('app_deploy.deployed_version_unavailable')}
         </div>
         <div className={classes.gridItem}>
@@ -121,9 +120,10 @@ export const AppDeploymentComponent = ({
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
           )}
-          {imageOptions.length > 0 && !deployInProgress && deployPermission && (
+          {imageOptions.length > 0 &&
+            !deployInProgress && deployPermission && (
             <DeployDropdown
-              appDeployedVersion={deploymentInEnv ? deploymentInEnv.tagName : undefined}
+              appDeployedVersion={latestDeploy ? latestDeploy.tagName : undefined}
               envName={envName}
               disabled={selectedImageTag === null || deployInProgress === true}
               deployHistoryEntry={latestDeploy}
@@ -135,7 +135,7 @@ export const AppDeploymentComponent = ({
             />
           )}
           {deployInProgress && <div>{t('app_publish.deployment_in_progress')}...</div>}
-          {deploymentInEnv && !deploymentInEnv.reachable && deployPermission && (
+          {latestDeploy &&  !latestDeploy.reachable && deployPermission && (
             <div className={classes.deployUnavailableContainer}>
               <div className={classes.deploySpinnerGridItem}>
                 <AltinnIcon
