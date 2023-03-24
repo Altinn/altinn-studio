@@ -118,6 +118,7 @@ export const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutSt
       saga: () => watchFetchFormLayoutSettingsSaga,
     }),
     fetchSettingsFulfilled: mkAction<LayoutTypes.IFetchLayoutSettingsFulfilled>({
+      takeEvery: findAndMoveToNextVisibleLayout,
       reducer: (state, action) => {
         const { settings } = action.payload;
         state.uiConfig.receiptLayoutName = settings?.receiptLayoutName;
