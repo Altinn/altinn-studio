@@ -10,8 +10,7 @@
     {
       "groupName": "gitea dependency",
       "groupSlug": "gitea",
-      "matchPackageNames": ["gitea/gitea"],
-      "allowedVersions": "\\d+\\.\\d+\\.[1-9]{1,4}-rootless"
+      "matchPackageNames": ["gitea/gitea"]
     }
   ],
   "ignorePaths": [
