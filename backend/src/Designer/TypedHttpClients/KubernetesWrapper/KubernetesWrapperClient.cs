@@ -17,14 +17,16 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
 
     public async Task<AzureDeploymentsResponse> GetDeploymentsInEnvAsync(string org, string app, EnvironmentModel env)
     {
-        string pathToAzureEnv = $"{org}.{env.AppPrefix}.{env.Hostname}{PATH_TO_AZURE_ENV}?labelSelector=release={org}-{app}&envName={env.Name}";
-        HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
-        if (response.IsSuccessStatusCode)
+        try
         {
+            string pathToAzureEnv = $"{org}.{env.AppPrefix}.{env.Hostname}{PATH_TO_AZURE_ENV}?labelSelector=release={org}-{app}&envName={env.Name}";
+            HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
             AzureDeploymentsResponse azureDeploymentsResponse = await response.Content.ReadAsAsync<AzureDeploymentsResponse>();
             return azureDeploymentsResponse;
         }
-
-        throw new HttpRequestException("Were not able to reach application in cluster.");
+        catch
+        {
+            throw new HttpRequestException("Were not able to reach application in cluster.");
+        }
     }
 }
