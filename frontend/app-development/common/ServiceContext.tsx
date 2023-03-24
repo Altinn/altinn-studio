@@ -2,6 +2,7 @@ import React, { createContext, useContext } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type * as queries from '../queries/queries';
 import type * as mutations from '../queries/mutations';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
 
@@ -20,6 +21,7 @@ export const ServicesContextProvider = ({
   return (
     <QueryClientProvider client={queryClient}>
       <ServicesContext.Provider value={{ ...queries }}>{children}</ServicesContext.Provider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 };
@@ -27,7 +29,7 @@ export const ServicesContextProvider = ({
 export const useServicesContext = function (): Partial<ServicesContextProps> {
   const context = useContext(ServicesContext);
   if (context === undefined) {
-    throw new Error('useCountDispatch must be used within a CountProvider');
+    throw new Error('useServicesContext must be used within a ServicesContextProvider.');
   }
   return context;
 };

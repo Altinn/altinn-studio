@@ -17,43 +17,15 @@ import {
   upsertTextResourcesRejected,
 } from './textResources/textResourcesSlice';
 import {
-  fetchDataModel,
-  fetchDataModelFulfilled,
-  fetchDataModelRejected,
-} from './dataModel/dataModelSlice';
-import {
   fetchRuleModel,
   fetchRuleModelFulfilled,
   fetchRuleModelRejected,
 } from './ruleModel/ruleModelSlice';
-import type { IDataModelFieldElement, IRuleModelFieldElement } from '../../types/global';
+import type { IRuleModelFieldElement } from '../../types/global';
 import {
   textResourcesPath,
   ruleHandlerPath,
-  datamodelMetadataPath
 } from 'app-shared/api-paths';
-
-function* fetchDataModelSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
-  const { org, app } = payload;
-  try {
-    const url = datamodelMetadataPath(org, app);
-    const dataModel: any = yield call(get, url);
-    const dataModelFields: IDataModelFieldElement[] = [];
-    Object.keys(dataModel.elements).forEach((dataModelField) => {
-      if (dataModelField) {
-        dataModelFields.push(dataModel.elements[dataModelField]);
-      }
-    });
-
-    yield put(fetchDataModelFulfilled({ dataModel: dataModelFields }));
-  } catch (error) {
-    yield put(fetchDataModelRejected({ error }));
-  }
-}
-
-export function* watchFetchDataModelSaga(): SagaIterator {
-  yield takeLatest(fetchDataModel, fetchDataModelSaga);
-}
 
 function* fetchRuleModelSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
   const { org, app } = payload;
@@ -158,7 +130,6 @@ export function* watchUpsertTextResourcesSaga(): SagaIterator {
 }
 
 export default function* appDataSagas(): SagaIterator {
-  yield fork(watchFetchDataModelSaga);
   yield fork(watchLoadTextResourcesSaga);
   yield fork(watchLoadLanguagesSaga);
   yield fork(watchFetchRuleModelSaga);

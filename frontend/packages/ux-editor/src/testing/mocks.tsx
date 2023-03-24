@@ -4,10 +4,10 @@ import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IAppState, IDataModelFieldElement } from '../types/global';
 import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import type { ReactNode } from 'react';
-import { IDataModelState } from '../features/appData/dataModel/dataModelSlice';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 import { Provider } from 'react-redux';
 import { render, renderHook } from '@testing-library/react';
+import { ServicesContextProps, ServicesContextProvider } from '../../../../app-development/common/ServiceContext';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -19,13 +19,6 @@ export const textResourcesMock: ITextResourcesState = {
   resources: { nb: [] },
   saved: true,
   saving: false,
-};
-
-export const dataModelStateMock: IDataModelState = {
-  model: [],
-  fetching: false,
-  fetched: true,
-  error: null,
 };
 
 export const dataModelItemMock: IDataModelFieldElement = {
@@ -47,7 +40,6 @@ export const dataModelItemMock: IDataModelFieldElement = {
 };
 
 export const appDataMock: IAppDataState = {
-  dataModel: dataModelStateMock,
   ruleModel: null,
   textResources: textResourcesMock,
 };
@@ -66,11 +58,39 @@ export const appStateMock: IAppState = {
   widgets: null,
 };
 
+export const queriesMock: ServicesContextProps = {
+  addLanguageCode: jest.fn(),
+  createDeployment: jest.fn(),
+  createRelease: jest.fn(),
+  createRepoCommit: jest.fn(),
+  deleteLanguageCode: jest.fn(),
+  getAppReleases: jest.fn(),
+  getBranchStatus: jest.fn(),
+  getDatamodel: jest.fn(),
+  getDatamodelsXsd: jest.fn(),
+  getDeployPermissions: jest.fn(),
+  getDeployments: jest.fn(),
+  getEnvironments: jest.fn(),
+  getOrgList: jest.fn(),
+  getRepoMetadata: jest.fn(),
+  getRepoPull: jest.fn(),
+  getRepoStatus: jest.fn(),
+  getTextLanguages: jest.fn(),
+  getTextResources: jest.fn(),
+  pushRepoChanges: jest.fn(),
+  updateTextId: jest.fn(),
+  updateTranslationByLangCode: jest.fn(),
+}
+
 export const renderWithMockStore =
-  (state: Partial<IAppState> = {}) =>
+  (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
   (component: ReactNode) => {
     const store = configureStore()({ ...appStateMock, ...state });
-    const renderResult = render(<Provider store={store}>{component}</Provider>);
+    const renderResult = render(
+      <ServicesContextProvider {...queriesMock} {...queries}>
+        <Provider store={store}>{component}</Provider>
+      </ServicesContextProvider>
+    );
     return { renderResult, store };
   };
 

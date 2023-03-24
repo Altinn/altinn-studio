@@ -5,8 +5,9 @@ import { EditModalContent } from './EditModalContent';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IAppState } from '../../types/global';
-import { appDataMock, appStateMock } from '../../testing/mocks';
+import { appDataMock, appStateMock, queriesMock } from '../../testing/mocks';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { ServicesContextProvider } from '../../../../../app-development/common/ServiceContext';
 
 const user = userEvent.setup();
 
@@ -159,12 +160,6 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
     ...appStateMock,
     appData: {
       ...appDataMock,
-      dataModel: {
-        model: [] as any[],
-        fetching: false,
-        fetched: true,
-        error: null,
-      },
       textResources: {
         error: null,
         fetched: true,
@@ -216,10 +211,12 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
   return {
     rendered: rtlRender(
       <Provider store={store}>
-        <EditModalContent
-          component={allComponentProps}
-          handleComponentUpdate={handleComponentUpdate}
-        />
+        <ServicesContextProvider {...queriesMock}>
+          <EditModalContent
+            component={allComponentProps}
+            handleComponentUpdate={handleComponentUpdate}
+          />
+        </ServicesContextProvider>
       </Provider>
     ),
     allComponentProps,

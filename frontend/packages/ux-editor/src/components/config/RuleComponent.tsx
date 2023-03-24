@@ -232,8 +232,6 @@ class Rule extends React.Component<IRuleComponentProps, any> {
 
 const mapsStateToProps = (state: IAppState, props: any): any => {
   return {
-    ruleModelElements: state.appData.ruleModel.model.filter((key: any) => key.type === 'rule'),
-    dataModelElements: state.appData.dataModel.model,
     ruleConnection: state.serviceConfigurations.ruleConnection,
     selectedFunction: props.selectedFunction,
   };

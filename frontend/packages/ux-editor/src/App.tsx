@@ -9,7 +9,6 @@ import {
   loadTextResources
 } from './features/appData/textResources/textResourcesSlice';
 import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
-import { fetchDataModel } from './features/appData/dataModel/dataModelSlice';
 import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
 import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -19,6 +18,7 @@ import { deepCopy } from 'app-shared/pure';
 import { useText } from './hooks';
 import { PageSpinner } from './components/PageSpinner';
 import { ErrorPage } from './components/ErrorPage';
+import { useDatamodelQuery } from './hooks/queries';
 
 /**
  * This is the main React component responsible for controlling
@@ -43,17 +43,17 @@ export function App() {
     (state: IAppState) => state.formDesigner.layout.selectedLayout
   );
 
-  const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
 
-  const isDataModelFetched = useSelector((state: IAppState) => state.appData.dataModel.fetched);
+  const datamodelQuery = useDatamodelQuery(org, app);
+
   const isLayoutSettingsFetched = useSelector(
     (state: IAppState) => state.formDesigner.layout.isLayoutSettingsFetched
   );
   const isLayoutFetched = useSelector((state: IAppState) => state.formDesigner.layout.fetched);
   const isWidgetFetched = useSelector((state: IAppState) => state.widgets.fetched);
 
-  const dataModelFetchedError = useSelector((state: IAppState) => state.appData.dataModel.error);
+  const dataModelFetchedError = datamodelQuery.error;
   const layoutFetchedError = useSelector((state: IAppState) => state.formDesigner.layout.error);
   const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
 
@@ -61,7 +61,7 @@ export function App() {
     isLayoutFetched &&
     isWidgetFetched &&
     isLayoutSettingsFetched &&
-    isDataModelFetched;
+    datamodelQuery.isSuccess;
 
   const componentHasError =
     dataModelFetchedError || layoutFetchedError || widgetFetchedError;
@@ -102,7 +102,6 @@ export function App() {
 
   useEffect(() => {
     const fetchFiles = () => {
-      dispatch(fetchDataModel({ org, app }));
       dispatch(FormLayoutActions.fetchFormLayout({ org, app }));
       dispatch(
         loadTextResources({
@@ -150,7 +149,7 @@ export function App() {
         <ErrorMessageComponent />
         <FormDesigner
           activeList={activeList}
-          dataModel={dataModel}
+          dataModel={datamodelQuery.data}
           layoutOrder={layoutOrder}
           selectedLayout={selectedLayout}
         />

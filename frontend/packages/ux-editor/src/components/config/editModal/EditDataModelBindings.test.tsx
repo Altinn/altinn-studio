@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 
-import { appDataMock, dataModelItemMock, dataModelStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
+import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
@@ -12,19 +12,6 @@ const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = 
     textResources: {
       ...textResourcesMock,
     },
-    dataModel: {
-      ...dataModelStateMock,
-      model: [
-        {
-          ...dataModelItemMock,
-          dataBindingName: 'testModel.field1',
-        },
-        {
-          ...dataModelItemMock,
-          dataBindingName: 'testModel.field2',
-        },
-      ]
-    }
   }
   renderWithMockStore({ appData })(
     <EditDataModelBindings

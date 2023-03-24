@@ -1,5 +1,3 @@
-import { useSelector } from 'react-redux';
-import type { IAppState } from '../../../types/global';
 import type { IGenericEditComponent } from '../componentConfig';
 import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
 import { ComponentTypes } from '../../index';
@@ -7,6 +5,8 @@ import React from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { Label } from 'app-shared/components/Label';
+import { useDatamodelQuery } from '../../../hooks/queries';
+import { useParams } from 'react-router-dom';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -22,7 +22,9 @@ export const EditDataModelBindings = ({
   handleComponentChange,
   renderOptions,
 }: EditDataModelBindingsProps) => {
-  const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
+  const { org, app } = useParams();
+  const datamodelQuery = useDatamodelQuery(org, app);
+  const dataModel = datamodelQuery.data;
   const t = useText();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
