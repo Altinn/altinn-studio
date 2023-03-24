@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
+import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import { AltinnIcon, AltinnLink } from 'app-shared/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import { ErrorMessage } from './deploy/ErrorMessage';
@@ -21,10 +22,11 @@ export type ImageOption = {
 
 interface IAppDeploymentComponentProps {
   envName: string;
+  deploymentList?: IEnvironmentItem;
   urlToApp?: string;
   urlToAppLinkTxt?: string;
   deployError?: ICreateAppDeploymentErrors[];
-  deployHistory?: IDeployment[];
+  deployHistory?: any;
   deployPermission: boolean;
   orgName: string;
   imageOptions: ImageOption[];
@@ -43,6 +45,7 @@ export enum DeploymentStatus {
 export const AppDeploymentComponent = ({
   deployError,
   deployHistory,
+  deploymentList,
   deployPermission,
   envName,
   imageOptions,
@@ -54,7 +57,10 @@ export const AppDeploymentComponent = ({
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
 
-  const deploymentInEnv = deployHistory.find(deployment => deployment.tagName);
+  const appDeployedVersion =
+    deploymentList && deploymentList.items && deploymentList.items.length > 0
+      ? deploymentList.items[0].tagName
+      : undefined;
   const { org, app } = useParams();
   const mutation = useCreateDeployMutation(org, app);
   const startDeploy = () =>
@@ -89,15 +95,16 @@ export const AppDeploymentComponent = ({
       <div className={classes.headingContainer}>
         <div className={classes.envTitle}>{t('app_deploy.environment', { envName })}</div>
         <div className={classes.gridItem}>
-          {deploymentInEnv &&
-            deploymentInEnv.build.finished &&
-            deploymentInEnv.reachable &&
-            deploymentInEnv.tagName &&
-            t('app_deploy.deployed_version', { appDeployedVersion: deploymentInEnv.tagName })}
-          {(!deploymentInEnv || (deploymentInEnv && !deploymentInEnv.build.finished)) &&
+          {deploymentList &&
+            deploymentList.getStatus.success === true &&
+            appDeployedVersion !== undefined &&
+            t('app_deploy.deployed_version', { appDeployedVersion })}
+          {deploymentList &&
+            deploymentList.getStatus.success === true &&
+            appDeployedVersion === undefined &&
             t('app_deploy.no_app_deployed')}
-          {deploymentInEnv &&
-            !deploymentInEnv.reachable &&
+          {deploymentList &&
+            deploymentList.getStatus.success === false &&
             t('app_deploy.deployed_version_unavailable')}
         </div>
         <div className={classes.gridItem}>
@@ -123,7 +130,7 @@ export const AppDeploymentComponent = ({
           )}
           {imageOptions.length && !deployInProgress && deployPermission && (
             <DeployDropdown
-              appDeployedVersion={deploymentInEnv.tagName}
+              appDeployedVersion={appDeployedVersion}
               envName={envName}
               disabled={selectedImageTag === null || deployInProgress === true}
               deployHistoryEntry={latestDeploy}
@@ -135,7 +142,7 @@ export const AppDeploymentComponent = ({
             />
           )}
           {deployInProgress && <div>{t('app_publish.deployment_in_progress')}...</div>}
-          {!deploymentInEnv && deployPermission && (
+          {deploymentList && deploymentList.getStatus.success === false && deployPermission && (
             <div className={classes.deployUnavailableContainer}>
               <div className={classes.deploySpinnerGridItem}>
                 <AltinnIcon

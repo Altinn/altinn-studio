@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,7 +43,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 <IAltinnAuthorizationPolicyClient, AltinnAuthorizationPolicyClient>();
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnStorageTextResourceClient, AltinnStorageTextResourceClient>();
-            services.AddKubernetesWrapperTypedHttpClient();
 
             return services;
         }
@@ -59,11 +57,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
             }).AddHttpMessageHandler<EnsureSuccessHandler>();
-        }
-
-        private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)
-        {
-            return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>();
         }
 
         private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services, IConfiguration config)

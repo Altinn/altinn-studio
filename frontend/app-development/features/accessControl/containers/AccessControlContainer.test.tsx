@@ -17,6 +17,9 @@ const currentApplicationMetadata: any = {
 const renderAccessControlContainer = (applicationMetadata?: any) => {
 
   const initialState: Partial<RootState> = {
+    appCluster: {
+      deploymentList: [],
+    },
     appDeployments: {
       createAppDeploymentErrors: [],
       deployments: [],

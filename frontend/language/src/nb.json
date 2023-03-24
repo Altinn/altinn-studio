@@ -70,7 +70,7 @@
   "app_data_modelling.upload_xsd": "Last opp",
   "app_data_modelling.uploading_xsd": "Laster opp XSD...",
   "app_deploy.deployed_version": "Ute i miljøet: Versjon {{appDeployedVersion}}",
-  "app_deploy.deployed_version_unavailable": "Applikasjonen i miljøet er midlertidig utilgjengelig",
+  "app_deploy.deployed_version_unavailable": "Ute i miljøet: Midlertidig utilgjengelig",
   "app_deploy.environment": "{{envName}}-miljøet",
   "app_deploy.no_app_deployed": "Ingen app er ute i miljøet",
   "app_deploy_messages.see_build_log": "For mer informasjon se <0 href=\"{{buildResultUrl}}\" >byggloggen</0>.",

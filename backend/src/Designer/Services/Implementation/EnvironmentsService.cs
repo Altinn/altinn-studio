@@ -62,7 +62,7 @@ public class EnvironmentsService : IEnvironmentsService
 
     public async Task<EnvironmentModel> GetEnvModelByName(string envName)
     {
-        List<EnvironmentModel> environmentModels = await GetEnvironments();
+        List<EnvironmentModel> environmentModels = await this.GetEnvironments();
         return environmentModels.SingleOrDefault(item => item.Name == envName);
     }
 

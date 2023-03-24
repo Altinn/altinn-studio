@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Models
 {
@@ -12,45 +12,45 @@ namespace Altinn.Studio.Designer.Services.Models
         /// AppsUrl
         /// </summary>
         [Required]
-        [JsonPropertyName("appsUrl")]
+        [JsonProperty("appsUrl")]
         public string AppsUrl { get; set; }
 
         /// <summary>
         /// PlatformUrl
         /// </summary>
         [Required]
-        [JsonPropertyName("platformUrl")]
+        [JsonProperty("platformUrl")]
         public string PlatformUrl { get; set; }
 
         /// <summary>
         /// Hostname
         /// </summary>
-        [JsonPropertyName("hostname")]
+        [JsonProperty("hostname")]
         public string Hostname { get; set; }
 
         /// <summary>
         /// App prefix
         /// </summary>
-        [JsonPropertyName("appPrefix")]
+        [JsonProperty("appPrefix")]
         public string AppPrefix { get; set; }
 
         /// <summary>
         /// Platform prefix
         /// </summary>
-        [JsonPropertyName("platformPrefix")]
+        [JsonProperty("platformPrefix")]
         public string PlatformPrefix { get; set; }
 
         /// <summary>
         /// Name
         /// </summary>
         [Required]
-        [JsonPropertyName("name")]
+        [JsonProperty("name")]
         public string Name { get; set; }
 
         /// <summary>
         /// Type
         /// </summary>
-        [JsonPropertyName("type")]
+        [JsonProperty("type")]
         public string Type { get; set; }
     }
 }

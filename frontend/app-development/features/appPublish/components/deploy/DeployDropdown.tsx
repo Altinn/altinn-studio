@@ -15,13 +15,13 @@ import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
 import { shouldDisplayDeployStatus } from './utils';
 import { useTranslation, Trans } from 'react-i18next';
 
-interface DeployDropdownProps {
+interface Props {
   appDeployedVersion: string;
   envName: string;
   imageOptions: ImageOption[];
   disabled: boolean;
   deployHistoryEntry: any;
-  deploymentStatus: DeploymentStatus | string | number;
+  deploymentStatus: DeploymentStatus;
   setSelectedImageTag: (tag) => void;
   selectedImageTag: string;
   startDeploy: any;
@@ -37,7 +37,7 @@ export const DeployDropdown = ({
   setSelectedImageTag,
   disabled,
   startDeploy,
-}: DeployDropdownProps) => {
+}: Props) => {
   const [popoverIsOpen, setPopoverIsOpen] = useState(false);
   const { t } = useTranslation();
   const onStartDeployClick = async () => {

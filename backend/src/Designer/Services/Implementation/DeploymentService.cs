@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
@@ -10,7 +7,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
@@ -29,7 +25,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpContext _httpContext;
         private readonly IApplicationInformationService _applicationInformationService;
         private readonly IEnvironmentsService _environmentsService;
-        private readonly IKubernetesWrapperClient _kubernetesWrapperClient;
 
         /// <summary>
         /// Constructor
@@ -41,7 +36,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IDeploymentRepository deploymentRepository,
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
-            IKubernetesWrapperClient kubernetesWrapperClient,
             IApplicationInformationService applicationInformationService)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
@@ -49,7 +43,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _releaseRepository = releaseRepository;
             _applicationInformationService = applicationInformationService;
             _environmentsService = environmentsService;
-            _kubernetesWrapperClient = kubernetesWrapperClient;
             _azureDevOpsSettings = azureDevOpsOptions;
             _httpContext = httpContextAccessor.HttpContext;
         }
@@ -82,18 +75,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query)
         {
             IEnumerable<DeploymentEntity> results = await _deploymentRepository.Get(org, app, query);
-            IEnumerable<DeploymentEntity> deploymentEntities = results as DeploymentEntity[] ?? results.ToArray();
-
-            List<EnvironmentModel> environments = await _environmentsService.GetEnvironments();
-            foreach (EnvironmentModel env in environments)
+            return new SearchResults<DeploymentEntity>
             {
-                await Parallel.ForEachAsync(deploymentEntities
-                    .Where(deployment => deployment.EnvName == env.Name)
-                    .ToList(), async (d, _) =>
-                    await UpdateDeploymentStatus(d, org, app, env));
-            }
-
-            return new SearchResults<DeploymentEntity> { Results = deploymentEntities };
+                Results = results
+            };
         }
 
         /// <inheritdoc/>
@@ -110,21 +95,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.Build.Finished = deployment.Build.Finished;
 
             await _deploymentRepository.Update(deploymentEntity);
-        }
-
-        private async Task UpdateDeploymentStatus(DeploymentEntity deployment, string org, string app, EnvironmentModel env)
-        {
-            try
-            {
-                AzureDeploymentsResponse azureDeploymentsResponse = await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, app, env);
-                // Uncomment below line and comment out above line if running locally
-                // AzureDeploymentsResponse azureDeploymentsResponse = new() { Deployment = new() { new() { Release = "autodeploy-v3", Version = "v2" }} };
-                deployment.Reachable = true;
-            }
-            catch (HttpRequestException)
-            {
-                deployment.Reachable = false;
-            }
         }
 
         private async Task<Build> QueueDeploymentBuild(

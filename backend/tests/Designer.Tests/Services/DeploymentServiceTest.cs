@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
@@ -14,7 +13,6 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using AltinnCore.Authentication.Constants;
@@ -35,8 +33,6 @@ namespace Designer.Tests.Services
         private readonly Mock<IApplicationInformationService> _applicationInformationService;
         private readonly Mock<IEnvironmentsService> _environementsService;
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
-        private readonly Mock<IKubernetesWrapperClient> _kubernetesWrapperClient;
-
         public DeploymentServiceTest()
         {
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
@@ -46,12 +42,8 @@ namespace Designer.Tests.Services
             _releaseRepository = new Mock<IReleaseRepository>();
             _environementsService = new Mock<IEnvironmentsService>();
             _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
-            _environementsService.Setup(req => req.GetEnvironments())
-                .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
-            _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", "issue-6094", It.IsAny<EnvironmentModel>()))
-                .ReturnsAsync(new AzureDeploymentsResponse());
+
         }
 
         [Fact]
@@ -89,7 +81,6 @@ namespace Designer.Tests.Services
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
-                _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object);
 
             // Act
@@ -112,7 +103,7 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public async Task GetAsync_OK()
+        public async Task GetAsync()
         {
             // Arrange
             _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
@@ -124,7 +115,6 @@ namespace Designer.Tests.Services
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
-                _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object);
 
             // Act
@@ -132,33 +122,6 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.Equal(8, results.Results.Count());
-            Assert.True(results.Results.ToArray()[0].Reachable);
-            _deploymentRepository.Verify(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetAsync_DeploymentNotReachable()
-        {
-            // Arrange
-            _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", "issue-6094", It.IsAny<EnvironmentModel>())).Throws<HttpRequestException>();
-
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _kubernetesWrapperClient.Object,
-                _applicationInformationService.Object);
-
-            // Act
-            SearchResults<DeploymentEntity> results = await deploymentService.GetAsync("ttd", "issue-6094", new DocumentQueryModel());
-
-            // Assert
-            Assert.Equal(8, results.Results.Count());
-            Assert.False(results.Results.ToArray()[0].Reachable);
             _deploymentRepository.Verify(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
@@ -180,7 +143,6 @@ namespace Designer.Tests.Services
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
-                _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object);
 
             _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json").First().Build);
@@ -234,22 +196,6 @@ namespace Designer.Tests.Services
             return JsonConvert.DeserializeObject<List<DeploymentEntity>>(deployments);
 
         }
-
-        private static List<EnvironmentModel> GetEnvironments(string filename)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "..", "..", "..", "development", "azure-devops-mock", filename);
-            if (File.Exists(path))
-            {
-                string environments = File.ReadAllText(path);
-                EnvironmentsModel environmentsList = System.Text.Json.JsonSerializer.Deserialize<EnvironmentsModel>(environments);
-
-                return environmentsList.Environments;
-            }
-
-            return null;
-        }
-
 
         private static Build GetBuild()
         {
