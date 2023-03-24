@@ -28,7 +28,6 @@ export enum NameError {
 
 export enum NumberRestrictionsError {
   NoError = 'NoError',
-  Decimal_One_value_should_be__exclusive = "Decimal_One_value_should_be__exclusive",
   MinMustBeLessThanOrEqualToMax = "MinMustBeLessThanOrEqualToMax ",
   MinMustBeLessThanMax = "MinMustBeLessThanMax",
   IntervalMustBeLargeEnough = "IntervalMustBeLargeEnough "

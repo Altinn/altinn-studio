@@ -660,7 +660,6 @@
   "schema_editor.numberRestrictionsError_MinMustBeLessThanOrEqualToMax": "Minimumverdien må være mindre enn eller lik maksimumverdien",
   "schema_editor.numberRestrictionsError_MinMustBeLessThanMax": "Minimumverdien må være mindre enn maksimumverdien",
   "schema_editor.numberRestrictionsError_IntervalMustBeLargeEnough": "Det må være minst ett helt tall i intervallet mellom minimum- og maksimumverdien",
-  "schema_editor.numberRestrictionsError_Decimal_One_value_should_be__exclusive": "Minimumverdien må være mindre enn maksimumverdien",
   "schema_editor.no_item_selected": "Ingen element valgt",
   "schema_editor.nullable": "Kan være ubesvart",
   "schema_editor.number": "Desimaltall",

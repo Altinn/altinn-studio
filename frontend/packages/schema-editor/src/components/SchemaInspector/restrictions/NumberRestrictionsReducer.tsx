@@ -51,23 +51,21 @@ export type NumberRestrictionsReducerState = {
 export const validateMinMax = (
   formatState: NumberRestrictionsReducerState
 ): NumberRestrictionsError => {
-  const minMaxAreInclusive = formatState.isMaxInclusive && formatState.isMinInclusive;
-  const minEqualMax = Number(formatState.min) === Number(formatState.max);
-  if (minMaxAreInclusive && minEqualMax) {
-    return NumberRestrictionsError.NoError;
-  } else if (!minMaxAreInclusive && Number(formatState.max) < Number(formatState.min)) {
-    return NumberRestrictionsError.IntervalMustBeLargeEnough;
-  } else if (Number(formatState.min) >= Number(formatState.max)) {
+  const areBothInclusive = formatState.isMinInclusive && formatState.isMaxInclusive;
+  if (areBothInclusive && formatState.min > formatState.max) {
     return NumberRestrictionsError.MinMustBeLessThanOrEqualToMax;
+  } else if (!areBothInclusive && formatState.min >= formatState.max) {
+    return NumberRestrictionsError.MinMustBeLessThanMax;
   } else if (
-    !formatState.isMaxInclusive &&
-    !formatState.isMinInclusive &&
     formatState.isInteger &&
-    formatState.min === formatState.max - 1
+    !formatState.isMinInclusive &&
+    !formatState.isMaxInclusive &&
+    formatState.min >= formatState.max - 1
   ) {
     return NumberRestrictionsError.IntervalMustBeLargeEnough;
+  } else {
+    return NumberRestrictionsError.NoError;
   }
-  return NumberRestrictionsError.NoError;
 };
 
 const setMinIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxInclusiveAction) => {

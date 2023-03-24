@@ -58,13 +58,9 @@ export function NumberRestrictions({
     [NumberRestrictionsError.MinMustBeLessThanOrEqualToMax]: t(
       'schema_editor.numberRestrictionsError_MinMustBeLessThanOrEqualToMax'
     ),
-    [NumberRestrictionsError.Decimal_One_value_should_be__exclusive]: t(
-      'schema_editor.numberRestrictionsError_Decimal_One_value_should_be__exclusive'
-    ),
     [NumberRestrictionsError.IntervalMustBeLargeEnough]: t(
       'schema_editor.numberRestrictionsError_IntervalMustBeLargeEnough'
     ),
-
     [NumberRestrictionsError.MinMustBeLessThanMax]: t(
       'schema_editor.numberRestrictionsError_MinMustBeLessThanMax'
     ),
