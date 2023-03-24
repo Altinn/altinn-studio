@@ -47,6 +47,7 @@ export interface IDeployment {
   reachable: boolean;
   createdBy: string;
   created: string;
+  errorMessage: string;
   build: IBuild;
 }
 
