@@ -308,17 +308,17 @@ describe('NumberRestrictionsReducer', () => {
           isMinInclusive: false,
           isMaxInclusive: false,
         };
-        it('Returns InvalidMaxMinValue if min > max', () => {
+        it('Returns MinMustBeLessThanMax if min > max', () => {
           const result = validateMinMax({ ...bothExclState, min: 7, max: 5 });
-          expect(result).toBe(NumberRestrictionsError.InvalidMaxMinValue);
+          expect(result).toBe(NumberRestrictionsError.MinMustBeLessThanMax);
         });
-        it('Returns InvalidMaxMinValue if min === max', () => {
+        it('Returns MinMustBeLessThanMax if min === max', () => {
           const result = validateMinMax({ ...bothExclState, min: 5, max: 5 });
-          expect(result).toBe(NumberRestrictionsError.InvalidMaxMinValue);
+          expect(result).toBe(NumberRestrictionsError.MinMustBeLessThanMax);
         });
-        it('Returns InvalidMaxMinValue if min === max - 1', () => {
+        it('Returns IntervalMustBeLargeEnough if min === max - 1', () => {
           const result = validateMinMax({ ...bothExclState, min: 5, max: 6 });
-          expect(result).toBe(NumberRestrictionsError.InvalidMaxMinValue);
+          expect(result).toBe(NumberRestrictionsError.IntervalMustBeLargeEnough);
         });
         it('Returns NoError if min < max - 1', () => {
           const result = validateMinMax({ ...bothExclState, min: 5, max: 7 });
@@ -335,13 +335,13 @@ describe('NumberRestrictionsReducer', () => {
           isMinInclusive,
           isMaxInclusive,
         };
-        it('Returns InvalidMaxMinValue if min > max', () => {
+        it('Returns MinMustBeLessThanMax if min > max', () => {
           const result = validateMinMax({ ...oneInclState, min: 7, max: 5 });
-          expect(result).toBe(NumberRestrictionsError.InvalidMaxMinValue);
+          expect(result).toBe(NumberRestrictionsError.MinMustBeLessThanMax);
         });
-        it('Returns InvalidMaxMinValue if min === max', () => {
+        it('Returns MinMustBeLessThanMax if min === max', () => {
           const result = validateMinMax({ ...oneInclState, min: 5, max: 5 });
-          expect(result).toBe(NumberRestrictionsError.InvalidMaxMinValue);
+          expect(result).toBe(NumberRestrictionsError.MinMustBeLessThanMax);
         });
         it('Returns NoError if min === max - 1', () => {
           const result = validateMinMax({ ...oneInclState, min: 5, max: 6 });
@@ -359,9 +359,9 @@ describe('NumberRestrictionsReducer', () => {
           isMinInclusive: true,
           isMaxInclusive: true,
         };
-        it('Returns InvalidMaxMinValue if min > max', () => {
+        it('Returns MinMustBeLessThanOrEqualToMax if min > max', () => {
           const result = validateMinMax({ ...bothInclState, min: 7, max: 5 });
-          expect(result).toBe(NumberRestrictionsError.InvalidMaxMinValue);
+          expect(result).toBe(NumberRestrictionsError.MinMustBeLessThanOrEqualToMax);
         });
         it('Returns NoError if min === max', () => {
           const result = validateMinMax({ ...bothInclState, min: 5, max: 5 });
@@ -390,13 +390,13 @@ describe('NumberRestrictionsReducer', () => {
           isMaxInclusive,
           max: undefined,
         };
-        it('Returns InvalidMaxMinValue if min > max', () => {
+        it('Returns MinMustBeLessThanMax if min > max', () => {
           const result = validateMinMax({ ...atLeastOneExclusiveState, min: 5.2, max: 5.1 });
-          expect(result).toBe(NumberRestrictionsError.InvalidMaxMinValue);
+          expect(result).toBe(NumberRestrictionsError.MinMustBeLessThanMax);
         });
-        it('Returns InvalidMaxMinValue if min === max', () => {
+        it('Returns MinMustBeLessThanMax if min === max', () => {
           const result = validateMinMax({ ...atLeastOneExclusiveState, min: 5.1, max: 5.1 });
-          expect(result).toBe(NumberRestrictionsError.InvalidMaxMinValue);
+          expect(result).toBe(NumberRestrictionsError.MinMustBeLessThanMax);
         });
         it('Returns NoError if min < max', () => {
           const result1 = validateMinMax({ ...atLeastOneExclusiveState, min: 5.1, max: 7.1 });
@@ -414,9 +414,9 @@ describe('NumberRestrictionsReducer', () => {
           isMinInclusive: true,
           isMaxInclusive: true,
         };
-        it('Returns InvalidMaxMinValue if min > max', () => {
+        it('Returns MinMustBeLessThanOrEqualToMax if min > max', () => {
           const result = validateMinMax({ ...bothInclState, min: 5.2, max: 5.1 });
-          expect(result).toBe(NumberRestrictionsError.InvalidMaxMinValue);
+          expect(result).toBe(NumberRestrictionsError.MinMustBeLessThanOrEqualToMax);
         });
         it('Returns NoError if min === max', () => {
           const result = validateMinMax({ ...bothInclState, min: 5.1, max: 5.1 });

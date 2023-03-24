@@ -28,6 +28,7 @@ export enum NameError {
 
 export enum NumberRestrictionsError {
   NoError = 'NoError',
-  InvalidValue = 'InvalidValue',
-  InvalidMaxMinValue = 'InvalidMaxMinValue'
+  MinMustBeLessThanOrEqualToMax = "MinMustBeLessThanOrEqualToMax ",
+  MinMustBeLessThanMax = "MinMustBeLessThanMax",
+  IntervalMustBeLargeEnough = "IntervalMustBeLargeEnough "
 }

@@ -54,9 +54,16 @@ export function NumberRestrictions({
   }`;
 
   const minMaxErrorMessage = {
-    [NumberRestrictionsError.InvalidValue]: t('schema_editor.nameError_InvalidValue'),
-    [NumberRestrictionsError.InvalidMaxMinValue]: t('schema_editor.nameError_InvalidMaxMinValue'),
     [NumberRestrictionsError.NoError]: '',
+    [NumberRestrictionsError.MinMustBeLessThanOrEqualToMax]: t(
+      'schema_editor.numberRestrictionsError_MinMustBeLessThanOrEqualToMax'
+    ),
+    [NumberRestrictionsError.IntervalMustBeLargeEnough]: t(
+      'schema_editor.numberRestrictionsError_IntervalMustBeLargeEnough'
+    ),
+    [NumberRestrictionsError.MinMustBeLessThanMax]: t(
+      'schema_editor.numberRestrictionsError_MinMustBeLessThanMax'
+    ),
   }[formatState.numberRestrictionsError];
 
   const onChangeMinNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
