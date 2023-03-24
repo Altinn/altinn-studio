@@ -1,16 +1,16 @@
-using System.Collections.Generic;
+using System;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Repository.Models
 {
-
-    public class AzureDeploymentsResponse
+    public class Deployment : IEquatable<Deployment>
     {
-        public List<Deployment> Deployment { get; set; }
-    }
 
-    public class Deployment
-    {
+        public bool Equals(Deployment other)
+        {
+            return other.Release == Release && other.Version == Version;
+        }
+
         [JsonPropertyName("release")]
         public string Release { get; set; }
         [JsonPropertyName("version")]

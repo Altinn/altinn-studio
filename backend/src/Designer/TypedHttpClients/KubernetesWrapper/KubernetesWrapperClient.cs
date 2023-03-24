@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Models;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
@@ -9,24 +13,35 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
 {
     private const string PATH_TO_AZURE_ENV = "/kuberneteswrapper/api/v1/deployments";
     private readonly HttpClient _client;
+    private readonly ILogger<KubernetesWrapperClient> _logger;
+    private readonly IMemoryCache _cache;
 
-    public KubernetesWrapperClient(HttpClient httpClient)
+    public KubernetesWrapperClient(HttpClient httpClient, ILogger<KubernetesWrapperClient> logger,
+        IMemoryCache memoryCache)
     {
         _client = httpClient;
+        _logger = logger;
+        _cache = memoryCache;
     }
 
-    public async Task<AzureDeploymentsResponse> GetDeploymentsInEnvAsync(string org, string app, EnvironmentModel env)
+    public async Task<IList<Deployment>> GetDeploymentsInEnvAsync(string org, EnvironmentModel env)
     {
-        try
+        List<Deployment> deployments;
+        // @todo We doesn't have a good way to mock this service locally. Unfortunately subdomains is not supported.
+        // The issue have been discussed but we have not been able to find an agreement on how this should be solved. :-/
+        string baseUrl = (env.Hostname == "host.docker.internal:6161")
+            ? "http://host.docker.internal:6161"
+            : $"{org}.{env.AppPrefix}.{env.Hostname}";
+
+        string pathToAzureEnv = baseUrl + $"{PATH_TO_AZURE_ENV}";
+
+        if (!_cache.TryGetValue($"GetDeploymentsInEnvAsync-{org}-{env.Name}", out deployments))
         {
-            string pathToAzureEnv = $"{org}.{env.AppPrefix}.{env.Hostname}{PATH_TO_AZURE_ENV}?labelSelector=release={org}-{app}&envName={env.Name}";
+            _logger.LogInformation("Requesting: {PathToAzureEnv}", pathToAzureEnv);
             HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
-            AzureDeploymentsResponse azureDeploymentsResponse = await response.Content.ReadAsAsync<AzureDeploymentsResponse>();
-            return azureDeploymentsResponse;
+            deployments = await response.Content.ReadAsAsync<List<Deployment>>();
         }
-        catch
-        {
-            throw new HttpRequestException("Were not able to reach application in cluster.");
-        }
+
+        return deployments;
     }
 }

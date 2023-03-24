@@ -50,8 +50,10 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
             _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", "issue-6094", It.IsAny<EnvironmentModel>()))
+           /*
+            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>()))
                 .ReturnsAsync(new AzureDeploymentsResponse());
+                */
         }
 
         [Fact]
@@ -141,7 +143,7 @@ namespace Designer.Tests.Services
         {
             // Arrange
             _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", "issue-6094", It.IsAny<EnvironmentModel>())).Throws<HttpRequestException>();
+            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>())).Throws<HttpRequestException>();
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
