@@ -155,7 +155,7 @@ export interface ITextResource {
 }
 
 export interface ITextResourceBindings {
-  [id: string]: string;
+  [id: string]: string | undefined;
 }
 
 export interface IValidationIssue {

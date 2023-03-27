@@ -50,7 +50,7 @@ export const ListComponent = ({
 
   const tableHeadersValues = { ...tableHeaders };
   for (const key in tableHeaders) {
-    tableHeadersValues[key] = getTextResourceAsString(tableHeaders[key]);
+    tableHeadersValues[key] = getTextResourceAsString(tableHeaders[key]) ?? '';
   }
 
   const selectedRow: Record<string, string> = React.useMemo(() => {

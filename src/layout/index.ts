@@ -88,8 +88,8 @@ export interface IComponentProps {
       validate?: boolean; // Defaults to true
     },
   ) => void;
-  getTextResource: (key: string) => React.ReactNode;
-  getTextResourceAsString: (key: string) => string;
+  getTextResource: (key: string | undefined) => React.ReactNode;
+  getTextResourceAsString: (key: string | undefined) => string | undefined;
   language: ILanguage;
   shouldFocus: boolean;
   text: React.ReactNode | string;

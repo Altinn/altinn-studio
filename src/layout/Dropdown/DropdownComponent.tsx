@@ -68,7 +68,7 @@ export function DropdownComponent({
           error={!isValid}
           options={
             options?.map((option) => ({
-              label: getTextResourceAsString(option.label),
+              label: getTextResourceAsString(option.label) ?? '',
               value: option.value,
             })) || []
           }

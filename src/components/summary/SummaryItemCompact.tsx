@@ -36,10 +36,12 @@ export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryI
       variant='body1'
       data-testid={'summary-item-compact'}
     >
-      <span>
-        {textBindings && getTextFromAppOrDefault(textBindings.title, textResources, {}, [], false)}
-        {' : '}
-      </span>
+      {textBindings?.title && (
+        <span>
+          {getTextFromAppOrDefault(textBindings.title, textResources, {}, [], false)}
+          {' : '}
+        </span>
+      )}
       {displayData ? (
         <span className={classes.data}>{displayData}</span>
       ) : (

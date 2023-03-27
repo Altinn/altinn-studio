@@ -176,7 +176,7 @@ export type IDataModelBindings =
   | IDataModelBindingsForList;
 
 export interface ITextResourceBindings {
-  [id: string]: ExprVal.String;
+  [id: string]: ExprVal.String | undefined;
 }
 
 export type ILayout = ExprUnresolved<ILayoutComponentOrGroup>[];

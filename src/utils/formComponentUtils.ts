@@ -16,7 +16,7 @@ export interface IComponentFormData {
   [binding: string]: string | undefined;
 }
 
-export const getTextResource = (resourceKey: string, textResources: ITextResource[]): React.ReactNode => {
+export const getTextResource = (resourceKey: string | undefined, textResources: ITextResource[]): React.ReactNode => {
   const textResourceValue = getTextResourceByKey(resourceKey, textResources);
   if (textResourceValue === resourceKey) {
     // No match in text resources

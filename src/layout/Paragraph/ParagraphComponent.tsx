@@ -49,7 +49,7 @@ export function ParagraphComponent({ node, getTextResourceAsString, language }: 
   const { id, textResourceBindings } = node.item;
   const classes = useStyles();
 
-  const text = getParsedLanguageFromText(getTextResourceAsString(textResourceBindings?.title ?? ''), {}, false);
+  const text = getParsedLanguageFromText(getTextResourceAsString(textResourceBindings?.title) ?? '', {}, false);
 
   return (
     <Grid
