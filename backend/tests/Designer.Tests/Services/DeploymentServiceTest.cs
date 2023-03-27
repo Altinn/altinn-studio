@@ -50,21 +50,15 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
             _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
-           /*
             _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>()))
-                .ReturnsAsync(new AzureDeploymentsResponse());
-                */
+                .ReturnsAsync(new List<Deployment>());
         }
 
         [Fact]
         public async Task CreateAsync_OK()
         {
             // Arrange
-            DeploymentModel deploymentModel = new()
-            {
-                TagName = "1",
-                EnvName = "at23"
-            };
+            DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
 
             _releaseRepository.Setup(r => r.GetSucceededReleaseFromDb(
                 It.IsAny<string>(),
@@ -95,12 +89,14 @@ namespace Designer.Tests.Services
                 _applicationInformationService.Object);
 
             // Act
-            DeploymentEntity deploymentEntity = await deploymentService.CreateAsync("ttd", "apps-test-tba", deploymentModel);
+            DeploymentEntity deploymentEntity =
+                await deploymentService.CreateAsync("ttd", "apps-test-tba", deploymentModel);
 
             // Assert
             Assert.NotNull(deploymentEntity);
             _releaseRepository.Verify(
-                r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+                r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                Times.Once);
             _applicationInformationService.Verify(
                 ais => ais.UpdateApplicationInformationAsync(
                     It.IsAny<string>(),
@@ -117,7 +113,8 @@ namespace Designer.Tests.Services
         public async Task GetAsync_OK()
         {
             // Arrange
-            _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
+            _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()))
+                .ReturnsAsync(GetDeployments("completedDeployments.json"));
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -130,7 +127,8 @@ namespace Designer.Tests.Services
                 _applicationInformationService.Object);
 
             // Act
-            SearchResults<DeploymentEntity> results = await deploymentService.GetAsync("ttd", "issue-6094", new DocumentQueryModel());
+            SearchResults<DeploymentEntity> results =
+                await deploymentService.GetAsync("ttd", "issue-6094", new DocumentQueryModel());
 
             // Assert
             Assert.Equal(8, results.Results.Count());
@@ -142,8 +140,9 @@ namespace Designer.Tests.Services
         public async Task GetAsync_DeploymentNotReachable()
         {
             // Arrange
-            _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("completedDeployments.json"));
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>())).Throws<HttpRequestException>();
+            _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()))
+                .ReturnsAsync(GetDeployments("completedDeployments.json"));
+
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -156,7 +155,8 @@ namespace Designer.Tests.Services
                 _applicationInformationService.Object);
 
             // Act
-            SearchResults<DeploymentEntity> results = await deploymentService.GetAsync("ttd", "issue-6094", new DocumentQueryModel());
+            SearchResults<DeploymentEntity> results =
+                await deploymentService.GetAsync("ttd", "issue-6094", new DocumentQueryModel());
 
             // Assert
             Assert.Equal(8, results.Results.Count());
@@ -185,7 +185,8 @@ namespace Designer.Tests.Services
                 _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object);
 
-            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json").First().Build);
+            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>()))
+                .ReturnsAsync(GetReleases("createdRelease.json").First().Build);
 
             // Act
             await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First().Build.Id, "ttd");
@@ -197,7 +198,10 @@ namespace Designer.Tests.Services
 
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
-            List<Claim> claims = new() { new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no") };
+            List<Claim> claims = new()
+            {
+                new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no")
+            };
             ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
 
@@ -212,7 +216,8 @@ namespace Designer.Tests.Services
 
         private static List<ReleaseEntity> GetReleases(string filename)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
+            string unitTestFolder =
+                Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
             string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
             if (File.Exists(path))
             {
@@ -225,7 +230,8 @@ namespace Designer.Tests.Services
 
         private static List<DeploymentEntity> GetDeployments(string filename)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
+            string unitTestFolder =
+                Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
             string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", filename);
             if (!File.Exists(path))
             {
@@ -234,17 +240,19 @@ namespace Designer.Tests.Services
 
             string deployments = File.ReadAllText(path);
             return JsonConvert.DeserializeObject<List<DeploymentEntity>>(deployments);
-
         }
 
         private static List<EnvironmentModel> GetEnvironments(string filename)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "..", "..", "..", "development", "azure-devops-mock", filename);
+            string unitTestFolder =
+                Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "..", "..", "..", "development",
+                "azure-devops-mock", filename);
             if (File.Exists(path))
             {
                 string environments = File.ReadAllText(path);
-                EnvironmentsModel environmentsList = System.Text.Json.JsonSerializer.Deserialize<EnvironmentsModel>(environments);
+                EnvironmentsModel environmentsList =
+                    System.Text.Json.JsonSerializer.Deserialize<EnvironmentsModel>(environments);
 
                 return environmentsList.Environments;
             }
@@ -255,12 +263,7 @@ namespace Designer.Tests.Services
 
         private static Build GetBuild()
         {
-            return new Build
-            {
-                Id = 1,
-                Status = BuildStatus.InProgress,
-                StartTime = DateTime.Now
-            };
+            return new Build { Id = 1, Status = BuildStatus.InProgress, StartTime = DateTime.Now };
         }
 
         private static AzureDevOpsSettings GetAzureDevOpsSettings()
