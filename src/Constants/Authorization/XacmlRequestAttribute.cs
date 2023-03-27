@@ -58,6 +58,6 @@ namespace Altinn.Platform.Authorization.Constants
         /// <summary>
         /// xacml string that represents resource
         /// </summary>
-        public const string ResourceRegistryAttribute = "urn:altinn:resourceregistry";
+        public const string ResourceRegistryAttribute = "urn:altinn:resource";
     }
 }
