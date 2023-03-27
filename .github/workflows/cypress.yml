@@ -126,7 +126,7 @@ jobs:
           bash -c 'cd dist/; npx http-server -p 8080 --cors >/dev/null &'\n
           bash -c 'yarn run cy:test:all:headless
               --config watchForFileChanges=false
-              --env environment=tt02
+              --env environment=tt02'
         "
 
       - uses: actions/upload-artifact@v3
