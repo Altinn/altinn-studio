@@ -34,12 +34,15 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
             : $"https://{org}.{env.AppPrefix}.{env.Hostname}";
 
         string pathToAzureEnv = baseUrl + $"{PATH_TO_AZURE_ENV}";
-
-        if (!_cache.TryGetValue($"GetDeploymentsInEnvAsync-{org}-{env.Name}", out deployments))
+        string cacheKey = $"GetDeploymentsInEnvAsync-{org}-{env.Name}";
+        if (!_cache.TryGetValue(cacheKey, out deployments))
         {
             _logger.LogInformation("Requesting: {PathToAzureEnv}", pathToAzureEnv);
             HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
             deployments = await response.Content.ReadAsAsync<List<Deployment>>();
+
+            _cache.Set(cacheKey, deployments, new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromSeconds(15)));
         }
 
         return deployments;

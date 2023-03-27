@@ -54,6 +54,7 @@ public class EnvironmentsService : IEnvironmentsService
             {
                 EnvironmentsModel result = await response.Content.ReadAsAsync<EnvironmentsModel>();
                 environmentModel = result.Environments;
+                _cache.Set(cachekey, environmentModel);
             }
         }
 
