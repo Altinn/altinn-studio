@@ -159,7 +159,7 @@ export function AltinnMobileTableItem({
 
   const node = useResolvedNode(container);
   const expressionsForRow =
-    node?.item.type === 'Group' && 'rows' in node.item && node.item.rows[tableItemIndex]?.groupExpressions
+    node?.isRepGroup() && node.item.rows[tableItemIndex]?.groupExpressions
       ? node.item.rows[tableItemIndex]?.groupExpressions
       : undefined;
 
@@ -169,7 +169,7 @@ export function AltinnMobileTableItem({
   } as ITextResourceBindings;
 
   const edit = {
-    ...(node?.item.type === 'Group' && node.item.edit),
+    ...(node?.isType('Group') && node.item.edit),
     ...expressionsForRow?.edit,
   } as ExprResolved<ILayoutGroup['edit']>;
 

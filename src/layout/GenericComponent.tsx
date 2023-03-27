@@ -177,7 +177,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     );
   };
 
-  const layoutComponent = node.getComponent() as unknown as LayoutComponent<Type> | undefined;
+  const layoutComponent = node.def as unknown as LayoutComponent<Type> | undefined;
   if (!layoutComponent) {
     return (
       <div>

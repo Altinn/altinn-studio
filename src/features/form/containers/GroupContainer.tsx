@@ -40,7 +40,7 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
 
   const node = useResolvedNode(id);
   const resolvedTextBindings = node?.item.textResourceBindings;
-  const edit = node?.item.type === 'Group' ? node.item.edit : undefined;
+  const edit = node?.isType('Group') ? node.item.edit : undefined;
 
   const editIndex = useAppSelector(
     (state: IRuntimeState) =>

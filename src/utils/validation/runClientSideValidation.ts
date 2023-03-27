@@ -41,13 +41,13 @@ export function runClientSideValidation(state: IRuntimeState): ValidationResult 
   });
   const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
   const layoutOrder = getLayoutOrderFromTracks(state.formLayout.uiConfig.tracks);
+  const model = convertDataBindingToModel(state.formData.formData);
+  const layouts = resolvedLayoutsFromState(state);
 
-  if (!layoutOrder || !state.language.language) {
+  if (!layoutOrder || !state.language.language || !layouts) {
     return out;
   }
 
-  const model = convertDataBindingToModel(state.formData.formData);
-  const layouts = resolvedLayoutsFromState(state);
   out.validationResult = validateFormData(
     model,
     layouts,

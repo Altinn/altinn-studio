@@ -1,5 +1,8 @@
+import { useMemo } from 'react';
+
 import type { $Values } from 'utility-types';
 
+import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions';
 import { getLayoutComponentObject } from 'src/layout';
 import { INDEX_KEY_INDICATOR_REGEX } from 'src/utils/databindings';
@@ -9,13 +12,14 @@ import { buildInstanceContext } from 'src/utils/instanceContext';
 import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { ComponentClassMap } from 'src/layout';
 import type {
+  ComponentTypes,
   IDataModelBindings,
   ILayout,
   ILayoutComponent,
   ILayoutComponentOrGroup,
   ILayouts,
 } from 'src/layout/layout';
-import type { LayoutComponent } from 'src/layout/LayoutComponent';
+import type { ComponentType } from 'src/layout/LayoutComponent';
 import type {
   IComponentBindingValidation,
   IComponentValidations,
@@ -35,7 +39,10 @@ import type {
   HRepGroup,
   HRepGroupChild,
   HRepGroupExtensions,
+  LayoutNodeFromComponentType,
+  LayoutNodeFromType,
   ParentNode,
+  TypeFromAnyItem,
 } from 'src/utils/layout/hierarchy.types';
 
 /**
@@ -428,14 +435,36 @@ export class LayoutPage implements LayoutObject {
  * A LayoutNode wraps a component with information about its parent, allowing you to traverse a component (or an
  * instance of a component inside a repeating group), finding other components near it.
  */
-export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject {
+export class LayoutNode<Item extends AnyItem = AnyItem, Type extends ComponentTypes = TypeFromAnyItem<Item>>
+  implements LayoutObject
+{
+  public readonly def: ComponentClassMap[Type];
+
   public constructor(
     public item: Item,
     public parent: ParentNode,
     public top: LayoutPage,
     private readonly dataSources: HierarchyDataSources,
     public readonly rowIndex?: number,
-  ) {}
+  ) {
+    this.def = getLayoutComponentObject(item.type as any);
+  }
+
+  public isType<T extends ComponentTypes>(type: T): this is LayoutNodeFromType<T> {
+    return this.item.type === type;
+  }
+
+  public isComponentType<T extends ComponentType>(type: T): this is LayoutNodeFromComponentType<T> {
+    return this.def.type === type;
+  }
+
+  public isRepGroup(): this is LayoutNode<HRepGroup, 'Group'> {
+    return this.item.type === 'Group' && 'rows' in this.item;
+  }
+
+  public isNonRepGroup(): this is LayoutNode<HNonRepGroup, 'Group'> {
+    return this.item.type === 'Group' && !('rows' in this.item);
+  }
 
   /**
    * Looks for a matching component upwards in the hierarchy, returning the first one (or undefined if
@@ -477,7 +506,7 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
 
   private childrenIdsAsList(onlyInRowIndex?: number) {
     let list: AnyItem[] = [];
-    if (this.item.type === 'Group' && 'rows' in this.item) {
+    if (this.isRepGroup()) {
       if (typeof onlyInRowIndex === 'number') {
         list = this.item.rows.find((r) => r && r.index === onlyInRowIndex)?.items || [];
       } else {
@@ -486,7 +515,7 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
           .map((r) => r && r.items)
           .flat() as AnyItem[];
       }
-    } else if (this.item.type === 'Group' && 'childComponents' in this.item) {
+    } else if (this.isNonRepGroup()) {
       list = this.item.childComponents;
     }
 
@@ -618,7 +647,7 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
         break;
       }
 
-      const arrayIndex = ours.parentIndex === lastIdx && this.item.type === 'Group' ? rowIndex : ours.arrayIndex;
+      const arrayIndex = ours.parentIndex === lastIdx && this.isRepGroup() ? rowIndex : ours.arrayIndex;
 
       if (arrayIndex === undefined) {
         continue;
@@ -724,15 +753,6 @@ export class LayoutNode<Item extends AnyItem = AnyItem> implements LayoutObject 
   }
 
   /**
-   * Gets the LayoutComponent object, a toolbox for this specific component
-   */
-  public getComponent(): Item['type'] extends keyof ComponentClassMap
-    ? ComponentClassMap[Item['type']]
-    : LayoutComponent {
-    return getLayoutComponentObject(this.item.type as any);
-  }
-
-  /**
    * Gets the current form data for this component
    */
   public getFormData(): IComponentFormData {
@@ -831,11 +851,8 @@ function nodesInLayouts(
 /**
  * This is the same tool as the one above, but additionally it will iterate each component/group in the layout
  * and resolve all expressions for it.
- *
- * @deprecated Do not use directly. Use ExprContext instead, as it provides
- *   resolved layouts. In sagas, use ResolvedNodesSelector
  */
-export function resolvedNodesInLayouts(
+function resolvedNodesInLayouts(
   layouts: ILayouts | null,
   currentLayout: string,
   repeatingGroups: IRepeatingGroups | null,
@@ -843,7 +860,7 @@ export function resolvedNodesInLayouts(
 ) {
   // A full copy is needed here because formLayout comes from the redux store, and in production code (not the
   // development server!) the properties are not mutable (but we have to mutate them below).
-  const layoutsCopy: ILayouts = JSON.parse(JSON.stringify(layouts || {}));
+  const layoutsCopy: ILayouts = structuredClone(layouts || {});
   const unresolved = nodesInLayouts(layoutsCopy, currentLayout, repeatingGroups, dataSources);
 
   const config = {
@@ -908,7 +925,7 @@ export function resolvedNodesInLayouts(
  * @see replaceTextResourceParams
  * @ßee getVariableTextKeysForRepeatingGroupComponent
  */
-export function rewriteTextResourceBindings(collection: LayoutPages, textResources: ITextResource[]) {
+function rewriteTextResourceBindings(collection: LayoutPages, textResources: ITextResource[]) {
   for (const layout of Object.values(collection.all())) {
     for (const node of layout.flat(true)) {
       if (!node.item.textResourceBindings || node.rowIndex === undefined) {
@@ -1042,16 +1059,64 @@ export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources
   };
 }
 
-export function resolvedLayoutsFromState(state: IRuntimeState): LayoutPages {
-  const resolved = resolvedNodesInLayouts(
+function innerResolvedLayoutsFromState(
+  layouts: ILayouts | null,
+  currentView: string | undefined,
+  repeatingGroups: IRepeatingGroups | null,
+  dataSources: HierarchyDataSources,
+  textResources: ITextResource[],
+): LayoutPages | undefined {
+  if (!layouts || !currentView || !repeatingGroups) {
+    return undefined;
+  }
+
+  const resolved = resolvedNodesInLayouts(layouts, currentView, repeatingGroups, dataSources);
+  rewriteTextResourceBindings(resolved, textResources);
+
+  return resolved;
+}
+
+export function resolvedLayoutsFromState(state: IRuntimeState) {
+  return innerResolvedLayoutsFromState(
     state.formLayout.layouts,
     state.formLayout.uiConfig.currentView,
     state.formLayout.uiConfig.repeatingGroups,
     dataSourcesFromState(state),
+    state.textResources.resources,
   );
-  rewriteTextResourceBindings(resolved, state.textResources.resources);
+}
 
-  return resolved;
+/**
+ * This is a more efficient, memoized version of what happens above. This will only be used from ExprContext,
+ * and trades verbosity and code duplication for performance and caching.
+ */
+function useResolvedExpressions() {
+  const state = useAppSelector((state) => state);
+  const instance = state.instanceData?.instance;
+  const formData = state.formData.formData;
+  const applicationSettings = state.applicationSettings.applicationSettings;
+  const hiddenFields = state.formLayout.uiConfig.hiddenFields;
+  const validations = state.formValidations.validations;
+  const layouts = state.formLayout.layouts;
+  const currentView = state.formLayout.uiConfig.currentView;
+  const repeatingGroups = state.formLayout.uiConfig.repeatingGroups;
+  const textResources = state.textResources.resources;
+
+  const dataSources: HierarchyDataSources = useMemo(
+    () => ({
+      formData,
+      applicationSettings,
+      instanceContext: buildInstanceContext(instance),
+      hiddenFields: new Set(hiddenFields),
+      validations,
+    }),
+    [formData, applicationSettings, instance, hiddenFields, validations],
+  );
+
+  return useMemo(
+    () => innerResolvedLayoutsFromState(layouts, currentView, repeatingGroups, dataSources, textResources),
+    [layouts, currentView, repeatingGroups, dataSources, textResources],
+  );
 }
 
 /**
@@ -1068,4 +1133,6 @@ export const _private = {
   layoutAsHierarchyWithRows,
   nodesInLayout,
   nodesInLayouts,
+  resolvedNodesInLayouts,
+  useResolvedExpressions,
 };

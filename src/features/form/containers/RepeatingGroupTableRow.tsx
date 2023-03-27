@@ -10,7 +10,6 @@ import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import classes from 'src/features/form/containers/RepeatingGroup.module.css';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
-import { FormComponent } from 'src/layout/LayoutComponent';
 import { getTextAlignment, getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -88,7 +87,7 @@ export function RepeatingGroupTableRow({
     deleteFunctionality || {};
 
   const node = useResolvedNode(id);
-  const group = node?.item.type === 'Group' && 'rows' in node.item ? node.item : undefined;
+  const group = node?.isRepGroup() ? node.item : undefined;
   const row = group?.rows[index] ? group.rows[index] : undefined;
   const expressionsForRow = row && row.groupExpressions;
   const edit = {
@@ -101,10 +100,9 @@ export function RepeatingGroupTableRow({
   } as ExprResolved<ILayoutGroup['textResourceBindings']>;
 
   const tableNodes = getTableNodes(index) || [];
-  const displayData = tableNodes.map((node) => {
-    const component = node.getComponent();
-    return component instanceof FormComponent ? component.useDisplayData(node as any) : '';
-  });
+  const displayData = tableNodes.map((node) =>
+    'useDisplayData' in node.def ? node.def.useDisplayData(node as any) : '',
+  );
   const firstCellData = displayData.find((c) => !!c);
 
   if (!language) {

@@ -1241,7 +1241,7 @@ export function validateGroup(groupId: string, state: IRuntimeState, onlyInRowIn
   const currentView = state.formLayout.uiConfig.currentView;
   const resolvedLayouts = ResolvedNodesSelector(state);
 
-  const node = resolvedLayouts.findById(groupId);
+  const node = resolvedLayouts?.findById(groupId);
   if (!node || !state.applicationMetadata.applicationMetadata || !language) {
     return {};
   }

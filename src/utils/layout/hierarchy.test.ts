@@ -1,13 +1,6 @@
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getRepeatingGroups } from 'src/utils/formLayout';
-import {
-  _private,
-  LayoutNode,
-  LayoutPage,
-  LayoutPages,
-  resolvedLayoutsFromState,
-  resolvedNodesInLayouts,
-} from 'src/utils/layout/hierarchy';
+import { _private, LayoutNode, LayoutPage, LayoutPages, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompHeader } from 'src/layout/Header/types';
@@ -16,7 +9,7 @@ import type { ILayout } from 'src/layout/layout';
 import type { IRepeatingGroups, IValidations } from 'src/types';
 import type { AnyItem, HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
 
-const { layoutAsHierarchyWithRows, layoutAsHierarchy, nodesInLayout } = _private;
+const { layoutAsHierarchyWithRows, layoutAsHierarchy, nodesInLayout, resolvedNodesInLayouts } = _private;
 
 describe('Hierarchical layout tools', () => {
   const header: Omit<ExprUnresolved<ILayoutCompHeader>, 'id'> = { type: 'Header', size: 'L' };
@@ -570,7 +563,7 @@ describe('Hierarchical layout tools', () => {
     expect(uniqueHidden(nodes.current()?.flat(true))).toEqual(plain);
     expect(uniqueHidden(nodes.current()?.children())).toEqual(plain);
 
-    if (group2?.item.type === 'Group' && 'rows' in group2.item) {
+    if (group2?.isRepGroup()) {
       expect(group2.item.rows[0]?.items[1].hidden).toEqual(true);
       expect(group2.item.rows[0]?.items[2].hidden).toEqual(true);
       const group2n = group2.item.rows[0]?.items[2];
@@ -726,10 +719,10 @@ describe('Hierarchical layout tools', () => {
     state.formLayout.uiConfig.repeatingGroups = manyRepeatingGroups;
     const resolved = resolvedLayoutsFromState(state);
 
-    const field3 = resolved.findById('field3');
+    const field3 = resolved?.findById('field3');
     expect(field3?.item.id).toEqual('field3');
 
-    const nested = resolved.findById(components.group2ni.id);
+    const nested = resolved?.findById(components.group2ni.id);
     expect(nested?.item.id).toEqual('group2nested_input-0-0');
     expect(nested?.closest((i) => i.id === components.top1.id)?.item.id).toEqual(components.top1.id);
 
@@ -737,7 +730,7 @@ describe('Hierarchical layout tools', () => {
     expect(nested?.closest((i) => i.id === 'field3')?.item.id).toEqual('field3');
 
     // Using 'findById' on the wrong page
-    expect(resolved.findLayout('page2')?.findById('field3')?.item.id).toEqual('field3');
+    expect(resolved?.findLayout('page2')?.findById('field3')?.item.id).toEqual('field3');
     expect(field3?.top.findAllById(components.group2i.id).map((i) => i.item.id)).toEqual([
       'group2_input-0',
       'group2_input-1',

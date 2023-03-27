@@ -83,7 +83,7 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
           aria-describedby={(description && descriptionId) || undefined}
         >
           {node?.children().map((comp) => {
-            if (comp.item.type === 'Group' || comp.item.type === 'Summary') {
+            if (comp.isType('Group') || comp.isType('Summary')) {
               console.warn('Unexpected Group or Summary inside likert container', comp);
               return;
             }
@@ -138,7 +138,7 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
             padding={'dense'}
           >
             {node?.children().map((comp) => {
-              if (comp.item.type === 'Group' || comp.item.type === 'Summary') {
+              if (comp.isType('Group') || comp.isType('Summary')) {
                 console.warn('Unexpected Group or Summary inside likert container', comp);
                 return;
               }

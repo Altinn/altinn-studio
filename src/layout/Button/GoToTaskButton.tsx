@@ -11,7 +11,7 @@ import type { IButtonProvidedProps } from 'src/layout/Button/ButtonComponent';
 
 export const GoToTaskButton = ({ children, ...props }: React.PropsWithChildren<IButtonProvidedProps>) => {
   const dispatch = useAppDispatch();
-  const taskId = props.node.item.type === 'Button' ? props.node.item.taskId : undefined;
+  const taskId = props.node.isType('Button') ? props.node.item.taskId : undefined;
   const availableProcessTasks = useAppSelector((state) => state.process.availableNextTasks);
   const canGoToTask = availableProcessTasks && availableProcessTasks.includes(taskId || '');
   const navigateToTask = () => {

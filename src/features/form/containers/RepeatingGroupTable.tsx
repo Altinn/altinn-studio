@@ -9,7 +9,7 @@ import classes from 'src/features/form/containers/RepeatingGroup.module.css';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import { RepeatingGroupTableRow } from 'src/features/form/containers/RepeatingGroupTableRow';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import { ComponentType } from 'src/layout';
+import { ComponentType } from 'src/layout/LayoutComponent';
 import { getTextAlignment, getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ITextResourceBindings } from 'src/types';
@@ -52,7 +52,7 @@ export function RepeatingGroupTable({
   const language = useAppSelector((state) => state.language.language);
 
   const node = useResolvedNode(id);
-  const container = node?.item.type === 'Group' && 'rows' in node.item ? node.item : undefined;
+  const container = node?.isRepGroup() ? node.item : undefined;
   const edit = container?.edit;
 
   const getTableNodes = (rowIndex: number) =>
@@ -64,7 +64,7 @@ export function RepeatingGroupTable({
           (baseComponentId && container.tableHeaders.includes(baseComponentId))
         );
       }
-      return child.getComponent().getComponentType() === ComponentType.Form;
+      return child.isComponentType(ComponentType.Form);
     });
 
   const tableNodes = getTableNodes(0);

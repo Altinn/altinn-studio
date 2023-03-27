@@ -611,14 +611,14 @@ export const ExprTypes: {
 
   const state = (window as unknown as IAltinnWindow).reduxStore.getState();
   const nodes = resolvedLayoutsFromState(state);
-  let layout: LayoutPage | LayoutNode | undefined = nodes.current();
+  let layout: LayoutPage | LayoutNode | undefined = nodes?.current();
   if (!layout) {
     console.error('Unable to find current page/layout');
     return;
   }
 
   if (forComponentId) {
-    const foundNode = nodes.findById(forComponentId);
+    const foundNode = nodes?.findById(forComponentId);
     if (!foundNode) {
       console.error('Unable to find component with id', forComponentId);
       console.error(

@@ -4,7 +4,8 @@ import type { SagaIterator } from 'redux-saga';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { PDF_LAYOUT_NAME, PdfActions } from 'src/features/pdf/data/pdfSlice';
-import { ComponentType, getLayoutComponentObject } from 'src/layout';
+import { getLayoutComponentObject } from 'src/layout';
+import { ComponentType } from 'src/layout/LayoutComponent';
 import { DataListsActions } from 'src/shared/resources/dataLists/dataListsSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
@@ -77,8 +78,8 @@ function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, lay
 
       if (
         component.type === 'Group' ||
-        layoutComponent.getComponentType() === ComponentType.Form ||
-        layoutComponent.getComponentType() === ComponentType.Presentation
+        layoutComponent.type === ComponentType.Form ||
+        layoutComponent.type === ComponentType.Presentation
       ) {
         return {
           id: `__pdf__${component.id}`,

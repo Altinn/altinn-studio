@@ -66,6 +66,9 @@ export const components = {
 };
 
 export type ComponentClassMap = typeof components;
+export type ComponentClassMapTypes = {
+  [K in keyof ComponentClassMap]: ComponentClassMap[K]['type'];
+};
 
 // noinspection JSUnusedLocalSymbols
 /**
@@ -119,17 +122,6 @@ export const FormComponentContext = createContext<IFormComponentContext>({
   id: undefined,
   baseComponentId: undefined,
 });
-
-/**
- * This enum is used to distinguish purely presentational components
- * from interactive form components that can have formData etc.
- */
-export enum ComponentType {
-  Presentation = 'presentation',
-  Form = 'form',
-  Action = 'action',
-  Container = 'container',
-}
 
 export function getLayoutComponentObject<T extends keyof ComponentClassMap>(type: T): ComponentClassMap[T] {
   if (type && type in components) {

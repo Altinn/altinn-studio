@@ -1,5 +1,6 @@
 import 'jest';
 import '@testing-library/jest-dom/extend-expect';
+import 'core-js/stable/structured-clone'; // https://github.com/jsdom/jsdom/issues/3363
 
 import { TextDecoder, TextEncoder } from 'util';
 

@@ -9,8 +9,7 @@ import { EditButton } from 'src/components/summary/EditButton';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import { ComponentType } from 'src/layout';
-import { FormComponent } from 'src/layout/LayoutComponent';
+import { ComponentType } from 'src/layout/LayoutComponent';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ISummaryComponent } from 'src/components/summary/SummaryComponent';
@@ -202,13 +201,11 @@ export function SummaryGroupComponent({
               const childSummaryComponents = targetNode
                 .children(undefined, idx)
                 .filter((n) => !inExcludedChildren(n))
-                .filter((node) => node.getComponent().getComponentType() === ComponentType.Form)
                 .map((child) => {
-                  const component = child.getComponent();
-                  if (child.isHidden() || !(component instanceof FormComponent)) {
+                  if (child.isHidden() || !child.isComponentType(ComponentType.Form)) {
                     return;
                   }
-                  const RenderCompactSummary = component.renderCompactSummary.bind(component);
+                  const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def);
                   return (
                     <RenderCompactSummary
                       onChangeClick={onChangeClick}
