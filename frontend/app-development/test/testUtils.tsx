@@ -7,17 +7,20 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { AppStore, RootState } from '../store';
 import { setupStore } from '../store';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { ServicesContextProps, ServicesContextProvider } from '../common/ServiceContext';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
   store?: AppStore;
   startUrl?: string;
+  queries?: Partial<ServicesContextProps>;
 }
 
 export const renderWithProviders = (
   component: any,
   {
     preloadedState = {},
+    queries = {},
     store = setupStore(preloadedState),
     startUrl = undefined,
     ...renderOptions
@@ -27,9 +30,11 @@ export const renderWithProviders = (
     return (
       <Provider store={store}>
         <MemoryRouter basename={APP_DEVELOPMENT_BASENAME} initialEntries={[startUrl]}>
-          <Routes>
-            <Route path='/:org/:app/*' element={children} />
-          </Routes>
+          <ServicesContextProvider {...queries}>
+            <Routes>
+              <Route path='/:org/:app/*' element={children} />
+            </Routes>
+          </ServicesContextProvider>
         </MemoryRouter>
       </Provider>
     );

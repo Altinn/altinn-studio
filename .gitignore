@@ -404,3 +404,5 @@ backend/srcaccesstoken/
 !/.yarn/releases
 !/.yarn/sdks
 !/.yarn/versions
+
+stats.csv

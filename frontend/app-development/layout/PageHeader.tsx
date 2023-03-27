@@ -3,12 +3,11 @@ import { AppBar } from './AppBar';
 import { Route, Routes } from 'react-router-dom';
 import { routes } from '../config/routes';
 
-interface IPageHeaderProps {
-  repoStatus: any;
+interface PageHeaderProps {
+  showSubMenu: boolean;
 }
 
-export const PageHeader = (ownProps: IPageHeaderProps) => {
-  const { repoStatus } = ownProps;
+export const PageHeader = ({ showSubMenu }: PageHeaderProps) => {
   return (
     <Routes>
       {routes.map((route) => (
@@ -19,7 +18,7 @@ export const PageHeader = (ownProps: IPageHeaderProps) => {
             <AppBar
               activeLeftMenuSelection={route.activeLeftMenuSelection}
               activeSubHeaderSelection={route.activeSubHeaderSelection}
-              showSubMenu={!repoStatus.hasMergeConflict}
+              showSubMenu={showSubMenu}
             />
           }
         />

@@ -10,7 +10,6 @@ import {
   watchHandleSaveServiceConfigSaga,
   watchHandleSaveServiceNameSaga,
 } from '../features/administration/handleServiceInformationSagas';
-import { watchHandleMergeConflictSaga } from '../features/handleMergeConflict/handleMergeConflictSagas';
 import { appDeploymentSagas } from '../sharedResources/appDeployment/appDeploymentSagas';
 import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
 import { appReleaseSagas } from '../sharedResources/appRelease/appReleaseSagas';
@@ -19,7 +18,6 @@ import { repoStatusSagas } from '../sharedResources/repoStatus/repoStatusSagas';
 import userSagas from '../sharedResources/user/userSagas';
 
 function* root(): SagaIterator {
-  yield fork(watchHandleMergeConflictSaga);
   yield fork(watchHandleFetchServiceSaga);
   yield fork(watchHandleFetchServiceNameSaga);
   yield fork(watchHandleSaveServiceNameSaga);

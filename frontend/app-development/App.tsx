@@ -3,8 +3,6 @@ import postMessages from 'app-shared/utils/postMessages';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
-import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
-import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import {
   fetchRemainingSession,
@@ -12,10 +10,9 @@ import {
   signOutUser,
 } from './sharedResources/user/userSlice';
 import { PageHeader } from './layout/PageHeader';
-
 import './App.css';
+import { PageContainer } from './layout/PageContainer';
 import { matchPath, useLocation } from 'react-router-dom';
-
 import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from './common/hooks';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -23,7 +20,6 @@ import { RepositoryType } from 'app-shared/types/global';
 import {
   repoInitialCommitPath,
   repoMetaPath,
-  repoStatusPath,
   serviceConfigPath,
   serviceNamePath,
 } from 'app-shared/api-paths';
@@ -32,9 +28,9 @@ import { initReactI18next, useTranslation } from 'react-i18next';
 import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { PageContainer } from './layout/PageContainer';
+import { useRepoStatus } from './features/appPublish/hooks/query-hooks';
+import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
 
-const GetRepoStatusSelector = makeGetRepoStatusSelector();
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
 i18next.use(initReactI18next).init({
@@ -56,7 +52,7 @@ export function App() {
   const { org, app } = match.params;
   const repositoryType = getRepositoryType(org, app);
   const { t } = useTranslation();
-  const repoStatus = useAppSelector(GetRepoStatusSelector);
+  const { data: repoStatus, refetch } = useRepoStatus(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes
   );
@@ -111,15 +107,9 @@ export function App() {
         )
       );
     };
-    const windowEventReceived = (event: any) => {
+    const windowEventReceived = async (event: any) => {
       if (event.data === postMessages.forceRepoStatusCheck) {
-        dispatch(
-          fetchRepoStatus({
-            url: repoStatusPath(org, app),
-            org,
-            repo: app,
-          })
-        );
+        await refetch();
       }
     };
     const keepAliveSessionState = () => {
@@ -140,7 +130,7 @@ export function App() {
       window.removeEventListener('message', windowEventReceived);
       setEventListeners(false);
     };
-  }, [app, dispatch, lastKeepAliveTimestamp, org, remainingSessionMinutes]);
+  }, [app, dispatch, lastKeepAliveTimestamp, org, refetch, remainingSessionMinutes]);
 
   const handleSessionExpiresClose = useCallback(
     (action: string) => {
@@ -155,7 +145,9 @@ export function App() {
     },
     [dispatch]
   );
-
+  if (!repoStatus) {
+    return null;
+  }
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
       <AltinnPopoverSimple
@@ -173,9 +165,14 @@ export function App() {
         <h2>{t('session.expires')}</h2>
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
-      <PageHeader repoStatus={repoStatus} />
-      <div className={classes.contentWrapper}>
-        <PageContainer subAppClassName={classes.subApp} />
+      <PageHeader showSubMenu={!repoStatus.hasMergeConflict} />
+
+      <div className={classes.contentWrapper} data-testid={'app-content-wrapper'}>
+        {repoStatus.hasMergeConflict ? (
+          <MergeConflictWarning org={org} app={app} />
+        ) : (
+          <PageContainer subAppClassName={classes.subApp} />
+        )}
       </div>
     </div>
   );
