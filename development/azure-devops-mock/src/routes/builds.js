@@ -77,14 +77,17 @@ export const buildRoute = async (req, res) => {
 };
 
 export const kubernetesWrapperRoute = async (req, res) => {
-  const { envName } = req.query;
-  const deployed = deploys.find((deploy) => deploy.envName === envName);
-  const result = [];
-  if (deployed) {
+  const result = [
+    {
+      version: '1000',
+      release: 'this-app-is-not-an-app-just-a-placeholder',
+    },
+  ];
+  deploys.forEach((deploy) => {
     result.push({
-      version: deployed.tagName,
-      release: [deployed.org, deployed.app].join('-'),
+      version: deploy.tagName,
+      release: [deploy.org, deploy.app].join('-'),
     });
-  }
+  });
   res.json(result);
 };

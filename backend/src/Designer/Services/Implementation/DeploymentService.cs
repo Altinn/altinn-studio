@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
@@ -87,10 +85,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<EnvironmentModel> environments = await _environmentsService.GetEnvironments();
             foreach (EnvironmentModel env in environments)
             {
+                IList<Deployment> deploymentsInEnv = await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, env);
                 await Parallel.ForEachAsync(deploymentEntities
                     .Where(deployment => deployment.EnvName == env.Name)
-                    .ToList(), async (d, _) =>
-                    await UpdateDeploymentStatus(d, org, app, env));
+                    .ToList(), (deployment, _) =>
+                {
+                    deployment.Reachable = deploymentsInEnv.Contains(new Deployment { Version = deployment.TagName, Release = $"{deployment.Org}-{deployment.App}" });
+                    return default;
+                });
             }
 
             return new SearchResults<DeploymentEntity> { Results = deploymentEntities };
@@ -110,21 +112,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.Build.Finished = deployment.Build.Finished;
 
             await _deploymentRepository.Update(deploymentEntity);
-        }
-
-        private async Task UpdateDeploymentStatus(DeploymentEntity deployment, string org, string app, EnvironmentModel env)
-        {
-            try
-            {
-                AzureDeploymentsResponse azureDeploymentsResponse = await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, app, env);
-                // Uncomment below line and comment out above line if running locally
-                // AzureDeploymentsResponse azureDeploymentsResponse = new() { Deployment = new() { new() { Release = "autodeploy-v3", Version = "v2" }} };
-                deployment.Reachable = true;
-            }
-            catch (HttpRequestException)
-            {
-                deployment.Reachable = false;
-            }
         }
 
         private async Task<Build> QueueDeploymentBuild(
