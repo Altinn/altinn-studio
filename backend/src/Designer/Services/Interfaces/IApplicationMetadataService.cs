@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Configuration;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -8,6 +9,21 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     /// </summary>
     public interface IApplicationMetadataService
     {
+        /// <summary>
+        /// Get content of config.json file, which is the editable parts of application metadata in Altinn Studio
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application</param>
+        public Task<ServiceConfiguration> GetAppMetadataConfigAsync(string org, string app);
+
+        /// <summary>
+        /// Sets the content of config.json file, which is the editable parts of application metadata in Altinn Studio
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application</param>
+        /// <param name="serviceConfiguration">ServiceConfiguration</param>
+        public Task UpdateAppMetadataConfigAsync(string org, string app, ServiceConfiguration serviceConfiguration);
+
         /// <summary>
         /// Registers the metadata connected to a specific GITEA repository on a certain commitId
         /// </summary>

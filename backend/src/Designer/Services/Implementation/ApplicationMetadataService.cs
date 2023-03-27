@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -70,6 +72,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        }
+
+        /// <inheritdic />
+        public async Task<ServiceConfiguration> GetAppMetadataConfigAsync(string org, string app)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            try
+            {
+                ServiceConfiguration serviceConfiguration = await altinnAppGitRepository.GetAppMetadataConfig();
+                return serviceConfiguration;
+            }
+            catch (FileNotFoundException)
+            {
+                ServiceConfiguration serviceConfiguration = new () { RepositoryName = app };
+                return serviceConfiguration;
+            }
+        }
+
+        /// <inheritdic />
+        public async Task UpdateAppMetadataConfigAsync(string org, string app, ServiceConfiguration serviceConfiguration)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            await altinnAppGitRepository.SaveAppMetadataConfig(serviceConfiguration);
         }
 
         /// <summary>
