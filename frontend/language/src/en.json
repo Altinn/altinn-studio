@@ -942,5 +942,10 @@
   "validation_errors.numbers_only": "Only numbers are allowed",
   "validation_errors.pattern": "Wrong format or value",
   "validation_errors.required": "Field is required",
-  "validation_errors.value_as_url": "Invalid url"
+  "validation_errors.value_as_url": "Invalid url",
+  "merge_conflict.headline": "It's a merge conflict in the application",
+  "merge_conflict.body1": "There are breaking changes in the application that blocks further work.",
+  "merge_conflict.body2": "You can fix these by either download the application as a zip-file and delete the changes, or just blast the application directly.",
+  "merge_conflict.remove_my_changes": "Remove my changes",
+  "merge_conflict.download_zip_file": "Download as zip-file"
 }

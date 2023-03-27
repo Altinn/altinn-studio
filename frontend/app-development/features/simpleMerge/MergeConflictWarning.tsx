@@ -7,6 +7,7 @@ import { DownloadRepoModal } from '../administration/components/DownloadRepoModa
 import { ResetRepoModal } from '../administration/components/ResetRepoModal';
 import { RepoStatusActions } from '../../sharedResources/repoStatus/repoStatusSlice';
 import { useAppDispatch } from '../../common/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface MergeConflictWarningProps {
   org: string;
@@ -17,6 +18,7 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
   const dispatch = useAppDispatch();
   const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
+  const { t } = useTranslation();
   const toggleDownloadModal = () => setDownloadModalOpen(!downloadModalOpen);
   const toggleResetModal = () => setResetRepoModalOpen(!resetRepoModalOpen);
   const handleResetRepoClick = () => dispatch(RepoStatusActions.resetLocalRepo({ org, repo: app }));
@@ -24,12 +26,9 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
   const resetRepoModalAnchor = useRef<HTMLButtonElement>();
   return (
     <div className={classes.container} role='dialog'>
-      <h1>Det er en konflikt i applikasjonen</h1>
-      <p>Det finnes endringer i denne applikasjonen som er i konflikt med dine siste endringer.</p>
-      <p>
-        Måten å løse konflikten på er å fjerne dine siste endringer. Dersom du vil finne tilbake til
-        endringene du nå mister, kan du laste ned siste versjon som zip-fil.
-      </p>
+      <h1>{t('merge_conflict.headline')}</h1>
+      <p>{t('merge_conflict.body1')} </p>
+      <p>{t('merge_conflict.body2')}</p>
       <Button
         variant={ButtonVariant.Quiet}
         icon={<Download />}
@@ -37,7 +36,7 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
         onClick={toggleDownloadModal}
         ref={downloadModalAnchor}
       >
-        Last ned zip-fil
+        {t('merge_conflict.download_zip_file')}
       </Button>
       <DownloadRepoModal
         anchorRef={downloadModalAnchor}
@@ -48,7 +47,7 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
       />
       <ButtonContainer className={classes.buttonContainer}>
         <Button ref={resetRepoModalAnchor} onClick={toggleResetModal}>
-          Fjern mine endringer
+          {t('merge_conflict.remove_my_changes')}
         </Button>
         <ResetRepoModal
           anchorRef={resetRepoModalAnchor}
