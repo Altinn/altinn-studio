@@ -33,7 +33,7 @@
     "build-with-profile": "yarn build --profile --json > stats.json",
     "start": "yarn typecheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
     "test": "jest --maxWorkers=50%",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npx tsc --noEmit",
     "typecheck:watch": "tsc --noEmit -w"
   }
 }

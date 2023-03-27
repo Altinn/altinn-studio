@@ -7,9 +7,10 @@ import { ResetRepoModal } from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { DownloadRepoModal } from './DownloadRepoModal';
 import classes from './SideMenuContent.module.css';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { useAppDispatch } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useRepoStatus } from '../../appPublish/hooks/query-hooks';
 
 interface ISideMenuContent {
   service: IRepository;
@@ -22,9 +23,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   const { org, app } = useParams();
   const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
-
-  const repoStatus = useAppSelector((state) => state.handleMergeConflict.repoStatus);
-
+  const { data: repoStatus } = useRepoStatus(org, app);
   const toggleDownloadModal = () => setDownloadModalOpen(!downloadModalOpen);
   const onCloseModal = () => setResetRepoModalOpen(false);
   const onClickResetRepo = () => setResetRepoModalOpen(true);
@@ -105,6 +104,8 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         anchorRef={downloadModalAnchor}
         onClose={toggleDownloadModal}
         open={downloadModalOpen}
+        org={org}
+        app={app}
       />
     </div>
   );

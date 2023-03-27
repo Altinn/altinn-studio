@@ -15,7 +15,6 @@ const currentApplicationMetadata: any = {
 };
 
 const renderAccessControlContainer = (applicationMetadata?: any) => {
-
   const initialState: Partial<RootState> = {
     appDeployments: {
       createAppDeploymentErrors: [],
@@ -34,13 +33,6 @@ const renderAccessControlContainer = (applicationMetadata?: any) => {
     configuration: {
       environments: null,
       orgs: null,
-    },
-    handleMergeConflict: {
-      repoStatus: {
-        behindBy: 0,
-        aheadBy: 0,
-        contentStatus: [],
-      },
     },
     repoStatus: {
       resettingLocalRepo: false,

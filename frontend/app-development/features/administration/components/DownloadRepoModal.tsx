@@ -2,7 +2,6 @@ import React from 'react';
 import { Popover } from '@mui/material';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import classes from './RepoModal.module.css';
-import { useParams } from 'react-router-dom';
 import { repoDownloadPath } from 'app-shared/api-paths';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -10,10 +9,11 @@ interface IDownloadRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
   onClose: any;
   open: boolean;
+  org: string;
+  app: string;
 }
 
 export function DownloadRepoModal(props: IDownloadRepoModalProps) {
-  const { org, app } = useParams();
   const { t } = useTranslation();
   return (
     <div data-testid='download-repo-container'>
@@ -37,10 +37,14 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
             <Trans i18nKey={'administration.download_repo_info'} />
           </p>
           <p>
-            <a href={repoDownloadPath(org, app)}>{t('administration.download_repo_changes')}</a>
+            <a href={repoDownloadPath(props.org, props.app)}>
+              {t('administration.download_repo_changes')}
+            </a>
           </p>
           <p>
-            <a href={repoDownloadPath(org, app, true)}>{t('administration.download_repo_full')}</a>
+            <a href={repoDownloadPath(props.org, props.app, true)}>
+              {t('administration.download_repo_full')}
+            </a>
           </p>
           <div className={classes.buttonContainer}>
             <Button

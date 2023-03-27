@@ -1,7 +1,6 @@
 import { dataModellingReducer } from 'app-shared/features/dataModelling/sagas';
 import { dataModelsMetadataReducer } from 'app-shared/features/dataModelling/sagas/metadata';
 import handleServiceInformationReducer from '../features/administration/handleServiceInformationSlice';
-import handleMergeConflictReducer from '../features/handleMergeConflict/handleMergeConflictSlice';
 import appDeploymentReducer from '../sharedResources/appDeployment/appDeploymentSlice';
 import applicationMetadataReducer from '../sharedResources/applicationMetadata/applicationMetadataSlice';
 import appReleaseReducer from '../sharedResources/appRelease/appReleaseSlice';
@@ -10,7 +9,6 @@ import repoStatusReducer from '../sharedResources/repoStatus/repoStatusSlice';
 import userReducer from '../sharedResources/user/userSlice';
 
 export const rootReducer = {
-  handleMergeConflict: handleMergeConflictReducer,
   serviceInformation: handleServiceInformationReducer,
   applicationMetadataState: applicationMetadataReducer,
   repoStatus: repoStatusReducer,

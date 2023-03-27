@@ -2,7 +2,6 @@ import { SubApp } from '../../packages/ux-editor/src/SubApp';
 import { AccessControlContainer } from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import { TextEditor } from '../features/textEditor';
-import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
@@ -73,23 +72,6 @@ export const routes: IRoute[] = [
     activeLeftMenuSelection: '',
     menu: 'deploy',
     subapp: DeployPage,
-  },
-  {
-    path: '/:org/:app/mergeconflict',
-    exact: true,
-    activeSubHeaderSelection: TopBarMenu.None,
-    activeLeftMenuSelection: 'Mergekonflikt',
-    menu: 'create',
-    subapp: HandleMergeConflictContainerComponent,
-    props: {
-      headerTextKey: 'shared.wip_title',
-      subtext1TextKey: 'shared.wip_subtext_1',
-      subtext2TextKey: 'shared.wip_subtext_2',
-      linkTextKey: 'shared.wip_link_text',
-      urlKey: 'shared.wip_link_github_url',
-      imageSource: '../../designer/img/illustration-help-circle.svg',
-      shadow: true,
-    },
   },
   {
     activeSubHeaderSelection: TopBarMenu.Text,
