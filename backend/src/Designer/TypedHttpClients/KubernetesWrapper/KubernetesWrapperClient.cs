@@ -31,7 +31,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         // The issue have been discussed but we have not been able to find an agreement on how this should be solved. :-/
         string baseUrl = (env.Hostname == "host.docker.internal:6161")
             ? "http://host.docker.internal:6161"
-            : $"{org}.{env.AppPrefix}.{env.Hostname}";
+            : $"https://{org}.{env.AppPrefix}.{env.Hostname}";
 
         string pathToAzureEnv = baseUrl + $"{PATH_TO_AZURE_ENV}";
 
