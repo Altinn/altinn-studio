@@ -57,13 +57,13 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("form-layouts")]
-        public async Task<ActionResult<Dictionary<string, FormLayout>>> GetFormLayouts(string org, string app)
+        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                Dictionary<string, FormLayout> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, null);
+                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, null);
                 return Ok(formLayouts);
             }
             catch (FileNotFoundException exception)
@@ -83,7 +83,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("form-layout/{layoutName}")]
-        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromRoute] string layoutName, [FromBody] FormLayout formLayout)
+        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromRoute] string layoutName, [FromBody] JsonNode formLayout)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
@@ -16,7 +17,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Identifier for app-developer</param>
         /// <param name="layoutSetName">Name of layoutset. Is null of app does not use layoutset</param>
         /// <returns>A list of all FormLayouts for a layoutset</returns>
-        public Task<Dictionary<string, FormLayout>> GetFormLayouts(string org, string app, string developer, string layoutSetName);
+        public Task<Dictionary<string, JsonNode>> GetFormLayouts(string org, string app, string developer, string layoutSetName);
 
         /// <summary>
         /// Saves the form layout for a specific layoutname. If app-structure
@@ -29,7 +30,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="layoutName">Name of layout file</param>
         /// <param name="formLayout">Actual content of layout file</param>
         /// <returns></returns>
-        public Task SaveFormLayout(string org, string app, string developer, string layoutSetName, string layoutName, FormLayout formLayout);
+        public Task SaveFormLayout(string org, string app, string developer, string layoutSetName, string layoutName, JsonNode formLayout);
 
         /// <summary>
         /// Delete the form layout for a specific layoutname. If app-structure

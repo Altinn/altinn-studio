@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories;
@@ -11,6 +12,7 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Designer.Tests.Utils;
 using FluentAssertions;
+using Json.More;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -41,10 +43,10 @@ public class TextsServiceTest : IDisposable
 
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
-        FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+        JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
         formLayout.Should().NotBeNull();
-        formLayout.Data.Layout[0].TextResourceBindings["title"].Should().Be("new-id");
+        (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("new-id");
     }
 
     [Fact]
@@ -67,13 +69,13 @@ public class TextsServiceTest : IDisposable
         TextsService textsService = GetTextsServiceForTest();
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
-        FormLayout formLayout1 = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
-        FormLayout formLayout2 = await altinnAppGitRepository.GetLayout(layoutSetName2, layoutName2);
+        JsonNode formLayout1 = await altinnAppGitRepository.GetLayout(layoutSetName1, layoutName1);
+        JsonNode formLayout2 = await altinnAppGitRepository.GetLayout(layoutSetName2, layoutName2);
 
         formLayout1.Should().NotBeNull();
         formLayout2.Should().NotBeNull();
-        formLayout1.Data.Layout[0].TextResourceBindings["title"].Should().Be("new-id");
-        formLayout2.Data.Layout[0].TextResourceBindings["title"].Should().Be("new-id");
+        (formLayout1["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("new-id");
+        (formLayout2["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("new-id");
     }
 
     [Fact]
@@ -93,10 +95,10 @@ public class TextsServiceTest : IDisposable
 
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
-        FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+        JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
         formLayout.Should().NotBeNull();
-        formLayout.Data.Layout[0].TextResourceBindings["title"].Should().Be("new-id");
+        (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("new-id");
     }
 
     [Fact]
@@ -116,10 +118,10 @@ public class TextsServiceTest : IDisposable
         List<TextIdMutation> keyMutations = new() { new() { OldId = "a-key-that-does-not-exist", NewId = "new-id" } };
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
-        FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+        JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
         formLayout.Should().NotBeNull();
-        formLayout.Data.Layout[0].TextResourceBindings["title"].Should().Be("some-old-id");
+        (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString().Should().Be("some-old-id");
     }
 
     [Fact]
@@ -139,10 +141,10 @@ public class TextsServiceTest : IDisposable
         List<TextIdMutation> keyMutations = new() { new() { OldId = "some-old-id" } };
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
-        FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+        JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
         formLayout.Should().NotBeNull();
-        formLayout.Data.Layout[0].TextResourceBindings.Where(trb => trb.Value == "some-old-key").Should().BeEmpty();
+        formLayout.ToString().Should().NotContain("some-old-key");
     }
 
     public void Dispose()
