@@ -37,12 +37,20 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         string cacheKey = $"GetDeploymentsInEnvAsync-{org}-{env.Name}";
         if (!_cache.TryGetValue(cacheKey, out deployments))
         {
-            _logger.LogInformation("Requesting: {PathToAzureEnv}", pathToAzureEnv);
-            HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
-            deployments = await response.Content.ReadAsAsync<List<Deployment>>();
+            try
+            {
+                _logger.LogInformation("Requesting: {PathToAzureEnv}", pathToAzureEnv);
+                HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
+                deployments = await response.Content.ReadAsAsync<List<Deployment>>();
 
-            _cache.Set(cacheKey, deployments, new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromSeconds(15)));
+                _cache.Set(cacheKey, deployments, new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(15)));
+            }
+            catch (Exception e)
+            {
+                _logger.LogInformation("Make sure the requested environment, {env}, exists", env.Hostname);
+                throw new ArgumentException(e.Message);
+            }
         }
 
         return deployments;
