@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
 using LibGit2Sharp;
@@ -28,6 +29,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
+        private const string SERVICE_CONFIG_FILENAME = "config.json";
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
         private const string LAYOUT_SETS_FILENAME = "layout-sets.json";
@@ -38,7 +40,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            //DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
@@ -75,6 +77,32 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, _jsonOptions);
             string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
             await WriteTextByRelativePathAsync(appMetadataRelativeFilePath, metadataAsJson, true);
+        }
+
+        /// <summary>
+        /// Saves config.json file to disk.
+        /// </summary>
+        /// <param name="serviceConfiguration">The updated config to persist.</param>
+        public async Task SaveAppMetadataConfig(ServiceConfiguration serviceConfiguration)
+        {
+            string config = JsonSerializer.Serialize(serviceConfiguration, _jsonOptions);
+            string configRelativeFilePath = Path.Combine(SERVICE_CONFIG_FILENAME);
+            await WriteTextByRelativePathAsync(configRelativeFilePath, config, true);
+        }
+
+        /// <summary>
+        /// Saves config.json file to disk.
+        /// </summary>
+        public async Task<ServiceConfiguration> GetAppMetadataConfig()
+        {
+            string serviceConfigFilePath = Path.Combine(SERVICE_CONFIG_FILENAME);
+            if (!FileExistsByRelativePath(serviceConfigFilePath))
+            {
+                throw new FileNotFoundException("Config file not found.");
+            }
+            string fileContent = await ReadTextByRelativePathAsync(serviceConfigFilePath);
+            ServiceConfiguration config = JsonSerializer.Deserialize<ServiceConfiguration>(fileContent, _jsonOptions);
+            return config;
         }
 
         /// <summary>
