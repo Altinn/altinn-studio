@@ -11,8 +11,8 @@
   },
   "peerDependencies": {
     "@altinn/altinn-design-system": "0.27.6",
-    "@digdir/design-system-react": "0.9.0",
-    "@mui/material": "5.11.13",
+    "@digdir/design-system-react": "0.10.0",
+    "@mui/material": "5.11.15",
     "@reduxjs/toolkit": "1.9.3",
     "axios": "1.3.4",
     "classnames": "2.3.2",

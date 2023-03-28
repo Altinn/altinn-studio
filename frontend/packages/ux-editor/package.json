@@ -28,7 +28,7 @@
   "license": "3-Clause BSD",
   "main": "index.js",
   "peerDependencies": {
-    "webpack": "5.76.2"
+    "webpack": "5.76.3"
   },
   "scripts": {
     "test": "jest --maxWorkers=50%"
