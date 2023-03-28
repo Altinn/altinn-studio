@@ -64,12 +64,20 @@ namespace Designer.Tests.Controllers
                 string actualLayout = responseJson[Path.GetFileNameWithoutExtension(layoutPath)].ToJsonString();
                 JsonAssertionUtils.DeepEquals(expectedLayout, actualLayout).Should().BeTrue();
             }
-
-
         }
 
         [Theory]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", "testLayout", "TestData/FormLayout/layoutWithUnknownProperties.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/layoutWithUnknownProperties.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/changename/layouts/form.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/changename/layouts/summary.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/datalist/layouts/formLayout.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/datalist/layouts/summary.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/group/layouts/hide.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/group/layouts/prefill.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/group/layouts/repeating.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/group/layouts/summary.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/likert/layouts/formLayout.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/message/layouts/formLayout.json")]
         public async Task SaveFormLayout_ReturnsOk(string org, string app, string developer, string layoutName, string layoutPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -79,15 +87,16 @@ namespace Designer.Tests.Controllers
 
             string layout = SharedResourcesHelper.LoadTestDataAsString(layoutPath);
 
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new StringContent(layout, Encoding.UTF8, MediaTypeNames.Application.Json)
             };
 
-            var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/ui/layouts/{layoutName}.json");
+            JsonAssertionUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
         }
     }
 }

@@ -1,0 +1,37 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav2",
+        "type": "NavigationBar"        
+      },
+      {
+        "id": "sendersName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "68.OppgavegiverNavndatadef68.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value"
+        },
+        "required": true,
+        "readOnly": false,
+        "triggers": ["validation"],
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "nav-page-2",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "dataModelBindings": {},
+        "showBackButton": true
+      }
+    ]
+  }
+}
