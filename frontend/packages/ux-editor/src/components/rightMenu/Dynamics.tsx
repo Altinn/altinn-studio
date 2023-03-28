@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './Dynamics.module.css';
-import { ExternalLink } from '@navikt/ds-icons';
+import { ExternalLinkIcon } from '@navikt/aksel-icons';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -23,7 +23,7 @@ export const Dynamics = () => {
           >
             {t('right_menu.dynamics_link')}
             <span className={classes.externalLinkIcon}>
-              <ExternalLink />
+              <ExternalLinkIcon />
             </span>
           </a>
         </p>

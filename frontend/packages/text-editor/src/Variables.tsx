@@ -1,7 +1,7 @@
 import classes from './Variables.module.css';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
-import { InformationColored } from '@navikt/ds-icons';
+import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import React from 'react';
 import type { TextResourceVariable } from './types';
 
@@ -26,7 +26,7 @@ export const Variables = ({ variables, infoboxOpen, setInfoboxOpen }: VariablesP
             variant={PanelVariant.Info}
             trigger={
               <Button
-                icon={<InformationColored />}
+                icon={<InformationSquareFillIcon />}
                 variant={ButtonVariant.Quiet}
                 size={ButtonSize.Small}
               />

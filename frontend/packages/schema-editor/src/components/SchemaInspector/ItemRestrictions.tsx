@@ -26,7 +26,7 @@ import {
   ErrorMessage,
 } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 
 export interface RestrictionItemProps {
@@ -163,7 +163,7 @@ export const ItemRestrictions = ({
                 aria-label={t('schema_editor.add_enum')}
                 color={ButtonColor.Secondary}
                 fullWidth
-                icon={<Add />}
+                icon={<PlusIcon />}
                 id='add-enum-button'
                 onClick={onAddEnumButtonClick}
                 size={ButtonSize.Small}

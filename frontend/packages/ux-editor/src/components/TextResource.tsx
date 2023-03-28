@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
-import { Button, ButtonColor, ButtonVariant, Select, SingleSelectOption } from '@digdir/design-system-react';
-import { Add, Close, Edit, Search } from '@navikt/ds-icons';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  Select,
+  SingleSelectOption,
+} from '@digdir/design-system-react';
+import { PlusIcon, XMarkIcon, PencilIcon, MagnifyingGlassIcon } from '@navikt/aksel-icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -123,7 +129,7 @@ export const TextResource = ({
             aria-label={t('ux_editor.search_text_resources_close')}
             className={classes.button}
             color={ButtonColor.Secondary}
-            icon={<Close />}
+            icon={<XMarkIcon />}
             onClick={() => setIsSearchMode(false)}
             title={t('ux_editor.search_text_resources_close')}
             variant={ButtonVariant.Quiet}
@@ -144,7 +150,7 @@ export const TextResource = ({
                 className={classes.button}
                 color={ButtonColor.Secondary}
                 disabled={isEditing}
-                icon={<Edit />}
+                icon={<PencilIcon />}
                 onClick={handleEditButtonClick}
                 title={t('general.edit')}
                 variant={ButtonVariant.Quiet}
@@ -155,7 +161,7 @@ export const TextResource = ({
                 className={classes.button}
                 color={ButtonColor.Secondary}
                 disabled={isEditing}
-                icon={<Add />}
+                icon={<PlusIcon />}
                 onClick={handleEditButtonClick}
                 title={t('general.add')}
                 variant={ButtonVariant.Quiet}
@@ -166,7 +172,7 @@ export const TextResource = ({
               className={classes.button}
               color={ButtonColor.Secondary}
               disabled={isSearchMode}
-              icon={<Search />}
+              icon={<MagnifyingGlassIcon />}
               onClick={() => setIsSearchMode(true)}
               title={t('general.search')}
               variant={ButtonVariant.Quiet}
@@ -187,9 +193,7 @@ export const TextResourceOption = ({ textResource }: TextResourceOptionProps) =>
   return (
     <span className={classes.textOption}>
       <span className={classes.textOptionId}>{textResource.id}</span>
-      <span
-        className={cn(classes.textOptionValue, !textResource.value && classes.empty)}
-      >
+      <span className={cn(classes.textOptionValue, !textResource.value && classes.empty)}>
         {textResource.value || t('ux_editor.no_text')}
       </span>
     </span>

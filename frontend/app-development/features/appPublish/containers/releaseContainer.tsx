@@ -8,7 +8,7 @@ import { Button, ButtonSize, ButtonVariant, Popover } from '@digdir/design-syste
 import { CircularProgress } from '@mui/material';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
-import { Upload, SuccessStroke } from '@navikt/ds-icons';
+import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { gitCommitPath } from 'app-shared/api-paths';
 import { useMediaQuery } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
@@ -128,10 +128,10 @@ export function ReleaseContainer() {
       !repoStatus?.contentStatus.length ||
       !releases.length
     ) {
-      return <SuccessStroke />;
+      return <CheckmarkIcon />;
     }
     if (!!repoStatus?.contentStatus || !!repoStatus.aheadBy) {
-      return <Upload />;
+      return <UploadIcon />;
     }
     return null;
   }

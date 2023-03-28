@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
 import type { ComponentTypes } from '..';
-import { InformationColored } from '@navikt/ds-icons';
+import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import { Popover } from '@mui/material';
 
 import {
@@ -44,7 +44,7 @@ export const InformationPanelComponent = ({
         {getComponentHelperTextByComponentType(selectedComponent, t)}
       </div>
       <div className={classNames(classes.informationPanelText)}>
-        <InformationColored className={classes.informationIcon} />
+        <InformationSquareFillIcon className={classes.informationIcon} />
         {!thirdPartyLibrary
           ? t('ux_editor.information_altinn_library')
           : t('ux_editor.information_third_party_library')}

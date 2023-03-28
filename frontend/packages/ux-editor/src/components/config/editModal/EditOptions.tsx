@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import type { IOption, } from '../../../types/global';
+import type { IOption } from '../../../types/global';
 import {
   Button,
   ButtonColor,
@@ -12,14 +12,14 @@ import {
 import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
-import { Add, Delete } from '@navikt/ds-icons';
+import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { TextResource } from '../../TextResource';
 import { useText } from '../../../hooks';
 
 export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent {
   renderOptions?: {
     onlyCodeListOptions?: boolean;
-  }
+  };
 }
 
 export enum SelectedOptionsType {
@@ -36,14 +36,15 @@ const getSelectedOptionsType = (codeListId: string, options: IOption[]): Selecte
     return SelectedOptionsType.Manual;
   }
   return SelectedOptionsType.Unknown;
-}
+};
 
 export function EditOptions({
   component,
   handleComponentChange,
 }: ISelectionEditComponentProvidedProps) {
-  const [selectedOptionsType, setSelectedOptionsType] =
-    useState(getSelectedOptionsType(component.optionsId, component.options));
+  const [selectedOptionsType, setSelectedOptionsType] = useState(
+    getSelectedOptionsType(component.optionsId, component.options)
+  );
   const t = useText();
 
   const resetPrevOptionsType = useCallback(() => {
@@ -100,7 +101,7 @@ export function EditOptions({
   };
 
   const handleAddOption = () => {
-    const options = [...component.options || []];
+    const options = [...(component.options || [])];
     options.push({ label: '', value: '' });
     handleComponentChange({
       ...component,
@@ -119,21 +120,20 @@ export function EditOptions({
           {
             value: 'manual',
             label: t('ux_editor.modal_add_options_manual'),
-          }
+          },
         ]}
-        legend={component.type === 'RadioButtons'
-          ? t('ux_editor.modal_properties_add_radio_button_options')
-          : t('ux_editor.modal_properties_add_check_box_options')}
+        legend={
+          component.type === 'RadioButtons'
+            ? t('ux_editor.modal_properties_add_radio_button_options')
+            : t('ux_editor.modal_properties_add_check_box_options')
+        }
         name={`${component.id}-options`}
         onChange={handleOptionsTypeChange}
         value={selectedOptionsType}
         variant={RadioGroupVariant.Horizontal}
       />
       {selectedOptionsType === SelectedOptionsType.Codelist && (
-        <EditCodeList
-          component={component}
-          handleComponentChange={handleComponentChange}
-        />
+        <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
       {selectedOptionsType === SelectedOptionsType.Manual &&
         component.options?.map((option, index) => {
@@ -146,18 +146,17 @@ export function EditOptions({
               : t('ux_editor.modal_check_box_increment')
           } ${index + 1}`;
           return (
-            <div
-              className={classes.optionContainer}
-              key={key}
-            >
+            <div className={classes.optionContainer} key={key}>
               <div className={classes.optionContentWrapper}>
                 <FieldSet legend={optionTitle}>
                   <div className={classes.optionContent}>
                     <TextResource
                       handleIdChange={handleUpdateOptionLabel(index)}
-                      placeholder={component.type === 'RadioButtons'
-                        ? t('ux_editor.modal_radio_button_add_label')
-                        : t('ux_editor.modal_check_box_add_label')}
+                      placeholder={
+                        component.type === 'RadioButtons'
+                          ? t('ux_editor.modal_radio_button_add_label')
+                          : t('ux_editor.modal_check_box_add_label')
+                      }
                       textResourceId={option.label}
                     />
                     <div>
@@ -174,7 +173,7 @@ export function EditOptions({
               <div>
                 <Button
                   color={ButtonColor.Danger}
-                  icon={<Delete/>}
+                  icon={<XMarkIcon />}
                   onClick={removeItem}
                   variant={ButtonVariant.Quiet}
                 />
@@ -187,7 +186,7 @@ export function EditOptions({
           <Button
             disabled={component.options?.some(({ label }) => !label)}
             fullWidth
-            icon={<Add/>}
+            icon={<PlusIcon />}
             onClick={handleAddOption}
             variant={ButtonVariant.Outline}
           >

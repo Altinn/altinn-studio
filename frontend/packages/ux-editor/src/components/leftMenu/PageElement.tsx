@@ -6,7 +6,7 @@ import type { IAppState } from '../../types/global';
 import { Button, ButtonVariant, TextField } from '@digdir/design-system-react';
 import { ConfirmModal } from './ConfirmModal';
 import { Divider } from 'app-shared/primitives';
-import { EllipsisV, Right } from '@navikt/ds-icons';
+import { MenuElipsisVerticalIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy, removeKey } from 'app-shared/pure';
 import { useDispatch, useSelector } from 'react-redux';
@@ -131,7 +131,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     >
       <div className={classes.elementContainer}>
         <div>
-          <Right
+          <ChevronRightIcon
             visibility={selectedLayout === name ? 'visible' : 'hidden'}
             style={{
               width: 'auto',
@@ -155,7 +155,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
         )}
         <Button
           className={classes.ellipsisButton}
-          icon={<EllipsisV />}
+          icon={<MenuElipsisVerticalIcon />}
           onClick={onPageSettingsClick}
           style={menuAnchorEl ? { visibility: 'visible' } : {}}
           variant={ButtonVariant.Quiet}

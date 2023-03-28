@@ -5,7 +5,7 @@ import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
-import { Close } from '@navikt/ds-icons';
+import { XMarkIcon } from '@navikt/aksel-icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DatamodelsReposList } from '../../components/DataModelsRepoList';
 import { OrgReposList } from '../../components/OrgRepoList';
@@ -66,7 +66,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   className={classes.clearSearchButton}
                   aria-label={t('dashboard.clear_search')}
                   onClick={handleClearSearch}
-                  icon={<Close />}
+                  icon={<XMarkIcon />}
                   variant={ButtonVariant.Quiet}
                   size={ButtonSize.Small}
                 />

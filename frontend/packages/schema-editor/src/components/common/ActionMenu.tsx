@@ -1,5 +1,5 @@
 import React from 'react';
-import { AddCircle } from '@navikt/ds-icons';
+import { PlusCircleIcon } from '@navikt/aksel-icons';
 import type { IconImage } from './Icon';
 import { Icon } from './Icon';
 import classes from './ActionMenu.module.css';
@@ -23,7 +23,7 @@ export const ActionMenu = ({ openButtonText, className, items }: IActionMenuProp
   <div className={cn(classes.root, className)}>
     <div className={classes.menu}>
       <button className={classes.openButton}>
-        <AddCircle className={classes.openButtonIcon} />
+        <PlusCircleIcon className={classes.openButtonIcon} />
         <span className={classes.openButtonText}>{openButtonText}</span>
       </button>
       <ul className={classes.list}>

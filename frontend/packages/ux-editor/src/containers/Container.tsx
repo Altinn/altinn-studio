@@ -37,7 +37,7 @@ import {
 } from '@digdir/design-system-react';
 import classes from './Container.module.css';
 import cn from 'classnames';
-import { Cancel, Collapse, Delete, Edit, Expand, Success } from '@navikt/ds-icons';
+import { XMarkIcon, ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
 import { TextResource } from '../components/TextResource';
@@ -386,7 +386,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             <div className={classes.formGroupBar}>
               <Button
                 color={ButtonColor.Secondary}
-                icon={expanded ? <Collapse /> : <Expand />}
+                icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
                 onClick={this.handleExpand}
                 variant={ButtonVariant.Quiet}
               />
@@ -510,12 +510,12 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
     <>
       <Button
         data-testid='delete-component'
-        icon={<Delete title={this.props.t('general.delete')} />}
+        icon={<TrashIcon title={this.props.t('general.delete')} />}
         onClick={this.handleContainerDelete}
         variant={ButtonVariant.Quiet}
       />
       <Button
-        icon={<Edit title={this.props.t('general.edit')} />}
+        icon={<PencilIcon title={this.props.t('general.edit')} />}
         onClick={this.handleEditMode}
         variant={ButtonVariant.Quiet}
       />
@@ -525,12 +525,12 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   public renderEditIcons = (): JSX.Element => (
     <>
       <Button
-        icon={<Cancel title={this.props.t('general.cancel')} />}
+        icon={<XMarkIcon title={this.props.t('general.cancel')} />}
         onClick={this.handleDiscard}
         variant={ButtonVariant.Quiet}
       />
       <Button
-        icon={<Success title={this.props.t('general.save')} />}
+        icon={<CheckmarkIcon title={this.props.t('general.save')} />}
         onClick={this.handleSave}
         variant={ButtonVariant.Quiet}
       />
