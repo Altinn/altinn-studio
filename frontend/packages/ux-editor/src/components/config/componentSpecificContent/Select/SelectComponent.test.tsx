@@ -10,7 +10,7 @@ const renderSelectComponent = ({
   component,
   optionKey,
   options,
-  handleComponentChange
+  handleComponentChange,
 }: Partial<SelectComponentProps>) => {
   const user = userEvent.setup();
 
@@ -74,7 +74,7 @@ describe('SelectComponent', () => {
           value: 'lg',
         },
       ],
-      handleComponentChange: onSelectChange
+      handleComponentChange: onSelectChange,
     });
 
     await act(() => user.click(screen.getByRole('combobox')));
@@ -82,7 +82,7 @@ describe('SelectComponent', () => {
     expect(onSelectChange).toHaveBeenCalledWith({ size: 'sm' });
   });
 
-  test('should render with "defaultValue" medium', () => {
+  test('should render with "defaultValue" medium', async () => {
     renderSelectComponent({
       label: 'Choose size',
       optionKey: 'size',
@@ -101,8 +101,7 @@ describe('SelectComponent', () => {
           value: 'lg',
         },
       ],
-      handleComponentChange: () => {
-      }
+      handleComponentChange: () => {},
     });
 
     expect(screen.getByRole('combobox')).toHaveValue('md');
