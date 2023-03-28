@@ -305,7 +305,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         if (layoutObject["textResourceBindings"] != null)
                         {
                             layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
-                            //UpdateKeyInTextResourceBinding(layoutObject["textResourceBindings"], mutation);
                         }
                     }
                 }
@@ -316,41 +315,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static JsonNode UpdateKey(JsonNode textResourceBindings, TextIdMutation keyMutation)
         {
             JsonNode updatedTextResourceBindings = JsonNode.Parse(textResourceBindings.ToJsonString());
-            foreach ((string key, var value) in (textResourceBindings as JsonObject))
+            foreach ((string key, var value) in (textResourceBindings as JsonObject)!)
             {
-                var el = value.AsValue().GetValue<JsonElement>();
-                if(el.ValueKind == JsonValueKind.String && el.GetString() == keyMutation.OldId)
+                if (value is null)
                 {
-                    if (keyMutation.NewId.HasValue)
-                    {
-                        updatedTextResourceBindings[key] = keyMutation.NewId.Value;
-                    }
-                    else
-                    {
-                        updatedTextResourceBindings = (updatedTextResourceBindings as JsonObject).Remove(key);
-                    }
+                    continue;
+                }
+                var valueElement = value.AsValue().GetValue<JsonElement>();
+                // Only update if the value is a string and the value is the same as the old key
+                if (valueElement.ValueKind != JsonValueKind.String || valueElement.GetString() != keyMutation.OldId)
+                {
+                    continue;
+                }
+
+                if (keyMutation.NewId.HasValue)
+                {
+                    updatedTextResourceBindings![key] = keyMutation.NewId.Value;
+                }
+                else
+                {
+                    updatedTextResourceBindings = (updatedTextResourceBindings as JsonObject)!.Remove(key);
                 }
             }
             return updatedTextResourceBindings;
-        }
-
-        private static void UpdateKeyInTextResourceBinding(JsonNode textResourceBindings, TextIdMutation keyMutation)
-        {
-            foreach ((string key, var value) in (textResourceBindings as JsonObject))
-            {
-                var el = value.AsValue().GetValue<JsonElement>();
-                if(el.ValueKind == JsonValueKind.String && el.GetString() == keyMutation.OldId)
-                {
-                    if (keyMutation.NewId.HasValue)
-                    {
-                        textResourceBindings[key] = keyMutation.NewId.Value;
-                    }
-                    else
-                    {
-                        (textResourceBindings as JsonObject).Remove(key);
-                    }
-                }
-            }
         }
 
         private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)

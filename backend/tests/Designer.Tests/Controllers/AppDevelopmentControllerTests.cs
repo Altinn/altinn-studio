@@ -80,7 +80,7 @@ namespace Designer.Tests.Controllers
                 JsonAssertionUtils.DeepEquals(expectedLayout, actualLayout).Should().BeTrue();
             }
         }
-        private async Task<Dictionary<string,string>> AddLayoutsToRepo(string reppPath, string[] expectedLayoutPaths)
+        private async Task<Dictionary<string, string>> AddLayoutsToRepo(string reppPath, string[] expectedLayoutPaths)
         {
             Dictionary<string, string> expectedLayouts = new Dictionary<string, string>();
             foreach (string layoutPath in expectedLayoutPaths)
