@@ -9,7 +9,7 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import type { FormComponentType, IAppState, IFormComponent } from '../types/global';
 import classes from './EditContainer.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Cancel, Delete, Edit as EditIcon, Monitor, Success } from '@navikt/ds-icons';
+import { XMarkIcon, TrashIcon, PencilIcon, MonitorIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
@@ -190,7 +190,7 @@ export function EditContainer(props: IEditContainerProps) {
             <Button
               data-testid='component-delete-button'
               color={ButtonColor.Secondary}
-              icon={<Delete title={t('general.delete')} />}
+              icon={<TrashIcon title={t('general.delete')} />}
               onClick={handleComponentDelete}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -199,7 +199,7 @@ export function EditContainer(props: IEditContainerProps) {
           {(activeList.length < 1 || (activeList.length === 1 && activeListIndex === 0)) && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<EditIcon title={t('general.edit')} />}
+              icon={<PencilIcon title={t('general.edit')} />}
               onClick={handleOpenEdit}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -208,7 +208,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor title={t('general.preview')} />}
+              icon={<MonitorIcon title={t('general.preview')} />}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}
@@ -220,14 +220,14 @@ export function EditContainer(props: IEditContainerProps) {
         <div className={classes.buttons}>
           <Button
             color={ButtonColor.Secondary}
-            icon={<Cancel title={t('general.cancel')} />}
+            icon={<XMarkIcon title={t('general.cancel')} />}
             onClick={handleDiscard}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
           />
           <Button
             color={ButtonColor.Secondary}
-            icon={<Success title={t('general.save')} />}
+            icon={<CheckmarkIcon title={t('general.save')} />}
             onClick={handleSave}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
@@ -235,7 +235,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor title={t('general.preview')} />}
+              icon={<MonitorIcon title={t('general.preview')} />}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}
