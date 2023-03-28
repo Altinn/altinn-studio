@@ -77,7 +77,7 @@ const addUserToSomeTestDepTeams = async (env) => {
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
   });
-  for (const teamName of ['Owners', 'Deploy-TT02', 'Devs']) {
+  for (const teamName of ['Owners', 'Deploy-TT02', 'Devs', 'Deploy-AT21', 'Deploy-AT22']) {
     const existing = teams.find((t) => t.name === teamName);
     await giteaApi({
       path: `/repos/api/v1/teams/${existing.id}/members/${env.GITEA_ADMIN_USER}`,
@@ -86,7 +86,7 @@ const addUserToSomeTestDepTeams = async (env) => {
       pass: env.GITEA_ADMIN_PASS,
     });
   }
-  for (const teamName of ['Owners', 'Deploy-TT02', 'Devs']) {
+  for (const teamName of ['Owners', 'Deploy-TT02', 'Devs', 'Deploy-AT21', 'Deploy-AT22']) {
     const existing = teams.find((t) => t.name === teamName);
     await giteaApi({
       path: `/repos/api/v1/teams/${existing.id}/members/${env.GITEA_CYPRESS_USER}`,

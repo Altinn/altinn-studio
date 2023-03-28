@@ -76,11 +76,6 @@
   flex-direction: column;
 }
 
-.deployUnavailableContainer {
-  background-color: #f9cad3;
-  padding: 1.2rem;
-}
-
 .paperProps {
   background-color: #f9cad3;
 }

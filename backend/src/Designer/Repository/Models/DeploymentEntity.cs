@@ -22,8 +22,8 @@ namespace Altinn.Studio.Designer.Repository.Models
         /// <summary>
         /// Application found in environment
         /// </summary>
-        [JsonProperty("reachable")]
-        public bool Reachable { get; set; }
+        [JsonProperty("deployedInEnv")]
+        public bool DeployedInEnv { get; set; }
 
         /// <summary>
         /// Build

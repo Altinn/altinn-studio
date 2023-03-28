@@ -90,7 +90,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     .Where(deployment => deployment.EnvName == env.Name)
                     .ToList(), (deployment, _) =>
                 {
-                    deployment.Reachable = deploymentsInEnv.Contains(new Deployment { Version = deployment.TagName, Release = $"{deployment.Org}-{deployment.App}" });
+                    deployment.DeployedInEnv = deploymentsInEnv.Contains(new Deployment { Version = deployment.TagName, Release = $"{deployment.Org}-{deployment.App}" });
                     return default;
                 });
             }

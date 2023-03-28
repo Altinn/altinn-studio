@@ -160,7 +160,7 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.Equal(8, results.Results.Count());
-            Assert.False(results.Results.ToArray()[0].Reachable);
+            Assert.False(results.Results.ToArray()[0].DeployedInEnv);
             _deploymentRepository.Verify(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 

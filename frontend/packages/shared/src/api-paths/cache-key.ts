@@ -5,7 +5,7 @@ export enum CacheKey {
   AppReleases = 'APP_RELEASES',
   AppDeployments = 'APP_DEPLOYMENTS',
   BranchStatus = 'BRANCH_STATUS',
-  Environemnts = 'ENVIRONMENTS',
+  Environments = 'ENVIRONMENTS',
   RepoMetaData = 'REPO_METADATA',
   RepoPullData = 'REPO_PULL_DATA',
   TextResources = 'TEXT_RESOURCES',
