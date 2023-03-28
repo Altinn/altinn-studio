@@ -53,7 +53,7 @@ export const TextEditor = () => {
     if (appLangCodes && !appLangCodes.includes(selectedLangCodes[0])) {
       setSelectedLangCodes([defaultLangCode]).then();
     }
-  }, [appLangCodes, selectedLangCodes]);
+  }, [appLangCodes, selectedLangCodes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [textResourceFiles, setTextResourceFiles] = useState<TextResourceFile[]>([]);
 
@@ -63,7 +63,7 @@ export const TextEditor = () => {
   useEffect(
     () =>
       setTextResourceFiles(results.filter((r) => r.data).map((r) => r.data) as TextResourceFile[]),
-    [isInitialLoadingLang, isFetchingTranslations]
+    [isInitialLoadingLang, isFetchingTranslations] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const { t } = useTranslation();

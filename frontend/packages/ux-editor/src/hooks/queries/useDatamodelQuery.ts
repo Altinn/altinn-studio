@@ -1,11 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
-import { IDataModelFieldElement } from '../types/global';
-import { useServicesContext } from '../../../../app-development/common/ServiceContext';
-
-enum QueryKey {
-  Datamodel = 'Datamodel',
-}
+import { IDataModelFieldElement } from '../../types/global';
+import { useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import { QueryKey } from '../../types/QueryKey';
 
 export const useDatamodelQuery =
   (org: string, app: string): UseQueryResult<IDataModelFieldElement[]> => {

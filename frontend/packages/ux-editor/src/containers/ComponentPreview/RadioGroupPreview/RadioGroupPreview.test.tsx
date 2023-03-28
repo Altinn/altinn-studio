@@ -6,7 +6,7 @@ import { ITextResourcesState } from '../../../features/appData/textResources/tex
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
-import { ComponentTypes } from '../../../components';
+import { ComponentType } from '../../../components';
 import { RadioGroupPreview, RadioGroupPreviewProps } from './RadioGroupPreview';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 
@@ -31,11 +31,12 @@ const component: IFormRadioButtonComponent = {
   id: '1',
   options,
   optionsId: '',
-  type: ComponentTypes.RadioButtons,
+  type: ComponentType.RadioButtons,
   textResourceBindings: {
     title: titleTextKey,
     description: descriptionTextKey,
-  }
+  },
+  itemType: 'COMPONENT'
 };
 const handleComponentChange = jest.fn();
 const defaultProps: RadioGroupPreviewProps = {

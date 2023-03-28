@@ -176,18 +176,7 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
         activeContainer: null,
         activeList: null,
         error: null,
-        fetched: true,
-        fetching: false,
         invalidLayouts: [],
-        isLayoutSettingsFetched: false,
-        layoutSettings: null,
-        layouts: {
-          FormLayout: {
-            components: {},
-            containers: {},
-            order: {},
-          },
-        },
         saving: false,
         selectedLayout: 'FormLayout',
         unSavedChanges: false,

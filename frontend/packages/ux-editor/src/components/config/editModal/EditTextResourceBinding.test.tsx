@@ -2,9 +2,10 @@ import React from 'react';
 import { EditTextResourceBinding, EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithMockStore, appDataMock, textResourcesMock } from '../../../testing/mocks';
+import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { FormComponentType, ITextResource } from '../../../types/global';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { ComponentType } from '../../index';
 
 const addText = 'Legg til';
 const searchText = 'Søk';
@@ -19,12 +20,14 @@ jest.mock(
 );
 
 describe(('EditTextResourceBindings component'), () => {
-  const mockComponent = {
+  const mockComponent: FormComponentType = {
     id: 'test-id',
     textResourceBindings: {
       test: 'test-text',
-    }
-  } as FormComponentType;
+    },
+    type: ComponentType.Input,
+    itemType: 'COMPONENT',
+  };
 
   const textResources: ITextResource[] = [
     {

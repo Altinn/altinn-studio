@@ -11,7 +11,7 @@ import {
 import type { IAppState } from '../../types/global';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelQuery } from '../../hooks/queries';
+import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
 
 export interface IRuleModalProps {
   modalOpen: boolean;

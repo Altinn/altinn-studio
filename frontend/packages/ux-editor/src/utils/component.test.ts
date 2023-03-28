@@ -1,9 +1,6 @@
 import { IFormCheckboxComponent, IFormComponent, IFormRadioButtonComponent, IOption } from '../types/global';
-import {
-  addOptionToComponent, changeComponentOptionLabel,
-  changeTextResourceBinding,
-} from './component';
-import { ComponentTypes } from '../components';
+import { addOptionToComponent, changeComponentOptionLabel, changeTextResourceBinding, } from './component';
+import { ComponentType } from '../components';
 
 describe('Component utils', () => {
   describe('changeTextResourceBinding', () => {
@@ -19,6 +16,8 @@ describe('Component utils', () => {
           [bindingKeyToKeep]: resourceKeyToKeep,
           [bindingKeyToChange]: resourceKeyToChange,
         },
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
       };
       expect(changeTextResourceBinding(component, bindingKeyToChange, newResourceKey)).toEqual({
         ...component,
@@ -39,6 +38,8 @@ describe('Component utils', () => {
         textResourceBindings: {
           title: titleResourceKey,
         },
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
       };
       expect(
         changeTextResourceBinding(component, 'title', newResourceKey)
@@ -57,6 +58,8 @@ describe('Component utils', () => {
         textResourceBindings: {
           description: descriptionResourceKey,
         },
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
       };
       expect(
         changeTextResourceBinding(component, 'description', newResourceKey)
@@ -68,9 +71,9 @@ describe('Component utils', () => {
 
   describe('addOptionToComponent', () => {
     it.each([
-      ComponentTypes.Checkboxes,
-      ComponentTypes.RadioButtons
-    ] as (ComponentTypes.Checkboxes | ComponentTypes.RadioButtons)[])(
+      ComponentType.Checkboxes,
+      ComponentType.RadioButtons
+    ] as (ComponentType.Checkboxes | ComponentType.RadioButtons)[])(
       'Adds option to %s component',
       (componentType) => {
         const component: IFormCheckboxComponent | IFormRadioButtonComponent = {
@@ -82,7 +85,8 @@ describe('Component utils', () => {
               value: 'testValue',
             }
           ],
-          optionsId: null
+          optionsId: null,
+          itemType: 'COMPONENT',
         };
         const newOption: IOption = {
           label: 'newTestLabel',
@@ -98,9 +102,9 @@ describe('Component utils', () => {
 
   describe('changeComponentOptionLabel', () => {
     it.each([
-      ComponentTypes.Checkboxes,
-      ComponentTypes.RadioButtons
-    ] as (ComponentTypes.Checkboxes | ComponentTypes.RadioButtons)[])(
+      ComponentType.Checkboxes,
+      ComponentType.RadioButtons
+    ] as (ComponentType.Checkboxes | ComponentType.RadioButtons)[])(
       'Changes label of option with given value on %s component',
       (componentType) => {
         const valueOfWhichLabelShouldChange = 'testValue2';
@@ -117,7 +121,8 @@ describe('Component utils', () => {
               value: valueOfWhichLabelShouldChange,
             },
           ],
-          optionsId: null
+          optionsId: null,
+          itemType: 'COMPONENT',
         };
         const newLabel = 'newTestLabel';
         expect(changeComponentOptionLabel(

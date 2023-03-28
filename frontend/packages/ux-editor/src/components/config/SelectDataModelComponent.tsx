@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Select from 'react-select';
-import { useDatamodelQuery } from '../../hooks/queries';
+import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
 import { useParams } from 'react-router-dom';
 
 export interface ISelectDataModelProps {

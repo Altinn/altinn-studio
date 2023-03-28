@@ -20,7 +20,7 @@ function* addActiveFormContainerSaga({
       })
     );
   } catch (error) {
-    yield put(FormLayoutActions.addFormComponentRejected({ error }));
+    //yield put(FormLayoutActions.addFormComponentRejected({ error }));
   }
 }
 

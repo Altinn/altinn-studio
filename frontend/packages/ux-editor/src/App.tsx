@@ -18,7 +18,11 @@ import { deepCopy } from 'app-shared/pure';
 import { useText } from './hooks';
 import { PageSpinner } from './components/PageSpinner';
 import { ErrorPage } from './components/ErrorPage';
-import { useDatamodelQuery } from './hooks/queries';
+import { useDatamodelQuery } from './hooks/queries/useDatamodelQuery';
+import { useFormLayoutsQuery } from './hooks/queries/useFormLayoutsQuery';
+import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
+import { useAddLayoutMutation } from './hooks/mutations/useAddLayoutMutation';
+import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -31,36 +35,29 @@ export function App() {
   const t = useText();
   const { org, app } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const layoutPagesOrder = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
-  );
-  const layoutOrder = useSelector(
-    (state: IAppState) =>
-      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order
-  );
 
-  const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner.layout.selectedLayout
-  );
+  const datamodelQuery = useDatamodelQuery(org, app);
+  const formLayoutsQuery = useFormLayoutsQuery(org, app);
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
+  const addLayoutMutation = useAddLayoutMutation(org, app);
+
+  const selectedLayout = useSelector(selectedLayoutNameSelector);
+
+  const layoutPagesOrder = formLayoutSettingsQuery.data?.pages.order;
+  const layoutOrder = formLayoutsQuery.data?.[selectedLayout]?.order || {};
 
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
 
-  const datamodelQuery = useDatamodelQuery(org, app);
-
-  const isLayoutSettingsFetched = useSelector(
-    (state: IAppState) => state.formDesigner.layout.isLayoutSettingsFetched
-  );
-  const isLayoutFetched = useSelector((state: IAppState) => state.formDesigner.layout.fetched);
   const isWidgetFetched = useSelector((state: IAppState) => state.widgets.fetched);
 
   const dataModelFetchedError = datamodelQuery.error;
-  const layoutFetchedError = useSelector((state: IAppState) => state.formDesigner.layout.error);
+  const layoutFetchedError = formLayoutsQuery.error;
   const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
 
   const componentIsReady =
-    isLayoutFetched &&
+    formLayoutsQuery.isSuccess &&
     isWidgetFetched &&
-    isLayoutSettingsFetched &&
+    formLayoutSettingsQuery.isSuccess &&
     datamodelQuery.isSuccess;
 
   const componentHasError =
@@ -90,19 +87,16 @@ export function App() {
 
   // Set Layout to first layout in the page set if none is selected.
   useEffect(() => {
-    if (!searchParams.has('layout') && layoutPagesOrder[0]) {
+    if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
       setSearchParams({ ...deepCopy(searchParams), layout: layoutPagesOrder[0] });
     }
     if (selectedLayout === 'default' && searchParams.has('layout')) {
-      dispatch(
-        FormLayoutActions.updateSelectedLayout({ selectedLayout: searchParams.get('layout'), org, app })
-      );
+      dispatch(FormLayoutActions.updateSelectedLayout(searchParams.get('layout')));
     }
   }, [dispatch, layoutPagesOrder, searchParams, setSearchParams, selectedLayout, org, app]);
 
   useEffect(() => {
     const fetchFiles = () => {
-      dispatch(FormLayoutActions.fetchFormLayout({ org, app }));
       dispatch(
         loadTextResources({
           textResourcesUrl: (langCode) => textResourcesPath(org, app, langCode),
@@ -113,7 +107,6 @@ export function App() {
       dispatch(fetchServiceConfiguration({ org, app }));
       dispatch(fetchRuleModel({ org, app }));
       dispatch(fetchWidgetSettings({ org, app }));
-      dispatch(FormLayoutActions.fetchLayoutSettings({ org, app }));
       dispatch(fetchWidgets({ org, app }));
     };
 
@@ -133,10 +126,10 @@ export function App() {
   // Make sure to create a new page when the last one is deleted!
   useEffect(() => {
     if (!selectedLayout && layoutPagesOrder.length === 0) {
-      const name = t('general.page') + (layoutPagesOrder.length + 1);
-      dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
+      const layoutName = t('general.page') + (layoutPagesOrder.length + 1);
+      addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
     }
-  }, [app, dispatch, layoutOrder?.length, layoutPagesOrder?.length, org, selectedLayout, t]);
+  }, [app, dispatch, layoutOrder?.length, layoutPagesOrder?.length, org, selectedLayout, t, addLayoutMutation]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
@@ -149,7 +142,6 @@ export function App() {
         <ErrorMessageComponent />
         <FormDesigner
           activeList={activeList}
-          dataModel={datamodelQuery.data}
           layoutOrder={layoutOrder}
           selectedLayout={selectedLayout}
         />

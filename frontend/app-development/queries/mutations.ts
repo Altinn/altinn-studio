@@ -6,6 +6,10 @@ import {
   repoCommitPath,
   textResourcesPath,
   textResourceIdsPath,
+  formLayoutPath,
+  appMetadataAttachmentPath,
+  formLayoutNamePath,
+  layoutSettingsPath,
 } from 'app-shared/api-paths';
 
 const headers = {
@@ -35,3 +39,26 @@ export const deleteLanguageCode = (org, app, language) =>
 
 export const upsertTextResources = (org, app, language, payload) =>
   put(textResourcesPath(org, app, language), payload);
+
+export const saveFormLayout = (org, app, layoutName, payload) =>
+  post(formLayoutPath(org, app, layoutName), payload);
+
+export const addAppAttachmentMetadata = (org, app, payload) =>
+  post(appMetadataAttachmentPath(org, app), payload);
+
+export const deleteAppAttachmentMetadata = (org, app, id) =>
+  post(appMetadataAttachmentPath(org, app) + id, { id });
+
+export const updateAppAttachmentMetadata = (org, app, payload) =>
+  post(appMetadataAttachmentPath(org, app), payload);
+
+export const updateFormLayoutName = (org, app, oldName, newName) =>
+  post(formLayoutNamePath(org, app, oldName), JSON.stringify(newName), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+export const deleteFormLayout = (org, app, layoutName) =>
+  del(formLayoutPath(org, app, layoutName));
+
+export const saveFormLayoutSettings = (org, app, payload) =>
+  post(layoutSettingsPath(org, app), payload);

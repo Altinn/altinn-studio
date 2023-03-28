@@ -26,7 +26,7 @@ export interface IThirdPartyComponentCustomProps {
 
 // The order here should be the same as
 // the exported 'components' list (drag and drop)
-export enum ComponentTypes {
+export enum ComponentType {
   Header = 'Header',
   Paragraph = 'Paragraph',
   Input = 'Input',
@@ -71,19 +71,19 @@ export const componentIcons: IComponentIcon = {
   Map: 'fa fa-address',
 };
 const Header: IComponent = {
-  name: ComponentTypes.Header,
+  name: ComponentType.Header,
   Icon: componentIcons.Header,
   customProperties: {
     size: 'L',
   },
 };
 const Paragraph: IComponent = {
-  name: ComponentTypes.Paragraph,
+  name: ComponentType.Paragraph,
   Icon: componentIcons.Paragraph,
 };
 
 const Input: IComponent = {
-  name: ComponentTypes.Input,
+  name: ComponentType.Input,
   customProperties: {
     required: true,
     readOnly: false,
@@ -92,7 +92,7 @@ const Input: IComponent = {
 };
 
 const TextArea: IComponent = {
-  name: ComponentTypes.TextArea,
+  name: ComponentType.TextArea,
   customProperties: {
     required: true,
     readOnly: false,
@@ -100,7 +100,7 @@ const TextArea: IComponent = {
   Icon: componentIcons.TextArea,
 };
 const Checkboxes: IComponent = {
-  name: ComponentTypes.Checkboxes,
+  name: ComponentType.Checkboxes,
   Icon: componentIcons.Checkboxes,
   customProperties: {
     options: [],
@@ -108,7 +108,7 @@ const Checkboxes: IComponent = {
   },
 };
 const RadioButtons: IComponent = {
-  name: ComponentTypes.RadioButtons,
+  name: ComponentType.RadioButtons,
   Icon: componentIcons.RadioButtons,
   customProperties: {
     options: [],
@@ -116,11 +116,11 @@ const RadioButtons: IComponent = {
   },
 };
 const Dropdown: IComponent = {
-  name: ComponentTypes.Dropdown,
+  name: ComponentType.Dropdown,
   Icon: componentIcons.Dropdown,
 };
 const FileUpload: IComponent = {
-  name: ComponentTypes.FileUpload,
+  name: ComponentType.FileUpload,
   Icon: componentIcons.FileUpload,
   customProperties: {
     maxFileSizeInMB: 25,
@@ -131,7 +131,7 @@ const FileUpload: IComponent = {
   },
 };
 const FileUploadWithTag: IComponent = {
-  name: ComponentTypes.FileUploadWithTag,
+  name: ComponentType.FileUploadWithTag,
   Icon: componentIcons.FileUploadWithTag,
   customProperties: {
     maxFileSizeInMB: 25,
@@ -141,7 +141,7 @@ const FileUploadWithTag: IComponent = {
   },
 };
 const Datepicker: IComponent = {
-  name: ComponentTypes.Datepicker,
+  name: ComponentType.Datepicker,
   customProperties: {
     readOnly: false,
     minDate: '1900-01-01T12:00:00.000Z',
@@ -150,11 +150,11 @@ const Datepicker: IComponent = {
   Icon: componentIcons.Datepicker,
 };
 const Button: IComponent = {
-  name: ComponentTypes.Button,
+  name: ComponentType.Button,
   Icon: componentIcons.Button,
 };
 const Image: IComponent = {
-  name: ComponentTypes.Image,
+  name: ComponentType.Image,
   Icon: componentIcons.Image,
   customProperties: {
     image: {
@@ -166,7 +166,7 @@ const Image: IComponent = {
 };
 
 const AddressComponent: IComponent = {
-  name: ComponentTypes.AddressComponent,
+  name: ComponentType.AddressComponent,
   Icon: componentIcons.AddressComponent,
   customProperties: {
     simplified: true,
@@ -174,11 +174,11 @@ const AddressComponent: IComponent = {
   },
 };
 const AttachmentList: IComponent = {
-  name: ComponentTypes.AttachmentList,
+  name: ComponentType.AttachmentList,
   Icon: componentIcons.AttachmentList,
 };
 const Group: IComponent = {
-  name: ComponentTypes.Group,
+  name: ComponentType.Group,
   Icon: componentIcons.Group,
   customProperties: {
     maxCount: 0,
@@ -186,17 +186,17 @@ const Group: IComponent = {
   },
 };
 const NavigationBar: IComponent = {
-  name: ComponentTypes.NavigationBar,
+  name: ComponentType.NavigationBar,
   Icon: componentIcons.NavigationBar,
 };
 
 const InformationPanel: IComponent = {
-  name: ComponentTypes.Panel,
+  name: ComponentType.Panel,
   Icon: componentIcons.Panel,
 };
 
 const Map: IComponent = {
-  name: ComponentTypes.Map,
+  name: ComponentType.Map,
   Icon: componentIcons.Map,
 };
 

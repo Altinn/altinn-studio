@@ -3,8 +3,14 @@ import { EditAutoComplete } from './EditAutoComplete';
 import { act, render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FormComponentType } from '../../../types/global';
+import { ComponentType } from '../../index';
 
-const componentMock: FormComponentType = { id: 'random-id', autocomplete: '' };
+const componentMock: FormComponentType = {
+  id: 'random-id',
+  autocomplete: '',
+  type: ComponentType.Input,
+  itemType: 'COMPONENT'
+};
 
 test('should render first 6 suggestions on search field focused', async () => {
   render(<EditAutoComplete handleComponentChange={() => {}} component={componentMock} />);
@@ -72,5 +78,10 @@ test('should call handleComponentChangeMock callback ', async () => {
 
   await act(() => user.click(screen.getByRole('option', { name: 'on' })));
   await waitForElementToBeRemoved(screen.queryByRole('dialog'));
-  expect(handleComponentChangeMock).toHaveBeenCalledWith({ autocomplete: 'on', id: 'random-id' });
+  expect(handleComponentChangeMock).toHaveBeenCalledWith({
+    autocomplete: 'on',
+    id: 'random-id',
+    itemType: 'COMPONENT',
+    type: 'Input',
+  });
 });

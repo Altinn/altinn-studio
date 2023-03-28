@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { EditModalContent } from '../components/config/EditModalContent';
-import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
-import { componentIcons, ComponentTypes } from '../components';
+import { componentIcons, ComponentType } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type { FormComponentType, IAppState, IFormComponent } from '../types/global';
 import classes from './EditContainer.module.css';
@@ -18,6 +17,10 @@ import { textResourcesByLanguageSelector } from '../selectors/textResourceSelect
 import { ComponentPreview } from './ComponentPreview';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
+import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
+import { useDeleteFormComponentsMutation } from '../hooks/mutations/useDeleteFormComponentsMutation';
 
 export interface IEditContainerProps {
   component: IFormComponent;
@@ -41,6 +44,8 @@ export function EditContainer(props: IEditContainerProps) {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { org, app } = useParams();
+  const updateFormComponentMutation = useUpdateFormComponentMutation(org, app);
+  const deleteFormComponentMutation = useDeleteFormComponentsMutation(org, app);
   const [component, setComponent] = useState<IFormComponent>({
     id: props.id,
     ...props.component,
@@ -55,21 +60,20 @@ export function EditContainer(props: IEditContainerProps) {
     inEditMode: false,
     order: null,
   });
-  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
+  const { order } = useFormLayoutsSelector(selectedLayoutSelector);
   const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useSelector(
     (state: IAppState) => state.formDesigner.layout?.selectedLayout
   );
   const previewableComponents = [
-    ComponentTypes.Checkboxes,
-    ComponentTypes.RadioButtons,
-    ComponentTypes.Button,
-    ComponentTypes.NavigationButtons,
+    ComponentType.Checkboxes,
+    ComponentType.RadioButtons,
+    ComponentType.Button,
+    ComponentType.NavigationButtons,
   ];
   // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
-  const isPreviewable = previewableComponents.includes(component.type as ComponentTypes);
+  const isPreviewable = previewableComponents.includes(component.type as ComponentType);
   const handleComponentUpdate = (updatedComponent: IFormComponent): void => {
     setComponent({ ...updatedComponent });
   };
@@ -81,7 +85,7 @@ export function EditContainer(props: IEditContainerProps) {
 
   const handleComponentDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
     const componentsToDelete = activeList.length > 1 ? activeList : [props.id];
-    dispatch(FormLayoutActions.deleteFormComponents({ components: componentsToDelete, org, app }));
+    deleteFormComponentMutation.mutate(componentsToDelete);
     dispatch(FormLayoutActions.deleteActiveList());
     event.stopPropagation();
   };
@@ -95,8 +99,8 @@ export function EditContainer(props: IEditContainerProps) {
 
   const handleSetActive = (): void => {
     if (!isEditMode) {
-      const key: any = Object.keys(orderList)[0];
-      const orderIndex = orderList[key].indexOf(listItem.id);
+      const key: any = Object.keys(order)[0];
+      const orderIndex = order[key].indexOf(listItem.id);
       const newListItem = { ...listItem, order: orderIndex };
       setListItem(newListItem);
       props.sendItemToParent(newListItem);
@@ -130,16 +134,11 @@ export function EditContainer(props: IEditContainerProps) {
     dispatch(FormLayoutActions.deleteActiveList());
   };
 
-  const handleSaveChange = (callbackComponent: FormComponentType): void => {
-    dispatch(
-      FormLayoutActions.updateFormComponent({
-        id: props.id,
-        updatedComponent: callbackComponent,
-        org,
-        app,
-      })
-    );
-  };
+  const handleSaveChange = (callbackComponent: FormComponentType) =>
+    updateFormComponentMutation.mutate({
+      id: props.id,
+      updatedComponent: callbackComponent,
+    });
 
   const handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {

@@ -7,7 +7,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 export type ServicesContextProps = typeof queries & typeof mutations;
 
 const ServicesContext = createContext<ServicesContextProps>(null);
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: Infinity,
@@ -26,7 +26,7 @@ export const ServicesContextProvider = ({
   );
 };
 
-export const useServicesContext = function (): Partial<ServicesContextProps> {
+export const useServicesContext = function (): ServicesContextProps {
   const context = useContext(ServicesContext);
   if (context === undefined) {
     throw new Error('useServicesContext must be used within a ServicesContextProvider.');

@@ -2,17 +2,20 @@ import React, { useEffect, useState } from 'react';
 import classes from './PageElement.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, SyntheticEvent, MouseEvent } from 'react';
-import type { IAppState } from '../../types/global';
 import { Button, ButtonVariant, TextField } from '@digdir/design-system-react';
 import { ConfirmModal } from './ConfirmModal';
 import { Divider } from 'app-shared/primitives';
 import { MenuElipsisVerticalIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy, removeKey } from 'app-shared/pure';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
+import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
+import { useUpdateLayoutOrderMutation } from '../../hooks/mutations/useUpdateLayoutOrderMutation';
+import { useDeleteLayoutMutation } from '../../hooks/mutations/useDeleteLayoutMutation';
+import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayoutNameMutation';
 
 export interface IPageElementProps {
   name: string;
@@ -24,9 +27,12 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout = searchParams.get('layout');
   const { t } = useTranslation();
-  const layoutOrder = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
-  );
+  const { org, app } = useParams();
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
+  const updateLayoutOrderMutation = useUpdateLayoutOrderMutation(org, app);
+  const deleteLayoutMutation = useDeleteLayoutMutation(org, app);
+  const updateLayoutNameMutation = useUpdateLayoutNameMutation(org, app);
+  const layoutOrder = formLayoutSettingsQuery.data?.pages.order;
   const [editMode, setEditMode] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [newName, setNewName] = useState<string>('');
@@ -34,7 +40,6 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const [deleteAnchorEl, setDeleteAnchorEl] = useState<null | Element>(null);
   const disableUp = layoutOrder.indexOf(name) === 0;
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
-  const { org, app } = useParams();
 
   useEffect(() => {
     if (name !== selectedLayout) {
@@ -46,7 +51,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     if (invalid) {
       alert(`${name}: ${t('left_menu.pages.invalid_page_data')}`);
     } else if (selectedLayout !== name) {
-      dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name, org, app }));
+      dispatch(FormLayoutActions.updateSelectedLayout(name));
       setSearchParams({ ...deepCopy(searchParams), layout: name });
     }
   };
@@ -63,14 +68,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
       setEditMode(true);
       setNewName(name);
     } else if (action === 'up' || action === 'down') {
-      dispatch(
-        FormLayoutActions.updateLayoutOrder({
-          layout: name,
-          direction: action,
-          org,
-          app,
-        })
-      );
+      updateLayoutOrderMutation.mutate({ layoutName: name, direction: action });
     }
     setMenuAnchorEl(null);
   };
@@ -78,7 +76,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const handleOnBlur = async (_event: any) => {
     setEditMode(false);
     if (!errorMessage && name !== newName) {
-      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName, org, app }));
+      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
       setSearchParams({ ...deepCopy(searchParams), layout: newName });
     } else {
       setNewName('');
@@ -108,7 +106,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const handleKeyPress = async (event: any) => {
     if (event.key === 'Enter' && !errorMessage && name !== newName) {
-      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName, org, app }));
+      updateLayoutNameMutation.mutate({ oldName: name, newName });
       setSearchParams({ ...deepCopy(searchParams), layout: newName });
       setEditMode(false);
     } else if (event.key === 'Escape') {
@@ -121,7 +119,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const handleConfirmDelete = () => {
     setDeleteAnchorEl(null);
-    dispatch(FormLayoutActions.deleteLayout({ layout: name, org, app }));
+    deleteLayoutMutation.mutate({ layoutName: name });
     setSearchParams(removeKey(searchParams, 'layout'));
   };
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { IFormButtonComponent } from '../../../types/global';
 import { ButtonPreview } from './ButtonPreview';
-import { ComponentTypes } from '../../../components';
+import { ComponentType } from '../../../components';
 import { appDataMock, renderWithMockStore } from '../../../testing/mocks';
 
 describe('ButtonPreview', () => {
@@ -12,8 +12,9 @@ describe('ButtonPreview', () => {
       textResourceBindings: {
         title: 'Send inn',
       },
-      type: ComponentTypes.Button,
+      type: ComponentType.Button,
       onClickAction: () => {},
+      itemType: 'COMPONENT'
     });
     expect(screen.getByRole('button', { name: 'Send inn' }));
   });
@@ -26,8 +27,9 @@ describe('ButtonPreview', () => {
         back: 'back',
       },
       showBackButton: false,
-      type: ComponentTypes.NavigationButtons,
+      type: ComponentType.NavigationButtons,
       onClickAction: () => {},
+      itemType: 'COMPONENT'
     });
     expect(screen.getByRole('button', { name: 'next' }));
   });
@@ -40,8 +42,9 @@ describe('ButtonPreview', () => {
         back: 'back',
       },
       showBackButton: true,
-      type: ComponentTypes.NavigationButtons,
+      type: ComponentType.NavigationButtons,
       onClickAction: () => {},
+      itemType: 'COMPONENT'
     });
     expect(screen.getByRole('button', { name: 'back' }));
   });
@@ -53,9 +56,10 @@ describe('ButtonPreview', () => {
         next: 'next',
         back: 'back',
       },
-      showBackButton: true || false,
-      type: ComponentTypes.NavigationButtons,
+      showBackButton: true,
+      type: ComponentType.NavigationButtons,
       onClickAction: () => {},
+      itemType: 'COMPONENT'
     });
     expect(screen.getByRole('button', { name: 'back' }));
     expect(screen.getByRole('button', { name: 'next' }));
