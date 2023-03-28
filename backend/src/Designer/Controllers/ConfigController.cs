@@ -71,7 +71,7 @@ namespace Altinn.Studio.Designer.Controllers
             await _applicationMetadataService.UpdateAppMetadataConfigAsync(org, app, serviceConfigurationObject);
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             await _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string> { { "appName", serviceConfig.serviceName.ToString() } }, "nb");
-            await _applicationMetadataService.UpdateAppTitleInAppMetadata(org, app, "nb",serviceConfig.serviceName.ToString());
+            await _applicationMetadataService.UpdateAppTitleInAppMetadata(org, app, "nb", serviceConfig.serviceName.ToString());
 
         }
     }

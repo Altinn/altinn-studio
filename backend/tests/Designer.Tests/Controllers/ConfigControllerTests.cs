@@ -47,12 +47,12 @@ public class ConfigControllerTests : ApiTestsBase<ConfigController, ConfigContro
     public async Task GetServiceConfig_AppWithoutConfig_OK()
     {
         string dataPathWithData = $"{_versionPrefix}/ttd/apps-test/config";
-        HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, dataPathWithData);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
         response.EnsureSuccessStatusCode();
         ServiceConfiguration serviceConfigResponse = await response.Content.ReadAsAsync<ServiceConfiguration>();
-        ServiceConfiguration serviceConfiguration = new () { RepositoryName = "apps-test", ServiceDescription = null, ServiceId = null, ServiceName = null};
+        ServiceConfiguration serviceConfiguration = new() { RepositoryName = "apps-test", ServiceDescription = null, ServiceId = null, ServiceName = null };
 
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         Assert.Equal(serviceConfiguration.RepositoryName, serviceConfigResponse.RepositoryName);
@@ -62,9 +62,9 @@ public class ConfigControllerTests : ApiTestsBase<ConfigController, ConfigContro
     public async Task GetServiceConfig_AppWithConfig_OK()
     {
         string dataPathWithData = $"{_versionPrefix}/ttd/hvem-er-hvem/config";
-        HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, dataPathWithData);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
         response.EnsureSuccessStatusCode();
         ServiceConfiguration serviceConfigResponse = await response.Content.ReadAsAsync<ServiceConfiguration>();
         ServiceConfiguration serviceConfiguration = GetServiceConfiguration("ttd", "hvem-er-hvem");
@@ -83,12 +83,12 @@ public class ConfigControllerTests : ApiTestsBase<ConfigController, ConfigContro
         CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
 
         string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/config";
-        HttpRequestMessage httpRequestMessage = new (HttpMethod.Post, dataPathWithData);
-        httpRequestMessage.Content = JsonContent.Create( new { serviceName = "Alternative-form-name", serviceDescription = "", serviceId = "" });
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
+        httpRequestMessage.Content = JsonContent.Create(new { serviceName = "Alternative-form-name", serviceDescription = "", serviceId = "" });
 
-        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
         response.EnsureSuccessStatusCode();
-        ServiceConfiguration serviceConfiguration = GetServiceConfiguration("ttd",targetRepository);
+        ServiceConfiguration serviceConfiguration = GetServiceConfiguration("ttd", targetRepository);
 
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         Assert.Equal("Alternative-form-name", serviceConfiguration.ServiceName);
