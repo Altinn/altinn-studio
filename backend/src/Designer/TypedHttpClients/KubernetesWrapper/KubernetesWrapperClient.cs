@@ -48,8 +48,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
             }
             catch (Exception e)
             {
-                _logger.LogInformation("Make sure the requested environment, {env}, exists", env.Hostname);
-                throw new ArgumentException(e.Message);
+                throw new KubernetesWrapperResponseException("Kubernetes wrapper not reachable", e);
             }
         }
 
