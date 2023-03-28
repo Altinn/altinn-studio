@@ -7,3 +7,4 @@ using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Test description should be in the name of the test.", Scope = "module")]
 [assembly: SuppressMessage("Design", "CA1816: Call GC.SuppressFinalize correctly", Justification = "Used as after each test in xUnit")]
+[assembly: SuppressMessage("Design", "CA2007: Do not directly await a Task", Justification = "Tests are not performance critical")]
