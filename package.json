@@ -1,8 +1,8 @@
 {
   "name": "altinn-studio",
   "dependencies": {
+    "@navikt/aksel-icons": "2.8.4",
     "@tanstack/react-query-devtools": "4.28.0",
-    "@navikt/aksel-icons": "2.7.7",
     "react-i18next": "12.2.0"
   },
   "devDependencies": {
