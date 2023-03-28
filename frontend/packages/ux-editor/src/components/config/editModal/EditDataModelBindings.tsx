@@ -23,8 +23,7 @@ export const EditDataModelBindings = ({
   renderOptions,
 }: EditDataModelBindingsProps) => {
   const { org, app } = useParams();
-  const datamodelQuery = useDatamodelQuery(org, app);
-  const dataModel = datamodelQuery.data;
+  const { data } = useDatamodelQuery(org, app);
   const t = useText();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
@@ -34,10 +33,10 @@ export const EditDataModelBindings = ({
         ...component.dataModelBindings,
         [key]: selectedDataModelElement,
       },
-      required: getMinOccursFromDataModel(selectedDataModelElement, dataModel) > 0,
+      required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0,
       timeStamp:
         component.type === ComponentTypes.Datepicker
-          ? getXsdDataTypeFromDataModel(selectedDataModelElement, dataModel) === 'DateTime'
+          ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
           : undefined,
     });
   };
