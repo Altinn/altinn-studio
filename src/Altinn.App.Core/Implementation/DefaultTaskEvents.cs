@@ -251,7 +251,7 @@ public class DefaultTaskEvents : ITaskEvents
                 }
 
                 // save the updated data if there are changes
-                await _dataClient.InsertFormData(data, instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataType.Id);
+                await _dataClient.UpdateData(data, instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataElementId);
             }
         }
     }
