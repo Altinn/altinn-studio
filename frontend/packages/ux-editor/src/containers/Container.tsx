@@ -57,6 +57,7 @@ export interface IProvidedContainerProps {
   sendListToParent?: (item: object) => void;
   dragHandleRef?: ConnectDragSource;
   t: typeof i18next.t;
+  dataModel: IDataModelFieldElement[];
 }
 
 export interface IContainerProps extends IProvidedContainerProps {
@@ -68,7 +69,6 @@ export interface IContainerProps extends IProvidedContainerProps {
   index?: number;
   formContainerActive?: boolean;
   activeList: any[];
-  dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
 }
 
@@ -559,6 +559,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             dndEvents={this.props.dndEvents}
             sendListToParent={this.handleActiveListChange}
             dragHandleRef={dragHandleRef}
+            dataModel={this.props.dataModel}
           />
         )}
       />
@@ -626,7 +627,6 @@ const makeMapStateToProps = () => {
       activeList: state.formDesigner.layout.activeList,
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
-      dataModel: state.appData.dataModel.model,
       dataModelGroup: container?.dataModelGroup,
       formContainerActive: GetActiveFormContainer(state, props),
       itemOrder: !props.items ? itemOrder : props.items,

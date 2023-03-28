@@ -13,6 +13,7 @@ import {
   swapArrayElements,
 } from 'app-shared/pure/array-functions';
 import { useParams } from 'react-router-dom';
+import { useDatamodelQuery } from '../hooks/queries';
 
 export interface DesignViewProps {
   activeList: any[];
@@ -39,6 +40,10 @@ export const DesignView = ({
     () => setState({ layoutOrder, isDragging }),
     [layoutOrder, isDragging]
   );
+
+  const { org, app } = useParams();
+  const datamodelQuery = useDatamodelQuery(org, app);
+  const datamodel = datamodelQuery.data;
 
   const setContainerLayoutOrder = (containerId: string, newLayoutOrder: string[]) => {
     if (newLayoutOrder.includes(containerId)) {
@@ -129,7 +134,6 @@ export const DesignView = ({
     beforeDrag && setState({ layoutOrder: beforeDrag, isDragging: false });
   };
   const dispatch = useDispatch();
-  const { org, app } = useParams();
   const onDropItem = (reset?: boolean) => {
     if (reset) {
       resetState();
@@ -174,6 +178,7 @@ export const DesignView = ({
             items={state.layoutOrder[baseContainerId]}
             layoutOrder={state.layoutOrder}
             dndEvents={dndEvents}
+            dataModel={datamodel}
           />
         )}
       />

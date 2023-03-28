@@ -8,6 +8,8 @@ import { EditContainer } from './EditContainer';
 import type { IEditContainerProps } from './EditContainer';
 import { IAppState } from '../types/global';
 import { textMock } from '../../../../testing/mocks/i18nMock';
+import { ServicesContextProvider } from '../../../../app-development/common/ServiceContext';
+import { queriesMock } from '../testing/mocks';
 
 // Test data:
 const id = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88'
@@ -47,12 +49,6 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
   const createStore = configureStore();
   const initialState: IAppState = {
     appData: {
-      dataModel: {
-        model: [] as any[],
-        error: null,
-        fetched: true,
-        fetching: false
-      },
       textResources: {
         resources: {
           nb: [{ id: 'appName', value: 'Test' }]
@@ -147,10 +143,12 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
   const user = userEvent.setup();
   const mockStore = createStore(initialState);
   rtlRender(
-    <Provider store={mockStore}>
-      {/* eslint-disable-next-line testing-library/no-node-access */}
-      <EditContainer {...allProps}>{allProps.children}</EditContainer>
-    </Provider>
+    <ServicesContextProvider {...queriesMock}>
+      <Provider store={mockStore}>
+        {/* eslint-disable-next-line testing-library/no-node-access */}
+        <EditContainer {...allProps}>{allProps.children}</EditContainer>
+      </Provider>
+    </ServicesContextProvider>
   );
 
   return { user };

@@ -1,6 +1,7 @@
 {
   "name": "altinn-studio",
   "dependencies": {
+    "@tanstack/react-query-devtools": "4.28.0",
     "react-i18next": "12.2.0"
   },
   "devDependencies": {

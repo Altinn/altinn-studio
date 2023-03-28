@@ -3,8 +3,6 @@ import { act, screen } from '@testing-library/react';
 
 import {
   appDataMock,
-  dataModelItemMock,
-  dataModelStateMock,
   renderWithMockStore,
   textResourcesMock,
 } from '../../../testing/mocks';
@@ -13,34 +11,12 @@ import {
   EditGroupDataModelBindings,
   EditGroupDataModelBindingProps,
 } from './EditGroupDataModelBindings';
-import { IDataModelFieldElement } from '../../../types/global';
 import userEvent from '@testing-library/user-event';
-
-const dataModelMock: IDataModelFieldElement[] = [
-  {
-    ...dataModelItemMock,
-    dataBindingName: 'testModel.group',
-    maxOccurs: 10,
-  },
-  {
-    ...dataModelItemMock,
-    dataBindingName: 'testModel.group2',
-    maxOccurs: 10,
-  },
-  {
-    ...dataModelItemMock,
-    dataBindingName: 'testModel.field2',
-  },
-];
 
 const mockAppData: IAppDataState = {
   ...appDataMock,
   textResources: {
     ...textResourcesMock,
-  },
-  dataModel: {
-    ...dataModelStateMock,
-    model: dataModelMock,
   },
 };
 
