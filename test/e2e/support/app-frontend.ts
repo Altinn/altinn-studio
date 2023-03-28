@@ -11,7 +11,7 @@ Cypress.Commands.add(
   'addItemToGroup',
   (oldValue: number, newValue: number, comment: string, openByDefault?: boolean) => {
     if (!openByDefault) {
-      cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
+      cy.get(appFrontend.group.addNewItem).click();
     }
 
     cy.get(appFrontend.group.currentValue).should('be.visible').type(`${oldValue}`).blur();

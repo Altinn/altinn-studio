@@ -86,7 +86,7 @@ describe('Group', () => {
   it('Calculation on Item in Main Group should update value', () => {
     init();
     cy.get(appFrontend.group.showGroupToContinue).find('input').check({ force: true });
-    cy.get(appFrontend.group.addNewItem).focus().should('be.visible').click();
+    cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue).should('be.visible').type('1337').blur();
     // DataProcessingHandler.cs for frontend-test changes 1337 to 1338.
     cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 1 338');
@@ -96,7 +96,7 @@ describe('Group', () => {
   it('Validation on group', () => {
     init();
     cy.get(appFrontend.group.showGroupToContinue).find('input').check({ force: true });
-    cy.get(appFrontend.group.addNewItem).should('exist').and('be.visible').focus().click();
+    cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue).should('be.visible').type('1').blur();
     cy.get(appFrontend.group.newValue).should('be.visible').type('0').blur();
     cy.get(appFrontend.fieldValidationError.replace('field', 'newValue'))
@@ -147,9 +147,9 @@ describe('Group', () => {
       cy.get(appFrontend.group.addNewItem).click();
       cy.get(appFrontend.group.currentValue).should('be.visible').type('123').blur();
       cy.get(appFrontend.group.newValue).should('be.visible').type('1').blur();
-      cy.get(appFrontend.group.saveMainGroup).focus().should('be.visible').click();
+      cy.get(appFrontend.group.saveMainGroup).click();
 
-      cy.get(appFrontend.group.addNewItem).should('exist').and('be.visible').focus().click();
+      cy.get(appFrontend.group.addNewItem).click();
       cy.get(appFrontend.group.currentValue).should('be.visible').type('123').blur();
 
       cy.get(appFrontend.group.row(0).editBtn).should('exist').and('be.visible').focus().click();

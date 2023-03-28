@@ -1,130 +1,19 @@
 import React from 'react';
 
-import {
-  Grid,
-  IconButton,
-  makeStyles,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from '@material-ui/core';
+import { Button, ButtonColor, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@material-ui/core';
+import { PencilIcon } from '@navikt/aksel-icons';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { FileName } from 'src/layout/FileUpload/shared/render';
 import { EditWindowComponent } from 'src/layout/FileUploadWithTag/EditWindowComponent';
+import classes from 'src/layout/FileUploadWithTag/FileListComponent.module.css';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IOption } from 'src/types';
-
-const useStyles = makeStyles({
-  table: {
-    marginTop: '1.5rem',
-    tableLayout: 'fixed',
-    marginBottom: '12px',
-    wordBreak: 'break-word',
-    textOverflow: 'ellipsis',
-  },
-  tableMobile: {
-    marginTop: '1.5rem',
-    tableLayout: 'fixed',
-    marginBottom: '12px',
-    width: '100%',
-    display: 'grid',
-    gridTemplateColumns: '5fr 3fr 4fr',
-    '& thead': {
-      display: 'contents',
-      '& tr': {
-        display: 'contents',
-        '& th': {
-          borderBottom: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
-        },
-      },
-    },
-    '& tbody': {
-      display: 'contents',
-      '& tr': {
-        display: 'contents',
-        borderBottom: `2px dotted ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
-        '& td': {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        },
-      },
-    },
-  },
-  mobileTableRow: {
-    '& td': {
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-      overflow: 'hidden',
-      alignItems: 'center',
-      display: 'flex',
-      alignSelf: 'stretch',
-      color: '#000',
-    },
-  },
-  fullGrid: {
-    gridColumn: '1 / -1',
-  },
-  tableHeader: {
-    borderBottom: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
-    '& tr': {
-      '& th': {
-        padding: '0px',
-        paddingLeft: '6px',
-        fontSize: '0.875rem',
-        fontFamily: 'Altinn-DIN',
-        fontWeight: '500 !important' as any,
-        color: '#000',
-      },
-    },
-  },
-  tableBody: {
-    '& tr': {
-      '& td': {
-        padding: '0px',
-        paddingLeft: '6px',
-        fontSize: '12px',
-        whiteSpace: 'nowrap',
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        fontFamily: 'Altinn-DIN',
-        fontWeight: 400,
-        borderBottom: `1px dotted ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
-        color: '#000',
-      },
-    },
-  },
-  editIcon: {
-    paddingLeft: '6px',
-    fontSize: '0.875rem !important',
-    fontWeight: '800 !important' as any,
-  },
-  editTextContainer: {
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    color: '#000',
-    fontWeight: '500 !important' as any,
-    fontSize: '0.75rem',
-  },
-  textContainer: {
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    color: '#000',
-    fontWeight: '500 !important' as any,
-    fontSize: '0.875rem',
-    minWidth: '0px',
-  },
-});
-
 export interface FileListProps extends PropsFromGenericComponent<'FileUploadWithTag'> {
   attachments: IAttachment[];
   editIndex: number;
@@ -143,7 +32,6 @@ export interface FileListProps extends PropsFromGenericComponent<'FileUploadWith
 export const bytesInOneMB = 1048576;
 
 export function FileList(props: FileListProps): JSX.Element | null {
-  const classes = useStyles();
   if (!props.attachments || props.attachments.length === 0) {
     return null;
   }
@@ -278,15 +166,17 @@ export function FileList(props: FileListProps): JSX.Element | null {
                       align='right'
                       key={`edit-${index}`}
                     >
-                      <IconButton
-                        style={{ color: 'black' }}
+                      <Button
+                        size={ButtonSize.Small}
+                        variant={ButtonVariant.Quiet}
+                        color={ButtonColor.Secondary}
                         onClick={() => props.onEdit(index)}
-                        tabIndex={0}
-                        className={classes.editTextContainer}
+                        icon={<PencilIcon aria-hidden={true} />}
+                        iconPlacement='right'
+                        className={classes.customStyleEditButton}
                       >
                         {getLanguageFromKey('general.edit_alt', props.language)}
-                        <i className={`fa fa-editing-file ${classes.editIcon}`} />
-                      </IconButton>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );

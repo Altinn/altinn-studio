@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Grid, makeStyles } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import { CheckmarkCircleFillIcon, TrashIcon } from '@navikt/aksel-icons';
 import classNames from 'classnames';
 
@@ -9,40 +9,12 @@ import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { FileName } from 'src/layout/FileUpload/shared/render';
-import css from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
+import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { renderValidationMessages } from 'src/utils/render';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IOption } from 'src/types';
-
-const useStyles = makeStyles({
-  textContainer: {
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    overflow: 'hidden',
-    color: '#000',
-    fontWeight: '500 !important' as any,
-    fontSize: '0.875rem',
-    minWidth: '0px',
-  },
-  editContainer: {
-    display: 'inline-block',
-    border: `2px dotted ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
-    padding: '12px',
-    width: '100%',
-    marginTop: '12px',
-    marginBottom: '12px',
-  },
-  select: {
-    fontSize: '1rem',
-    '&:focus': {
-      outline: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
-    },
-  },
-});
-
 export interface EditWindowProps extends PropsFromGenericComponent<'FileUploadWithTag'> {
   attachment: IAttachment;
   mobileView: boolean;
@@ -58,7 +30,6 @@ export interface EditWindowProps extends PropsFromGenericComponent<'FileUploadWi
 
 export function EditWindowComponent(props: EditWindowProps): JSX.Element {
   const dispatch = useAppDispatch();
-  const classes = useStyles();
   const { id, baseComponentId, dataModelBindings, readOnly, textResourceBindings } = props.node.item;
 
   const handleDeleteFile = () => {
@@ -97,7 +68,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
           className={classes.textContainer}
           style={{ flexShrink: 0 }}
         >
-          <div className={css.iconButtonWrapper}>
+          <div className={classes.iconButtonWrapper}>
             {props.attachment.uploaded && (
               <div style={{ marginLeft: '0.9375rem', marginRight: '0.9375rem' }}>
                 {!props.mobileView
@@ -107,7 +78,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
                   role='img'
                   aria-hidden={!props.mobileView}
                   aria-label={getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)}
-                  className={css.checkMark}
+                  className={classes.checkMark}
                 />
               </div>
             )}
@@ -135,7 +106,14 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
         </Grid>
       </Grid>
       <Grid>
-        {textResourceBindings?.tagTitle && <h6>{props.getTextResource(textResourceBindings?.tagTitle)}</h6>}
+        {textResourceBindings?.tagTitle && (
+          <label
+            className={classes.label}
+            htmlFor={`attachment-tag-dropdown-${props.attachment.id}`}
+          >
+            {props.getTextResource(textResourceBindings?.tagTitle)}
+          </label>
+        )}
         <Grid
           container={true}
           spacing={1}

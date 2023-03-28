@@ -7,3 +7,35 @@
   margin-left: 0.2rem;
   font-size: 1.3rem;
 }
+
+.label {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.textContainer {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: #000;
+  font-weight: 500 !important;
+  font-size: 0.875rem;
+  min-width: 0px;
+}
+
+.editContainer {
+  display: inline-block;
+  border: 2px dotted var(--file-list-border-color);
+  padding: 12px;
+  width: 100%;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.select {
+  font-size: 1rem;
+}
+
+.select:focus {
+  outline: 2px solid #0062ba !important;
+}

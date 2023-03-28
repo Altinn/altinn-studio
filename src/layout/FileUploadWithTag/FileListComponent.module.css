@@ -1,0 +1,89 @@
+.customStyleEditButton {
+  display: inline-block !important;
+}
+
+.table {
+  word-break: break-word;
+  text-overflow: ellipsis;
+}
+
+.table,
+.tableMobile {
+  table-layout: fixed;
+  margin-top: 1.5rem;
+  margin-bottom: 12px;
+}
+
+.tableMobile {
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: 5fr 3fr 4fr;
+}
+
+.tableMobile thead tr th {
+  border-bottom: 2px solid var(--file-list-border-color);
+}
+
+.tableMobile thead,
+.tableMobile thead tr,
+.tableMobile tbody,
+.tableMobile tbody tr {
+  display: contents;
+}
+
+.tableMobile tbody tr {
+  border-bottom: 2px dotted var(--file-list-border-color);
+}
+
+.tableMobile tbody tr td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobileTableRow td {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  color: #000;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.fullGrid {
+  grid-column: 1 / -1;
+}
+
+.tableHeader {
+  border-bottom: 2px solid var(--file-list-border-color);
+}
+
+.tableHeader tr th {
+  padding: 4px 4px 4px 6px;
+  font-size: 0.875rem;
+  font-family: 'Altinn-DIN', sans-serif;
+  font-weight: 500 !important;
+  color: #000;
+}
+
+.tableBody tr td {
+  padding: 4px 4px 4px 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-family: 'Altinn-DIN', sans-serif;
+  font-weight: 400;
+  border-bottom: 1px dotted var(--file-list-border-color);
+  color: #000;
+}
+
+.textContainer {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: #000;
+  font-weight: 500 !important;
+  font-size: 0.875rem;
+  min-width: 0px;
+}

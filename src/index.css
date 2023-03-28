@@ -14,6 +14,8 @@
   --repeating-group-edit-border-color: var(--colors-blue-400);
   --repeating-group-edit-divider-color: var(--colors-blue-200);
   --repeating-group-error-color: var(--colors-red-200);
+
+  --file-list-border-color: #008fd6;
 }
 
 @media only screen and (min-width: 768px) {
