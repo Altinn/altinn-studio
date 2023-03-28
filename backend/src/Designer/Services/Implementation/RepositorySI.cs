@@ -5,6 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
@@ -130,7 +133,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 PartyTypesAllowed = new PlatformStorageModels.PartyTypesAllowed()
             };
 
-            string metadata = JsonConvert.SerializeObject(appMetadata, Formatting.Indented);
+            string metadata = JsonConvert.SerializeObject(appMetadata, Newtonsoft.Json.Formatting.Indented);
             string filePath = _settings.GetAppMetadataFilePath(org, app, developer);
 
             // This creates metadata
@@ -140,7 +143,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public void UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata)
         {
-            string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Formatting.Indented);
+            string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Newtonsoft.Json.Formatting.Indented);
             string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             File.WriteAllText(filePath, applicationMetadataAsJson, Encoding.UTF8);
         }
@@ -164,7 +167,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
             existingApplicationMetadata.DataTypes.Add(formMetadata);
 
-            string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Formatting.Indented);
+            string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
             string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
@@ -213,7 +216,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     existingApplicationMetadata.DataTypes.Remove(removeForm);
                 }
 
-                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Formatting.Indented);
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
                 string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
@@ -492,7 +495,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     tr.Resources.Add(actualResource.Value);
                 }
 
-                string resourceString = JsonConvert.SerializeObject(tr, new JsonSerializerSettings { Formatting = Formatting.Indented, NullValueHandling = NullValueHandling.Ignore });
+                string resourceString = JsonConvert.SerializeObject(tr, new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented, NullValueHandling = NullValueHandling.Ignore });
                 File.WriteAllText(resourcePath + $"/resource.{processedResource.Key}.json", resourceString);
             }
         }
@@ -964,7 +967,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = serviceConfig.ServiceName });
                 var jsonSerializerSettings = new JsonSerializerSettings
                 {
-                    Formatting = Formatting.Indented,
+                    Formatting = Newtonsoft.Json.Formatting.Indented,
                     NullValueHandling = NullValueHandling.Ignore
                 };
                 string textResourceString = JsonConvert.SerializeObject(textResource, jsonSerializerSettings);
@@ -1071,7 +1074,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="name">The name of the view</param>
         public void DeleteTextResource(string org, string app, string name)
         {
-            Guard.AssertArgumentNotNullOrWhiteSpace(name, nameof(name));
+            Helpers.Guard.AssertArgumentNotNullOrWhiteSpace(name, nameof(name));
             string resourceTextKey = ViewResourceKey(name);
 
             IEnumerable<ResourceWrapper> resources = GetAllResources(org, app);
@@ -1307,8 +1310,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="newName">the new view name</param>
         public void UpdateViewNameTextResource(string org, string app, string currentName, string newName)
         {
-            Guard.AssertArgumentNotNullOrWhiteSpace(currentName, nameof(currentName));
-            Guard.AssertArgumentNotNullOrWhiteSpace(newName, nameof(newName));
+            Helpers.Guard.AssertArgumentNotNullOrWhiteSpace(currentName, nameof(currentName));
+            Helpers.Guard.AssertArgumentNotNullOrWhiteSpace(newName, nameof(newName));
 
             string currentKey = ViewResourceKey(currentName);
             string newKey = ViewResourceKey(newName);
@@ -1434,7 +1437,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static void Save(ResourceWrapper resourceWrapper)
         {
-            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Formatting.Indented);
+            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Newtonsoft.Json.Formatting.Indented);
             File.WriteAllText(resourceWrapper.FileName, textContent);
         }
 
@@ -1619,6 +1622,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await _sourceControl.DeleteRepository(org, repository);
         }
 
+        public bool SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
+        {
+            string policyFileName = _settings.AuthorizationPolicyFileName;
+
+            string path = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
+            string authorizationPolicyData = xacmlPolicy.ToString();
+            File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
+            return true;
+        }
+
+        public XacmlPolicy GetPolicy(string org, string repo, string resourceId)
+        {
+            string policyFileName = _settings.AuthorizationPolicyFileName;
+
+            string path = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
+
+            XmlDocument policyDocument = new XmlDocument();
+            policyDocument.Load(policyPath);
+            XacmlPolicy policy;
+            using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
+            {
+                policy = XacmlParser.ParseXacmlPolicy(reader);
+            }
+
+            return policy;
+        }
+
         private class ResourceWrapper
         {
             public string FileName { get; set; }
@@ -1627,7 +1659,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             public IEnumerable<Resource> FilterById(string id)
             {
-                Guard.AssertArgumentNotNullOrWhiteSpace(id, nameof(id));
+                Helpers.Guard.AssertArgumentNotNullOrWhiteSpace(id, nameof(id));
                 return Resources?.Resources?.Where(r => id == r?.Id) ?? new Resource[0];
             }
         }

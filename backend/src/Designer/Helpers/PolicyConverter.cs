@@ -130,9 +130,19 @@ namespace Altinn.Studio.Designer.Helpers
             xacmlRule.Description = policyRule.Description;
 
             List<XacmlAnyOf> ruleAnyOfs = new List<XacmlAnyOf>();
-            ruleAnyOfs.Add(GetSubjectAnyOfs(policyRule.Subject));
-            ruleAnyOfs.Add(GetResourceAnyOfs(policyRule.Resources));
-            ruleAnyOfs.Add(GetActionAnyOfs(policyRule.Actions));
+            if(policyRule.Subject != null && policyRule.Subject.Count > 0)
+            {
+                ruleAnyOfs.Add(GetSubjectAnyOfs(policyRule.Subject));
+            }
+            if (policyRule.Resources != null && policyRule.Resources.Count > 0)
+            {
+                ruleAnyOfs.Add(GetResourceAnyOfs(policyRule.Resources));
+            }
+            if(policyRule.Actions!= null && policyRule.Actions.Count > 0)
+            {
+                ruleAnyOfs.Add(GetActionAnyOfs(policyRule.Actions));
+            }
+
             xacmlRule.Target = new XacmlTarget(ruleAnyOfs);
 
             return xacmlRule;
