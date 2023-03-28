@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -53,6 +55,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
+        [UseSystemTextJson]
         [Route("form-layouts")]
         public async Task<ActionResult<Dictionary<string, FormLayout>>> GetFormLayouts(string org, string app)
         {
@@ -78,6 +81,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// /// <param name="formLayout">The content to be saved to the layout</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
+        [UseSystemTextJson]
         [Route("form-layout/{layoutName}")]
         public async Task<ActionResult> SaveFormLayout(string org, string app, [FromRoute] string layoutName, [FromBody] FormLayout formLayout)
         {

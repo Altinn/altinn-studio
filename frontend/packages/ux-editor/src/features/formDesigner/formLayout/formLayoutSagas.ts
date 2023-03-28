@@ -259,8 +259,8 @@ function* saveFormLayoutSaga({ payload }: PayloadAction<{ org; app }>): SagaIter
     );
 
     const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
-    const convertedLayout: IExternalFormLayout = {
-      schema: layoutSchemaUrl(),
+    const convertedLayout = {
+      $schema: layoutSchemaUrl(),
       data: {
         layout: convertInternalToLayoutFormat(layouts[selectedLayout]),
         hidden: layouts[selectedLayout]?.hidden,
