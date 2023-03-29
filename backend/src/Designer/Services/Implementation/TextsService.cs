@@ -298,14 +298,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (string layoutName in layoutNames)
             {
                 JsonNode layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
-                foreach (var layoutObject in layout["data"]["layout"] as JsonArray)
+                if (layout?["data"]?["layout"] is not JsonArray layoutArray)
                 {
-                    foreach (TextIdMutation mutation in keyMutations)
+                    continue;
+                }
+                foreach (var layoutObject in layoutArray)
+                {
+                    foreach (TextIdMutation mutation in keyMutations.Where(_ => layoutObject["textResourceBindings"] is not null))
                     {
-                        if (layoutObject["textResourceBindings"] != null)
-                        {
-                            layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
-                        }
+                        layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
                     }
                 }
                 await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);

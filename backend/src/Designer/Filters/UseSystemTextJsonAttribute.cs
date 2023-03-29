@@ -15,7 +15,10 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Filters
 {
-    // [Obsolete("This is a workaroud attribute to override Newtonsoft.Json with System.Text.Json. It should be removed with https://github.com/Altinn/altinn-studio/issues/9486")]
+    /// <summary>
+    /// Workaround for using System.Text.Json along with Newtonsoft.Json
+    /// Should be removed with https://github.com/Altinn/altinn-studio/issues/9486
+    /// </summary>
     public class UseSystemTextJsonAttribute : ActionFilterAttribute, IActionModelConvention
     {
         private static readonly JsonSerializerOptions s_jsonSerializerOptions = new JsonSerializerOptions()
