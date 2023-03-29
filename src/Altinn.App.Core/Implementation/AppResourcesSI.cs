@@ -111,9 +111,7 @@ namespace Altinn.App.Core.Implementation
         {
             try
             {
-                var task = Task.Run(async () => await _appMetadata.GetApplicationMetadata());
-                task.Wait();
-                return task.Result;
+                return _appMetadata.GetApplicationMetadata().Result;
             }
             catch (AggregateException ex)
             {
@@ -126,13 +124,7 @@ namespace Altinn.App.Core.Implementation
         {
             try
             {
-                var task = Task.Run(async () => await _appMetadata.GetApplicationXACMLPolicy());
-                task.Wait();
-                if (task.IsCompletedSuccessfully)
-                {
-                    return task.Result;
-                }
-                return null;
+                return _appMetadata.GetApplicationXACMLPolicy().Result;
             }
             catch (AggregateException ex)
             {
@@ -146,15 +138,7 @@ namespace Altinn.App.Core.Implementation
         {
             try
             {
-                var task = Task.Run<string?>(async () => await _appMetadata.GetApplicationBPMNProcess());
-                task.Wait();
-                if (task.IsCompletedSuccessfully || task.Exception != null)
-                {
-                    return task.Result;
-                }
-
-                _logger.LogError(task.Exception, "Something went wrong fetching application policy");
-                return null;
+                return _appMetadata.GetApplicationBPMNProcess().Result;
             }
             catch (AggregateException ex)
             {
