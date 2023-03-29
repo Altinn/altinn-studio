@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -295,34 +297,48 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
             foreach (string layoutName in layoutNames)
             {
-                FormLayout layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
-                foreach (Layout layoutObject in layout.Data.Layout)
+                JsonNode layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+                if (layout?["data"]?["layout"] is not JsonArray layoutArray)
                 {
-                    foreach (TextIdMutation mutation in keyMutations)
+                    continue;
+                }
+                foreach (var layoutObject in layoutArray)
+                {
+                    foreach (TextIdMutation mutation in keyMutations.Where(_ => layoutObject["textResourceBindings"] is not null))
                     {
-                        if (layoutObject.TextResourceBindings != null)
-                        {
-                            UpdateKeyInTextResourceBinding(layoutObject.TextResourceBindings, mutation);
-                        }
+                        layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
                     }
                 }
                 await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
             }
         }
 
-        private static void UpdateKeyInTextResourceBinding(Dictionary<string, string> textResourceBindings, TextIdMutation keyMutation)
+        private static JsonNode UpdateKey(JsonNode textResourceBindings, TextIdMutation keyMutation)
         {
-            foreach (KeyValuePair<string, string> trb in textResourceBindings.Where(trb => trb.Value == keyMutation.OldId))
+            JsonNode updatedTextResourceBindings = JsonNode.Parse(textResourceBindings.ToJsonString());
+            foreach ((string key, var value) in (textResourceBindings as JsonObject)!)
             {
+                if (value is null)
+                {
+                    continue;
+                }
+                var valueElement = value.AsValue().GetValue<JsonElement>();
+                // Only update if the value is a string and the value is the same as the old key
+                if (valueElement.ValueKind != JsonValueKind.String || valueElement.GetString() != keyMutation.OldId)
+                {
+                    continue;
+                }
+
                 if (keyMutation.NewId.HasValue)
                 {
-                    textResourceBindings[trb.Key] = keyMutation.NewId.Value;
+                    updatedTextResourceBindings![key] = keyMutation.NewId.Value;
                 }
                 else
                 {
-                    textResourceBindings.Remove(trb.Key);
+                    updatedTextResourceBindings = (updatedTextResourceBindings as JsonObject)!.Remove(key);
                 }
             }
+            return updatedTextResourceBindings;
         }
 
         private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)

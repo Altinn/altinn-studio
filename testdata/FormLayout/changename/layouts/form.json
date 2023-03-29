@@ -1,0 +1,480 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav1",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "currentName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "NavarendeNavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value"
+        },
+        "required": true,
+        "readOnly": true
+      },
+      {
+        "id": "newFirstName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "PersonNyttFornavn",
+          "help": "PersonNyttFornavn.helptext"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value"
+        },
+        "required": true,
+        "readOnly": false,
+        "triggers": ["validation"],
+        "grid": {
+          "labelGrid": {
+            "md": 6
+          },
+          "innerGrid": {
+            "md": 6
+          }
+        }
+      },
+      {
+        "id": "newLastName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "PersonNyttEtternavn",
+          "description": "HintEtternavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonEtternavnNytt-datadef-34757.value"
+        },
+        "required": true,
+        "readOnly": false,
+        "grid": {
+          "labelGrid": {
+            "md": 6
+          },
+          "innerGrid": {
+            "md": 6
+          }
+        }
+      },
+      {
+        "id": "newMiddleName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "PersonNyttMellomnavn",
+          "description": "HintMellomnavn",
+          "somethingThatIsVeryInvalid": null
+        },
+        "dataModelBindings": {
+          "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value"
+        },
+        "readOnly": false,
+        "triggers": ["validation"],
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "labelGrid": {
+            "md": 6
+          },
+          "innerGrid": {
+            "md": 6
+          }
+        }
+      },
+      {
+        "id": "yourChanges",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "DineEndringer"
+        },
+        "dataModelBindings": {},
+        "size": "L"
+      },
+      {
+        "id": "changeNameFrom",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "EndreNavnFra"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value"
+        },
+        "required": true,
+        "readOnly": true,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "changeNameTo_æøå",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "EndreNavnTil"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value"
+        },
+        "required": true,
+        "readOnly": true,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "confirmChangeName",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "BekreftNavnTittel"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+        },
+        "options": [
+          {
+            "label": "Ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det ",
+            "value": "Ja"
+          }
+        ],
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reason",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "BegrunnelseValgNavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Radioknapp"
+        },
+        "optionsId": "reasons",
+        "required": true,
+        "readOnly": false,
+        "preselectedOptionIndex": 0
+      },
+      {
+        "id": "reasonRelationship",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "BegrunnelseSlektskap"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForste-datadef-34896.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonParents",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "BegrunnelseSteforeldre"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonSSN",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Fodselsnummer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetPersonsFodselsnummer-datadef-34899.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonCohabitant1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "BegrunnelseSamboer1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonCohabitant2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "BegrunnelseSamboer2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetPersonsFodselsnummer-datadef-34899.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonFarm1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "BegrunnelseGard1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetGardNavn-datadef-34901.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonFarm2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "BegrunnelseGard2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetGardKommunenummer-datadef-34902.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonFarm3",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "BegrunnelseGard3"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningMellomnavn2-grp-9353.PersonMellomnavnAndreTilknyttetGardGardsnummer-datadef-34933.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonFarm4",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "BegrunnelseGard4"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn2-grp-9351.PersonEtternavnAndreTilknyttetGardBruksnummer-datadef-34914.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonFarm5",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "BegrunnelseGard5"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForsteTilknyttetGardFesteavgift-datadef-34905.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonNewName",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "BegrunnelseNyttNavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Begrunnelse-grp-9317.BegrunnelseForNyttNavn-grp-9318.PersonFornavnAnnetBegrunnelse-datadef-34948.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "reasonOthers",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "BegrunnelseAnnet"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn2-grp-9351.PersonEtternavnAndre-datadef-34906.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "dateOfEffect",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "datofeltet",
+          "shortName": "dato-short"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraArkivDato-datadef-34752.value"
+        },
+        "readOnly": false,
+        "format": "DD/MM/YYYY",
+        "minDate": "1900-01-01T12:00:00Z",
+        "maxDate": "2100-01-01T12:00:00Z",
+        "required": true,
+        "timeStamp": false,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "mobilnummer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Mobil nummer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraMobiltelefonsnummer-datadef-34750.value"
+        },
+        "required": false,
+        "readOnly": false,
+        "formatting": { "number": { "format": "+47 ### ## ###" } },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "reference-group",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Referanser"
+        },
+        "dataModelBindings": {},
+        "children": [
+          "sources",
+          "reference",
+          "reference2"
+        ]
+      },
+      {
+        "id": "sources",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "hvor fikk du vite om skjemaet?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"
+        },
+        "optionsId": "list",
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 4
+        },
+        "preselectedOptionIndex": 0
+      },
+      {
+        "id": "reference",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.TredjeSignerer-grp-9349.SignererTredjeReferanseAltinn-datadef-34891.value"
+        },
+        "optionsId": "references",
+        "required": false,
+        "readOnly": false,
+        "secure": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 4
+        },
+        "mapping": {
+          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
+        }
+      },
+      {
+        "id": "reference2",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse 2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderReferanseAltinn-datadef-34743.value"
+        },
+        "optionsId": "test",
+        "required": false,
+        "readOnly": false,
+        "secure": true,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 4
+        },
+        "mapping": {
+          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
+        }
+      },
+      {
+        "id": "adresse",
+        "type": "AddressComponent",
+        "textResourceBindings": {
+          "title": "Adresse"
+        },
+        "dataModelBindings": {
+          "address": "Adresse.Gateadresse_æøå",
+          "zipCode": "Adresse.Postnr",
+          "postPlace": "Adresse.Poststed"
+        },
+        "simplified": true,
+        "readOnly": false,
+        "required": false
+      },
+      {
+        "id": "fileUpload-changename",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "vedlegg"
+        },
+        "maxFileSizeInMB": 5,
+        "maxNumberOfAttachments": 3,
+        "minNumberOfAttachments": 0,
+        "displayMode": "list",
+        "required": false,
+        "hasCustomFileEndings": true,
+        "validFileEndings": ".pdf"
+      },
+      {
+        "id": "fileUploadWithTags-changename",
+        "type": "FileUploadWithTag",
+        "textResourceBindings": {
+          "title": "Last opp vedlegg og knytte den mot en tag",
+          "tagTitle": "file type"
+        },
+        "maxFileSizeInMB": 5,
+        "maxNumberOfAttachments": 3,
+        "minNumberOfAttachments": 0,
+        "displayMode": "list",
+        "required": false,
+        "hasCustomFileEndings": true,
+        "validFileEndings": [".jpeg", ".jpg", ".pdf"],
+        "optionsId": "tags"
+      },
+      {
+        "id": "printBtn",
+        "type": "PrintButton"
+      },
+      {
+        "id": "toSummary",
+        "type": "NavigationButtons",
+        "showPrev": false,
+        "textResourceBindings": {
+          "next": "Neste"
+        },
+        "dataModelBindings": {},
+        "triggers": ["validatePage"]
+      },
+      {
+        "id": "toNextTask",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Hopp videre til gruppe (fyll ut riktig data først)"
+        },
+        "dataModelBindings": {}
+      }
+    ]
+  }
+}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -300,13 +301,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <returns>A list of all layouts for a layoutset</returns>
-        public async Task<Dictionary<string, FormLayout>> GetFormLayouts(string layoutSetName)
+        public async Task<Dictionary<string, JsonNode>> GetFormLayouts(string layoutSetName)
         {
-            Dictionary<string, FormLayout> formLayouts = new();
+            Dictionary<string, JsonNode> formLayouts = new();
             string[] layoutNames = GetLayoutNames(layoutSetName);
             foreach (string layoutName in layoutNames)
             {
-                FormLayout layout = await GetLayout(layoutSetName, layoutName);
+                JsonNode layout = await GetLayout(layoutSetName, layoutName);
                 formLayouts[layoutName.Replace(".json", "")] = layout;
             }
 
@@ -319,13 +320,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <param name="layoutName">The name of layoutfile</param>
         /// <returns>The layout</returns>
-        public async Task<FormLayout> GetLayout(string layoutSetName, string layoutName)
+        public async Task<JsonNode> GetLayout(string layoutSetName, string layoutName)
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
             string fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
-            FormLayout layout = JsonSerializer.Deserialize<FormLayout>(fileContent, _jsonOptions);
-
-            return layout;
+            return JsonNode.Parse(fileContent);
         }
 
         /// <summary>
@@ -455,10 +454,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <param name="layoutFileName">The name of layout file</param>
         /// <param name="layout">The actual layout that is saved</param>
-        public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutFileName, FormLayout layout)
+        public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutFileName, JsonNode layout)
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
-            string serializedLayout = JsonSerializer.Serialize(layout, _jsonOptions);
+            string serializedLayout = layout.ToJsonString();
             await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true);
         }
 

@@ -39,12 +39,6 @@ ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
-    .AddMvcOptions(options =>
-    {
-        options.Filters.Add(typeof(DatamodelingExceptionFilterAttribute));
-    });
-
 await SetConfigurationProviders(builder.Configuration, builder.Environment);
 
 ConfigureLogging(builder.Logging);

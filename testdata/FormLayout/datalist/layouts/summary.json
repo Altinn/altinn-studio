@@ -1,0 +1,29 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "send-in-text",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "summaryTitle"
+        },
+        "dataModelBindings": {}
+      },
+      {
+        "id": "summary-list",
+        "type": "Summary",
+        "componentRef": "listComponent",
+        "pageRef": "formLayout"
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {}
+      }
+    ]
+  }
+}

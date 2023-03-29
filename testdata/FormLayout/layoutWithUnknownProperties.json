@@ -11,7 +11,8 @@
           "title": "some-old-id",
           "body": "another-key",
           "textResourceBindingsUnknownProperty": "val"
-        }
+        },
+        "size": "L"
       }
     ]
   }

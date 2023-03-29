@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -25,22 +26,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, FormLayout>> GetFormLayouts(string org, string app, string developer, string layoutSetName)
+        public async Task<Dictionary<string, JsonNode>> GetFormLayouts(string org, string app, string developer, string layoutSetName)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                Dictionary<string, FormLayout> formLayoutsForLayoutSet = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
+                Dictionary<string, JsonNode> formLayoutsForLayoutSet = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
                 return formLayoutsForLayoutSet;
             }
 
-            Dictionary<string, FormLayout> formLayouts = await altinnAppGitRepository.GetFormLayouts(null);
+            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(null);
             return formLayouts;
         }
 
         /// <inheritdoc />
-        public async Task SaveFormLayout(string org, string app, string developer, string layoutSetName, string layoutName, FormLayout formLayout)
+        public async Task SaveFormLayout(string org, string app, string developer, string layoutSetName, string layoutName, JsonNode formLayout)
         {
             string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);

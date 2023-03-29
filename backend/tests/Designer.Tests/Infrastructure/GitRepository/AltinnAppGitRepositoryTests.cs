@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -183,10 +184,10 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string layoutName = "layoutFile1InSet1.json";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            FormLayout formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+            JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
             formLayout.Should().NotBeNull();
-            formLayout.Data.Layout.Should().NotBeNull();
+            formLayout["data"]["layout"].Should().NotBeNull();
         }
 
         [Fact]
@@ -198,10 +199,10 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string layoutName = "layoutFile1.json";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            FormLayout formLayout = await altinnAppGitRepository.GetLayout(null, layoutName);
+            JsonNode formLayout = await altinnAppGitRepository.GetLayout(null, layoutName);
 
             formLayout.Should().NotBeNull();
-            formLayout.Data.Layout.Should().NotBeNull();
+            formLayout["data"]["layout"].Should().NotBeNull();
         }
 
         [Fact]
@@ -218,13 +219,14 @@ namespace Designer.Tests.Infrastructure.GitRepository
             {
                 await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
                 AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
-                FormLayout formLayoutToSave = new() { Schema = "some-string", Data = new Data { Layout = new List<Layout> { new() { Id = "some-id", Type = "some-type" } } } };
+
+                var formLayoutToSave = JsonNode.Parse("{\"$schema\":\"some-string\",\"data\":{\"layout\":[{\"id\":\"some-id\",\"type\":\"some-type\"}]}}");
                 await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayoutToSave);
-                FormLayout formLayoutSaved = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+                JsonNode formLayoutSaved = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
                 formLayoutSaved.Should().NotBeNull();
-                formLayoutSaved.Data.Layout.Should().NotBeNull();
-                formLayoutSaved.Data.Layout.Should().HaveCount(1);
+                formLayoutSaved["data"]["layout"].Should().NotBeNull();
+                (formLayoutSaved["data"]["layout"] as JsonArray).Should().HaveCount(1);
             }
             finally
             {
