@@ -13,6 +13,7 @@ using LibGit2Sharp;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using NuGet.Protocol;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -147,19 +148,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="repository">The name of the repository.</param>
         public void FetchRemoteChanges(string org, string repository)
         {
-            string logMessage = string.Empty;
-            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
+            try
             {
-                FetchOptions fetchOptions = new();
-                fetchOptions.CredentialsProvider = (url, user, cred) =>
-                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-
-                foreach (Remote remote in repo?.Network?.Remotes)
+                string logMessage = string.Empty;
+                using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
                 {
-                    IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-                    Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+                    _logger.LogInformation("Remote url for local repo: {Repo}", repo.Network.Remotes.First().Url);
+                    FetchOptions fetchOptions = new();
+                    fetchOptions.CredentialsProvider = (url, user, cred) =>
+                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+                    foreach (Remote remote in repo?.Network?.Remotes)
+                    {
+                        IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
+                        Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                _logger.LogInformation("Could not fetch remote changes, {ErrorMessage}", e.Message);
+                throw;
+            }
+
         }
 
         /// <summary>
