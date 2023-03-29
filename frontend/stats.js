@@ -11,7 +11,10 @@ const getTsSourceFile = (file) => {
 const getFileImports = (project, file) => {
   const output = [];
   project.getImportDeclarations().forEach((importDecl) => {
-    const module = importDecl.getModuleSpecifier().getLiteralText();
+    const rawModule = importDecl.getModuleSpecifier().getLiteralText();
+    const module = rawModule.startsWith('.')
+      ? path.resolve(path.dirname(file), rawModule)
+      : rawModule;
     const defaultimport = importDecl.getDefaultImport();
     if (defaultimport) {
       output.push({
