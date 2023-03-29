@@ -31,7 +31,7 @@ import type {
   IAppState,
   IFormFileUploaderComponent,
   IInternalLayouts,
-  IFormLayouts, IExternalFormLayout, IExternalFormLayouts,
+  IFormLayouts, IExternalFormLayouts,
 } from '../../../types/global';
 import { generateComponentId } from '../../../utils/generateId';
 import {
