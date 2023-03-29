@@ -54,10 +54,18 @@ public class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
         {
             var cacheEntryOptions = _getCacheEntryOptions.Invoke();
             cacheEntry.SetOptions(cacheEntryOptions);
-            return await _administrativeUnitsClient.GetMunicipalities();
+            var data = await _administrativeUnitsClient.GetMunicipalities();
+
+            if (data is null)
+            {
+                cacheEntry.Dispose();
+                return null;
+            }
+
+            return data;
         });
 
-        return municipalities;
+        return municipalities ?? new List<Municipality>();
     }
 
     /// <inheritdoc/>
@@ -74,10 +82,18 @@ public class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
             var cacheEntryOptions = _getCacheEntryOptions.Invoke();
             cacheEntry.SetOptions(cacheEntryOptions);
 
-            return await _administrativeUnitsClient.GetMunicipalities(countyNumber);
+            var data = await _administrativeUnitsClient.GetMunicipalities(countyNumber);
+
+            if (data is null)
+            {
+                cacheEntry.Dispose();
+                return null;
+            }
+
+            return data;
         });
 
-        return municipalities;
+        return municipalities ?? new List<Municipality>();
     }
 
     // Expires the cache entry at midnight, to get potential new or removed entries.

@@ -54,6 +54,14 @@ Api: https://ws.geonorge.no/kommuneinfo/v1/
 
 Licence: https://www.kartverket.no/api-og-data/vilkar-for-bruk
 
+### [Posten](https://www.bring.no)
+Doc: https://www.bring.no/tjenester/adressetjenester/postnummer/postnummertabeller-veiledning
+
+## Missing codes
+* ASF_TelefonLandkoder
+* BRG_KFN_Frister
+* BRG_YRKESLISTE_NOKUT
+
 ## Automated tests
 ## Contributing
 

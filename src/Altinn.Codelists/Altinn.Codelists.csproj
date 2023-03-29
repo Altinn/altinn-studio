@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Core" Version="7.*-*" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0" />
     <PackageReference Include="Scrutor" Version="4.2.1" />
 	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -33,5 +32,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="RestCountries\Data\countries.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\app-lib-dotnet\src\Altinn.App.Core\Altinn.App.Core.csproj" />
   </ItemGroup>
 </Project>

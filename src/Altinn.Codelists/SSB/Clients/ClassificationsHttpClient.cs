@@ -1,5 +1,4 @@
-﻿using Altinn.Codelists.SSB.Models;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 
 namespace Altinn.Codelists.SSB.Clients;
 
@@ -32,8 +31,11 @@ public class ClassificationsHttpClient : IClassificationsClient
     /// <returns></returns>
     public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language="nb", DateOnly? atDate = null, string level = "")
     {
+        //If no date is specified we use todays date to get the latest classification codes.
         DateOnly date = atDate ?? DateOnly.FromDateTime(DateTime.Today);
         string atDateformatted = date.ToString("yyyy-MM-dd");
+
+        //No level specified means all levels will be returned
         string selectLevel = level == string.Empty ? string.Empty : $"&selectLevel={level}";
 
         var response = await _httpClient.GetAsync($"{classificationId}/codesAt?date={atDateformatted}&language={language}{selectLevel}");

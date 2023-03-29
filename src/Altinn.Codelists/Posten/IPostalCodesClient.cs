@@ -1,9 +1,4 @@
 ﻿using Altinn.Codelists.Posten.Clients;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Altinn.Codelists.Posten
 {
@@ -12,6 +7,10 @@ namespace Altinn.Codelists.Posten
     /// </summary>
     public interface IPostalCodesClient
     {
+        /// <summary>
+        /// Get all postal codes.
+        /// </summary>
+        /// <returns></returns>
         Task<List<PostalCodeRecord>> GetPostalCodes();
     }
 }

@@ -1,14 +1,12 @@
 ﻿using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.Codelists.Posten.Clients;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Altinn.Codelists.Posten
 {
+    /// <summary>
+    /// Post codes and corresponding names for Norway.
+    /// </summary>
     public class PostalCodesCodelistsProvider : IAppOptionsProvider
     {
         private readonly IPostalCodesClient _postalCodesClient;
