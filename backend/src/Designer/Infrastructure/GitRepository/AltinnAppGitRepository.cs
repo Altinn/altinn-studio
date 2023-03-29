@@ -457,7 +457,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutFileName, JsonNode layout)
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
-            string serializedLayout = layout.ToJsonString();
+            string serializedLayout = layout.ToJsonString(_jsonOptions);
             await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true);
         }
 
