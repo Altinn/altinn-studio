@@ -3,9 +3,6 @@ using Altinn.App.Core.Interface;
 using Altinn.App.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
-using Microsoft.Extensions.Logging;
-
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -14,12 +11,10 @@ namespace Altinn.App.logic.DataProcessing
     public class InstantiationProcessor : IInstantiationProcessor
     {
         private IRegister _registerService;
-        private ILogger<IInstantiationProcessor> _logger;
 
-        public InstantiationProcessor(IRegister registerService, ILogger<IInstantiationProcessor> logger)
+        public InstantiationProcessor(IRegister registerService)
         {
             _registerService = registerService;
-            _logger = logger;
 
         }
 
@@ -27,12 +22,6 @@ namespace Altinn.App.logic.DataProcessing
         {
             if (data.GetType() == typeof(Skjema))
             {
-                _logger.LogDebug("// Logged debug");
-                _logger.LogInformation("// Logged information");
-                _logger.LogWarning("// Logged warning");
-                _logger.LogError("// Logged error");
-                _logger.LogCritical("// Logged critical");
-
                 Skjema model = (Skjema)data;
                 int partyId;
                 if (int.TryParse(instance.InstanceOwner.PartyId, out partyId))
