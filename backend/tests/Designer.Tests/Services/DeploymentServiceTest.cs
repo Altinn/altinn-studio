@@ -86,7 +86,8 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _kubernetesWrapperClient.Object,
-                _applicationInformationService.Object);
+                _applicationInformationService.Object,
+                _deploymentLogger.Object);
 
             // Act
             DeploymentEntity deploymentEntity =
@@ -124,7 +125,8 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _kubernetesWrapperClient.Object,
-                _applicationInformationService.Object);
+                _applicationInformationService.Object,
+                _deploymentLogger.Object);
 
             // Act
             SearchResults<DeploymentEntity> results =
@@ -152,7 +154,8 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _kubernetesWrapperClient.Object,
-                _applicationInformationService.Object);
+                _applicationInformationService.Object,
+                _deploymentLogger.Object);
 
             // Act
             SearchResults<DeploymentEntity> results =
@@ -183,7 +186,8 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _kubernetesWrapperClient.Object,
-                _applicationInformationService.Object);
+                _applicationInformationService.Object,
+                _deploymentLogger.Object);
 
             _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("createdRelease.json").First().Build);
