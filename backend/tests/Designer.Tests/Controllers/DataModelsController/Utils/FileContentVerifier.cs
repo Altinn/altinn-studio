@@ -1,6 +1,8 @@
 ﻿using System.IO;
+using FluentAssertions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController.Utils
@@ -11,9 +13,7 @@ namespace Designer.Tests.Controllers.DataModelsController.Utils
         public static void VerifyJsonFileContent(string path, string json)
         {
             string fileContent = File.ReadAllText(path);
-            JObject result = (JObject)JsonConvert.DeserializeObject(fileContent);
-            JObject expected = (JObject)JsonConvert.DeserializeObject(json);
-            Assert.True(JToken.DeepEquals(expected, result));
+            JsonAssertionUtils.DeepEquals(fileContent, json).Should().BeTrue();
         }
     }
 }
