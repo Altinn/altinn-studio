@@ -121,6 +121,19 @@ declare global {
 
       switchUser(user: user): any;
       assertUser(user: user): any;
+
+      /**
+       * Check a checkbox/radio from the design system.
+       * Our design system radios/checkboxes are a little special, as they hide the HTML input element and provide
+       * their own stylized variant. Cypress can't check/uncheck a hidden input field, and although we can tell
+       * cypress to force it, that just circumvents a lot of other checks that we want cypress to run.
+       */
+      dsCheck(): Chainable<null>;
+
+      /**
+       * Uncheck a checkbox/radio from the design system. See the comment above for dsCheck()
+       */
+      dsUncheck(): Chainable<null>;
     }
   }
 }

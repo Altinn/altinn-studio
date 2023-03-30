@@ -23,7 +23,7 @@ describe('WCAG', () => {
     cy.get(appFrontend.group.mainGroup)
       .find(appFrontend.group.editContainer)
       .find(appFrontend.group.next)
-      .should('be.visible')
+
       .click();
     cy.testWcag();
   });

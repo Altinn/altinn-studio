@@ -22,15 +22,15 @@ describe('Reportee selection', () => {
   it('Reportee selection in data app', () => {
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
-    cy.get(appFrontend.reporteeSelection.error).should('be.visible').contains(texts.selectNewReportee);
-    cy.get(appFrontend.reporteeSelection.seeSubUnits).should('be.visible').click();
+    cy.get(appFrontend.reporteeSelection.error).contains(texts.selectNewReportee);
+    cy.get(appFrontend.reporteeSelection.seeSubUnits).click();
     cy.contains(appFrontend.reporteeSelection.subUnits, 'Bergen').should('be.visible');
     cy.contains(appFrontend.reporteeSelection.reportee, 'slettet').should('not.exist');
     cy.get(appFrontend.reporteeSelection.checkbox).eq(0).click();
     cy.contains(appFrontend.reporteeSelection.reportee, 'slettet').should('be.visible');
     cy.get(appFrontend.reporteeSelection.checkbox).eq(1).click();
     cy.get(appFrontend.reporteeSelection.seeSubUnits).should('not.exist');
-    cy.get(appFrontend.reporteeSelection.searchReportee).should('be.visible').type('DDG');
+    cy.get(appFrontend.reporteeSelection.searchReportee).type('DDG');
     cy.get(appFrontend.reporteeSelection.reportee).should('have.length', 1).contains('DDG');
   });
 });

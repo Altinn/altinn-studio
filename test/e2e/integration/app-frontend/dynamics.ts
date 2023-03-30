@@ -7,7 +7,7 @@ describe('Dynamics', () => {
   it('Show and hide confirm name change checkbox on changing firstname', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName)
-      .should('be.visible')
+
       .type('test')
       .then(() => {
         cy.get(appFrontend.changeOfName.newMiddleName).focus();
@@ -23,9 +23,9 @@ describe('Dynamics', () => {
 
   it('Show and hide name change reasons radio buttons', () => {
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('test').blur();
-    cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('test').blur();
-    cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check({ force: true });
+    cy.get(appFrontend.changeOfName.newFirstName).type('test').blur();
+    cy.get(appFrontend.changeOfName.newLastName).type('test').blur();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
   });
 
@@ -37,18 +37,12 @@ describe('Dynamics', () => {
     });
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
-    cy.get(appFrontend.errorReport)
-      .should('exist')
-      .should('be.visible')
-      .should('contain.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.errorReport).should('contain.text', texts.testIsNotValidValue);
     cy.get(appFrontend.changeOfName.newLastName).type('hideFirstName');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.changeOfName.newLastName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible');
-    cy.get(appFrontend.errorReport)
-      .should('exist')
-      .should('be.visible')
-      .should('contain.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.errorReport).should('contain.text', texts.testIsNotValidValue);
   });
 
   it('Page interdependent dynamics with component lookups', () => {

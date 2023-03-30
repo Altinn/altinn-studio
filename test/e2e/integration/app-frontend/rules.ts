@@ -11,7 +11,6 @@ describe('Rules', () => {
       .type('fun')
       .then(() => {
         cy.get(appFrontend.changeOfName.newFullName)
-          .focus()
           .should('have.value', 'automation is fun')
           .parents()
           .eq(2)
@@ -23,8 +22,8 @@ describe('Rules', () => {
     cy.goto('changename');
     // We update newLastName which triggers a calculation backend that updates NewMiddleName to 'MiddleNameFromCalculation'
     // This should then trigger function which concatenates first + middle + last name to the newFullName field
-    cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('LastName').blur();
-    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('TriggerCalculation').blur();
+    cy.get(appFrontend.changeOfName.newLastName).type('LastName').blur();
+    cy.get(appFrontend.changeOfName.newFirstName).type('TriggerCalculation').blur();
     cy.get(appFrontend.changeOfName.newFullName).should(
       'have.value',
       'TriggerCalculation MiddleNameFromCalculation LastName',

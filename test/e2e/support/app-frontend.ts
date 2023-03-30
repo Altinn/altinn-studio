@@ -14,12 +14,12 @@ Cypress.Commands.add(
       cy.get(appFrontend.group.addNewItem).click();
     }
 
-    cy.get(appFrontend.group.currentValue).should('be.visible').type(`${oldValue}`).blur();
-    cy.get(appFrontend.group.newValue).should('be.visible').type(`${newValue}`).blur();
+    cy.get(appFrontend.group.currentValue).type(`${oldValue}`).blur();
+    cy.get(appFrontend.group.newValue).type(`${newValue}`).blur();
     cy.get(appFrontend.group.mainGroup)
       .find(appFrontend.group.editContainer)
       .find(appFrontend.group.next)
-      .should('be.visible')
+
       .click();
 
     if (openByDefault || typeof openByDefault === 'undefined') {
@@ -28,16 +28,16 @@ Cypress.Commands.add(
       cy.get(appFrontend.group.addNewItemSubGroup).click();
     }
 
-    cy.get(appFrontend.group.comments).should('be.visible').type(comment).blur();
-    cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
-    cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
+    cy.get(appFrontend.group.comments).type(comment).blur();
+    cy.get(appFrontend.group.saveSubGroup).click().should('not.exist');
+    cy.get(appFrontend.group.saveMainGroup).click().should('not.exist');
   },
 );
 
 Cypress.Commands.add('startStateFullFromStateless', () => {
   cy.intercept('POST', '**/instances/create').as('createInstance');
   cy.intercept('**/api/layoutsettings/statefull').as('getLayoutSettings');
-  cy.get(appFrontend.instantiationButton).should('be.visible').click();
+  cy.get(appFrontend.instantiationButton).click();
   cy.wait('@createInstance').its('response.statusCode').should('eq', 201);
   cy.wait('@getLayoutSettings');
 });

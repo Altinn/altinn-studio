@@ -11,19 +11,18 @@ describe('Formatting', () => {
       .parent()
       .should('have.css', 'border-bottom', '1px dashed rgb(148, 148, 148)');
     cy.get(appFrontend.changeOfName.mobilenummer)
-      .should('be.visible')
+
       .type('44444444')
       .should('have.value', '+47 444 44 444');
     cy.gotoAndComplete('changename');
     cy.get(appFrontend.backButton).should('be.visible');
     cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
-    cy.get(appFrontend.sendinButton).should('be.visible').click();
+    cy.get(appFrontend.sendinButton).click();
     cy.wait('@getLayoutGroup');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).find('input').check({ force: true });
-    cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue)
-      .should('be.visible')
       .type('1')
       .should('have.value', 'NOK 1')
       .and('have.css', 'text-align', 'right');

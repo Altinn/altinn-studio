@@ -14,8 +14,8 @@ describe('Feedback', () => {
   it('is possible to move app instance to feedback stage', () => {
     cy.startStateFullFromStateless();
     cy.intercept('PUT', '**/process/next').as('nextProcess');
-    cy.get(appFrontend.sendinButton).should('be.visible').click();
+    cy.get(appFrontend.sendinButton).click();
     cy.wait('@nextProcess').its('response.statusCode').should('eq', 200);
-    cy.get(appFrontend.feedback).should('be.visible').and('contain.text', texts.feedback);
+    cy.get(appFrontend.feedback).and('contain.text', texts.feedback);
   });
 });

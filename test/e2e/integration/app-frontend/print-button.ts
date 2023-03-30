@@ -13,7 +13,7 @@ describe('Print button', () => {
     cy.window().then((win) => {
       const printStub = cy.stub(win, 'print');
       cy.contains('button', 'Print / Lagre PDF')
-        .should('be.visible')
+
         .click()
         .then(() => {
           expect(printStub).to.be.called;

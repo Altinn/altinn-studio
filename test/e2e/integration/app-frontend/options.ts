@@ -15,21 +15,21 @@ describe('Options', () => {
 
     //Secure options
     cy.get(appFrontend.changeOfName.reference2).get('option[value=1]').should('be.visible');
-    cy.get(appFrontend.changeOfName.reference2).should('be.visible').select('1').and('have.value', '1');
+    cy.get(appFrontend.changeOfName.reference2).select('1').and('have.value', '1');
 
     // Select a different source, expect previous selection to be cleared and
     // new value to be selectable in the reference option
     cy.get(appFrontend.changeOfName.sources).select('digdir');
-    cy.get(appFrontend.changeOfName.reference).should('be.visible').and('have.value', '');
+    cy.get(appFrontend.changeOfName.reference).and('have.value', '');
     cy.get(appFrontend.changeOfName.reference).select('salt').should('have.value', 'salt');
-    cy.get(appFrontend.changeOfName.reference2).should('be.visible').select('2').and('have.value', '2');
+    cy.get(appFrontend.changeOfName.reference2).select('2').and('have.value', '2');
   });
 
   it('is possible to build options from repeating groups', () => {
     cy.goto('group');
     cy.get(appFrontend.navMenu).should('be.visible');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).find('input').check({ force: true });
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     cy.addItemToGroup(1, 2, 'automation');
     cy.addItemToGroup(3, 4, 'altinn');
     cy.get(appFrontend.group.options).then((options) => {

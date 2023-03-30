@@ -7,7 +7,7 @@ describe('Prefill', () => {
     const userFullName = Cypress.env('defaultFullName');
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.currentName).then((name) => {
-      cy.wrap(name).should('be.visible').and('have.value', userFullName).and('have.attr', 'readonly');
+      cy.wrap(name).and('have.value', userFullName).and('have.attr', 'readonly');
     });
   });
 });

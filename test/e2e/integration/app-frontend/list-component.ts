@@ -90,7 +90,7 @@ describe('List component', () => {
   });
   it('Search works with list as intended', () => {
     cy.goto('datalist');
-    cy.get(dataListPage.searchInput).should('be.visible').type('Johanne');
+    cy.get(dataListPage.searchInput).type('Johanne');
     cy.get(dataListPage.tableBody)
       .contains('Johanne')
       .parent('td')

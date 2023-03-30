@@ -20,13 +20,13 @@ describe('Mobile', () => {
     cy.sendIn();
     cy.wait('@getLayoutGroup');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).should('be.visible').find('input').check({ force: true });
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     cy.addItemToGroup(1, 2, 'automation');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');
+    cy.get(appFrontend.group.sendersName).type('automation');
     cy.get(appFrontend.navMenu).should('not.exist');
     cy.get(appFrontend.group.navigationBarButton)
-      .should('be.visible')
+
       .and('have.attr', 'aria-expanded', 'false')
       .click();
     cy.get(appFrontend.group.navigationBarButton).should('have.attr', 'aria-expanded', 'true');
@@ -40,7 +40,7 @@ describe('Mobile', () => {
     cy.get(appFrontend.nextButton).click();
     cy.sendIn();
 
-    cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
+    cy.get(appFrontend.confirm.sendIn).click();
     cy.get(appFrontend.confirm.sendIn).should('not.exist');
     cy.get(appFrontend.receipt.container).should('be.visible');
     cy.get(appFrontend.receipt.linkToArchive).should('be.visible');

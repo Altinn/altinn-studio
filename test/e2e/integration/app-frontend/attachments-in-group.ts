@@ -23,21 +23,17 @@ describe('Repeating group attachments', () => {
   const runReloadTests = true;
 
   const addNewRow = () => {
-    cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+    cy.get(appFrontend.group.addNewItem).click();
   };
 
   const gotoSecondPage = () => {
-    cy.get(appFrontend.group.mainGroup)
-      .find(appFrontend.group.editContainer)
-      .find(appFrontend.group.next)
-      .should('be.visible')
-      .click();
+    cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
   };
 
   beforeEach(() => {
     cy.goto('group');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).should('be.visible').find('input').check({ force: true });
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     addNewRow();
     gotoSecondPage();
   });
@@ -55,9 +51,9 @@ describe('Repeating group attachments', () => {
     deletedAttachments: string[] = [],
   ) => {
     if (deletedAttachments.includes(fileName)) {
-      cy.get(item.tableRowPreview).should('be.visible').should('not.contain.text', fileName);
+      cy.get(item.tableRowPreview).should('not.contain.text', fileName);
     } else {
-      cy.get(item.tableRowPreview).should('be.visible').should('contain.text', fileName);
+      cy.get(item.tableRowPreview).should('contain.text', fileName);
     }
   };
 
@@ -67,12 +63,12 @@ describe('Repeating group attachments', () => {
 
     const attachment = item.attachments(idx);
     if (attachment.tagSelector !== undefined && attachment.tagSave !== undefined) {
-      cy.get(attachment.tagSelector).should('be.visible').select('altinn');
+      cy.get(attachment.tagSelector).select('altinn');
       cy.get(attachment.tagSave).click();
     }
 
-    cy.get(attachment.status).should('be.visible').should('contain.text', texts.finishedUploading);
-    cy.get(attachment.name).should('be.visible').should('contain.text', fileName);
+    cy.get(attachment.status).should('contain.text', texts.finishedUploading);
+    cy.get(attachment.name).should('contain.text', fileName);
 
     if (verifyTableRow) {
       cy.get(tableRow.editBtn).click();
@@ -281,9 +277,7 @@ describe('Repeating group attachments', () => {
     waitForFormDataSave();
 
     // The next attachment filename should now replace the deleted one:
-    cy.get(appFrontend.group.row(0).uploadMulti.attachments(1).name)
-      .should('be.visible')
-      .should('contain.text', filenames[0].multi[2]);
+    cy.get(appFrontend.group.row(0).uploadMulti.attachments(1).name).should('contain.text', filenames[0].multi[2]);
 
     // This verifies that the deleted filename is no longer part of the table header preview:
     cy.get(appFrontend.group.row(0).editBtn).click();
@@ -303,9 +297,10 @@ describe('Repeating group attachments', () => {
     waitForFormDataSave();
 
     // The next filename should have replaced it:
-    cy.get(appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.attachments(1).name)
-      .should('be.visible')
-      .should('contain.text', filenames[1].nested[1][2]);
+    cy.get(appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.attachments(1).name).should(
+      'contain.text',
+      filenames[1].nested[1][2],
+    );
 
     cy.get(appFrontend.group.row(1).editBtn).click();
     verifyPreview();

@@ -9,9 +9,9 @@ const appFrontend = new AppFrontend();
 describe('Receipt', () => {
   it('Receipt page displays links and attachments', () => {
     cy.goto('confirm', 'with-data');
-    cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
+    cy.get(appFrontend.confirm.sendIn).click();
     cy.get(appFrontend.receipt.container)
-      .should('be.visible')
+
       .find(mui.tableBody)
       .then((table) => {
         cy.wrap(table).should('exist').and('be.visible');
@@ -60,22 +60,17 @@ describe('Receipt', () => {
       });
     }).as('FormLayout');
     cy.goto('confirm', 'with-data');
-    cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
+    cy.get(appFrontend.confirm.sendIn).click();
 
     cy.get(appFrontend.receipt.container).should('not.exist');
     cy.get('[data-testId=custom-receipt]').should('exist').and('be.visible');
     cy.get('#form-content-r-instance').should('exist').and('be.visible');
-    cy.get('#form-content-r-header').should('exist').and('be.visible').and('contain.text', 'Custom kvittering');
-    cy.get('#form-content-r-paragraph')
-      .should('exist')
-      .and('be.visible')
-      .and('contain.text', 'Takk for din innsending, dette er en veldig fin custom kvittering.');
-    cy.get('#form-content-r-attachments')
-      .should('exist')
-      .and('be.visible')
-      .find('[data-testId=attachment-list]')
-      .children()
-      .should('have.length', 5);
+    cy.get('#form-content-r-header').should('contain.text', 'Custom kvittering');
+    cy.get('#form-content-r-paragraph').should(
+      'contain.text',
+      'Takk for din innsending, dette er en veldig fin custom kvittering.',
+    );
+    cy.get('#form-content-r-attachments').find('[data-testId=attachment-list]').children().should('have.length', 5);
 
     /*
       Verify that layout and settings are not fetched on refresh

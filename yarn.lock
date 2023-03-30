@@ -2661,18 +2661,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.9.0":
-  version: 0.9.0
-  resolution: "@digdir/design-system-react@npm:0.9.0"
+"@digdir/design-system-react@npm:0.10.2":
+  version: 0.10.2
+  resolution: "@digdir/design-system-react@npm:0.10.2"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
     "@floating-ui/react": 0.17.0
     "@navikt/ds-icons": ^2.3.0
-    react-number-format: ^5.1.3
+    react-number-format: ^5.1.4
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 7669fa3491b6cbed6891db120eb6852d7e36fb0b9412f31bd225f184a894b06f9e87b29548ba1b5bb6b4281a0627e341d50b44396b865bc562850eed8d45f77a
+  checksum: 7c37ccdfcb58109683ad640b79c8c83453e600e2fe62f209f127f2b36e659c38e1c7c0ff42b07e573720d8d78656c869594c97b3c975a756f4b9c9dfbf4e368f
   languageName: node
   linkType: hard
 
@@ -5453,7 +5453,7 @@ __metadata:
     "@babel/runtime": ^7.21.0
     "@babel/runtime-corejs3": ^7.21.0
     "@date-io/moment": 1.3.13
-    "@digdir/design-system-react": 0.9.0
+    "@digdir/design-system-react": 0.10.2
     "@material-ui/core": 4.12.4
     "@material-ui/icons": 4.11.3
     "@material-ui/pickers": 3.3.10
@@ -5489,7 +5489,7 @@ __metadata:
     core-js: ^3.29.1
     cross-env: 7.0.3
     css-loader: 6.7.3
-    cypress: 12.8.1
+    cypress: 12.9.0
     cypress-axe: 1.4.0
     cypress-plugin-tab: 1.0.5
     cypress-wait-until: ^1.7.2
@@ -7191,9 +7191,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress@npm:12.8.1":
-  version: 12.8.1
-  resolution: "cypress@npm:12.8.1"
+"cypress@npm:12.9.0":
+  version: 12.9.0
+  resolution: "cypress@npm:12.9.0"
   dependencies:
     "@cypress/request": ^2.88.10
     "@cypress/xvfb": ^1.2.4
@@ -7239,7 +7239,7 @@ __metadata:
     yauzl: ^2.10.0
   bin:
     cypress: bin/cypress
-  checksum: a229f2b3ff20b1b533f6d4670303596aef596a394db77ea8eafe2fa8f175b79b9d48ba66262513fa806076be5c857e159539f6d8fd9acf4df9936a2fa649bf1e
+  checksum: aad2278310fe4897b2c4e1f23e22f28992c83bcac945a6c350d077b1b2fb1805e44d5c58e19e2a9d63ca04aa3f9eabdd3c661cab0ce5dddd75c72702262ac89e
   languageName: node
   linkType: hard
 
@@ -13299,15 +13299,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-number-format@npm:^5.1.3":
-  version: 5.1.3
-  resolution: "react-number-format@npm:5.1.3"
+"react-number-format@npm:^5.1.4":
+  version: 5.1.4
+  resolution: "react-number-format@npm:5.1.4"
   dependencies:
     prop-types: ^15.7.2
   peerDependencies:
-    react: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^18.0.0
-    react-dom: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^18.0.0
-  checksum: 354481a3ce15520d3e786f790a84a0363a94c56034519c6e2248d8f277095b696f31204a46745d3c64869559b7a81ba39ab9ad46c6582f762255f81d5c5d2e95
+    react: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: 770a1e86cd05d9df28aa5e6a12c5731351dd4a301464edd0ac5dcbc68d2f07eae37781ff14f6153566cbb7cccb28f13f0826d1844600d25ae6e12da060814282
   languageName: node
   linkType: hard
 

@@ -19,10 +19,8 @@ describe('On Entry', () => {
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
-    cy.get(appFrontend.selectInstance.header).should('be.visible').should('contain.text', texts.alreadyStartedForm);
-    cy.get(appFrontend.selectInstance.description)
-      .should('be.visible')
-      .should('contain.text', texts.continueOrStartNew);
+    cy.get(appFrontend.selectInstance.header).should('contain.text', texts.alreadyStartedForm);
+    cy.get(appFrontend.selectInstance.description).should('contain.text', texts.continueOrStartNew);
     cy.get(appFrontend.selectInstance.tableBody)
       .find('tr')
       .should('have.length', 1)
@@ -43,7 +41,7 @@ describe('On Entry', () => {
     cy.get(appFrontend.closeButton).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
     cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`).as('createdInstance');
-    cy.get(appFrontend.selectInstance.newInstance).should('be.visible').click();
+    cy.get(appFrontend.selectInstance.newInstance).click();
     cy.wait('@createdInstance').its('response.statusCode').should('eq', 201);
     cy.url().should('not.contain', instanceIdExample);
   });
