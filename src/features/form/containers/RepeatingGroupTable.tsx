@@ -131,7 +131,7 @@ export function RepeatingGroupTable({
       />
     );
 
-  if (!tableNodes || !tableNodes.length || !node || !container || !language) {
+  if (!tableNodes || !node || !container || !language) {
     return null;
   }
 
