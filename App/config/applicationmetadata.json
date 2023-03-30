@@ -12,18 +12,26 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.MessageV1"
+        "classRef": "Altinn.App.Models.MessageV1",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
       },
       "taskId": "Task_1",
       "maxCount": 1,
-      "minCount": 1
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "fileUpload-message",
       "taskId": "Task_1",
       "maxSize": 5,
       "maxCount": 3,
-      "minCount": 0
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "ServiceModel-test",
@@ -32,46 +40,66 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.Skjema"
+        "classRef": "Altinn.App.Models.Skjema",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
       },
       "taskId": "Task_2",
       "maxCount": 1,
-      "minCount": 1
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "fileUpload-changename",
       "taskId": "Task_2",
       "maxSize": 5,
       "maxCount": 3,
-      "minCount": 0
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "fileUploadWithTags-changename",
       "taskId": "Task_2",
       "maxSize": 5,
       "maxCount": 3,
-      "minCount": 0
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "mainUploaderSingle",
       "taskId": "Task_3",
       "maxSize": 5,
       "maxCount": 1,
-      "minCount": 0
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "mainUploaderMulti",
       "taskId": "Task_3",
       "maxSize": 5,
       "maxCount": 5,
-      "minCount": 0
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "subUploader",
       "taskId": "Task_3",
       "maxSize": 5,
       "maxCount": 5,
-      "minCount": 0
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "nested-group",
@@ -80,11 +108,16 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.NestedGroup"
+        "classRef": "Altinn.App.Models.NestedGroup",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
       },
       "taskId": "Task_3",
       "maxCount": 1,
-      "minCount": 1
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "likert",
@@ -93,11 +126,16 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.LikertSurvey"
+        "classRef": "Altinn.App.Models.LikertSurvey",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
       },
       "taskId": "Task_4",
       "maxCount": 1,
-      "minCount": 1
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "ref-data-as-pdf",
@@ -105,7 +143,10 @@
         "application/pdf"
       ],
       "maxCount": 0,
-      "minCount": 0
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     },
     {
       "id": "datalist",
@@ -114,11 +155,16 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.Datalist"
+        "classRef": "Altinn.App.Models.Datalist",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
       },
       "taskId": "Task_5",
       "maxCount": 1,
-      "minCount": 1
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     }
   ],
   "partyTypesAllowed": {
