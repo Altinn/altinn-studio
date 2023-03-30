@@ -33,6 +33,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   const onResetWrapper = () => {
     setCanDelete(false);
     props.handleClickResetRepo();
+    onCloseWrapper();
   };
 
   const onCloseWrapper = () => {
