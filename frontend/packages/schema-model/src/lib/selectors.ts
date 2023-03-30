@@ -16,6 +16,12 @@ export const getRootNodes = (uiSchemaNodes: UiSchemaNodes, defs: boolean): UiSch
 export const getRootNode = (uiSchemaNodes: UiSchemaNodes): UiSchemaNode =>
   getNodeByPointer(uiSchemaNodes, ROOT_POINTER);
 
+/**
+ * This litt trick is what making it possible to work with very large models. Its a needed complexity to beeing able
+ * to handle very large models in an array. React and proably other SPA-frameworks will have problem dealing with the
+ * Map datastructure directly, so that is why wee keep these pointers in an internal cache that we can access when
+ * doing mutations.
+ */
 const nodePointers: { uiSchemaNodes: UiSchemaNodes; cache: Map<string, UiSchemaNode> } = {
   uiSchemaNodes: [],
   cache: new Map<string, UiSchemaNode>(),
@@ -36,7 +42,10 @@ const getNodePointerCache = (uiSchemaNodes: UiSchemaNodes): Map<string, UiSchema
 export const hasNodePointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
   getNodePointerCache(uiSchemaNodes).has(pointer);
 
-export const getNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode | undefined => {
+export const getNodeByPointer = (
+  uiSchemaNodes: UiSchemaNodes,
+  pointer: string
+): UiSchemaNode | undefined => {
   const uiSchemaNode = getNodePointerCache(uiSchemaNodes).get(pointer);
   return uiSchemaNode;
 };
@@ -80,6 +89,9 @@ export const getParentNodeByPointer = (
   return undefined;
 };
 
+/**
+ * Solving the same problem as described above.
+ */
 const referredNodes: { uiSchemaNodes: UiSchemaNodes; cache: Map<string, UiSchemaNodes> } = {
   uiSchemaNodes: [],
   cache: new Map(),
@@ -92,7 +104,10 @@ export const getReferredNodes = (uiSchemaNodes: UiSchemaNodes, ref: string) => {
     uiSchemaNodes
       .filter((node) => typeof node.reference === 'string')
       .forEach((node) =>
-        referredNodes.cache.set(node.reference ?? '_', [...(referredNodes.cache.get(ref) ?? []), node])
+        referredNodes.cache.set(node.reference ?? '_', [
+          ...(referredNodes.cache.get(ref) ?? []),
+          node,
+        ])
       );
   }
   return referredNodes.cache.get(ref) ?? [];

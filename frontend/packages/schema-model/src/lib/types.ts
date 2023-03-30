@@ -74,7 +74,6 @@ export interface UiSchemaNode {
   value?: any;
   restrictions: Dict;
   default?: any;
-  const?: any;
   format?: StringFormat;
 }
 
