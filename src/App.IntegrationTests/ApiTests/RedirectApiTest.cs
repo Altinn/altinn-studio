@@ -24,7 +24,7 @@ namespace App.IntegrationTestsRef.ApiTests
         }
 
         [Theory]
-        [InlineData("https://altinn3local.no/ttd/en-annen-app", HttpStatusCode.BadRequest)]
+        [InlineData("https://local.altinn.cloud/ttd/en-annen-app", HttpStatusCode.BadRequest)]
         [InlineData("https://vg.no", HttpStatusCode.BadRequest)]
         [InlineData(null, HttpStatusCode.BadRequest)]
         [InlineData("", HttpStatusCode.BadRequest)]
