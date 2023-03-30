@@ -1,80 +1,62 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './TextRow.module.css';
-import type { TextDetail, TextResourceEntry } from './types';
-import { TrashIcon } from '@navikt/aksel-icons';
+import type { UpsertTextResourcesMutation } from './types';
+import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
 import {
   Button,
+  ButtonSize,
   ButtonVariant,
   ErrorMessage,
   Popover,
   PopoverVariant,
-  TextArea,
+  TableCell,
+  TableRow,
   TextField,
 } from '@digdir/design-system-react';
-import { Variables } from './Variables';
 import { ButtonColor } from '@altinn/altinn-design-system';
 import { useTranslation } from 'react-i18next';
+import { ButtonContainer } from 'app-shared/primitives';
+import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
+import { validateTextId } from './utils';
+import { TextEntry } from './TextEntry';
+import { Variables } from './Variables';
 
-export interface LangRowProps {
-  textId: string;
-  textData: TextDetail;
-  langName: string;
+export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
-  upsertEntry: (entry: TextResourceEntry) => void;
   removeEntry: ({ textId }) => void;
-  updateEntryId: ({ oldId, newId }) => void;
+  textId: string;
+  textRowEntries: TextTableRowEntry[];
+  updateEntryId: (data: TextResourceIdMutation) => void;
+  upsertTextResource: (data: UpsertTextResourcesMutation) => void;
+  variables: TextResourceVariable[];
 }
 
 export const TextRow = ({
   textId,
-  langName,
-  textData,
-  upsertEntry,
+  textRowEntries,
+  upsertTextResource,
   removeEntry,
   updateEntryId,
   idExists,
-}: LangRowProps) => {
+  variables,
+}: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
-  const [textEntryValue, setTextEntryValue] = useState(textData?.value || '');
+  const [textIdEditOpen, setTextIdEditOpen] = useState(false);
   const [keyError, setKeyError] = useState('');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+
   const { t } = useTranslation();
-
-  useEffect(() => {
-    setTextEntryValue(textData?.value || '');
-  }, [textData]);
-  const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    setTextEntryValue(e.currentTarget.value);
-
-  const handleTextEntryBlur = () => {
-    if (textData?.value !== textEntryValue) {
-      upsertEntry({ ...textData, id: textId, value: textEntryValue });
-    }
-  };
-  const isIllegalId = (textIdToCheck: string) => Boolean(textIdToCheck.toLowerCase().match(' ')); // TODO: create matcher
-
-  const validateTextId = (textIdToValidate: string): string => {
-    if (!textIdToValidate) {
-      return 'TextId kan ikke være tom';
-    }
-
-    if (idExists(textIdToValidate)) {
-      return 'Denne IDen finnes allerede';
-    }
-
-    if (isIllegalId(textIdToValidate)) {
-      return 'Det er ikke tillat med mellomrom i en textId';
-    }
-
-    return '';
-  };
 
   const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const newTextId = event.currentTarget.value;
-    const validationResult = validateTextId(newTextId);
-
-    setKeyError(validationResult);
-    setTextIdValue(newTextId);
+    if (newTextId !== textId) {
+      if (idExists(newTextId)) {
+        setKeyError('Denne IDen finnes allerede');
+      } else {
+        setKeyError(validateTextId(newTextId));
+      }
+      setTextIdValue(newTextId);
+    }
   };
 
   const handleTextIdBlur = () => {
@@ -83,49 +65,49 @@ export const TextRow = ({
     }
   };
 
-  const handleDeleteClick = () => {
-    removeEntry({ textId });
-  };
+  const handleDeleteClick = () => removeEntry({ textId });
 
-  const toggleConfirmDeletePopover = () => {
-    setIsConfirmDeleteOpen((prev) => !prev);
-  };
-
-  const idForValue = `value-${langName}-${textId}`;
-  const variables = textData?.variables || [];
-  const [infoboxOpen, setInfoboxOpen] = useState(false);
+  const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
 
   return (
-    <li data-testid={'lang-row'} className={classes.textRow}>
-      <div className={classes.leftCol}>
-        <TextArea
-          label={langName}
-          resize='vertical'
-          id={idForValue}
-          value={textEntryValue}
-          onBlur={handleTextEntryBlur}
-          onChange={handleTextEntryChange}
-          rows={3}
-        />
-        <Variables
-          infoboxOpen={infoboxOpen}
-          setInfoboxOpen={setInfoboxOpen}
-          variables={variables}
-        />
-      </div>
-      <div className={classes.centerCol}>
-        <TextField
-          isValid={!keyError}
-          value={textIdValue}
-          type='text'
-          onBlur={handleTextIdBlur}
-          onChange={handleTextIdChange}
-          label={'ID'}
-        />
-        {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
-      </div>
-
-      <div className={classes.rightCol}>
+    <TableRow data-testid={'lang-row'}>
+      {textRowEntries.map((translation) => (
+        <TableCell key={translation.lang + '-' + textId}>
+          <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} />
+        </TableCell>
+      ))}
+      <TableCell>
+        <ButtonContainer>
+          {textIdEditOpen ? (
+            <div>
+              <TextField
+                aria-label={'tekst key edit'}
+                isValid={!keyError}
+                value={textIdValue}
+                type='text'
+                onBlur={handleTextIdBlur}
+                onChange={handleTextIdChange}
+              />
+              {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
+            </div>
+          ) : (
+            <div role='text' aria-readonly>
+              {textIdValue}
+            </div>
+          )}
+          <Button
+            aria-label={'toggle-textkey-edit'}
+            icon={<PencilIcon style={{ height: '16px', width: '16px' }} />}
+            variant={ButtonVariant.Quiet}
+            size={ButtonSize.Small}
+            onClick={() => setTextIdEditOpen(!textIdEditOpen)}
+          />
+        </ButtonContainer>
+      </TableCell>
+      <TableCell>
+        <Variables variables={variables} />
+      </TableCell>
+      <TableCell>
         <Popover
           title={'Slett_rad'}
           variant={PopoverVariant.Warning}
@@ -137,8 +119,9 @@ export const TextRow = ({
               icon={<TrashIcon title={`Slett ${textId}`} />}
               variant={ButtonVariant.Quiet}
               onClick={toggleConfirmDeletePopover}
+              aria-label={t('schema_editor.delete')}
             >
-              <span>{t('schema_editor.delete')}</span>
+              {t('schema_editor.delete')}
             </Button>
           }
         >
@@ -146,11 +129,7 @@ export const TextRow = ({
             <div>
               <p>{t('schema_editor.textRow-title-confirmCancel-popover')}</p>
               <div className={classes.popoverButtons}>
-                <Button
-                  className={classes.popoverConfirmBtn}
-                  onClick={handleDeleteClick}
-                  color={ButtonColor.Danger}
-                >
+                <Button onClick={handleDeleteClick} color={ButtonColor.Danger}>
                   <p>{t('schema_editor.textRow-confirm-cancel-popover')}</p>
                 </Button>
                 <Button
@@ -164,7 +143,7 @@ export const TextRow = ({
             </div>
           )}
         </Popover>
-      </div>
-    </li>
+      </TableCell>
+    </TableRow>
   );
 };

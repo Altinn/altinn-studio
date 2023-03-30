@@ -1,5 +1,5 @@
 import ISO6391 from 'iso-639-1';
-import type { Option } from './types';
+import type { Option, TextResourceFile, TextTableRow, TextTableRowEntry } from './types';
 
 const intlNb = new Intl.DisplayNames(['nb'], { type: 'language' });
 
@@ -45,7 +45,7 @@ export const langOptions: Option[] = ISO6391.getAllCodes()
 
 export const filterFunction = (
   id: string | undefined,
-  value: string | undefined,
+  textTableRowEntries: TextTableRowEntry[] | undefined,
   searchQuery: string | undefined
 ) => {
   if (!searchQuery) {
@@ -54,9 +54,44 @@ export const filterFunction = (
     return true;
   } else if (id?.toLowerCase().includes(searchQuery.toLowerCase())) {
     return true;
-  } else if (value?.toLowerCase().includes(searchQuery.toLowerCase())) {
+  } else if (
+    textTableRowEntries.filter((entry) => entry.translation.includes(searchQuery)).length > 0
+  ) {
     return true;
   } else {
     return false;
   }
+};
+
+export const mapResourceFilesToTableRows = (files: TextResourceFile[]): TextTableRow[] => {
+  const rows = new Map();
+  files.forEach((file) =>
+    file.resources.forEach((resource) => {
+      if (!rows.has(resource.id)) {
+        rows.set(resource.id, {
+          textKey: resource.id,
+          variables: resource.variables,
+          translations: [],
+        });
+      }
+      rows.get(resource.id).translations.push({
+        lang: file.language,
+        translation: resource.value,
+      });
+    })
+  );
+  return Array.from(rows.values());
+};
+
+export const validateTextId = (textIdToValidate: string): string => {
+  const isIllegalId = (textIdToCheck: string) => Boolean(textIdToCheck.toLowerCase().match(' ')); // TODO: create matcher
+  if (!textIdToValidate) {
+    return 'TextId kan ikke være tom';
+  }
+
+  if (isIllegalId(textIdToValidate)) {
+    return 'Det er ikke tillat med mellomrom i en textId';
+  }
+
+  return '';
 };

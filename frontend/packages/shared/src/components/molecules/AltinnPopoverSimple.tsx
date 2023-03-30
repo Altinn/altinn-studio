@@ -71,7 +71,7 @@ export const AltinnPopoverSimple = (props: IAltinnPopoverProps) => {
               color={ButtonColor.Inverted}
               onClick={handleButtonClose}
             >
-              <span className={classes.borderBottom}>{props.btnCancelText}</span>
+              {props.btnCancelText}
             </Button>
           )}
         </ButtonContainer>

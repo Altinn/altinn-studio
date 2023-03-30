@@ -7,7 +7,10 @@ import type { ReactNode } from 'react';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 import { Provider } from 'react-redux';
 import { render, renderHook } from '@testing-library/react';
-import { ServicesContextProps, ServicesContextProvider } from '../../../../app-development/common/ServiceContext';
+import {
+  ServicesContextProps,
+  ServicesContextProvider,
+} from '../../../../app-development/common/ServiceContext';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -58,7 +61,7 @@ export const appStateMock: IAppState = {
   widgets: null,
 };
 
-export const queriesMock: ServicesContextProps = {
+export const queriesMock: Partial<ServicesContextProps> = {
   addLanguageCode: jest.fn(),
   createDeployment: jest.fn(),
   createRelease: jest.fn(),
@@ -80,7 +83,7 @@ export const queriesMock: ServicesContextProps = {
   pushRepoChanges: jest.fn(),
   updateTextId: jest.fn(),
   updateTranslationByLangCode: jest.fn(),
-}
+};
 
 export const renderWithMockStore =
   (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
