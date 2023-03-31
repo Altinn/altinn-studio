@@ -11,3 +11,8 @@
   justify-content: flex-end;
   padding-right: 25px;
 }
+
+.profileIconButton {
+  color: white;
+  fill: none;
+}

@@ -2,7 +2,7 @@ import React from 'react';
 import { AppBar as MuiAppBar, Grid, Toolbar } from '@mui/material';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
-import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
+// import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
 import { getTopBarMenu } from './appBarConfig';
 import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
 import { VersionControlHeader } from '../version-control/VersionControlHeader';
@@ -10,7 +10,11 @@ import { getRepositoryType } from 'app-shared/utils/repository';
 import classes from './AppBar.module.css';
 import { useMediaQuery } from '../../common/hooks';
 import { useTranslation } from 'react-i18next';
-import { Settings } from '@navikt/ds-icons';
+
+import AltinnStudioLogo from 'app-shared/navigation/main-header/AltinnStudioLogo';
+import { ThreeDotsMenu } from 'app-shared/navigation/main-header/ThreeDotsMenu';
+
+import { AiOutlineBranches } from 'react-icons/ai';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -41,19 +45,21 @@ export const AppBar = ({
         ])}
         elevation={5}
         sx={{
-          backgroundColor: '#EFEFEF',
+          backgroundColor: '#022F51',
           boxShadow: 'none',
-          color: 'black',
+          color: 'white',
         }}
       >
         <Toolbar className={classes.muiToolbar}>
-          <Grid container direction='row' alignItems='center' justifyContent='space-between'>
+          <Grid container direction='row' justifyContent='space-between'>
             <Grid item xs container>
-              <Grid item>
+              <Grid item className={classes.appOrg}>
                 <a href='/' className={classes.aImgStyling}>
-                  <img src={altinnImgLogoHeaderUrl()} alt='Altinn logo' />
+                  <AltinnStudioLogo />
                 </a>
+                <div className={classes.appName}>{org && app ? ` / ${app}` : ''}</div>
               </Grid>
+
               {hiddenMdUp ? null : (
                 <Grid item className={classes.breadCrumb}>
                   {activeSubHeaderSelection && `/ ${t(activeSubHeaderSelection)}`} /
@@ -61,12 +67,27 @@ export const AppBar = ({
                 </Grid>
               )}
             </Grid>
-            {hiddenSmDown ? null : (
-              <Grid xs item className={classes.paper}>
-                {org && app ? `${org} / ${app}` : ''}
+
+            {menu.map((item) => (
+              <Grid item key={item.key} className={classes.subHeader}>
+                <Link
+                  to={item.link.replace(':org', org).replace(':app', app)}
+                  className={classNames(classes.subHeaderLink, {
+                    [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
+                  })}
+                  data-testid={item.key}
+                >
+                  {t(item.key)}
+                </Link>
               </Grid>
-            )}
+            ))}
             <Grid item xs container direction='row' alignItems='center' justifyContent='flex-end'>
+              {hiddenSmDown ? null : (
+                <div className={classes.paper}>
+                  {/**{org && app ? `${org} / ${app}` : ''} */}
+                  {org && app ? `${org}` : ''} {t('shared.header_for')} {org && app ? `${org}` : ''}
+                </div>
+              )}
               {user || ''}
               {hiddenSmDown ? null : (
                 <Grid item>
@@ -76,35 +97,27 @@ export const AppBar = ({
             </Grid>
           </Grid>
         </Toolbar>
-        {hiddenSmDown
-          ? null
-          : showSubMenu && (
-              <Toolbar className={classes.muiToolbar}>
-                <Grid container direction='row' justifyContent='center' alignItems='center'>
-                  <Grid xs item>
-                    <VersionControlHeader />
-                  </Grid>
-                  {menu.map((item) => (
-                    <Grid item key={item.key} className={classes.subHeader}>
-                      <Link
-                        to={item.link.replace(':org', org).replace(':app', app)}
-                        className={classNames(classes.subHeaderLink, {
-                          [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
-                        })}
-                        data-testid={item.key}
-                      >
-                        {t(item.key)}
-                      </Link>
+        <div className={classes.subToolBar}>
+          {hiddenSmDown
+            ? null
+            : showSubMenu && (
+                <Toolbar className={classes.muiToolbar}>
+                  <div className={classes.branchIcon}>
+                    <AiOutlineBranches />
+                  </div>
+                  <Grid container direction='row'>
+                    <Grid item xs container className={classes.versionControlAndSettingStyle}>
+                      <VersionControlHeader />
                     </Grid>
-                  ))}
-                  <Grid xs item>
-                    <Link style={{ float: 'right' }} to={`/${org}/${app}/accesscontrol`}>
-                      <Settings />
-                    </Link>
                   </Grid>
-                </Grid>
-              </Toolbar>
-            )}
+
+                  <Grid>
+                    <ThreeDotsMenu />
+                  </Grid>
+                </Toolbar>
+              )}
+          <div></div>
+        </div>
       </MuiAppBar>
     </div>
   );

@@ -50,7 +50,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
       return repositoryOwnerPath(owner);
     }
     return repositoryBasePath();
-  }
+  };
 
   return (
     <>

@@ -1,5 +1,5 @@
 .container {
-  --toolbar-height: 55px;
+  --toolbar-height: 80px;
   --header-border-bottom-width: 1px;
   --header-height: calc(var(--toolbar-height) * 2 + var(--header-border-bottom-width));
   --left-menu-width: 68px;

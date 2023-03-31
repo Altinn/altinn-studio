@@ -3,20 +3,47 @@
   flex-grow: 1;
   z-index: 1;
 }
-
 .appBar {
-  border-bottom-color: #C9C9C9 !important;
+  border-bottom-color: #c9c9c9 !important;
   border-bottom: var(--header-border-bottom-width) solid;
   color: #000;
   position: fixed;
 }
 
+.subToolBar {
+  background-color: #274c69;
+}
+
+.versionControlAndSettingStyle {
+  direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.appName {
+  font-size: large;
+}
+
+.appOrg {
+  width: 100%;
+  overflow: hidden;
+}
+
+.aImgStyling {
+  float: left;
+}
+
+.appName {
+  justify-content: left;
+  padding-top: 7px;
+}
+
 .appBarDashboard {
-  background-color: #FFF;
+  background-color: #fff;
 }
 
 .appBarEditor {
-  background-color: #EFEFEF;
+  background-color: #efefef;
 }
 
 .muiToolbar {
@@ -29,11 +56,11 @@
 }
 
 .breadCrumbSubApp {
-  color: #0062BA;
+  color: white;
 }
 
 .paper {
-  text-align: center;
+  text-align: end;
 }
 
 .subHeader {
@@ -45,18 +72,19 @@
 
 .subHeaderLink {
   border-bottom: 1px solid transparent; /* To mitigate the 1 pixel adjustment */
-  color: #000;
+  color: white;
   font-weight: 400;
 }
 
-.subHeaderLink:hover, .subHeaderLinkActive:focus {
-  border-bottom: 1px solid #0062BA;
-  color: #0062BA;
+.subHeaderLink:hover,
+.subHeaderLinkActive:focus {
+  border-bottom: 1px solid white;
+  color: white;
 }
 
 .subHeaderLinkActive {
-  border-bottom: 1px solid #0062BA;
-  color: #0062BA;
+  border-bottom: 1px solid white;
+  color: white;
   font-weight: 500;
 }
 
@@ -64,6 +92,6 @@
   padding-right: 22px;
 }
 
-.aImgStyling, .aImgStyling:hover, .aImgStyling:active {
-  border-bottom: none;
+.branchIcon {
+  float: left;
 }
