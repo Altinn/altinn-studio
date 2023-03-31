@@ -3551,9 +3551,9 @@ __metadata:
   linkType: hard
 
 "@navikt/aksel-icons@npm:^2.7.3":
-  version: 2.8.2
-  resolution: "@navikt/aksel-icons@npm:2.8.2"
-  checksum: 29b03fa3647406a953d95af07a2dcb1f713ad7bbe0843897b26d239a4eb402333cfad14cf3cee34cf6a0020365dc0fb78cf5b3fab2c340517cc443b8c213eecb
+  version: 2.8.8
+  resolution: "@navikt/aksel-icons@npm:2.8.8"
+  checksum: 65272bfad3fd0c9f6183c946b73931b7a09e65409e27c5fbfb6b25e00240e3682ff2b3e5bd63a1ce535d5f035f9479e0d07b1022f8c0f8db53682b464c55a14c
   languageName: node
   linkType: hard
 
@@ -6459,9 +6459,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001466":
-  version: 1.0.30001469
-  resolution: "caniuse-lite@npm:1.0.30001469"
-  checksum: 8e496509d7e9ff189c72205675b5db0c5f1b6a09917027441e835efae0848a468a8c4e7d2b409ffc202438fcd23ae53e017f976a03c22c04d12d3c0e1e33e5de
+  version: 1.0.30001473
+  resolution: "caniuse-lite@npm:1.0.30001473"
+  checksum: 007ad17463612d38080fc59b5fa115ccb1016a1aff8daab92199a7cf8eb91cf987e85e7015cb0bca830ee2ef45f252a016c29a98a6497b334cceb038526b73f1
   languageName: node
   linkType: hard
 
