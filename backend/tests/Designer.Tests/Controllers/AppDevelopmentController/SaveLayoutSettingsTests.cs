@@ -43,7 +43,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/Settings.json");
-            JsonAssertionUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
+            JsonUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
         }
     }
 }

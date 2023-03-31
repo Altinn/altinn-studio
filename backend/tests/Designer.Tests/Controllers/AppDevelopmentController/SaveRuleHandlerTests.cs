@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 {
     public class SaveRuleHandlerTests : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
     {
-        private Mock<ISourceControl> _sourceControlMock;
+        private readonly Mock<ISourceControl> _sourceControlMock;
 
         public SaveRuleHandlerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {

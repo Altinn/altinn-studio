@@ -36,7 +36,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            JsonAssertionUtils.DeepEquals(expectedLayoutSettings, responseContent).Should().BeTrue();
+            JsonUtils.DeepEquals(expectedLayoutSettings, responseContent).Should().BeTrue();
         }
 
         [Theory(Skip = "If App/ui is not present in repo, the controller returns 500")]

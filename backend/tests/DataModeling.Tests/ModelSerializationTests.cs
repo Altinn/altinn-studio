@@ -111,7 +111,7 @@ namespace DataModeling.Tests
 
         private void SerializedJsonData_ShouldNotBeChanged()
         {
-            JsonAssertionUtils.DeepEquals(SerializedModelJson, JsonData).Should().BeTrue();
+            JsonUtils.DeepEquals(SerializedModelJson, JsonData).Should().BeTrue();
         }
 
         // Xml helper methods

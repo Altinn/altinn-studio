@@ -51,7 +51,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             foreach ((string expectedLayoutName, string expectedLayout) in expectedLayouts)
             {
                 string actualLayout = responseJson[Path.GetFileNameWithoutExtension(expectedLayoutName)].ToJsonString();
-                JsonAssertionUtils.DeepEquals(expectedLayout, actualLayout).Should().BeTrue();
+                JsonUtils.DeepEquals(expectedLayout, actualLayout).Should().BeTrue();
             }
         }
 
