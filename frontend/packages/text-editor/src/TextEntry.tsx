@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TextTableRowEntry, UpsertTextResourcesMutation } from './types';
-import { TextField } from '@digdir/design-system-react';
+import { TextArea } from '@digdir/design-system-react';
 import { Variables } from './Variables';
 
 export interface TextEntryProps extends TextTableRowEntry {
@@ -11,7 +11,7 @@ export interface TextEntryProps extends TextTableRowEntry {
 export const TextEntry = ({ textId, lang, translation, upsertTextResource }: TextEntryProps) => {
   const [textEntryValue, setTextEntryValue] = useState(translation);
   const variables = [];
-  const handleTextEntryChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+  const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     setTextEntryValue(e.currentTarget.value);
 
   const handleTextEntryBlur = () =>
@@ -19,11 +19,13 @@ export const TextEntry = ({ textId, lang, translation, upsertTextResource }: Tex
 
   return (
     <>
-      <TextField
+      <TextArea
         aria-label={lang + ' translation'}
         value={textEntryValue}
         onBlur={handleTextEntryBlur}
         onChange={handleTextEntryChange}
+        resize={'vertical'}
+        rows={2}
       />
       <Variables variables={variables} />
     </>
