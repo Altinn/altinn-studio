@@ -56,6 +56,11 @@ export function RepeatingGroupsEditContainer({
     return null;
   }
 
+  const shouldHideRow = node.isRepGroup() && node.item.rows[editIndex]?.groupExpressions?.hiddenRow;
+  if (shouldHideRow) {
+    return null;
+  }
+
   return (
     <RepeatingGroupsEditContainerInternal
       id={id}
