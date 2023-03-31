@@ -18,17 +18,17 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/layoutWithUnknownProperties.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/changename/layouts/form.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/changename/layouts/summary.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/datalist/layouts/formLayout.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/datalist/layouts/summary.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/group/layouts/hide.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/group/layouts/prefill.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/group/layouts/repeating.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/group/layouts/summary.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/likert/layouts/formLayout.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/FormLayout/message/layouts/formLayout.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/layoutWithUnknownProperties.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/changename/layouts/form.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/changename/layouts/summary.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/datalist/layouts/formLayout.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/datalist/layouts/summary.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/group/layouts/hide.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/group/layouts/prefill.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/group/layouts/repeating.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/group/layouts/summary.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/likert/layouts/formLayout.json")]
+        [InlineData("ttd", "empty-app", "testUser", "testLayout", "TestData/App/ui/message/layouts/formLayout.json")]
         public async Task SaveFormLayout_ReturnsOk(string org, string app, string developer, string layoutName, string layoutPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
