@@ -414,6 +414,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<List<ContentsResponse>> GetRepositoryContent(string org, string repository)
+        {
+            string giteaUrl = $"repos/{org}/{repository}/contents";
+            HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await response.Content.ReadAsAsync<List<ContentsResponse>>();
+            }
+
+            _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching content in {org}/{repository} failed with reponsecode {response.StatusCode}");
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public async Task<List<Organization>> GetUserOrganizations()
         {
             HttpResponseMessage response = await _httpClient.GetAsync("user/orgs");

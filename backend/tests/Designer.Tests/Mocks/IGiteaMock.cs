@@ -185,5 +185,10 @@ namespace Designer.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<List<ContentsResponse>> GetRepositoryContent(string org, string repository)
+        {
+            return Task.FromResult(new List<ContentsResponse>());
+        }
     }
 }

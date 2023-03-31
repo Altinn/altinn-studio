@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +33,25 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
-            return StatusCode(404);
+            return StatusCode(204);
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/repository/resourcelist")]
+        public async Task<List<ContentsResponse>> GetRepositoryResourceList(string org)
+        {
+            List<ContentsResponse> resourceList = new List<ContentsResponse>();
+            List<ContentsResponse> results = await _giteaApi.GetRepositoryContent(org, string.Format("{0}-resources", org));
+
+            foreach (ContentsResponse result in results)
+            {
+                if (result.name.ToLower().Contains("resource.json"))
+                {
+                    resourceList.Add(result);
+                }
+            }
+
+            return resourceList;
         }
     }
 }
