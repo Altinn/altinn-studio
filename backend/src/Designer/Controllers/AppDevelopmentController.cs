@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -268,7 +269,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("rule-config")]
         public IActionResult GetRuleConfig(string org, string app)
         {
-            return Content(_repository.GetRuleConfig(org, app), "application/javascript", Encoding.UTF8);
+            return Content(_repository.GetRuleConfig(org, app), MediaTypeNames.Application.Json, Encoding.UTF8);
         }
 
         /// <summary>
