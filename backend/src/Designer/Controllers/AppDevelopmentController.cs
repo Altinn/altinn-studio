@@ -179,6 +179,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The content of the settings file</returns>
         [HttpGet]
+        [UseSystemTextJson]
         [Route("layout-settings")]
         public async Task<ActionResult<LayoutSettings>> GetLayoutSettings(string org, string app)
         {
