@@ -1,40 +1,56 @@
 import React from 'react';
-import type { TextResourceMap } from './types';
 import userEvent from '@testing-library/user-event';
 import type { TextListProps } from './TextList';
 import { TextList } from './TextList';
 import { screen, render as rtlRender, act } from '@testing-library/react';
+import { TextTableRow } from './types';
 
 const renderTextList = (props: Partial<TextListProps> = {}) => {
-  const texts: TextResourceMap = {
-    a: {
-      value: 'value1',
+  const resourceRows: TextTableRow[] = [
+    {
+      textKey: 'a',
+      translations: [
+        {
+          lang: 'nb',
+          translation: 'value1',
+        },
+      ],
     },
-    b: {
-      value: 'value2',
+    {
+      textKey: 'b',
+      translations: [
+        {
+          lang: 'nb',
+          translation: 'value2',
+        },
+      ],
     },
-    c: {
-      value: 'value3',
+    {
+      textKey: 'c',
+      translations: [
+        {
+          lang: 'nb',
+          translation: 'value3',
+        },
+      ],
     },
-    d: {
-      value: 'value4',
+    {
+      textKey: 'd',
+      translations: [
+        {
+          lang: 'nb',
+          translation: 'value4',
+        },
+      ],
     },
-    e: {
-      value: 'value5',
-    },
-    f: {
-      value: 'value6',
-    },
-  };
+  ];
 
   const allProps: TextListProps = {
-    textIds: ['a', 'b', 'c', 'd', 'e', 'f'],
-    selectedLangCode: 'nb',
+    resourceRows,
     searchQuery: undefined,
-    texts,
     updateEntryId: (_arg) => undefined,
     removeEntry: (_arg) => undefined,
-    upsertEntry: (_entry) => undefined,
+    upsertTextResource: (_entry) => undefined,
     ...props,
   };
   const user = userEvent.setup();
@@ -46,27 +62,28 @@ describe('TextList', () => {
     const updateEntryId = jest.fn();
     const { user, rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
+    const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
+    await act(() => user.click(toggleEditButton[0]));
     const idInputs = screen.getAllByRole('textbox', {
-      name: /id/i,
+      name: 'tekst key edit',
     });
     await act(() => user.dblClick(idInputs[0]));
     await act(() => user.keyboard('a-updated{TAB}'));
     expect(updateEntryId).toHaveBeenCalledWith({ newId: 'a-updated', oldId: 'a' });
-    await act(() => user.keyboard('{TAB}{TAB}b-updated{TAB}'));
-    expect(updateEntryId).toHaveBeenCalledWith({ newId: 'b-updated', oldId: 'b' });
-    await act(() => user.keyboard('{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}e-updated{TAB}'));
-    expect(updateEntryId).toHaveBeenCalledWith({ newId: 'e-updated', oldId: 'e' });
   });
+
   test('that the user is warned when an id already exists', async () => {
     const updateEntryId = jest.fn();
     const { user, rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
+    const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
+    await act(() => user.click(toggleEditButton[0]));
     const idInputs = screen.getAllByRole('textbox', {
-      name: /id/i,
+      name: 'tekst key edit',
     });
     const errorMsg = 'Denne IDen finnes allerede';
-    await act(() => user.dblClick(idInputs[1]));
-    await act(() => user.keyboard('a'));
+    await act(() => user.dblClick(idInputs[0]));
+    await act(() => user.keyboard('b'));
     const error = screen.getByRole('alertdialog');
     expect(error).toBeInTheDocument();
     expect(screen.getByText(errorMsg)).not.toBeNull();
@@ -77,6 +94,6 @@ describe('TextList', () => {
     await act(() => user.keyboard('{TAB}'));
     expect(updateEntryId).not.toHaveBeenCalled();
     await act(() => user.keyboard('{SHIFT>}{TAB}{/SHIFT}{END}2{TAB}'));
-    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'b', newId: 'a2' });
+    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'b2' });
   });
 });

@@ -7,86 +7,117 @@ import { AltinnSpinner } from 'app-shared/components';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import classes from './TextEditor.module.css';
 import { getLocalStorage, setLocalStorage } from 'app-shared/utils/localStorage';
-import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
+import { TextResourceIdMutation, UpsertTextResourcesMutation } from '@altinn/text-editor/src/types';
 import { useTranslation } from 'react-i18next';
 import {
   useAddLanguageMutation,
   useDeleteLanguageMutation,
+  useReloadTextResourceFiles,
   useTextIdMutation,
   useTextLanguages,
-  useTextResources,
+  useTextResourceFiles,
   useTranslationByLangCodeMutation,
+  useUpsertTextResourcesMutation,
 } from '../../query-hooks/text';
 
 const storageGroupName = 'textEditorStorage';
+
 export const TextEditor = () => {
-  const [searchParams, setSearchParams] = useSearchParams({ lang: defaultLangCode });
-  const selectedLangCode = searchParams.get('lang');
+  const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
+  const selectedLangCodes = searchParams.get('lang').split('-');
   const getSearchQuery = () => searchParams.get('search') || '';
   const { org, app } = useParams();
-  const { data: appLangCodes } = useTextLanguages(org, app);
 
-  const setSelectedLangCode = (lang: string) => {
-    const params: any = { lang };
+  const { data: appLangCodes } = useTextLanguages(org, app);
+  const results = useTextResourceFiles(org, app, selectedLangCodes);
+  const reloadTextResourceFiles = useReloadTextResourceFiles(org, app);
+  const setSelectedLangCodes = async (langs: string[]) => {
+    const params: any = { lang: langs.join('-') };
     if (getSearchQuery().length > 0) {
-      params.search = getSearchQuery();
+      params.search = searchParams.get('search');
     }
-    setSearchParams(params);
+    await setSearchParams(params);
+    // Just do a reload of all textfiles to avoid hanging deleted texts and
+    // hanging new tekst.
+    await reloadTextResourceFiles();
   };
+
   const setSearchQuery = (search: string) => {
-    const params: any = { lang: selectedLangCode };
+    const params: any = { lang: searchParams.get('lang') };
     if (search.length > 0) {
       params.search = search;
     }
     setSearchParams(params);
   };
+  useEffect(() => {
+    if (appLangCodes && !appLangCodes.includes(selectedLangCodes[0])) {
+      setSelectedLangCodes([defaultLangCode]).then();
+    }
+  }, [appLangCodes, selectedLangCodes]);
 
-  const {
-    data: translations,
-    isLoading: isInitialLoadingLang,
-    isFetching: isFetchingTranslations,
-    refetch: refetchTextLang,
-  } = useTextResources(org, app, selectedLangCode);
+  const [textResourceFiles, setTextResourceFiles] = useState<TextResourceFile[]>([]);
+
+  const isInitialLoadingLang = results.filter((r) => r.isLoading).length > 0;
+  const isFetchingTranslations = results.filter((r) => r.isFetching).length > 0;
+
+  useEffect(
+    () =>
+      setTextResourceFiles(results.filter((r) => r.data).map((r) => r.data) as TextResourceFile[]),
+    [isInitialLoadingLang, isFetchingTranslations]
+  );
 
   const { t } = useTranslation();
-
-  /*
-   * Temporary fix to make sure to have the latest text-resources fetched.
-   * This issue will be fixed when we have implemented React Query with shared state/cache
-   */
-  useEffect(() => {
-    refetchTextLang().then();
-  }, [refetchTextLang]);
 
   const [hideIntroPage, setHideIntroPage] = useState(
     () => getLocalStorage(storageGroupName, 'hideTextsIntroPage') ?? false
   );
 
   const { mutate: addLanguageMutation } = useAddLanguageMutation(org, app);
-  const handleAddLanguage = (langCode: LangCode) =>
+  const handleAddLanguage = (language: LangCode) =>
     addLanguageMutation({
-      langCode,
-      resources: translations.resources.map(({ id, value }) => ({
+      language,
+      resources: textResourceFiles[0].resources.map(({ id, value }) => ({
         id,
         value: ['appName', 'ServiceName'].includes(id) ? value : '',
       })),
     });
 
   const { mutate: deleteLanguageMutation } = useDeleteLanguageMutation(org, app);
-  const handleDeleteLanguage = (langCode: LangCode) => deleteLanguageMutation({ langCode });
-
-  const { mutate: transMutation } = useTranslationByLangCodeMutation(org, app, selectedLangCode);
-  const handleTranslationChange = (data: TextResourceFile) => transMutation(data);
-
+  const { mutate: transMutation } = useTranslationByLangCodeMutation(org, app, selectedLangCodes);
   const { mutate: textIdMutation } = useTextIdMutation(org, app);
-  const handleTextIdChange = (data: TextResourceIdMutation) => textIdMutation([data]);
 
   const handleHideIntroPageButtonClick = () =>
     setHideIntroPage(setLocalStorage(storageGroupName, 'hideTextsIntroPage', true));
 
-  if (isInitialLoadingLang) {
+  const { mutate: textResourceMutation } = useUpsertTextResourcesMutation(org, app);
+  const upsertTextResource = (data: UpsertTextResourcesMutation) => {
+    textResourceMutation(data);
+    let itsAnInsert = true;
+    textResourceFiles.forEach((file) =>
+      file.resources.forEach((entry) => {
+        if (entry.id === data.textId && file.language === data.language) {
+          entry.value = data.translation;
+          itsAnInsert = false;
+        }
+      })
+    );
+    // It's an insert
+    if (itsAnInsert && data.language === selectedLangCodes[0]) {
+      textResourceFiles.forEach((file) =>
+        file.resources.push({
+          id: data.textId,
+          value: '',
+          variables: null,
+        })
+      );
+    }
+    setTextResourceFiles(textResourceFiles);
+  };
+
+  if (isInitialLoadingLang || isFetchingTranslations || textResourceFiles.length === 0) {
     return <AltinnSpinner />;
   }
+
   return (
     <>
       <PopoverPanel
@@ -122,22 +153,16 @@ export const TextEditor = () => {
         </span>
       </PopoverPanel>
       <TextEditorImpl
-        selectedLangCode={selectedLangCode}
+        addLanguage={handleAddLanguage}
+        availableLanguages={appLangCodes}
+        deleteLanguage={(langCode: LangCode) => deleteLanguageMutation({ langCode })}
         searchQuery={getSearchQuery()}
-        setSelectedLangCode={setSelectedLangCode}
         setSearchQuery={setSearchQuery}
-        availableLangCodes={appLangCodes}
-        translations={
-          translations || {
-            language: selectedLangCode,
-            resources: [],
-          }
-        }
-        isFetchingTranslations={isFetchingTranslations}
-        onTranslationChange={handleTranslationChange}
-        onTextIdChange={handleTextIdChange}
-        onAddLang={handleAddLanguage}
-        onDeleteLang={handleDeleteLanguage}
+        setSelectedLangCodes={setSelectedLangCodes}
+        textResourceFiles={textResourceFiles || []}
+        updateTextId={(data: TextResourceIdMutation) => textIdMutation([data])}
+        upsertTextResource={upsertTextResource}
+        upsertTextResourceFile={(data: TextResourceFile) => transMutation(data)}
       />
     </>
   );
