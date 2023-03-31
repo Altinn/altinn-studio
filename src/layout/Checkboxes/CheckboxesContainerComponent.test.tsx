@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
 import { LayoutStyle } from 'src/types';
-import type { IOptionsState } from 'src/shared/resources/options';
+import type { IOptionsState } from 'src/features/options';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const threeOptions = [

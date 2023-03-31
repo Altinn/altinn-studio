@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/language/sharedLanguage';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 

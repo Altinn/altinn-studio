@@ -4,15 +4,15 @@ import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react'
 import { Grid, TableCell, Typography, useMediaQuery } from '@material-ui/core';
 import { Edit as EditIcon } from '@navikt/ds-icons';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { AltinnMobileTable } from 'src/components/molecules/AltinnMobileTable';
-import { AltinnTableBody } from 'src/components/molecules/AltinnTableBody';
-import { AltinnTableHeader } from 'src/components/molecules/AltinnTableHeader';
-import { AltinnTableRow } from 'src/components/molecules/AltinnTableRow';
 import { AltinnTable } from 'src/components/organisms/AltinnTable';
-import { AltinnMobileTableItem } from 'src/features/form/containers/AltinnMobileTableItem';
+import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { AltinnMobileTable } from 'src/components/table/AltinnMobileTable';
+import { AltinnMobileTableItem } from 'src/components/table/AltinnMobileTableItem';
+import { AltinnTableBody } from 'src/components/table/AltinnTableBody';
+import { AltinnTableHeader } from 'src/components/table/AltinnTableHeader';
+import { AltinnTableRow } from 'src/components/table/AltinnTableRow';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
 

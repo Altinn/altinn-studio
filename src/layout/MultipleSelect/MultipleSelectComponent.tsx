@@ -2,8 +2,8 @@ import React from 'react';
 import Select from 'react-select';
 import type { MultiValue } from 'react-select';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { useGetOptions } from 'src/components/hooks';
+import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useGetOptions } from 'src/hooks/useGetOptions';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IOption } from 'src/types';

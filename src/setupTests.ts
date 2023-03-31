@@ -35,3 +35,15 @@ jest.mock('axios');
 
 (global as any).TextEncoder = TextEncoder;
 (global as any).TextDecoder = TextDecoder;
+
+(async () => {
+  // These need to run after TextEncoder and TextDecoder has been set above, because we can't start importing our code
+  // before these are present. We also need to set up the store at least once first, so that saga slice actions have
+  // been assigned.
+
+  const setupStore = (await import('src/redux/store')).setupStore;
+  const initSagas = (await import('src/redux/sagas')).initSagas;
+
+  const { sagaMiddleware } = setupStore();
+  initSagas(sagaMiddleware);
+})();

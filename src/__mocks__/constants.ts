@@ -1,4 +1,4 @@
-import type { IPartyTypesAllowed } from 'src/shared/resources/applicationMetadata';
+import type { IPartyTypesAllowed } from 'src/features/applicationMetadata';
 import type { IInstanceOwner } from 'src/types/shared';
 
 export const partyTypesAllowed: IPartyTypesAllowed = {

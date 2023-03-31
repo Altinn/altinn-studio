@@ -1,4 +1,4 @@
-import type { IFormDataState } from 'src/features/form/data';
+import type { IFormDataState } from 'src/features/formData';
 
 export function getFormDataStateMock(customState?: Partial<IFormDataState>) {
   const formData: IFormDataState = {

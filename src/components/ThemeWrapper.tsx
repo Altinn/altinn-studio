@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 import { createTheme, ThemeProvider } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { rightToLeftISOLanguageCodes } from 'src/language/languages';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';

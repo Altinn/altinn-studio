@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
-import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { ProcessActions } from 'src/features/process/processSlice';
+import { ValidationActions } from 'src/features/validation/validationSlice';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
-import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
 import { httpGet } from 'src/utils/network/networking';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';

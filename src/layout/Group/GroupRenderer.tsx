@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
-import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
+import { GroupContainer } from 'src/layout/Group/GroupContainer';
 import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
 import type { PropsFromGenericComponent } from 'src/layout';
 

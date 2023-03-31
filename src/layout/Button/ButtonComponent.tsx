@@ -1,14 +1,14 @@
 import React from 'react';
 
-import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { FormDataActions } from 'src/features/formData/formDataSlice';
+import { ProcessActions } from 'src/features/process/processSlice';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import classes from 'src/layout/Button/ButtonComponent.module.css';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { SaveButton } from 'src/layout/Button/SaveButton';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
-import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAltinnWindow } from 'src/types';
 import type { HComponent } from 'src/utils/layout/hierarchy.types';

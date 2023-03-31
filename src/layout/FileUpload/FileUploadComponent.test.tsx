@@ -5,7 +5,7 @@ import { screen } from '@testing-library/react';
 import { getAttachments } from 'src/__mocks__/attachmentsMock';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
-import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IAttachment } from 'src/features/attachments';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const testId = 'mockId';

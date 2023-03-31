@@ -2,8 +2,8 @@ import React from 'react';
 
 import { Grid, Typography } from '@material-ui/core';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getInstancePdf, mapInstanceAttachments } from 'src/utils/attachmentsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 

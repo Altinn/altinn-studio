@@ -3,7 +3,7 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
 import { mockMediaQuery, renderGenericComponentTest } from 'src/testUtils';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';

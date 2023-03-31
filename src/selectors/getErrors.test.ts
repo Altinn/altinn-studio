@@ -1,9 +1,9 @@
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
-import type { IFormDataState } from 'src/features/form/data';
-import type { IFormDynamicState } from 'src/features/form/dynamics';
-import type { IFormRuleState } from 'src/features/form/rules';
-import type { ITextResourcesState } from 'src/shared/resources/textResources';
+import type { IFormDynamicState } from 'src/features/dynamics';
+import type { IFormDataState } from 'src/features/formData';
+import type { IFormRuleState } from 'src/features/formRules';
+import type { ITextResourcesState } from 'src/features/textResources';
 
 describe('selectors > getErrors', () => {
   it('should return true if error is present', () => {

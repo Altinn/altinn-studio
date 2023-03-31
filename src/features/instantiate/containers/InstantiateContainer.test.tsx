@@ -7,7 +7,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
-import { setupStore } from 'src/store';
+import { setupStore } from 'src/redux/store';
 import { renderWithProviders } from 'src/testUtils';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { HttpStatusCodes } from 'src/utils/network/networking';
@@ -35,7 +35,7 @@ describe('InstantiateContainer', () => {
   const render = (initialState: Partial<IRuntimeState> = {}) => {
     const theme = createTheme(AltinnAppTheme);
     const stateMock = getInitialStateMock(initialState);
-    const mockStore = setupStore(stateMock);
+    const mockStore = setupStore(stateMock).store;
     mockStore.dispatch = jest.fn();
     const { store } = renderWithProviders(
       <MuiThemeProvider theme={theme}>

@@ -8,12 +8,12 @@ import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from 'redux';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { setupStore } from 'src/store';
+import { setupStore } from 'src/redux/store';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { ExprContextWrapper, useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { ComponentTypes } from 'src/layout/layout';
-import type { AppStore, RootState } from 'src/store';
+import type { AppStore, RootState } from 'src/redux/store';
 import type { IRuntimeState } from 'src/types';
 import type { AnyItem } from 'src/utils/layout/hierarchy.types';
 
@@ -24,7 +24,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 
 export const renderWithProviders = (
   component: any,
-  { preloadedState = {}, store = setupStore(preloadedState), ...renderOptions }: ExtendedRenderOptions = {},
+  { preloadedState = {}, store = setupStore(preloadedState).store, ...renderOptions }: ExtendedRenderOptions = {},
 ) => {
   function Wrapper({ children }: React.PropsWithChildren) {
     const theme = createTheme(AltinnAppTheme);
@@ -53,7 +53,7 @@ export interface RenderGenericComponentTestProps<T extends ComponentTypes> {
   component?: Partial<AnyItem<T>>;
   genericProps?: Partial<PropsFromGenericComponent<T>>;
   manipulateState?: (state: IRuntimeState) => void;
-  manipulateStore?: (store: ReturnType<typeof setupStore>) => void;
+  manipulateStore?: (store: ReturnType<typeof setupStore>['store']) => void;
 }
 
 export function renderGenericComponentTest<T extends ComponentTypes>({
@@ -87,7 +87,7 @@ export function renderGenericComponentTest<T extends ComponentTypes>({
   manipulateState && manipulateState(preloadedState);
   preloadedState.formLayout.layouts?.FormLayout?.push(realComponentDef);
 
-  const store = setupStore(preloadedState);
+  const { store } = setupStore(preloadedState);
   manipulateStore && manipulateStore(store);
 
   return {

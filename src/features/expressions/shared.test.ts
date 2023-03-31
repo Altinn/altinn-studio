@@ -11,8 +11,9 @@ import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src
 import type { Expression } from 'src/features/expressions/types';
 import type { IRepeatingGroups } from 'src/types';
 import type { IApplicationSettings } from 'src/types/shared';
-import type { LayoutNode, LayoutPages } from 'src/utils/layout/hierarchy';
 import type { HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 const { nodesInLayouts, resolvedNodesInLayouts } = _private;
 

@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
+import { AltinnAppHeader } from 'src/components/altinnAppHeader';
+import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { Footer } from 'src/features/footer/Footer';
 import classes from 'src/features/instantiate/containers/InstantiationContainer.module.css';
-import { AltinnAppHeader } from 'src/shared/components/altinnAppHeader';
-import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 

@@ -1,5 +1,5 @@
 import { checkIfRuleShouldRun, getRuleModelFields } from 'src/utils/rules';
-import type { IFormDataState } from 'src/features/form/data';
+import type { IFormDataState } from 'src/features/formData';
 
 const ruleHandleFn = (obj) => {
   obj.a = +obj.a;

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { SummaryGroupComponent } from 'src/components/summary/SummaryGroupComponent';
 import { GroupRenderer } from 'src/layout/Group/GroupRenderer';
+import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { ContainerComponent } from 'src/layout/LayoutComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';

@@ -1,7 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { mockFooter } from 'test/e2e/support/footer';
 
-import type { IBackendFeaturesState } from 'src/shared/resources/applicationMetadata';
+import type { IBackendFeaturesState } from 'src/features/applicationMetadata';
 
 const appFrontend = new AppFrontend();
 

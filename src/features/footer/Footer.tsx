@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { createFooterComponent } from 'src/features/footer';
 import classes from 'src/features/footer/Footer.module.css';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import type { IFooterLayout } from 'src/features/footer/types';
 
 export const Footer = () => {

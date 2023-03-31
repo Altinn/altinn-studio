@@ -1,7 +1,7 @@
 import type { SortDirection } from '@altinn/altinn-design-system';
 
 import { mapFormData } from 'src/utils/databindings';
-import type { IFormData } from 'src/features/form/data';
+import type { IFormData } from 'src/features/formData';
 import type { IAltinnWindow, IMapping } from 'src/types';
 
 const altinnWindow = window as Window as IAltinnWindow;

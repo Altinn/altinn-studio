@@ -6,8 +6,8 @@ import {
   removeRepeatingGroupFromUIConfig,
   topLevelComponents,
 } from 'src/utils/formLayout';
+import type { IAttachmentState } from 'src/features/attachments';
 import type { ILayout } from 'src/layout/layout';
-import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type { ILayoutSets, IRepeatingGroups } from 'src/types';
 
 const testLayout: ILayout = [

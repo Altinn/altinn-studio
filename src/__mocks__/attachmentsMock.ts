@@ -1,4 +1,4 @@
-import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IAttachment } from 'src/features/attachments';
 
 const getRandomFileSize = () => Math.floor(Math.random() * (2500 - 250 + 1)) + 250;
 

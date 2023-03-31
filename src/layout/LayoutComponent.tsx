@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { SummaryItemCompact } from 'src/components/summary/SummaryItemCompact';
-import type { ISummaryComponent } from 'src/components/summary/SummaryComponent';
+import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { ComponentTypes } from 'src/layout/layout';
+import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 /**

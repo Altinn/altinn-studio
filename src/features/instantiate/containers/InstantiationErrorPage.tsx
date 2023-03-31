@@ -3,8 +3,8 @@ import type { RouteProps } from 'react-router-dom';
 
 import Grid from '@material-ui/core/Grid';
 
+import { AltinnError } from 'src/components/altinnError';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
-import { AltinnError } from 'src/shared/components/altinnError';
 
 export type IInstantiationErrorPageProps = {
   title: string | JSX.Element | JSX.Element[];

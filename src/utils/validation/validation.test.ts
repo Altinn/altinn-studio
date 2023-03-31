@@ -26,7 +26,7 @@ import type {
   IValidationIssue,
   IValidations,
 } from 'src/types';
-import type { LayoutPages } from 'src/utils/layout/hierarchy';
+import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 const { nodesInLayouts } = _private;
 

@@ -4,19 +4,19 @@ import { screen, within } from '@testing-library/react';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { GroupContainer } from 'src/features/form/containers/GroupContainer';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
-import { setupStore } from 'src/store';
+import { FormDataActions } from 'src/features/formData/formDataSlice';
+import { GroupContainer } from 'src/layout/Group/GroupContainer';
+import { setupStore } from 'src/redux/store';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import type { ExprUnresolved } from 'src/features/expressions/types';
-import type { IFormDataState } from 'src/features/form/data';
-import type { IUpdateFormData } from 'src/features/form/data/formDataTypes';
-import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
-import type { IValidationState } from 'src/features/form/validation/validationSlice';
+import type { IFormDataState } from 'src/features/formData';
+import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
+import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
+import type { ITextResourcesState } from 'src/features/textResources';
+import type { IValidationState } from 'src/features/validation/validationSlice';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup, ILayoutComponent } from 'src/layout/layout';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
-import type { ITextResourcesState } from 'src/shared/resources/textResources';
 import type { ILayoutValidations, ITextResource } from 'src/types';
 
 export const defaultMockQuestions = [
@@ -234,7 +234,7 @@ export const render = ({
     },
   });
 
-  const mockStore = setupStore(preloadedState);
+  const mockStore = setupStore(preloadedState).store;
   const mockStoreDispatch = jest.fn();
   mockStore.dispatch = mockStoreDispatch;
   setScreenWidth(mobileView ? 600 : 1200);

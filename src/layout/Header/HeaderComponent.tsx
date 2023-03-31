@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Grid } from '@material-ui/core';
 
-import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
 

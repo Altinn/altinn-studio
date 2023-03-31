@@ -3,13 +3,13 @@ import React from 'react';
 import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
-import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { reducePageValidations, Triggers } from 'src/types';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type { IKeepComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
+import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ILayoutNavigation, INavigationConfig } from 'src/types';
 

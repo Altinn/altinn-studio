@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey, getParsedLanguageFromKey, getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { getHostname } from 'src/utils/urls/appUrlHelper';
 

@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { useInstanceIdParams } from 'src/common/hooks/useInstanceIdParams';
 import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIconReceipt';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { ConfirmPage } from 'src/features/confirm/containers/ConfirmPage';
+import { InstanceDataActions } from 'src/features/instanceData/instanceDataSlice';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
 import { selectAppName } from 'src/selectors/language';
-import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 
 export const Confirm = () => {
   const { instanceId } = useInstanceIdParams();

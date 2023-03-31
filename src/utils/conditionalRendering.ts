@@ -1,10 +1,10 @@
-import type { IFormData } from 'src/features/form/data';
 import type {
   IConditionalRenderingRule,
   IConditionalRenderingRules,
   IParameters,
   ISelectedFields,
-} from 'src/features/form/dynamics';
+} from 'src/features/dynamics';
+import type { IFormData } from 'src/features/formData';
 import type { IAltinnWindow, IRepeatingGroup, IRepeatingGroups } from 'src/types';
 
 /*

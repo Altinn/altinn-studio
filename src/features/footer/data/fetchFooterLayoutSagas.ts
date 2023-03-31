@@ -1,12 +1,12 @@
 import { call, put, select, take } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
+import { ApplicationMetadataActions } from 'src/features/applicationMetadata/applicationMetadataSlice';
 import { FooterLayoutActions } from 'src/features/footer/data/footerLayoutSlice';
-import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { httpGet } from 'src/utils/network/networking';
 import { getFooterLayoutUrl } from 'src/utils/urls/appUrlHelper';
+import type { IApplicationMetadata } from 'src/features/applicationMetadata/index.d';
 import type { IFooterLayout } from 'src/features/footer/types';
-import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata/index.d';
 import type { IRuntimeState } from 'src/types';
 
 export function* fetchFooterLayoutSaga(): SagaIterator {

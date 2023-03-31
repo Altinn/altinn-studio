@@ -2,16 +2,16 @@ import React from 'react';
 
 import cn from 'classnames';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { SummaryComponent } from 'src/components/summary/SummaryComponent';
-import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
+import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { PDF_LAYOUT_NAME } from 'src/features/pdf/data/pdfSlice';
 import classes from 'src/features/pdf/PDFView.module.css';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import { ComponentType } from 'src/layout/LayoutComponent';
-import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
+import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { useExprContext } from 'src/utils/layout/ExprContext';
-import type { LayoutNode } from 'src/utils/layout/hierarchy';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface PDFViewProps {
   appName: string;

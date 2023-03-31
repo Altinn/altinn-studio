@@ -4,8 +4,8 @@ import type { ChangeEventHandler, FocusEventHandler } from 'react';
 import { RadioGroup, RadioGroupVariant } from '@digdir/design-system-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
-import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
+import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
+import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 import type { IOption } from 'src/types';

@@ -7,7 +7,7 @@ import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { FileUploadWithTagComponent } from 'src/layout/FileUploadWithTag/FileUploadWithTagComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
-import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IAttachment } from 'src/features/attachments';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
 
 const testId = 'test-id';

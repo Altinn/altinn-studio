@@ -1,5 +1,5 @@
 import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
-import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
+import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 
 export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): ILayoutState {
   const mockFormLayoutState: ILayoutState = {

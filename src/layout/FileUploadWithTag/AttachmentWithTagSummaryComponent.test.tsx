@@ -8,7 +8,7 @@ import { renderWithProviders } from 'src/testUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
-import type { RootState } from 'src/store';
+import type { RootState } from 'src/redux/store';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 describe('AttachmentWithTagSummaryComponent', () => {

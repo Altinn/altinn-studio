@@ -13,7 +13,8 @@ import type {
 } from 'src/layout/layout';
 import type { ComponentType } from 'src/layout/LayoutComponent';
 import type { IValidations } from 'src/types';
-import type { LayoutNode, LayoutPage } from 'src/utils/layout/hierarchy';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 /**
  * In the hierarchy, components and groups will always have their layout expressions evaluated and resolved.

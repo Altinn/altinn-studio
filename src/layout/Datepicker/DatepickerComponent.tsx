@@ -6,7 +6,7 @@ import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/picker
 import moment from 'moment';
 import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
-import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { getDateConstraint, getDateFormat, getDateString } from 'src/utils/dateHelpers';
 import type { PropsFromGenericComponent } from 'src/layout';

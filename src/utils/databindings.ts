@@ -1,10 +1,10 @@
 import { dot, object } from 'dot-object';
 
 import { getParentGroup } from 'src/utils/validation/validation';
-import type { IFormData } from 'src/features/form/data';
+import type { IAttachment, IAttachments } from 'src/features/attachments';
+import type { IFormData } from 'src/features/formData';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
 import type { IDataModelBindings, ILayout } from 'src/layout/layout';
-import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 import type { IMapping, IRepeatingGroup, IRepeatingGroups } from 'src/types';
 
 /**

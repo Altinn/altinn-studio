@@ -9,7 +9,7 @@ import {
   mapFormData,
   removeGroupData,
 } from 'src/utils/databindings';
-import type { IFormData } from 'src/features/form/data';
+import type { IFormData } from 'src/features/formData';
 import type { ILayout } from 'src/layout/layout';
 import type { IMapping, IRepeatingGroups } from 'src/types';
 

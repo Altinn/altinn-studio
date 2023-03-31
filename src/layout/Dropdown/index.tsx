@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { useSelectedValueToText } from 'src/common/hooks/useSelectedValueToText';
-import { SummaryItemSimple } from 'src/components/summary/SummaryItemSimple';
+import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useSelectedValueToText } from 'src/hooks/useSelectedValueToText';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { FormComponent } from 'src/layout/LayoutComponent';
+import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';

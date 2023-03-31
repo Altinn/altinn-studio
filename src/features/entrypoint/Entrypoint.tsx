@@ -3,24 +3,24 @@ import { Navigate } from 'react-router-dom';
 
 import type { AxiosError } from 'axios';
 
-import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIconFormData';
+import { Form } from 'src/components/form/Form';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
-import { Form } from 'src/features/form/containers/Form';
-import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { PresentationComponent } from 'src/components/wrappers/Presentation';
 import { InstanceSelection } from 'src/features/instantiate/containers/InstanceSelection';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
+import { QueueActions } from 'src/features/queue/queueSlice';
+import { ValidationActions } from 'src/features/validation/validationSlice';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
-import { PresentationComponent } from 'src/shared/containers/Presentation';
-import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { PresentationType, ProcessTaskType } from 'src/types';
 import { isStatelessApp } from 'src/utils/appMetadata';
 import { checkIfAxiosError, httpGet, httpPost, HttpStatusCodes } from 'src/utils/network/networking';
 import { getActiveInstancesUrl, getPartyValidationUrl } from 'src/utils/urls/appUrlHelper';
-import type { ShowTypes } from 'src/shared/resources/applicationMetadata';
+import type { ShowTypes } from 'src/features/applicationMetadata';
 import type { ISimpleInstance } from 'src/types';
 
 export function Entrypoint({ allowAnonymous }: any) {

@@ -7,7 +7,7 @@ import axios from 'axios';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
 import { App } from 'src/App';
-import * as appSelector from 'src/common/hooks/useAppSelector';
+import * as appSelector from 'src/hooks/useAppSelector';
 import * as anonymousSelector from 'src/selectors/getAllowAnonymous';
 import { renderWithProviders } from 'src/testUtils';
 import { ProcessTaskType } from 'src/types';

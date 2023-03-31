@@ -4,25 +4,25 @@ import { shallowEqual } from 'react-redux';
 import { Grid, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 
-import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { Description } from 'src/features/form/components/Description';
-import { Label } from 'src/features/form/components/Label';
-import { Legend } from 'src/features/form/components/Legend';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { Description } from 'src/components/form/Description';
+import { Label } from 'src/components/form/Label';
+import { Legend } from 'src/components/form/Legend';
+import { FormDataActions } from 'src/features/formData/formDataSlice';
+import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import { components, FormComponentContext } from 'src/layout/index';
 import { makeGetFocus } from 'src/selectors/getLayoutData';
 import { Triggers } from 'src/types';
 import { getTextResource, gridBreakpoints, pageBreakStyles, selectComponentTexts } from 'src/utils/formComponentUtils';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { ISingleFieldValidation } from 'src/features/form/data/formDataTypes';
+import type { ISingleFieldValidation } from 'src/features/formData/formDataTypes';
 import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/layout/index';
 import type { ComponentTypes, IGridStyling } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
-import type { LayoutNode } from 'src/utils/layout/hierarchy';
 import type { AnyItem, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IGenericComponentProps<Type extends ComponentTypes> {
   node: LayoutNode | LayoutNodeFromType<Type>;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Panel } from 'src/features/form/components/Panel';
+import { Panel } from 'src/components/form/Panel';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type IPanelProps = PropsFromGenericComponent<'Panel'>;

@@ -1,6 +1,9 @@
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getRepeatingGroups } from 'src/utils/formLayout';
-import { _private, LayoutNode, LayoutPage, LayoutPages, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
+import { _private, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompHeader } from 'src/layout/Header/types';

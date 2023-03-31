@@ -5,7 +5,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import { AltinnCollapsibleAttachments } from 'src/components/molecules/AltinnCollapsibleAttachments';
-import { AltinnSummaryTable } from 'src/components/molecules/AltinnSummaryTable';
+import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import type { IAttachment, IAttachmentGrouping } from 'src/types/shared';
 
 export interface IReceiptComponentProps {

@@ -2,10 +2,10 @@ import React from 'react';
 
 import { createTheme, MuiThemeProvider, Typography } from '@material-ui/core';
 
-import { useAppDispatch } from 'src/common/hooks/useAppDispatch';
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { ProcessActions } from 'src/shared/resources/process/processSlice';
+import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { ProcessActions } from 'src/features/process/processSlice';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 

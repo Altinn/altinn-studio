@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-import type { RootState } from 'src/store';
+import type { RootState } from 'src/redux/store';
 import type { ITracks } from 'src/types';
 
 /**

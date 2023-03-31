@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { SummaryItemSimple } from 'src/components/summary/SummaryItemSimple';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { FormComponent } from 'src/layout/LayoutComponent';
+import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import { formatISOString } from 'src/utils/formatDate';
 import type { PropsFromGenericComponent } from 'src/layout';

@@ -1,8 +1,9 @@
 import React, { useContext } from 'react';
 
-import { _private, LayoutNode } from 'src/utils/layout/hierarchy';
-import type { LayoutPages } from 'src/utils/layout/hierarchy';
+import { _private } from 'src/utils/layout/hierarchy';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutNodeFromObj } from 'src/utils/layout/hierarchy.types';
+import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 export const ExprContext = React.createContext<LayoutPages | undefined>(undefined);
 

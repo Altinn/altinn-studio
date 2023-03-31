@@ -3,9 +3,10 @@ import dot from 'dot-object';
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
 import type { ExprConfig, Expression } from 'src/features/expressions/types';
-import type { IFormData } from 'src/features/form/data';
+import type { IFormData } from 'src/features/formData';
 import type { IApplicationSettings, IInstanceContext } from 'src/types/shared';
-import type { LayoutNode, LayoutPage } from 'src/utils/layout/hierarchy';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 export interface ContextDataSources {
   instanceContext: IInstanceContext | null;

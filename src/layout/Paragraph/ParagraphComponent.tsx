@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
-import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';

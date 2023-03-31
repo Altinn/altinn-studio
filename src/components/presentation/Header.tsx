@@ -3,8 +3,8 @@ import React from 'react';
 import { Grid } from '@material-ui/core';
 import classNames from 'classnames';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
 import { Progress } from 'src/components/presentation/Progress';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { ProcessTaskType } from 'src/types';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { PresentationType } from 'src/types';

@@ -3,7 +3,7 @@ import React from 'react';
 import { TextField } from '@digdir/design-system-react';
 import axios from 'axios';
 
-import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { AddressLabel } from 'src/layout/Address/AddressLabel';
 import { httpGet } from 'src/utils/network/sharedNetworking';

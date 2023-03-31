@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { useCommaSeparatedOptionsToText } from 'src/common/hooks/useCommaSeparatedOptionsToText';
+import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useCommaSeparatedOptionsToText } from 'src/hooks/useCommaSeparatedOptionsToText';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';

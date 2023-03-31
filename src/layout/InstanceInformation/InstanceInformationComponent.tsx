@@ -5,8 +5,8 @@ import Moment from 'moment';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { useAppSelector } from 'src/common/hooks/useAppSelector';
-import { AltinnSummaryTable } from 'src/components/molecules/AltinnSummaryTable';
+import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import type { IRuntimeState } from 'src/types';

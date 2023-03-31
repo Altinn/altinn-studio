@@ -3,7 +3,7 @@ import React from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
 import { TextField } from '@digdir/design-system-react';
 
-import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IInputFormatting } from 'src/layout/layout';
 

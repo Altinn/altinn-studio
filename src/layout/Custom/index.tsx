@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { SummaryItemSimple } from 'src/components/summary/SummaryItemSimple';
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
 import { FormComponent } from 'src/layout/LayoutComponent';
+import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';

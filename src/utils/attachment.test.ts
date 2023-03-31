@@ -1,8 +1,8 @@
 import { getFileEnding, removeFileEnding, shiftAttachmentRowInRepeatingGroup } from 'src/utils/attachment';
+import type { IAttachment, IAttachments } from 'src/features/attachments';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
 import type { ILayoutComponent } from 'src/layout/layout';
-import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 
 describe('attachment utils', () => {
   describe('shiftAttachmentRowInRepeatingGroup', () => {
