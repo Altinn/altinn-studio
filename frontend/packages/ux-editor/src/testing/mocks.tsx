@@ -61,7 +61,7 @@ export const appStateMock: IAppState = {
   widgets: null,
 };
 
-export const queriesMock: Partial<ServicesContextProps> = {
+export const queriesMock: ServicesContextProps = {
   addLanguageCode: jest.fn(),
   createDeployment: jest.fn(),
   createRelease: jest.fn(),
@@ -83,6 +83,7 @@ export const queriesMock: Partial<ServicesContextProps> = {
   pushRepoChanges: jest.fn(),
   updateTextId: jest.fn(),
   updateTranslationByLangCode: jest.fn(),
+  upsertTextResources: jest.fn(),
 };
 
 export const renderWithMockStore =

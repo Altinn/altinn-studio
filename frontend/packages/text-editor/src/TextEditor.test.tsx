@@ -78,16 +78,16 @@ describe('TextEditor', () => {
     const { user } = renderTextEditor({
       setSelectedLangCodes: setSelectedLangCodes,
     });
-    const norwegianRadio = screen.getByRole('checkbox', {
+    const norwegianCheckbox = screen.getByRole('checkbox', {
       name: /norsk bokmål/i,
     });
-    const englishRadio = screen.getByRole('checkbox', {
+    const englishCheckbox = screen.getByRole('checkbox', {
       name: /engelsk/i,
     });
-    expect(norwegianRadio).toBeChecked();
-    expect(englishRadio).not.toBeChecked();
+    expect(norwegianCheckbox).toBeChecked();
+    expect(englishCheckbox).not.toBeChecked();
 
-    await act(() => user.click(englishRadio));
+    await act(() => user.click(englishCheckbox));
 
     expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb', 'en']);
   });

@@ -47,21 +47,11 @@ export const filterFunction = (
   id: string | undefined,
   textTableRowEntries: TextTableRowEntry[] | undefined,
   searchQuery: string | undefined
-) => {
-  if (!searchQuery) {
-    return true;
-  } else if (searchQuery.length < 1) {
-    return true;
-  } else if (id?.toLowerCase().includes(searchQuery.toLowerCase())) {
-    return true;
-  } else if (
-    textTableRowEntries.filter((entry) => entry.translation.includes(searchQuery)).length > 0
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-};
+) =>
+  !searchQuery ||
+  searchQuery.length < 1 ||
+  id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  textTableRowEntries.filter((entry) => entry.translation.includes(searchQuery)).length > 0;
 
 export const mapResourceFilesToTableRows = (files: TextResourceFile[]): TextTableRow[] => {
   const rows = new Map();
