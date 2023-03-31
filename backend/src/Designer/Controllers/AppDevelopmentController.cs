@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -218,14 +219,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The model representation as JSON</returns>
         [HttpPost]
         [Route("rule-handler")]
-        public IActionResult SaveRuleHandler(string org, string app, bool stageFile)
+        public async Task<IActionResult> SaveRuleHandler(string org, string app, bool stageFile)
         {
             string content = string.Empty;
             try
             {
                 using (StreamReader reader = new(Request.Body))
                 {
-                    content = reader.ReadToEnd();
+                    content = await reader.ReadToEndAsync();
                     _repository.SaveRuleHandler(org, app, content);
                 }
 
