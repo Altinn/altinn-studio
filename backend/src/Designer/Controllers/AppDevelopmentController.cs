@@ -155,6 +155,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
+        [UseSystemTextJson]
         [Route("layout-settings")]
         public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromBody] LayoutSettings layoutSettings)
         {

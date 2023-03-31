@@ -3,12 +3,11 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
+using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
@@ -19,6 +18,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
         }
 
+        /// It's not working if the ui directory is not present in the repo.
+        [Theory]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/changename/Settings.json")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/datalist/Settings.json")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/group/Settings.json")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/likert/Settings.json")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/message/Settings.json")]
         public async Task SaveLayoutSettings_ReturnsOk(string org, string app, string developer, string layoutSettingsPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -36,7 +42,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/ui/Settings.json");
+            string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/Settings.json");
             JsonAssertionUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
         }
     }
