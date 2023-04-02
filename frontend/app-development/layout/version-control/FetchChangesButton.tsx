@@ -18,7 +18,7 @@ export const FetchChangesButton = ({ fetchChanges, buttonText }: IFetchChangesCo
       icon={<DownloadIcon />}
       onClick={fetchChangesHandler}
       size={ButtonSize.Small}
-      variant={ButtonVariant.Quiet}
+      variant={ButtonVariant.Filled}
     >
       <span id='fetch_changes_btn'>{buttonText}</span>
     </Button>

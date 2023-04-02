@@ -3,7 +3,7 @@ import Classes from './ThreeDotsMenu.module.css';
 import { Settings } from '@navikt/ds-icons';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CloneButton } from 'app-development/layout/version-control/CloneButton';
+import { FaRegClone } from 'react-icons/fa';
 import { CloneModal } from 'app-development/layout/version-control/CloneModal';
 import cn from 'classnames';
 
@@ -11,7 +11,6 @@ export function ThreeDotsMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
-
   const { org, app } = useParams();
   const { t } = useTranslation();
   const closeCloneModal = () => setCloneModalAnchor(null);
@@ -35,38 +34,42 @@ export function ThreeDotsMenu() {
   }, []);
 
   return (
-    <div>
-      <button className={Classes.verticalDotsMenu} onClick={handleButtonClick}>
+    <>
+      <button
+        data-testid='menuBtn'
+        className={Classes.verticalDotsMenu}
+        onClick={handleButtonClick}
+      >
         &#8942;
       </button>
       {isMenuOpen && (
         <div className={Classes.popover} ref={menuRef}>
           <div className={Classes.menuItems}>
             <div className={Classes.cloneMenuItem}>
-              <div>
-                <CloneButton onClick={openCloneModal} buttonText={t('sync_header.clone')} />
-              </div>
+              <Link onClick={openCloneModal} to={''}>
+                <section className={Classes.section}>
+                  <FaRegClone className={Classes.icon} />
+                  <div className={Classes.cloneText}>{t('sync_header.clone')}</div>
+                </section>
+              </Link>
             </div>
-
             <div className={Classes.repoMenuItem}>
               <Link className={cn('fa fa-gitea')} to={`/${org}/${app}/repository`}>
                 <div className={Classes.repoText}>{t('dashboard.repository')}</div>
               </Link>
             </div>
-
             <div className={Classes.settingMenuItem}>
               <Link to={`/${org}/${app}/accesscontrol`}>
-                <div className={Classes.settingText}>
-                  {' '}
-                  <Settings /> {t('sync_header.setting')}
-                </div>
+                <section className={Classes.section}>
+                  <Settings className={Classes.icon} />
+                  <div className={Classes.settingText}>{t('sync_header.setting')}</div>
+                </section>
               </Link>
             </div>
           </div>
         </div>
       )}
-
       <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />
-    </div>
+    </>
   );
 }

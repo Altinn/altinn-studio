@@ -9,51 +9,57 @@
 
 .popover {
   position: absolute;
-
-  background-color: rgb(233, 205, 205);
-
+  background-color: white;
   border-radius: 5px;
-  min-width: 150px;
+  min-width: 175px;
   top: 51px;
   right: 30px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
 }
 
 .menuItems {
   padding: 20px;
-
-  font-size: 16px;
   justify-content: flex-end;
   padding-right: 40px;
+  padding-left: 15px;
+}
+
+.icon {
+  margin-right: 5px;
+  font-size: 20px;
+}
+
+.section {
+  display: flex;
+  align-items: center;
+}
+
+.cloneText {
+  font-size: 15px;
   padding-left: 10px;
-}
-
-.menuItem:hover {
-  background-color: #e9ecef;
-}
-
-.cloneButton {
 }
 
 .repoText {
   font-size: 15px;
-  padding-left: 40px;
+  padding-left: 43px;
   font-family: Arial, Helvetica, sans-serif;
-  font-weight: 200;
 }
+
 .settingText {
   font-size: 15px;
+  padding-left: 10px;
 }
 
 .cloneMenuItem {
   margin-bottom: 15px;
   margin-left: 8px;
 }
+
 .repoMenuItem {
   margin-bottom: 15px;
   font-size: 13px;
 }
+
 .settingMenuItem {
-  margin-bottom: 15px;
   margin-left: 8px;
-  font-size: 20px;
 }

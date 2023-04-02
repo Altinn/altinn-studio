@@ -1,4 +1,4 @@
-import React from 'react';
+/* import React from 'react';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { CloudDownIcon } from '@navikt/aksel-icons';
 import classes from './VersionControlHeader.module.css';
@@ -21,3 +21,4 @@ export function CloneButton(props: ICloneButtonProps) {
     </Button>
   );
 }
+ */
