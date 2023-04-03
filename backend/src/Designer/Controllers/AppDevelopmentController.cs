@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -155,20 +157,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
+        [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromBody] LayoutSettings layoutSettings)
+        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromBody] JsonNode layoutSettings)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            try
-            {
-                await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, null);
-                return Ok("Layout settings successfully saved.");
-            }
-            catch (FileNotFoundException exception)
-            {
-                return NotFound(exception.Message);
-            }
+            await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, null);
+            return Ok("Layout settings successfully saved.");
         }
 
         /// <summary>
@@ -178,14 +174,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The content of the settings file</returns>
         [HttpGet]
+        [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult<LayoutSettings>> GetLayoutSettings(string org, string app)
+        public async Task<ActionResult<JsonNode>> GetLayoutSettings(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                LayoutSettings layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, null);
+                var layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, null);
                 return Ok(layoutSettings);
             }
             catch (FileNotFoundException exception)
@@ -216,14 +213,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The model representation as JSON</returns>
         [HttpPost]
         [Route("rule-handler")]
-        public IActionResult SaveRuleHandler(string org, string app, bool stageFile)
+        public async Task<IActionResult> SaveRuleHandler(string org, string app, bool stageFile)
         {
             string content = string.Empty;
             try
             {
                 using (StreamReader reader = new(Request.Body))
                 {
-                    content = reader.ReadToEnd();
+                    content = await reader.ReadToEndAsync();
                     _repository.SaveRuleHandler(org, app, content);
                 }
 
@@ -265,7 +262,15 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("rule-config")]
         public IActionResult GetRuleConfig(string org, string app)
         {
-            return Content(_repository.GetRuleConfig(org, app), "application/javascript", Encoding.UTF8);
+            try
+            {
+                return Content(_repository.GetRuleConfig(org, app), MediaTypeNames.Application.Json, Encoding.UTF8);
+            }
+            catch (FileNotFoundException e)
+            {
+                return NotFound();
+            }
+
         }
 
         /// <summary>

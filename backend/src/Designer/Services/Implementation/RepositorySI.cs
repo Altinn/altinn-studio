@@ -292,8 +292,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string fileData = File.ReadAllText(filePath, Encoding.UTF8);
                 return fileData;
             }
-
-            return "Rule configuration not found.";
+            throw new FileNotFoundException("Rule configuration not found.");
         }
 
         /// <summary>

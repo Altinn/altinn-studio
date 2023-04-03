@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 
 namespace SharedResources.Tests
 {
-    public static class JsonAssertionUtils
+    public static class JsonUtils
     {
         public static bool DeepEquals(string expectedJson, string json)
         {

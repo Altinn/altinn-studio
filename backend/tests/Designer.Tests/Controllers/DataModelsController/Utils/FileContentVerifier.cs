@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.DataModelsController.Utils
         public static void VerifyJsonFileContent(string path, string json)
         {
             string fileContent = File.ReadAllText(path);
-            JsonAssertionUtils.DeepEquals(fileContent, json).Should().BeTrue();
+            JsonUtils.DeepEquals(fileContent, json).Should().BeTrue();
         }
     }
 }

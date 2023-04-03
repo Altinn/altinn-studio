@@ -21,17 +21,17 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "empty-app", "testUser",
-            "TestData/FormLayout/layoutWithUnknownProperties.json",
-            "TestData/FormLayout/changename/layouts/form.json",
-            "TestData/FormLayout/changename/layouts/summary.json",
-            "TestData/FormLayout/datalist/layouts/formLayout.json",
-            "TestData/FormLayout/datalist/layouts/summary.json",
-            "TestData/FormLayout/group/layouts/hide.json",
-            "TestData/FormLayout/group/layouts/prefill.json",
-            "TestData/FormLayout/group/layouts/repeating.json",
-            "TestData/FormLayout/group/layouts/summary.json",
-            "TestData/FormLayout/likert/layouts/formLayout.json",
-            "TestData/FormLayout/message/layouts/formLayout.json")]
+            "TestData/App/ui/layoutWithUnknownProperties.json",
+            "TestData/App/ui/changename/layouts/form.json",
+            "TestData/App/ui/changename/layouts/summary.json",
+            "TestData/App/ui/datalist/layouts/formLayout.json",
+            "TestData/App/ui/datalist/layouts/summary.json",
+            "TestData/App/ui/group/layouts/hide.json",
+            "TestData/App/ui/group/layouts/prefill.json",
+            "TestData/App/ui/group/layouts/repeating.json",
+            "TestData/App/ui/group/layouts/summary.json",
+            "TestData/App/ui/likert/layouts/formLayout.json",
+            "TestData/App/ui/message/layouts/formLayout.json")]
         public async Task GetAppDevelopment_ShouldReturnLayouts(string org, string app, string developer, params string[] expectedLayoutPaths)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -51,7 +51,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             foreach ((string expectedLayoutName, string expectedLayout) in expectedLayouts)
             {
                 string actualLayout = responseJson[Path.GetFileNameWithoutExtension(expectedLayoutName)].ToJsonString();
-                JsonAssertionUtils.DeepEquals(expectedLayout, actualLayout).Should().BeTrue();
+                JsonUtils.DeepEquals(expectedLayout, actualLayout).Should().BeTrue();
             }
         }
 
