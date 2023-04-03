@@ -82,22 +82,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<LayoutSettings> GetLayoutSettings(string org, string app, string developer, string layoutSetName)
+        public async Task<JsonNode> GetLayoutSettings(string org, string app, string developer, string layoutSetName)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                LayoutSettings layoutSettingsForLayoutSet = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetName);
+                var layoutSettingsForLayoutSet = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetName);
                 return layoutSettingsForLayoutSet;
             }
 
-            LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(null);
+            var layoutSettings = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(null);
             return layoutSettings;
         }
 
         /// <inheritdoc />
-        public async Task SaveLayoutSettings(string org, string app, string developer, LayoutSettings layoutSettings, string layoutSetName)
+        public async Task SaveLayoutSettings(string org, string app, string developer, JsonNode layoutSettings, string layoutSetName)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();

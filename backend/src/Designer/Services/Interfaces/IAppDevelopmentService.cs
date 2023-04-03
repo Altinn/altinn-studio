@@ -62,8 +62,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Identifier for application</param>
         /// <param name="developer">Identifier for app-developer</param>
         /// <param name="layoutSetName">Name of layoutset. Is null of app does not use layoutset</param>
-        /// <returns>LayoutSettings for layoutset</returns>
-        public Task<LayoutSettings> GetLayoutSettings(string org, string app, string developer, [CanBeNull] string layoutSetName);
+        /// <returns>JsonNode for layoutset</returns>
+        public Task<JsonNode> GetLayoutSettings(string org, string app, string developer, [CanBeNull] string layoutSetName);
 
         /// <summary>
         /// Save LayoutSettings for layoutset. Use null as layoutSetName for apps that does not use layoutset.
@@ -73,7 +73,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Identifier for app-developer</param>
         /// <param name="layoutSettings">The layoutSettings to be saved</param>
         /// <param name="layoutSetName">Name of layoutset. Is null of app does not use layoutset</param>
-        public Task SaveLayoutSettings(string org, string app, string developer, LayoutSettings layoutSettings, [CanBeNull] string layoutSetName);
+        public Task SaveLayoutSettings(string org, string app, string developer, JsonNode layoutSettings, [CanBeNull] string layoutSetName);
 
     }
 }

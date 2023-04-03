@@ -159,7 +159,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromBody] LayoutSettings layoutSettings)
+        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromBody] JsonNode layoutSettings)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -183,13 +183,13 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult<LayoutSettings>> GetLayoutSettings(string org, string app)
+        public async Task<ActionResult<JsonNode>> GetLayoutSettings(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                LayoutSettings layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, null);
+                var layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, null);
                 return Ok(layoutSettings);
             }
             catch (FileNotFoundException exception)

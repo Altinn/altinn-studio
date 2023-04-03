@@ -10,13 +10,13 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetLayoutSettings : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
+    public class GetLayoutSettingsTests : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
     {
-        public GetLayoutSettings(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
+        public GetLayoutSettingsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {
         }
 
-        [Theory(Skip = "Content is not the same as expected. Strongly typed model should be replaces with JsonNode.")]
+        [Theory]
         [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/changename/Settings.json")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/datalist/Settings.json")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", "TestData/App/ui/group/Settings.json")]

@@ -394,7 +394,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <returns>The content of Settings.json</returns>
-        public async Task<LayoutSettings> GetLayoutSettingsAndCreateNewIfNotFound(string layoutSetName)
+        public async Task<JsonNode> GetLayoutSettingsAndCreateNewIfNotFound(string layoutSetName)
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             if (!FileExistsByRelativePath(layoutSettingsPath))
@@ -402,7 +402,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 await CreateLayoutSettings(layoutSetName);
             }
             string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath);
-            LayoutSettings layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(fileContent, _jsonOptions);
+            var layoutSettings = JsonNode.Parse(fileContent);
 
             return layoutSettings;
         }
@@ -415,11 +415,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 Directory.CreateDirectory(layoutSetPath);
             }
             string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
-            LayoutSettings layoutSettings = new()
-            {
-                Schema = _layoutSettingsSchemaUrl,
-                Pages = new Pages { Order = layoutNames }
-            };
+
+            string defaultSettings = $@"{{
+            ""schema"": ""{_layoutSettingsSchemaUrl}"",
+            ""pages"": {{
+                ""order"": {JsonSerializer.Serialize(layoutNames)}
+                }}
+            }}";
+
+            var layoutSettings = JsonNode.Parse(defaultSettings);
             await SaveLayoutSettings(layoutSetName, layoutSettings);
         }
 
@@ -440,10 +444,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <param name="layoutSettings">The layoutsettings to be saved</param>
         /// <returns>The content of Settings.json</returns>
-        public async Task SaveLayoutSettings(string layoutSetName, LayoutSettings layoutSettings)
+        public async Task SaveLayoutSettings(string layoutSetName, JsonNode layoutSettings)
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
-            string serializedLayoutSettings = JsonSerializer.Serialize(layoutSettings, _jsonOptions);
+            string serializedLayoutSettings = layoutSettings.ToJsonString(_jsonOptions);
             await WriteTextByRelativePathAsync(layoutSettingsPath, serializedLayoutSettings);
         }
 
