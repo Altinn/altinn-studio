@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaRegClone } from 'react-icons/fa';
 import { CloneModal } from 'app-development/layout/version-control/CloneModal';
-import cn from 'classnames';
+import { repositoryPath } from 'app-shared/api-paths';
 
 export function ThreeDotsMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -53,11 +53,18 @@ export function ThreeDotsMenu() {
                 </section>
               </Link>
             </div>
+
             <div className={Classes.repoMenuItem}>
-              <Link className={cn('fa fa-gitea')} to={`/${org}/${app}/repository`}>
+              <a
+                className={'fa fa-gitea'}
+                href={repositoryPath(org, app)}
+                target='_blank'
+                rel='noopener noreferrer'
+              >
                 <div className={Classes.repoText}>{t('dashboard.repository')}</div>
-              </Link>
+              </a>
             </div>
+
             <div className={Classes.settingMenuItem}>
               <Link to={`/${org}/${app}/accesscontrol`}>
                 <section className={Classes.section}>

@@ -12,6 +12,8 @@ import { useTranslation } from 'react-i18next';
 import AltinnStudioLogo from 'app-shared/navigation/main-header/AltinnStudioLogo';
 import { ThreeDotsMenu } from 'app-shared/navigation/main-header/ThreeDotsMenu';
 import { AiOutlineBranches } from 'react-icons/ai';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { publiserPath } from 'app-shared/api-paths';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -32,6 +34,11 @@ export const AppBar = ({
   const { org, app } = useParams();
   const repositoryType = getRepositoryType(org, app);
   const menu = getTopBarMenu(repositoryType);
+
+  const handlePubliserClick = () => {
+    window.location.href = publiserPath(org, app);
+  };
+
   return (
     <div className={classes.root}>
       <MuiAppBar
@@ -66,7 +73,7 @@ export const AppBar = ({
             <Grid item>
               <span className={classes.verticalDivider}>|</span>
             </Grid>
-            <Grid item xs={6} container alignItems='center' justifyContent='flex-start'>
+            <Grid item xs={4} container alignItems='center' justifyContent='flex-start'>
               {menu.map((item) => (
                 <Grid item key={item.key} className={classes.subHeader}>
                   <Link
@@ -80,6 +87,15 @@ export const AppBar = ({
                   </Link>
                 </Grid>
               ))}
+            </Grid>
+            <Grid item xs container alignItems='center'>
+              <Button
+                className={null}
+                onClick={handlePubliserClick}
+                variant={ButtonVariant.Outline}
+              >
+                {t('top_menu.deploy')}
+              </Button>
             </Grid>
             <Grid item xs container direction='row' alignItems='center' justifyContent='flex-end'>
               {hiddenSmDown ? null : (

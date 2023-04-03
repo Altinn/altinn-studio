@@ -18,20 +18,23 @@
 }
 
 .menuItems {
-  padding: 20px;
+  padding: 15px;
   justify-content: flex-end;
   padding-right: 40px;
   padding-left: 15px;
+  cursor: pointer;
 }
 
 .icon {
   margin-right: 5px;
   font-size: 20px;
+  cursor: pointer;
 }
 
 .section {
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .cloneText {
@@ -51,15 +54,19 @@
 }
 
 .cloneMenuItem {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   margin-left: 8px;
+  cursor: pointer;
 }
 
 .repoMenuItem {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  margin-top: 10px;
   font-size: 13px;
+  cursor: pointer;
 }
 
 .settingMenuItem {
   margin-left: 8px;
+  margin-bottom: 20px;
 }
