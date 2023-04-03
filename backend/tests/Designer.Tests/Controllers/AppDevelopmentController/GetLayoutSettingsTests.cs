@@ -40,8 +40,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory(Skip = "If App/ui is not present in repo, the controller returns 500")]
-        [InlineData("ttd", "empty-app", "testUser")]
-        public async Task GetLayoutSettings_IfNotExists_Should_AndReturnNotFound(string org, string app, string developer)
+        [InlineData("ttd", "empty-app")]
+        public async Task GetLayoutSettings_IfNotExists_Should_AndReturnNotFound(string org, string app)
         {
             string url = $"{VersionPrefix(org, app)}/layout-settings";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);

@@ -163,15 +163,8 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            try
-            {
-                await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, null);
-                return Ok("Layout settings successfully saved.");
-            }
-            catch (FileNotFoundException exception)
-            {
-                return NotFound(exception.Message);
-            }
+            await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, null);
+            return Ok("Layout settings successfully saved.");
         }
 
         /// <summary>
@@ -269,7 +262,15 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("rule-config")]
         public IActionResult GetRuleConfig(string org, string app)
         {
-            return Content(_repository.GetRuleConfig(org, app), MediaTypeNames.Application.Json, Encoding.UTF8);
+            try
+            {
+                return Content(_repository.GetRuleConfig(org, app), MediaTypeNames.Application.Json, Encoding.UTF8);
+            }
+            catch (FileNotFoundException e)
+            {
+                return NotFound();
+            }
+
         }
 
         /// <summary>

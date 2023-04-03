@@ -38,17 +38,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "empty-app")]
-        public async Task GetRuleConfig_WhenNotExists_ReturnsOK(string org, string app)
+        public async Task GetRuleConfig_WhenNotExists_ReturnsNotFound(string org, string app)
         {
             string url = $"{VersionPrefix(org, app)}/rule-config";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
 
-            // Endpoint should be changed asap to return a 404 or something else than OK. Returning custom sentence content as status is not a good idea.
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            responseContent.Should().Be("Rule configuration not found.");
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         private async Task<string> AddRuleConfigToRepo(string createdFolderPath, string expectedLayoutPath)

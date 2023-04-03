@@ -46,7 +46,8 @@ public class AppDevelopmentServiceTest : IDisposable
             ""pages"": {{
                 ""order"": [
                     ""layoutFile1"",
-                    ""layoutFile2""
+                    ""layoutFile2"",
+                    ""layoutFile3""
                 ]
             }}
         }}";
