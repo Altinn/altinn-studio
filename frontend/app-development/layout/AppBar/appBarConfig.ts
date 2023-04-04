@@ -11,6 +11,7 @@ export enum TopBarMenu {
   Create = 'top_menu.create',
   Datamodel = 'top_menu.datamodel',
   Text = 'top_menu.texts',
+  Deploy = 'top_menu.deploy',
   Access = 'top_menu.access-controll',
   None = '',
 }
