@@ -34,7 +34,7 @@ export const ShareChangesButton = (props: IShareChangesComponentProps) => {
       id='share_changes_button'
       onClick={shareChangesHandler}
       size={ButtonSize.Small}
-      variant={ButtonVariant.Filled}
+      variant={ButtonVariant.Quiet}
     >
       {renderCorrectText()}
     </Button>

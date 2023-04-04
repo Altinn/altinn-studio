@@ -70,7 +70,7 @@ export const AppBar = ({
                 </Grid>
               )}
             </Grid>
-            <Grid item>
+            <Grid item alignItems='center' justifyContent='flex-start'>
               <span className={classes.verticalDivider}>|</span>
             </Grid>
             <Grid item xs={4} container alignItems='center' justifyContent='flex-start'>
@@ -88,9 +88,16 @@ export const AppBar = ({
                 </Grid>
               ))}
             </Grid>
-            <Grid item xs container alignItems='center'>
+            <Grid item xs container alignItems='center' justifyContent='flex-end'>
               <Button
-                className={null}
+                className={classes.previewButton}
+                onClick={null}
+                variant={ButtonVariant.Outline}
+              >
+                {t('top_menu.preview')}
+              </Button>
+              <Button
+                className={classes.publishButton}
                 onClick={handlePubliserClick}
                 variant={ButtonVariant.Outline}
               >

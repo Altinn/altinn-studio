@@ -8,7 +8,6 @@ export interface IFetchChangesComponentProps {
   fetchChanges: any;
   buttonText: string;
 }
-
 export const FetchChangesButton = ({ fetchChanges, buttonText }: IFetchChangesComponentProps) => {
   const fetchChangesHandler = (event: any) => fetchChanges(event.currentTarget);
   return (
@@ -18,7 +17,7 @@ export const FetchChangesButton = ({ fetchChanges, buttonText }: IFetchChangesCo
       icon={<DownloadIcon />}
       onClick={fetchChangesHandler}
       size={ButtonSize.Small}
-      variant={ButtonVariant.Filled}
+      variant={ButtonVariant.Quiet}
     >
       <span id='fetch_changes_btn'>{buttonText}</span>
     </Button>

@@ -21,7 +21,8 @@
 }
 
 .appName {
-  font-size: medium;
+  font-size: 18px;
+  font-weight: 400;
 }
 
 .appOrg {
@@ -72,6 +73,7 @@
   color: #504e4e;
   font-size: 1.5rem;
   margin-top: 223px;
+  align-items: center;
 }
 
 .paper {
@@ -110,4 +112,16 @@
 .branchIcon {
   float: left;
   font-size: 22px;
+}
+
+.publishButton {
+  margin-right: 20px;
+  margin-left: 20px;
+}
+
+.previewButton {
+  --component-button-outline-primary-color-background-default: none;
+  --component-button-outline-primary-color-border-default: none;
+  --component-button-outline-primary-color-border-hover: #004e95;
+  --component-button-outline-primary-color-text-default: #ffffff;
 }

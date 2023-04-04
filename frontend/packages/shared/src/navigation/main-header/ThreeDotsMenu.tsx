@@ -20,18 +20,22 @@ export function ThreeDotsMenu() {
     setIsMenuOpen(!isMenuOpen);
   }
 
-  function handleClickOutside(event) {
+  function handleCloneOutsideClick(event: MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(event.target)) {
       setIsMenuOpen(false);
+    } else cloneModalAnchor && !cloneModalAnchor.contains(event.target);
+    {
+      closeCloneModal();
     }
   }
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    {
+      if (setIsMenuOpen) {
+        document.addEventListener('mousedown', handleCloneOutsideClick);
+      }
+    }
+  });
 
   return (
     <>
