@@ -360,7 +360,6 @@ namespace Altinn.Studio.Designer.Controllers
             string decodedPath = Uri.UnescapeDataString(modelPath);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string json = await _schemaModelService.GetSchema(org, app, developer, decodedPath);
-
             return Ok(json);
         }
 
