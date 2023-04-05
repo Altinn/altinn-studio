@@ -50,6 +50,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ITextsService, TextsService>();
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
+            services.AddTransient<IPreviewService, PreviewService>();
             services.RegisterDatamodeling(configuration);
 
             return services;

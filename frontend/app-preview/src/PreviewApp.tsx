@@ -8,7 +8,7 @@ export const PreviewApp = () => {
   return (
     <div className={classes.previewContainer}>
       <Routes>
-        <Route path='/preview/:org/:app' element={<LandingPage />} />
+        <Route path='/:org/:app/preview' element={<LandingPage />} />
         <Route path='*' element={<NoMatch />} />
       </Routes>
     </div>
