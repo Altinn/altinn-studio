@@ -11,6 +11,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -34,6 +35,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ISchemaModelService _schemaModelService;
         private readonly IPreviewService _previewService;
+        private readonly ITextsService _textsService;
         private Instance MockInstance { get; set; }
 
         /// <summary>
@@ -44,12 +46,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="schemaModelService"></param>
         /// <param name="previewService"></param>
         /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
-        public PreviewController(IHttpContextAccessor httpContextAccessor, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISchemaModelService schemaModelService, IPreviewService previewService)
+        public PreviewController(IHttpContextAccessor httpContextAccessor, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISchemaModelService schemaModelService, IPreviewService previewService, ITextsService textsService)
         {
             _httpContextAccessor = httpContextAccessor;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _schemaModelService = schemaModelService;
             _previewService = previewService;
+            _textsService = textsService;
             MockInstance = new Instance();
         }
 
@@ -257,18 +260,18 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for getting the nb text resource file
+        /// Action for getting the text resource file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Nb text resource file</returns>
         [HttpGet]
-        [Route("api/v1/texts/nb")]
-        public async Task<ActionResult<Models.TextResource>> Language(string org, string app)
+        [Route("api/v1/texts/{languageCode}")]
+        public async Task<ActionResult<Models.TextResource>> Language(string org, string app, string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1(languageCode);
             return Ok(textResource);
         }
 
@@ -423,6 +426,34 @@ namespace Altinn.Studio.Designer.Controllers
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
                 string ruleConfig = await altinnAppGitRepository.GetRuleConfiguration(null);
                 return Ok(ruleConfig);
+            }
+            catch (NotFoundException)
+            {
+                return NoContent();
+            }
+
+        }
+
+        /// <summary>
+        /// Action for getting application languages
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>List of application languages in the format [{language: "nb"}, {language: "en"}]</returns>
+        [HttpGet]
+        [Route("api/v1/applicationlanguages")]
+        public ActionResult<IList<string>> GetApplicationLanguages(string org, string app)
+        {
+            try
+            {
+                List<ApplicationLanguage> applicationLanguages = new();
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                IList<string> languages = _textsService.GetLanguages(org, app, developer);
+                foreach (string language in languages)
+                {
+                    applicationLanguages.Add(new ApplicationLanguage() { Language = language });
+                }
+                return Ok(applicationLanguages);
             }
             catch (NotFoundException)
             {
