@@ -8,6 +8,9 @@ using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Enums;
+using Altinn.Platform.Register.Models;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -294,7 +297,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Json schema for datamodel for datatask test-datatask-id</returns>
         [HttpGet]
         [Route("instances/1/test-id/data/test-datatask-id")]
-        public async Task<ActionResult> GetFormData(string org, string app, string currentTaskDataElementId)
+        public async Task<ActionResult> GetFormData(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             DataType dataType = await _previewService.GetDataTypeForTask1(org, app, developer);
