@@ -2,6 +2,7 @@ import { all, call, put, race, select, take } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { DataListsActions } from 'src/features/dataLists/dataListsSlice';
+import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { InstanceDataActions } from 'src/features/instanceData/instanceDataSlice';
 import { IsLoadingActions } from 'src/features/isLoading/isLoadingSlice';
@@ -182,16 +183,17 @@ export function* watchPdfReadySaga(): SagaIterator {
 
 export function* watchInitialPdfSaga(): SagaIterator {
   while (true) {
-    yield race([
-      all([
+    const { devTools } = yield race({
+      processTask: all([
         take(QueueActions.startInitialDataTaskQueueFulfilled),
         take(FormLayoutActions.fetchFulfilled),
         take(FormLayoutActions.fetchSettingsFulfilled),
         take(InstanceDataActions.getFulfilled),
       ]),
-      take(PdfActions.pdfStateChanged),
-    ]);
-    if (shouldGeneratePdf()) {
+      stateChanged: take(PdfActions.pdfStateChanged),
+      devTools: take(DevToolsActions.setPdfPreview),
+    });
+    if (devTools?.payload?.preview || shouldGeneratePdf()) {
       const layouts: ILayouts = yield select(layoutsSelector);
       const uiConfig: IUiConfig = yield select(uiConfigSelector);
       const customPdfLayout = uiConfig.pdfLayoutName ? layouts[uiConfig.pdfLayoutName] : undefined;

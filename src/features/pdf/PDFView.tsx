@@ -69,7 +69,10 @@ export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
   }
 
   return (
-    <div className={classes['pdf-wrapper']}>
+    <div
+      id='pdfView'
+      className={classes['pdf-wrapper']}
+    >
       <h1 className={cn({ [classes['title-margin']]: !appOwner })}>{appName}</h1>
       {appOwner && (
         <p

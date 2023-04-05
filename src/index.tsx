@@ -12,6 +12,7 @@ import { AppWrapper } from '@altinn/altinn-design-system';
 import { App } from 'src/App';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ThemeWrapper } from 'src/components/ThemeWrapper';
+import { DevTools } from 'src/features/devtools/DevTools';
 import { initSagas } from 'src/redux/sagas';
 import { setupStore } from 'src/redux/store';
 import { ExprContextWrapper } from 'src/utils/layout/ExprContext';
@@ -31,7 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <ThemeWrapper>
             <ErrorBoundary>
               <ExprContextWrapper>
-                <App />
+                <DevTools>
+                  <App />
+                </DevTools>
               </ExprContextWrapper>
             </ErrorBoundary>
           </ThemeWrapper>

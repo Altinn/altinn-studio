@@ -32,9 +32,10 @@ export const ProcessWrapper = () => {
   const instanceIdFromUrl = useInstanceIdParams()?.instanceId;
   window['instanceId'] = instanceIdFromUrl;
 
+  const { pdfPreview } = useAppSelector((state) => state.devTools);
   const [searchParams] = useSearchParams();
   const renderPDF = searchParams.get('pdf') === '1';
-  const previewPDF = searchParams.get('pdf') === 'preview';
+  const previewPDF = searchParams.get('pdf') === 'preview' || pdfPreview;
 
   React.useEffect(() => {
     if (!instantiating && !instanceId) {

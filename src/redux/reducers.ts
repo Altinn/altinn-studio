@@ -5,6 +5,7 @@ import { applicationSettingsSlice } from 'src/features/applicationSettings/appli
 import { attachmentSlice } from 'src/features/attachments/attachmentSlice';
 import { dataListsSlice } from 'src/features/dataLists/dataListsSlice';
 import { formDataModelSlice } from 'src/features/datamodel/datamodelSlice';
+import { devToolsSlice } from 'src/features/devtools/data/devToolsSlice';
 import { formDynamicsSlice } from 'src/features/dynamics/formDynamicsSlice';
 import { footerLayoutSlice } from 'src/features/footer/data/footerLayoutSlice';
 import { formDataSlice } from 'src/features/formData/formDataSlice';
@@ -32,6 +33,7 @@ const slices = [
   applicationSettingsSlice,
   attachmentSlice,
   dataListsSlice,
+  devToolsSlice,
   footerLayoutSlice,
   formDataModelSlice,
   formDataSlice,

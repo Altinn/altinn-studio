@@ -1,0 +1,20 @@
+.responsiveButtons {
+  display: none;
+}
+
+.dropdown {
+  min-width: 200px;
+}
+
+@media only screen and (min-width: 768px) {
+  .responsiveDropdown {
+    display: none;
+  }
+  .responsiveButtons {
+    display: initial;
+  }
+}
+
+.hidden {
+  display: none;
+}

@@ -1,0 +1,67 @@
+.devToolsButton {
+  z-index: 10000;
+  position: fixed;
+  padding: 10px 0 10px 10px;
+  bottom: 20px;
+  right: -3px;
+}
+
+.devToolsButton > button {
+  transform: translateX(30px);
+  transition: transform 0.2s;
+}
+
+.devToolsButton:hover > button,
+.devToolsButton:active > button {
+  transform: translateX(0px);
+}
+
+.hidden {
+  display: none;
+}
+
+@media print {
+  .devToolsButton {
+    display: none;
+  }
+}
+.devToolsButton:hover .message,
+.devToolsButton:active .message {
+  display: block;
+}
+
+.message {
+  display: none;
+  position: absolute;
+  right: 60px;
+  bottom: 0px;
+  background-color: white;
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+  width: 300px;
+  border-radius: 5px;
+  padding: 16px;
+}
+
+@media only screen and (min-width: 768px) {
+  .message {
+    width: 400px;
+  }
+}
+
+.message::after {
+  background-color: #fff;
+  content: '';
+  display: block;
+  position: absolute;
+  right: -10px;
+  bottom: 20px;
+  transform: rotate(45deg);
+  height: 20px;
+  width: 20px;
+}
+
+.highlight {
+  background-color: #eee;
+  padding: 3px 5px;
+  border-radius: 3px;
+}
