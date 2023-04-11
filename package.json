@@ -1,8 +1,12 @@
 {
   "name": "altinn-studio",
   "dependencies": {
+<<<<<<< HEAD
     "@navikt/aksel-icons": "2.8.4",
     "@tanstack/react-query-devtools": "4.28.0",
+=======
+    "@navikt/aksel-icons": "^2.8.11",
+>>>>>>> 5f222fa4a (added navik7aksel icon)
     "react-i18next": "12.2.0",
     "react-icons": "^4.8.0"
   },
