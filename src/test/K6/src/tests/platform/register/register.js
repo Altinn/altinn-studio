@@ -2,6 +2,11 @@
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
     Command: docker-compose run k6 run /src/tests/platform/register/register.js
     -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
+
+    Optional:
+    Decide org for instansiation (not take the first one from lookup for parties).
+    Command: docker-compose run k6 run /src/tests/platform/register/register.js
+    -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=*** -e instanceOwnerOrgnr=***
 */
 
 import { check } from 'k6';
