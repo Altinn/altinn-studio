@@ -11,7 +11,7 @@ import { useMediaQuery } from '../../common/hooks';
 import { useTranslation } from 'react-i18next';
 import AltinnStudioLogo from 'app-shared/navigation/main-header/AltinnStudioLogo';
 import { ThreeDotsMenu } from 'app-shared/navigation/main-header/ThreeDotsMenu';
-import { AiOutlineBranches } from 'react-icons/ai';
+import { BranchingIcon } from '@navikt/aksel-icons';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { publiserPath } from 'app-shared/api-paths';
 
@@ -126,7 +126,7 @@ export const AppBar = ({
             : showSubMenu && (
                 <Toolbar className={classes.muiToolbar}>
                   <div className={classes.branchIcon}>
-                    <AiOutlineBranches />
+                    <BranchingIcon />
                   </div>
                   <Grid container direction='row'>
                     <Grid item xs container className={classes.versionControlAndSettingStyle}>
