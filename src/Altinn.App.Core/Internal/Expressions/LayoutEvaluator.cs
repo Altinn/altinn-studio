@@ -99,13 +99,14 @@ public static class LayoutEvaluator
                 {
                     if (state.GetModelData(binding, context) is null)
                     {
+                        var field = state.AddInidicies(binding, context);
                         validationIssues.Add(new ValidationIssue()
                         {
                             Severity = ValidationIssueSeverity.Error,
                             InstanceId = state.GetInstanceContext("instanceId").ToString(),
                             DataElementId = dataElementId,
-                            Field = state.AddInidicies(binding, context),
-                            Description = "TODO required",
+                            Field = field,
+                            Description = $"{field} is required in component with id {context.Component.Id}",
                             Code = "required",
                         });
                     }
