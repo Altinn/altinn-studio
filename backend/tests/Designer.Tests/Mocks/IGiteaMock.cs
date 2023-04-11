@@ -188,6 +188,18 @@ namespace Designer.Tests.Mocks
 
         public Task<List<ContentsResponse>> GetRepositoryContent(string org, string repository)
         {
+            if (org == "ttd")
+            {
+                List<ContentsResponse> contentList = new List<ContentsResponse>();
+                ContentsResponse content = new ContentsResponse();
+                content.size = 109;
+                content.path = repository;
+                content.name = "ttd_resource.json";
+                contentList.Add(content);
+
+                return Task.FromResult(contentList);
+            }
+
             return Task.FromResult(new List<ContentsResponse>());
         }
     }
