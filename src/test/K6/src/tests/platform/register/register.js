@@ -14,6 +14,7 @@ const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
+const instanceOwnerOrgnr = __ENV.instanceOwnerOrgnr;
 
 export const options = {
   thresholds: {
@@ -27,7 +28,13 @@ export function setup() {
   var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
   var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
   setUpData.clearCookies();
-  var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
+  var data;
+  if ( instanceOwnerOrgnr != null ) {
+    data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App, instanceOwnerOrgnr);
+  }
+  else {
+    data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
+  }
   data.RuntimeToken = altinnStudioRuntimeCookie;
   return data;
 }
