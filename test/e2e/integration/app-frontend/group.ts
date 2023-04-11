@@ -30,6 +30,30 @@ describe('Group', () => {
     cy.get(appFrontend.group.currentValue).should('be.visible');
   });
 
+  [true, false].forEach((alwaysShowAddButton) => {
+    it(`Add items on main group when AlwaysShowAddButton = ${alwaysShowAddButton}`, () => {
+      cy.interceptLayout('group', (component) => {
+        if (component.type === 'Group' && component.edit && component.id === 'mainGroup') {
+          component.edit.alwaysShowAddButton = alwaysShowAddButton;
+          component.maxCount = 2;
+        }
+      });
+      init();
+      cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+      if (alwaysShowAddButton) {
+        cy.get(appFrontend.group.addNewItem).click();
+        cy.get(appFrontend.group.mainGroup).should('exist');
+        cy.get(appFrontend.group.addNewItem).click();
+        cy.get(appFrontend.group.mainGroup).should('exist');
+        cy.get(appFrontend.group.addNewItem).should('not.exist');
+      } else {
+        cy.get(appFrontend.group.addNewItem).click();
+        cy.get(appFrontend.group.mainGroup).should('exist');
+        cy.get(appFrontend.group.addNewItem).should('not.exist');
+      }
+    });
+  });
+
   [true, false].forEach((openByDefault) => {
     it(`Add and delete items on main and nested group (openByDefault = ${openByDefault ? 'true' : 'false'})`, () => {
       cy.interceptLayout('group', (component) => {

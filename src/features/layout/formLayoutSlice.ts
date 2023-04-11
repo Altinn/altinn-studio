@@ -247,18 +247,28 @@ export const formLayoutSlice = () => {
       }),
       updateRepeatingGroupsEditIndex: mkAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>({
         takeLatest: updateRepeatingGroupEditIndexSaga,
+        reducer: (state, action) => {
+          const { group } = action.payload;
+          if (state.uiConfig.repeatingGroups && state.uiConfig.repeatingGroups[group]) {
+            state.uiConfig.repeatingGroups[group].isLoading = true;
+          }
+        },
       }),
       updateRepeatingGroupsEditIndexFulfilled: mkAction<LayoutTypes.IUpdateRepeatingGroupsEditIndexFulfilled>({
         reducer: (state, action) => {
           const { group, index } = action.payload;
           state.uiConfig.repeatingGroups = state.uiConfig.repeatingGroups || {};
           state.uiConfig.repeatingGroups[group].editIndex = index;
+          state.uiConfig.repeatingGroups[group].isLoading = false;
         },
       }),
       updateRepeatingGroupsEditIndexRejected: mkAction<LayoutTypes.IFormLayoutActionRejected>({
         reducer: (state, action) => {
-          const { error } = action.payload;
+          const { error, group } = action.payload;
           state.error = error;
+          if (group && state.uiConfig.repeatingGroups && state.uiConfig.repeatingGroups[group]) {
+            state.uiConfig.repeatingGroups[group].isLoading = false;
+          }
         },
       }),
       updateFileUploadersWithTagFulfilled: mkAction<LayoutTypes.IUpdateFileUploadersWithTagFulfilled>({

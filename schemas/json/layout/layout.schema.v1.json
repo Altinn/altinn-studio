@@ -537,6 +537,12 @@
           "description": "Boolean or expression indicating whether add new button should be shown or not under the table.",
           "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
+        "alwaysShowAddButton": {
+          "title": "Show add button on open group",
+          "description": "Boolean value indicating whether add new button should be shown or not under the table when a group is open.",
+          "type": "boolean",
+          "default": false
+        },
         "openByDefault": {
           "title": "Open by default",
           "description": "Boolean or string indicating if group should be opened by default. If no items exist: 'first', 'last', and true adds a new item. If items exist already, true does not open anything, but 'first' opens the first item, and 'last' opens the last item in the group.",

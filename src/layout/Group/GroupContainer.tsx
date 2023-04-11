@@ -4,6 +4,7 @@ import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import { Add as AddIcon } from '@navikt/ds-icons';
 
+import { AltinnLoader } from 'src/components/AltinnLoader';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
@@ -19,7 +20,6 @@ import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { IRuntimeState } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-
 export interface IGroupProps {
   id: string;
 }
@@ -37,16 +37,17 @@ const getValidationMethod = (node: LayoutNode | undefined) => {
 
 export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
   const dispatch = useAppDispatch();
-
   const node = useResolvedNode(id);
   const resolvedTextBindings = node?.item.textResourceBindings;
   const edit = node?.isType('Group') ? node.item.edit : undefined;
+  const isLoading = useAppSelector(
+    (state) => state.formLayout.uiConfig.repeatingGroups && state.formLayout.uiConfig.repeatingGroups[id]?.isLoading,
+  );
 
   const editIndex = useAppSelector(
     (state: IRuntimeState) =>
       (state.formLayout.uiConfig.repeatingGroups && state.formLayout.uiConfig.repeatingGroups[id]?.editIndex) ?? -1,
   );
-
   const deletingIndexes = useAppSelector(
     (state: IRuntimeState) =>
       (state.formLayout.uiConfig.repeatingGroups && state.formLayout.uiConfig.repeatingGroups[id]?.deletingIndex) ?? [],
@@ -90,7 +91,16 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
       icon={<AddIcon aria-hidden='true' />}
       iconPlacement='left'
       fullWidth
+      disabled={isLoading || false}
     >
+      {isLoading && (
+        <AltinnLoader
+          style={{ position: 'absolute' }}
+          srContent={`${getLanguageFromKey('general.add_new', language ?? {})} ${
+            resolvedTextBindings?.add_button ? getTextResourceByKey(resolvedTextBindings.add_button, textResources) : ''
+          }`}
+        />
+      )}
       {`${getLanguageFromKey('general.add_new', language ?? {})} ${
         resolvedTextBindings?.add_button ? getTextResourceByKey(resolvedTextBindings.add_button, textResources) : ''
       }`}
@@ -98,17 +108,21 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
   );
 
   const onClickAdd = useCallback(() => {
-    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
+    if (!edit?.alwaysShowAddButton || edit?.mode === 'showAll') {
+      dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
+    }
     if (edit?.mode !== 'showAll') {
       dispatch(
         FormLayoutActions.updateRepeatingGroupsEditIndex({
           group: id,
           index: repeatingGroupIndex + 1,
+          validate: edit?.alwaysShowAddButton && repeatingGroupIndex > -1 ? getValidationMethod(node) : undefined,
+          shouldAddRow: !!edit?.alwaysShowAddButton,
         }),
       );
       setMultiPageIndex(0);
     }
-  }, [dispatch, id, edit?.mode, repeatingGroupIndex, setMultiPageIndex]);
+  }, [dispatch, id, edit?.mode, edit?.alwaysShowAddButton, node, repeatingGroupIndex, setMultiPageIndex]);
 
   useEffect(() => {
     if (edit?.openByDefault && repeatingGroupIndex === -1) {
@@ -166,6 +180,12 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
     );
   }
 
+  const displayBtn =
+    edit?.addButton !== false &&
+    'maxCount' in node.item &&
+    repeatingGroupIndex + 1 < (node.item.maxCount === undefined ? -99 : node.item.maxCount) &&
+    (edit?.mode === 'showAll' || editIndex < 0 || edit?.alwaysShowAddButton === true);
+
   return (
     <Grid
       container={true}
@@ -184,10 +204,7 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
           filteredIndexes={filteredIndexList}
         />
       )}
-      {edit?.mode !== 'showAll' &&
-        edit?.addButton !== false &&
-        editIndex < 0 &&
-        repeatingGroupIndex + 1 < (node.item.maxCount === undefined ? -99 : node.item.maxCount) && <AddButton />}
+      {edit?.mode !== 'showAll' && displayBtn && <AddButton />}
       <ConditionalWrapper
         condition={!isNested}
         wrapper={(children) => <FullWidthWrapper>{children}</FullWidthWrapper>}
@@ -232,9 +249,7 @@ export function GroupContainer({ id }: IGroupProps): JSX.Element | null {
               })}
         </>
       </ConditionalWrapper>
-      {edit?.mode === 'showAll' &&
-        edit?.addButton !== false &&
-        repeatingGroupIndex + 1 < (node.item.maxCount === undefined ? -99 : node.item.maxCount) && <AddButton />}
+      {edit?.mode === 'showAll' && displayBtn && <AddButton />}
       <Grid
         item={true}
         xs={12}

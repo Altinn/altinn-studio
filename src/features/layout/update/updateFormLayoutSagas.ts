@@ -551,7 +551,7 @@ export function* watchInitialCalculatePageOrderAndMoveToNextPageSaga(): SagaIter
 }
 
 export function* updateRepeatingGroupEditIndexSaga({
-  payload: { group, index, validate },
+  payload: { group, index, validate, shouldAddRow },
 }: PayloadAction<IUpdateRepeatingGroupsEditIndex>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
@@ -583,6 +583,7 @@ export function* updateRepeatingGroupEditIndexSaga({
         yield put(
           FormLayoutActions.updateRepeatingGroupsEditIndexRejected({
             error: null,
+            group,
           }),
         );
         return;
@@ -598,6 +599,7 @@ export function* updateRepeatingGroupEditIndexSaga({
         yield put(
           FormLayoutActions.updateRepeatingGroupsEditIndexRejected({
             error: null,
+            group,
           }),
         );
         return;
@@ -625,9 +627,16 @@ export function* updateRepeatingGroupEditIndexSaga({
         },
       };
       yield put(ValidationActions.updateValidations({ validations: newValidations }));
-
       const rowValidations = filterValidationsByRow(resolvedNodes, combinedValidations, group, rowIndex);
+
       if (canFormBeSaved({ validations: rowValidations, invalidDataTypes: false }, 'Complete')) {
+        if (shouldAddRow) {
+          yield put(
+            FormLayoutActions.updateRepeatingGroups({
+              layoutElementId: group,
+            }),
+          );
+        }
         yield put(
           FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({
             group,
@@ -638,10 +647,18 @@ export function* updateRepeatingGroupEditIndexSaga({
         yield put(
           FormLayoutActions.updateRepeatingGroupsEditIndexRejected({
             error: null,
+            group,
           }),
         );
       }
     } else {
+      if (shouldAddRow) {
+        yield put(
+          FormLayoutActions.updateRepeatingGroups({
+            layoutElementId: group,
+          }),
+        );
+      }
       yield put(
         FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({
           group,
@@ -650,7 +667,7 @@ export function* updateRepeatingGroupEditIndexSaga({
       );
     }
   } catch (error) {
-    yield put(FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error }));
+    yield put(FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error, group }));
   }
 }
 

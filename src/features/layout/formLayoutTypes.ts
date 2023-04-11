@@ -13,6 +13,7 @@ import type {
 
 export interface IFormLayoutActionRejected {
   error: Error | null;
+  group?: string;
 }
 
 export interface IFetchLayoutFulfilled {
@@ -88,6 +89,7 @@ export interface IUpdateRepeatingGroupsEditIndex {
   group: string;
   index: number;
   validate?: Triggers.Validation | Triggers.ValidateRow;
+  shouldAddRow?: boolean;
 }
 
 export interface IUpdateRepeatingGroupsEditIndexFulfilled {

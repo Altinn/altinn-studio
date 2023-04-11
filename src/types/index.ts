@@ -122,6 +122,7 @@ export interface IRepeatingGroup {
   editIndex?: number;
   deletingIndex?: number[];
   multiPageIndex?: number;
+  isLoading?: boolean;
 }
 
 export interface IRepeatingGroups {
