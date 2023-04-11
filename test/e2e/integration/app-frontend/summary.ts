@@ -98,14 +98,9 @@ describe('Summary', () => {
         cy.wrap(summaryDate).contains(texts.dateOfEffect).should('have.css', 'color', 'rgb(213, 32, 59)');
         cy.wrap(summaryDate).contains(mui.gridContainer, texts.requiredFieldDateFrom).should('be.visible');
         cy.wrap(summaryDate).contains('button', texts.goToRightPage).click();
-        cy.get(appFrontend.changeOfName.dateOfEffect)
-          .siblings()
-          .children('button')
-          .click()
-          .then(() => {
-            cy.get(mui.selectedDate).parent().click();
-            cy.get(appFrontend.backToSummaryButton).click();
-          });
+        cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children('button').click();
+        cy.get(mui.selectedDate).parent().click();
+        cy.get(appFrontend.backToSummaryButton).click();
       });
 
     // Error in summary field is removed when the required field is filled
@@ -120,7 +115,8 @@ describe('Summary', () => {
     // Hide the component the Summary refers to, which should hide the summary component as well
     cy.get('[data-testid=summary-summary-1]').contains('span', 'Du har valgt å endre:').should('be.visible');
     cy.get(appFrontend.navMenu).find('li > button').first().click();
-    cy.get(appFrontend.changeOfName.newFirstName).clear().type('hidePrevName');
+    cy.get(appFrontend.changeOfName.newFirstName).clear();
+    cy.get(appFrontend.changeOfName.newFirstName).type('hidePrevName');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get('[data-testid=summary-summary-1]').should('not.exist');
 
@@ -138,9 +134,9 @@ describe('Summary', () => {
       });
 
     cy.get(appFrontend.navMenu).find('li > button').first().click();
-    cy.get('#sources').select('Digitaliseringsdirektoratet').blur();
-    cy.get('#reference').select('Sophie Salt').blur();
-    cy.get('#reference2').select('Dole').blur();
+    cy.get('#sources').select('Digitaliseringsdirektoratet');
+    cy.get('#reference').select('Sophie Salt');
+    cy.get('#reference2').select('Dole');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
@@ -151,9 +147,9 @@ describe('Summary', () => {
       });
 
     cy.get(appFrontend.navMenu).find('li > button').first().click();
-    cy.get('#sources').select('Annet').blur();
-    cy.get('#reference').select('Test').blur();
-    cy.get('#reference2').select('Doffen').blur();
+    cy.get('#sources').select('Annet');
+    cy.get('#reference').select('Test');
+    cy.get('#reference2').select('Doffen');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
@@ -341,16 +337,16 @@ describe('Summary', () => {
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
 
-    cy.get(appFrontend.group.comments).type('first comment').blur();
-    cy.get(appFrontend.group.saveSubGroup).click().should('not.exist');
+    cy.get(appFrontend.group.comments).type('first comment');
+    cy.get(appFrontend.group.saveSubGroup).clickAndGone();
     cy.get(appFrontend.group.addNewItemSubGroup).click();
 
-    cy.get(appFrontend.group.comments).type('second comment').blur();
-    cy.get(appFrontend.group.saveSubGroup).click().should('not.exist');
+    cy.get(appFrontend.group.comments).type('second comment');
+    cy.get(appFrontend.group.saveSubGroup).clickAndGone();
     cy.get(appFrontend.group.addNewItemSubGroup).click();
 
-    cy.get(appFrontend.group.comments).type('third comment').blur();
-    cy.get(appFrontend.group.saveSubGroup).click().should('not.exist');
+    cy.get(appFrontend.group.comments).type('third comment');
+    cy.get(appFrontend.group.saveSubGroup).clickAndGone();
 
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     //Skjul kommentar felt
@@ -397,8 +393,9 @@ describe('Summary', () => {
       const exampleSummary = '[data-testid=summary-summary-reference]';
 
       cy.get(appFrontend.navMenu).find('li > button').first().click();
-      cy.get(appFrontend.changeOfName.newFirstName).clear().type(`Hello world`).blur();
-      cy.get(appFrontend.changeOfName.newLastName).clear().blur();
+      cy.get(appFrontend.changeOfName.newFirstName).clear();
+      cy.get(appFrontend.changeOfName.newFirstName).type(`Hello world`);
+      cy.get(appFrontend.changeOfName.newLastName).clear();
       cy.get(appFrontend.changeOfName.sources).should('have.value', 'altinn');
       cy.get(appFrontend.nextButton).click();
 
@@ -407,7 +404,7 @@ describe('Summary', () => {
       } else {
         cy.get(appFrontend.navMenu).find('li > button').eq(0).should('have.attr', 'aria-current', 'page');
         cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldLastName);
-        cy.get(appFrontend.changeOfName.newLastName).type('a').blur();
+        cy.get(appFrontend.changeOfName.newLastName).type('a');
         cy.get(appFrontend.nextButton).click();
       }
 
@@ -461,7 +458,7 @@ describe('Summary', () => {
     cy.gotoAndComplete('changename');
     injectExtraPageAndSetTriggers();
     cy.get(appFrontend.navMenu).find('li > button').first().click();
-    cy.get(appFrontend.changeOfName.newLastName).clear().blur();
+    cy.get(appFrontend.changeOfName.newLastName).clear();
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get('#page3-submit').click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut page3required');

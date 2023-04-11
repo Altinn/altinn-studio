@@ -14,8 +14,10 @@ Cypress.Commands.add(
       cy.get(appFrontend.group.addNewItem).click();
     }
 
-    cy.get(appFrontend.group.currentValue).type(`${oldValue}`).blur();
-    cy.get(appFrontend.group.newValue).type(`${newValue}`).blur();
+    cy.get(appFrontend.group.currentValue).type(`${oldValue}`);
+    cy.get(appFrontend.group.currentValue).blur();
+    cy.get(appFrontend.group.newValue).type(`${newValue}`);
+    cy.get(appFrontend.group.newValue).blur();
     cy.get(appFrontend.group.mainGroup)
       .find(appFrontend.group.editContainer)
       .find(appFrontend.group.next)
@@ -28,9 +30,10 @@ Cypress.Commands.add(
       cy.get(appFrontend.group.addNewItemSubGroup).click();
     }
 
-    cy.get(appFrontend.group.comments).type(comment).blur();
-    cy.get(appFrontend.group.saveSubGroup).click().should('not.exist');
-    cy.get(appFrontend.group.saveMainGroup).click().should('not.exist');
+    cy.get(appFrontend.group.comments).type(comment);
+    cy.get(appFrontend.group.comments).blur();
+    cy.get(appFrontend.group.saveSubGroup).clickAndGone();
+    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
   },
 );
 

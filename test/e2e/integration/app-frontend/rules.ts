@@ -7,23 +7,20 @@ describe('Rules', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('automation');
     cy.get(appFrontend.changeOfName.newMiddleName).type('is');
-    cy.get(appFrontend.changeOfName.newLastName)
-      .type('fun')
-      .then(() => {
-        cy.get(appFrontend.changeOfName.newFullName)
-          .should('have.value', 'automation is fun')
-          .parents()
-          .eq(2)
-          .should('have.css', 'max-width', '50%');
-      });
+    cy.get(appFrontend.changeOfName.newLastName).type('fun');
+    cy.get(appFrontend.changeOfName.newFullName)
+      .should('have.value', 'automation is fun')
+      .parents()
+      .eq(2)
+      .should('have.css', 'max-width', '50%');
   });
 
   it('Rule is run when a backend calculation updates a relevant field', () => {
     cy.goto('changename');
     // We update newLastName which triggers a calculation backend that updates NewMiddleName to 'MiddleNameFromCalculation'
     // This should then trigger function which concatenates first + middle + last name to the newFullName field
-    cy.get(appFrontend.changeOfName.newLastName).type('LastName').blur();
-    cy.get(appFrontend.changeOfName.newFirstName).type('TriggerCalculation').blur();
+    cy.get(appFrontend.changeOfName.newLastName).type('LastName');
+    cy.get(appFrontend.changeOfName.newFirstName).type('TriggerCalculation');
     cy.get(appFrontend.changeOfName.newFullName).should(
       'have.value',
       'TriggerCalculation MiddleNameFromCalculation LastName',

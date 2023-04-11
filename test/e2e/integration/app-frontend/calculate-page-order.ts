@@ -43,7 +43,8 @@ describe('Calculate Page Order', () => {
 
     cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
     cy.get(appFrontend.group.row(0).editBtn).click();
-    cy.get(appFrontend.group.newValue).clear().type('2');
+    cy.get(appFrontend.group.newValue).clear();
+    cy.get(appFrontend.group.newValue).type('2');
 
     cy.get(appFrontend.nextButton).click();
     cy.wait('@getPageOrder');
@@ -61,7 +62,8 @@ describe('Calculate Page Order', () => {
 
     // Clicking previous here is expected to not have any effect, because the triggered action is rejected when
     // the 'repeating' page is supposed to be hidden by the change. Clicking too fast leads to a failure...
-    cy.get(appFrontend.group.sendersName).clear().type('hideRepeating');
+    cy.get(appFrontend.group.sendersName).clear();
+    cy.get(appFrontend.group.sendersName).type('hideRepeating');
     cy.get(appFrontend.prevButton).click();
 
     // ...but clicking 'previous' after this point will have updated the components to know that the previous page

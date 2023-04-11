@@ -12,8 +12,8 @@ describe('Print button', () => {
 
     cy.window().then((win) => {
       const printStub = cy.stub(win, 'print');
+      // eslint-disable-next-line cypress/unsafe-to-chain-command
       cy.contains('button', 'Print / Lagre PDF')
-
         .click()
         .then(() => {
           expect(printStub).to.be.called;

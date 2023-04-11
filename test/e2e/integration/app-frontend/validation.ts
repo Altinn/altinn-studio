@@ -12,30 +12,30 @@ describe('Validation', () => {
     // This field has server-side validations marking it as required, overriding the frontend validation functionality
     // which normally postpones the empty fields validation until the page validation runs. We need to type something,
     // send it to the server and clear the value to show this validation error.
-    cy.get(appFrontend.changeOfName.newFirstName).type('Some value').blur().clear();
+    cy.get(appFrontend.changeOfName.newFirstName).type('Some value');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
+    cy.get(appFrontend.changeOfName.newFirstName).clear();
     cy.get(
       appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)),
     ).should('have.text', texts.requiredFieldFromBackend);
 
     // Doing the same for any other field (without server-side required validation) should not show an error
-    cy.get(appFrontend.changeOfName.newMiddleName).type('Some value').blur().focus().clear().blur();
+    cy.get(appFrontend.changeOfName.newMiddleName).type('Some value');
+    cy.get(appFrontend.changeOfName.newMiddleName).blur();
+    cy.get(appFrontend.changeOfName.newMiddleName).focus();
+    cy.get(appFrontend.changeOfName.newMiddleName).clear();
+    cy.get(appFrontend.changeOfName.newMiddleName).blur();
     cy.get(
       appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)),
     ).should('not.exist');
 
-    cy.get(appFrontend.changeOfName.newFirstName).type('Some first name').blur();
-
-    cy.get(appFrontend.changeOfName.newMiddleName).type('Some middle name').blur();
+    cy.get(appFrontend.changeOfName.newFirstName).type('Some first name');
+    cy.get(appFrontend.changeOfName.newMiddleName).type('Some middle name');
 
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
-    cy.get(appFrontend.changeOfName.reasonRelationship).click().type('test');
-    cy.get(appFrontend.changeOfName.dateOfEffect)
-      .siblings()
-      .children(mui.buttonIcon)
-      .click()
-      .then(() => {
-        cy.get(mui.selectedDate).click();
-      });
+    cy.get(appFrontend.changeOfName.reasonRelationship).type('test');
+    cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
+    cy.get(mui.selectedDate).click();
 
     cy.get(appFrontend.nextButton).click();
 
@@ -56,7 +56,7 @@ describe('Validation', () => {
   it('Custom field validation - error', () => {
     cy.goto('changename');
     cy.intercept('GET', '**/validate').as('validateData');
-    cy.get(appFrontend.changeOfName.newFirstName).type('test').blur();
+    cy.get(appFrontend.changeOfName.newFirstName).type('test');
     cy.wait('@validateData');
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)))
       .should('have.text', texts.testIsNotValidValue)
@@ -68,7 +68,7 @@ describe('Validation', () => {
   it('Soft validation - warning', () => {
     cy.goto('changename');
     cy.intercept('GET', '**/validate').as('validateData');
-    cy.get(appFrontend.changeOfName.newMiddleName).type('test').blur();
+    cy.get(appFrontend.changeOfName.newMiddleName).type('test');
     cy.wait('@validateData');
     cy.get(
       appFrontend.fieldValidationWarning.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)),
@@ -78,7 +78,7 @@ describe('Validation', () => {
   it('Soft validation - info', () => {
     cy.goto('changename');
     cy.intercept('GET', '**/validate').as('validateData');
-    cy.get(appFrontend.changeOfName.newMiddleName).type('info').blur();
+    cy.get(appFrontend.changeOfName.newMiddleName).type('info');
     cy.wait('@validateData');
     cy.get(
       appFrontend.fieldValidationInfo.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)),
@@ -88,7 +88,7 @@ describe('Validation', () => {
   it('Soft validation - success', () => {
     cy.goto('changename');
     cy.intercept('GET', '**/validate').as('validateData');
-    cy.get(appFrontend.changeOfName.newMiddleName).type('success').blur();
+    cy.get(appFrontend.changeOfName.newMiddleName).type('success');
     cy.wait('@validateData');
     cy.get(
       appFrontend.fieldValidationSuccess.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)),
@@ -97,7 +97,8 @@ describe('Validation', () => {
 
   it('Page validation on clicking next', () => {
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).clear().type('test').blur();
+    cy.get(appFrontend.changeOfName.newFirstName).clear();
+    cy.get(appFrontend.changeOfName.newFirstName).type('test');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.nextButton).scrollIntoView();
@@ -173,7 +174,7 @@ describe('Validation', () => {
 
   it('Client side validation from json schema', () => {
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newLastName).type('client').blur();
+    cy.get(appFrontend.changeOfName.newLastName).type('client');
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newLastName.substring(1))).should(
       'have.text',
       texts.clientSide,
@@ -206,7 +207,7 @@ describe('Validation', () => {
 
     // Create validation error
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
-    cy.get(appFrontend.group.comments).type('test').blur();
+    cy.get(appFrontend.group.comments).type('test');
     cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should(
       'have.text',
       texts.testIsNotValidValue,

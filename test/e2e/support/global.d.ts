@@ -134,6 +134,11 @@ declare global {
        * Uncheck a checkbox/radio from the design system. See the comment above for dsCheck()
        */
       dsUncheck(): Chainable<null>;
+
+      /**
+       * Shortcut for clicking an element and waiting for it to disappear
+       */
+      clickAndGone(): Chainable<null>;
     }
   }
 }

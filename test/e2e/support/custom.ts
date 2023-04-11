@@ -16,3 +16,8 @@ Cypress.Commands.add('dsUncheck', { prevSubject: true }, (subject: JQueryWithSel
     cy.wrap(subject).parent().click();
   }
 });
+
+Cypress.Commands.add('clickAndGone', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
+  // eslint-disable-next-line cypress/unsafe-to-chain-command
+  cy.wrap(subject).click().should('not.exist');
+});

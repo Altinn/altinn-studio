@@ -8,8 +8,10 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to', (
   cy.get(appFrontend.nextButton).click();
   cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
   cy.get(appFrontend.group.edit).should('be.visible');
-  cy.get(appFrontend.group.hideRepeatingGroupRow).clear().type('1');
+  cy.get(appFrontend.group.hideRepeatingGroupRow).clear();
+  cy.get(appFrontend.group.hideRepeatingGroupRow).type('1');
   cy.get(appFrontend.group.edit).should('not.exist');
-  cy.get(appFrontend.group.hideRepeatingGroupRow).clear().type('1000000');
+  cy.get(appFrontend.group.hideRepeatingGroupRow).clear();
+  cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000000');
   cy.get(appFrontend.group.edit).should('exist');
 });

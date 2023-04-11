@@ -113,17 +113,13 @@ const completeFormSlow: { [key in FrontendTestTask]: () => void } = {
   },
   changename: () => {
     cy.get(appFrontend.changeOfName.currentName).then(() => {
-      cy.get(appFrontend.changeOfName.newFirstName).type('a').blur();
-      cy.get(appFrontend.changeOfName.newLastName).type('a').blur();
+      cy.get(appFrontend.changeOfName.newFirstName).type('a');
+      cy.get(appFrontend.changeOfName.newLastName).type('a');
       cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
-      cy.get(appFrontend.changeOfName.reasonRelationship).click().type('test');
-      cy.get(appFrontend.changeOfName.dateOfEffect)
-        .siblings()
-        .children(mui.buttonIcon)
-        .click()
-        .then(() => {
-          cy.get(mui.selectedDate).click();
-        });
+      cy.get(appFrontend.changeOfName.reasonRelationship).click();
+      cy.get(appFrontend.changeOfName.reasonRelationship).type('test');
+      cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
+      cy.get(mui.selectedDate).click();
       cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
       cy.get(appFrontend.nextButton).click();
     });
@@ -164,13 +160,17 @@ const completeFormSlow: { [key in FrontendTestTask]: () => void } = {
       'not.exist',
     );
 
-    cy.get('#nested-source-0-0').select('Annet').blur();
-    cy.get('#nested-reference-0-0').select('Test').blur();
+    cy.get('#nested-source-0-0').select('Annet');
+    cy.get('#nested-source-0-0').blur();
+    cy.get('#nested-reference-0-0').select('Test');
+    cy.get('#nested-reference-0-0').blur();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
-    cy.get('#source-0').select('Digitaliseringsdirektoratet').blur();
-    cy.get('#reference-0').select('Sophie Salt').blur();
+    cy.get('#source-0').select('Digitaliseringsdirektoratet');
+    cy.get('#source-0').blur();
+    cy.get('#reference-0').select('Sophie Salt');
+    cy.get('#reference-0').blur();
 
-    cy.get(appFrontend.group.saveMainGroup).click().should('not.exist');
+    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.sendersName).type('automation');

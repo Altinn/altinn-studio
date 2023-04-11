@@ -104,8 +104,10 @@ describe('UI Components', () => {
 
   it('address component fetches post place from zip code', () => {
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.address.street_name).type('Sesame Street 1A').blur();
-    cy.get(appFrontend.changeOfName.address.zip_code).type('0174').blur();
+    cy.get(appFrontend.changeOfName.address.street_name).type('Sesame Street 1A');
+    cy.get(appFrontend.changeOfName.address.street_name).blur();
+    cy.get(appFrontend.changeOfName.address.zip_code).type('0174');
+    cy.get(appFrontend.changeOfName.address.zip_code).blur();
     cy.get(appFrontend.changeOfName.address.post_place).should('have.value', 'OSLO');
   });
 
@@ -119,12 +121,15 @@ describe('UI Components', () => {
       }
     });
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('Per').blur();
-    cy.get(appFrontend.changeOfName.newLastName).type('Hansen').blur();
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
+    cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
+    cy.get(appFrontend.changeOfName.newLastName).blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
 
-    cy.get(appFrontend.changeOfName.newMiddleName).type('checkbox_readOnly').blur();
+    cy.get(appFrontend.changeOfName.newMiddleName).type('checkbox_readOnly');
+    cy.get(appFrontend.changeOfName.newMiddleName).blur();
 
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click(); // No effect
 
@@ -133,7 +138,9 @@ describe('UI Components', () => {
 
     cy.get(appFrontend.changeOfName.reasons).findByText('Gårdsbruk').click();
 
-    cy.get(appFrontend.changeOfName.newMiddleName).clear().type('radio_readOnly').blur();
+    cy.get(appFrontend.changeOfName.newMiddleName).clear();
+    cy.get(appFrontend.changeOfName.newMiddleName).type('radio_readOnly');
+    cy.get(appFrontend.changeOfName.newMiddleName).blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
     cy.get(appFrontend.changeOfName.reasons).should('not.exist');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();

@@ -145,18 +145,18 @@ describe('Multipart save', () => {
       expectSave(`${groupKey}[${index}].${subGroupKey}[0].source`, 'altinn', null);
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.back).click();
 
-      cy.get(appFrontend.group.currentValue).type(oldValue).blur();
+      cy.get(appFrontend.group.currentValue).type(oldValue);
       expectSave(`${groupKey}[${index}].${currentValueKey}`, oldValue, null);
 
-      cy.get(appFrontend.group.newValue).type(newValue).blur();
+      cy.get(appFrontend.group.newValue).type(newValue);
       expectSave(`${groupKey}[${index}].${newValueKey}`, newValue, null);
 
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.next).click();
-      cy.get(appFrontend.group.comments).type(comment).blur();
+      cy.get(appFrontend.group.comments).type(comment);
       expectSave(`${groupKey}[${index}].${subGroupKey}[0].${commentKey}`, comment, null);
 
-      cy.get(appFrontend.group.saveSubGroup).click().should('not.exist');
-      cy.get(appFrontend.group.saveMainGroup).click().should('not.exist');
+      cy.get(appFrontend.group.saveSubGroup).clickAndGone();
+      cy.get(appFrontend.group.saveMainGroup).clickAndGone();
     }
 
     // Add some rows to the group
@@ -164,16 +164,17 @@ describe('Multipart save', () => {
     addRow(1, '1234', '5678', 'second comment');
 
     cy.get(appFrontend.group.row(0).editBtn).click();
-    cy.get(appFrontend.group.newValue).type('2').blur();
+    cy.get(appFrontend.group.newValue).type('2');
     expectSave(`${groupKey}[0].${newValueKey}`, '22', '2');
-    cy.get(appFrontend.group.newValue).clear().type('2').blur();
+    cy.get(appFrontend.group.newValue).clear();
+    cy.get(appFrontend.group.newValue).type('2');
     expectSave(`${groupKey}[0].${newValueKey}`, '2', '22');
 
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.addNewItemSubGroup).click();
     expectSave(`${groupKey}[0].${subGroupKey}[1].source`, 'altinn', null);
 
-    cy.get(appFrontend.group.comments).type('third comment in first row').blur();
+    cy.get(appFrontend.group.comments).type('third comment in first row');
     expectSave(`${groupKey}[0].${subGroupKey}[1].${commentKey}`, 'third comment in first row', null);
 
     cy.get(appFrontend.group.row(0).nestedGroup.row(1).nestedDynamics).dsCheck();

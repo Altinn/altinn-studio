@@ -40,17 +40,17 @@ describe('List component', () => {
       .parent('td')
       .parent('tr')
       .should('not.have.class', dataListPage.selectedRowClass);
+    cy.get(dataListPage.tableBody).contains('Caroline').parent('td').parent('tr').click();
     cy.get(dataListPage.tableBody)
       .contains('Caroline')
       .parent('td')
       .parent('tr')
-      .click()
       .should('have.class', dataListPage.selectedRowClass);
+    cy.get(dataListPage.tableBody).contains('Kåre').parent('td').parent('tr').click();
     cy.get(dataListPage.tableBody)
       .contains('Kåre')
       .parent('td')
       .parent('tr')
-      .click()
       .get(dataListPage.tableBody)
       .contains('Caroline')
       .parent('td')
@@ -60,33 +60,27 @@ describe('List component', () => {
 
   it('When selecting number of rows to show this is updated correctly', () => {
     cy.goto('datalist');
-    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('10').should('have.value', 10);
-    cy.get(dataListPage.listComponent)
-      .get(dataListPage.selectComponent)
-      .select('10')
-      .get(dataListPage.tableBody)
-      .find('tr')
-      .its('length')
-      .should('eq', 10);
+    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('10');
+    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).should('have.value', 10);
+    cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 10);
   });
 
   it('When navigation between pages the expected data is shown in the first table row', () => {
     cy.goto('datalist');
     cy.get(dataListPage.navigateNextButton).should('not.be.disabled');
     cy.get(dataListPage.tableBody).first().first().contains('Caroline');
-    cy.get(dataListPage.navigateNextButton).click().get(dataListPage.tableBody).first().first().contains('Hans');
-    cy.get(dataListPage.navigatePreviousButton)
-      .click()
-      .get(dataListPage.tableBody)
-      .first()
-      .first()
-      .contains('Caroline');
+    cy.get(dataListPage.navigateNextButton).click();
+    cy.get(dataListPage.navigateNextButton).get(dataListPage.tableBody).first().first().contains('Hans');
+    cy.get(dataListPage.navigatePreviousButton).click();
+    cy.get(dataListPage.navigatePreviousButton).get(dataListPage.tableBody).first().first().contains('Caroline');
   });
 
   it('Sorting works as expected', () => {
     cy.goto('datalist');
-    cy.get(dataListPage.sortButton).click().get(dataListPage.tableBody).first().first().contains('Hans');
-    cy.get(dataListPage.sortButton).click().get(dataListPage.tableBody).first().first().contains('Petter');
+    cy.get(dataListPage.sortButton).click();
+    cy.get(dataListPage.sortButton).get(dataListPage.tableBody).first().first().contains('Hans');
+    cy.get(dataListPage.sortButton).click();
+    cy.get(dataListPage.sortButton).get(dataListPage.tableBody).first().first().contains('Petter');
   });
   it('Search works with list as intended', () => {
     cy.goto('datalist');

@@ -23,7 +23,8 @@ describe('Anonymous (stateless)', () => {
   });
 
   it('should trigger data processing on changes in form fields', () => {
-    cy.get(appFrontend.stateless.name).type('test').blur();
+    cy.get(appFrontend.stateless.name).type('test');
+    cy.get(appFrontend.stateless.name).blur();
     cy.get(appFrontend.stateless.name).should('have.value', 'automation');
     cy.get(appFrontend.stateless.idnummer2).should('have.value', '1234567890');
   });
