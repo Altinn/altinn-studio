@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { DownloadIcon } from '@navikt/aksel-icons';
-import classes from './VersionControlHeader.module.css';
+import classes from './FetchChangesButton.module.css';
 
 export interface IFetchChangesComponentProps {
   changesInMaster: boolean;
