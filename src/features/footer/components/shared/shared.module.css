@@ -1,18 +1,28 @@
+/*
+  The use of !important in this file is to override old design system global css,
+  Remove when the old global css is gone
+*/
+
 .link {
-  color: var(--colors-interaction-button-default) !important;
-  border: none !important;
-  border-radius: 3px;
+  color: var(--semantic-surface-action-default) !important;
+  border: none !important; /* Override old design-system global css, remove when possible */
+  border-radius: var(--interactive_components-border_radius-normal);
 }
 
 .link:hover {
-  color: var(--colors-interaction-button-hover) !important;
+  color: var(--semantic-surface-action-hover) !important;
+}
+
+.link:active {
+  color: var(--semantic-surface-action-active) !important;
 }
 
 .link:focus-visible {
-  outline: var(--interactive_components-colors-focus_outline) solid var(--border_width-standard);
-  outline-offset: var(--border_width-standard);
+  outline: var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width);
+  outline-offset: var(--semantic-tab_focus-outline-offset);
 }
 
+/* Override old design-system global css, remove when possible */
 .link::after {
   display: unset !important;
   width: unset !important;
@@ -29,5 +39,5 @@
 }
 
 .link_text {
-  border-bottom: 2px solid var(--colors-interaction-button-default);
+  border-bottom: 2px solid;
 }

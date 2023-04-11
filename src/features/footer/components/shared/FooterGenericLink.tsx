@@ -8,13 +8,13 @@ interface FooterGenericLinkProps {
   title: string;
   target: string;
   icon?: IFooterIcon;
+  external?: boolean;
 }
 
-export const FooterGenericLink = ({ title, target, icon }: FooterGenericLinkProps) => (
+export const FooterGenericLink = ({ title, target, icon, external = true }: FooterGenericLinkProps) => (
   <a
     href={target}
-    target='_blank'
-    rel='noreferrer'
+    {...(external && { target: '_blank', rel: 'noreferrer' })}
     className={classes.link}
   >
     {icon && (

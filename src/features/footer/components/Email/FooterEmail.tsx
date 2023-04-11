@@ -19,6 +19,7 @@ export const FooterEmail = ({ title, target }: IFooterEmailComponent) => {
       title={getTextFromAppOrDefault(title, textResources, language, undefined, true)}
       target={`mailto:${getTextResourceByKey(target, textResources)}`}
       icon='email'
+      external={false}
     />
   );
 };

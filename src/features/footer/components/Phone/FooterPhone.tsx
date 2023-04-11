@@ -19,6 +19,7 @@ export const FooterPhone = ({ title, target }: IFooterPhoneComponent) => {
       title={getTextFromAppOrDefault(title, textResources, language, undefined, true)}
       target={`tel:${getTextResourceByKey(target, textResources)}`}
       icon='phone'
+      external={false}
     />
   );
 };
