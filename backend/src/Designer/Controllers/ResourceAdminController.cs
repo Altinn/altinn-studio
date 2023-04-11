@@ -43,17 +43,17 @@ namespace Altinn.Studio.Designer.Controllers
             List<ContentsResponse> resourceList = new List<ContentsResponse>();
             List<ContentsResponse> results = await _giteaApi.GetRepositoryContent(org, string.Format("{0}-resources", org));
 
-            foreach (ContentsResponse result in results)
+            if (results != null)
             {
-                if (result.name.ToLower().Contains("resource.json"))
+                foreach (ContentsResponse result in results)
                 {
-                    resourceList.Add(result);
+                    if (result.name.ToLower().Contains("resource.json"))
+                    {
+                        resourceList.Add(result);
+                    }
                 }
-            }
 
-            if (resourceList.Count > 0)
-            {
-                return resourceList;
+                return resourceList.Count > 0 ? resourceList : StatusCode(204);
             }
             else
             {
