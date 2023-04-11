@@ -2,6 +2,11 @@
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
     Command: docker-compose run k6 run /src/tests/platform/register/register.js
     -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
+
+    Optional:
+    Decide org for instansiation (not take the first one from lookup for parties).
+    Command: docker-compose run k6 run /src/tests/platform/register/register.js
+    -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=*** -e instanceOwnerOrgnr=***
 */
 
 import { check } from 'k6';
@@ -14,6 +19,7 @@ const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
+const instanceOwnerOrgnr = __ENV.instanceOwnerOrgnr;
 
 export const options = {
   thresholds: {
@@ -27,7 +33,13 @@ export function setup() {
   var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
   var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
   setUpData.clearCookies();
-  var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
+  var data;
+  if ( instanceOwnerOrgnr != null ) {
+    data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App, instanceOwnerOrgnr);
+  }
+  else {
+    data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
+  }
   data.RuntimeToken = altinnStudioRuntimeCookie;
   return data;
 }
