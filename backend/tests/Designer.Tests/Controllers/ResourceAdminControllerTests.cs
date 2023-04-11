@@ -43,7 +43,7 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetResourceRepository_NotFound()
+        public async Task GetResourceRepository_NoContent()
         {
             // Arrange
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository";
@@ -54,7 +54,37 @@ namespace Designer.Tests.Controllers
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetResourceList_OK()
+        {
+            // Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/repository/resourcelist";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            // Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetResourceList_NoContent()
+        {
+            // Arrange
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/resourcelist";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            // Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
         }
     }
 }

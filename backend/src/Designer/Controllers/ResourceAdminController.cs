@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/repository/resourcelist")]
-        public async Task<List<ContentsResponse>> GetRepositoryResourceList(string org)
+        public async Task<ActionResult<List<ContentsResponse>>> GetRepositoryResourceList(string org)
         {
             List<ContentsResponse> resourceList = new List<ContentsResponse>();
             List<ContentsResponse> results = await _giteaApi.GetRepositoryContent(org, string.Format("{0}-resources", org));
@@ -51,7 +51,14 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
-            return resourceList;
+            if (resourceList.Count > 0)
+            {
+                return resourceList;
+            }
+            else
+            {
+                return StatusCode(204);
+            }
         }
     }
 }
