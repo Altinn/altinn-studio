@@ -34,7 +34,7 @@ export function setup() {
   var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
   setUpData.clearCookies();
   var data;
-  if ( instanceOwnerOrgnr != null ) {
+  if ( instanceOwnerOrgnr != null && instanceOwnerOrgnr != '' ) {
     data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App, instanceOwnerOrgnr);
   }
   else {
