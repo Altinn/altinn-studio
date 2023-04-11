@@ -26,7 +26,7 @@ describe('ProfileMenu', () => {
   it('should match snapshot', () => {
     const { container } = render();
     // eslint-disable-next-line testing-library/no-node-access
-    expect(container.firstChild).toMatchInlineSnapshot(`
+    expect(container.firstChild).toMatchSnapshot(`
       <div>
         <button
           aria-label="profilikon knapp"
@@ -59,7 +59,7 @@ describe('ProfileMenu', () => {
   it('should match snapshot with logout text', () => {
     const { container } = render({ showlogout: true });
     // eslint-disable-next-line testing-library/no-node-access
-    expect(container.firstChild).toMatchInlineSnapshot(`
+    expect(container.firstChild).toMatchSnapshot(`
       <div>
         <button
           aria-label="profilikon knapp"
