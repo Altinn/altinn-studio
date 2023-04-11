@@ -3,7 +3,7 @@
   color: white;
   border: none;
   padding: 8px;
-  font-size: 30px;
+  font-size: 1.8rem;
   cursor: pointer;
 }
 
@@ -38,18 +38,18 @@
 }
 
 .cloneText {
-  font-size: 15px;
+  font-size: 0.9rem;
   padding-left: 10px;
 }
 
 .repoText {
-  font-size: 15px;
+  font-size: 0.9rem;
   padding-left: 43px;
   font-family: Arial, Helvetica, sans-serif;
 }
 
 .settingText {
-  font-size: 15px;
+  font-size: 0.9rem;
   padding-left: 10px;
 }
 
@@ -62,7 +62,7 @@
 .repoMenuItem {
   margin-bottom: 20px;
   margin-top: 10px;
-  font-size: 13px;
+  font-size: 0.8rem;
   cursor: pointer;
 }
 

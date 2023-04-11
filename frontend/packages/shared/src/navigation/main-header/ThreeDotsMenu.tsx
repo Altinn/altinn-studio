@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Classes from './ThreeDotsMenu.module.css';
-import { Settings } from '@navikt/ds-icons';
+import { CogIcon } from '@navikt/aksel-icons';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaRegClone } from 'react-icons/fa';
@@ -20,22 +20,21 @@ export function ThreeDotsMenu() {
     setIsMenuOpen(!isMenuOpen);
   }
 
-  function handleCloneOutsideClick(event: MouseEvent) {
-    if (menuRef.current && !menuRef.current.contains(event.target)) {
-      setIsMenuOpen(false);
-    } else cloneModalAnchor && !cloneModalAnchor.contains(event.target);
-    {
-      closeCloneModal();
-    }
-  }
-
   useEffect(() => {
-    {
-      if (setIsMenuOpen) {
-        document.addEventListener('mousedown', handleCloneOutsideClick);
+    function handleCloneOutsideClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      } else cloneModalAnchor && !cloneModalAnchor.contains(event.target);
+      {
+        closeCloneModal();
       }
     }
-  });
+
+    if (setIsMenuOpen) {
+      document.addEventListener('mousedown', handleCloneOutsideClick);
+    }
+    return () => document.removeEventListener('mousedown', handleCloneOutsideClick);
+  }, [cloneModalAnchor, setIsMenuOpen]);
 
   return (
     <>
@@ -72,7 +71,7 @@ export function ThreeDotsMenu() {
             <div className={Classes.settingMenuItem}>
               <Link to={`/${org}/${app}/accesscontrol`}>
                 <section className={Classes.section}>
-                  <Settings className={Classes.icon} />
+                  <CogIcon className={Classes.icon} />
                   <div className={Classes.settingText}>{t('sync_header.setting')}</div>
                 </section>
               </Link>
