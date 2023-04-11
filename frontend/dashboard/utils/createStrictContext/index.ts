@@ -1,0 +1,1 @@
+export { createStrictContext } from './createStrictContext';

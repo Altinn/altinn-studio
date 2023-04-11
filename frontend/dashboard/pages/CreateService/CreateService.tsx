@@ -1,14 +1,17 @@
 import React, { useCallback, useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import { validateRepoName } from '../../utils/repoUtils';
-import { useAppSelector } from '../../hooks/useAppSelector';
-import { DataModellingFormat, useAddRepoMutation } from '../../services/repoApi';
 import { applicationAboutPage } from '../../utils/urlUtils';
 import classes from './CreateService.module.css';
 import { Button, ButtonColor } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
+import i18next from 'i18next';
+import { Organization } from 'dashboard/services/organizationService';
+import { User } from 'dashboard/services/userService';
+import { useAddRepoMutation } from 'dashboard/hooks/useRepoQueries';
+import { DataModellingFormat } from 'dashboard/services/repoService';
 
 enum PageState {
   Idle = 'Idle',
@@ -20,7 +23,7 @@ interface IValidateInputs {
   setOrgErrorMessage: (value: string) => void;
   setRepoErrorMessage: (value: string) => void;
   repoName: string;
-  language: any;
+  t: typeof i18next.t;
 }
 
 const validateInputs = ({
@@ -28,10 +31,9 @@ const validateInputs = ({
   setOrgErrorMessage,
   setRepoErrorMessage,
   repoName,
-  language,
+  t,
 }: IValidateInputs) => {
   let isValid = true;
-  const t = (key: string) => getLanguageFromKey(key, language);
   if (!selectedOrgOrUser) {
     setOrgErrorMessage(t('dashboard.field_cannot_be_empty'));
     isValid = false;
@@ -51,16 +53,20 @@ const validateInputs = ({
   return isValid;
 };
 
-export const CreateService = () => {
-  const language = useAppSelector((state) => state.language.language);
+type CreateServiceProps = {
+  user: User;
+  organizations: Organization[];
+};
+export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
   const selectedFormat = DataModellingFormat.XSD;
   const [selectedOrgOrUser, setSelectedOrgOrUser] = useState('');
   const [orgErrorMessage, setOrgErrorMessage] = useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
   const [repoName, setRepoName] = useState('');
   const [pageState, setPageState] = useState(PageState.Idle);
-  const [addRepo] = useAddRepoMutation();
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const { mutate: addRepo } = useAddRepoMutation();
+  const { t } = useTranslation();
+
   const handleServiceOwnerChanged = useCallback((newValue: string) => {
     setSelectedOrgOrUser(newValue);
     setOrgErrorMessage(null);
@@ -75,7 +81,7 @@ export const CreateService = () => {
     const isValid = validateInputs({
       selectedOrgOrUser,
       repoName,
-      language,
+      t,
       setRepoErrorMessage,
       setOrgErrorMessage,
     });
@@ -83,33 +89,35 @@ export const CreateService = () => {
     if (isValid) {
       setPageState(PageState.Creating);
 
-      try {
-        const result = await addRepo({
-          owner: selectedOrgOrUser,
-          repoName: repoName,
-          modelType: selectedFormat,
-        }).unwrap();
-
-        window.location.assign(
-          applicationAboutPage({
-            org: result.owner.login,
-            repo: result.name,
-          })
-        );
-      } catch (error) {
-        if (error.status === 409) {
-          setPageState(PageState.Idle);
-          setRepoErrorMessage(t('dashboard.app_already_exist'));
-        } else {
-          setPageState(PageState.Idle);
-          setRepoErrorMessage(t('dashboard.error_when_creating_app'));
+      await addRepo(
+        { org: selectedOrgOrUser, repository: repoName, datamodellingPreference: selectedFormat },
+        {
+          onSuccess: (repository) => {
+            window.location.assign(
+              applicationAboutPage({
+                org: repository.owner.login,
+                repo: repository.name,
+              })
+            );
+          },
+          onError: (error: { response: { status: number } }) => {
+            if (error.response.status === 409) {
+              setPageState(PageState.Idle);
+              setRepoErrorMessage(t('dashboard.app_already_exist'));
+            } else {
+              setPageState(PageState.Idle);
+              setRepoErrorMessage(t('dashboard.error_when_creating_app'));
+            }
+          },
         }
-      }
+      );
     }
   };
   return (
     <div className={classes.createServiceContainer}>
       <ServiceOwnerSelector
+        user={user}
+        organizations={organizations}
         onServiceOwnerChanged={handleServiceOwnerChanged}
         errorMessage={orgErrorMessage}
         selectedOrgOrUser={selectedOrgOrUser}

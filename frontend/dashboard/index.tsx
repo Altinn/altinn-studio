@@ -1,33 +1,54 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
-import throttle from 'lodash-es/throttle';
 import { DASHBOARD_BASENAME } from 'app-shared/constants';
 import { App } from './app/App';
-import { run } from './app/rootSaga';
-import { loadFromLocalStorage, saveToLocalStorage } from './utils/localStorageUtils';
-import { setupStore } from './app/store';
+import i18next from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import nb from '../language/src/nb.json';
+import en from '../language/src/en.json';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ServicesContextProvider } from './contexts/servicesContext';
+import { userService } from './services/userService';
+import { organizationService } from './services/organizationService';
+import { AppContextProvider } from './contexts/appContext';
+import { repoService } from './services/repoService';
 
-const store = setupStore(loadFromLocalStorage());
-store.subscribe(
-  throttle(() => {
-    saveToLocalStorage(store.getState());
-  }, 2000)
-);
-
-/**
- * Setup all Sagas to listen to the defined events
- */
-run();
+i18next.use(initReactI18next).init({
+  lng: DEFAULT_LANGUAGE,
+  resources: {
+    nb: { translation: nb },
+    en: { translation: en },
+  },
+  fallbackLng: 'nb',
+});
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      staleTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 root.render(
-  <Provider store={store}>
-    <BrowserRouter basename={DASHBOARD_BASENAME}>
-      <App />
-    </BrowserRouter>
-  </Provider>
+  <BrowserRouter basename={DASHBOARD_BASENAME}>
+    <QueryClientProvider client={queryClient}>
+      <AppContextProvider>
+        <ServicesContextProvider
+          userService={userService}
+          organizationService={organizationService}
+          repoService={repoService}
+        >
+          <App />
+        </ServicesContextProvider>
+      </AppContextProvider>
+    </QueryClientProvider>
+  </BrowserRouter>
 );

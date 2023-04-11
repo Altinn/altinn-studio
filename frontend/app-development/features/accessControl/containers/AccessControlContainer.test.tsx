@@ -3,6 +3,7 @@ import { AccessControlContainer } from './AccessControlContainer';
 import { renderWithProviders } from '../../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { RootState } from 'app-development/store';
+import { screen } from '@testing-library/react';
 
 const currentApplicationMetadata: any = {
   partyTypesAllowed: {
@@ -14,15 +15,7 @@ const currentApplicationMetadata: any = {
 };
 
 const renderAccessControlContainer = (applicationMetadata?: any) => {
-  const mockLanguage = {};
-
   const initialState: Partial<RootState> = {
-    languageState: {
-      language: mockLanguage,
-    },
-    appCluster: {
-      deploymentList: [],
-    },
     appDeployments: {
       createAppDeploymentErrors: [],
       deployments: [],
@@ -41,13 +34,6 @@ const renderAccessControlContainer = (applicationMetadata?: any) => {
       environments: null,
       orgs: null,
     },
-    handleMergeConflict: {
-      repoStatus: {
-        behindBy: 0,
-        aheadBy: 0,
-        contentStatus: [],
-      },
-    },
     repoStatus: {
       resettingLocalRepo: false,
       branch: null,
@@ -59,7 +45,7 @@ const renderAccessControlContainer = (applicationMetadata?: any) => {
     userState: null,
   };
 
-  return renderWithProviders(<AccessControlContainer language={mockLanguage} />, {
+  return renderWithProviders(<AccessControlContainer />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
     preloadedState: initialState,
   });
@@ -67,7 +53,7 @@ const renderAccessControlContainer = (applicationMetadata?: any) => {
 
 describe('When loading AccessControlContainer', () => {
   it('should render all checkboxes unchecked when applicationMetadata does not contain partyTypesAllowed', () => {
-    const screen = renderAccessControlContainer({
+    renderAccessControlContainer({
       ...currentApplicationMetadata,
       partyTypesAllowed: null,
     });
@@ -77,7 +63,7 @@ describe('When loading AccessControlContainer', () => {
   });
 
   it('should render checkboxes as defined by applicationMetadata.partyTypesAllowed object', () => {
-    const screen = renderAccessControlContainer();
+    renderAccessControlContainer();
     const checkboxes = screen.queryAllByRole('checkbox');
     const partyTypesAllowed = currentApplicationMetadata.partyTypesAllowed;
     expect(checkboxes).toHaveLength(4);

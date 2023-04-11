@@ -2,7 +2,6 @@ import type { ChangeEvent } from 'react';
 import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
-import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
 import { Checkbox, FieldSet, Select, TextField } from '@digdir/design-system-react';
 import type { Dict } from '@altinn/schema-model';
@@ -15,15 +14,16 @@ import {
   stringRestrictionsReducer,
   StringRestrictionsReducerActionType,
 } from './StringRestrictionsReducer';
+import { useTranslation } from 'react-i18next';
 
 export function StringRestrictions({
-  language,
   onChangeRestrictionValue,
   onChangeRestrictions,
   path,
   restrictions,
 }: RestrictionItemProps) {
-  const t = (key: string) => getTranslation(key, language);
+  const translation = useTranslation();
+  const t = (key: string) => translation.t('schema_editor.' + key);
   const [regexTestValue, setRegexTestValue] = useState<string>('');
   const pattern = restrictions[StrRestrictionKeys.pattern] || '';
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
@@ -71,7 +71,7 @@ export function StringRestrictions({
 
   return (
     <>
-      <Divider inMenu />
+      <Divider marginless/>
       <Select
         inputId='format-select-input'
         label={t('format')}
@@ -147,7 +147,7 @@ export function StringRestrictions({
           />
         </div>
       </div>
-      <Divider inMenu />
+      <Divider marginless/>
       <FieldSet className={classes.fieldSet} legend={t('regex')}>
         <RestrictionField
           keyName={StrRestrictionKeys.pattern}

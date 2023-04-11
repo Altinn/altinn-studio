@@ -161,6 +161,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 case XsdRootElementKeyword:
                 case DescriptionKeyword:
                 case TitleKeyword:
+                case XsdMinOccursKeyword:
+                case XsdMaxOccursKeyword:
                     break;
 
                 case RefKeyword k:
@@ -184,7 +186,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     break;
 
                 default:
-                    throw new NotImplementedException($"Keyword {keyword.Keyword()} not processed!");
+                    throw new MetamodelConvertException($"Keyword {keyword.Keyword()} not processed!. It's not supported in the current version of the JsonSchemaToMetamodelConverter.");
             }
 
             OnKeywordProcessed(new KeywordProcessedEventArgs() { Path = path, Keyword = keyword });
@@ -332,7 +334,14 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 return;
             }
 
-            foreach (var keyword in singleSchema.Keywords)
+            // If the array has a properties keyword, the type should be created with the node name.
+            if (singleSchema!.Keywords.TryGetKeyword(out PropertiesKeyword propertiesKeyword) && propertiesKeyword.Properties.Any())
+            {
+                ProcessRegularType(path, subSchema, context);
+            }
+
+
+            foreach (var keyword in singleSchema.Keywords!)
             {
                 var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
 

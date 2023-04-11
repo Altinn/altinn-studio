@@ -8,9 +8,12 @@ import {
   FieldSet,
   TextArea,
 } from '@digdir/design-system-react';
-import { Close } from '@navikt/ds-icons';
+import { XMarkIcon } from '@navikt/aksel-icons';
 import { getAllTextResources, getCurrentEditId } from '../selectors/textResourceSelectors';
-import { setCurrentEditId, upsertTextResources } from '../features/appData/textResources/textResourcesSlice';
+import {
+  setCurrentEditId,
+  upsertTextResources,
+} from '../features/appData/textResources/textResourcesSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useText } from '../hooks';
 import { useParams } from 'react-router-dom';
@@ -44,7 +47,7 @@ export const TextResourceEdit = () => {
       ))}
       <Button
         color={ButtonColor.Secondary}
-        icon={<Close />}
+        icon={<XMarkIcon />}
         onClick={() => setEditId(undefined)}
         variant={ButtonVariant.Outline}
       >
@@ -62,13 +65,14 @@ interface TextBoxProps {
 }
 
 const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) => {
-
   const dispatch = useDispatch();
   const { org, app } = useParams();
 
   const updateTextResource = (text: string) => {
-    dispatch(upsertTextResources({ language, textResources: { [textResourceId]: text }, org, app }));
-  }
+    dispatch(
+      upsertTextResources({ language, textResources: { [textResourceId]: text }, org, app })
+    );
+  };
 
   const [value, setValue] = useState<string>(textResource?.value || '');
 

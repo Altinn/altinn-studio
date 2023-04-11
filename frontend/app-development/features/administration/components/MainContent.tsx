@@ -4,13 +4,12 @@ import {
   ButtonColor,
   ButtonVariant,
   TextArea,
-  TextField
+  TextField,
 } from '@digdir/design-system-react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
-import InformationPaper from 'app-shared/components/AltinnInformationPaper';
 import classes from './MainContent.module.css';
-import { useAppSelector } from '../../../common/hooks';
+import { Trans, useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 interface IMainContentProps {
   repositoryName: string;
@@ -18,7 +17,6 @@ interface IMainContentProps {
   appId: string;
   appName: string;
   editAppName: boolean;
-  language: any;
   onAppDescriptionBlur: () => void;
   onAppDescriptionChange: (event: any) => void;
   onAppIdBlur: () => void;
@@ -30,17 +28,22 @@ interface IMainContentProps {
 }
 
 export const MainContent = (props: IMainContentProps): JSX.Element => {
-  const urlParams = new URLSearchParams(`?${window.location.hash.split('?')[1]}`);
-  const copiedApp = Boolean(urlParams.get('copiedApp'));
-  const language = useAppSelector((state) => state.languageState.language);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const [searchParams] = useSearchParams();
+  const copiedApp = Boolean(searchParams.get('copiedApp'));
+  const { t } = useTranslation();
   return (
     <div className={classes.mainContentContainer}>
       {copiedApp && (
-        <InformationPaper>
+        <>
           <h2>{t('administration.copied_app_header')}</h2>
-          <p>{t('administration.copied_app_information')}</p>
-        </InformationPaper>
+          <p>
+            <Trans i18nKey='administration.copied_app_information'>
+              <a target='_blank' rel='noreferrer'>
+                brukerdokumentasjon
+              </a>
+            </Trans>
+          </p>
+        </>
       )}
       <h2>{t('general.service_name')}</h2>
       <p>{t('administration.service_name_administration_description')}</p>

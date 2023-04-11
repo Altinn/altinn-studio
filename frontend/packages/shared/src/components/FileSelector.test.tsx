@@ -3,19 +3,27 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IFileSelectorProps } from './FileSelector';
 import FileSelector from './FileSelector';
-import { Button } from '@mui/material';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { Button } from '@digdir/design-system-react';
 
 const user = userEvent.setup();
 
+// Test data:
+const texts = {
+  'general.label': 'download',
+  'shared.submit_upload': 'upload',
+  'app_data_modelling.upload_xsd': 'Upload button text',
+};
+
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
+
 const render = (props: Partial<IFileSelectorProps> = {}) => {
-  const allProps = {
-    language: {
-      'general.label': 'download',
-      'shared.submit_upload': 'upload',
-      'app_data_modelling.upload_xsd': 'Upload button text',
-    },
+  const allProps: IFileSelectorProps = {
+    submitHandler: jest.fn(),
+    busy: false,
+    formFileName: '',
     ...props,
-  } as IFileSelectorProps;
+  };
 
   rtlRender(<FileSelector {...allProps} />);
 };

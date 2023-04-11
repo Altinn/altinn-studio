@@ -12,6 +12,7 @@ export enum TopBarMenu {
   Datamodel = 'top_menu.datamodel',
   Text = 'top_menu.texts',
   Deploy = 'top_menu.deploy',
+  Access = 'top_menu.access-controll',
   None = '',
 }
 

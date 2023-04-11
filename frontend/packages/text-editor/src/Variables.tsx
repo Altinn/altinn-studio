@@ -1,17 +1,16 @@
 import classes from './Variables.module.css';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
-import { InformationColored } from '@navikt/ds-icons';
-import React from 'react';
+import { InformationSquareFillIcon } from '@navikt/aksel-icons';
+import React, { useState } from 'react';
 import type { TextResourceVariable } from './types';
 
 export type VariablesProps = {
   variables: TextResourceVariable[];
-  infoboxOpen: boolean;
-  setInfoboxOpen: (open: boolean) => void;
 };
 
-export const Variables = ({ variables, infoboxOpen, setInfoboxOpen }: VariablesProps) => {
+export const Variables = ({ variables }: VariablesProps) => {
+  const [infoboxOpen, setInfoboxOpen] = useState(false);
   return (
     <div title={'Det er ikke lagt til støtte for redigering av variabler i Studio.'}>
       {variables.map((variable) => (
@@ -26,7 +25,7 @@ export const Variables = ({ variables, infoboxOpen, setInfoboxOpen }: VariablesP
             variant={PanelVariant.Info}
             trigger={
               <Button
-                icon={<InformationColored />}
+                icon={<InformationSquareFillIcon />}
                 variant={ButtonVariant.Quiet}
                 size={ButtonSize.Small}
               />

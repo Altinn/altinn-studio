@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 

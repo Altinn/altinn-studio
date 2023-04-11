@@ -11,8 +11,6 @@ import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
 import type { IMetadataOption } from './functions/types';
 import { LandingPagePanel } from './components/LandingPagePanel';
 import { Dialog } from '@mui/material';
-import type { LanguageTree } from 'app-shared/utils/language';
-import { getLanguageFromKey } from '../../utils/language';
 import { getLocalStorageItem, setLocalStorageItem } from './functions/localStorage';
 import { CreateNewWrapper } from './components/CreateNewWrapper';
 import { DeleteWrapper } from './components/DeleteWrapper';
@@ -20,9 +18,9 @@ import { SchemaSelect } from './components/SchemaSelect';
 import { XSDUpload } from './components/XSDUpload';
 import { datamodelPath } from '../../api-paths';
 import classes from './DataModelling.module.css';
+import { useTranslation } from 'react-i18next';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
-  language: LanguageTree;
   org: string;
   repo: string;
   createPathOption?: boolean;
@@ -47,13 +45,17 @@ export const shouldSelectFirstEntry = ({
 };
 
 export function DataModelling({
-  language,
   org,
   repo,
   createPathOption = false,
 }: IDataModellingContainerProps): JSX.Element {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
+  const jsonSchemaState = useSelector((state: any) => {
+    const { error, saving } = state.dataModelling;
+    return { error, saving };
+  });
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
   const metadataLoadingState = useSelector((state: any) => state.dataModelsMetadataState.loadState);
   const [selectedOption, setSelectedOption] = React.useState(undefined);
@@ -72,7 +74,7 @@ export function DataModelling({
       shouldSelectFirstEntry({
         metadataOptions,
         selectedOption,
-        metadataLoadingState
+        metadataLoadingState,
       })
     ) {
       setSelectedOption(metadataOptions[0].options[0]);
@@ -95,29 +97,30 @@ export function DataModelling({
         const filename = selectedOption.value.fileName;
         const lowerCaseFileName = filename.toLowerCase();
         const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
-        const schemaName = filename.substring(0, filenameWithoutXsd.length);
-
-        uploadedOrCreatedFileName.current = schemaName;
+        uploadedOrCreatedFileName.current = filename.substring(0, filenameWithoutXsd.length);
       }
     }
   }, [selectedOption, dispatch, org, repo]);
 
   const handleSaveSchema = (schema: any) =>
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
-  const handleDeleteSchema = () => dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
+  const handleDeleteSchema = () => {
+    dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
+    // Needs to reset prevFetchedOption when deleting the data model.
+    prevFetchedOption.current = null;
+  };
   const handleCreateNewFromLandingPage = () => setCreateNewOpen(true);
 
   const handleCreateSchema = (model: { name: string; relativeDirectory?: string }) => {
     dispatch(createDataModel(model));
     uploadedOrCreatedFileName.current = model.name;
+    setCreateNewOpen(false);
   };
 
   const handleXSDUploaded = (filename: string) => {
     const lowerCaseFileName = filename.toLowerCase();
     const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
-    const schemaName = filename.substring(0, filenameWithoutXsd.length);
-
-    uploadedOrCreatedFileName.current = schemaName;
+    uploadedOrCreatedFileName.current = filename.substring(0, filenameWithoutXsd.length);
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
@@ -129,8 +132,6 @@ export function DataModelling({
 
   const [editMode, setEditMode] = useState(() => getLocalStorageItem('editMode'));
   const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
-
-  const t = (key: string) => getLanguageFromKey(key, language);
 
   const shouldDisplayLandingPage = !jsonSchema && hideIntroPage;
 
@@ -171,8 +172,8 @@ export function DataModelling({
       <SchemaEditorApp
         editMode={editMode}
         toggleEditMode={toggleEditMode}
-        language={language}
         schema={jsonSchema}
+        schemaState={jsonSchemaState}
         onSaveSchema={handleSaveSchema}
         saveUrl={datamodelPath(org, repo, selectedOption?.value?.repositoryRelativeUrl)}
         name={selectedOption?.label}
@@ -180,7 +181,6 @@ export function DataModelling({
         LandingPagePanel={
           shouldDisplayLandingPage && (
             <LandingPagePanel
-              language={language}
               org={org}
               repo={repo}
               handleXSDUploaded={handleXSDUploaded}
@@ -190,15 +190,14 @@ export function DataModelling({
         }
       >
         <CreateNewWrapper
-          language={language}
           createAction={handleCreateSchema}
           dataModelNames={modelNames}
           createPathOption={createPathOption}
           disabled={shouldDisplayLandingPage}
-          openByDefault={createNewOpen}
+          open={createNewOpen}
+          setOpen={setCreateNewOpen}
         />
         <XSDUpload
-          language={language}
           onXSDUploaded={handleXSDUploaded}
           org={org}
           repo={repo}
@@ -213,7 +212,6 @@ export function DataModelling({
         <DeleteWrapper
           schemaName={selectedOption?.value && selectedOption?.label}
           deleteAction={handleDeleteSchema}
-          language={language}
         />
       </SchemaEditorApp>
     </>

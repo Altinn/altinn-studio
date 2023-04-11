@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
 import Select from 'react-select';
-import type { IAppState } from '../../types/global';
+import { useDatamodelQuery } from '../../hooks/queries';
+import { useParams } from 'react-router-dom';
 
 export interface ISelectDataModelProps {
   inputId?: string;
@@ -31,7 +31,9 @@ export const SelectDataModelComponent = ({
   selectGroup,
 }: ISelectDataModelProps) => {
   const [selectedBinding, setSelectedBinding] = useState(selectedElement);
-  const dataModelElements = useSelector((state: IAppState) => state.appData.dataModel.model);
+  const { org, app } = useParams();
+  const datamodelQuery = useDatamodelQuery(org, app);
+  const dataModelElements = datamodelQuery?.data ?? [];
 
   const onChangeSelectedBinding = (e: any) => {
     setSelectedBinding(e.value);

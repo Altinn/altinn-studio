@@ -104,7 +104,7 @@ const render = ({
 
   return rtlRender(
     <HeaderContext.Provider value={headerContextValue}>
-      <Header language={{}} />
+      <Header />
     </HeaderContext.Provider>
   );
 };

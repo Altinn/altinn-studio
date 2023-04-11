@@ -31,6 +31,13 @@
         "react/function-component-definition": "off",
         "@typescript-eslint/no-shadow": ["error"]
       }
+    },
+    {
+      "files": ["*.test.ts", "*.test.tsx"],
+      "extends": ["plugin:testing-library/react"],
+      "rules": {
+        "testing-library/no-unnecessary-act": "error"
+      }
     }
   ],
   "settings": {

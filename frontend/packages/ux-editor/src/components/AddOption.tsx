@@ -6,19 +6,17 @@ import {
   ButtonColor,
   ButtonVariant,
   FieldSet,
-  TextField
+  TextField,
 } from '@digdir/design-system-react';
 import { IGenericEditComponent } from './config/componentConfig';
-import {
-  IFormGenericOptionsComponent,
-  IOption
-} from '../types/global';
-import { Add } from '@navikt/ds-icons';
+import { IFormGenericOptionsComponent, IOption } from '../types/global';
+import { PlusIcon } from '@navikt/aksel-icons';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { useText } from '../hooks';
 import { addOptionToComponent } from '../utils/component';
 
-export interface AddOptionProps<T extends IFormGenericOptionsComponent> extends IGenericEditComponent {
+export interface AddOptionProps<T extends IFormGenericOptionsComponent>
+  extends IGenericEditComponent {
   addButtonClass: string;
   component: T;
   duplicateErrorText: string;
@@ -87,10 +85,7 @@ export const AddOption = <T extends IFormGenericOptionsComponent>({
           >
             {t('general.add')}
           </Button>
-          <Button
-            onClick={() => setIsAddMode(false)}
-            title={t('general.cancel')}
-          >
+          <Button onClick={() => setIsAddMode(false)} title={t('general.cancel')}>
             {t('general.cancel')}
           </Button>
         </div>
@@ -105,9 +100,9 @@ export const AddOption = <T extends IFormGenericOptionsComponent>({
         title={t('ux_editor.add_option')}
         variant={ButtonVariant.Quiet}
       >
-      <span className={addButtonClass}>
-        <Add/>
-      </span>
+        <span className={addButtonClass}>
+          <PlusIcon />
+        </span>
         {t('ux_editor.add_option')}
       </Button>
     </div>

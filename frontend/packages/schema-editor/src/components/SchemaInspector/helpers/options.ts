@@ -23,22 +23,22 @@ export const getCombinationOptions = (t: (key: string) => string): Option[] => [
 export const getTypeOptions = (t: (key: string) => string): Option[] => [
   {
     value: FieldType.String,
-    label: t('string'),
+    label: t('schema_editor.string'),
   },
   {
     value: FieldType.Integer,
-    label: t('integer'),
+    label: t('schema_editor.integer'),
   },
   {
     value: FieldType.Number,
-    label: t('number'),
+    label: t('schema_editor.number'),
   },
   {
     value: FieldType.Boolean,
-    label: t('boolean'),
+    label: t('schema_editor.boolean'),
   },
   {
     value: FieldType.Object,
-    label: t('object'),
+    label: t('schema_editor.object'),
   },
 ];

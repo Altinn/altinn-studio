@@ -3,10 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <AssemblyName>Altinn.Studio.Designer.Tests</AssemblyName>
+    <RootNamespace>Designer.Tests</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TestRepoPrefix>test-repo_</TestRepoPrefix>
+    <TestRepoPrefix>test-repo-</TestRepoPrefix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +20,8 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
     <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

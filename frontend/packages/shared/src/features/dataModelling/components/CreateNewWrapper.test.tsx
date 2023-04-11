@@ -3,56 +3,63 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { ICreateNewWrapper } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
 describe('CreateNewWrapper', () => {
   it('should open the popup when clicking "new" button', async () => {
-    render();
-
-    const newButton = screen.getByRole('button', {
-      name: /general\.create_new/i,
-    });
+    const props = { open: false };
+    render(props);
 
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       })
     ).not.toBeInTheDocument();
 
-    await act(() => user.click(newButton));
-
-    expect(
-      screen.queryByRole('button', {
-        name: /general\.create_new/i,
-      })
-    ).not.toBeInTheDocument();
-
+    const newButton = screen.getByRole('button', {
+      name: textMock('general.create_new'),
+    });
+    expect(props.open).toBeFalsy();
+    await user.click(newButton);
+    expect(props.open).toBeTruthy();
+  });
+  it('should close the popup when clicking "new" button', async () => {
+    const props = { open: true };
+    render(props);
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       })
     ).toBeInTheDocument();
-  });
 
+    const newButton = screen.getByRole('button', {
+      name: textMock('general.create_new'),
+    });
+    expect(props.open).toBeTruthy();
+
+    await act(() => user.click(newButton));
+    expect(props.open).toBeFalsy();
+  });
   describe('createAction', () => {
     it('should call createAction callback when ok button is clicked', async () => {
       const handleChange = jest.fn();
       render({ createAction: handleChange });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
-      await user.click(newButton);
+      await act(() => user.click(newButton));
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       });
-      await user.type(textInput, 'new-model');
-      await user.click(okButton);
+      await act(() => user.type(textInput, 'new-model'));
+      await act(() => user.click(okButton));
       expect(handleChange).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -64,14 +71,14 @@ describe('CreateNewWrapper', () => {
       render({ createAction: handleChange });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
-      await user.click(newButton);
+      await act(() => user.click(newButton));
 
       const textInput = screen.getByRole('textbox');
 
-      await user.type(textInput, 'new-model');
-      await user.keyboard('{Enter}');
+      await act(() => user.type(textInput, 'new-model'));
+      await act(() => user.keyboard('{Enter}'));
       expect(handleChange).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -83,16 +90,16 @@ describe('CreateNewWrapper', () => {
       render({ createAction: handleChange, createPathOption: true });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
-      await user.click(newButton);
+      await act(() => user.click(newButton));
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       });
-      await user.type(textInput, 'new-model');
-      await user.click(okButton);
+      await act(() => user.type(textInput, 'new-model'));
+      await act(() => user.click(okButton));
       expect(handleChange).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: '',
@@ -106,19 +113,19 @@ describe('CreateNewWrapper', () => {
       render({ createAction: handleChange, dataModelNames: [modelName] });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
-      await user.click(newButton);
+      await act(() => user.click(newButton));
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       });
 
-      await user.type(textInput, modelName);
+      await act(() => user.type(textInput, modelName));
       expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
 
-      await user.click(okButton);
+      await act(() => user.click(okButton));
 
       expect(handleChange).not.toHaveBeenCalled();
       expect(screen.getByText(errMessage)).toBeInTheDocument();
@@ -133,15 +140,15 @@ describe('CreateNewWrapper', () => {
       render({ createAction: handleChange, dataModelNames: [modelName] });
 
       const newButton = screen.getByRole('button', {
-        name: /general\.create_new/i,
+        name: textMock('general.create_new'),
       });
-      await userWithNoPointerEventCheck.click(newButton);
+      await act(() => userWithNoPointerEventCheck.click(newButton));
 
       const okButton = screen.getByRole('button', {
-        name: /schema_editor\.create_model_confirm_button/i,
+        name: textMock('schema_editor.create_model_confirm_button'),
       });
 
-      await userWithNoPointerEventCheck.click(okButton);
+      await act(() => userWithNoPointerEventCheck.click(okButton));
 
       expect(handleChange).not.toHaveBeenCalled();
     });
@@ -149,12 +156,12 @@ describe('CreateNewWrapper', () => {
 });
 
 const render = (props: Partial<ICreateNewWrapper> = {}) => {
-  const allProps = {
-    language: { administration: {} },
+  props.open = props.open ?? true;
+  const allProps: ICreateNewWrapper = {
     dataModelNames: [],
     createAction: jest.fn(),
+    setOpen: (o) => (props.open = o),
     ...props,
   } as ICreateNewWrapper;
-
   return rtlRender(<CreateNewWrapper {...allProps} />);
 };

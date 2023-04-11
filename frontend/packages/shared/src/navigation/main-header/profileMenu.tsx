@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './profileMenu.module.css';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Menu, MenuItem } from '@mui/material';
-import { PeopleInCircleFilled } from '@navikt/ds-icons';
+import { PersonCircleFillIcon } from '@navikt/aksel-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../utils/networking';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api-paths';
@@ -29,7 +29,7 @@ export function ProfileMenu({ showlogout }: IProfileMenuComponentProps) {
         aria-label='profilikon knapp'
         onClick={handleClick}
         variant={ButtonVariant.Quiet}
-        icon={<PeopleInCircleFilled aria-label='profilikon' />}
+        icon={<PersonCircleFillIcon aria-label='profilikon' />}
       />
       <Menu
         id='simple-menu'

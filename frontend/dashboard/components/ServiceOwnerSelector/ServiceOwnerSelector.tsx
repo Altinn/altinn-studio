@@ -1,30 +1,21 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { AltinnSpinner } from 'app-shared/components';
-import type { IGiteaOrganisation } from 'app-shared/types/global';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useGetOrganizationsQuery } from '../../services/organizationApi';
-import { useAppSelector } from '../../hooks/useAppSelector';
 import { Select } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
+import { Organization } from 'dashboard/services/organizationService';
+import { User } from 'dashboard/services/userService';
 
 const zIndex = {
   zIndex: 1300,
 };
 
-interface IServiceOwnerSelectorProps {
-  onServiceOwnerChanged: (newValue: string) => void;
-  errorMessage?: string;
-  selectedOrgOrUser: string;
-}
-
 interface ICombineCurrentUserAndOrg {
   user: User;
-  organisations: IGiteaOrganisation[];
+  organizations: Organization[];
 }
 
-const combineCurrentUserAndOrg = ({ organisations = [], user }: ICombineCurrentUserAndOrg) => {
-  const allUsers = organisations.map((props: any) => {
+const combineCurrentUserAndOrg = ({ organizations = [], user }: ICombineCurrentUserAndOrg) => {
+  const allUsers = organizations.map((props: any) => {
     return {
       value: props.username,
       label: props.full_name || props.username,
@@ -39,30 +30,37 @@ const combineCurrentUserAndOrg = ({ organisations = [], user }: ICombineCurrentU
   return allUsers;
 };
 
-export const ServiceOwnerSelector = ({
-  onServiceOwnerChanged,
-  errorMessage,
-  selectedOrgOrUser,
-}: IServiceOwnerSelectorProps) => {
-  const { data: organisations, isLoading: isLoadingOrganisations } = useGetOrganizationsQuery();
+interface ServiceOwnerSelectorProps {
+  selectedOrgOrUser: string;
+  user: User;
+  organizations: Organization[];
+  errorMessage?: string;
+  onServiceOwnerChanged: (newValue: string) => void;
+}
 
-  const user = useAppSelector((state) => state.dashboard.user);
-  const language = useAppSelector((state) => state.language.language);
+export const ServiceOwnerSelector = ({
+  selectedOrgOrUser,
+  user,
+  organizations,
+  errorMessage,
+  onServiceOwnerChanged,
+}: ServiceOwnerSelectorProps) => {
+  const { t } = useTranslation();
 
   const serviceOwnerRef = useRef(null);
 
   const selectableOrgsOrUser = useMemo(() => {
     return combineCurrentUserAndOrg({
-      organisations,
+      organizations,
       user,
     });
-  }, [organisations, user]);
+  }, [organizations, user]);
 
   useEffect(() => {
-    if (isLoadingOrganisations === false && selectableOrgsOrUser.length === 1) {
+    if (selectableOrgsOrUser.length === 1) {
       onServiceOwnerChanged(selectableOrgsOrUser[0].value); // auto-select the option when theres only 1 option
     }
-  }, [selectableOrgsOrUser, onServiceOwnerChanged, isLoadingOrganisations]);
+  }, [selectableOrgsOrUser, onServiceOwnerChanged]);
 
   useLayoutEffect(() => {
     serviceOwnerRef.current = document.querySelector('#service-owner');
@@ -71,13 +69,12 @@ export const ServiceOwnerSelector = ({
   const handleChange = (value: string) => onServiceOwnerChanged(value);
   const value =
     selectableOrgsOrUser.length === 1 ? selectableOrgsOrUser[0].value : selectedOrgOrUser;
-  return isLoadingOrganisations ? (
-    <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
-  ) : (
+
+  return (
     <div>
       <Select
         inputId='service-owner'
-        label={getLanguageFromKey('general.service_owner', language)}
+        label={t('general.service_owner')}
         onChange={handleChange}
         options={selectableOrgsOrUser}
         value={value}

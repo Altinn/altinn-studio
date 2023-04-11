@@ -1,32 +1,42 @@
 import React from 'react';
-import { RepoList } from '../../components/RepoList';
+import { RepoList } from '../RepoList';
 import { getReposLabel } from '../../utils/repoUtils';
 import { getUidFilter } from '../../utils/filterUtils';
+import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
+import { useTranslation } from 'react-i18next';
+import { User } from 'dashboard/services/userService';
+import { Organization } from 'dashboard/services/organizationService';
+import { useSearchReposQuery } from 'dashboard/hooks/useRepoQueries';
+import { IRepository } from 'app-shared/types/global';
+import { useAppContext } from '../../contexts/appContext';
 
-import { useAppSelector } from '../../hooks/useAppSelector';
-import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred/useAugmentReposWithStarred';
-import { useGetOrganizationsQuery } from '../../services/organizationApi';
-import { useGetSearchQuery } from '../../services/repoApi';
-import { useGetUserStarredReposQuery } from '../../services/userApi';
+type DataModelsReposListProps = {
+  user: User;
+  organizations: Organization[];
+  starredRepos: IRepository[];
+};
+export const DatamodelsReposList = ({
+  user,
+  organizations,
+  starredRepos,
+}: DataModelsReposListProps) => {
+  const { selectedContext } = useAppContext();
+  const { t } = useTranslation();
 
-export const DatamodelsReposList = () => {
-  const language = useAppSelector((state) => state.language.language);
-  const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
-  const userId = useAppSelector((state) => state.dashboard.user.id);
-  const { data: orgs = [] } = useGetOrganizationsQuery();
-  const uid = getUidFilter({ selectedContext, userId });
+  const uid = getUidFilter({
+    selectedContext,
+    userId: user.id,
+  });
 
-  const { data: starredRepos, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
-
-  const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
+  const { data: repos, isLoading: isLoadingOrgRepos } = useSearchReposQuery({
     uid: uid as number,
     keyword: '-datamodels',
-    page: 0
+    page: 0,
   });
 
   const reposWithStarred = useAugmentReposWithStarred({
     repos: repos?.data,
-    starredRepos
+    starredRepos,
   });
 
   if (!reposWithStarred.length) {
@@ -35,13 +45,8 @@ export const DatamodelsReposList = () => {
 
   return (
     <div data-testid='datamodels-repos-list'>
-      <h2>{getReposLabel({ selectedContext, orgs, language, isDatamodelsRepo: true })}</h2>
-      <RepoList
-        repos={reposWithStarred}
-        isLoading={isLoadingOrgRepos || isLoadingStarred}
-        pageSize={5}
-        rowCount={2}
-      />
+      <h2>{getReposLabel({ selectedContext, orgs: organizations, t, isDatamodelsRepo: true })}</h2>
+      <RepoList repos={reposWithStarred} isLoading={isLoadingOrgRepos} pageSize={5} rowCount={2} />
     </div>
   );
 };

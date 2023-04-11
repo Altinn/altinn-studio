@@ -1,152 +1,166 @@
 import React from 'react';
-import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
-import { handlers, renderWithProviders, rest, setupServer } from '../../dashboardTestUtils';
-
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { MockServicesContextWrapper, Services } from '../../dashboardTestUtils';
 import { CreateService } from './CreateService';
-import { orgsListPath, createRepoPath } from 'app-shared/api-paths';
+import { User } from 'dashboard/services/userService';
+import { IGiteaOrganisation } from 'app-shared/types/global';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
-const server = setupServer(...handlers);
-
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
-
-const render = () => renderWithProviders(<CreateService />, {
-  preloadedState: {
-    language: {
-      language: {},
-    },
-    dashboard: {
-      services: [],
-      selectedContext: SelectedContextType.Self,
-      repoRowsPerPage: 5,
-      user: {
-        id: 1,
-        avatar_url: 'avatar_url',
-        email: 'email',
-        full_name: 'user_full_name',
-        login: 'user_login',
-      },
-    },
-  },
-});
+type RenderWithMockServicesProps = Services;
+const renderWithMockServices = (
+  services?: RenderWithMockServicesProps,
+  organizations?: IGiteaOrganisation[],
+  user?: User
+) => {
+  render(
+    <MockServicesContextWrapper customServices={services}>
+      <CreateService
+        organizations={organizations || []}
+        user={
+          user ||
+          ({
+            id: 1,
+            avatar_url: '',
+            email: '',
+            full_name: '',
+            login: '',
+          } as User)
+        }
+      />
+    </MockServicesContextWrapper>
+  );
+};
 
 describe('CreateService', () => {
-  it('should show error messages when clicking create and no owner or name is filled in', async () => {
+  test('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
-    render();
+    renderWithMockServices();
 
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
-    const createBtn = await screen.findByText('dashboard.create_service_btn');
+    const createBtn = await screen.findByText(textMock('dashboard.create_service_btn'));
     await act(() => user.click(createBtn));
 
-    const emptyFieldErrors = await screen.findAllByText('dashboard.field_cannot_be_empty');
+    const emptyFieldErrors = await screen.findAllByText(
+      textMock('dashboard.field_cannot_be_empty')
+    );
     expect(emptyFieldErrors.length).toBe(2);
   });
 
-  it('should prefill owner when there are no available orgs, and the only available user is the logged in user', async () => {
-    server.use(
-      rest.get(orgsListPath(), async (req, res, ctx) => {
-        return res(ctx.json([]));
-      })
-    );
-
-    render();
-
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
+  test('should prefill owner when there are no available orgs, and the only available user is the logged in user', async () => {
+    renderWithMockServices();
 
     await waitFor(() => {
       expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+    await waitFor(() => {
       expect(screen.getByRole('combobox')).toBeDisabled();
     });
   });
 
-  it('should show error message that app name is too long when it exceeds max length', async () => {
+  test('should show error message that app name is too long when it exceeds max length', async () => {
     const user = userEvent.setup();
-    const { container } = render();
+    renderWithMockServices();
+    await act(() =>
+      user.type(screen.getByLabelText(/general.service_name/), 'this-app-name-is-longer-than-max')
+    );
 
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
-
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
-    await act(() => user.type(container.querySelector('#service-saved-name'), 'this-app-name-is-longer-than-max'));
-
-    const createBtn = await screen.findByText('dashboard.create_service_btn');
+    const createBtn = await screen.findByText(textMock('dashboard.create_service_btn'));
     await act(() => user.click(createBtn));
 
-    const emptyFieldErrors = await screen.findAllByText('dashboard.service_name_is_too_long');
+    const emptyFieldErrors = await screen.findAllByText(
+      textMock('dashboard.service_name_is_too_long')
+    );
     expect(emptyFieldErrors.length).toBe(1);
   });
 
-  it('should show error message that app name is invalid when it contains invalid characters', async () => {
+  test('should show error message that app name is invalid when it contains invalid characters', async () => {
     const user = userEvent.setup();
-    const { container } = render();
+    renderWithMockServices();
 
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
+    await act(() =>
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'datamodels')
+    );
 
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
-    await act(() => user.type(container.querySelector('#service-saved-name'), 'datamodels'));
-
-    const createButton = await screen.queryByRole('button', { name: 'dashboard.create_service_btn' });
+    const createButton = screen.queryByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
     await act(() => user.click(createButton));
 
     const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.service_name_has_illegal_characters'
+      textMock('dashboard.service_name_has_illegal_characters')
     );
     expect(emptyFieldErrors.length).toBe(1);
   });
 
-  it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
+  test('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
-    server.use(
-      rest.post(createRepoPath(), async (req, res, ctx) => {
-        const org = req.url.searchParams.get('user_login')
-        const repoName = req.url.searchParams.get('this-app-name-exists')
-        return res(ctx.status(409), ctx.json({ org, repoName }));
-      })
+    const org: IGiteaOrganisation = {
+      avatar_url: '',
+      id: 1,
+      username: 'unit-test',
+      full_name: 'unit-test',
+    };
+
+    const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 409 } }));
+
+    renderWithMockServices(
+      {
+        repoService: {
+          addRepo: addRepoMock,
+        },
+      },
+      [org]
     );
 
-    const { container } = render();
+    await act(() =>
+      user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') }))
+    );
+    await act(() => user.click(screen.getByRole('option', { name: 'unit-test' })));
 
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
+    await act(() =>
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists')
+    );
 
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
-    await act(() => user.type(container.querySelector('#service-saved-name'), 'this-app-name-exists'));
-
-    const createButton = await screen.findByText('dashboard.create_service_btn');
+    const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));
     await act(() => user.click(createButton));
 
-    const emptyFieldErrors = await screen.findAllByText('dashboard.app_already_exist');
+    expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
+
+    const emptyFieldErrors = await screen.findAllByText(textMock('dashboard.app_already_exist'));
     expect(emptyFieldErrors.length).toBe(1);
   });
 
-  it('should show generic error message that app already exists when trying to create an app and something unknown went wrong', async () => {
+  test('should show generic error message that app already exists when trying to create an app and something unknown went wrong', async () => {
     const user = userEvent.setup();
-    server.use(
-      rest.post(createRepoPath(), async (req, res, ctx) => {
-        const org = req.url.searchParams.get('user_login')
-        const repoName = req.url.searchParams.get('new-app')
-        return res(ctx.status(500), ctx.json({ org, repoName }));
-      })
+    const org: IGiteaOrganisation = {
+      avatar_url: '',
+      id: 1,
+      username: 'unit-test',
+      full_name: 'unit-test',
+    };
+
+    const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 500 } }));
+    renderWithMockServices(
+      {
+        repoService: {
+          addRepo: addRepoMock,
+        },
+      },
+      [org]
     );
 
-    const { container } = render();
-
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
-
     await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByRole('option', { name: /user_full_name/i })));
-    await act(() => user.type(container.querySelector('#service-saved-name'), 'new-app'));
+    await act(() => user.click(screen.getByRole('option', { name: 'unit-test' })));
+    await act(() => user.type(screen.getByLabelText(textMock('general.service_name')), 'new-app'));
 
-    const createButton = await screen.findByText('dashboard.create_service_btn');
+    const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));
     await act(() => user.click(createButton));
 
-    const emptyFieldErrors = await screen.findAllByText('dashboard.error_when_creating_app');
+    await expect(addRepoMock).rejects.toEqual({ response: { status: 500 } });
+
+    const emptyFieldErrors = await screen.findAllByText(
+      textMock('dashboard.error_when_creating_app')
+    );
     expect(emptyFieldErrors.length).toBe(1);
   });
 });

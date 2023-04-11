@@ -18,7 +18,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -42,13 +41,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">The configured logger</param>
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
         public GiteaAPIWrapper(
-            IOptions<ServiceRepositorySettings> repositorySettings,
+            ServiceRepositorySettings repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             ILogger<GiteaAPIWrapper> logger,
             HttpClient httpClient)
         {
-            _settings = repositorySettings.Value;
+            _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
             _cache = memoryCache;
             _logger = logger;
@@ -74,9 +73,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<List<Team>> GetTeams()
         {
-            List<Team> teams = new List<Team>();
+            List<Team> teams = new();
 
-            string url = $"user/teams";
+            string url = "user/teams";
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -108,11 +107,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 // The repository with the same name already exists, 409 from Gitea API
                 repository.RepositoryCreatedStatus = HttpStatusCode.Conflict;
             }
+            else if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                // The user is not part of a team with repo-creation permissions, 403 from Gitea API
+                _logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}. If this was not expected try updating team settings in gitea.");
+                repository.RepositoryCreatedStatus = HttpStatusCode.Forbidden;
+            }
             else
             {
-                _logger.LogError("User " + developer +
-                    " Create repository failed with statuscode " + response.StatusCode + " for " +
-                    org + " and repo-name " + options.Name);
+                _logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}.");
+                repository.RepositoryCreatedStatus = response.StatusCode;
             }
 
             return repository;
@@ -168,33 +172,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> PutStarred(string org, string repository)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"user/starred/{org}/{repository}");
+            HttpRequestMessage request = new(HttpMethod.Put, $"user/starred/{org}/{repository}");
             HttpResponseMessage response = await _httpClient.SendAsync(request);
 
-            if (response.StatusCode == HttpStatusCode.NoContent)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return response.StatusCode == HttpStatusCode.NoContent;
         }
 
         /// <inheritdoc/>
         public async Task<bool> DeleteStarred(string org, string repository)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, $"user/starred/{org}/{repository}");
+            HttpRequestMessage request = new(HttpMethod.Delete, $"user/starred/{org}/{repository}");
             HttpResponseMessage response = await _httpClient.SendAsync(request);
 
-            if (response.StatusCode == HttpStatusCode.NoContent)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return response.StatusCode == HttpStatusCode.NoContent;
         }
 
         /// <inheritdoc/>
@@ -216,7 +206,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             User user = await GetCurrentUser();
 
-            SearchResults repository = new SearchResults();
+            SearchResults repository = new();
             string giteaSearchUriString = $"repos/search?limit={_settings.RepoSearchPageCount}";
             if (onlyAdmin)
             {
@@ -491,11 +481,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Branch branch = await retryResponse.Content.ReadAsAsync<Branch>();
                 return branch;
             }
-            else
-            {
-                _logger.LogError($"//GiteaAPIWrapper // CreateBranch // Error ({response.StatusCode}) occured when creating branch {branchName} for repo {org}/{repository}");
-            }
 
+            _logger.LogError($"//GiteaAPIWrapper // CreateBranch // Error ({response.StatusCode}) occured when creating branch {branchName} for repo {org}/{repository}");
             return null;
         }
 
@@ -507,7 +494,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
-            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, $"repos/{org}/{repository}/branches");
+            HttpRequestMessage message = new(HttpMethod.Post, $"repos/{org}/{repository}/branches");
             message.Content = new StringContent(content, Encoding.UTF8, "application/json");
 
             return await _httpClient.SendAsync(message);
@@ -540,10 +527,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
 
-            List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
+            List<KeyValuePair<string, string>> formValues = new();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
-            FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
+            FormUrlEncodedContent content = new(formValues);
 
             using (HttpClient client = GetWebHtmlClient(false))
             {
@@ -562,7 +549,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-info\">\n\t\t<p>", "</p>");
                         List<string> keys = FindAllAppKeysId(htmlContent, keyName);
 
-                        KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
+                        KeyValuePair<string, string> keyValuePair = new(keys.FirstOrDefault() ?? "1", token);
 
                         return keyValuePair;
                     }
@@ -623,7 +610,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
                     string htmlContent = await response.Content.ReadAsStringAsync();
 
@@ -637,7 +624,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task DeleteCurrentAppKeys(string csrf, string keyName = null)
         {
             Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
-            List<string> appKeyIds = new List<string>();
+            List<string> appKeyIds = new();
 
             using (HttpClient client = GetWebHtmlClient())
             {
@@ -661,11 +648,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 foreach (string key in appKeys)
                 {
                     _logger.LogInformation("Deleting appkey with id " + key);
-                    List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
+                    List<KeyValuePair<string, string>> formValues = new();
                     formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
                     formValues.Add(new KeyValuePair<string, string>("id", key));
 
-                    FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
+                    FormUrlEncodedContent content = new(formValues);
                     HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
                     if (!response.StatusCode.Equals(HttpStatusCode.OK))
                     {
@@ -677,8 +664,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private List<string> FindAllAppKeysId(string htmlContent, string keyName = null)
         {
-            List<string> htmlValues = new List<string>();
-            HtmlAgilityPack.HtmlDocument htmlDocument = new HtmlAgilityPack.HtmlDocument();
+            List<string> htmlValues = new();
+            HtmlAgilityPack.HtmlDocument htmlDocument = new();
             htmlDocument.LoadHtml(htmlContent);
 
             HtmlAgilityPack.HtmlNode node = htmlDocument.DocumentNode.SelectSingleNode("//div[contains(@class, 'ui key list')]");
@@ -706,7 +693,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 try
                 {
-                    using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localAppRepoFolder))
+                    using (LibGit2Sharp.Repository repo = new(localAppRepoFolder))
                     {
                         return true;
                     }
@@ -782,7 +769,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
             Cookie cookie = CreateGiteaSessionCookie(giteaSession);
-            CookieContainer cookieContainer = new CookieContainer();
+            CookieContainer cookieContainer = new();
             cookieContainer.Add(cookie);
 
             if (tokenCookie != null)
@@ -790,7 +777,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 cookieContainer.Add(tokenCookie);
             }
 
-            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer, AllowAutoRedirect = allowAutoRedirect };
+            HttpClientHandler handler = new() { CookieContainer = cookieContainer, AllowAutoRedirect = allowAutoRedirect };
 
             return new HttpClient(handler);
         }

@@ -1,102 +1,98 @@
-import React, { useEffect, useState } from 'react';
-import './App.css';
+import React, { useEffect, useMemo } from 'react';
 import classes from './App.module.css';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import type { SelectedContext } from '../resources/fetchDashboardResources/dashboardSlice';
 import { AltinnSpinner } from 'app-shared/components';
-import { Button } from '@digdir/design-system-react';
 import { CenterContainer } from '../components/CenterContainer';
 import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
-import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
-import { DataModellingContainer } from '../pages/DataModelling';
 import { Route, Routes } from 'react-router-dom';
-import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { post } from 'app-shared/utils/networking';
-import { useAppDispatch } from '../hooks/useAppDispatch';
-import { useAppSelector } from '../hooks/useAppSelector';
-import { useGetOrganizationsQuery } from '../services/organizationApi';
 import { userHasAccessToSelectedContext } from '../utils/userUtils';
 import AppHeader, {
   HeaderContext,
-  SelectedContextType
+  SelectedContextType,
 } from 'app-shared/navigation/main-header/Header';
-import {
-  frontendLangPath,
-  userCurrentPath,
-  userLogoutAfterPath,
-  userLogoutPath,
-  userReposPath
-} from 'app-shared/api-paths';
+import { useTranslation } from 'react-i18next';
+import { useUserQuery } from '../hooks/useUserQueries';
+import { useOrganizationsQuery } from 'dashboard/hooks/useOrganizationQueries';
+import { ErrorMessage } from 'dashboard/components/ErrorMessage';
+import { useAppContext } from '../contexts/appContext';
 
-export const App = () => {
-  const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.dashboard.user);
-  const language = useAppSelector((state) => state.language.language);
-  const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
-  const { data: orgs = [], isLoading: isLoadingOrganizations } = useGetOrganizationsQuery();
+import './App.css';
 
-  const setSelectedContext = (newSelectedContext: SelectedContext) =>
-    dispatch(
-      DashboardActions.setSelectedContext({
-        selectedContext: newSelectedContext
-      })
-    );
+export const App = (): JSX.Element => {
+  const { t } = useTranslation();
+  const { selectedContext, setSelectedContext } = useAppContext();
+  const { data: user, isError: isUserError } = useUserQuery();
+  const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 
-  if (!isLoadingOrganizations && !userHasAccessToSelectedContext({ selectedContext, orgs })) {
-    setSelectedContext(SelectedContextType.Self);
-  }
+  useEffect(() => {
+    if (
+      organizations &&
+      !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })
+    ) {
+      setSelectedContext(SelectedContextType.Self);
+    }
+  }, [organizations, selectedContext, setSelectedContext]);
 
-  const headerContextValue: IHeaderContext = {
-    selectableOrgs: orgs,
-    selectedContext,
-    setSelectedContext,
-    user
+  const headerContextValue: IHeaderContext = useMemo(
+    () => ({
+      selectableOrgs: organizations,
+      selectedContext,
+      setSelectedContext,
+      user,
+    }),
+    [organizations, user, setSelectedContext, selectedContext]
+  );
+
+  const componentIsReady = user && organizations;
+  const componentHasError = isUserError || isOrganizationsError;
+
+  const getErrorMessage = (): { title: string; message: string } => {
+    const defaultTitle = 'Feil oppstod ved innlasting av';
+    const defaultMessage = 'Vi beklager men en feil oppstod ved henting av';
+    if (isUserError) {
+      return {
+        title: `${defaultTitle} brukerdata`,
+        message: `${defaultMessage} dine brukerdata.`,
+      };
+    }
+    if (isOrganizationsError) {
+      return {
+        title: `${defaultTitle} organisasjoner`,
+        message: `${defaultMessage} organisasjoner som kreves for å kjøre applikasjonen.`,
+      };
+    }
+    return {
+      title: 'Ukjent feil oppstod',
+      message: 'Vi beklager men en ukjent feil, vennligst prøv igjen senere.',
+    };
   };
 
-  useEffect(() => {
-    dispatch(DashboardActions.fetchCurrentUser({ url: userCurrentPath() }));
-    dispatch(fetchLanguage({ url: frontendLangPath('nb') }));
-    dispatch(DashboardActions.fetchServices({ url: userReposPath() }));
-  }, [dispatch]);
+  if (componentHasError) {
+    const error = getErrorMessage();
+    return <ErrorMessage title={error.title} message={error.message} />;
+  }
 
-  const [showLogOutButton, setShowLogoutButton] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!user) {
-        setShowLogoutButton(true);
-      }
-    }, 5000);
+  if (componentIsReady) {
+    return (
+      <div className={classes.root}>
+        <HeaderContext.Provider value={headerContextValue}>
+          <AppHeader />
+        </HeaderContext.Provider>
+        <Routes>
+          <Route path='/' element={<Dashboard user={user} organizations={organizations} />} />
+          <Route
+            path='/new'
+            element={<CreateService organizations={organizations} user={user} />}
+          />
+        </Routes>
+      </div>
+    );
+  }
 
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [user]);
-
-  return user && !isLoadingOrganizations ? (
-    <div className={classes.root}>
-      <HeaderContext.Provider value={headerContextValue}>
-        <AppHeader language={language} />
-      </HeaderContext.Provider>
-      <Routes>
-        <Route path='/' element={<Dashboard />} />
-        <Route path='/datamodelling/:org/:repoName' element={<DataModellingContainer />} />
-        <Route path='/new' element={<CreateService />} />
-      </Routes>
-    </div>
-  ) : (
+  return (
     <CenterContainer>
-      <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
-      {showLogOutButton && (
-        <Button
-          onClick={() =>
-            post(userLogoutPath()).then(() => window.location.assign(userLogoutAfterPath()))
-          }
-        >
-          {getLanguageFromKey('dashboard.logout', language)}
-        </Button>
-      )}
+      <AltinnSpinner spinnerText={t('dashboard.loading')} />
     </CenterContainer>
   );
 };

@@ -6,6 +6,7 @@ import { IFormButtonComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { ButtonComponent } from './ButtonComponent';
 import { ComponentTypes } from '../../../';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const component: IFormButtonComponent = {
@@ -57,7 +58,7 @@ describe('ButtonComponent', () => {
       ...component,
       type: 'Button',
       textResourceBindings: {
-        title: 'ux_editor.modal_properties_button_type_submit',
+        title: textMock('ux_editor.modal_properties_button_type_submit'),
       },
     });
   });

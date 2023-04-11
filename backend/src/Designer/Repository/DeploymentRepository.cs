@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Npgsql;
 using NpgsqlTypes;
@@ -31,11 +30,11 @@ namespace Altinn.Studio.Designer.Repository
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentRepository"/> class.
         /// </summary>
-        public DeploymentRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<DeploymentRepository> logger)
+        public DeploymentRepository(PostgreSQLSettings postgresSettings, ILogger<DeploymentRepository> logger)
         {
             _connectionString = string.Format(
-                postgresSettings.Value.ConnectionString,
-                postgresSettings.Value.DesignerDbPwd);
+                postgresSettings.ConnectionString,
+                postgresSettings.DesignerDbPwd);
             _logger = logger;
         }
 

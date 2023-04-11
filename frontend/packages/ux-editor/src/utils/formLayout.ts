@@ -3,11 +3,10 @@ import type { IComponent } from '../components';
 import { ComponentTypes } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { LayoutItemType } from '../types/global';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
-  IFormLayout,
+  IInternalLayouts,
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
@@ -15,14 +14,19 @@ import type {
   ICreateFormContainer,
   IToolbarElement,
 } from '../types/global';
+import i18next from 'i18next';
 
 const { addFormComponent, addFormContainer, addWidget, updateActiveListOrder } = FormLayoutActions;
 
-export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayout {
-  const convertedLayout: IFormLayout = {
+export function convertFromLayoutToInternalFormat(
+  formLayout: any[],
+  hidden: any
+): IInternalLayouts {
+  const convertedLayout: IInternalLayouts = {
     containers: {},
     components: {},
     order: {},
+    hidden: hidden,
   };
 
   const baseContainerId: string = uuidv4();
@@ -64,15 +68,15 @@ export function topLevelComponents(layout: any[]) {
   layout.forEach((component) => {
     if (component.type === 'Group') {
       const childList = component.edit?.multiPage
-        ? component.children.map((childId) => childId.split(':')[1] || childId)
+        ? component.children?.map((childId) => childId.split(':')[1] || childId)
         : component.children;
-      childList.forEach((childId) => inGroup.add(childId));
+      childList?.forEach((childId) => inGroup.add(childId));
     }
   });
   return layout.filter((component) => !inGroup.has(component.id));
 }
 
-export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[] {
+export function convertInternalToLayoutFormat(internalFormat: IInternalLayouts): any[] {
   const formLayout: any[] = [];
 
   if (!internalFormat) {
@@ -81,7 +85,7 @@ export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[
 
   const { components, containers, order } = JSON.parse(
     JSON.stringify(internalFormat)
-  ) as IFormLayout;
+  ) as IInternalLayouts;
 
   const baseContainerId = Object.keys(internalFormat.containers)[0];
   let groupChildren: string[] = [];
@@ -175,11 +179,11 @@ export const mapWidgetToToolbarElement = (
   widget: IWidget,
   activeList: any,
   order: any[],
-  language: any,
+  t: typeof i18next.t,
   dispatch: Dispatch
 ): IToolbarElement => {
   return {
-    label: getLanguageFromKey(widget.displayName, language),
+    label: t(widget.displayName),
     icon: 'fa fa-3rd-party-alt',
     type: widget.displayName,
     actionMethod: (containerId: string, position: number) => {
@@ -197,7 +201,7 @@ export const mapWidgetToToolbarElement = (
 
 export const mapComponentToToolbarElement = (
   c: IComponent,
-  language: any,
+  t: typeof i18next.t,
   activeList: any,
   order: any[],
   dispatch: Dispatch,
@@ -212,12 +216,7 @@ export const mapComponentToToolbarElement = (
           itemType: LayoutItemType.Component,
           textResourceBindings:
             c.name === 'Button'
-              ? {
-                  title: getLanguageFromKey(
-                    'ux_editor.modal_properties_button_type_submit',
-                    language
-                  ),
-                }
+              ? { title: t('ux_editor.modal_properties_button_type_submit') }
               : {},
           dataModelBindings: {},
           ...JSON.parse(JSON.stringify(customProperties)),

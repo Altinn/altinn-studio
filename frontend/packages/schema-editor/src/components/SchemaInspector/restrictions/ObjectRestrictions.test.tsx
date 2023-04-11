@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ObjectRestrictions } from './ObjectRestrictions';
-import { ObjRestrictionKeys } from '@altinn/schema-model';
 
 test('ObjectRestrictions should redner correctly', async () => {
   const onChangeRestrictionValue = jest.fn();
@@ -9,14 +8,11 @@ test('ObjectRestrictions should redner correctly', async () => {
   render(
     <ObjectRestrictions
       onChangeRestrictionValue={onChangeRestrictionValue}
-      language={{}}
       path={path}
       readonly={false}
       restrictions={[]}
       onChangeRestrictions={() => undefined}
     />
   );
-  Object.values(ObjRestrictionKeys).forEach((text) => {
-    expect(screen.getByLabelText(text)).toBeDefined();
-  });
+  expect(screen.queryAllByRole('textbox')).toHaveLength(0);
 });

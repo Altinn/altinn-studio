@@ -3,7 +3,7 @@ import { connect, useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
-import type { FormComponentType, IAppState, IDataModelFieldElement } from '../types/global';
+import type { FormComponentType, IAppState } from '../types/global';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useParams } from 'react-router-dom';
@@ -27,8 +27,6 @@ export interface IProvidedProps {
  */
 export interface IFormElementProps extends IProvidedProps {
   component: FormComponentType;
-  dataModelElement: IDataModelFieldElement;
-  dataModel: IDataModelFieldElement[];
   validationErrors: any[];
   textResources: any[];
   order: any[];
@@ -173,16 +171,8 @@ const makeMapStateToProps = () => {
         props.id
       ],
     order: GetLayoutOrderSelector(state),
-    dataModelElement: state.appData.dataModel.model.find(
-      (element) =>
-        element.dataBindingName ===
-        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[
-          props.id
-        ].dataModelBindings?.simpleBinding
-    ),
     validationErrors: null,
     textResources: state.appData.textResources.resources?.[DEFAULT_LANGUAGE],
-    dataModel: state.appData.dataModel.model,
     dragHandleRef: props.dragHandleRef,
   });
 };

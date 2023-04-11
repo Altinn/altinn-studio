@@ -6,8 +6,6 @@ import { screen, render as rtlRender } from '@testing-library/react';
 const renderVariables = (props: Partial<VariablesProps> = {}) => {
   const allProps: VariablesProps = {
     variables: [],
-    infoboxOpen: false,
-    setInfoboxOpen: (open: boolean) => open,
     ...props,
   };
   rtlRender(<Variables {...allProps} />);

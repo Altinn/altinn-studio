@@ -2,10 +2,10 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
@@ -24,16 +24,16 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         /// Constructor
         /// </summary>
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
-        /// <param name="generalSettingsOptions">IOptionsMonitor of Type GeneralSettings</param>
+        /// <param name="generalSettingsOptions">GeneralSettings</param>
         /// <param name="sourceControl">ISourceControl</param>
         /// <param name="logger">ILogger</param>
         public AzureDevOpsBuildClient(
             HttpClient httpClient,
-            IOptionsMonitor<GeneralSettings> generalSettingsOptions,
+            GeneralSettings generalSettingsOptions,
             ISourceControl sourceControl,
             ILogger<AzureDevOpsBuildClient> logger)
         {
-            _generalSettings = generalSettingsOptions.CurrentValue;
+            _generalSettings = generalSettingsOptions;
             _httpClient = httpClient;
             _sourceControl = sourceControl;
             _logger = logger;
@@ -53,12 +53,13 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         }
 
         /// <inheritdoc/>
-        public async Task<Build> Get(string buildId)
+        public async Task<BuildEntity> Get(string buildId)
         {
             string requestUri = $"{buildId}?api-version=5.1";
             _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
             HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
-            return await response.Content.ReadAsAsync<Build>();
+            Build build = await response.Content.ReadAsAsync<Build>();
+            return ToBuildEntity(build);
         }
 
         private static QueueBuildRequest CreateBuildRequest(QueueBuildParameters queueBuildParameters, int buildDefinitionId)
@@ -88,5 +89,15 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             HttpResponseMessage response = await _httpClient.PostAsync(requestUri, httpContent);
             return await response.Content.ReadAsAsync<Build>();
         }
+
+        private static BuildEntity ToBuildEntity(Build build)
+            => new()
+            {
+                Id = build.Id.ToString(),
+                Status = build.Status,
+                Result = build.Result,
+                Started = build.StartTime,
+                Finished = build.FinishTime
+            };
     }
 }

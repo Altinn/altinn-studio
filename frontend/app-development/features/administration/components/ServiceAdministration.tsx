@@ -4,16 +4,15 @@ import type { IRepository } from '../../../types/global';
 import { AltinnSpinner } from 'app-shared/components';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
-import { serviceConfigPath, serviceNamePath } from 'app-shared/api-paths';
+import { serviceConfigPath } from 'app-shared/api-paths';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useParams } from 'react-router-dom';
 
 export interface ServiceAdministrationProps {
-  language: any;
   repository: IRepository;
 }
 
-export function ServiceAdministration({ language, repository }: ServiceAdministrationProps) {
+export function ServiceAdministration({ repository }: ServiceAdministrationProps) {
   const { org, app } = useParams();
   const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
   const description = useAppSelector(
@@ -52,12 +51,6 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
     if (editAppName && !newName) {
       setAppNameAnchorEl(document.getElementById('administrationInputAppName'));
     } else {
-      dispatch(
-        HandleServiceInformationActions.saveServiceName({
-          url: serviceNamePath(org, app),
-          newServiceName: newName,
-        })
-      );
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
           url: serviceConfigPath(org, app),
@@ -119,7 +112,6 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
           appName={newName}
           appNameAnchorEl={appNameAnchorEl}
           editAppName={editAppName}
-          language={language}
           onAppDescriptionBlur={handleAppDescriptionBlur}
           onAppDescriptionChange={handleAppDescriptionChange}
           onAppIdBlur={handleAppIdBlur}

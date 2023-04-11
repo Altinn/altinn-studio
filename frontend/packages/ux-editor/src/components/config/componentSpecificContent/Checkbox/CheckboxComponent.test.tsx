@@ -26,40 +26,44 @@ const renderCheckboxComponent = ({
   return { user };
 };
 
-test('should render CheckboxComponent with label and should not be checked as default', async () => {
-  renderCheckboxComponent({
-    label: 'Should icon be displayed?',
-    onChangeKey: 'showIcon',
-    handleComponentChange: () => {}
+describe('CheckboxComponent', () => {
+  test('should render CheckboxComponent with label and should not be checked as default', async () => {
+    renderCheckboxComponent({
+      label: 'Should icon be displayed?',
+      onChangeKey: 'showIcon',
+      handleComponentChange: () => {
+      }
+    });
+
+    const checkboxLabel = screen.getByLabelText('Should icon be displayed?');
+    expect(checkboxLabel).not.toBeChecked();
   });
 
-  const checkboxLabel = screen.getByLabelText('Should icon be displayed?');
-  expect(checkboxLabel).not.toBeChecked();
-});
+  test('should be able to toggle show icon and "onChangeKey" should be "showIcon"', async () => {
+    const onCheckboxChanged = jest.fn();
+    const { user } = renderCheckboxComponent({
+      label: 'Should icon be displayed?',
+      onChangeKey: 'showIcon',
+      handleComponentChange: onCheckboxChanged
+    });
 
-test('should be able to toggle show icon and "onChangeKey" should be "showIcon"', async () => {
-  const onCheckboxChanged = jest.fn();
-  const { user } = renderCheckboxComponent({
-    label: 'Should icon be displayed?',
-    onChangeKey: 'showIcon',
-    handleComponentChange: onCheckboxChanged
+    const checkboxLabel = screen.getByLabelText('Should icon be displayed?');
+
+    await act(() => user.click(checkboxLabel));
+    expect(checkboxLabel).toBeChecked();
+    expect(onCheckboxChanged).toHaveBeenCalledWith({ showIcon: true });
   });
 
-  const checkboxLabel = screen.getByLabelText('Should icon be displayed?');
+  test('should be able to set defaultValue', () => {
+    renderCheckboxComponent({
+      label: 'Should icon be displayed?',
+      onChangeKey: 'showIcon',
+      defaultValue: true,
+      handleComponentChange: () => {
+      }
+    });
 
-  await act(() => user.click(checkboxLabel));
-  expect(checkboxLabel).toBeChecked();
-  expect(onCheckboxChanged).toHaveBeenCalledWith({ showIcon: true });
-});
-
-test('should be able to set defaultValue', () => {
-  renderCheckboxComponent({
-    label: 'Should icon be displayed?',
-    onChangeKey: 'showIcon',
-    defaultValue: true,
-    handleComponentChange: () => {}
+    const checkboxLabel = screen.getByLabelText('Should icon be displayed?');
+    expect(checkboxLabel).toBeChecked();
   });
-
-  const checkboxLabel = screen.getByLabelText('Should icon be displayed?');
-  expect(checkboxLabel).toBeChecked();
 });

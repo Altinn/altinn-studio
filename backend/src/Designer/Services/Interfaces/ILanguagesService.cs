@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {

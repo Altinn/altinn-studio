@@ -1,32 +1,17 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 
-import { appDataMock, dataModelItemMock, dataModelStateMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
+import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
     ...appDataMock,
-    languageState: {
-      ...languageStateMock,
-    },
     textResources: {
       ...textResourcesMock,
     },
-    dataModel: {
-      ...dataModelStateMock,
-      model: [
-        {
-          ...dataModelItemMock,
-          dataBindingName: 'testModel.field1',
-        },
-        {
-          ...dataModelItemMock,
-          dataBindingName: 'testModel.field2',
-        },
-      ]
-    }
   }
   renderWithMockStore({ appData })(
     <EditDataModelBindings
@@ -49,7 +34,7 @@ const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = 
 describe('EditDataModelBindings', () => {
   it('should show select with no selected option by default', () => {
     render();
-    expect(screen.getByText('ux_editor.modal_properties_data_model_helper')).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.modal_properties_data_model_helper'))).toBeInTheDocument();
     expect(screen.getByRole('combobox').getAttribute('value')).toEqual("");
   });
 
@@ -57,7 +42,7 @@ describe('EditDataModelBindings', () => {
     render({ dataModelBindings: {
       simpleBinding: 'testModel.field1',
     } });
-    expect(screen.getByText('ux_editor.modal_properties_data_model_helper')).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.modal_properties_data_model_helper'))).toBeInTheDocument();
     expect(screen.getByText('testModel.field1')).toBeInTheDocument();
   })
 });

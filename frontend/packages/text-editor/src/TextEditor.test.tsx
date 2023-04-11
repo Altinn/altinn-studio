@@ -4,6 +4,7 @@ import type { TextEditorProps } from './TextEditor';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TextResourceFile } from './types';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 describe('TextEditor', () => {
   const norwegianTranslation: TextResourceFile = {
@@ -22,45 +23,40 @@ describe('TextEditor', () => {
 
   const renderTextEditor = (props: Partial<TextEditorProps> = {}) => {
     const user = userEvent.setup();
-    const allProps = {
-      availableLangCodes: ['nb', 'en'],
-      translations: norwegianTranslation,
-      selectedLangCode: 'nb',
+    const allProps: TextEditorProps = {
+      addLanguage: jest.fn(),
+      availableLanguages: ['nb', 'en'],
+      deleteLanguage: jest.fn(),
       searchQuery: undefined,
-      setSelectedLangCode: jest.fn(),
       setSearchQuery: jest.fn(),
-      onAddLang: jest.fn(),
-      onTranslationChange: jest.fn(),
-      onDeleteLang: jest.fn(),
-      onTextIdChange: jest.fn(),
+      setSelectedLangCodes: jest.fn(),
+      textResourceFiles: [norwegianTranslation],
+      updateTextId: jest.fn(),
+      upsertTextResource: jest.fn(),
+      upsertTextResourceFile: jest.fn(),
       ...props,
-    } as TextEditorProps;
+    };
     rtlRender(<TextEditor {...allProps} />);
     return { user };
   };
 
-  it('fires onTranslationChange when Add new is clicked', async () => {
+  it('fires upsertTextResource when Add new is clicked', async () => {
     jest.spyOn(global.Math, 'random').mockReturnValue(0);
 
-    const onTranslationChange = jest.fn();
+    const upsertTextResource = jest.fn();
     const { user } = renderTextEditor({
-      onTranslationChange: onTranslationChange,
+      upsertTextResource,
     });
     const addBtn = screen.getByRole('button', {
       name: /ny tekst/i,
     });
 
-    await act(async () => await user.click(addBtn));
+    await act(() => user.click(addBtn));
 
-    expect(onTranslationChange).toHaveBeenCalledWith({
+    expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
-      resources: [
-        ...norwegianTranslation.resources,
-        {
-          id: 'id_1000',
-          value: '',
-        },
-      ],
+      textId: 'id_1000',
+      translation: '',
     });
     jest.spyOn(global.Math, 'random').mockRestore();
   });
@@ -68,87 +64,97 @@ describe('TextEditor', () => {
   it('fires onDeleteLang when Delete lang is clicked', async () => {
     const handleDeleteLang = jest.fn();
     const { user } = renderTextEditor({
-      onDeleteLang: handleDeleteLang,
+      deleteLanguage: handleDeleteLang,
     });
     const deleteBtn = screen.getByTestId('delete-en');
 
-    await act(async () => await user.click(deleteBtn));
+    await act(() => user.click(deleteBtn));
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
   });
 
   it('calls setSelectedLang code when lang is changed', async () => {
-    const setSelectedLangCode = jest.fn((lang: string) => lang);
+    const setSelectedLangCodes = jest.fn((langs: string[]) => langs);
     const { user } = renderTextEditor({
-      setSelectedLangCode,
+      setSelectedLangCodes: setSelectedLangCodes,
     });
-    const norwegianRadio = screen.getByRole('radio', {
+    const norwegianCheckbox = screen.getByRole('checkbox', {
       name: /norsk bokmål/i,
     });
-    const englishRadio = screen.getByRole('radio', {
+    const englishCheckbox = screen.getByRole('checkbox', {
       name: /engelsk/i,
     });
-    expect(norwegianRadio).toBeChecked();
-    expect(englishRadio).not.toBeChecked();
+    expect(norwegianCheckbox).toBeChecked();
+    expect(englishCheckbox).not.toBeChecked();
 
-    await act(async () => await user.click(englishRadio));
+    await act(() => user.click(englishCheckbox));
 
-    expect(setSelectedLangCode).toHaveBeenCalledWith('en');
+    expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb', 'en']);
   });
 
-  it('sets the language to nb (default) if no language is selected', async () => {
-    const setSelectedLangCode = jest.fn((lang: string) => lang);
-    renderTextEditor({
-      setSelectedLangCode,
-      selectedLangCode: undefined,
-    });
-    expect(setSelectedLangCode).toHaveBeenCalledWith('nb');
-  });
   it('signals correctly when a translation is changed', async () => {
-    const onTranslationChange = jest.fn();
+    const upsertTextResource = jest.fn();
     const { user } = renderTextEditor({
-      onTranslationChange,
+      upsertTextResource,
     });
     const translationsToChange = screen.getAllByRole('textbox', {
-      name: /norsk bokmål/i,
+      name: 'nb translation',
     });
     expect(translationsToChange).toHaveLength(2);
     const changedTranslations = [...norwegianTranslation.resources];
     changedTranslations[0].value = 'new translation';
-    await act(async () => {
-      await user.tripleClick(translationsToChange[0]); // select all text
-      await user.keyboard(`${changedTranslations[0].value}{TAB}`); // type new text and blur
+    await act(() => user.tripleClick(translationsToChange[0])); // select all text
+    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`)); // type new text and blur
+    expect(upsertTextResource).toHaveBeenCalledWith({
+      language: 'nb',
+      textId: 'textId1',
+      translation: 'new translation',
     });
-    const mutatedTranslation = { ...norwegianTranslation, resources: changedTranslations };
-    expect(onTranslationChange).toHaveBeenCalledWith(mutatedTranslation);
   });
 
   describe('text-id mutation', () => {
     const deleteSomething = async (onTextIdChange = jest.fn()) => {
       const { user } = renderTextEditor({
-        onTextIdChange,
+        updateTextId: onTextIdChange,
       });
       const result = screen.getAllByRole('button', {
-        name: /Slett textId/i,
+        name: textMock('schema_editor.delete'),
       });
       expect(result).toHaveLength(2);
-      await act(async () => {
-        await user.click(result[0]);
+
+      await act(() => user.click(result[0]));
+      await screen.findByRole('dialog');
+      await act(() =>
+        user.click(
+          screen.getByRole('button', {
+            name: textMock('schema_editor.textRow-confirm-cancel-popover'),
+          })
+        )
+      );
+
+      await expect(onTextIdChange).toHaveBeenCalledWith({
+        oldId: norwegianTranslation.resources[0].id,
       });
-      expect(onTextIdChange).toHaveBeenCalledWith({ oldId: norwegianTranslation.resources[0].id });
     };
+
     const getInputs = (name: RegExp) => screen.getAllByRole('textbox', { name });
+
     const makeChangesToTextIds = async (onTextIdChange = jest.fn()) => {
       const { user } = renderTextEditor({
-        onTextIdChange,
+        updateTextId: onTextIdChange,
       });
-      const textIdInputs = getInputs(/ID/i);
-      expect(textIdInputs).toHaveLength(2);
-      await act(async () => {
-        await user.tripleClick(textIdInputs[0]); // select all text
-        await user.keyboard('new-key{TAB}'); // type new text and blur
-      });
-      expect(onTextIdChange).toHaveBeenCalledWith({
+
+      const editKeyButton = await screen.getAllByRole('button', {
+        name: 'toggle-textkey-edit',
+      })[0];
+      await act(() => user.click(editKeyButton));
+
+      const textIdInputs = getInputs(/tekst key edit/i);
+      expect(textIdInputs).toHaveLength(1);
+      await user.tripleClick(textIdInputs[0]); // select all text
+      await act(() => user.keyboard('new-key{TAB}')); // type new text and blur
+
+      await expect(onTextIdChange).toHaveBeenCalledWith({
         oldId: norwegianTranslation.resources[0].id,
         newId: 'new-key',
       });
@@ -161,36 +167,33 @@ describe('TextEditor', () => {
       });
       return { error, onTextIdChange };
     };
+
     it('signals that a textId has changed', async () => {
       await makeChangesToTextIds();
-      const textIdRefsAfter1 = screen.getAllByText(/textid/i);
-      const textIdRefsAfter2 = screen.getAllByText(/new-key/i);
-      expect(textIdRefsAfter1).toHaveLength(2); // The id is also on the delete button
-      expect(textIdRefsAfter2).toHaveLength(2);
+      const textIdRefsAfter1 = screen.getAllByText('textId2');
+      expect(textIdRefsAfter1).toHaveLength(1); // The id is also on the delete button
     });
-    it('removes an entry from the rendered list of entries', async () => {
-      await deleteSomething();
-      const resultAfter = screen.getAllByRole('button', {
-        name: /Slett textId/i,
-      });
-      expect(resultAfter).toHaveLength(1);
-    });
+
+    it('removes an entry from the rendered list of entries', () => deleteSomething());
+
     it('reverts the text-id if there was an error on change', async () => {
       const { error, onTextIdChange } = setupError();
       const original = await makeChangesToTextIds(onTextIdChange);
       expect(error).toHaveBeenCalledWith('Renaming text-id failed:\n', 'some error');
-      const textIdRefsAfter1 = screen.getAllByText(/textid/i);
+      const textIdRefsAfter1 = screen.getAllByText('textId2');
+      expect(textIdRefsAfter1).toHaveLength(1);
+
       const textIdRefsAfter2 = screen.queryAllByText(/new-key/i);
-      expect(textIdRefsAfter1).toHaveLength(4); // The id is also on the delete button
       expect(textIdRefsAfter2).toHaveLength(0);
-      expect(getInputs(/ID/i)).toEqual(original);
+      expect(getInputs(/tekst key edit/i)).toEqual(original);
     });
+
     it('reverts to the previous IDs if an entry could not be deleted', async () => {
       const { error, onTextIdChange } = setupError();
       await deleteSomething(onTextIdChange);
       expect(error).toHaveBeenCalledWith('Deleting text failed:\n', 'some error');
       const resultAfter = screen.getAllByRole('button', {
-        name: /Slett textId/i,
+        name: textMock('schema_editor.delete'),
       });
       expect(resultAfter).toHaveLength(2);
     });

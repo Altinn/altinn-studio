@@ -24,3 +24,13 @@
 .deleteButton:hover {
   color: red;
 }
+
+.popoverButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.smallIcon {
+  height: 16px;
+  width: 16px;
+}

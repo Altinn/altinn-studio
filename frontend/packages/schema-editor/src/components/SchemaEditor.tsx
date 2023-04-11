@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { XMarkIcon } from '@navikt/aksel-icons';
 import { AltinnSpinner } from 'app-shared/components';
-import type { IJsonSchema, ILanguage, ISchemaState } from '../types';
+import type { IJsonSchema, ISchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
 import {
   setJsonSchema,
   setSaveSchemaUrl,
   setSchemaName,
-  setSelectedTab,
+  setSelectedId,
   setUiSchema,
   updateJsonSchema,
 } from '../features/editor/schemaEditorSlice';
-import { getTranslation } from '../utils/language';
 import { SchemaInspector } from './SchemaInspector';
 import { TopToolbar } from './TopToolbar';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import type { UiSchemaNodes } from '@altinn/schema-model';
+import { getNameFromPointer, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   getChildNodesByPointer,
   getNodeByPointer,
@@ -25,18 +24,22 @@ import {
 } from '@altinn/schema-model';
 
 import { createSelector } from '@reduxjs/toolkit';
-import { Tabs } from '@digdir/design-system-react';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { ModelsPanel, TypesPanel } from './layout';
+import { useTranslation } from 'react-i18next';
+import { TypesInspector } from './TypesInspector';
+import classNames from 'classnames';
+import { GenerateSchemaState } from 'app-shared/types/global';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
   LandingPagePanel: JSX.Element;
-  language: ILanguage;
   loading?: boolean;
   name?: string;
   onSaveSchema: (payload: any) => void;
   saveUrl: string;
   schema: IJsonSchema;
+  schemaState: GenerateSchemaState;
   editMode: boolean;
   toggleEditMode: () => void;
 }
@@ -79,10 +82,10 @@ export const SchemaEditor = ({
   LandingPagePanel,
   loading,
   schema,
+  schemaState,
   onSaveSchema,
   saveUrl,
   name,
-  language,
   editMode,
   toggleEditMode,
 }: IEditorProps) => {
@@ -99,11 +102,46 @@ export const SchemaEditor = ({
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
 
-  const selectedEditorTab = useSelector((state: ISchemaState) => state.selectedEditorTab);
+  const [selectedType, setSelectedType] = useState<UiSchemaNode>(null);
+
+  const translation = useTranslation();
+  const t = (key: string) => translation.t('schema_editor.' + key);
+
+  const rootNodeMap = useSelector(rootNodesSelector);
+  const rootChildren = useSelector(rootChildrenSelector);
+  const properties: UiSchemaNodes = [];
+  const definitions: UiSchemaNodes = [];
+  rootChildren?.forEach((childPointer) =>
+    pointerIsDefinition(childPointer)
+      ? definitions.push(rootNodeMap.get(childPointer))
+      : properties.push(rootNodeMap.get(childPointer))
+  );
 
   const selectedPropertyParent = useSelector((state: ISchemaState) =>
     getParentNodeByPointer(state.uiSchema, state.selectedPropertyNodeId)
   );
+
+  const selectedId = useSelector((state: ISchemaState) =>
+    state.selectedEditorTab === 'properties'
+      ? state.selectedPropertyNodeId
+      : state.selectedDefinitionNodeId
+  );
+  const selectedItem = useSelector((state: ISchemaState) =>
+    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined
+  );
+
+  useEffect(() => {
+    if (selectedType) {
+      setSelectedType(rootNodeMap.get(selectedType.pointer));
+    }
+  }, [rootNodeMap, selectedType]);
+
+  useEffect(() => {
+    if (selectedItem && pointerIsDefinition(selectedItem.pointer)) {
+      setSelectedType(selectedItem);
+    }
+  }, [selectedItem]);
+
   useEffect(() => {
     if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
       setExpandedPropNodes((prevState) => [...prevState, selectedPropertyParent.pointer]);
@@ -121,77 +159,77 @@ export const SchemaEditor = ({
 
   const handleSaveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
 
-  const handleTabChanged = (value: 'definitions' | 'properties') =>
-    dispatch(setSelectedTab({ selectedTab: value }));
+  const handleSelectType = (node: UiSchemaNode) => {
+    setSelectedType(node);
+    dispatch(setSelectedId({ pointer: node.pointer }));
+  };
 
-  const loadingIndicator = loading ? (
-    <AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />
-  ) : null;
+  const handleResetSelectedType = () => {
+    setSelectedType(null);
+    dispatch(setSelectedId({ pointer: '' }));
+  };
 
-  const t = (key: string) => getTranslation(key, language);
-
-  const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties'
-      ? state.selectedPropertyNodeId
-      : state.selectedDefinitionNodeId
-  );
-  const selectedItem = useSelector((state: ISchemaState) =>
-    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined
-  );
-  const rootNodeMap = useSelector(rootNodesSelector);
-  const rootChildren = useSelector(rootChildrenSelector);
-  const properties: UiSchemaNodes = [];
-  const definitions: UiSchemaNodes = [];
-  rootChildren?.forEach((childPointer) =>
-    pointerIsDefinition(childPointer)
-      ? definitions.push(rootNodeMap.get(childPointer))
-      : properties.push(rootNodeMap.get(childPointer))
-  );
-
+  const loadingIndicator = loading ? <AltinnSpinner spinnerText={t('general.loading')} /> : null;
   return (
     <div className={classes.root}>
       <TopToolbar
         Toolbar={Toolbar}
-        language={language}
         saveAction={name ? handleSaveSchema : undefined}
         toggleEditMode={name ? toggleEditMode : undefined}
         editMode={editMode}
+        schema={schema}
+        schemaState={schemaState}
       />
       <main className={classes.main}>
         {LandingPagePanel}
-        {name && schema ? (
+        {schema && (
+          <aside className={classes.inspector}>
+            <TypesInspector
+              schemaItems={definitions}
+              handleSelectType={handleSelectType}
+              key={selectedType?.pointer || ''}
+              selectedNodePointer={selectedType?.pointer}
+            />
+          </aside>
+        )}
+        {name && schema && selectedType && (
+          <div
+            data-testid='types-editor'
+            id='types-editor'
+            className={classNames(classes.editor, classes.editorTypes)}
+          >
+            <div className={classes.typeInfo}>
+              <span>
+                {`${t('types_editing')} ${getNameFromPointer({
+                  pointer: selectedType.pointer,
+                })}`}
+              </span>
+              <Button
+                onClick={handleResetSelectedType}
+                icon={<XMarkIcon />}
+                variant={ButtonVariant.Quiet}
+                color={ButtonColor.Inverted}
+              />
+            </div>
+            <TypesPanel
+              editMode={editMode}
+              uiSchemaNode={selectedType}
+              setExpandedDefNodes={setExpandedDefNodes}
+              expandedDefNodes={
+                expandedDefNodes.includes(selectedType?.pointer)
+                  ? expandedDefNodes
+                  : expandedDefNodes.concat([selectedType.pointer])
+              }
+            />
+          </div>
+        )}
+        {name && schema && !selectedType ? (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
-            <Tabs
-              activeTab={selectedEditorTab}
-              items={[
-                {
-                  name: t('model'),
-                  content: (
-                    <ModelsPanel
-                      language={language}
-                      editMode={editMode}
-                      setExpandedPropNodes={setExpandedPropNodes}
-                      expandedPropNodes={expandedPropNodes}
-                      properties={properties}
-                    />
-                  ),
-                  value: 'properties',
-                },
-                {
-                  name: t('types'),
-                  content: (
-                    <TypesPanel
-                      language={language}
-                      editMode={editMode}
-                      definitions={definitions}
-                      setExpandedDefNodes={setExpandedDefNodes}
-                      expandedDefNodes={expandedDefNodes}
-                    />
-                  ),
-                  value: 'definitions',
-                },
-              ]}
-              onChange={handleTabChanged}
+            <ModelsPanel
+              editMode={editMode}
+              setExpandedPropNodes={setExpandedPropNodes}
+              expandedPropNodes={expandedPropNodes}
+              properties={properties}
             />
           </div>
         ) : (
@@ -199,11 +237,7 @@ export const SchemaEditor = ({
         )}
         {schema && editMode && (
           <aside className={classes.inspector}>
-            <SchemaInspector
-              language={language}
-              selectedItem={selectedItem}
-              key={selectedItem?.pointer || ''}
-            />
+            <SchemaInspector selectedItem={selectedItem} key={selectedItem?.pointer || ''} />
           </aside>
         )}
       </main>

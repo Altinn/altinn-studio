@@ -1,48 +1,33 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { AppBar as MuiAppBar, Grid, Toolbar } from '@mui/material';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
-import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
-import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { getTopBarMenu } from './appBarConfig';
 import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { VersionControlHeader } from 'app-shared/version-control/VersionControlHeader';
-import { useAppSelector } from '../../common/hooks';
+import { VersionControlHeader } from '../version-control/VersionControlHeader';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import classes from './AppBar.module.css';
 import { useMediaQuery } from '../../common/hooks';
+import { useTranslation } from 'react-i18next';
+import { Settings } from '@navikt/ds-icons';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
   activeLeftMenuSelection?: string;
-  logoutButton?: boolean;
   user?: string;
   showSubMenu?: boolean;
-  mainMenuItems?: IMenuItem[];
-  subMenuItems?: { [key: string]: IMenuItem[] };
 }
 
 export const AppBar = ({
   activeLeftMenuSelection,
   activeSubHeaderSelection,
-  logoutButton,
   user,
-  mainMenuItems,
-  subMenuItems,
   showSubMenu,
 }: IAppBarProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const hiddenMdUp = useMediaQuery('(min-width: 1025px)');
   const hiddenSmDown = useMediaQuery('(max-width: 600px)');
-
-  const language = useAppSelector((state) => state.languageState.language);
-  const t = (key: string) => getLanguageFromKey(key, language);
-
-  const handleDrawerMenuClick = () => {
-    setIsMenuOpen((prev) => !prev);
-  };
+  const { t } = useTranslation();
   const { org, app } = useParams();
   const repositoryType = getRepositoryType(org, app);
   const menu = getTopBarMenu(repositoryType);
@@ -88,19 +73,6 @@ export const AppBar = ({
                   <ProfileMenu showlogout />
                 </Grid>
               )}
-              {hiddenMdUp ? null : (
-                <Grid item>
-                  <TabletDrawerMenu
-                    handleTabletDrawerMenu={handleDrawerMenuClick}
-                    tabletDrawerOpen={isMenuOpen}
-                    logoutButton={!logoutButton ? false : logoutButton}
-                    activeSubHeaderSelection={activeSubHeaderSelection}
-                    activeLeftMenuSelection={activeLeftMenuSelection}
-                    mainMenuItems={mainMenuItems}
-                    leftDrawerMenuItems={subMenuItems}
-                  />
-                </Grid>
-              )}
             </Grid>
           </Grid>
         </Toolbar>
@@ -110,7 +82,7 @@ export const AppBar = ({
               <Toolbar className={classes.muiToolbar}>
                 <Grid container direction='row' justifyContent='center' alignItems='center'>
                   <Grid xs item>
-                    <VersionControlHeader language={language} />
+                    <VersionControlHeader />
                   </Grid>
                   {menu.map((item) => (
                     <Grid item key={item.key} className={classes.subHeader}>
@@ -125,7 +97,11 @@ export const AppBar = ({
                       </Link>
                     </Grid>
                   ))}
-                  <Grid xs item /> {/** Used to keep menu centered */}
+                  <Grid xs item>
+                    <Link style={{ float: 'right' }} to={`/${org}/${app}/accesscontrol`}>
+                      <Settings />
+                    </Link>
+                  </Grid>
                 </Grid>
               </Toolbar>
             )}

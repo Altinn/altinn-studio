@@ -35,7 +35,7 @@ describe('HeaderMenu', () => {
       name: /shared\.header_logout/i,
     });
 
-    await userEvent.click(logoutButton);
+    await act(() => userEvent.click(logoutButton)); // eslint-disable-line testing-library/no-unnecessary-act
 
     expect(postSpy).toHaveBeenCalledWith(`${window.location.origin}/repos/user/logout`);
   });
@@ -48,7 +48,7 @@ describe('HeaderMenu', () => {
       name: /shared\.header_all/i,
     });
 
-    await userEvent.click(allItem);
+    await act(() => userEvent.click(allItem)); // eslint-disable-line testing-library/no-unnecessary-act
 
     expect(handleSetSelectedContext).toHaveBeenCalledWith(SelectedContextType.All);
   });
@@ -61,7 +61,7 @@ describe('HeaderMenu', () => {
       name: /john smith/i,
     });
 
-    await userEvent.click(selfItem);
+    await act(() => userEvent.click(selfItem)); // eslint-disable-line testing-library/no-unnecessary-act
 
     expect(handleSetSelectedContext).toHaveBeenCalledWith(SelectedContextType.Self);
   });
@@ -74,16 +74,17 @@ describe('HeaderMenu', () => {
       name: /organization 1/i,
     });
 
-    await userEvent.click(orgItem);
+    await act(() => userEvent.click(orgItem)); // eslint-disable-line testing-library/no-unnecessary-act
     expect(handleSetSelectedContext).toHaveBeenCalledWith(1);
   });
 });
 
 const openMenu = async () => {
+  const user = userEvent.setup();
   const menuButton = screen.getByRole('button', {
     name: /shared\.header_button_alt/i,
   });
-  await act(() => userEvent.click(menuButton));
+  await act(() => user.click(menuButton));
 };
 
 const render = (props: Partial<HeaderMenuProps> = {}) => {

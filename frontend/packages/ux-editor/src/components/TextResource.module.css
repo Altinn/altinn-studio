@@ -53,10 +53,11 @@
   position: absolute;
 }
 
-.button {
+.root .button {
+  /* .root must be set to make it override design system settings */
   --icon-size: 1em;
-  height: 1.5em !important;
-  padding: 0.25em !important;
+  height: 1.5em;
+  padding: 0.25em;
   width: 1.5em;
 }
 

@@ -1,6 +1,6 @@
 import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect } from 'react';
-import type { ILanguage, ISchemaState } from '../../types';
+import type { ISchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
 import {
   addProperty,
@@ -9,21 +9,20 @@ import {
   setType,
 } from '../../features/editor/schemaEditorSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTranslation } from '../../utils/language';
 import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
 import { getChildNodesByPointer, getNameFromPointer } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
-import { usePrevious } from '../../hooks/usePrevious';
+import { usePrevious } from 'app-shared/hooks/usePrevious';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
+import { useTranslation } from 'react-i18next';
 
 export interface ItemFieldsTabProps {
   selectedItem: UiSchemaNode;
-  language: ILanguage;
 }
 
-export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) => {
+export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
   const readonly = selectedItem.reference !== undefined;
   const dispatch = useDispatch();
 
@@ -73,16 +72,16 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
     dispatchAddProperty();
   };
 
-  const t = (key: string) => getTranslation(key, language);
+  const { t } = useTranslation();
 
   return (
     <div className={classes.root}>
       {fieldNodes.length > 0 && (
         <>
-          <div>{t('field_name')}</div>
-          <div>{t('type')}</div>
-          <div>{t('required')}</div>
-          <div>{t('delete')}</div>
+          <div>{t('schema_editor.field_name')}</div>
+          <div>{t('schema_editor.type')}</div>
+          <div>{t('schema_editor.required')}</div>
+          <div>{t('schema_editor.delete')}</div>
         </>
       )}
       {fieldNodes.map((fieldNode) => (
@@ -90,7 +89,6 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
           fullPath={fieldNode.pointer}
           inputId={fieldNode.domId}
           key={fieldNode.pointer}
-          language={language}
           onChangeType={onChangeType}
           onChangeValue={onChangePropertyName}
           onDeleteField={onDeleteObjectClick}
@@ -105,11 +103,11 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
         <div className={classes.addButtonCell}>
           <Button
             color={ButtonColor.Secondary}
-            icon={<Add />}
+            icon={<PlusIcon />}
             onClick={onAddPropertyClicked}
             variant={ButtonVariant.Outline}
           >
-            {t('add_property')}
+            {t('schema_editor.add_property')}
           </Button>
         </div>
       )}

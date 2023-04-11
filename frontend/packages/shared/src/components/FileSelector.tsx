@@ -1,10 +1,9 @@
 import React from 'react';
-import type { StyledComponentProps } from '@mui/material';
-import { getLanguageFromKey } from '../utils/language';
-import { TopToolbarButton } from '@altinn/schema-editor/components/TopToolbarButton';
+import { useTranslation } from 'react-i18next';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { UploadIcon } from '@navikt/aksel-icons';
 
-export interface IFileSelectorProps extends StyledComponentProps {
-  language: any;
+export interface IFileSelectorProps {
   submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
   formFileName: string;
@@ -14,7 +13,6 @@ export interface IFileSelectorProps extends StyledComponentProps {
 }
 
 function FileSelector({
-  language,
   accept,
   formFileName,
   busy,
@@ -22,18 +20,18 @@ function FileSelector({
   submitHandler,
   submitButtonRenderer,
 }: IFileSelectorProps) {
+  const { t } = useTranslation();
   const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
-    <TopToolbarButton
+    <Button
+      id='file-upload-button'
       data-testid='upload-button'
-      faIcon='fa fa-upload'
-      iconSize={38}
-      hideText={false}
+      icon={<UploadIcon />}
       onClick={fileInputClickHandler}
       disabled={disabled}
-      id='file-upload-button'
+      variant={ButtonVariant.Quiet}
     >
-      {getLanguageFromKey('app_data_modelling.upload_xsd', language)}
-    </TopToolbarButton>
+      {t('app_data_modelling.upload_xsd')}
+    </Button>
   );
 
   const fileInput = React.useRef<HTMLInputElement>(null);

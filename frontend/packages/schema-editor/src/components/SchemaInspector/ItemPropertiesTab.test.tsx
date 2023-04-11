@@ -11,6 +11,7 @@ import {
   Keywords,
   ObjectKind,
 } from '@altinn/schema-model';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 test('item property tab renders combinations', async () => {
   const uiSchemaNodes: UiSchemaNodes = [];
@@ -21,12 +22,13 @@ test('item property tab renders combinations', async () => {
   ['donald', 'dolly'].forEach((childNodeName) => {
     const childNode = createChildNode(selectedNode, childNodeName, false);
     childNode.fieldType = FieldType.String;
+    // eslint-disable-next-line testing-library/no-node-access
     selectedNode.children.push(childNode.pointer);
     uiSchemaNodes.push(childNode);
   });
 
-  renderWithRedux(<ItemPropertiesTab language={{}} selectedItem={uiSchemaNodes[1]} />, {
+  renderWithRedux(<ItemPropertiesTab selectedItem={uiSchemaNodes[1]} />, {
     uiSchema: uiSchemaNodes,
   });
-  expect(screen.getByText('combination_inline_object_disclaimer')).toBeDefined();
+  expect(screen.getByText(textMock('combination_inline_object_disclaimer'))).toBeDefined();
 });

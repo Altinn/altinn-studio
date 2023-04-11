@@ -1,11 +1,11 @@
 import React from 'react';
 import type { IAppDataState } from '../features/appData/appDataReducers';
-import type { ILanguageState } from '../features/appData/language/languageSlice';
 import type { ITextResources, ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import userEvent from '@testing-library/user-event';
 import { TextResourceEdit } from './TextResourceEdit';
-import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../testing/mocks';
+import { appDataMock, renderWithMockStore, textResourcesMock } from '../testing/mocks';
 import { act, screen } from '@testing-library/react';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -24,6 +24,11 @@ const texts = {
   'ux_editor.edit_text_resource': legendText,
   'ux_editor.field_id': descriptionText,
 };
+
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('TextResourceEdit', () => {
 
@@ -86,11 +91,6 @@ describe('TextResourceEdit', () => {
 
 const render = (resources?: ITextResources, editId?: string) => {
 
-  const languageState: ILanguageState = {
-    ...languageStateMock,
-    language: texts
-  };
-
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
     resources,
@@ -99,7 +99,6 @@ const render = (resources?: ITextResources, editId?: string) => {
 
   const appData: IAppDataState = {
     ...appDataMock,
-    languageState,
     textResources
   };
 

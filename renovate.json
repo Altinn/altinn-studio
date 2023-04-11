@@ -12,5 +12,12 @@
       "groupSlug": "gitea",
       "matchPackageNames": ["gitea/gitea"]
     }
+  ],
+  "ignorePaths": [
+    "testdata/**",
+    "src/**"
+  ],
+  "ignoreDeps": [
+    "@mui/x-data-grid"
   ]
 }

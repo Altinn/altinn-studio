@@ -1,10 +1,6 @@
-using System;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
-
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -69,10 +65,5 @@ namespace DataModeling.Tests.Json
 
             return actualXml;
         }
-    }
-
-    internal class Utf8StringWriter : StringWriter
-    {
-        public override Encoding Encoding => Encoding.UTF8;
     }
 }

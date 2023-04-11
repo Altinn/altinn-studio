@@ -3,6 +3,8 @@ import '@testing-library/jest-dom/extend-expect';
 import 'whatwg-fetch';
 
 import failOnConsole from 'jest-fail-on-console';
+import { textMock } from './mocks/i18nMock';
+import { ReactNode } from 'react';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -29,5 +31,16 @@ class ResizeObserver {
   disconnect = jest.fn();
 }
 window.ResizeObserver = ResizeObserver;
+
+// I18next mocks. The useTranslation and Trans mocks apply the textMock function on the text key, so that it can be used to address the texts in the tests.
+jest.mock('i18next', () => ({ use: () => ({ init: jest.fn() }) }));
+jest.mock(
+  'react-i18next',
+  () => ({
+    Trans: ({ i18nKey }) => textMock(i18nKey),
+    useTranslation: () => ({ t: (key: string) => textMock(key) }),
+    withTranslation: () => (Component: ReactNode) => Component,
+  }),
+);
 
 jest.setTimeout(30000);

@@ -7,8 +7,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Models;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
 {
@@ -27,11 +25,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public AltinnStorageTextResourceClient(
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
-            IOptionsMonitor<PlatformSettings> options)
+            PlatformSettings options)
         {
             _httpClient = httpClient;
             _environmentsService = environmentsService;
-            _platformSettings = options.CurrentValue;
+            _platformSettings = options;
         }
 
         /// <inheritdoc/>

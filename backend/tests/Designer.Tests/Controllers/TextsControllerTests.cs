@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -37,7 +36,7 @@ namespace Designer.Tests.Controllers
         public async Task Get_ReturnsNbTexts()
         {
             string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/language/nb";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
@@ -45,7 +44,7 @@ namespace Designer.Tests.Controllers
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
 
-            Dictionary<string, string> expectedDictionary = new Dictionary<string, string> { { "nb_key1", "nb_value1" }, { "nb_key2", "nb_value2" } };
+            Dictionary<string, string> expectedDictionary = new() { { "nb_key1", "nb_value1" }, { "nb_key2", "nb_value2" } };
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(expectedDictionary, responseDictionary);
         }
@@ -56,7 +55,7 @@ namespace Designer.Tests.Controllers
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
 
@@ -74,7 +73,7 @@ namespace Designer.Tests.Controllers
         public async Task Get_NonExistingFile_404NotFound()
         {
             string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/language/uk";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -88,7 +87,7 @@ namespace Designer.Tests.Controllers
         public async Task Get_InvalidFile_500InternalServer()
         {
             string dataPathWithData = $"{_versionPrefix}/ttd/invalid-texts-format/texts/language/en";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -105,7 +104,7 @@ namespace Designer.Tests.Controllers
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new { new_key_1 = "new_value_1", new_key_2 = "new_value_2" });
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -147,7 +146,7 @@ namespace Designer.Tests.Controllers
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "convert-texts", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/convert";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
 
@@ -168,7 +167,7 @@ namespace Designer.Tests.Controllers
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new { valid_key = "valid_value", invalid_key = new { invalid_format = "invalid_format" } });
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -192,7 +191,7 @@ namespace Designer.Tests.Controllers
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -215,7 +214,7 @@ namespace Designer.Tests.Controllers
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/language/nb";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseBody = await response.Content.ReadAsStringAsync();

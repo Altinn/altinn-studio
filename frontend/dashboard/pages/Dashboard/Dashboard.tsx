@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
+import { AltinnSpinner } from 'app-shared/components';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { Close } from '@navikt/ds-icons';
+import { XMarkIcon } from '@navikt/aksel-icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DatamodelsReposList } from '../../components/DataModelsRepoList';
 import { OrgReposList } from '../../components/OrgRepoList';
@@ -13,25 +13,38 @@ import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
 import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
-import { useAppSelector } from '../../hooks/useAppSelector';
 import { useDebounce } from 'react-use';
+import { useTranslation } from 'react-i18next';
+import { User } from 'dashboard/services/userService';
+import { Organization } from 'dashboard/services/organizationService';
+import { useGetStarredRepos } from 'dashboard/hooks/useRepoQueries';
 
 type DashboardProps = {
+  user: User;
+  organizations: Organization[];
   disableDebounce?: boolean;
 };
 
-export const Dashboard = ({ disableDebounce }: DashboardProps) => {
-  const language = useAppSelector((state) => state.language.language);
+export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
+  const { t } = useTranslation();
+  const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useGetStarredRepos();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
   useDebounce(() => setDebouncedSearchText(searchText), disableDebounce ? 1 : 500, [searchText]);
+
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);
+
   const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleClearSearch = () => setSearchText('');
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
+
+  if (isLoadingStarredRepos) {
+    return <AltinnSpinner spinnerText={t('dashboard.loading')} />;
+  }
+
   return (
     <>
       <CenterContainer>
@@ -41,7 +54,7 @@ export const Dashboard = ({ disableDebounce }: DashboardProps) => {
               <div>
                 <SearchField
                   id='search-repos'
-                  label={getLanguageFromKey('dashboard.search', language)}
+                  label={t('dashboard.search')}
                   value={searchText}
                   onChange={handleChangeSearch}
                   onKeyDown={handleKeyDown}
@@ -51,9 +64,9 @@ export const Dashboard = ({ disableDebounce }: DashboardProps) => {
                 <Button
                   data-testid='clear-search-button'
                   className={classes.clearSearchButton}
-                  aria-label={getLanguageFromKey('dashboard.clear_search', language)}
+                  aria-label={t('dashboard.clear_search')}
                   onClick={handleClearSearch}
-                  icon={<Close />}
+                  icon={<XMarkIcon />}
                   variant={ButtonVariant.Quiet}
                   size={ButtonSize.Small}
                 />
@@ -66,25 +79,33 @@ export const Dashboard = ({ disableDebounce }: DashboardProps) => {
               onMouseLeave={handleNewLinkFocusOut}
               data-testid={'dashboard.new_app'}
             >
-              <span>{getLanguageFromKey('dashboard.new_service', language)}</span>
+              <span>{t('dashboard.new_service')}</span>
               <i
                 className={cn('fa', classes.plusIcon, {
                   'fa-circle-plus': isNewLinkFocused,
-                  'fa-circle-plus-outline': !isNewLinkFocused
+                  'fa-circle-plus-outline': !isNewLinkFocused,
                 })}
               />
             </Link>
           </div>
 
           {debouncedSearchText ? (
-            <SearchResultReposList searchValue={debouncedSearchText} />
+            <SearchResultReposList searchValue={debouncedSearchText} starredRepos={starredRepos} />
           ) : (
             <>
               <FavoriteReposList />
               <div className={classes.marginTop}>
-                <OrgReposList />
+                <OrgReposList
+                  user={user}
+                  organizations={organizations}
+                  starredRepos={starredRepos}
+                />
               </div>
-              <DatamodelsReposList />
+              <DatamodelsReposList
+                user={user}
+                organizations={organizations}
+                starredRepos={starredRepos}
+              />
             </>
           )}
         </div>

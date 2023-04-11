@@ -1,17 +1,17 @@
 import React from 'react';
-import { TopToolbarButton } from '@altinn/schema-editor/index';
-import { getLanguageFromKey } from '../../../utils/language';
 import { DeleteDialog } from './DeleteDialog';
-import classes from './DeleteWrapper.module.css';
+import { useTranslation } from 'react-i18next';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { TrashIcon } from '@navikt/aksel-icons';
 
 export interface IDeleteWrapper {
-  language: any;
   deleteAction: () => void;
   schemaName: string;
 }
 
 export function DeleteWrapper(props: IDeleteWrapper) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const { t } = useTranslation();
   const onDeleteClick = () => setDialogOpen(true);
   const onDeleteConfirmClick = () => {
     props.deleteAction();
@@ -21,20 +21,18 @@ export function DeleteWrapper(props: IDeleteWrapper) {
 
   return (
     <DeleteDialog
-      trigger={(
-        <TopToolbarButton
+      trigger={
+        <Button
           id='delete-model-button'
           disabled={!props.schemaName}
-          faIcon='ai ai-trash'
-          iconSize={24}
           onClick={onDeleteClick}
-          warning
-          className={classes.root}
+          color={ButtonColor.Danger}
+          icon={<TrashIcon />}
+          variant={ButtonVariant.Quiet}
         >
-          {getLanguageFromKey('general.delete_data_model', props.language)}
-        </TopToolbarButton>
-      )}
-      language={props.language}
+          {t('general.delete_data_model')}
+        </Button>
+      }
       schemaName={props.schemaName}
       onConfirm={onDeleteConfirmClick}
       onCancel={onCancelDelete}

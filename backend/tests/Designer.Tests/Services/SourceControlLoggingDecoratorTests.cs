@@ -511,7 +511,7 @@ namespace Designer.Tests.Services
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
 
-            return _webApplicationFactory.WithWebHostBuilder(builder =>
+            var services = _webApplicationFactory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
                 {
@@ -521,6 +521,9 @@ namespace Designer.Tests.Services
                     services.Decorate<ISourceControl, SourceControlLoggingDecorator>();
                 });
             }).Services;
+
+            // Create a scope to obtain a reference to a scoped service provider
+            return services.CreateScope().ServiceProvider;
         }
 
         private static HttpContext GetHttpContextForTestUser(string userName)

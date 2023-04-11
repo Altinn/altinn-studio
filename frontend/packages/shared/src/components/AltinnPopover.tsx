@@ -1,16 +1,11 @@
 import React from 'react';
-import {
-  Button,
-  CircularProgress,
-  Grid,
-  Popover,
-  TextField,
-  Typography,
-} from '@mui/material';
 import classNames from 'classnames';
 import classes from './AltinnPopover.module.css';
+import { Button, ButtonColor, TextArea } from '@digdir/design-system-react';
+import { ButtonContainer } from 'app-shared/primitives';
+import { CircularProgress, Grid, Popover } from '@mui/material';
 
-export interface IAltinnPopoverProvidedProps {
+export interface AltinnPopoverProps {
   anchorEl: any;
   anchorOrigin?: {
     horizontal: 'left' | 'center' | 'right' | number;
@@ -21,7 +16,6 @@ export interface IAltinnPopoverProvidedProps {
   btnCancelText?: string;
   btnPrimaryId?: string;
   btnSecondaryId?: string;
-  classes: any;
   descriptionText?: string;
   handleClose: () => void;
   header?: string;
@@ -35,8 +29,7 @@ export interface IAltinnPopoverProvidedProps {
   };
 }
 
-const AltinnPopoverComponent = (props: any) => {
-
+export const AltinnPopover = (props: AltinnPopoverProps) => {
   const [commitMessage, setCommitMessage] = React.useState('');
 
   const handleClose = () => {
@@ -70,72 +63,50 @@ const AltinnPopoverComponent = (props: any) => {
 
   return (
     <Popover
-        open={!!props.anchorEl}
-        anchorEl={props.anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{
-          horizontal: props.anchorOrigin.horizontal ? props.anchorOrigin.horizontal : 'left',
-          vertical: props.anchorOrigin.vertical ? props.anchorOrigin.vertical : 'top',
-        }}
-        transformOrigin={{
-          horizontal: props.transformOrigin.horizontal ? props.transformOrigin.horizontal : 'left',
-          vertical: props.transformOrigin.vertical ? props.transformOrigin.vertical : 'top',
-        }}
-        anchorReference='anchorEl'
-        PaperProps={{ square: true, ...props.paperProps }}
-      >
-        <Grid container={true} direction='column' className={classes.popover}>
-          {props.header && <Typography variant='h3'>{props.header}</Typography>}
+      open={!!props.anchorEl}
+      anchorEl={props.anchorEl}
+      onClose={handleClose}
+      anchorOrigin={{
+        horizontal: props.anchorOrigin.horizontal ? props.anchorOrigin.horizontal : 'left',
+        vertical: props.anchorOrigin.vertical ? props.anchorOrigin.vertical : 'top',
+      }}
+      transformOrigin={{
+        horizontal: props.transformOrigin.horizontal ? props.transformOrigin.horizontal : 'left',
+        vertical: props.transformOrigin.vertical ? props.transformOrigin.vertical : 'top',
+      }}
+      anchorReference='anchorEl'
+      PaperProps={{ square: true, ...props.paperProps }}
+    >
+      <Grid container={true} direction='column' className={classes.popover}>
+        {props.header && <h3>{props.header}</h3>}
 
-          {props.descriptionText && (
-            <Typography className={classNames(classes.subHeader)}>
-              {props.descriptionText}
-            </Typography>
+        {props.descriptionText && (
+          <div className={classNames(classes.subHeader)}>{props.descriptionText}</div>
+        )}
+
+        {renderSpinnerOrDoneIcon()}
+
+        {props.shouldShowCommitBox && (
+          <TextArea value={commitMessage} rows={3} onChange={handleChange} />
+        )}
+
+        <ButtonContainer>
+          {props.btnConfirmText && (
+            <Button id={props.btnPrimaryId} color={ButtonColor.Primary} onClick={btnClickedHandler}>
+              {props.btnConfirmText}
+            </Button>
           )}
-
-          {renderSpinnerOrDoneIcon()}
-
-          {props.shouldShowCommitBox && (
-            <TextField
-              multiline={true}
-              value={commitMessage}
-              rows={3}
-              onChange={handleChange}
-              InputProps={{
-                disableUnderline: true,
-                classes: {
-                  input: classes.commitMessageField,
-                },
-              }}
-            />
+          {props.btnCancelText && (
+            <Button
+              id={props.btnSecondaryId}
+              color={ButtonColor.Inverted}
+              onClick={props.handleClose}
+            >
+              <span className={classes.borderBottom}>{props.btnCancelText}</span>
+            </Button>
           )}
-
-          <div>
-            {props.btnConfirmText && (
-              <Button
-                id={props.btnPrimaryId}
-                variant='contained'
-                color='primary'
-                className={classNames([classes.buttonCommon, classes.buttonConfirm])}
-                onClick={btnClickedHandler}
-              >
-                {props.btnConfirmText}
-              </Button>
-            )}
-            {props.btnCancelText && (
-              <Button
-                id={props.btnSecondaryId}
-                color='primary'
-                className={classNames([classes.buttonCommon, classes.buttonCancel])}
-                onClick={props.handleClose}
-              >
-                <span className={classes.borderBottom}>{props.btnCancelText}</span>
-              </Button>
-            )}
-          </div>
-        </Grid>
-      </Popover>
+        </ButtonContainer>
+      </Grid>
+    </Popover>
   );
 };
-
-export default AltinnPopoverComponent;

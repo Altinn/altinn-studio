@@ -8,6 +8,7 @@ import { appDataMock, renderWithMockStore } from '../../../../testing/mocks';
 import { IAppDataState } from '../../../../features/appData/appDataReducers';
 import type { IFormImageComponent } from '../../../../types/global';
 import { ComponentTypes } from '../../../';
+import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -46,14 +47,16 @@ const render = (props: Partial<IGenericEditComponent> = {}) => {
         ],
       },
     },
-    languageState: {
-      ...appDataMock.languageState,
-      language: texts,
-    },
   };
 
   return renderWithMockStore({ appData })(<ImageComponent {...allProps} />);
 };
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('ImageComponent', () => {
   it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', async () => {

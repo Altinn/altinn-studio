@@ -3,7 +3,6 @@ import React, { Component, createRef } from 'react';
 import { connect } from 'react-redux';
 import type { Dispatch } from 'redux';
 import '../styles/index.css';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import {
   makeGetActiveFormContainer,
@@ -38,12 +37,14 @@ import {
 } from '@digdir/design-system-react';
 import classes from './Container.module.css';
 import cn from 'classnames';
-import { Cancel, Collapse, Delete, Edit, Expand, Success } from '@navikt/ds-icons';
+import { XMarkIcon, ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
 import { TextResource } from '../components/TextResource';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import { withTranslation } from 'react-i18next';
+import i18next from 'i18next';
 
 export interface IProvidedContainerProps {
   isBaseContainer?: boolean;
@@ -55,6 +56,8 @@ export interface IProvidedContainerProps {
   dndEvents: EditorDndEvents;
   sendListToParent?: (item: object) => void;
   dragHandleRef?: ConnectDragSource;
+  t: typeof i18next.t;
+  dataModel: IDataModelFieldElement[];
 }
 
 export interface IContainerProps extends IProvidedContainerProps {
@@ -66,8 +69,6 @@ export interface IContainerProps extends IProvidedContainerProps {
   index?: number;
   formContainerActive?: boolean;
   activeList: any[];
-  language: any;
-  dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
 }
 
@@ -179,22 +180,16 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
 
   public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
-    const { dispatch } = this.props;
+    const { dispatch, t } = this.props;
     const { org, app } = _useParamsClassCompHack();
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
       if (idExists(this.state.tmpId, this.props.components, this.props.containers)) {
         this.setState(() => ({
-          groupIdError: getLanguageFromKey(
-            'ux_editor.modal_properties_group_id_not_unique_error',
-            this.props.language
-          ),
+          groupIdError: t('ux_editor.modal_properties_group_id_not_unique_error'),
         }));
       } else if (!validComponentId.test(this.state.tmpId)) {
         this.setState(() => ({
-          groupIdError: getLanguageFromKey(
-            'ux_editor.modal_properties_group_id_not_valid',
-            this.props.language
-          ),
+          groupIdError: t('ux_editor.modal_properties_group_id_not_valid'),
         }));
       } else {
         dispatch(
@@ -220,10 +215,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
       }
     } else if (this.state.tmpContainer.tableHeaders?.length === 0) {
       this.setState({
-        tableHeadersError: getLanguageFromKey(
-          'ux_editor.modal_properties_group_table_headers_error',
-          this.props.language
-        ),
+        tableHeadersError: t('ux_editor.modal_properties_group_table_headers_error'),
       });
     } else {
       // No validations, save.
@@ -243,22 +235,17 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public handleNewId = (event: any) => {
+    const { t } = this.props;
     if (
       idExists(event.target.value, this.props.components, this.props.containers) &&
       event.target.value !== this.props.id
     ) {
       this.setState(() => ({
-        groupIdError: getLanguageFromKey(
-          'ux_editor.modal_properties_group_id_not_unique_error',
-          this.props.language
-        ),
+        groupIdError: t('ux_editor.modal_properties_group_id_not_unique_error'),
       }));
     } else if (!validComponentId.test(event.target.value)) {
       this.setState(() => ({
-        groupIdError: getLanguageFromKey(
-          'ux_editor.modal_properties_group_id_not_valid',
-          this.props.language
-        ),
+        groupIdError: t('ux_editor.modal_properties_group_id_not_valid'),
       }));
     } else {
       this.setState({
@@ -288,6 +275,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public handleTableHeadersChange = (ids: string[]) => {
+    const { t } = this.props;
     this.setState((prevState: IContainerState) => {
       const updatedContainer = prevState.tmpContainer;
       updatedContainer.tableHeaders = [...ids];
@@ -297,10 +285,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
       }
       let errorMessage;
       if (updatedContainer.tableHeaders?.length === 0) {
-        errorMessage = getLanguageFromKey(
-          'ux_editor.modal_properties_group_table_headers_error',
-          this.props.language
-        );
+        errorMessage = t('ux_editor.modal_properties_group_table_headers_error');
       }
       return {
         tmpContainer: updatedContainer,
@@ -401,7 +386,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             <div className={classes.formGroupBar}>
               <Button
                 color={ButtonColor.Secondary}
-                icon={expanded ? <Collapse /> : <Expand />}
+                icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
                 onClick={this.handleExpand}
                 variant={ButtonVariant.Quiet}
               />
@@ -426,9 +411,8 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public renderEditSection = (): JSX.Element => {
-    const { components, itemOrder, language, textResources } = this.props;
+    const { components, itemOrder, t, textResources } = this.props;
     const { groupIdError, groupIdPopoverRef, tableHeadersError, tmpContainer, tmpId } = this.state;
-    const t = (key: string) => getLanguageFromKey(key, language);
     return (
       <FieldSet className={classes.fieldset}>
         <div>
@@ -503,7 +487,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         containerId={this.props.id}
         component={() => (
           <p className={classes.emptyContainerText}>
-            {this.props.language['ux_editor.container_empty']}
+            {this.props.t('ux_editor.container_empty')}
           </p>
         )}
       />
@@ -526,12 +510,12 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
     <>
       <Button
         data-testid='delete-component'
-        icon={<Delete title={this.props.language['general.delete']} />}
+        icon={<TrashIcon title={this.props.t('general.delete')} />}
         onClick={this.handleContainerDelete}
         variant={ButtonVariant.Quiet}
       />
       <Button
-        icon={<Edit title={this.props.language['general.edit']} />}
+        icon={<PencilIcon title={this.props.t('general.edit')} />}
         onClick={this.handleEditMode}
         variant={ButtonVariant.Quiet}
       />
@@ -541,12 +525,12 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   public renderEditIcons = (): JSX.Element => (
     <>
       <Button
-        icon={<Cancel title={this.props.language['general.cancel']} />}
+        icon={<XMarkIcon title={this.props.t('general.cancel')} />}
         onClick={this.handleDiscard}
         variant={ButtonVariant.Quiet}
       />
       <Button
-        icon={<Success title={this.props.language['general.save']} />}
+        icon={<CheckmarkIcon title={this.props.t('general.save')} />}
         onClick={this.handleSave}
         variant={ButtonVariant.Quiet}
       />
@@ -575,6 +559,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             dndEvents={this.props.dndEvents}
             sendListToParent={this.handleActiveListChange}
             dragHandleRef={dragHandleRef}
+            dataModel={this.props.dataModel}
           />
         )}
       />
@@ -642,15 +627,13 @@ const makeMapStateToProps = () => {
       activeList: state.formDesigner.layout.activeList,
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
-      dataModel: state.appData.dataModel.model,
       dataModelGroup: container?.dataModelGroup,
       formContainerActive: GetActiveFormContainer(state, props),
       itemOrder: !props.items ? itemOrder : props.items,
-      language: state.appData.languageState.language,
       repeating: container?.repeating,
       textResources: state.appData.textResources.resources?.[DEFAULT_LANGUAGE],
     };
   };
 };
 
-export const Container = connect(makeMapStateToProps)(ContainerComponent);
+export const Container = withTranslation()(connect(makeMapStateToProps)(ContainerComponent));

@@ -9,18 +9,12 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using SwaggerDateConverter = Altinn.Studio.Designer.RepositoryClient.Client.SwaggerDateConverter;
 
 namespace Altinn.Studio.Designer.RepositoryClient.Model
 {
@@ -33,7 +27,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
         /// </summary>
-        [JsonConstructorAttribute]
+        [JsonConstructor]
         protected CreateGPGKeyOption()
         {
         }
@@ -49,10 +43,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             {
                 throw new InvalidDataException("ArmoredPublicKey is a required property for CreateGPGKeyOption and cannot be null");
             }
-            else
-            {
-                this.ArmoredPublicKey = ArmoredPublicKey;
-            }
+            this.ArmoredPublicKey = ArmoredPublicKey;
         }
 
         /// <summary>
@@ -72,15 +63,6 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             sb.Append("  ArmoredPublicKey: ").Append(ArmoredPublicKey).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns the JSON string presentation of the object
-        /// </summary>
-        /// <returns>JSON string presentation of the object</returns>
-        public string ToJson()
-        {
-            return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
 
         /// <summary>
@@ -135,7 +117,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
-        IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             yield break;
         }

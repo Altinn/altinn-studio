@@ -85,3 +85,8 @@ export interface IGitStatus {
   repositoryStatus: string;
   hasMergeConflict: boolean;
 }
+
+export interface GenerateSchemaState {
+  error?: Error;
+  saving: boolean;
+}

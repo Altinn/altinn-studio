@@ -1,9 +1,11 @@
+using Altinn.Studio.Designer.Configuration.Marker;
+
 namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
     /// Configuration for platform settings
     /// </summary>
-    public class PlatformSettings
+    public class PlatformSettings : ISettingsMarker
     {
         /// <summary>
         /// Uniform resource identifier for Platform.Storage Applications

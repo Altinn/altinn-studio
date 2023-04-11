@@ -1,21 +1,20 @@
 import React from 'react';
 import { Popover } from '@mui/material';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import classes from './RepoModal.module.css';
-import { useParams } from 'react-router-dom';
 import { repoDownloadPath } from 'app-shared/api-paths';
+import { Trans, useTranslation } from 'react-i18next';
 
 interface IDownloadRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
   onClose: any;
   open: boolean;
-  language: any;
+  org: string;
+  app: string;
 }
 
 export function DownloadRepoModal(props: IDownloadRepoModalProps) {
-  const { org, app } = useParams();
-  const t = (key: string) => getLanguageFromKey(key, props.language);
+  const { t } = useTranslation();
   return (
     <div data-testid='download-repo-container'>
       <Popover
@@ -34,12 +33,18 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
       >
         <div className={classes.modalContainer}>
           <h2>{t('administration.download_repo_heading')}</h2>
-          <p>{t('administration.download_repo_info')}</p>
           <p>
-            <a href={repoDownloadPath(org, app)}>{t('administration.download_repo_changes')}</a>
+            <Trans i18nKey={'administration.download_repo_info'} />
           </p>
           <p>
-            <a href={repoDownloadPath(org, app, true)}>{t('administration.download_repo_full')}</a>
+            <a href={repoDownloadPath(props.org, props.app)}>
+              {t('administration.download_repo_changes')}
+            </a>
+          </p>
+          <p>
+            <a href={repoDownloadPath(props.org, props.app, true)}>
+              {t('administration.download_repo_full')}
+            </a>
           </p>
           <div className={classes.buttonContainer}>
             <Button

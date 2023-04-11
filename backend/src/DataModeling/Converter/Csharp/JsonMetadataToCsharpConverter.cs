@@ -147,7 +147,9 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 {
                     classBuilder.AppendLine(Indent(2) + "[Required]");
                 }
-                classBuilder.AppendLine(Indent(2) + "public " + dataType + (isValueType ? "?" : string.Empty) + " " + element.Name + " { get; set; }\n");
+
+                bool shouldBeNullable = isValueType && !element.IsTagContent; // Can't use complex type for XmlText.
+                classBuilder.AppendLine(Indent(2) + "public " + dataType + (shouldBeNullable ? "?" : string.Empty) + " " + element.Name + " { get; set; }\n");
             }
         }
 
@@ -371,7 +373,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 BaseValueType.Boolean => ("bool", true),
                 BaseValueType.Double => ("double", true),
                 BaseValueType.Long => ("long", true),
-                _ => throw new NotImplementedException()
+                _ => throw new CsharpGenerationException("Unsupported type: " + typeName)
             };
 
         }

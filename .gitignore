@@ -158,9 +158,6 @@ publish/
 # NuGet package restore lockfiles
 project.lock.json
 
-# yarn lock file
-/yarn.lock
-package-lock.json
 
 # Windows Azure Build Output
 csx/
@@ -173,6 +170,7 @@ AppPackages/
 *.Cache
 ClientBin/
 [Ss]tyle[Cc]op.*
+!stylecop.json
 ~$*
 *.dbmdl
 *.dbproj.schemaview
@@ -379,9 +377,9 @@ src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 
 ## Test repositories
 backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo-*/**
+backend/tests/Designer.Tests/_TestData/Remote/**/test-repo-*/**
+backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo_*/**
 backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
-backend/tests/Designer.Tests/_TestData/Repositories/*/*/test-repo_*/**
-backend/tests/Designer.Tests/_TestData/Remote/*/test-repo_*/**
 
 ######### Built react apps for designer ###########
 backend/src/Designer/wwwroot/designer/css/react
@@ -397,3 +395,14 @@ backend/src/Designer/wwwroot/designer/frontend
 src/studio/.devcontainer/**
 
 backend/srcaccesstoken/
+
+## Yarn
+/.pnp.*
+/.yarn/*
+!/.yarn/patches
+!/.yarn/plugins
+!/.yarn/releases
+!/.yarn/sdks
+!/.yarn/versions
+
+stats.csv

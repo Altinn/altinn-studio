@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
+using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Newtonsoft.Json;
@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Configuration
     /// <summary>
     /// Class that represents the ServiceRepositorySettings
     /// </summary>
-    public class ServiceRepositorySettings
+    public class ServiceRepositorySettings : ISettingsMarker
     {
         /// <summary>
         /// Constant for the location of resource files
@@ -438,18 +438,6 @@ namespace Altinn.Studio.Designer.Configuration
         public string GetRuleHandlerPath(string org, string app, string developer)
         {
             return Path.Combine(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, RuleHandlerFileName);
-        }
-
-        /// <summary>
-        /// Get the path to the layout settings file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="developer">the developer for the current app.</param>
-        /// <returns>The full path</returns>
-        public string GetLayoutSettingPath(string org, string app, string developer)
-        {
-            return Path.Combine(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, LAYOUT_SETTING_FILE);
         }
 
         /// <summary>

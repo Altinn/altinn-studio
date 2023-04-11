@@ -1,17 +1,13 @@
 import type { PreloadedState } from '@reduxjs/toolkit';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { setupListeners } from '@reduxjs/toolkit/query';
-
 import { rootReducer } from '../reducers';
 import { sagaMiddleware } from '../sagas';
-import { appDevelopmentApi } from '../services/appDevelopmentApi';
 import { isProduction } from 'app-shared/utils/is-production';
 
-export const middlewares = [sagaMiddleware, appDevelopmentApi.middleware];
+export const middlewares = [sagaMiddleware];
 
 const reducer = combineReducers({
   ...rootReducer,
-  [appDevelopmentApi.reducerPath]: appDevelopmentApi.reducer,
 });
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
@@ -22,12 +18,12 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
       return getDefaultMiddleware({
         serializableCheck: {
           ignoredActionPaths: ['payload.error', 'serviceInformation.error'],
+          warnAfter: 128,
         },
       }).concat(middlewares);
     },
     preloadedState,
   });
-  setupListeners(store.dispatch);
 
   return store;
 };

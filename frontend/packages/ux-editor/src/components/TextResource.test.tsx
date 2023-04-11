@@ -1,5 +1,4 @@
 import React from 'react';
-import type { ILanguageState } from '../features/appData/language/languageSlice';
 import userEvent from '@testing-library/user-event';
 import { IAppDataState } from '../features/appData/appDataReducers';
 import { ITextResource } from '../types/global';
@@ -7,11 +6,11 @@ import { ITextResourcesState } from '../features/appData/textResources/textResou
 import { TextResource, TextResourceProps } from './TextResource';
 import {
   appDataMock,
-  languageStateMock,
   renderWithMockStore,
   textResourcesMock,
 } from '../testing/mocks';
 import { act, screen } from '@testing-library/react';
+import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -37,6 +36,12 @@ const textResources: ITextResource[] = [
   { id: '2', value: 'Text 2' },
   { id: '3', value: 'Text 3' },
 ];
+
+// Mocks:
+jest.mock(
+  'react-i18next',
+  () => ({ useTranslation: () => mockUseTranslation(texts) }),
+);
 
 describe('TextResource', () => {
   afterEach(jest.resetAllMocks);
@@ -190,10 +195,6 @@ const renderAndOpenSearchSection = async () => {
 };
 
 const render = (props?: Partial<TextResourceProps>, resources?: ITextResource[]) => {
-  const languageState: ILanguageState = {
-    ...languageStateMock,
-    language: texts,
-  };
 
   const mockedTextResources: ITextResourcesState = {
     ...textResourcesMock,
@@ -205,7 +206,6 @@ const render = (props?: Partial<TextResourceProps>, resources?: ITextResource[])
 
   const appData: IAppDataState = {
     ...appDataMock,
-    languageState,
     textResources: mockedTextResources,
   };
 

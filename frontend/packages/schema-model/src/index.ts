@@ -23,7 +23,7 @@ export {
 export { createChildNode } from './lib/mutations/create-node';
 export { removeNodeByPointer } from './lib/mutations/remove-node';
 export { renameNodePointer } from './lib/mutations/rename-node';
-export { convertPropToType } from './lib/mutations/promote-node';
+export { convertPropToType } from './lib/mutations/convert-node';
 export { getCapabilities, Capabilites } from './lib/capabilities';
 export {
   getChildNodesByPointer,

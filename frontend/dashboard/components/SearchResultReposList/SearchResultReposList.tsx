@@ -1,50 +1,36 @@
-import React, { useState } from 'react';
-import type { GridSortModel } from '@mui/x-data-grid';
-import { getLanguageFromKey } from 'app-shared/utils/language';
+import React from 'react';
 import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
-import { useAppSelector } from '../../hooks/useAppSelector';
-import { useGetUserStarredReposQuery } from '../../services/userApi';
-import { useGetSearchQuery } from '../../services/repoApi';
 import { RepoList } from '../../components/RepoList';
+import { useTranslation } from 'react-i18next';
+import { useReposSearch } from 'dashboard/hooks/useReposSearch';
+import { IRepository } from 'app-shared/types/global';
 
 const rowsPerPageOptions = [8];
 
-export const SearchResultReposList = ({ searchValue }: { searchValue: string }) => {
-  const language = useAppSelector((state) => state.language.language);
-  const [page, setPage] = useState(0);
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
-  const { data: starredRepos, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
-
-  const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
-    keyword: searchValue,
-    page: page,
-    sortby: sortModel?.[0]?.field,
-    order: sortModel?.[0]?.sort,
-  });
+type SearchResultReposList = {
+  starredRepos: IRepository[];
+  searchValue: string;
+};
+export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResultReposList) => {
+  const { t } = useTranslation();
+  const { searchResults, isLoadingSearchResults, sortModel, setPageNumber, setSortModel } =
+    useReposSearch({ keyword: searchValue });
 
   const reposWithStarred = useAugmentReposWithStarred({
-    repos: repos?.data,
+    repos: searchResults?.data,
     starredRepos,
   });
 
-  const handlePageChange = (newPageNumber: number) => {
-    setPage(newPageNumber);
-  };
-
-  const handleSortModelChange = (newSortModel: GridSortModel) => {
-    setSortModel(newSortModel);
-  };
-
   return (
     <div data-testid='search-result-repos-list'>
-      <h2>{getLanguageFromKey('dashboard.search_result', language)}</h2>
+      <h2>{t('dashboard.search_result')}</h2>
       <RepoList
         repos={reposWithStarred}
-        isLoading={isLoadingOrgRepos || isLoadingStarred}
+        isLoading={isLoadingSearchResults}
         isServerSort={true}
-        rowCount={repos?.totalCount}
-        onPageChange={handlePageChange}
-        onSortModelChange={handleSortModelChange}
+        rowCount={searchResults?.totalCount}
+        onPageChange={setPageNumber}
+        onSortModelChange={setSortModel}
         sortModel={sortModel}
         pageSize={rowsPerPageOptions[0]}
         rowsPerPageOptions={rowsPerPageOptions}

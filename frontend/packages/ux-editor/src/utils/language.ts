@@ -1,6 +1,7 @@
 import type { ITextResource } from '../types/global';
 import { CollapsableMenus } from '../types/global';
 import { ComponentTypes } from '../components';
+import i18next from 'i18next';
 
 export function getComponentHelperTextByComponentType(type: string, language: any): string {
   switch (type) {
@@ -22,6 +23,9 @@ export function getComponentHelperTextByComponentType(type: string, language: an
     case ComponentTypes.AttachmentList: {
       return language['ux_editor.helper_text_for_attachment_list'];
     }
+    case ComponentTypes.Button: {
+      return language['ux_editor.helper_text_for_attachment_button'];
+    }
     case ComponentTypes.NavigationBar: {
       return language['ux_editor.helper_text_for_nav_bar'];
     }
@@ -32,64 +36,64 @@ export function getComponentHelperTextByComponentType(type: string, language: an
   }
 }
 
-export function getComponentTitleByComponentType(type: string, language: any): string {
+export function getComponentTitleByComponentType(type: string, t: typeof i18next.t): string {
   switch (type) {
     case ComponentTypes.Checkboxes: {
-      return language['ux_editor.component_checkbox'];
+      return t('ux_editor.component_checkbox');
     }
     case ComponentTypes.Dropdown: {
-      return language['ux_editor.component_dropdown'];
+      return t('ux_editor.component_dropdown');
     }
     case ComponentTypes.FileUpload: {
-      return language['ux_editor.component_file_upload'];
+      return t('ux_editor.component_file_upload');
     }
     case ComponentTypes.FileUploadWithTag: {
-      return language['ux_editor.component_file_upload_with_tag'];
+      return t('ux_editor.component_file_upload_with_tag');
     }
     case ComponentTypes.Header: {
-      return language['ux_editor.component_header'];
+      return t('ux_editor.component_header');
     }
     case ComponentTypes.Input: {
-      return language['ux_editor.component_input'];
+      return t('ux_editor.component_input');
     }
     case ComponentTypes.Image: {
-      return language['ux_editor.component_image'];
+      return t('ux_editor.component_image');
     }
     case ComponentTypes.Datepicker: {
-      return language['ux_editor.component_datepicker'];
+      return t('ux_editor.component_datepicker');
     }
     case ComponentTypes.Button: {
-      return language['ux_editor.component_button'];
+      return t('ux_editor.component_button');
     }
     case ComponentTypes.TextArea: {
-      return language['ux_editor.component_text_area'];
+      return t('ux_editor.component_text_area');
     }
     case ComponentTypes.RadioButtons: {
-      return language['ux_editor.component_radio_button'];
+      return t('ux_editor.component_radio_button');
     }
     case ComponentTypes.Paragraph: {
-      return language['ux_editor.component_paragraph'];
+      return t('ux_editor.component_paragraph');
     }
     case ComponentTypes.AddressComponent: {
-      return language['ux_editor.component_advanced_address'];
+      return t('ux_editor.component_advanced_address');
     }
     case ComponentTypes.Group: {
-      return language['ux_editor.component_group'];
+      return t('ux_editor.component_group');
     }
     case ComponentTypes.NavigationButtons: {
-      return language['ux_editor.component_navigation_buttons'];
+      return t('ux_editor.component_navigation_buttons');
     }
     case ComponentTypes.AttachmentList: {
-      return language['ux_editor.component_attachment_list'];
+      return t('ux_editor.component_attachment_list');
     }
     case ComponentTypes.NavigationBar: {
-      return language['ux_editor.component_navigation_bar'];
+      return t('ux_editor.component_navigation_bar');
     }
     case ComponentTypes.Panel: {
-      return language['ux_editor.component_information_panel'];
+      return t('ux_editor.component_information_panel');
     }
     case ComponentTypes.Map: {
-      return language['ux_editor.component_map'];
+      return t('ux_editor.component_map');
     }
     default: {
       return '';
@@ -97,19 +101,19 @@ export function getComponentTitleByComponentType(type: string, language: any): s
   }
 }
 
-export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: any): string {
+export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof i18next.t): string {
   switch (menu) {
     case CollapsableMenus.Components: {
-      return language['ux_editor.collapsable_schema_components'];
+      return t('ux_editor.collapsable_schema_components');
     }
     case CollapsableMenus.Texts: {
-      return language['ux_editor.collapsable_text_components'];
+      return t('ux_editor.collapsable_text_components');
     }
     case CollapsableMenus.AdvancedComponents: {
-      return language['ux_editor.collapsable_text_advanced_components'];
+      return t('ux_editor.collapsable_text_advanced_components');
     }
     case CollapsableMenus.Widgets: {
-      return language['ux_editor.collapsable_text_widgets'];
+      return t('ux_editor.collapsable_text_widgets');
     }
     // case CollapsableMenus.ThirdParty: {
     //   return language['ux_editor.collapsable_text_thirdparty_components'];

@@ -1,5 +1,3 @@
-import type { LanguageTree } from 'app-shared/utils/language';
-export type { LanguageTree as ILanguage };
 /** Interfaces */
 import type { UiSchemaNodes } from '@altinn/schema-model';
 export interface IJsonSchema {
@@ -23,7 +21,14 @@ export interface ISchemaState {
 }
 
 export enum NameError {
-  InvalidCharacter = 'nameError_invalidCharacter',
-  AlreadyInUse = 'nameError_alreadyInUse',
-  NoError = '',
+  InvalidCharacter = 'InvalidCharacter',
+  AlreadyInUse = 'AlreadyInUse',
+  NoError = 'NoError'
+}
+
+export enum NumberRestrictionsError {
+  NoError = 'NoError',
+  MinMustBeLessThanOrEqualToMax = "MinMustBeLessThanOrEqualToMax ",
+  MinMustBeLessThanMax = "MinMustBeLessThanMax",
+  IntervalMustBeLargeEnough = "IntervalMustBeLargeEnough "
 }

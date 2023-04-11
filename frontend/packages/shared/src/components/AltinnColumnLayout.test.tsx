@@ -24,6 +24,6 @@ const render = (props: Partial<IAltinnColumnLayoutProps> = {}) => {
     header: 'Header text',
     ...props,
   } as IAltinnColumnLayoutProps;
-
+  // eslint-disable-next-line testing-library/no-node-access
   rtlRender(<AltinnColumnLayout {...allProps}>{allProps.children}</AltinnColumnLayout>);
 };

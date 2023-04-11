@@ -45,11 +45,7 @@ test('Menu item button loses focus when clicked', async () => {
 });
 
 test('Menu item has given class name', () => {
-  const { container } = renderActionMenu();
-  expect(container.querySelector(`.${items[0].className}`)).toBeDefined();
-});
-
-test('Root element has given class name', () => {
-  const { container } = renderActionMenu();
-  expect(container.querySelector(`.${className}`)).toBeDefined();
+  renderActionMenu();
+  const [firstItem] = screen.getAllByTestId('menuitem-action-menu');
+  expect(firstItem).toHaveClass('item-class');
 });

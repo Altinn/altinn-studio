@@ -5,7 +5,7 @@ export const appMetadataPath = (org, app) => `/designer/api/${org}/${app}/metada
 export const appMetadataAttachmentPath = (org, app) => `/designer/api/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
 
 // Config
-export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/config/service`; // Get, Post
+export const serviceConfigPath = (org, app) => `/designer/api/${org}/${app}/config`; // Get, Post
 
 // Datamodel
 export const createDatamodelPath = (org, app) => `/designer/api/${org}/${app}/datamodels/new`; // Post
@@ -20,7 +20,7 @@ export const datamodelAddXsdFromRepoPath = (org, app, filePath) => `/designer/ap
 
 // FormEditor
 export const ruleHandlerPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-handler`; // Get
-export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Get
+export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Post
 export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/widget-settings`; // Get
 export const ruleConfigPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-config`; // Get, Post
 export const layoutSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/layout-settings`; // Get, Post
@@ -46,39 +46,35 @@ export const userLogoutAfterPath = () => '/Home/Logout';
 export const languagesPath = (org, app) => `/designer/api/${org}/${app}/languages`; // Get
 
 // Model
-export const datamodelCsharpPath = (org, app) => `/designer/api/${org}/${app}/model/csharp`; // Get
-export const datamodelJsonSchemaPath = (org, app) => `/designer/api/${org}/${app}/model/json-schema`; // Get
 export const datamodelMetadataPath = (org, app) => `/designer/api/${org}/${app}/model/metadata`; // Get
-export const datamodelXsdPath = (org, app) => `/designer/api/${org}/${app}/model/xsd`; // Get
 
 // Organizations
 export const orgsListPath = () => '/designer/api/orgs'; // Get
 
-// Release
+// Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
-
-export const appReleasesPath = (org, app) => `/designer/api/${org}/${app}/releases`;
-export const deploymentsPath = (org, app) => `/designer/api/${org}/${app}/deployments`;
+export const releasesPath = (org, app, sortDirection) => `/designer/api/${org}/${app}/releases?${s({ sortDirection })}`;
+export const deploymentsPath = (org, app, sortDirection) => `/designer/api/${org}/${app}/deployments?${s({ sortDirection })}`;
 export const deployPermissionsPath = (org, app) => `/designer/api/${org}/${app}/deployments/permissions`;
-export const environmentsConfigPath = () => `/designer/api/environments`;
+export const envConfigPath = () => `/designer/api/environments`;
 
 // Repositories
 export const abortmergePath = (org, app) => `/designer/api/repos/repo/${org}/${app}/abort-merge`;
+export const branchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
 export const cloneAppPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/clone`; // Get
-export const copyAppPath = (org, sourceRepository, targetRepository) => `/designer/api/repos/copy-app?${s({ org, sourceRepository, targetRepository })}`;
+export const copyAppPath = (org, sourceRepository, targetRepository) => `/designer/api/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository })}`;
 export const createRepoPath = () => `/designer/api/repos/create-app`; // Post
 export const discardChangesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/discard`; // Get
 export const discardFileChangesPath = (org, app, filename) => `/designer/api/repos/repo/${org}/${app}/discard/${filename}`; // Get
 export const masterRepoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=master`; // Get
 export const repoBranchesPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/branches`; // Get
-export const repoBranchStatusPath = (org, app, branch) => `/designer/api/repos/repo/${org}/${app}/branches/branch?branch=${branch}}`; // Get
 export const repoCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit`; // Post
 export const repoCommitPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/commit-and-push`; // Post
 export const repoDownloadPath = (org, app, full) => `/designer/api/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;
 export const repoInitialCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/initial-commit`; // Get
 export const repoLatestCommitPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/latest-commit`; // Get
 export const repoLogPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/log`; // Get
-export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app}`; // Get
+export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/metadata`; // Get
 export const repoPullPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/pull`; // Get
 export const repoPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/push`; // Post
 export const repoResetPAth = (org, app) => `/designer/api/repos/repo/${org}/${app}/reset`; // Get
@@ -94,8 +90,7 @@ export const remainingSessionTimePath = () => `/designer/api/session/remaining`;
 // Text - old
 export const textLanguagesPath = (org, app) => `/designer/api/${org}/${app}/text/languages`; // Get
 export const textResourcesPath = (org, app, langCode) => `/designer/api/${org}/${app}/text/language/${langCode}`; // Get, Post, Put, Delete
-export const textResourcesAddPath = (org, app) => `/designer/api/${org}/${app}/text/language/add-texts`; // Post
-export const serviceNamePath = (org, app) => `/designer/api/${org}/${app}/text/service-name`; // Get, Post
+export const serviceNamePath = (org, app) => `/designer/api/${org}/${app}/text/service-name`; // Get
 export const textResourceIdsPath = (org, app) => `/designer/api/${org}/${app}/text/keys`; // Put
 
 // Text - new

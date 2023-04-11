@@ -15,7 +15,7 @@ import {
 } from '@altinn/schema-model';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
-import { EllipsisH, Warning } from '@navikt/ds-icons';
+import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import { useDispatch } from 'react-redux';
 import {
   addCombinationItem,
@@ -62,7 +62,9 @@ export const SchemaItemLabel = ({
     };
   };
 
-  const handleGoToType = wrapper(() => dispatch(navigateToType({ pointer: selectedNode.reference })));
+  const handleGoToType = wrapper(() =>
+    dispatch(navigateToType({ pointer: selectedNode.reference }))
+  );
   const handleConvertToReference = wrapper(() =>
     dispatch(promoteProperty({ path: selectedNode.pointer }))
   );
@@ -129,7 +131,7 @@ export const SchemaItemLabel = ({
         )}
         {selectedNode.objectKind === ObjectKind.Reference && !refNode && (
           <span className={classes.warning}>
-            <Warning />
+            <ExclamationmarkTriangleIcon />
             Kan ikke lagre modellen uten at type er satt.
           </span>
         )}
@@ -140,7 +142,7 @@ export const SchemaItemLabel = ({
         aria-controls='simple-menu'
         aria-haspopup='true'
         onClick={handleToggleContextMenuClick}
-        icon={<EllipsisH />}
+        icon={<MenuElipsisVerticalIcon />}
         variant={ButtonVariant.Quiet}
         size={ButtonSize.Small}
       />

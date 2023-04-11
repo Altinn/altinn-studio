@@ -2,20 +2,15 @@ import type { MouseEvent, ChangeEvent } from 'react';
 import React, { useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { post } from 'app-shared/utils/networking';
-import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import type { PopoverOrigin } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../../utils/repoUtils';
-import { useAppDispatch } from '../../hooks/useAppDispatch';
-import { useAppSelector } from '../../hooks/useAppSelector';
 
 import { TextField } from '@digdir/design-system-react';
-import { copyAppPath, userReposPath } from 'app-shared/api-paths';
 import classes from './MakeCopyModal.module.css';
 import { SimpleContainer } from 'app-shared/primitives';
+import { useTranslation } from 'react-i18next';
+import { useCopyAppMutation } from 'dashboard/hooks/useRepoQueries';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
@@ -29,32 +24,32 @@ const transformAnchorOrigin: PopoverOrigin = {
 };
 
 export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
-  const language = useAppSelector((state) => state.language.language);
-  const navigate = useNavigate();
+  const { mutate: copyAppMutate, isLoading: isLoadingCopyApp } = useCopyAppMutation();
   const [repoName, setRepoName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const dispatch = useAppDispatch();
-  const t = (key: string) => getLanguageFromKey(key, language);
+
+  const { t } = useTranslation();
   const handleClone = async () => {
     if (validAppName()) {
-      setIsLoading(true);
-      try {
-        const [org, app] = serviceFullName.split('/');
-        await post(copyAppPath(org, app, repoName));
-        dispatch(DashboardActions.fetchServices({ url: userReposPath() }));
-        navigate(`${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`);
-      } catch (error) {
-        error?.response?.status === 409
-          ? setErrorMessage(t('dashboard.app_already_exist'))
-          : setErrorMessage(t('dashboard.unknown_error_copy'));
-      }
-      setIsLoading(false);
+      const [org, app] = serviceFullName.split('/');
+      copyAppMutate(
+        { org, app, repoName },
+        {
+          onSuccess: () => {
+            window.location.href = `${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`;
+          },
+          onError: (error: { response: { status: number } }) => {
+            error?.response?.status === 409
+              ? setErrorMessage(t('dashboard.app_already_exist'))
+              : setErrorMessage(t('dashboard.unknown_error_copy'));
+          },
+        }
+      );
     }
   };
 
   const closeHandler = (_x: string | MouseEvent<HTMLElement>, event?: MouseEvent<HTMLElement>) => {
-    if (isLoading) {
+    if (isLoadingCopyApp) {
       return;
     }
     if (typeof _x !== 'string') {
@@ -90,8 +85,8 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
       anchorOrigin={transformAnchorOrigin}
       transformOrigin={transformAnchorOrigin}
       handleClose={closeHandler}
-      btnCancelText={isLoading ? null : t('general.cancel')}
-      btnConfirmText={isLoading ? null : t('dashboard.make_copy')}
+      btnCancelText={isLoadingCopyApp ? null : t('general.cancel')}
+      btnConfirmText={isLoadingCopyApp ? null : t('dashboard.make_copy')}
       btnClick={handleClone}
       paperProps={{
         style: {
@@ -114,7 +109,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
           />
           {errorMessage && <div className={classes.errorMessage}>{errorMessage}</div>}
         </div>
-        {isLoading && <AltinnSpinner spinnerText={t('dashboard.creating_your_copy')} />}
+        {isLoadingCopyApp && <AltinnSpinner spinnerText={t('dashboard.creating_your_copy')} />}
       </SimpleContainer>
     </AltinnPopoverSimple>
   );

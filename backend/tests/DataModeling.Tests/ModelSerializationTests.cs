@@ -111,9 +111,7 @@ namespace DataModeling.Tests
 
         private void SerializedJsonData_ShouldNotBeChanged()
         {
-            JObject result = (JObject)JsonConvert.DeserializeObject(SerializedModelJson);
-            JObject expected = (JObject)JsonConvert.DeserializeObject(JsonData);
-            Assert.True(JToken.DeepEquals(expected, result));
+            JsonUtils.DeepEquals(SerializedModelJson, JsonData).Should().BeTrue();
         }
 
         // Xml helper methods

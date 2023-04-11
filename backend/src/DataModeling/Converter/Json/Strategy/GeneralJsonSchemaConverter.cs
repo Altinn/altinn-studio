@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Schema;
+using System.Xml.Serialization;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
@@ -136,12 +138,37 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 throw new ArgumentException($"Unhandled keyword(s) in root JSON Schema '{string.Join("', '", unhandledKeywords.Select(kw => kw.Keyword()))}'");
             }
 
-            var schemaSet = new XmlSchemaSet();
-            schemaSet.Add(_xsd);
-            schemaSet.Compile();
-
-            return _xsd;
+            return CompileSchema(_xsd);
         }
+
+        private static XmlSchema CompileSchema(XmlSchema schema)
+        {
+            try
+            {
+                var schemaToCompile = string.IsNullOrWhiteSpace(schema.TargetNamespace) ? schema : ReloadXsdSchema(schema);
+                var schemaSet = new XmlSchemaSet();
+                schemaSet.Add(schemaToCompile);
+                schemaSet.Compile();
+
+                return schema;
+            }
+            catch (XmlSchemaException e)
+            {
+                throw new JsonSchemaConvertException("Produced XSD is not valid. Can't compile", e);
+            }
+        }
+
+        private static XmlSchema ReloadXsdSchema(XmlSchema schema)
+        {
+            var serializer = new XmlSerializer(typeof(XmlSchema));
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream, System.Text.Encoding.UTF8);
+            serializer.Serialize(streamWriter, schema);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            using XmlReader xmlReader = XmlReader.Create(memoryStream);
+            return XmlSchema.Read(xmlReader, (_, _) => { });
+        }
+
 
         private void HandleSchemaAttributes()
         {

@@ -1,5 +1,6 @@
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Microsoft.Build.Framework;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Models;
 
@@ -9,6 +10,6 @@ public class EnvironmentsModel
     /// Environments
     /// </summary>
     [Required]
-    [JsonProperty("environments")]
-    public EnvironmentModel[] Environments { get; set; }
+    [JsonPropertyName("environments")]
+    public List<EnvironmentModel> Environments { get; set; }
 }

@@ -9,16 +9,15 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import type { FormComponentType, IAppState, IFormComponent } from '../types/global';
 import classes from './EditContainer.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Cancel, Delete, Edit as EditIcon, Monitor, Success } from '@navikt/ds-icons';
+import { XMarkIcon, TrashIcon, PencilIcon, MonitorIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useText } from '../hooks';
-import { textSelector } from '../selectors/textSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { ComponentPreview } from './ComponentPreview';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export interface IEditContainerProps {
   component: IFormComponent;
@@ -40,9 +39,8 @@ enum EditContainerMode {
 
 export function EditContainer(props: IEditContainerProps) {
   const dispatch = useDispatch();
-  const t = useText();
+  const { t } = useTranslation();
   const { org, app } = useParams();
-
   const [component, setComponent] = useState<IFormComponent>({
     id: props.id,
     ...props.component,
@@ -57,20 +55,21 @@ export function EditContainer(props: IEditContainerProps) {
     inEditMode: false,
     order: null,
   });
-
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const language = useSelector(textSelector);
   const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
   const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useSelector(
     (state: IAppState) => state.formDesigner.layout?.selectedLayout
   );
-
-  const previewableComponents = [ComponentTypes.Checkboxes, ComponentTypes.RadioButtons]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
-
+  const previewableComponents = [
+    ComponentTypes.Checkboxes,
+    ComponentTypes.RadioButtons,
+    ComponentTypes.Button,
+    ComponentTypes.NavigationButtons,
+  ];
+  // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
   const isPreviewable = previewableComponents.includes(component.type as ComponentTypes);
-
   const handleComponentUpdate = (updatedComponent: IFormComponent): void => {
     setComponent({ ...updatedComponent });
   };
@@ -108,7 +107,6 @@ export function EditContainer(props: IEditContainerProps) {
     const newListItem = { ...listItem, inEditMode: false };
     setListItem(newListItem);
     setMode(isPreviewable ? EditContainerMode.Preview : EditContainerMode.Closed);
-
     if (JSON.stringify(component) !== JSON.stringify(props.component)) {
       handleSaveChange(component);
       if (props.id !== component.id) {
@@ -122,13 +120,12 @@ export function EditContainer(props: IEditContainerProps) {
         );
       }
     }
-
     props.sendItemToParent(newListItem);
     dispatch(FormLayoutActions.deleteActiveList());
   };
 
   const handleDiscard = (): void => {
-    setComponent({ ...props.component });
+    setComponent({ ...props.component, id: props.id });
     setMode(EditContainerMode.Closed);
     dispatch(FormLayoutActions.deleteActiveList());
   };
@@ -181,7 +178,7 @@ export function EditContainer(props: IEditContainerProps) {
               <i className={componentIcons[component.type] || 'fa fa-help-circle'} />
               {component.textResourceBindings?.title
                 ? truncate(getTextResource(component.textResourceBindings.title, textResources), 80)
-                : getComponentTitleByComponentType(component.type, language) ||
+                : getComponentTitleByComponentType(component.type, t) ||
                   t('ux_editor.component_unknown')}
             </div>
           )}
@@ -193,7 +190,7 @@ export function EditContainer(props: IEditContainerProps) {
             <Button
               data-testid='component-delete-button'
               color={ButtonColor.Secondary}
-              icon={<Delete title={t('general.delete')} />}
+              icon={<TrashIcon title={t('general.delete')} />}
               onClick={handleComponentDelete}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -202,7 +199,7 @@ export function EditContainer(props: IEditContainerProps) {
           {(activeList.length < 1 || (activeList.length === 1 && activeListIndex === 0)) && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<EditIcon title={t('general.edit')} />}
+              icon={<PencilIcon title={t('general.edit')} />}
               onClick={handleOpenEdit}
               tabIndex={0}
               variant={ButtonVariant.Quiet}
@@ -211,7 +208,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor title={t('general.preview')} />}
+              icon={<MonitorIcon title={t('general.preview')} />}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}
@@ -223,14 +220,14 @@ export function EditContainer(props: IEditContainerProps) {
         <div className={classes.buttons}>
           <Button
             color={ButtonColor.Secondary}
-            icon={<Cancel title={t('general.cancel')} />}
+            icon={<XMarkIcon title={t('general.cancel')} />}
             onClick={handleDiscard}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
           />
           <Button
             color={ButtonColor.Secondary}
-            icon={<Success title={t('general.save')} />}
+            icon={<CheckmarkIcon title={t('general.save')} />}
             onClick={handleSave}
             tabIndex={0}
             variant={ButtonVariant.Quiet}
@@ -238,7 +235,7 @@ export function EditContainer(props: IEditContainerProps) {
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}
-              icon={<Monitor title={t('general.preview')} />}
+              icon={<MonitorIcon title={t('general.preview')} />}
               onClick={() => setMode(EditContainerMode.Preview)}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}

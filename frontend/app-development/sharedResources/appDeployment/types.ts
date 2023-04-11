@@ -1,9 +1,10 @@
 import type { AxiosError } from 'axios';
+import { DeploymentStatus } from "../../features/appPublish/components/appDeploymentComponent";
 
 export interface IBuild {
   id: string;
   status: string | number;
-  result: string | number;
+  result: DeploymentStatus| string | number;
   started: string;
   finished: string;
 }
@@ -24,10 +25,10 @@ export interface ICreateAppDeploymentRejected {
 }
 
 export interface ICreateAppDeploymentEnvObject {
+  appPrefix: string;
   hostname: string;
-  app: string;
-  platformPrefix: string;
   name: string;
+  platformPrefix: string;
   type: string;
 }
 
@@ -43,6 +44,7 @@ export interface IDeployment {
   app: string;
   org: string;
   envName: string;
+  deployedInEnv: boolean;
   createdBy: string;
   created: string;
   build: IBuild;

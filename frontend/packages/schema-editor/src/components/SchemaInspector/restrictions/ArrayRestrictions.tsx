@@ -2,15 +2,15 @@ import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKeys } from '@altinn/schema-model';
 import { RestrictionField } from '../RestrictionField';
-import { getTranslation } from '../../../utils/language';
 import { Divider } from 'app-shared/primitives';
+import { useTranslation } from 'react-i18next';
 
 export function ArrayRestrictions({
   restrictions,
-  language,
   path,
   onChangeRestrictionValue,
 }: RestrictionItemProps) {
+  const { t } = useTranslation();
   return (
     <>
       <Divider />
@@ -18,7 +18,7 @@ export function ArrayRestrictions({
         <RestrictionField
           key={key}
           path={path}
-          label={getTranslation(key, language)}
+          label={t('schema_editor.' + key)}
           value={restrictions[key]}
           keyName={key}
           readOnly={false}

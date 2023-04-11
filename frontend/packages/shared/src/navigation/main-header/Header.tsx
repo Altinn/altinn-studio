@@ -13,7 +13,7 @@ export enum SelectedContextType {
 export interface IHeaderContext {
   selectedContext: string | number;
   selectableOrgs: IGiteaOrganisation[];
-  setSelectedContext: (context: string | number) => void;
+  setSelectedContext: React.Dispatch<React.SetStateAction<number | string | SelectedContextType>>;
   user: IUser;
 }
 
@@ -23,10 +23,6 @@ export const HeaderContext = React.createContext<IHeaderContext>({
   setSelectedContext: undefined,
   user: undefined,
 });
-
-type HeaderProps = {
-  language: any;
-};
 
 export const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
   const org = orgs?.find((o) => o.id === id);
@@ -38,7 +34,7 @@ export const getOrgUsernameById = (id: number, orgs: IGiteaOrganisation[]) => {
   return org?.username;
 };
 
-export function Header({ language }: HeaderProps) {
+export function Header() {
   const { selectedContext, selectableOrgs } = React.useContext(HeaderContext);
 
   return (
@@ -62,10 +58,7 @@ export function Header({ language }: HeaderProps) {
               )}
           </Grid>
           <Grid item>
-            <HeaderMenu
-              language={language}
-              org={getOrgUsernameById(selectedContext as number, selectableOrgs)}
-            />
+            <HeaderMenu org={getOrgUsernameById(selectedContext as number, selectableOrgs)} />
           </Grid>
         </Grid>
       </Toolbar>

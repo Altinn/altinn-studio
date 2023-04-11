@@ -1,4 +1,4 @@
-import { formatNameAndDate, returnDatestringFromDate } from './formatDate';
+import { formatNameAndDate } from './formatDate';
 
 describe('formatNameAndDate', () => {
   it('should return positive result with date and name', () => {
@@ -20,35 +20,5 @@ describe('formatNameAndDate', () => {
     const date = new Date('Jan 31 2019 00:00').toString();
     const res = formatNameAndDate(name, date);
     expect(res).toMatch(`${name} `);
-  });
-});
-
-describe('returnDatestringFromDate', () => {
-  it('should return positive result for "DD.MM.YYYY"', () => {
-    const dateFromDatepicker = '31.01.2019';
-    const format = 'DD.MM.YYYY';
-    const res = returnDatestringFromDate(dateFromDatepicker, format);
-    expect(res).toMatch('2019-01-31T00:00:00Z');
-  });
-
-  it('should return "Invalid date" for "DD.MM.YYYY"', () => {
-    const dateFromDatepicker = '01.31.2019';
-    const format = 'DD.MM.YYYY';
-    const res = returnDatestringFromDate(dateFromDatepicker, format);
-    expect(res).toMatch('Invalid date');
-  });
-
-  it('should return positive result for "MM.DD.YYYY"', () => {
-    const dateFromDatepicker = '01.31.2019';
-    const format = 'MM.DD.YYYY';
-    const res = returnDatestringFromDate(dateFromDatepicker, format);
-    expect(res).toMatch('2019-01-31T00:00:00Z');
-  });
-
-  it('should return "Invalid date" for "MM.DD.YYYY"', () => {
-    const dateFromDatepicker = '31.01.2019';
-    const format = 'MM.DD.YYYY';
-    const res = returnDatestringFromDate(dateFromDatepicker, format);
-    expect(res).toMatch('Invalid date');
   });
 });

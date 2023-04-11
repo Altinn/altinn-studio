@@ -1,9 +1,8 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { ILanguage, ISchemaState } from '../../types';
+import type { ISchemaState } from '../../types';
 import { NameError } from '../../types';
-import { getTranslation } from '../../utils/language';
 import {
   addCombinationItem,
   deleteCombinationItem,
@@ -28,7 +27,7 @@ import {
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
+import { CombinationKind, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
 import {
   combinationIsNullable,
   FieldType,
@@ -40,14 +39,12 @@ import {
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
+import { useTranslation } from 'react-i18next';
 
-export interface IItemDataComponentProps extends UiSchemaNode {
-  language: ILanguage;
-}
+export type IItemDataComponentProps = UiSchemaNode;
 
 export function ItemDataComponent(props: IItemDataComponentProps) {
   const {
-    language,
     fieldType,
     pointer,
     title,
@@ -86,9 +83,11 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     }
     return error;
   };
+
   useEffect(() => {
     softValidateName(nodeName);
   }, [nodeName]);
+
   const onNameChange = ({ target }: ChangeEvent) => {
     const { value } = target as HTMLInputElement;
     setNodeName(value);
@@ -96,15 +95,12 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
-  const onChangeFieldType = (type: FieldType) =>
-    dispatch(setType({ path: pointer, type }));
+  const onChangeFieldType = (type: FieldType) => dispatch(setType({ path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
     if (isChecked) {
-      dispatch(
-        addCombinationItem({ pointer: pointer, props: { fieldType: FieldType.Null } })
-      );
+      dispatch(addCombinationItem({ pointer: pointer, props: { fieldType: FieldType.Null } }));
       return;
     }
 
@@ -137,7 +133,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
       return;
     }
     const staleName = getNameFromPointer({ pointer });
-    if (!nameError && staleName !== nodeName) {
+    if (staleName !== nodeName) {
       dispatch(
         setPropertyName({
           path: pointer,
@@ -148,30 +144,39 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     }
   };
 
-  const t = (key: string) => getTranslation(key, language);
+  const { t } = useTranslation();
+
   const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
   const descriptionId = getDomFriendlyID(pointer, { suffix: 'description' });
+
+  const nameErrorMessage = {
+    [NameError.InvalidCharacter]: t('schema_editor.nameError_invalidCharacter'),
+    [NameError.AlreadyInUse]: t('schema_editor.nameError_alreadyInUse'),
+    [NameError.NoError]: '',
+  }[nameError];
+
   return (
     <div className={classes.root}>
       {!isCombinationItem && (
         <div>
           <TextField
             aria-describedby='Selected Item Name'
-            aria-errormessage={t(nameError)}
+            aria-errormessage={nameErrorMessage}
+            aria-label={t('schema_editor.name')}
             aria-placeholder='Name'
             id='selectedItemName'
-            label={t('name')}
+            label={t('schema_editor.name')}
             onBlur={handleChangeNodeName}
             onChange={onNameChange}
             placeholder='Name'
             value={nodeName}
           />
-          {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
+          {nameError !== NameError.NoError && <ErrorMessage>{nameErrorMessage}</ErrorMessage>}
         </div>
       )}
       {objectKind === ObjectKind.Field && (
         <Select
-          label={t('type')}
+          label={t('schema_editor.type')}
           onChange={(type: FieldType) => onChangeFieldType(type)}
           options={getTypeOptions(t)}
           value={fieldType as string}
@@ -179,25 +184,25 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
       )}
       {objectKind === ObjectKind.Reference && (
         <ReferenceSelectionComponent
-          buttonText={t('go_to_type')}
-          emptyOptionLabel={t('choose_type')}
-          label={t('reference_to')}
+          buttonText={t('schema_editor.go_to_type')}
+          emptyOptionLabel={t('schema_editor.choose_type')}
+          label={t('schema_editor.reference_to')}
           onChangeRef={onChangeRef}
           onGoToDefButtonClick={onGoToDefButtonClick}
           selectedNode={{ pointer, reference }}
         />
       )}
-      {objectKind !== ObjectKind.Combination && (
+      {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
         <Checkbox
           checked={isArray}
-          label={t('multiple_answers')}
+          label={t('schema_editor.multiple_answers')}
           name='checkedMultipleAnswers'
           onChange={handleArrayPropertyToggle}
         />
       )}
       {objectKind === ObjectKind.Combination && (
         <Select
-          label={t('type')}
+          label={t('schema_editor.type')}
           onChange={(combination: string) =>
             onChangeCombinationType(combination as CombinationKind)
           }
@@ -209,18 +214,19 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
         <Checkbox
           checkboxId='multiple-answers-checkbox'
           checked={combinationIsNullable(getChildNodes())}
-          label={t('nullable')}
+          label={t('schema_editor.nullable')}
           name='checkedNullable'
           onChange={onChangeNullable}
         />
       )}
       <ItemRestrictions {...props} />
-      <Divider inMenu />
-      <FieldSet legend={t('descriptive_fields')} className={classes.fieldSet}>
+      <Divider marginless/>
+      <FieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
           <TextField
             id={titleId}
-            label={t('title')}
+            label={t('schema_editor.title')}
+            aria-label={t('schema_editor.title')}
             onBlur={onChangeTitle}
             onChange={(e: ChangeEvent) => setItemItemTitle((e.target as HTMLInputElement)?.value)}
             value={itemTitle}
@@ -229,7 +235,8 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
         <div>
           <TextArea
             id={descriptionId}
-            label={t('description')}
+            aria-label={t('schema_editor.description')}
+            label={t('schema_editor.description')}
             onBlur={onChangeDescription}
             onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
               setItemItemDescription(event.target.value)

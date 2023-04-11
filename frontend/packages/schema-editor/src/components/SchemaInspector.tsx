@@ -1,34 +1,33 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tabs } from '@digdir/design-system-react';
 import type { TabItem } from '@digdir/design-system-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
-import { getTranslation } from '../utils/language';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
-import type { ILanguage } from '../types';
 import classes from './SchemaInspector.module.css';
 import { Divider } from 'app-shared/primitives';
+import { useTranslation } from 'react-i18next';
 
 export interface ISchemaInspectorProps {
-  language: ILanguage;
   selectedItem?: UiSchemaNode;
 }
 
-export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProps) => {
-  const t = useCallback((key: string) => getTranslation(key, language), [language]);
+export const SchemaInspector = ({ selectedItem }: ISchemaInspectorProps) => {
+  const { t } = useTranslation();
+
   enum TabValue {
     Properties = 'properties',
-    Fields = 'fields'
+    Fields = 'fields',
   }
   const [tabsFor, setTabsFor] = useState<string>(undefined);
   const [activeTab, setActiveTab] = useState<string>(TabValue.Properties);
   const [tabItems, setTabItems] = useState<TabItem[]>([
     {
-      name: t(TabValue.Properties),
+      name: t('schema_editor.properties'),
       content: null,
-      value: TabValue.Properties
-    }
+      value: TabValue.Properties,
+    },
   ]);
 
   useEffect(() => {
@@ -36,10 +35,10 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
     if (tabsFor !== selectedItem.pointer) setActiveTab(TabValue.Properties);
     const tabs = [
       {
-        name: t(TabValue.Properties),
-        content: <ItemPropertiesTab selectedItem={selectedItem} language={language} />,
-        value: TabValue.Properties
-      }
+        name: t('schema_editor.properties'),
+        content: <ItemPropertiesTab selectedItem={selectedItem} />,
+        value: TabValue.Properties,
+      },
     ];
     if (
       selectedItem?.fieldType === FieldType.Object &&
@@ -47,14 +46,14 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
       selectedItem.objectKind !== ObjectKind.Reference
     ) {
       tabs.push({
-        name: t(TabValue.Fields),
-        content: <ItemFieldsTab selectedItem={selectedItem} language={language} />,
-        value: TabValue.Fields
+        name: t('schema_editor.fields'),
+        content: <ItemFieldsTab selectedItem={selectedItem} />,
+        value: TabValue.Fields,
       });
     }
     setTabsFor(selectedItem.pointer);
     setTabItems(tabs);
-  }, [activeTab, TabValue.Fields, TabValue.Properties, language, selectedItem, t, tabsFor]);
+  }, [activeTab, TabValue.Fields, TabValue.Properties, selectedItem, tabsFor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const switchTab = (tabValue: string) => {
     if (
@@ -78,7 +77,7 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
   return (
     <div>
       <p className={classes.noItem} id='no-item-paragraph'>
-        {t('no_item_selected')}
+        {t('schema_editor.no_item_selected')}
       </p>
       <Divider />
     </div>

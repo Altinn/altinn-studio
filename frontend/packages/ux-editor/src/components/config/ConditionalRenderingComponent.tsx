@@ -17,6 +17,7 @@ import type {
   IRuleModelFieldElement,
 } from '../../types/global';
 import classes from './ConditionalRenderingComponent.module.css';
+import { withTranslation } from 'react-i18next';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: any;
@@ -28,7 +29,7 @@ export interface IConditionalRenderingComponentProps {
   deleteConnection?: (connectionId: any) => void;
   formLayoutContainers: any;
   order: IFormLayoutOrder;
-  language: any;
+  t: any;
 }
 
 class ConditionalRendering extends React.Component<IConditionalRenderingComponentProps, any> {
@@ -197,7 +198,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
 
   public renderConditionalRenderingTargetComponentOption = (id: string): JSX.Element => {
     const component: IFormComponent = this.props.formLayoutComponents[id];
-    const labelText = getComponentTitleByComponentType(component.type, this.props.language);
+    const labelText = getComponentTitleByComponentType(component.type, this.props.t);
     return (
       <option key={id} value={id}>
         {`${labelText} (${id})`}
@@ -214,7 +215,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
       return options;
     }
     if (!baseContainer) {
-      const name = getComponentTitleByComponentType('Group', this.props.language);
+      const name = getComponentTitleByComponentType('Group', this.props.t);
       options.push(
         <option key={id} value={id}>
           {`${name} (${id})`}
@@ -266,13 +267,14 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
         <div className={classes.modalHeader}>
           <i className='fa fa-corp' />
           <h1 className={classes.modalHeaderTitle}>
-            {this.props.language['ux_editor.modal_configure_conditional_rendering_header']}
+            {this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
           </h1>
         </div>
+
         <div className={classes.modalBodyContent}>
           <div className={classes.formGroup}>
             <label htmlFor='selectConditionalRule' className={classes.label}>
-              {this.props.language['ux_editor.modal_configure_conditional_rendering_helper']}
+              {this.props.t('ux_editor.modal_configure_conditional_rendering_helper')}
             </label>
             <select
               name='selectConditionalRule'
@@ -282,7 +284,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               id='selectConditionalRule'
               style={{ fontSize: '16px' }}
             >
-              <option value=''>{this.props.language['general.choose_method']}</option>
+              <option value=''>{this.props.t('general.choose_method')}</option>
               {this.props.ruleModelElements.map((funcObj: any) => {
                 return (
                   <option key={funcObj.name} value={funcObj.name}>
@@ -296,11 +298,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
             <>
               <div>
                 <h2 className={classes.subTitle}>
-                  {
-                    this.props.language[
-                      'ux_editor.modal_configure_conditional_rendering_configure_input_header'
-                    ]
-                  }
+                  {this.props.t(
+                    'ux_editor.modal_configure_conditional_rendering_configure_input_header'
+                  )}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
                   (key: any) => {
@@ -308,11 +308,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                     return (
                       <>
                         <label className={classes.label} htmlFor={paramName}>
-                          {
-                            this.props.language[
-                              'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper'
-                            ]
-                          }
+                          {this.props.t(
+                            'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper'
+                          )}
                         </label>
                         <div className={classes.configureInputParamsContainer} key={key}>
                           <input
@@ -342,19 +340,15 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               </div>
               <div>
                 <h2 className={classes.subTitle}>
-                  {
-                    this.props.language[
-                      'ux_editor.modal_configure_conditional_rendering_configure_output_header'
-                    ]
-                  }
+                  {this.props.t(
+                    'ux_editor.modal_configure_conditional_rendering_configure_output_header'
+                  )}
                 </h2>
                 <div className={classes.selectActionContainer}>
                   <label className={classes.label} htmlFor='select_action'>
-                    {
-                      this.props.language[
-                        'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper'
-                      ]
-                    }
+                    {this.props.t(
+                      'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper'
+                    )}
                   </label>
                   <select
                     id='select_action'
@@ -363,7 +357,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                     className={classes.customSelect}
                     style={{ fontSize: '16px' }}
                   >
-                    <option value=''>{this.props.language['general.action']}</option>
+                    <option value=''>{this.props.t('general.action')}</option>
                     {this.state.selectableActions.map((value: string) => {
                       return (
                         <option key={value} value={value}>
@@ -374,11 +368,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   </select>
                 </div>
                 <p>
-                  {
-                    this.props.language[
-                      'ux_editor.modal_configure_conditional_rendering_configure_output_field_helper'
-                    ]
-                  }
+                  {this.props.t(
+                    'ux_editor.modal_configure_conditional_rendering_configure_output_field_helper'
+                  )}
                 </p>
                 {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
                   return (
@@ -390,7 +382,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                         className={classes.customSelect}
                         style={{ fontSize: '16px' }}
                       >
-                        <option value=''>{this.props.language['general.select_component']}</option>
+                        <option value=''>{this.props.t('general.select_component')}</option>
                         {this.renderCondtionalRenderingTargetOptions()}
                       </select>
 
@@ -405,11 +397,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   );
                 })}
                 <button type='button' className={classes.addFieldButton} onClick={this.addNewField}>
-                  {
-                    this.props.language[
-                      'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping'
-                    ]
-                  }
+                  {this.props.t(
+                    'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping'
+                  )}
                 </button>
               </div>
             </>
@@ -417,16 +407,20 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
           <div className={classes.buttonsContainer}>
             {this.state.conditionalRendering.selectedFunction ? (
               <button onClick={this.handleSaveEdit} type='submit' className={classes.saveButton}>
-                {this.props.language['general.save']}
+                {this.props.t('general.save')}
               </button>
             ) : null}
             {this.props.connectionId ? (
-              <button type='button' className={classes.dangerButton} onClick={this.handleDeleteConnection}>
-                {this.props.language['general.delete']}
+              <button
+                type='button'
+                className={classes.dangerButton}
+                onClick={this.handleDeleteConnection}
+              >
+                {this.props.t('general.delete')}
               </button>
             ) : null}
             <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
-              {this.props.language['general.cancel']}
+              {this.props.t('general.cancel')}
             </button>
           </div>
         </div>
@@ -446,8 +440,9 @@ const mapStateToProps = (state: IAppState, props: any): any => {
     formLayoutComponents: getAllComponents(state),
     formLayoutContainers: getAllContainers(state),
     order: getFullOrder(state),
-    language: state.appData.languageState.language,
   };
 };
 
-export const ConditionalRenderingComponent = connect(mapStateToProps)(ConditionalRendering);
+export const ConditionalRenderingComponent = withTranslation()(
+  connect(mapStateToProps)(ConditionalRendering)
+);

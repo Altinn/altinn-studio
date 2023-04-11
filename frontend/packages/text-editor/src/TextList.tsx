@@ -1,53 +1,53 @@
-import React from 'react';
-import classes from './TextEditor.module.css';
+import React, { useMemo } from 'react';
 import { TextRow } from './TextRow';
 import type {
-  TextResourceEntry,
   TextResourceEntryDeletion,
   TextResourceIdMutation,
-  TextResourceMap,
+  UpsertTextResourcesMutation,
 } from './types';
 import { filterFunction, getLangName } from './utils';
+import { TextTableRow } from './types';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
 
 export type TextListProps = {
-  textIds: string[];
-  selectedLangCode: string;
+  resourceRows: TextTableRow[];
   searchQuery: string;
-  texts: TextResourceMap;
-  upsertEntry: (entry: TextResourceEntry) => void;
+  upsertTextResource: (entry: UpsertTextResourcesMutation) => void;
   removeEntry: ({ textId }: TextResourceEntryDeletion) => void;
   updateEntryId: ({ oldId, newId }: TextResourceIdMutation) => void;
 };
-export const TextList = ({
-  textIds,
-  selectedLangCode,
-  searchQuery,
-  texts,
-  ...rest
-}: TextListProps) => {
-  const langName = getLangName({ code: selectedLangCode });
-
-  const idExits = (textId: string, textEntryValue: string): boolean => {
-    const isSameField = texts[textId]?.value === textEntryValue;
-
-    // combined textId with text-value to decide whether the key exists or not.
-    return textIds.includes(textId) && !isSameField;
-  };
+export const TextList = ({ resourceRows, searchQuery, ...rest }: TextListProps) => {
+  const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
+  const idExists = (textId: string): boolean => textIds.includes(textId);
 
   return (
-    <ul className={classes.TextEditor__body}>
-      {textIds
-        .filter((id) => filterFunction(id, texts[id] ? texts[id].value : '', searchQuery))
-        .map((id) => (
-          <TextRow
-            key={`${selectedLangCode}.${id}`}
-            textId={id}
-            langName={langName}
-            idExists={(textId) => idExits(textId, texts[id]?.value)}
-            textData={texts[id]}
-            {...rest}
-          />
-        ))}
-    </ul>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {resourceRows[0].translations.map((translation) => (
+            <TableCell key={'header-lang' + translation.lang}>
+              {getLangName({ code: translation.lang })}
+            </TableCell>
+          ))}
+          <TableCell>Tekstnøkkel</TableCell>
+          <TableCell>Variabler</TableCell>
+          <TableCell></TableCell>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {resourceRows
+          .filter((row) => filterFunction(row.textKey, row.translations, searchQuery))
+          .map((row) => (
+            <TextRow
+              key={`${row.translations[0].lang}.${row.textKey}`}
+              textId={row.textKey}
+              idExists={idExists}
+              textRowEntries={row.translations}
+              variables={row.variables || []}
+              {...rest}
+            />
+          ))}
+      </TableBody>
+    </Table>
   );
 };

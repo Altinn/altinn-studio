@@ -16,8 +16,8 @@ import {
 } from '@altinn/schema-model';
 import { useDispatch, useSelector } from 'react-redux';
 import type { ISchemaState } from '../../types';
-import { getTranslation } from '../../utils/language';
 import type { PanelProps } from './layoutTypes';
+import { useTranslation } from 'react-i18next';
 
 export type ModelsPanelProps = PanelProps & {
   expandedPropNodes: string[];
@@ -25,13 +25,13 @@ export type ModelsPanelProps = PanelProps & {
   properties: UiSchemaNodes;
 };
 export const ModelsPanel = ({
-  language,
   editMode,
   expandedPropNodes,
   setExpandedPropNodes,
   properties,
 }: ModelsPanelProps) => {
-  const t = (key: string) => getTranslation(key, language);
+  const translation = useTranslation();
+  const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
   const selectedPropertyNodeId = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
@@ -58,7 +58,6 @@ export const ModelsPanel = ({
     <>
       {editMode && (
         <ActionMenu
-          className={classes.addMenu}
           items={[
             {
               action: () => handleAddProperty(ObjectKind.Field),
