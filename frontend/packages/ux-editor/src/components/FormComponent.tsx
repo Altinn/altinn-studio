@@ -105,12 +105,13 @@ const FormComponent = (props: IFormElementProps) => {
    * Render label
    */
   const renderLabel = (): JSX.Element => {
-    if (
-      component.type === ComponentType.Header ||
-      component.type === ComponentType.Paragraph ||
-      component.type === ComponentType.ThirdParty ||
-      component.type === ComponentType.AddressComponent
-    ) {
+    const componentsWithoutLabel = [
+      ComponentType.Header,
+      ComponentType.Paragraph,
+      ComponentType.ThirdParty,
+      ComponentType.AddressComponent,
+    ];
+    if (componentsWithoutLabel.includes(component.type)) {
       return null;
     }
     if (!component.textResourceBindings) {

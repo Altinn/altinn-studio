@@ -1,11 +1,21 @@
 import { useMutation } from '@tanstack/react-query';
 import { useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { ApplicationMetadataActions } from '../../../../../app-development/sharedResources/applicationMetadata/applicationMetadataSlice';
+import { makeGetApplicationMetadata } from '../../../../../app-development/sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 
 export const useDeleteAppAttachmentMetadataMutation = (org: string, app: string) => {
   const { deleteAppAttachmentMetadata } = useServicesContext();
+  const dispatch = useDispatch();
+  const applicationMetadata = useSelector(makeGetApplicationMetadata) ?? {};
   return useMutation({
-    mutationFn: (id: string) =>
-      deleteAppAttachmentMetadata(org, app, id)
-    // Todo: Add onSuccess to update the attachment metadata in the frontend
+    mutationFn: async (id: string) => {
+      await deleteAppAttachmentMetadata(org, app, id);
+      return id;
+    },
+    onSuccess: (id: string) => {
+      delete applicationMetadata[id];
+      dispatch(ApplicationMetadataActions.getApplicationMetadataFulfilled({ applicationMetadata }));
+    }
   });
 }

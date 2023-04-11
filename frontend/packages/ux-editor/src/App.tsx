@@ -36,29 +36,26 @@ export function App() {
   const { org, app } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const datamodelQuery = useDatamodelQuery(org, app);
-  const formLayoutsQuery = useFormLayoutsQuery(org, app);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
+  const { data: datamodel, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
+  const { data: formLayouts, isError: layoutFetchedError  } = useFormLayoutsQuery(org, app);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
   const addLayoutMutation = useAddLayoutMutation(org, app);
 
   const selectedLayout = useSelector(selectedLayoutNameSelector);
 
-  const layoutPagesOrder = formLayoutSettingsQuery.data?.pages.order;
-  const layoutOrder = formLayoutsQuery.data?.[selectedLayout]?.order || {};
+  const layoutPagesOrder = formLayoutSettings?.pages.order;
+  const layoutOrder = formLayouts?.[selectedLayout]?.order || {};
 
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
 
   const isWidgetFetched = useSelector((state: IAppState) => state.widgets.fetched);
-
-  const dataModelFetchedError = datamodelQuery.error;
-  const layoutFetchedError = formLayoutsQuery.error;
   const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
 
   const componentIsReady =
-    formLayoutsQuery.isSuccess &&
+    formLayouts &&
     isWidgetFetched &&
-    formLayoutSettingsQuery.isSuccess &&
-    datamodelQuery.isSuccess;
+    formLayoutSettings &&
+    datamodel;
 
   const componentHasError =
     dataModelFetchedError || layoutFetchedError || widgetFetchedError;
