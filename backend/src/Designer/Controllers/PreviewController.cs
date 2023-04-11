@@ -56,10 +56,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>default view for the app preview.</returns>
         [HttpGet]
         [Route("preview/{*AllValues}")]
-        public IActionResult Index(string org, string app)
+        public async Task<IActionResult> Index(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            MockInstance = _previewService.CreateMockInstance(org, app, developer, 1);
+            MockInstance = await _previewService.CreateMockInstance(org, app, developer, 1);
             return View();
         }
 
@@ -100,8 +100,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<ApplicationSettings>> ApplicationSettings(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            Application applicationMetadata = await _previewService.GetApplication(org, app, developer);
             ApplicationSettings applicationSettings = new()
             {
                 Id = applicationMetadata.Id,
@@ -295,11 +294,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             // consider generating a test id
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Instance mockInstance = _previewService.CreateMockInstance(org, app, developer, instanceOwnerPartyId);
-            Application mockApplicationMetadata = await _previewService.GetApplication(org, app, developer);
-            DataType dataType = mockApplicationMetadata.DataTypes.Find(element => !string.IsNullOrEmpty(element.AppLogic?.ClassRef) && element.TaskId == "Task_1");
-            mockInstance.Data[0].DataType = dataType.Id;
-            MockInstance = mockInstance;
+            Instance mockInstance = await _previewService.CreateMockInstance(org, app, developer, instanceOwnerPartyId);
             return Ok(mockInstance);
         }
 
@@ -311,11 +306,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Json schema for datamodel for datatask test-datatask-id</returns>
         [HttpGet]
         [Route("instances/1/test-id/data/test-datatask-id")]
-        public async Task<ActionResult> GetFormData(string org, string app)
+        public async Task<ActionResult> GetFormData(string org, string app, string currentTaskDataElementId)
         {
-            string modelPath = "/App/models/datamodel.schema.json";
-            string decodedPath = Uri.UnescapeDataString(modelPath);
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            DataType dataType = await _previewService.GetDataTypeForTask1(org, app, developer);
+            string modelPath = $"/App/models/{dataType.Id}.schema.json";
+            string decodedPath = Uri.UnescapeDataString(modelPath);
             string formData = await _schemaModelService.GetSchema(org, app, developer, decodedPath);
             return Ok(formData);
         }
@@ -329,8 +325,6 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult Process()
         {
             ProcessState processState = new() { CurrentTask = new() { AltinnTaskType = "data", ElementId = "Task_1" } };
-            MockInstance.Process = processState;
-            //string process = @"{""currentTask"": {""altinnTaskType"": ""data"", ""elementId"": ""Task_1""}}";
             return Ok(processState);
         }
 
@@ -342,8 +336,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("instances/undefined/process/next")]
         public ActionResult ProcessNext()
         {
-            ProcessState processState = MockInstance.Process;
-            //string process = @"{""currentTask"": {""altinnTaskType"": ""data"", ""elementId"": ""Task_1""}}";
+            ProcessState processState = new() { CurrentTask = new() { AltinnTaskType = "data", ElementId = "Task_1" } };
             return Ok(processState);
         }
 
@@ -369,17 +362,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="datamodel">Datamodel used by the application</param>
         /// <returns>datamodel as json schema</returns>
         [HttpGet]
-        [Route("api/jsonschema/datamodel")]
-        public async Task<ActionResult<string>> Datamodel(string org, string app)
+        [Route("api/jsonschema/{datamodel}")]
+        public async Task<ActionResult<string>> Datamodel(string org, string app, [FromRoute] string datamodel)
         {
-            // consider use method to get all json and return an expected one based on applicationmetadata?
-            string modelPath = "/App/models/datamodel.schema.json";
-            var decodedPath = Uri.UnescapeDataString(modelPath);
-
+            string modelPath = $"/App/models/{datamodel}.schema.json";
+            string decodedPath = Uri.UnescapeDataString(modelPath);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var json = await _schemaModelService.GetSchema(org, app, developer, decodedPath);
+            string json = await _schemaModelService.GetSchema(org, app, developer, decodedPath);
 
             return Ok(json);
         }

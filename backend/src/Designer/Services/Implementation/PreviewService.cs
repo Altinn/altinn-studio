@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -7,7 +6,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 /// <summary>
-/// Interface for dealing with texts in new format in an app repository.
+/// Service for handling a mocked instance object for preview mode
 /// </summary>
 public class PreviewService : IPreviewService
 {
@@ -22,6 +21,7 @@ public class PreviewService : IPreviewService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
+    /// <inherit />
     public async Task<Application> GetApplication(string org, string app, string developer)
     {
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
@@ -29,16 +29,18 @@ public class PreviewService : IPreviewService
         return mockApplicationMetadata;
     }
 
-    public Instance CreateMockInstance(string org, string app, string developer, int? instanceOwnerPartyId)
+    /// <inherit />
+    public async Task<Instance> CreateMockInstance(string org, string app, string developer, int? instanceOwnerPartyId)
     {
+        DataType dataType = await GetDataTypeForTask1(org, app, developer);
         Instance instance = new()
         {
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() },
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId == null ? "undefined" : instanceOwnerPartyId.Value.ToString() },
             Id = $"{instanceOwnerPartyId}/test-id",
             Data = new()
                 { new ()
                 {
-                    DataType = "Task_1",
+                    DataType = dataType.Id,
                     Id = "test-datatask-id"
                 } },
             Process = new()
@@ -50,5 +52,13 @@ public class PreviewService : IPreviewService
             }
         };
         return instance;
+    }
+
+    /// <inherit />
+    public async Task<DataType> GetDataTypeForTask1(string org, string app, string developer)
+    {
+        Application mockApplicationMetadata = await GetApplication(org, app, developer);
+        DataType dataType = mockApplicationMetadata.DataTypes.Find(element => !string.IsNullOrEmpty(element.AppLogic?.ClassRef) && element.TaskId == "Task_1");
+        return dataType;
     }
 }
