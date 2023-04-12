@@ -1,84 +1,60 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Classes from './ThreeDotsMenu.module.css';
-import { CogIcon } from '@navikt/aksel-icons';
+import React, { useState } from 'react';
+import classes from './ThreeDotsMenu.module.css';
+import { CogIcon, TabsIcon } from '@navikt/aksel-icons';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FaRegClone } from 'react-icons/fa';
 import { CloneModal } from 'app-development/layout/version-control/CloneModal';
 import { repositoryPath } from 'app-shared/api-paths';
+import { GiteaIcon } from 'app-shared/icons';
+import { Popover } from '@digdir/design-system-react';
 
 export function ThreeDotsMenu() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef(null);
   const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
   const { org, app } = useParams();
   const { t } = useTranslation();
   const closeCloneModal = () => setCloneModalAnchor(null);
   const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);
 
-  function handleButtonClick() {
-    setIsMenuOpen(!isMenuOpen);
-  }
-
-  useEffect(() => {
-    function handleCloneOutsideClick(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsMenuOpen(false);
-      } else cloneModalAnchor && !cloneModalAnchor.contains(event.target);
-      {
-        closeCloneModal();
-      }
-    }
-
-    if (setIsMenuOpen) {
-      document.addEventListener('mousedown', handleCloneOutsideClick);
-    }
-    return () => document.removeEventListener('mousedown', handleCloneOutsideClick);
-  }, [cloneModalAnchor, setIsMenuOpen]);
-
   return (
     <>
-      <button
-        data-testid='menuBtn'
-        className={Classes.verticalDotsMenu}
-        onClick={handleButtonClick}
+      <Popover
+        className={classes.popover}
+        trigger={(
+          <button
+            data-testid='menuBtn'
+            className={classes.verticalDotsMenu}
+          >
+            &#8942;
+          </button>
+        )}
       >
-        &#8942;
-      </button>
-      {isMenuOpen && (
-        <div className={Classes.popover} ref={menuRef}>
-          <div className={Classes.menuItems}>
-            <div className={Classes.cloneMenuItem}>
-              <Link onClick={openCloneModal} to={''}>
-                <section className={Classes.section}>
-                  <FaRegClone className={Classes.icon} />
-                  <div className={Classes.cloneText}>{t('sync_header.clone')}</div>
-                </section>
-              </Link>
-            </div>
-
-            <div className={Classes.repoMenuItem}>
-              <a
-                className={'fa fa-gitea'}
-                href={repositoryPath(org, app)}
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                <div className={Classes.repoText}>{t('dashboard.repository')}</div>
-              </a>
-            </div>
-
-            <div className={Classes.settingMenuItem}>
-              <Link to={`/${org}/${app}/accesscontrol`}>
-                <section className={Classes.section}>
-                  <CogIcon className={Classes.icon} />
-                  <div className={Classes.settingText}>{t('sync_header.setting')}</div>
-                </section>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+        <ul className={classes.menuItems}>
+          <li>
+            <button onClick={openCloneModal} className={classes.link}>
+              <span className={classes.iconWrapper}>
+                <TabsIcon className={classes.icon} />
+              </span>
+              <span>{t('sync_header.clone')}</span>
+            </button>
+          </li>
+          <li>
+            <a href={repositoryPath(org, app)} className={classes.link}>
+              <span className={classes.iconWrapper}>
+                <GiteaIcon className={classes.icon + ' ' + classes.giteaIcon} />
+              </span>
+              <span>{t('dashboard.repository')}</span>
+            </a>
+          </li>
+          <li>
+            <Link to={`/${org}/${app}/accesscontrol`} className={classes.link}>
+              <span className={classes.iconWrapper}>
+                <CogIcon className={classes.icon} />
+              </span>
+              <span>{t('sync_header.settings')}</span>
+            </Link>
+          </li>
+        </ul>
+      </Popover>
       <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />
     </>
   );

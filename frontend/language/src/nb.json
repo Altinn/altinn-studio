@@ -731,7 +731,7 @@
   "sync_header.repo_is_offline": "Repo er utilgjengelig",
   "sync_header.service_updated_to_latest": "Appen din er oppdatert til siste versjon",
   "sync_header.service_updated_to_latest_submessage": "Hvis det er flere personer som jobber på samme app er det viktig å hente endringer ofte. På denne måten reduserer du sjansen for mergekonflikter.",
-  "sync_header.setting": "Innstilling",
+  "sync_header.settings": "Innstillinger",
   "sync_header.share_changes": "Push",
   "sync_header.sharing_changes": "Deler endringene dine",
   "sync_header.sharing_changes_completed": "Du har delt dine endringer og appen er oppdatert til siste versjon",

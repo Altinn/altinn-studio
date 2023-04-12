@@ -8,65 +8,60 @@
 }
 
 .popover {
-  position: absolute;
-  background-color: white;
   border-radius: 5px;
-  min-width: 175px;
-  top: 51px;
-  right: 30px;
-  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+  padding: 0;
 }
 
 .menuItems {
-  padding: 15px;
-  justify-content: flex-end;
-  padding-right: 40px;
-  padding-left: 15px;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  list-style-type: none;
+  margin: 0;
+  padding: 1rem 0;
+  align-items: stretch;
+}
+
+.menuItems li {
+  padding: 0;
+  margin: 0;
+}
+
+.link {
+  align-items: center;
+  background: none;
+  border: none;
+  box-sizing: border-box;
+  color: #0062BA;
+  cursor: pointer;
+  display: flex;
+  font-size: 1rem;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+.link:hover {
+  background-color: #F5F5F5;
+}
+
+.iconWrapper {
+  align-items: center;
+  display: flex;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
 }
 
 .icon {
-  margin-right: 5px;
-  font-size: 20px;
+  width: 20px;
   cursor: pointer;
 }
 
-.section {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
+.giteaIcon {
+  width: 20px;
 }
 
-.cloneText {
-  font-size: 0.9rem;
-  padding-left: 10px;
-}
-
-.repoText {
-  font-size: 0.9rem;
-  padding-left: 43px;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.settingText {
-  font-size: 0.9rem;
-  padding-left: 10px;
-}
-
-.cloneMenuItem {
-  margin-bottom: 20px;
-  margin-left: 8px;
-  cursor: pointer;
-}
-
-.repoMenuItem {
-  margin-bottom: 20px;
-  margin-top: 10px;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.settingMenuItem {
-  margin-left: 8px;
-  margin-bottom: 20px;
+.giteaIcon g g path {
+  fill: #000;
 }

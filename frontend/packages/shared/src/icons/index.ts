@@ -1,0 +1,1 @@
+export { GiteaIcon } from './GiteaIcon';
