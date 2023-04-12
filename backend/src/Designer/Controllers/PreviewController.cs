@@ -270,18 +270,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for getting the mocked instance object
-        /// </summary>
-        /// <returns>Mocked instance object</returns>
-        [HttpGet]
-        [Route("instances/undefined")]
-        public ActionResult GetInstance(string org, string app)
-        {
-            // consider to use an actual generated instanceID instead of undefined
-            return Ok(MockInstance);
-        }
-
-        /// <summary>
         /// Action for creating the mocked instance object
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -381,18 +369,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="formLayoutName">Name of layout page</param>
         /// <returns>Request form layout as byte array</returns>
         [HttpGet]
-        [Route("api/resource/{formLayoutName}")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, string formLayoutName)
+        [Route("api/resource/FormLayout.json")]
+        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(null);
             // return as byte array to imitate app backend
             byte[] formLayoutsContent = JsonSerializer.SerializeToUtf8Bytes(formLayouts);
-            return new FileContentResult(formLayoutsContent, MimeTypeMap.GetMimeType(Path.GetExtension(formLayoutName).ToLower()));
+            return new FileContentResult(formLayoutsContent, MimeTypeMap.GetMimeType(".json"));
         }
 
         /// <summary>
@@ -412,7 +399,7 @@ namespace Altinn.Studio.Designer.Controllers
                 string ruleHandler = await altinnAppGitRepository.GetRuleHandler(null);
                 return Ok(ruleHandler);
             }
-            catch (NotFoundException)
+            catch (FileNotFoundException)
             {
                 return NoContent();
             }

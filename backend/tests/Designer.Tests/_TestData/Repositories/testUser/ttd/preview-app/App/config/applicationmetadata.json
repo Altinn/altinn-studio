@@ -1,0 +1,49 @@
+{
+    "id": "ttd/preview-app",
+    "org": "ttd",
+    "title": {
+        "nb": "preview-app"
+    },
+    "dataTypes": [
+        {
+            "id": "ref-data-as-pdf",
+            "allowedContentTypes": [
+                "application/pdf"
+            ],
+            "maxCount": 0,
+            "minCount": 0,
+            "enablePdfCreation": true,
+            "enableFileScan": false,
+            "validationErrorOnPendingFileScan": false
+        },
+        {
+            "id": "custom-dm-name",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "appLogic": {
+                "autoCreate": true,
+                "classRef": "Altinn.App.Models.Skjema",
+                "allowAnonymousOnStateless": false,
+                "autoDeleteOnProcessEnd": false
+            },
+            "taskId": "Task_1",
+            "maxCount": 1,
+            "minCount": 1,
+            "enablePdfCreation": true,
+            "enableFileScan": false,
+            "validationErrorOnPendingFileScan": false
+        }
+    ],
+    "partyTypesAllowed": {
+        "bankruptcyEstate": false,
+        "organisation": false,
+        "person": false,
+        "subUnit": false
+    },
+    "autoDeleteOnProcessEnd": false,
+    "created": "2023-03-30T10:37:28.703135Z",
+    "createdBy": "localgiteaadmin",
+    "lastChanged": "2023-03-30T10:37:28.703236Z",
+    "lastChangedBy": "localgiteaadmin"
+}
