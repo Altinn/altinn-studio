@@ -16,7 +16,7 @@ export const DevTools = ({ children }: IDevToolsProps) => {
   useEffect(
     () =>
       window.addEventListener('keydown', (event) => {
-        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'k') {
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key && event.key.toLowerCase() === 'k') {
           event.preventDefault();
           setPanelOpen((open) => !open);
         }
