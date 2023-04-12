@@ -29,6 +29,7 @@ export interface TextRowProps {
   updateEntryId: (data: TextResourceIdMutation) => void;
   upsertTextResource: (data: UpsertTextResourcesMutation) => void;
   variables: TextResourceVariable[];
+  selectedLanguages: string[];
 }
 
 export const TextRow = ({
@@ -39,6 +40,7 @@ export const TextRow = ({
   updateEntryId,
   idExists,
   variables,
+  selectedLanguages,
 }: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
@@ -71,11 +73,20 @@ export const TextRow = ({
 
   return (
     <TableRow data-testid={'lang-row'}>
-      {textRowEntries.map((translation) => (
-        <TableCell key={translation.lang + '-' + textId}>
-          <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} />
-        </TableCell>
-      ))}
+      {selectedLanguages.map((lang) => {
+        let translation = textRowEntries.find((e) => e.lang === lang);
+        if (!translation) {
+          translation = {
+            lang,
+            translation: '',
+          };
+        }
+        return (
+          <TableCell key={translation.lang + '-' + textId}>
+            <TextEntry {...translation} upsertTextResource={upsertTextResource} textId={textId} />
+          </TableCell>
+        );
+      })}
       <TableCell>
         <ButtonContainer>
           {textIdEditOpen ? (
@@ -91,8 +102,8 @@ export const TextRow = ({
               {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
             </div>
           ) : (
-            <div role='text' aria-readonly>
-              {textIdValue}
+            <div role='text' aria-readonly className={classes.textId}>
+              <span>{textIdValue}</span>
             </div>
           )}
           <Button
