@@ -243,7 +243,7 @@ describe('Group', () => {
           }
           let index = 0;
           for (const row of rows) {
-            cy.wrap(table).find('tr').eq(index).find('td').eq(0).should('contain.text', row[0]);
+            cy.wrap(table).find('tr').eq(index).find('td').first().should('contain.text', row[0]);
             cy.wrap(table).find('tr').eq(index).find('td').eq(1).should('contain.text', row[1]);
             index++;
           }

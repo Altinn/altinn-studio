@@ -492,6 +492,16 @@
             "type": "string"
           },
           "uniqueItems": true
+        },
+        "tableColumns": {
+          "title": "Table Columns",
+          "description": "An object containing key-value pairs where the key is a table header and the value is an object containing settings for the headers column",
+          "type": "object",
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/definitions/tableColumnOptions"
+            }
+          }
         }
       },
       "required": ["children"]
@@ -603,6 +613,41 @@
           "title": "Value",
           "description": "Value to check against.",
           "type": "string"
+        }
+      }
+    },
+    "tableColumnOptions": {
+      "title": "Column options",
+      "description": "Column options for specified header.",
+      "type": "object",
+      "properties": {
+        "width":{
+          "title": "Width",
+          "description": "Width of cell in % or 'auto'. Defaults to 'auto'",
+          "type": "string",
+          "pattern": "^([0-9]{1,2}%|100%|auto)$"
+        },
+        "alignText": {
+          "title": "Align Text",
+          "description": "Choose text alignment between 'left', 'center', or 'right' for text in table cells. Defaults to 'left' for text and 'right' for numbers.",
+          "type": "string",
+          "enum": ["left", "center", "right"]
+        },
+        "textOverflow": {
+          "title": "Text Overflow",
+          "description": "Use this property to controll behaviour when text is too large to be displayed in table cell.",
+          "properties": {
+            "lineWrap": {
+              "title": "Line Wrap",
+              "description": "Toggle line wrapping on or off. Defaults to true",
+              "type": "boolean"
+            },
+            "maxHeight": {
+              "title": "Max Height",
+              "description": "Determines the number of lines to display in table cell before hiding the rest of the text with an elipsis (...). Defaults to 2.",
+              "type": "number"
+            }
+          }
         }
       }
     },

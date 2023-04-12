@@ -89,6 +89,19 @@ export interface IInputFormatting {
   align?: 'right' | 'center' | 'left';
 }
 
+export interface ITableColumnFormatting {
+  [key: string]: ITableColumnProperties;
+}
+
+export interface ITableColumnProperties {
+  width?: string;
+  alignText?: 'left' | 'center' | 'right';
+  textOverflow?: {
+    lineWrap?: boolean;
+    maxHeight?: number;
+  };
+}
+
 /**
  * This interface type defines all the possible components, along with their 'type' key and associated layout
  * definition. If you want to reference a particular component layout type you can either reference the individual

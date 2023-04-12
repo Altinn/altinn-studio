@@ -4,6 +4,8 @@ import { parseOptions } from 'src/language/sharedLanguage';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import {
   atleastOneTagExists,
+  getColumnStyles,
+  getColumnStylesRepeatingGroups,
   getFieldName,
   getFileUploadComponentValidations,
   gridBreakpoints,
@@ -14,7 +16,7 @@ import {
   smartLowerCaseFirst,
 } from 'src/utils/formComponentUtils';
 import type { IAttachment, IAttachments } from 'src/features/attachments';
-import type { IGridStyling } from 'src/layout/layout';
+import type { IGridStyling, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/layout';
 import type { ITextResource } from 'src/types';
 
 describe('formComponentUtils', () => {
@@ -384,6 +386,72 @@ describe('formComponentUtils', () => {
       expect(result.xs).toBe(12);
       expect(result.md).toBeUndefined();
       expect(result.lg).toBeUndefined();
+    });
+  });
+  describe('getColumnStylesRepeatingGroups', () => {
+    it('should return undefined if columnSettings does not contain specified baseComponentId', () => {
+      const tableHeader = { baseComponentId: 'headerName1' };
+      const columnSettings = { headerName2: { width: '100px' } };
+      expect(getColumnStylesRepeatingGroups(tableHeader, columnSettings)).toBeUndefined();
+    });
+
+    it('should set textAlignment to alignText property of columnSettings if present', () => {
+      const tableHeader = { baseComponentId: 'headerName1' };
+      const columnSettings: ITableColumnFormatting = { headerName1: { width: '100px', alignText: 'center' } };
+      const columnStyles = getColumnStylesRepeatingGroups(tableHeader, columnSettings);
+      expect(columnStyles).toEqual({
+        '--cell-max-number-of-lines': 2,
+        '--cell-text-alignment': 'center',
+        '--cell-width': '100px',
+      });
+    });
+
+    it('should set textAlignment to getTextAlignment(tableHeader) if alignText is not present in columnSettings', () => {
+      const tableHeader = {
+        baseComponentId: 'headerName1',
+        type: 'Input',
+        formatting: { number: true },
+      };
+      const columnSettings: ITableColumnFormatting = { headerName1: { width: '100px' } };
+      const columnStyles = getColumnStylesRepeatingGroups(tableHeader, columnSettings);
+      expect(columnStyles).toEqual({
+        '--cell-max-number-of-lines': 2,
+        '--cell-text-alignment': 'right',
+        '--cell-width': '100px',
+      });
+    });
+
+    it('should return columnStyles object if columnSettings is provided and contains specified baseComponentId', () => {
+      const tableHeader = { baseComponentId: 'headerName1' };
+      const columnSettings: ITableColumnFormatting = { headerName1: { width: '100px' } };
+      const columnStyles = getColumnStylesRepeatingGroups(tableHeader, columnSettings);
+      expect(columnStyles).toBeDefined();
+    });
+  });
+
+  describe('getColumnStyles', () => {
+    it('should return CSS properties object with correct values based on columnSettings', () => {
+      const columnSettings: ITableColumnProperties = {
+        width: '100px',
+        textOverflow: { lineWrap: true, maxHeight: 3 },
+        alignText: 'center',
+      };
+      const columnStyles = getColumnStyles(columnSettings);
+      expect(columnStyles).toEqual({
+        '--cell-max-number-of-lines': 3,
+        '--cell-text-alignment': 'center',
+        '--cell-width': '100px',
+      });
+    });
+
+    it('should return CSS properties object with default value for "--cell-max-number-of-lines" if lineWrap is false', () => {
+      const columnSettings: ITableColumnProperties = {
+        width: '100px',
+        textOverflow: { lineWrap: false, maxHeight: 3 },
+        alignText: 'center',
+      };
+      const columnStyles = getColumnStyles(columnSettings);
+      expect(columnStyles['--cell-max-number-of-lines']).toEqual(0);
     });
   });
 });

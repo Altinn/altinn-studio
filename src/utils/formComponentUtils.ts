@@ -6,7 +6,7 @@ import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { IGridStyling } from 'src/layout/layout';
+import type { IGridStyling, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/layout';
 import type { IPageBreak } from 'src/layout/layout.d';
 import type { IComponentValidations, ITextResource, ITextResourceBindings } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
@@ -258,4 +258,29 @@ export function getTextAlignment(component: AnyItem): 'left' | 'center' | 'right
     return 'right';
   }
   return 'left';
+}
+
+export function getColumnStylesRepeatingGroups(tableHeader, columnSettings: ITableColumnFormatting) {
+  const column = columnSettings && columnSettings[tableHeader.baseComponentId];
+  if (!column) {
+    return;
+  }
+
+  const textAlignment = column.alignText ?? getTextAlignment(tableHeader);
+  column.alignText = textAlignment;
+
+  return getColumnStyles(column);
+}
+
+export function getColumnStyles(columnSettings: ITableColumnProperties) {
+  const lineClampToggle =
+    columnSettings.textOverflow?.lineWrap || columnSettings.textOverflow?.lineWrap === undefined ? 1 : 0;
+
+  const columnStyleVariables = {
+    '--cell-max-number-of-lines': (columnSettings.textOverflow?.maxHeight ?? 2) * lineClampToggle,
+    '--cell-text-alignment': columnSettings.alignText,
+    '--cell-width': columnSettings.width,
+  };
+
+  return columnStyleVariables as React.CSSProperties;
 }

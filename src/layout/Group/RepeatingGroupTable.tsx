@@ -10,8 +10,9 @@ import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
 import { RepeatingGroupTableRow } from 'src/layout/Group/RepeatingGroupTableRow';
 import { ComponentType } from 'src/layout/LayoutComponent';
-import { getTextAlignment, getTextResource } from 'src/utils/formComponentUtils';
+import { getColumnStylesRepeatingGroups, getTextResource } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
+import type { ITableColumnFormatting } from 'src/layout/layout';
 import type { ITextResourceBindings } from 'src/types';
 
 export interface IRepeatingGroupTableProps {
@@ -54,6 +55,7 @@ export function RepeatingGroupTable({
   const node = useResolvedNode(id);
   const container = node?.isRepGroup() ? node.item : undefined;
   const edit = container?.edit;
+  const columnSettings = container?.tableColumns as ITableColumnFormatting;
 
   const getTableNodes = (rowIndex: number) =>
     node?.children(undefined, rowIndex).filter((child) => {
@@ -147,22 +149,29 @@ export function RepeatingGroupTable({
     >
       <Table
         id={`group-${id}-table`}
-        className={cn({ [classes.editingBorder]: isNested })}
+        className={cn({ [classes.editingBorder]: isNested }, classes.repeatingGroupTable)}
       >
         {showTableHeader && !mobileView && (
           <TableHeader id={`group-${id}-table-header`}>
-            <TableRow>
+            <TableRow className={classes.repeatingGroupRow}>
               {tableNodes?.map((n) => (
                 <TableCell
-                  style={{ textAlign: getTextAlignment(n.item) }}
                   key={n.item.id}
+                  className={classes.tableCellFormatting}
+                  style={getColumnStylesRepeatingGroups(n.item, columnSettings)}
                 >
-                  <span className={classes.contentFormatting}>
+                  <span
+                    className={classes.contentFormatting}
+                    style={getColumnStylesRepeatingGroups(n.item, columnSettings)}
+                  >
                     {getTextResource(getTableTitle(n.item.textResourceBindings || {}), textResources)}
                   </span>
                 </TableCell>
               ))}
-              <TableCell style={{ padding: 0, paddingRight: '10px' }}>
+              <TableCell
+                style={{ padding: 0, paddingRight: '10px' }}
+                colSpan={displayDeleteColumn ? 1 : 2}
+              >
                 <span className={classes.visuallyHidden}>{getLanguageFromKey('general.edit', language)}</span>
               </TableCell>
               {displayDeleteColumn && (
@@ -225,7 +234,7 @@ export function RepeatingGroupTable({
                     >
                       <TableCell
                         style={{ padding: 0, borderTop: 0 }}
-                        colSpan={mobileView ? 2 : tableNodes.length + 1 + Number(displayDeleteColumn)}
+                        colSpan={mobileView ? 2 : tableNodes.length + 4 + Number(displayDeleteColumn)}
                       >
                         {renderRepeatingGroupsEditContainer()}
                       </TableCell>

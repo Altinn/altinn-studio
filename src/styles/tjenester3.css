@@ -186,21 +186,12 @@ svg {
   vertical-align: middle;
 }
 
-table {
-  border-collapse: collapse;
-}
-
 caption {
   padding-top: 0.469rem;
   padding-bottom: 0.469rem;
   color: #bcc7cc;
   text-align: left;
   caption-side: bottom;
-}
-
-th {
-  text-align: inherit;
-  text-align: -webkit-match-parent;
 }
 
 label,
@@ -1897,29 +1888,6 @@ mark,
     margin-left: 91.6666666667%;
   }
 }
-.table {
-  width: 100%;
-  margin-bottom: 12px;
-  color: #212529;
-}
-.table th,
-.table td {
-  padding: 0.469rem;
-  vertical-align: top;
-  border-top: 1px solid #dee2e6;
-}
-.table thead th {
-  vertical-align: bottom;
-  border-bottom: 2px solid #dee2e6;
-}
-.table tbody + tbody {
-  border-top: 2px solid #dee2e6;
-}
-
-.table-sm th,
-.table-sm td {
-  padding: 0.187rem;
-}
 
 .table-bordered {
   border: 1px solid #dee2e6;
@@ -2121,17 +2089,6 @@ mark,
 .table-hover .table-active:hover > td,
 .table-hover .table-active:hover > th {
   background-color: rgba(0, 0, 0, 0.075);
-}
-
-.table .thead-dark th {
-  color: #ffffff;
-  background-color: #343a40;
-  border-color: #454d55;
-}
-.table .thead-light th {
-  color: #495057;
-  background-color: #e9ecef;
-  border-color: #dee2e6;
 }
 
 .table-dark {
@@ -15877,23 +15834,6 @@ h1 + .a-helpIconButton {
 }
 .a-fullWidthLink.a-fullWidthLink--underline span:hover {
   border-bottom: 2px solid #0062ba;
-}
-
-table {
-  font-family: 'Altinn-DIN';
-  font-weight: 'normal';
-  font-size: 16px;
-  font-size: 1rem;
-  line-height: 1.5;
-  -webkit-font-smoothing: subpixel-antialiased;
-}
-table th {
-  font-family: 'Altinn-DIN';
-  font-weight: 'medium';
-}
-table th,
-table td {
-  padding-right: 24px;
 }
 
 .a-table thead th {
