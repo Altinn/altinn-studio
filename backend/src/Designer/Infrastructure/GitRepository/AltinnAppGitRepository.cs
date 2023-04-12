@@ -213,6 +213,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 string fileName = Path.GetFileName(directoryFile);
                 string[] nameParts = fileName.Split('.');
                 languages.Add(nameParts[1]);
+                languages.Sort(StringComparer.Ordinal);
             }
 
             return languages;
