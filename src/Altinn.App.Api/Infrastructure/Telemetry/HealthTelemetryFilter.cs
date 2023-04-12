@@ -37,7 +37,7 @@ namespace Altinn.App.Api.Infrastructure.Telemetry
         {
             RequestTelemetry request = item as RequestTelemetry;
 
-            if (request != null && request.Url.ToString().EndsWith("/health/"))
+            if (request != null && request.Url.ToString().EndsWith("/health"))
             {
                 return true;
             }
