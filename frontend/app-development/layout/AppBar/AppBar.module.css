@@ -1,122 +1,86 @@
 .root {
-  color: #000;
-  flex-grow: 1;
-  z-index: 1;
 }
+
 .appBar {
-  border-bottom-color: #c9c9c9 !important;
-  border-bottom: var(--header-border-bottom-width) solid;
-  color: #000;
-  position: fixed;
-}
-
-.subToolBar {
-  background-color: #274c69;
-}
-
-.versionControlAndSettingStyle {
-  direction: row;
+  background-color: #022F51;
+  color: #fff;
+  display: flex;
   align-items: center;
+  height: var(--toolbar-height);
+  padding: 0 2rem;
+}
+
+.appBar .leftContent {
+  align-items: center;
+  border-right: 1px solid #fff2;
+  display: flex;
+  flex: 1;
+  line-height: 1;
+  overflow: hidden;
+  padding-right: 2rem;
+}
+
+.appName {
+  font-size: 1.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bigSlash {
+  font-size: 2rem;
+  padding: 0 .5rem;
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  list-style-type: none;
+  flex: 1;
+  padding: 0 2rem;
+  gap: 2rem;
+  font-size: 1rem;
+}
+
+.menuItem {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.menuItem.active {
+  border-bottom: 2px solid #fff;
+}
+
+.menuItem a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.appBar .rightContent {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 1rem;
   justify-content: flex-end;
 }
 
-.appName {
-  font-size: 18px;
-  font-weight: 400;
-}
-
-.appOrg {
-  width: 350px;
-  overflow: hidden;
-}
-
-.aImgStyling {
-  float: left;
-  font-size: 1px;
-  size: 3px;
-}
-
-.div {
+.rightContentButtons {
+  align-items: center;
   display: flex;
-  justify-content: space-between;
+  gap: 1rem;
+  flex: 3;
+}
+
+.rightContentButtons > * {
+  flex: 1;
+}
+
+.profileMenuWrapper {
+  flex: 2;
+  display: flex;
+  justify-content: flex-end;
   align-items: center;
-}
-
-.appName {
-  justify-content: left;
-  padding-top: 7px;
-}
-
-.appBarDashboard {
-  background-color: #fff;
-}
-
-.appBarEditor {
-  background-color: #efefef;
-}
-
-.muiToolbar {
-  min-height: var(--toolbar-height) !important;
-}
-
-.breadCrumb {
-  font-size: 20px;
-  padding-left: 30px;
-}
-
-.breadCrumbSubApp {
-  color: white;
-}
-
-.verticalDivider {
-  display: inline;
-  color: #504e4e;
-  font-size: 1.5rem;
-  margin-top: 223px;
-  align-items: center;
-}
-
-.paper {
-  text-align: end;
-}
-
-.subHeader {
-  font-size: 18px;
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-bottom: 0;
-}
-
-.subHeaderLink {
-  border-bottom: 1px solid transparent; /* To mitigate the 1 pixel adjustment */
-  color: white;
-  font-weight: 400;
-}
-
-.subHeaderLink:hover,
-.subHeaderLinkActive:focus {
-  border-bottom: 1px solid white;
-  color: white;
-}
-
-.subHeaderLinkActive {
-  border-bottom: 1px solid white;
-  color: white;
-  font-weight: 500;
-}
-
-.topRightService {
-  padding-right: 22px;
-}
-
-.branchIcon {
-  float: left;
-  font-size: 22px;
-}
-
-.publishButton {
-  margin-right: 20px;
-  margin-left: 20px;
 }
 
 .previewButton {
@@ -125,3 +89,41 @@
   --component-button-outline-primary-color-border-hover: #004e95;
   --component-button-outline-primary-color-text-default: #ffffff;
 }
+
+.subToolbar {
+  align-items: center;
+  background-color: #284E6A;
+  display: flex;
+  height: var(--subtoolbar-height);
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.subToolbar .leftContent svg {
+  color: #fff;
+}
+
+.subToolbar .rightContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

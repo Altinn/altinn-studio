@@ -693,7 +693,7 @@
   "session.inactive": "Du har vært innaktiv for lenge og vil snart bli logget ut. Trykk “fortsett” om du ønsker å jobbe videre med appen.",
   "shared.header_all": "Alle",
   "shared.header_button_alt": "Altinn profil meny",
-  "shared.header_for": "for",
+  "shared.header_user_for_org": "{{user}} for {{org}}",
   "shared.header_go_to_gitea": "Gå til Gitea",
   "shared.header_logout": "Logg ut",
   "shared.submit_upload": "Last opp",

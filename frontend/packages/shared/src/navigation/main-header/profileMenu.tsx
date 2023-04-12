@@ -26,6 +26,7 @@ export function ProfileMenu({ showlogout }: IProfileMenuComponentProps) {
       <Button
         className={classes.profileIconButton}
         aria-owns={anchorEl ? 'simple-menu' : undefined}
+        aria-haspopup
         aria-label='profilikon knapp'
         onClick={handleClick}
         variant={ButtonVariant.Quiet}
