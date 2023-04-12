@@ -1,0 +1,39 @@
+.container {
+  height: 100%;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.list {
+  padding: 0 6px;
+  display: table;
+  width: 100%;
+}
+
+.item {
+  display: table-row;
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.item span {
+  display: table-cell;
+  cursor: default;
+}
+
+.item:hover {
+  background-color: #ccc;
+}
+
+.componentType {
+  width: 1px;
+  font-weight: bold;
+}
+
+.componentId {
+  padding-left: 16px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 0;
+}

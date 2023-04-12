@@ -54,7 +54,10 @@ const RadioGroupTableRow = ({
   const RenderLegend = legend;
   const rowLabelId = `row-label-${id}`;
   return (
-    <TableRow aria-labelledby={rowLabelId}>
+    <TableRow
+      aria-labelledby={rowLabelId}
+      data-componentid={node.item.baseComponentId ?? node.item.id}
+    >
       <th
         scope='row'
         id={rowLabelId}
