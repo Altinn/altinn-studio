@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import classes from './VersionControlHeader.module.css';
 import postMessages from 'app-shared/utils/postMessages';
-import { CloneButton } from './CloneButton';
-import { CloneModal } from './CloneModal';
 import { FetchChangesButton } from './FetchChangesButton';
 import { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { ShareChangesButton } from './ShareChangesButton';
@@ -46,7 +44,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const [hasChangesInLocalRepo, setHasChangesInLocalRepo] = useState(false);
   const [modalState, setModalState] = useState(initialModalState);
   const [syncModalAnchorEl, setSyncModalAnchorEl] = useState(null);
-  const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
   const { data: currentRepo } = useRepoMetadata(org, app);
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatus(org, app);
   const { refetch: fetchPullData } = useRepoPullData(org, app);
@@ -218,12 +215,8 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
 
   const forceRepoStatusCheck = () =>
     window.postMessage('forceRepoStatusCheck', window.location.href);
-  const closeCloneModal = () => setCloneModalAnchor(null);
-  const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);
-
   return (
     <div className={classes.headerStyling} data-testid='version-control-header'>
-      <CloneButton onClick={openCloneModal} buttonText={t('sync_header.clone')} />
       <FetchChangesButton
         changesInMaster={hasChangesInMaster}
         fetchChanges={fetchChanges}
@@ -236,7 +229,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
         shareChanges={shareChanges}
       />
       <SyncModal anchorEl={syncModalAnchorEl} handleClose={handleSyncModalClose} {...modalState} />
-      <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />
     </div>
   );
 };

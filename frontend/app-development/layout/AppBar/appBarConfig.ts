@@ -37,11 +37,7 @@ export const menu: TopBarMenuItem[] = [
     link: '/:org/:app/text-editor',
     repositoryTypes: [RepositoryType.App],
   },
-  {
-    key: TopBarMenu.Deploy,
-    link: '/:org/:app/deploy',
-    repositoryTypes: [RepositoryType.App],
-  },
+
 ];
 
 export const getTopBarMenu = (repositoryType: RepositoryType) => {

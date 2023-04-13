@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { UploadIcon, XMarkIcon } from '@navikt/aksel-icons';
-import classes from './VersionControlHeader.module.css';
+import classes from './FetchChangesButton.module.css';
 import { useTranslation } from 'react-i18next';
 
 export interface IShareChangesComponentProps {

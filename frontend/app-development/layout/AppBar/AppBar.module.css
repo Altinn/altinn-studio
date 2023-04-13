@@ -1,69 +1,129 @@
 .root {
-  color: #000;
-  flex-grow: 1;
-  z-index: 1;
 }
 
 .appBar {
-  border-bottom-color: #C9C9C9 !important;
-  border-bottom: var(--header-border-bottom-width) solid;
-  color: #000;
-  position: fixed;
+  background-color: #022F51;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  height: var(--toolbar-height);
+  padding: 0 2rem;
 }
 
-.appBarDashboard {
-  background-color: #FFF;
+.appBar .leftContent {
+  align-items: center;
+  border-right: 1px solid #fff2;
+  display: flex;
+  flex: 1;
+  line-height: 1;
+  overflow: hidden;
+  padding-right: 2rem;
 }
 
-.appBarEditor {
-  background-color: #EFEFEF;
+.appName {
+  font-size: 1.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.muiToolbar {
-  min-height: var(--toolbar-height) !important;
+.bigSlash {
+  font-size: 2rem;
+  padding: 0 .5rem;
 }
 
-.breadCrumb {
-  font-size: 20px;
-  padding-left: 30px;
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  list-style-type: none;
+  flex: 1;
+  padding: 0 2rem;
+  gap: 2rem;
+  font-size: 1rem;
 }
 
-.breadCrumbSubApp {
-  color: #0062BA;
+.menuItem {
+  color: #fff;
+  font-size: 1rem;
 }
 
-.paper {
-  text-align: center;
+.menuItem.active {
+  border-bottom: 2px solid #fff;
 }
 
-.subHeader {
-  font-size: 20px;
-  padding-left: 12px;
-  padding-right: 12px;
-  padding-bottom: 0;
+.menuItem a {
+  color: #fff;
+  text-decoration: none;
 }
 
-.subHeaderLink {
-  border-bottom: 1px solid transparent; /* To mitigate the 1 pixel adjustment */
-  color: #000;
-  font-weight: 400;
+.appBar .rightContent {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  justify-content: flex-end;
 }
 
-.subHeaderLink:hover, .subHeaderLinkActive:focus {
-  border-bottom: 1px solid #0062BA;
-  color: #0062BA;
+.rightContentButtons {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  flex: 3;
 }
 
-.subHeaderLinkActive {
-  border-bottom: 1px solid #0062BA;
-  color: #0062BA;
-  font-weight: 500;
+.rightContentButtons > * {
+  flex: 1;
 }
 
-.topRightService {
-  padding-right: 22px;
+.profileMenuWrapper {
+  flex: 2;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
-.aImgStyling, .aImgStyling:hover, .aImgStyling:active {
-  border-bottom: none;
+.previewButton {
+  --component-button-outline-primary-color-background-default: none;
+  --component-button-outline-primary-color-border-default: none;
+  --component-button-outline-primary-color-border-hover: #004e95;
+  --component-button-outline-primary-color-text-default: #ffffff;
 }
+
+.subToolbar {
+  align-items: center;
+  background-color: #284E6A;
+  display: flex;
+  height: var(--subtoolbar-height);
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.subToolbar .leftContent svg {
+  color: #fff;
+}
+
+.subToolbar .rightContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
