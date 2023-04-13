@@ -24,6 +24,7 @@ describe('TextRow', () => {
       variables: [],
       updateEntryId: (_args) => undefined,
       upsertTextResource: (_args) => undefined,
+      selectedLanguages: ['nb', 'en', 'nn'],
       ...props,
     };
     const user = userEvent.setup();
