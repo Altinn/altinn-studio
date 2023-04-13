@@ -44,7 +44,7 @@ export const TextEditor = ({
   const selectedLangCodes = textResourceFiles.map((translation) => translation.language);
 
   const availableLangCodesFiltered = useMemo(
-    () => availableLanguages.filter((code) => ISO6391.validate(code)),
+    () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages]
   );
 
