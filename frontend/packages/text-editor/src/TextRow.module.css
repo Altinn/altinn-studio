@@ -34,3 +34,8 @@
   height: 16px;
   width: 16px;
 }
+
+.textId {
+  overflow: scroll;
+  overflow-wrap: break-word;
+}

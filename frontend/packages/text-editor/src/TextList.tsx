@@ -12,11 +12,17 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/desi
 export type TextListProps = {
   resourceRows: TextTableRow[];
   searchQuery: string;
+  selectedLanguages: string[];
   upsertTextResource: (entry: UpsertTextResourcesMutation) => void;
   removeEntry: ({ textId }: TextResourceEntryDeletion) => void;
   updateEntryId: ({ oldId, newId }: TextResourceIdMutation) => void;
 };
-export const TextList = ({ resourceRows, searchQuery, ...rest }: TextListProps) => {
+export const TextList = ({
+  resourceRows,
+  searchQuery,
+  selectedLanguages,
+  ...rest
+}: TextListProps) => {
   const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
   const idExists = (textId: string): boolean => textIds.includes(textId);
 
@@ -24,10 +30,8 @@ export const TextList = ({ resourceRows, searchQuery, ...rest }: TextListProps) 
     <Table>
       <TableHeader>
         <TableRow>
-          {resourceRows[0].translations.map((translation) => (
-            <TableCell key={'header-lang' + translation.lang}>
-              {getLangName({ code: translation.lang })}
-            </TableCell>
+          {selectedLanguages.map((language) => (
+            <TableCell key={'header-lang' + language}>{getLangName({ code: language })}</TableCell>
           ))}
           <TableCell>Tekstnøkkel</TableCell>
           <TableCell>Variabler</TableCell>
@@ -44,6 +48,7 @@ export const TextList = ({ resourceRows, searchQuery, ...rest }: TextListProps) 
               idExists={idExists}
               textRowEntries={row.translations}
               variables={row.variables || []}
+              selectedLanguages={selectedLanguages}
               {...rest}
             />
           ))}

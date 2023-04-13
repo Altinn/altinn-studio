@@ -100,6 +100,7 @@ export const TextEditor = ({
             searchQuery={searchQuery}
             updateEntryId={updateEntryId}
             upsertTextResource={upsertTextResource}
+            selectedLanguages={selectedLangCodes}
           />
         </div>
       </div>

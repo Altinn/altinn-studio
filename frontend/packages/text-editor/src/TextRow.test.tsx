@@ -24,6 +24,7 @@ describe('TextRow', () => {
       variables: [],
       updateEntryId: (_args) => undefined,
       upsertTextResource: (_args) => undefined,
+      selectedLanguages: ['nb', 'en', 'nn'],
       ...props,
     };
     const user = userEvent.setup();
@@ -110,5 +111,22 @@ describe('TextRow', () => {
     expect(screen.queryByText(emptyMsg)).toBeNull();
     await act(() => user.keyboard(' '));
     expect(screen.getByText(illegalCharMsg)).toBeInTheDocument();
+  });
+
+  test('that the full row of languages is shown even if a translation is missing', async () => {
+    renderTextRow({
+      textRowEntries: [
+        {
+          lang: 'nb',
+          translation: 'Dette er en tekst',
+        },
+        {
+          lang: 'nn',
+          translation: 'Dette er en tekst',
+        },
+      ],
+    });
+    const textFields = await screen.findAllByTestId('InputWrapper');
+    expect(textFields.length).toBe(3);
   });
 });
