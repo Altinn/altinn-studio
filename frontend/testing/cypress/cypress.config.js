@@ -21,7 +21,7 @@ module.exports = defineConfig({
   screenshotsFolder: 'screenshots',
   trashAssetsBeforeRuns: true,
   videosFolder: 'videos',
-  viewportHeight: 768,
+  viewportHeight: 1000,
   viewportWidth: 1536,
   requestTimeout: 10000,
   defaultCommandTimeout: 8000,
