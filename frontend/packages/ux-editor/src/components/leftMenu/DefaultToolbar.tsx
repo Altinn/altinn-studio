@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
-import type { ComponentTypes } from '..';
+import type { ComponentType } from '..';
 import type { IAppState, IToolbarElement, IWidget } from '../../types/global';
 import { CollapsableMenus } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarGroup } from './ToolbarGroup';
 import { advancedComponents, schemaComponents, textComponents } from '..';
-import { makeGetLayoutOrderSelector } from '../../selectors/getLayoutData';
 import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../../utils/formLayout';
 import { useDispatch, useSelector } from 'react-redux';
 
 import './DefaultToolbar.css';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
+import { selectedLayoutSelector } from '../../selectors/formLayoutSelectors';
+import { useAddFormComponentMutation } from '../../hooks/mutations/useAddFormComponentMutation';
+import { useAddFormContainerMutation } from '../../hooks/mutations/useAddFormContainerMutation';
 
 export function DefaultToolbar() {
   const dispatch = useDispatch();
   const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);
-  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentTypes>(null);
+  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentType>(null);
   const [anchorElement, setAnchorElement] = useState<any>(null);
   const [componentListsState, setComponentListsState] = useState<any>({
     [CollapsableMenus.Components]: { expanded: true, animationDone: false },
@@ -27,24 +30,49 @@ export function DefaultToolbar() {
 
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const { t } = useTranslation();
-  const order: any[] = useSelector(makeGetLayoutOrderSelector());
+  const { order } = useFormLayoutsSelector(selectedLayoutSelector);
   const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);
   const { org, app } = useParams();
-  const orgApp = { org, app };
-  const componentList: IToolbarElement[] = schemaComponents.map((component) =>
-    mapComponentToToolbarElement(component, t, activeList, order, dispatch, orgApp)
+  const addFormComponentMutation = useAddFormComponentMutation(org, app);
+  const addFormContainerMutation = useAddFormContainerMutation(org, app);
+  const componentList: IToolbarElement[] = schemaComponents.map(
+    (component) => mapComponentToToolbarElement(
+      component,
+      t,
+      activeList,
+      order,
+      dispatch,
+      addFormComponentMutation,
+      addFormContainerMutation,
+    )
   );
 
-  const textComponentList: IToolbarElement[] = textComponents.map((component) =>
-    mapComponentToToolbarElement(component, t, activeList, order, dispatch, orgApp)
+  const textComponentList: IToolbarElement[] = textComponents.map(
+    (component) => mapComponentToToolbarElement(
+      component,
+      t,
+      activeList,
+      order,
+      dispatch,
+      addFormComponentMutation,
+      addFormContainerMutation,
+    )
   );
 
-  const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component) =>
-    mapComponentToToolbarElement(component, t, activeList, order, dispatch, orgApp)
+  const advancedComponentsList: IToolbarElement[] = advancedComponents.map(
+    (component) => mapComponentToToolbarElement(
+      component,
+      t,
+      activeList,
+      order,
+      dispatch,
+      addFormComponentMutation,
+      addFormContainerMutation,
+    )
   );
 
-  const widgetComponentsList: IToolbarElement[] = widgetsList.map((widget) =>
-    mapWidgetToToolbarElement(widget, activeList, order, t, dispatch)
+  const widgetComponentsList: IToolbarElement[] = widgetsList.map(
+    (widget) => mapWidgetToToolbarElement(widget, activeList, order, t, dispatch)
   );
 
   const allComponentLists: any = {
@@ -55,7 +83,7 @@ export function DefaultToolbar() {
     // [CollapsableMenus.ThirdParty]: thirdPartyComponentList,
   };
 
-  const handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
+  const handleComponentInformationOpen = (component: ComponentType, event: any) => {
     setCompInfoPanelOpen(true);
     setCompSelForInfoPanel(component);
     setAnchorElement(event.currentTarget);

@@ -12,6 +12,8 @@ import {
   textResourcesPath,
   datamodelsXsdPath,
   datamodelMetadataPath,
+  formLayoutsPath,
+  layoutSettingsPath,
 } from 'app-shared/api-paths';
 import { orgsListUrl } from 'app-shared/cdn-paths';
 
@@ -28,3 +30,5 @@ export const getTextResources = (owner, app, lang) => get(textResourcesPath(owne
 export const getTextLanguages = (owner, app) => get(textLanguagesPath(owner, app));
 export const getDatamodelsXsd = (owner, app) => get(datamodelsXsdPath(owner, app));
 export const getDatamodel = (owner, app) => get(datamodelMetadataPath(owner, app));
+export const getFormLayouts = (owner, app) => get(formLayoutsPath(owner, app));
+export const getFormLayoutSettings = (owner, app) => get(layoutSettingsPath(owner, app));

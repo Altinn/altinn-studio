@@ -11,17 +11,13 @@ const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formD
 function* addActiveFormContainerSaga({
   payload,
 }: PayloadAction<IAddActiveFormContainerAction>): SagaIterator {
-  try {
-    const { containerId } = payload;
-    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-    yield put(
-      FormLayoutActions.addActiveFormContainerFulfilled({
-        containerId: containerId === formDesignerState.layout.activeContainer ? '' : containerId,
-      })
-    );
-  } catch (error) {
-    yield put(FormLayoutActions.addFormComponentRejected({ error }));
-  }
+  const { containerId } = payload;
+  const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+  yield put(
+    FormLayoutActions.addActiveFormContainerFulfilled({
+      containerId: containerId === formDesignerState.layout.activeContainer ? '' : containerId,
+    })
+  );
 }
 
 export function* watchAddActiveFormContainerSaga(): SagaIterator {

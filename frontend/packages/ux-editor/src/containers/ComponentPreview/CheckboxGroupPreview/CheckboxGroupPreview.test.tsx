@@ -7,7 +7,7 @@ import { ITextResourcesState } from '../../../features/appData/textResources/tex
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
-import { ComponentTypes } from '../../../components';
+import { ComponentType } from '../../../components';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
@@ -31,11 +31,12 @@ const component: IFormCheckboxComponent = {
   id: '1',
   options,
   optionsId: '',
-  type: ComponentTypes.Checkboxes,
+  type: ComponentType.Checkboxes,
   textResourceBindings: {
     title: titleTextKey,
     description: descriptionTextKey,
-  }
+  },
+  itemType: 'COMPONENT'
 };
 const handleComponentChange = jest.fn();
 const defaultProps: CheckboxGroupPreviewProps = {

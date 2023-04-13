@@ -3,7 +3,7 @@ import { Button, ButtonVariant, ButtonColor } from '@digdir/design-system-react'
 import { IAppState, IFormButtonComponent } from '../../../types/global';
 import { getTextResource } from '../../../utils/language';
 import { useSelector } from 'react-redux';
-import { ComponentTypes } from '../../../components';
+import { ComponentType } from '../../../components';
 import classes from './ButtonPreview.module.css';
 
 export interface ButtonPreviewProps {
@@ -15,7 +15,7 @@ export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element =>
     (state: IAppState) => state.appData.textResources.resources?.['nb']
   );
 
-  const isNavigationButton = component.type === ComponentTypes.NavigationButtons;
+  const isNavigationButton = component.type === ComponentType.NavigationButtons;
   const buttonColor = isNavigationButton ? ButtonColor.Primary : ButtonColor.Success;
   const navigationButtonText = component.showBackButton
     ? component.textResourceBindings?.back

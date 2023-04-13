@@ -1,6 +1,6 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../components/config/componentConfig';
-import { ComponentTypes } from '../../components';
+import { ComponentType } from '../../components';
 import { CheckboxGroupPreview } from './CheckboxGroupPreview';
 import {
   IFormButtonComponent,
@@ -18,7 +18,7 @@ export const ComponentPreview = ({
   layoutName,
 }: ComponentPreviewProps) => {
   switch (component.type) {
-    case ComponentTypes.Checkboxes:
+    case ComponentType.Checkboxes:
       return (
         <CheckboxGroupPreview
           component={component as IFormCheckboxComponent}
@@ -26,7 +26,7 @@ export const ComponentPreview = ({
           layoutName={layoutName}
         />
       );
-    case ComponentTypes.RadioButtons:
+    case ComponentType.RadioButtons:
       return (
         <RadioGroupPreview
           component={component as IFormRadioButtonComponent}
@@ -34,8 +34,8 @@ export const ComponentPreview = ({
           layoutName={layoutName}
         />
       );
-    case ComponentTypes.Button:
-    case ComponentTypes.NavigationButtons:
+    case ComponentType.Button:
+    case ComponentType.NavigationButtons:
       return <ButtonPreview component={component as IFormButtonComponent} />;
     default:
       return <p>Forhåndsvisning er ikke implementert for denne komponenten.</p>;

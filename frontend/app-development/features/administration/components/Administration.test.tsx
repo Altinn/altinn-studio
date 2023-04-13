@@ -7,6 +7,8 @@ import type { IHandleServiceInformationState } from '../handleServiceInformation
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+
 describe('Administration', () => {
   const mockService: IRepository = {
     clone_url: '',

@@ -4,12 +4,6 @@ import { connect } from 'react-redux';
 import type { Dispatch } from 'redux';
 import '../styles/index.css';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
-import {
-  makeGetActiveFormContainer,
-  makeGetLayoutComponentsSelector,
-  makeGetLayoutContainerOrder,
-  makeGetLayoutContainersSelector,
-} from '../selectors/getLayoutData';
 import { EditGroupDataModelBindings } from '../components/config/group/EditGroupDataModelBindings';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
@@ -20,6 +14,7 @@ import type {
   ICreateFormContainer,
   IDataModelFieldElement,
   IFormDesignerComponents,
+  IFormDesignerContainers,
   IFormLayoutOrder,
   ITextResource,
 } from '../types/global';
@@ -45,6 +40,9 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import { withTranslation } from 'react-i18next';
 import i18next from 'i18next';
+import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
+import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
+import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
 
 export interface IProvidedContainerProps {
   isBaseContainer?: boolean;
@@ -58,16 +56,19 @@ export interface IProvidedContainerProps {
   dragHandleRef?: ConnectDragSource;
   t: typeof i18next.t;
   dataModel: IDataModelFieldElement[];
+  components: IFormDesignerComponents;
+  containers: IFormDesignerContainers;
+  itemOrder: IFormLayoutOrder;
+  updateFormContainerMutation: ReturnType<typeof useUpdateFormContainerMutation>;
+  updateContainerIdMutation: ReturnType<typeof useUpdateContainerIdMutation>;
+  deleteFormContainerMutation: ReturnType<typeof useDeleteFormContainerMutation>;
 }
 
 export interface IContainerProps extends IProvidedContainerProps {
   dataModelGroup?: string;
   itemOrder: any;
-  components: IFormDesignerComponents;
-  containers: any;
   repeating: boolean;
   index?: number;
-  formContainerActive?: boolean;
   activeList: any[];
   textResources: ITextResource[];
 }
@@ -152,17 +153,8 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    const { org, app } = _useParamsClassCompHack();
-    const { dispatch } = this.props;
     event.stopPropagation();
-    dispatch(
-      FormLayoutActions.deleteFormContainer({
-        id: this.props.id,
-        index: this.props.index,
-        org,
-        app,
-      })
-    );
+    this.props.deleteFormContainerMutation.mutate(this.props.id);
   };
 
   public handleDiscard = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -181,7 +173,6 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     const { dispatch, t } = this.props;
-    const { org, app } = _useParamsClassCompHack();
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
       if (idExists(this.state.tmpId, this.props.components, this.props.containers)) {
         this.setState(() => ({
@@ -192,23 +183,15 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
           groupIdError: t('ux_editor.modal_properties_group_id_not_valid'),
         }));
       } else {
-        dispatch(
-          FormLayoutActions.updateFormContainer({
-            updatedContainer: this.state.tmpContainer,
-            id: this.props.id,
-            org,
-            app,
-          })
-        );
+        this.props.updateFormContainerMutation.mutate({
+          updatedContainer: this.state.tmpContainer,
+          id: this.props.id,
+        });
         dispatch(FormLayoutActions.deleteActiveList());
-        dispatch(
-          FormLayoutActions.updateContainerId({
-            currentId: this.props.id,
-            newId: this.state.tmpId,
-            org,
-            app,
-          })
-        );
+        this.props.updateContainerIdMutation.mutate({
+          currentId: this.props.id,
+          newId: this.state.tmpId,
+        });
         this.setState({
           editMode: false,
         });
@@ -219,14 +202,10 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
       });
     } else {
       // No validations, save.
-      dispatch(
-        FormLayoutActions.updateFormContainer({
-          updatedContainer: this.state.tmpContainer,
-          id: this.props.id,
-          org,
-          app,
-        })
-      );
+      this.props.updateFormContainerMutation.mutate({
+        updatedContainer: this.state.tmpContainer,
+        id: this.props.id,
+      });
       dispatch(FormLayoutActions.deleteActiveList());
       this.setState({
         editMode: false,
@@ -560,6 +539,12 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             sendListToParent={this.handleActiveListChange}
             dragHandleRef={dragHandleRef}
             dataModel={this.props.dataModel}
+            components={this.props.components}
+            containers={this.props.containers}
+            itemOrder={this.props.itemOrder}
+            updateFormContainerMutation={this.props.updateFormContainerMutation}
+            updateContainerIdMutation={this.props.updateContainerIdMutation}
+            deleteFormContainerMutation={this.props.deleteFormContainerMutation}
           />
         )}
       />
@@ -613,23 +598,14 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
 }
 
 const makeMapStateToProps = () => {
-  const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
-  const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
-  const GetActiveFormContainer = makeGetActiveFormContainer();
-  const GetContainersSelector = makeGetLayoutContainersSelector();
-  const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
   return (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
-    const containers = GetContainersSelector(state);
+    const containers = { props };
     const container = containers ? containers[props.id] : '';
-    const itemOrder = GetLayoutContainerOrder(state, props.id);
     return {
       ...props,
       activeList: state.formDesigner.layout.activeList,
-      components: GetLayoutComponentsSelector(state),
-      containers: GetLayoutContainersSelector(state),
       dataModelGroup: container?.dataModelGroup,
-      formContainerActive: GetActiveFormContainer(state, props),
-      itemOrder: !props.items ? itemOrder : props.items,
+      itemOrder: !props.items ? props.itemOrder : props.items,
       repeating: container?.repeating,
       textResources: state.appData.textResources.resources?.[DEFAULT_LANGUAGE],
     };

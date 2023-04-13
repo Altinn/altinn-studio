@@ -5,6 +5,7 @@ import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../te
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { ComponentType } from '../../index';
 
 const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
@@ -18,11 +19,12 @@ const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = 
       handleComponentChange={handleComponentChange}
       component={{
         id: 'someComponentId',
-        type: 'Input',
+        type: ComponentType.Input,
         textResourceBindings: {
           title: 'ServiceName',
         },
         dataModelBindings,
+        itemType: 'COMPONENT',
       }}
       renderOptions={{
         uniqueKey: 'someComponentId-datamodel-select'

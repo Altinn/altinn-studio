@@ -1,5 +1,5 @@
 import type { FormComponentType } from '../../types/global';
-import { ComponentTypes } from '../index';
+import { ComponentType } from '../index';
 import { EditCodeList } from './editModal/EditCodeList';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
 import { EditDescription } from './editModal/EditDescription';
@@ -47,33 +47,33 @@ interface IConfigComponents {
 }
 
 export const componentSpecificEditConfig: IComponentEditConfig = {
-  [ComponentTypes.Header]: [EditSettings.Title, EditSettings.Size],
-  [ComponentTypes.Input]: [...editBoilerPlate, EditSettings.AutoComplete],
-  [ComponentTypes.TextArea]: [...editBoilerPlate, EditSettings.AutoComplete],
-  [ComponentTypes.Datepicker]: [...editBoilerPlate],
-  [ComponentTypes.Paragraph]: [EditSettings.Title],
-  [ComponentTypes.AttachmentList]: [EditSettings.Title],
-  [ComponentTypes.RadioButtons]: [...editBoilerPlate],
-  [ComponentTypes.Checkboxes]: [
+  [ComponentType.Header]: [EditSettings.Title, EditSettings.Size],
+  [ComponentType.Input]: [...editBoilerPlate, EditSettings.AutoComplete],
+  [ComponentType.TextArea]: [...editBoilerPlate, EditSettings.AutoComplete],
+  [ComponentType.Datepicker]: [...editBoilerPlate],
+  [ComponentType.Paragraph]: [EditSettings.Title],
+  [ComponentType.AttachmentList]: [EditSettings.Title],
+  [ComponentType.RadioButtons]: [...editBoilerPlate],
+  [ComponentType.Checkboxes]: [
     ...editBoilerPlate,
     EditSettings.Options,
     EditSettings.PreselectedIndex,
   ],
-  [ComponentTypes.RadioButtons]: [
+  [ComponentType.RadioButtons]: [
     ...editBoilerPlate,
     EditSettings.Options,
     EditSettings.PreselectedIndex,
   ],
-  [ComponentTypes.Dropdown]: [
+  [ComponentType.Dropdown]: [
     ...editBoilerPlate,
     EditSettings.CodeList,
     EditSettings.PreselectedIndex,
     EditSettings.AutoComplete,
   ],
-  [ComponentTypes.AddressComponent]: [EditSettings.Title],
-  [ComponentTypes.FileUploadWithTag]: [EditSettings.Title, EditSettings.Description],
-  [ComponentTypes.Panel]: [EditSettings.Title],
-  [ComponentTypes.Map]: [EditSettings.ReadOnly],
+  [ComponentType.AddressComponent]: [EditSettings.Title],
+  [ComponentType.FileUploadWithTag]: [EditSettings.Title, EditSettings.Description],
+  [ComponentType.Panel]: [EditSettings.Title],
+  [ComponentType.Map]: [EditSettings.ReadOnly],
 };
 
 export const configComponents: IConfigComponents = {

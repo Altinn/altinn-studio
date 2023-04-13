@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ToolbarGroup.module.css';
 import type { CollapsableMenus, IToolbarElement } from '../../types/global';
-import type { ComponentTypes } from '..';
+import type { ComponentType } from '..';
 import { CollapsableMenuComponent } from '../toolbar/CollapsableMenuComponent';
 import { Collapse } from '@mui/material';
 import { ToolbarItem } from './ToolbarItem';
@@ -16,7 +16,7 @@ export interface IToolbarGroupProps {
   componentListCloseAnimationDone: boolean;
   setCollapsableListAnimationState: (list: string, done: boolean) => void;
   handleCollapsableListClicked: (menu: CollapsableMenus) => void;
-  handleComponentInformationOpen: (component: ComponentTypes, event: any) => void;
+  handleComponentInformationOpen: (component: ComponentType, event: any) => void;
 }
 
 export function ToolbarGroup(props: IToolbarGroupProps) {

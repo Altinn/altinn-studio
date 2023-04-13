@@ -1,11 +1,11 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
-import { ComponentTypes } from '../../index';
+import { ComponentType } from '../../index';
 import React from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { Label } from 'app-shared/components/Label';
-import { useDatamodelQuery } from '../../../hooks/queries';
+import { useDatamodelQuery } from '../../../hooks/queries/useDatamodelQuery';
 import { useParams } from 'react-router-dom';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
@@ -35,7 +35,7 @@ export const EditDataModelBindings = ({
       },
       required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0,
       timeStamp:
-        component.type === ComponentTypes.Datepicker
+        component.type === ComponentType.Datepicker
           ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
           : undefined,
     });

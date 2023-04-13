@@ -4,12 +4,13 @@ import configureStore from 'redux-mock-store';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { EditContainer } from './EditContainer';
 import type { IEditContainerProps } from './EditContainer';
-import { IAppState } from '../types/global';
+import { EditContainer } from './EditContainer';
+import { IAppState, IFormLayouts } from '../types/global';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from '../../../../app-development/common/ServiceContext';
 import { queriesMock } from '../testing/mocks';
+import { ComponentType } from '../components';
 
 // Test data:
 const id = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88'
@@ -19,7 +20,7 @@ describe('EditContainer', () => {
     const { user } = render();
 
     expect(
-      screen.queryByText(/ux_editor\.modal_properties_component_change_id/i)
+      screen.queryByText(textMock('ux_editor.modal_properties_component_change_id'))
     ).not.toBeInTheDocument();
     expect(screen.queryByDisplayValue(id)).not.toBeInTheDocument();
 
@@ -27,7 +28,7 @@ describe('EditContainer', () => {
     await act(() => user.click(editButton));
 
     expect(
-      screen.getByText(/ux_editor\.modal_properties_component_change_id/i)
+      screen.getByText(textMock('ux_editor.modal_properties_component_change_id'))
     ).toBeInTheDocument();
     expect(screen.getByDisplayValue(id)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: textMock('general.edit') })).not.toBeInTheDocument();
@@ -47,6 +48,27 @@ describe('EditContainer', () => {
 
 const render = (props: Partial<IEditContainerProps> = {}) => {
   const createStore = configureStore();
+  const layouts: IFormLayouts = {
+    default: {
+      order: {
+        'd70339c4-bb2d-4c09-b786-fed3622d042c': ['4a66b4ea-13f1-4187-864a-fd4bb6e8cf88']
+      },
+      components: {
+        '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88': {
+          id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+          dataModelBindings: {},
+          readOnly: false,
+          required: false,
+          textResourceBindings: {
+            title: 'Input'
+          },
+          type: ComponentType.Input,
+          itemType: 'COMPONENT'
+        }
+      },
+      containers: null
+    }
+  }
   const initialState: IAppState = {
     appData: {
       textResources: {
@@ -74,34 +96,10 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
             lastInActiveList: true
           }
         ],
-        layouts: {
-          default: {
-            order: {
-              'd70339c4-bb2d-4c09-b786-fed3622d042c': ['4a66b4ea-13f1-4187-864a-fd4bb6e8cf88']
-            },
-            components: {
-              '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88': {
-                id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-                dataModelBindings: {},
-                readOnly: false,
-                required: false,
-                textResourceBindings: {
-                  title: 'Input'
-                },
-                type: 'Input'
-              }
-            },
-            containers: null
-          }
-        },
         selectedLayout: 'default',
         activeContainer: null,
         error: null,
-        fetched: true,
-        fetching: false,
         invalidLayouts: [],
-        isLayoutSettingsFetched: false,
-        layoutSettings: null,
         saving: false,
         unSavedChanges: false
       }
@@ -128,7 +126,8 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
       textResourceBindings: {
         title: 'Input'
       },
-      type: 'Input'
+      type: ComponentType.Input,
+      itemType: 'COMPONENT'
     },
     id,
     firstInActiveList: false,
@@ -143,7 +142,7 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
   const user = userEvent.setup();
   const mockStore = createStore(initialState);
   rtlRender(
-    <ServicesContextProvider {...queriesMock}>
+    <ServicesContextProvider {...queriesMock} getFormLayouts={async () => layouts}>
       <Provider store={mockStore}>
         {/* eslint-disable-next-line testing-library/no-node-access */}
         <EditContainer {...allProps}>{allProps.children}</EditContainer>

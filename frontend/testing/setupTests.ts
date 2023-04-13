@@ -43,4 +43,10 @@ jest.mock(
   }),
 );
 
+// Mock org and app params
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({ org: 'org', app: 'app' }),
+}));
+
 jest.setTimeout(30000);
