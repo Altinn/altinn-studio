@@ -1,6 +1,7 @@
 import type { SortDirection } from '@altinn/altinn-design-system';
 
 import { mapFormData } from 'src/utils/databindings';
+import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 import type { IFormData } from 'src/features/formData';
 import type { IAltinnWindow, IMapping } from 'src/types';
 
@@ -42,11 +43,13 @@ export const getDataValidationUrl = (instanceId: string, dataGuid: string) =>
 export const getPdfFormatUrl = (instanceId: string, dataGuid: string) =>
   `${appPath}/instances/${instanceId}/data/${dataGuid}/pdf/format`;
 
-export const getProcessNextUrl = (taskId?: string | null) => {
-  if (taskId) {
-    return `${appPath}/instances/${altinnWindow.instanceId}/process/next?elementId=${encodeURIComponent(taskId)}`;
-  }
-  return `${appPath}/instances/${altinnWindow.instanceId}/process/next`;
+export const getProcessNextUrl = (taskId?: string | null, language?: string | null) => {
+  const queryString = getQueryStringFromObject({
+    elementId: taskId,
+    lang: language,
+  });
+
+  return `${appPath}/instances/${altinnWindow.instanceId}/process/next${queryString}`;
 };
 
 export const getRedirectUrl = (returnUrl: string) => `${appPath}/api/v1/redirect?url=${encodeURIComponent(returnUrl)}`;

@@ -19,3 +19,8 @@ export function renderParty(profile: IProfile) {
   }
   return null;
 }
+
+export function getLanguageQueryParam() {
+  const params = new URLSearchParams(window.location.hash.split('?')[1]);
+  return params.get('lang');
+}

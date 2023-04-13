@@ -105,3 +105,17 @@ export const makeUrlRelativeIfSameDomain = (url: string, location: Location = wi
   }
   return url;
 };
+
+/**
+ * Returns an encoded query string from a key-value object, or an empty string if the object is empty.
+ * Also removes parameters that are empty, null, or undefined.
+ * Example: { a: 'b', c: 'd' } => '?a=b&c=d'
+ * Example: {} => ''
+ * Example: { a: 'b', c: null } => '?a=b'
+ */
+export function getQueryStringFromObject(obj: Record<string, string | null | undefined>): string {
+  const cleanObj = Object.fromEntries(Object.entries(obj).filter(([_, value]) => value)) as Record<string, string>;
+  const queryParams = new URLSearchParams(cleanObj);
+  const queryString = queryParams.toString();
+  return queryString ? `?${queryString}` : '';
+}

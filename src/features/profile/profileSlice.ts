@@ -3,6 +3,7 @@ import { put } from 'redux-saga/effects';
 import { OptionsActions } from 'src/features/options/optionsSlice';
 import { fetchProfileSaga } from 'src/features/profile/fetchProfileSagas';
 import { createSagaSlice } from 'src/redux/sagaSlice';
+import { getLanguageQueryParam } from 'src/utils/party';
 import type {
   IFetchProfile,
   IFetchProfileFulfilled,
@@ -42,7 +43,8 @@ export const profileSlice = () => {
       fetchFulfilled: mkAction<IFetchProfileFulfilled>({
         reducer: (state, action) => {
           state.profile = action.payload.profile;
-          state.selectedAppLanguage = localStorage.getItem(getLanguageStorageKey(state.profile.userId)) ?? '';
+          state.selectedAppLanguage =
+            getLanguageQueryParam() ?? localStorage.getItem(getLanguageStorageKey(state.profile.userId)) ?? '';
         },
       }),
       fetchRejected: mkAction<IFetchProfileRejected>({

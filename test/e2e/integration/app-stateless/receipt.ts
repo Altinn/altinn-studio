@@ -11,7 +11,7 @@ describe('Receipt', () => {
     cy.startAppInstance(appFrontend.apps.stateless);
     cy.wait('@getLayoutStateless');
     cy.startStateFullFromStateless();
-    cy.intercept('PUT', '**/process/next').as('nextProcess');
+    cy.intercept('PUT', '**/process/next*').as('nextProcess');
     cy.get(appFrontend.sendinButton).click();
     cy.wait('@nextProcess').its('response.statusCode').should('eq', 200);
     cy.url().then((url) => {

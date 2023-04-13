@@ -5,6 +5,7 @@ import type { SagaIterator } from 'redux-saga';
 import { InstanceDataActions } from 'src/features/instanceData/instanceDataSlice';
 import { IsLoadingActions } from 'src/features/isLoading/isLoadingSlice';
 import { ProcessActions } from 'src/features/process/processSlice';
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { layoutSetsSelector } from 'src/selectors/simpleSelectors';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
@@ -19,8 +20,9 @@ const instanceDataSelector = (state: IRuntimeState) => state.instanceData;
 
 export function* completeProcessSaga(action: PayloadAction<ICompleteProcessFulfilled | undefined>): SagaIterator {
   const taskId = action.payload?.taskId;
+  const language = yield select(appLanguageStateSelector);
   try {
-    const result: IProcess = yield call(httpPut, getProcessNextUrl(taskId), null);
+    const result: IProcess = yield call(httpPut, getProcessNextUrl(taskId, language), null);
     if (!result) {
       throw new Error('Error: no process returned.');
     }

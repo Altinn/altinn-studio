@@ -13,7 +13,7 @@ describe('Feedback', () => {
 
   it('is possible to move app instance to feedback stage', () => {
     cy.startStateFullFromStateless();
-    cy.intercept('PUT', '**/process/next').as('nextProcess');
+    cy.intercept('PUT', '**/process/next*').as('nextProcess');
     cy.get(appFrontend.sendinButton).click();
     cy.wait('@nextProcess').its('response.statusCode').should('eq', 200);
     cy.get(appFrontend.feedback).and('contain.text', texts.feedback);
