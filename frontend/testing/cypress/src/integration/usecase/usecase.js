@@ -54,6 +54,7 @@ context(
     it('App builds and deploys', () => {
       cy.intercept('**/deployments*').as('deploys');
       cy.get(designer.appMenu.deploy).should('be.visible').click();
+      cy.get(designer.appMenu.preview).should('be.visible').click();
       cy.wait('@deploys').its('response.statusCode').should('eq', 200);
       const checkDeployOf = Cypress.env('environment') === 'prod' ? 'prod' : 'at22';
       cy.get(designer.deployHistory[checkDeployOf]).then((table) => {

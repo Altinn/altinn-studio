@@ -5,6 +5,7 @@ export const designer = {
     edit: "[data-testid='top_menu.create']",
     texts: "[data-testid='top_menu.texts']",
     deploy: "[data-testid='top_menu.deploy']",
+    preview: "[data-testid='top_menu.preview']",
     datamodel: "[data-testid='top_menu.datamodel']",
   },
   olderBuilds: 'Tidligere bygg av applikasjonen',

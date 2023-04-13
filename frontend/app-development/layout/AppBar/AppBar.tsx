@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
-import { getTopBarMenu } from './appBarConfig';
+import { getTopBarMenu, TopBarMenu } from './appBarConfig';
 import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
 import { VersionControlHeader } from '../version-control/VersionControlHeader';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -66,12 +66,14 @@ export const AppBar = ({
               className={classes.previewButton}
               onClick={null}
               variant={ButtonVariant.Outline}
+              data-testid={TopBarMenu.Preview}
             >
               {t('top_menu.preview')}
             </Button>
             <Button
               onClick={handlePubliserClick}
               variant={ButtonVariant.Outline}
+              data-testid={TopBarMenu.Deploy}
             >
               {t('top_menu.deploy')}
             </Button>
