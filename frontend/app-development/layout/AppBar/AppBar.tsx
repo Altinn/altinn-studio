@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
-import {getTopBarMenu, TopBarMenu} from './appBarConfig';
+import { getTopBarMenu, TopBarMenu } from './appBarConfig';
 import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
 import { VersionControlHeader } from '../version-control/VersionControlHeader';
 import { getRepositoryType } from 'app-shared/utils/repository';
