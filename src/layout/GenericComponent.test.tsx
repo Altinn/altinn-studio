@@ -57,7 +57,7 @@ const render = (props: Partial<ExprUnresolved<ILayoutComponent>> = {}) => {
     return node ? <GenericComponent node={node} /> : null;
   };
 
-  renderWithProviders(<Wrapper />, {
+  return renderWithProviders(<Wrapper />, {
     preloadedState: {
       ...getInitialStateMock(),
       formLayout,
@@ -67,10 +67,12 @@ const render = (props: Partial<ExprUnresolved<ILayoutComponent>> = {}) => {
 };
 
 describe('GenericComponent', () => {
-  it('should render Unknown component when passing unknown type', () => {
-    render({ type: 'unknown-type' } as any);
+  it('should show an error in the console when rendering an unknown component type', () => {
+    const spy = jest.spyOn(console, 'warn').mockImplementation();
+    const { container } = render({ type: 'unknown-type' } as any);
 
-    expect(screen.getByText(/unknown component type/i)).toBeInTheDocument();
+    expect(spy).toHaveBeenCalledWith(`No component definition found for type 'unknown-type'`);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('should render Input component when passing Input type', () => {

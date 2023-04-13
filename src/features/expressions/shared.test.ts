@@ -4,9 +4,11 @@ import { evalExpr } from 'src/features/expressions';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression } from 'src/features/expressions/validation';
+import { getLayoutComponentObject } from 'src/layout';
 import { getRepeatingGroups, splitDashedKey } from 'src/utils/formLayout';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { _private } from 'src/utils/layout/hierarchy';
+import { generateEntireHierarchy, generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
 import type { Expression } from 'src/features/expressions/types';
 import type { IRepeatingGroups } from 'src/types';
@@ -15,7 +17,7 @@ import type { HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
-const { nodesInLayouts, resolvedNodesInLayouts } = _private;
+const { resolvedNodesInLayouts } = _private;
 
 function findComponent(context: FunctionTest['context'], collection: LayoutPages<any>) {
   const { component, rowIndices } = context || { component: 'no-component' };
@@ -67,7 +69,7 @@ describe('Expressions shared function tests', () => {
 
         const currentLayout = (context && context.currentLayout) || '';
         const rootCollection = expectsFailure
-          ? nodesInLayouts(_layouts, currentLayout, repeatingGroups, dataSources)
+          ? generateEntireHierarchy(_layouts, currentLayout, repeatingGroups, dataSources, getLayoutComponentObject)
           : resolvedNodesInLayouts(_layouts, currentLayout, repeatingGroups, dataSources);
         const component = findComponent(context, rootCollection);
 
@@ -150,16 +152,12 @@ describe('Expressions shared context tests', () => {
       const _layouts = layouts || {};
       for (const key of Object.keys(_layouts)) {
         const repeatingGroups = getRepeatingGroups(_layouts[key].data.layout, dataSources.formData);
-        const nodes = nodesInLayouts(
-          { FormLayout: _layouts[key].data.layout },
-          'FormLayout',
+        const layout = generateHierarchy(
+          _layouts[key].data.layout,
           repeatingGroups,
           dataSources,
+          getLayoutComponentObject,
         );
-        const layout = nodes.current();
-        if (!layout) {
-          throw new Error('No layout found - check your test data!');
-        }
 
         foundContexts.push({
           component: key,

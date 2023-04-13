@@ -13,7 +13,7 @@ import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGroupEditProperties } from 'src/layout/Group/types';
 import type { ILanguage } from 'src/types/shared';
-import type { AnyItem, HRepGroup, HRepGroupChild, HRepGroupRow } from 'src/utils/layout/hierarchy.types';
+import type { AnyItem, HRepGroup, HRepGroupRow } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type FocusableHTMLElement = HTMLElement &
@@ -100,16 +100,17 @@ function RepeatingGroupsEditContainerInternal({
   const textsForRow = row?.groupExpressions?.textResourceBindings;
   const editForRow = row?.groupExpressions?.edit;
   const editForGroup = group.edit;
-  const rowItems = row.items;
+  const rowItems = row.items.map((n) => n.item);
+  const rowItemIds = rowItems.map((i) => i.id);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
-  const prevGroupRowItems = useRef<HRepGroupChild[] | undefined>(undefined);
+  const prevGroupRowItems = useRef<string[] | undefined>(undefined);
 
   useEffect((): void => {
-    if (!gridRef.current || JSON.stringify(prevGroupRowItems.current) === JSON.stringify(rowItems)) {
+    if (!gridRef.current || JSON.stringify(prevGroupRowItems.current) === JSON.stringify(rowItemIds)) {
       return;
     }
-    prevGroupRowItems.current = rowItems;
+    prevGroupRowItems.current = rowItemIds;
 
     const isFocusable = (element: FocusableHTMLElement): boolean => {
       const tagName = element.tagName.toLowerCase();
@@ -136,7 +137,7 @@ function RepeatingGroupsEditContainerInternal({
     /*
      * Depend on rowItems because generic components are rendered when rowItems change.
      */
-  }, [editIndex, rowItems]);
+  }, [editIndex, rowItemIds]);
 
   const texts = {
     ...group.textResourceBindings,

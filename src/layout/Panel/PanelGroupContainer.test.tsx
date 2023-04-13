@@ -87,6 +87,7 @@ describe('PanelGroupContainer', () => {
   it('should open panel when clicking add and close when clicking save,', async () => {
     const containerWithNoChildrenWithGroupReference: ExprUnresolved<ILayoutGroup> = {
       ...container,
+      children: [],
       textResourceBindings: {
         add_label: 'Add new item',
       },

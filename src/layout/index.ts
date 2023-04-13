@@ -129,3 +129,5 @@ export function getLayoutComponentObject<T extends keyof ComponentClassMap>(type
   }
   return undefined as any;
 }
+
+export type DefGetter = typeof getLayoutComponentObject;

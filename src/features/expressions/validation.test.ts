@@ -1,15 +1,14 @@
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions/index';
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression, preProcessLayout } from 'src/features/expressions/validation';
-import { _private } from 'src/utils/layout/hierarchy';
+import { getLayoutComponentObject } from 'src/layout';
+import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { Layouts } from 'src/features/expressions/shared';
 import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
 import type { IRepeatingGroups } from 'src/types';
 import type { HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
-
-const { nodesInLayouts } = _private;
 
 function isRepeatingGroup(
   component?: ExprUnresolved<ILayoutComponentOrGroup> | ExprResolved<ILayoutComponentOrGroup>,
@@ -55,11 +54,22 @@ function evalAllExpressions(layouts: Layouts) {
     hiddenFields: new Set(),
     validations: {},
   };
-  const nodes = nodesInLayouts(convertLayouts(layouts), Object.keys(layouts)[0], repeatingGroups, dataSources);
+  const nodes = generateEntireHierarchy(
+    convertLayouts(layouts),
+    Object.keys(layouts)[0],
+    repeatingGroups,
+    dataSources,
+    getLayoutComponentObject,
+  );
   for (const page of Object.values(nodes.all())) {
     for (const node of page.flat(true)) {
+      const input = { ...node.item };
+      delete input['children'];
+      delete input['rows'];
+      delete input['childComponents'];
+
       evalExprInObj({
-        input: node.item,
+        input,
         node,
         config: {
           ...ExprConfigForComponent,

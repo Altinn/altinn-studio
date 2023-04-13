@@ -82,24 +82,16 @@ function render({ container = mockContainer }: IRender = {}) {
     },
   ];
 
+  const group = getFormLayoutGroupMock({
+    ...container,
+    dataModelBindings: {
+      group: 'Group',
+    },
+  });
+
   const mockLayout = {
     layouts: {
-      FormLayout: [
-        getFormLayoutGroupMock({
-          ...(container.id === 'container-closed-id' ? container : undefined),
-          dataModelBindings: {
-            group: 'Group',
-          },
-        }),
-        getFormLayoutGroupMock({
-          ...(container.id === 'container-in-edit-mode-id' ? container : undefined),
-          id: 'container-in-edit-mode-id',
-          dataModelBindings: {
-            group: 'Group',
-          },
-        }),
-        ...mockComponents,
-      ],
+      FormLayout: [group, ...mockComponents],
     },
     uiConfig: {
       hiddenFields: [],
@@ -203,6 +195,7 @@ describe('GroupContainer', () => {
         ...mockContainer.edit,
         multiPage: true,
       },
+      children: ['0:field1', '0:field2', '1:field3', '1:field4'],
     };
     // eslint-disable-next-line testing-library/render-result-naming-convention
     const store = render({ container: multiPageContainer });

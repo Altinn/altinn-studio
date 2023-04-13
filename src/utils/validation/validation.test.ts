@@ -9,9 +9,10 @@ import * as oneOfOnRootSchema from 'src/__mocks__/json-schema/one-of-on-root.jso
 import * as refOnRootSchema from 'src/__mocks__/json-schema/ref-on-root.json';
 import { getMockValidationState } from 'src/__mocks__/validationStateMock';
 import { getParsedLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
+import { getLayoutComponentObject } from 'src/layout';
 import { Severity } from 'src/types';
 import { getRepeatingGroups } from 'src/utils/formLayout';
-import { _private } from 'src/utils/layout/hierarchy';
+import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import * as validation from 'src/utils/validation/validation';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
@@ -26,22 +27,25 @@ import type {
   IValidationIssue,
   IValidations,
 } from 'src/types';
-import type { LayoutPages } from 'src/utils/layout/LayoutPages';
-
-const { nodesInLayouts } = _private;
 
 function toCollection(
   mockLayouts: ILayouts,
   repeatingGroups: IRepeatingGroups = {},
   hiddenFields: Set<string> = new Set<string>(),
 ) {
-  return nodesInLayouts(mockLayouts, Object.keys(mockLayouts)[0], repeatingGroups, {
-    instanceContext: null,
-    formData: {},
-    applicationSettings: null,
-    hiddenFields,
-    validations: {},
-  }) as unknown as LayoutPages;
+  return generateEntireHierarchy(
+    mockLayouts,
+    Object.keys(mockLayouts)[0],
+    repeatingGroups,
+    {
+      instanceContext: null,
+      formData: {},
+      applicationSettings: null,
+      hiddenFields,
+      validations: {},
+    },
+    getLayoutComponentObject,
+  );
 }
 
 function toCollectionFromData(mockLayout: ILayouts, formDataAsObject: any) {

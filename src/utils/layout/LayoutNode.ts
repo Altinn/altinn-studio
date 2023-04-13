@@ -47,11 +47,11 @@ export class LayoutNode<Item extends AnyItem = AnyItem, Type extends ComponentTy
   }
 
   public isRepGroup(): this is LayoutNode<HRepGroup, 'Group'> {
-    return this.item.type === 'Group' && 'rows' in this.item;
+    return this.item.type === 'Group' && typeof this.item.maxCount === 'number' && this.item.maxCount > 1;
   }
 
   public isNonRepGroup(): this is LayoutNode<HNonRepGroup, 'Group'> {
-    return this.item.type === 'Group' && !('rows' in this.item);
+    return this.item.type === 'Group' && (!this.item.maxCount || this.item.maxCount <= 1);
   }
 
   /**
@@ -92,22 +92,27 @@ export class LayoutNode<Item extends AnyItem = AnyItem, Type extends ComponentTy
     return parents;
   }
 
-  private childrenIdsAsList(onlyInRowIndex?: number) {
-    let list: AnyItem[] = [];
+  private childrenAsList(onlyInRowIndex?: number): LayoutNode[] {
+    let list: LayoutNode[] = [];
     if (this.isRepGroup()) {
-      if (typeof onlyInRowIndex === 'number') {
-        list = this.item.rows.find((r) => r && r.index === onlyInRowIndex)?.items || [];
-      } else {
-        // Beware: In most cases this will just match the first row.
-        list = Object.values(this.item.rows)
-          .map((r) => r && r.items)
-          .flat() as AnyItem[];
+      const maybeNodes =
+        typeof onlyInRowIndex === 'number'
+          ? this.item.rows.find((r) => r && r.index === onlyInRowIndex)?.items || []
+          : // Beware: In most cases this will just match the first row.
+            Object.values(this.item.rows)
+              .map((r) => r?.items)
+              .flat();
+
+      for (const node of maybeNodes) {
+        if (node) {
+          list.push(node);
+        }
       }
     } else if (this.isNonRepGroup()) {
       list = this.item.childComponents;
     }
 
-    return list.map((item) => item.id);
+    return list;
   }
 
   /**
@@ -119,21 +124,14 @@ export class LayoutNode<Item extends AnyItem = AnyItem, Type extends ComponentTy
   public children(matching: (item: AnyItem) => boolean, onlyInRowIndex?: number): LayoutNode | undefined;
   public children(matching: undefined, onlyInRowIndex?: number): LayoutNode[];
   public children(matching?: (item: AnyItem) => boolean, onlyInRowIndex?: number): any {
-    const list = this.childrenIdsAsList(onlyInRowIndex);
-
+    const list = this.childrenAsList(onlyInRowIndex);
     if (!matching) {
-      if (!list) {
-        return [];
-      }
-      return list.map((id) => this.top.findById(id));
+      return list;
     }
 
-    if (typeof list !== 'undefined') {
-      for (const id of list) {
-        const node = this.top.findById(id);
-        if (node && matching(node.item)) {
-          return node;
-        }
+    for (const node of list) {
+      if (matching(node.item)) {
+        return node;
       }
     }
 

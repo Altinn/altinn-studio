@@ -12,7 +12,7 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getTextResourceByKey } from 'src/language/sharedLanguage';
-import { components, FormComponentContext } from 'src/layout/index';
+import { FormComponentContext } from 'src/layout/index';
 import { makeGetFocus } from 'src/selectors/getLayoutData';
 import { Triggers } from 'src/types';
 import { getTextResource, gridBreakpoints, pageBreakStyles, selectComponentTexts } from 'src/utils/formComponentUtils';
@@ -177,17 +177,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     );
   };
 
-  const layoutComponent = node.def as unknown as LayoutComponent<Type> | undefined;
-  if (!layoutComponent) {
-    return (
-      <div>
-        Unknown component type: {item.type}
-        <br />
-        Valid component types: {Object.keys(components).join(', ')}
-      </div>
-    );
-  }
-
+  const layoutComponent = node.def as unknown as LayoutComponent<Type>;
   const RenderComponent = layoutComponent.render;
 
   const RenderLabel = () => (
