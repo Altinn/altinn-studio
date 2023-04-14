@@ -72,17 +72,7 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
   const initialState: IAppState = {
     appData: {
       textResources: {
-        resources: {
-          nb: [{ id: 'appName', value: 'Test' }]
-        },
-        error: null,
-        fetched: true,
         currentEditId: undefined,
-        fetching: false,
-        language: 'nb',
-        saving: false,
-        languages: ['nb'],
-        saved: true
       },
       ruleModel: null
     },

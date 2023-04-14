@@ -9,13 +9,10 @@ import {
 import { PlusIcon, XMarkIcon, PencilIcon, MagnifyingGlassIcon } from '@navikt/aksel-icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  setCurrentEditId,
-  upsertTextResources,
-} from '../features/appData/textResources/textResourcesSlice';
+import { setCurrentEditId, } from '../features/appData/textResources/textResourcesSlice';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import {
-  getAllTextResourceIdsWithTextSelector,
+  allTextResourceIdsWithTextSelector,
   getCurrentEditId,
   textResourceByLanguageAndIdSelector,
 } from '../selectors/textResourceSelectors';
@@ -25,7 +22,9 @@ import { useText } from '../hooks';
 import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
 import { useParams } from 'react-router-dom';
-import { ITextResource } from '../types/global';
+import type { ITextResource } from 'app-shared/types/global';
+import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
+import { useUpsertTextResourcesMutation } from '../hooks/mutations/useUpsertTextResourcesMutation';
 
 export interface TextResourceProps {
   description?: string;
@@ -61,22 +60,16 @@ export const TextResource = ({
 }: TextResourceProps) => {
   const dispatch = useDispatch();
 
-  const textResource = useSelector(
+  const textResource: ITextResource = useTextResourcesSelector<ITextResource>(
     textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId)
   );
-  const textResources = useSelector(getAllTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE));
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE));
   const t = useText();
   const [isSearchMode, setIsSearchMode] = useState(false);
   const { org, app } = useParams();
-  const addTextResource = (id: string) =>
-    dispatch(
-      upsertTextResources({
-        language: DEFAULT_LANGUAGE,
-        textResources: { [id]: '' },
-        org,
-        app,
-      })
-    );
+  const { mutate } = useUpsertTextResourcesMutation(org, app);
+  const addTextResource =
+    (id: string) => mutate({ language: DEFAULT_LANGUAGE, textResources: [{ id, value: '' }] });
 
   const editId = useSelector(getCurrentEditId);
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));

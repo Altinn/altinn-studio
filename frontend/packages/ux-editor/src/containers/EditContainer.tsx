@@ -21,6 +21,8 @@ import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { useDeleteFormComponentsMutation } from '../hooks/mutations/useDeleteFormComponentsMutation';
+import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
+import { ITextResource } from 'app-shared/types/global';
 
 export interface IEditContainerProps {
   component: IFormComponent;
@@ -62,7 +64,7 @@ export function EditContainer(props: IEditContainerProps) {
   });
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const { order } = useFormLayoutsSelector(selectedLayoutSelector);
-  const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useSelector(
     (state: IAppState) => state.formDesigner.layout?.selectedLayout
   );

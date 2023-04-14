@@ -11,6 +11,7 @@ import {
   formLayoutNamePath,
   layoutSettingsPath,
 } from 'app-shared/api-paths';
+import { ITextResourcesObjectFormat } from 'app-shared/types/global';
 
 const headers = {
   Accept: 'application/json',
@@ -37,7 +38,7 @@ export const addLanguageCode = (org, app, language, payload) =>
 export const deleteLanguageCode = (org, app, language) =>
   del(textResourcesPath(org, app, language));
 
-export const upsertTextResources = (org, app, language, payload) =>
+export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) =>
   put(textResourcesPath(org, app, language), payload);
 
 export const saveFormLayout = (org, app, layoutName, payload) =>

@@ -4,6 +4,7 @@ import type { IErrorState } from '../features/error/errorSlice';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import type { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 import { ComponentType } from '../components';
+import { ITextResource, ITextResources } from 'app-shared/types/global';
 
 export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
   formDesigner: T1;
@@ -285,18 +286,6 @@ export interface IRuleModelFieldElement {
   inputs: any;
 }
 
-export interface ITextResource {
-  id: string;
-  value: string;
-  unparsedValue?: string;
-  variables?: IVariable[];
-}
-
-export interface IVariable {
-  key: string;
-  dataSource: string;
-}
-
 export interface IWidget {
   components: any[];
   texts: IWidgetTexts[];
@@ -330,3 +319,5 @@ export enum LayoutItemType {
 export type AppStateSelector<T> = (state: IAppState) => T;
 
 export type FormLayoutsSelector<T> = (state: IAppState, formLayoutsData: IFormLayouts) => T;
+
+export type TextResourcesSelector<T> = (textResources: ITextResources) => T;

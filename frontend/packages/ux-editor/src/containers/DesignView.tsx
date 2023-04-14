@@ -20,6 +20,10 @@ import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateForm
 import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdateFormComponentOrderMutation';
 import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
+import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
+import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { ITextResource } from 'app-shared/types/global';
 
 export interface DesignViewProps {
   activeList: any[];
@@ -48,8 +52,8 @@ export const DesignView = ({
   );
 
   const { org, app } = useParams();
-  const datamodelQuery = useDatamodelQuery(org, app);
-  const datamodel = datamodelQuery.data;
+  const { data: datamodel } = useDatamodelQuery(org, app);
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
   const updateFormContainerMutation = useUpdateFormContainerMutation(org, app);
   const updateFormComponentOrderMutation = useUpdateFormComponentOrderMutation(org, app);
@@ -190,6 +194,7 @@ export const DesignView = ({
             updateFormContainerMutation={updateFormContainerMutation}
             updateContainerIdMutation={updateContainerIdMutation}
             deleteFormContainerMutation={deleteFormContainerMutation}
+            textResources={textResources}
           />
         )}
       />

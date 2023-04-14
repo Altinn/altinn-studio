@@ -1,5 +1,5 @@
 import React from 'react';
-import { ITextResource } from '../types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import { TextResourceOption, TextResourceOptionProps } from './TextResource';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';

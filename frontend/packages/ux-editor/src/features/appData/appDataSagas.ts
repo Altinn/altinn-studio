@@ -1,31 +1,14 @@
-import { get, put as restPut } from 'app-shared/utils/networking';
+import { get } from 'app-shared/utils/networking';
 import type { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import {
-  ILoadLanguagesAction,
-  ILoadTextResourcesAction,
-  IUpsertTextResources,
-  loadLanguages,
-  loadLanguagesFulfilled,
-  loadLanguagesRejected,
-  loadTextResources,
-  loadTextResourcesFulfilled,
-  loadTextResourcesRejected,
-  upsertTextResources,
-  upsertTextResourcesFulfilled,
-  upsertTextResourcesRejected,
-} from './textResources/textResourcesSlice';
 import {
   fetchRuleModel,
   fetchRuleModelFulfilled,
   fetchRuleModelRejected,
 } from './ruleModel/ruleModelSlice';
 import type { IRuleModelFieldElement } from '../../types/global';
-import {
-  textResourcesPath,
-  ruleHandlerPath,
-} from 'app-shared/api-paths';
+import { ruleHandlerPath } from 'app-shared/api-paths';
 
 function* fetchRuleModelSaga({ payload }: PayloadAction<{org, app}>): SagaIterator {
   const { org, app } = payload;
@@ -80,58 +63,6 @@ export function* watchFetchRuleModelSaga(): SagaIterator {
   yield takeLatest(fetchRuleModel, fetchRuleModelSaga);
 }
 
-export function* loadTextResourcesSaga({ payload }: ILoadTextResourcesAction): SagaIterator {
-  try {
-    const { languagesUrl, textResourcesUrl } = payload;
-    const languages = yield call(get, languagesUrl);
-    const textResources = {};
-    for (const language of languages) {
-      const { resources } = yield call(get, textResourcesUrl(language));
-      textResources[language] = resources;
-    }
-    yield put(loadTextResourcesFulfilled({ textResources }));
-  } catch (error) {
-    yield put(loadTextResourcesRejected({ error }));
-  }
-}
-
-export function* watchLoadTextResourcesSaga(): SagaIterator {
-  yield takeLatest(loadTextResources, loadTextResourcesSaga);
-}
-
-export function* loadLanguagesSaga({ payload }: ILoadLanguagesAction): SagaIterator {
-  try {
-    const { url } = payload;
-    const languages = yield call(get, url);
-    yield put(loadLanguagesFulfilled({ languages }));
-  } catch (error) {
-    yield put(loadLanguagesRejected({ error }));
-  }
-}
-
-export function* watchLoadLanguagesSaga(): SagaIterator {
-  yield takeLatest(loadLanguages, loadLanguagesSaga);
-}
-
-export function* upsertTextResourcesSaga({
-  payload,
-}: PayloadAction<IUpsertTextResources>): SagaIterator {
-  try {
-    const { language, textResources } = payload;
-    yield call(restPut, textResourcesPath(payload.org, payload.app, language), textResources);
-    yield put(upsertTextResourcesFulfilled());
-  } catch (error) {
-    yield put(upsertTextResourcesRejected({ error }));
-  }
-}
-
-export function* watchUpsertTextResourcesSaga(): SagaIterator {
-  yield takeLatest(upsertTextResources.type, upsertTextResourcesSaga);
-}
-
 export default function* appDataSagas(): SagaIterator {
-  yield fork(watchLoadTextResourcesSaga);
-  yield fork(watchLoadLanguagesSaga);
   yield fork(watchFetchRuleModelSaga);
-  yield fork(watchUpsertTextResourcesSaga);
 }

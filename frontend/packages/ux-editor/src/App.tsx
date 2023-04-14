@@ -4,15 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
-import {
-  loadLanguages,
-  loadTextResources
-} from './features/appData/textResources/textResourcesSlice';
 import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
 import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
 import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { textLanguagesPath, textResourcesPath } from 'app-shared/api-paths';
 import type { IAppState } from './types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useText } from './hooks';
@@ -23,6 +18,7 @@ import { useFormLayoutsQuery } from './hooks/queries/useFormLayoutsQuery';
 import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
 import { useAddLayoutMutation } from './hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
+import { useTextResourcesQuery } from './hooks/queries/useTextResourcesQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -39,6 +35,7 @@ export function App() {
   const { data: datamodel, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError  } = useFormLayoutsQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
+  const { data: textResources } = useTextResourcesQuery(org, app);
   const addLayoutMutation = useAddLayoutMutation(org, app);
 
   const selectedLayout = useSelector(selectedLayoutNameSelector);
@@ -55,7 +52,8 @@ export function App() {
     formLayouts &&
     isWidgetFetched &&
     formLayoutSettings &&
-    datamodel;
+    datamodel &&
+    textResources;
 
   const componentHasError =
     dataModelFetchedError || layoutFetchedError || widgetFetchedError;
@@ -94,13 +92,6 @@ export function App() {
 
   useEffect(() => {
     const fetchFiles = () => {
-      dispatch(
-        loadTextResources({
-          textResourcesUrl: (langCode) => textResourcesPath(org, app, langCode),
-          languagesUrl: textLanguagesPath(org, app)
-        })
-      );
-      dispatch(loadLanguages({ url: textLanguagesPath(org, app) }));
       dispatch(fetchServiceConfiguration({ org, app }));
       dispatch(fetchRuleModel({ org, app }));
       dispatch(fetchWidgetSettings({ org, app }));

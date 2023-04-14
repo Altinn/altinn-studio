@@ -2,15 +2,15 @@ import { IFormDesignerComponents, IFormLayouts, IInternalLayout, IWidget } from 
 import { convertFromLayoutToInternalFormat } from '../../utils/formLayout';
 import { useMutation } from '@tanstack/react-query';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
-import { useDispatch } from 'react-redux';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { deepCopy } from 'app-shared/pure';
 import { v4 as uuidv4 } from 'uuid';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { queryClient } from '../../../../../app-development/common/ServiceContext';
 import { QueryKey } from '../../types/QueryKey';
-import { addTextResources } from '../../features/appData/textResources/textResourcesSlice';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';
+import { extractLanguagesFromWidgetTexts, extractTextsFromWidgetTextsByLanguage } from '../../utils/widgetUtils';
 
 export interface AddWidgetMutationArgs {
   widget: IWidget;
@@ -20,10 +20,10 @@ export interface AddWidgetMutationArgs {
 
 export const useAddWidgetMutation = (org: string, app: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName);
-  const dispatch = useDispatch();
+  const { mutateAsync: updateLayout } = useFormLayoutMutation(org, app, layoutName);
+  const { mutateAsync: updateText } = useUpsertTextResourcesMutation(org, app);
   return useMutation({
-    mutationFn: ({ widget, position, containerId }: AddWidgetMutationArgs) => {
+    mutationFn: async ({ widget, position, containerId }: AddWidgetMutationArgs) => {
       const internalComponents = convertFromLayoutToInternalFormat(widget.components, layout.hidden);
       const components: IFormDesignerComponents = deepCopy(layout.components);
       if (!containerId) containerId = BASE_CONTAINER_ID; // If containerId is not set, set it to the base-container's ID
@@ -39,12 +39,12 @@ export const useAddWidgetMutation = (org: string, app: string) => {
       const updatedLayout = deepCopy(layout);
       updatedLayout.components = components;
       updatedLayout.order[containerId] = containerOrder;
-      return formLayoutsMutation.mutateAsync(updatedLayout).then(() => {
-        if (widget.texts && Object.keys(widget.texts).length > 0) {
-          dispatch(addTextResources({ textResources: widget.texts }));
-        }
-        return updatedLayout;
-      });
+      await updateLayout(updatedLayout);
+      for (const language of extractLanguagesFromWidgetTexts(widget.texts)) {
+        const textResources = extractTextsFromWidgetTextsByLanguage(widget.texts, language);
+        await updateText({ language, textResources });
+      }
+      return updatedLayout;
     },
     onSuccess: (updatedLayout: IInternalLayout) => {
       queryClient.setQueryData(

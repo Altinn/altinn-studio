@@ -1,17 +1,27 @@
 import React from 'react';
 import type { IAppDataState } from '../features/appData/appDataReducers';
-import type { ITextResources, ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
+import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
+import type { ITextResources, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
 import { TextResourceEdit } from './TextResourceEdit';
-import { appDataMock, renderWithMockStore, textResourcesMock } from '../testing/mocks';
-import { act, screen } from '@testing-library/react';
+import {
+  appDataMock, queriesMock,
+  renderHookWithMockStore,
+  renderWithMockStore,
+  textResourcesMock
+} from '../testing/mocks';
+import { act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { useTextResourcesQuery } from '../hooks/queries/useTextResourcesQuery';
+import { queryClient } from '../../../../app-development/common/ServiceContext';
 
 const user = userEvent.setup();
 
 // Test data:
+const org = 'org';
+const app = 'app';
 const legendText = 'Rediger tekst';
-const descriptionText = 'Tekstens ID: {id}';
+const descriptionText = 'Tekstens ID: {{id}}';
 const nbText = 'Bokmål';
 const nnText = 'Nynorsk';
 const enText = 'Engelsk';
@@ -25,6 +35,7 @@ const texts = {
   'ux_editor.field_id': descriptionText,
 };
 
+// Mocks:
 jest.mock(
   'react-i18next',
   () => ({ useTranslation: () => mockUseTranslation(texts) }),
@@ -32,26 +43,28 @@ jest.mock(
 
 describe('TextResourceEdit', () => {
 
-  afterEach(jest.resetAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+    queryClient.clear();
+  });
 
-  it('Does not render anything if edit id is undefined', () => {
-    const { renderResult } = render();
+  it('Does not render anything if edit id is undefined', async () => {
+    const { renderResult } = await render();
     expect(renderResult.container).toBeEmptyDOMElement();
   });
 
-  it('Renders correctly when a valid edit id is given', () => {
+  it('Renders correctly when a valid edit id is given', async () => {
     const id = 'some-id';
     const valueNb = 'Norge';
     const valueNn = 'Noreg';
     const valueEn = 'Norway';
-    const resources = {
+    const resources: ITextResources = {
       nb: [{ id, value: valueNb }],
       nn: [{ id, value: valueNn }],
       en: [{ id, value: valueEn }]
     };
-    render(resources, id);
+    await render(resources, id);
     expect(screen.getByText(legendText)).toBeInTheDocument();
-    expect(screen.getByText(id, { exact: false })).toBeInTheDocument();
     expect(screen.getAllByRole('textbox')).toHaveLength(3);
     expect(screen.getByLabelText(nbText)).toHaveValue(valueNb);
     expect(screen.getByLabelText(nnText)).toHaveValue(valueNn);
@@ -59,28 +72,24 @@ describe('TextResourceEdit', () => {
     expect(screen.getByRole('button', { name: closeText })).toBeInTheDocument();
   });
 
-  it('Dispatches correct action when a text is changed', async () => {
+  it('Calls upsertTextResources with correct parameters when a text is changed', async () => {
     const id = 'some-id';
     const value = 'Lorem';
     const additionalValue = ' ipsum';
-    const resources = { nb: [{ id, value }] };
-    const { store } = render(resources, id);
+    const resources: ITextResources = { nb: [{ id, value }] };
+    await render(resources, id);
     const textBox = screen.getByLabelText(nbText);
     await act(() => user.type(textBox, additionalValue));
     await act(() => user.tab());
-    const actions = store.getActions();
-    expect(actions).toHaveLength(1);
-    expect(actions[0].type).toBe('textResources/upsertTextResources');
-    expect(actions[0].payload.language).toBe('nb');
-    expect(Object.keys(actions[0].payload.textResources)).toHaveLength(1);
-    expect(actions[0].payload.textResources[id]).toBe(value + additionalValue);
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', { [id]: value + additionalValue });
   });
 
   it('Dispatches correct action when the close button is clicked', async () => {
     const id = 'some-id';
     const value = 'Lorem';
     const resources = { nb: [{ id, value }] };
-    const { store } = render(resources, id);
+    const { store } = await render(resources, id);
     await act(() => user.click(screen.getByRole('button', { name: closeText })));
     const actions = store.getActions();
     expect(actions).toHaveLength(1);
@@ -89,11 +98,10 @@ describe('TextResourceEdit', () => {
   });
 });
 
-const render = (resources?: ITextResources, editId?: string) => {
+const render = async (resources: ITextResources = {}, editId?: string) => {
 
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
-    resources,
     currentEditId: editId
   };
 
@@ -101,6 +109,15 @@ const render = (resources?: ITextResources, editId?: string) => {
     ...appDataMock,
     textResources
   };
+
+  const { result } = renderHookWithMockStore({ appData }, {
+    getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
+    getTextResources: (_o, _a, lang) => Promise.resolve<ITextResourcesWithLanguage>({
+      language: lang,
+      resources: resources[lang] || []
+    }),
+  })(() => useTextResourcesQuery(org, app)).renderHookResult;
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
   return renderWithMockStore({ appData })(<TextResourceEdit/>);
 };

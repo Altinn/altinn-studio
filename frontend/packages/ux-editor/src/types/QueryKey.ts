@@ -1,5 +1,7 @@
 export enum QueryKey {
   Datamodel = 'Datamodel',
-  FormLayouts = 'FormLayouts',
   FormLayoutSettings = 'FormLayoutSettings',
+  FormLayouts = 'FormLayouts',
+  Languages = 'Languages',
+  TextResources = 'TextResources',
 }
