@@ -110,7 +110,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [Produces("application/json")]
         [Route("convert")]
-        public ActionResult Put(string org, string repo)
+        public ActionResult Convert(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
