@@ -307,6 +307,18 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Action for updating the json schema for the datamodel for the default datatask test-datatask-id
+        /// </summary>
+        /// <remarks>Only for apps that does not use layoutsets. Must be adapted</remarks>
+        /// <returns>Json schema for datamodel for datatask test-datatask-id</returns>
+        [HttpPut]
+        [Route("instances/undefined/data/test-datatask-id")]
+        public ActionResult UpdateFormData(string org, string app)
+        {
+            return Ok();
+        }
+
+        /// <summary>
         /// Action for getting a mocked response for the current task connected to the instance
         /// </summary>
         /// <returns>The processState object on the global mockInstance object</returns>
