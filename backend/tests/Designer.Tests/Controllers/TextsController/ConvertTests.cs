@@ -21,9 +21,8 @@ namespace Designer.Tests.Controllers.TextsController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/convert";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
-
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
