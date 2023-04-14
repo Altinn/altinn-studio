@@ -5,11 +5,11 @@
   "devDependencies": {
     "@faker-js/faker": "7.6.0",
     "axe-core": "4.6.3",
-    "cypress": "12.8.1",
+    "cypress": "12.9.0",
     "cypress-axe": "1.4.0",
     "cypress-plugin-tab": "1.0.5",
-    "eslint": "8.36.0",
-    "eslint-plugin-cypress": "2.12.1"
+    "eslint": "8.38.0",
+    "eslint-plugin-cypress": "2.13.2"
   },
   "main": "index.js",
   "scripts": {
