@@ -21,11 +21,12 @@ import { ROOT_POINTER } from './constants';
  */
 const createUiNode = (schemaNode: Dict, uiNode: UiSchemaNode): UiSchemaNodes => {
   if (schemaNode[Keywords.Type] === JsonSchemaType.Array || schemaNode[Keywords.Items]) {
-    // Arrays
+    // First handling Arrays.
     uiNode.isArray = true;
     uiNode.isNillable = schemaTypeIsNillable(schemaNode[Keywords.Type]);
     Object.assign(uiNode.restrictions, findRestrictionsOnNode(schemaNode));
     Object.assign(uiNode.custom, findCustomAttributes(schemaNode));
+
     // If the items keyword exists we will merge the two nodes with this node as base.
     return schemaNode[Keywords.Items] ? createUiNode(schemaNode[Keywords.Items], uiNode) : [uiNode];
   } else {

@@ -1,8 +1,76 @@
 # Schema Model
 
+This is the `schema-model`-package. It's separated from the implementation in `schema-editor` to be able to easier
+test and develop both packages. This package handles reading the json schema and flattening it to an array which
+is easier to work with.
+
+Some field is passed more or less directly to the model, which others are dealt with in more structured ways to for
+instance cast the correct types of fields and so on.
+
+### Mutations
+
+All mutations of the model should be immutable. So every mutation function will return a new copy of the array. Atm
+this package can:
+
+- Convert nodes between a normal field and a referance and back again.
+- Copy a node
+- Add new nodes to the tree
+- Remove nodes from the tree
+- Rename nodes
+- And sort nodes
+
+Mutations is kept in the [/mutations](src/lib/mutations)-folder and should be fairly well tested.
+
+### Node caching
+
+An array in javascript have limited performance on large datasets. This package offloads some of the searching to dedicated
+indexes that is used to solve those performance issues. It's mainly references that is solved this way, both references
+to types and parent-child relations. Se more in [selectors.ts](src/lib/selectors.ts).
+
+### Exceptions and Errors
+
+The solution will throw errors when encountering situtions that should not occur. This is a design choice. The application
+need to handle these exceptions. At the current iteration of this package errors are not translateable.
+
 ### Known problems
 
-Just a little list of what we need to add.
+#### Custom fields on arrays
+
+This model merges the levels of a json-schema array. This makes it easier to toggle this with a simple boolean value.
+
+So the internal model will make it super easy to toggle a field like this:
+
+```json
+{
+  "type": "array",
+  "items": {
+    "type": "number"
+  }
+}
+```
+
+to become:
+
+```json
+{
+  "type": "number"
+}
+```
+
+and back again. The problem this introduces is very limited. But this model will not take in account that custom fields
+might be on both levels. So for instance if you pass inn the following json schema:
+
+```json
+{
+  "type": "array",
+  "items": {
+    "type": "number",
+    "my-custom-field": "custom-value"
+  }
+}
+```
+
+The model will not be able to put it back on the right place.
 
 #### Nullable Nodes
 
@@ -27,16 +95,8 @@ inspection. Alternatively you could use `anyOf` or `oneOf` to create structures 
 }
 ```
 
-I think this is the only way to make a reference nullable.
+This is a problem that is not really solved.
 
-#### Performance issues on large models
+### Final considerations
 
-Since we changed from a map to an array to hold the internal model performance is actually an issue.
-We need to create some sort of index to improve this. This problem will however just hit VERY large models
-with thousands of nodes. Mainly created by converting old SERES models to JSON-schemas without any form for
-simplification.
-
-### Node capabilities
-
-When performing mutations on the model there are some rules that will
-keep logic in the models, strict.
+Json-schemas can be endlessly complex. Try to limit which features that you want to support. Less is more. Happy validating!
