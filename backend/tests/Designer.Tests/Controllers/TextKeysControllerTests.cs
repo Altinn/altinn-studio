@@ -39,7 +39,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
         HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        string list = response.Content.ReadAsStringAsync().Result;
+        string list = await response.Content.ReadAsStringAsync();
         List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
         try
@@ -105,7 +105,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
         string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
         HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        string list = await responseGetKeys.Content.ReadAsStringAsync();
         List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
         try
@@ -131,7 +131,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
         string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
         HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        string list = await responseGetKeys.Content.ReadAsStringAsync();
         List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
         try
@@ -157,7 +157,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
         string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
         HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        string list = await responseGetKeys.Content.ReadAsStringAsync();
         List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
         try
@@ -183,7 +183,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
         string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/text-keys";
         HttpRequestMessage urlGetKeysRequest = new(HttpMethod.Get, urlGetKeys);
         HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        string list = await responseGetKeys.Content.ReadAsStringAsync();
         List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
         try
