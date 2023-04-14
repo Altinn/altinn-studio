@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-import { getAppName, getAppOwner } from 'src/language/sharedLanguage';
+import { getAppName, getAppOwner, getAppReceiver } from 'src/language/sharedLanguage';
 import type { IRuntimeState } from 'src/types';
 
 const selectTextResources = (state: IRuntimeState) => state.textResources.resources;
@@ -22,4 +22,12 @@ export const selectAppOwner = createSelector(
   selectOrg,
   selectUserLanguage,
   (textResources, allOrgs, org, userLanguage) => getAppOwner(textResources, allOrgs, org, userLanguage),
+);
+
+export const selectAppReceiver = createSelector(
+  selectTextResources,
+  selectAllOrgs,
+  selectOrg,
+  selectUserLanguage,
+  (textResources, allOrgs, org, userLanguage) => getAppReceiver(textResources, allOrgs, org, userLanguage),
 );

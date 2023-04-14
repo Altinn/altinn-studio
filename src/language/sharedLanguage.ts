@@ -219,23 +219,48 @@ export function replaceTextResourceParams(
   return mappedResources.concat(repeatingGroupResources);
 }
 
+export function getOrgName(
+  orgs: IAltinnOrgs | null,
+  org: string | undefined,
+  userLanguage: string,
+): string | undefined {
+  if (orgs && typeof org === 'string' && orgs[org]) {
+    return orgs[org].name[userLanguage] || orgs[org].name.nb;
+  }
+
+  return undefined;
+}
+
+const appOwnerKey = 'appOwner';
+
 export function getAppOwner(
   textResources: ITextResource[],
   orgs: IAltinnOrgs | null,
   org: string | undefined,
   userLanguage: string,
 ) {
-  const appOwner = getTextResourceByKey('appOwner', textResources);
-  if (appOwner !== 'appOwner') {
+  const appOwner = getTextResourceByKey(appOwnerKey, textResources);
+  if (appOwner !== appOwnerKey) {
     return appOwner;
   }
 
-  // if no text resource key is set, fetch from orgs
-  if (orgs && typeof org === 'string' && orgs[org]) {
-    return orgs[org].name[userLanguage] || orgs[org].name.nb;
+  return getOrgName(orgs, org, userLanguage);
+}
+
+const appReceiverKey = 'appReceiver';
+
+export function getAppReceiver(
+  textResources: ITextResource[],
+  orgs: IAltinnOrgs | null,
+  org: string | undefined,
+  userLanguage: string,
+): string | undefined {
+  const appReceiver = getTextResourceByKey(appReceiverKey, textResources);
+  if (appReceiver !== appReceiverKey) {
+    return appReceiver;
   }
 
-  return undefined;
+  return getOrgName(orgs, org, userLanguage);
 }
 
 const appNameKey = 'appName';

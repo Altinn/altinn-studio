@@ -8,9 +8,10 @@ import type { PropsFromGenericComponent } from '..';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { selectAppReceiver } from 'src/selectors/language';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import type { IRuntimeState } from 'src/types';
-import type { IAltinnOrgs, IInstance, ILanguage, IParty, IProfile } from 'src/types/shared';
+import type { IInstance, ILanguage, IParty } from 'src/types/shared';
 
 export const returnInstanceMetaDataObject = (
   language?: ILanguage | null | undefined,
@@ -49,10 +50,8 @@ export function InstanceInformationComponent({ node }: PropsFromGenericComponent
 
   const instance: IInstance | null = useAppSelector((state: IRuntimeState) => state.instanceData.instance);
   const parties: IParty[] | null = useAppSelector((state: IRuntimeState) => state.party.parties);
-  const allOrgs: IAltinnOrgs | null = useAppSelector((state: IRuntimeState) => state.organisationMetaData.allOrgs);
-  const profile: IProfile | null = useAppSelector((state: IRuntimeState) => state.profile.profile);
-  const userLanguage = profile?.profileSettingPreference.language || 'nb';
   const language: ILanguage | null = useAppSelector((state) => state.language.language);
+  const appReceiver = useAppSelector(selectAppReceiver);
 
   const instanceOwnerParty =
     instance && parties?.find((party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId);
@@ -65,12 +64,7 @@ export function InstanceInformationComponent({ node }: PropsFromGenericComponent
     language &&
     `${instanceOwnerParty.ssn ? instanceOwnerParty.ssn : instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
 
-  const instanceReceiver =
-    receiver !== false
-      ? allOrgs && instance && allOrgs[instance?.org] && language
-        ? allOrgs[instance.org].name[userLanguage]
-        : 'Error: Receiver org not found'
-      : undefined;
+  const instanceReceiver = receiver !== false ? appReceiver ?? 'Error: Receiver org not found' : undefined;
 
   const instanceReferenceNumber = referenceNumber !== false && instance && instance.id.split('/')[1].split('-')[4];
 

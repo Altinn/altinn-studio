@@ -9,6 +9,7 @@ import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { ReceiptContainer, returnInstanceMetaDataObject } from 'src/features/receipt/ReceiptContainer';
 import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
 import type { ILayout } from 'src/layout/layout';
+import type { IAltinnOrgs, IParty } from 'src/types/shared';
 
 interface IRender {
   populateStore?: boolean;
@@ -331,7 +332,8 @@ describe('returnInstanceMetaDataObject', () => {
           homepage: '',
         },
       },
-      languageData: null,
+      languageData: {},
+      textResources: [],
       profileData: {
         profile: {
           userId: 1,
@@ -395,9 +397,10 @@ describe('returnInstanceMetaDataObject', () => {
 
     expect(
       returnInstanceMetaDataObject(
-        testData.orgsData,
+        testData.orgsData as unknown as IAltinnOrgs,
         testData.languageData,
-        testData.instanceOwnerParty,
+        testData.textResources,
+        testData.instanceOwnerParty as unknown as IParty,
         testData.instanceGuid,
         testData.userLanguageString,
         testData.lastChangedDateTime,
