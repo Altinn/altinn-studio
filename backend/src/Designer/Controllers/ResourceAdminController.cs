@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -14,10 +13,12 @@ namespace Altinn.Studio.Designer.Controllers
     public class ResourceAdminController : ControllerBase
     {
         private readonly IGitea _giteaApi;
+        private readonly IRepository _repository;
 
-        public ResourceAdminController(IGitea gitea)
+        public ResourceAdminController(IGitea gitea, IRepository repository)
         {
             _giteaApi = gitea;
+            _repository = repository;
         }
 
         [HttpGet]
@@ -39,22 +40,13 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/repository/resourcelist")]
-        public async Task<ActionResult<List<ContentsResponse>>> GetRepositoryResourceList(string org)
+        public ActionResult<List<ServiceResource>> GetRepositoryResourceList(string org)
         {
-            List<ContentsResponse> resourceList = new List<ContentsResponse>();
-            List<ContentsResponse> results = await _giteaApi.GetRepositoryContent(org, string.Format("{0}-resources", org));
+            List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, string.Format("{0}-resources", org));
 
-            if (results != null)
+            if (repositoryResourceList != null && repositoryResourceList.Count > 0)
             {
-                foreach (ContentsResponse result in results)
-                {
-                    if (result.name.ToLower().Contains("resource.json"))
-                    {
-                        resourceList.Add(result);
-                    }
-                }
-
-                return resourceList.Count > 0 ? resourceList : StatusCode(204);
+                return repositoryResourceList;
             }
             else
             {

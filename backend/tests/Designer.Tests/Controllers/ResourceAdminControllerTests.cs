@@ -1,7 +1,10 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
@@ -15,16 +18,19 @@ namespace Designer.Tests.Controllers
     public class ResourceAdminControllerTests : ApiTestsBase<RepositoryController, RepositoryControllerTests>
     {
         private readonly string _versionPrefix = "/designer/api";
-        private readonly Mock<IGitea> _giteaMock;
+        private readonly Mock<IRepository> _repositoryMock;
 
         public ResourceAdminControllerTests(WebApplicationFactory<RepositoryController> factory) : base(factory)
         {
-            _giteaMock = new Mock<IGitea>();
+            _repositoryMock = new Mock<IRepository>();
         }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
+            services.Configure<ServiceRepositorySettings>(c =>
+                c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddTransient(_ => _repositoryMock.Object);
         }
 
         [Fact]
@@ -62,6 +68,16 @@ namespace Designer.Tests.Controllers
         {
             // Arrange
             string uri = $"{_versionPrefix}/ttd/resources/repository/resourcelist";
+
+            _repositoryMock
+                .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(new List<ServiceResource>
+                {
+                    new ServiceResource
+                    {
+                        Identifier = "testresource"
+                    }
+                });
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 

@@ -238,6 +238,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         List<FileSystemObject> GetContents(string org, string repository, string path = "");
 
         /// <summary>
+        /// Lists the ServiceResource files in a repository
+        /// </summary>
+        List<ServiceResource> GetServiceResources(string org, string repository, string path = "");
+
+        /// <summary>
         /// Returns the path to the app folder
         /// </summary>
         /// <param name="org">The application owner id.</param>

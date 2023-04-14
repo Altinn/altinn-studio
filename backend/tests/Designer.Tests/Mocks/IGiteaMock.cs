@@ -195,6 +195,9 @@ namespace Designer.Tests.Mocks
                 content.size = 109;
                 content.path = repository;
                 content.name = "ttd_resource.json";
+                content.type = "file";
+                FileLinksResponse fileLinksResponse = new FileLinksResponse { git = "git.com", html = "html.com", self = "self.com"};
+                content.links = fileLinksResponse;
                 contentList.Add(content);
 
                 return Task.FromResult(contentList);
