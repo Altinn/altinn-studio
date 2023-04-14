@@ -1,0 +1,16 @@
+{
+    "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+        "layout": [
+            {
+                "id": "Input-6wAfAW",
+                "type": "Input",
+                "textResourceBindings": {},
+                "dataModelBindings": {},
+                "required": true,
+                "readOnly": false
+            }
+        ],
+        "hidden": false
+    }
+}

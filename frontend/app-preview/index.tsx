@@ -8,6 +8,6 @@ const root = createRoot(container);
 
 root.render(
   <BrowserRouter>
-    <PreviewApp />
+      <PreviewApp />
   </BrowserRouter>
 );

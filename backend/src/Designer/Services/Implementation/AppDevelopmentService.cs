@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using NuGet.Protocol;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -107,6 +106,34 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return;
             }
             await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
+        }
+
+        /// <inheritdoc />
+        public async Task<string> GetRuleHandler(string org, string app, string developer, string layoutSetName)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                string ruleHandlerForLayoutSet = await altinnAppGitRepository.GetRuleHandler(layoutSetName);
+                return ruleHandlerForLayoutSet;
+            }
+
+            string ruleHandler = await altinnAppGitRepository.GetRuleHandler(null);
+            return ruleHandler;
+        }
+
+        /// <inheritdoc />
+        public async Task SaveRuleHandler(string org, string app, string developer, string ruleHandler, string layoutSetName)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                await altinnAppGitRepository.SaveRuleHandler(layoutSetName, ruleHandler);
+                return;
+            }
+            await altinnAppGitRepository.SaveRuleHandler(null, ruleHandler);
         }
     }
 }
