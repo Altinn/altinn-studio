@@ -21,6 +21,7 @@ import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer
 import { ComponentType } from '../components';
 import { ILayoutSettings } from 'app-shared/types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { BrowserRouter } from 'react-router-dom';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -180,7 +181,11 @@ export const renderWithMockStore =
       const store = configureStore()({ ...appStateMock, ...state });
       const renderResult = render(
         <ServicesContextProvider {...queriesMock} {...queries}>
-          <Provider store={store}>{component}</Provider>
+          <Provider store={store}>
+            <BrowserRouter>
+              {component}
+            </BrowserRouter>
+          </Provider>
         </ServicesContextProvider>
       );
       return { renderResult, store };

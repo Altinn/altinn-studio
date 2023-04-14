@@ -28,11 +28,11 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const selectedLayout = searchParams.get('layout');
   const { t } = useTranslation();
   const { org, app } = useParams();
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
-  const updateLayoutOrderMutation = useUpdateLayoutOrderMutation(org, app);
-  const deleteLayoutMutation = useDeleteLayoutMutation(org, app);
-  const updateLayoutNameMutation = useUpdateLayoutNameMutation(org, app);
-  const layoutOrder = formLayoutSettingsQuery.data?.pages.order;
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
+  const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app);
+  const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app);
+  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app);
+  const layoutOrder = formLayoutSettings?.pages.order;
   const [editMode, setEditMode] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [newName, setNewName] = useState<string>('');
@@ -68,15 +68,15 @@ export function PageElement({ name, invalid }: IPageElementProps) {
       setEditMode(true);
       setNewName(name);
     } else if (action === 'up' || action === 'down') {
-      updateLayoutOrderMutation.mutate({ layoutName: name, direction: action });
+      updateLayoutOrder({ layoutName: name, direction: action });
     }
     setMenuAnchorEl(null);
   };
 
-  const handleOnBlur = async (_event: any) => {
+  const handleOnBlur = (_event: any) => {
     setEditMode(false);
     if (!errorMessage && name !== newName) {
-      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+      updateLayoutName({ oldName: name, newName });
       setSearchParams({ ...deepCopy(searchParams), layout: newName });
     } else {
       setNewName('');
@@ -106,7 +106,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const handleKeyPress = async (event: any) => {
     if (event.key === 'Enter' && !errorMessage && name !== newName) {
-      updateLayoutNameMutation.mutate({ oldName: name, newName });
+      updateLayoutName({ oldName: name, newName });
       setSearchParams({ ...deepCopy(searchParams), layout: newName });
       setEditMode(false);
     } else if (event.key === 'Escape') {
@@ -119,7 +119,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const handleConfirmDelete = () => {
     setDeleteAnchorEl(null);
-    deleteLayoutMutation.mutate({ layoutName: name });
+    deleteLayout({ layoutName: name });
     setSearchParams(removeKey(searchParams, 'layout'));
   };
 
@@ -157,6 +157,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           onClick={onPageSettingsClick}
           style={menuAnchorEl ? { visibility: 'visible' } : {}}
           variant={ButtonVariant.Quiet}
+          title={t('general.options')}
         />
       </div>
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
