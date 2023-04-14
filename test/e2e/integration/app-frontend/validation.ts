@@ -220,4 +220,14 @@ describe('Validation', () => {
     cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
   });
+
+  it('Validation messages should only show up once', () => {
+    cy.goto('datalist');
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.errorReport)
+      .should('be.inViewport')
+      .should('contain.text', texts.errorReport)
+      .should('contain.text', texts.next);
+    cy.get(appFrontend.errorReport).find('li:contains("Du må fylle ut hvem gjelder saken?")').should('have.length', 1);
+  });
 });
