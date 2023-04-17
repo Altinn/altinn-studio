@@ -6,6 +6,10 @@
       "value": "frontend-test"
     },
     {
+      "id": "appReceiver",
+      "value": "Norwegian application receiver"
+    },
+    {
       "id": "37130.SkattemeldingEndringEtterFristPostdatadef37130.Label",
       "value": "Post i RF-1030 Skattemelding for formues- og inntektsskatt som skal  endres"
     },
