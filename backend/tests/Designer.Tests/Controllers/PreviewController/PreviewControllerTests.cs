@@ -41,7 +41,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task GetPreviewStatus_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/preview-status";
+            string dataPathWithData = $"{Org}/{App}/preview/preview-status";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);

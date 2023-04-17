@@ -32,15 +32,16 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISchemaModelService _schemaModelService;
         private readonly IPreviewService _previewService;
         private readonly ITextsService _textsService;
-        private Instance MockInstance { get; set; }
+        private Instance MockInstance { get; set; } = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PreviewController"/> class.
         /// </summary>
         /// <param name="httpContextAccessor"></param>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepositoryFactory</param>
-        /// <param name="schemaModelService"></param>
-        /// <param name="previewService"></param>
+        /// <param name="schemaModelService">Schema Model Service</param>
+        /// <param name="previewService">Preview Service</param>
+        /// <param name="textsService">Texts Service</param>
         /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
         public PreviewController(IHttpContextAccessor httpContextAccessor, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISchemaModelService schemaModelService, IPreviewService previewService, ITextsService textsService)
         {
@@ -49,7 +50,6 @@ namespace Altinn.Studio.Designer.Controllers
             _schemaModelService = schemaModelService;
             _previewService = previewService;
             _textsService = textsService;
-            MockInstance = new Instance();
         }
 
         /// <summary>
@@ -260,6 +260,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="languageCode">Language code</param>
         /// <returns>Nb text resource file</returns>
         [HttpGet]
         [Route("api/v1/texts/{languageCode}")]
@@ -282,7 +283,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("instances")]
         public async Task<ActionResult> Instances(string org, string app, [FromQuery] int? instanceOwnerPartyId)
         {
-            // consider generating a test id
+            // TODO: consider generating a test id
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Instance mockInstance = await _previewService.CreateMockInstance(org, app, developer, instanceOwnerPartyId);
             return Ok(mockInstance);
@@ -300,6 +301,10 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             DataType dataType = await _previewService.GetDataTypeForTask1(org, app, developer);
+            if (dataType == null)
+            {
+                return Ok("undefined");
+            }
             string modelPath = $"/App/models/{dataType.Id}.schema.json";
             string decodedPath = Uri.UnescapeDataString(modelPath);
             string formData = await _schemaModelService.GetSchema(org, app, developer, decodedPath);
