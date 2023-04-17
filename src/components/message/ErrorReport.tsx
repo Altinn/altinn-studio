@@ -141,15 +141,15 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
               xs={12}
             >
               <ul className={classes.errorList}>
-                {errorsUnmapped.map((error: string, index: number) => (
-                  <li key={`unmapped-${index}`}>
+                {errorsUnmapped.map((error: string) => (
+                  <li key={`unmapped-${error}`}>
                     {getParsedLanguageFromText(error, {
                       disallowedTags: ['a'],
                     })}
                   </li>
                 ))}
                 {errorsMapped.map((error) => (
-                  <li key={`mapped-${error.componentId}`}>
+                  <li key={`mapped-${error.componentId}-${error.message}`}>
                     <button
                       className={classes.buttonAsInvisibleLink}
                       onClick={handleErrorClick(error)}
