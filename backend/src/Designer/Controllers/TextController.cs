@@ -64,7 +64,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/Text")]
         public IActionResult Index(string org, string app)
         {
-            IList<string> languages = _repository.GetLanguages(org, app);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            IList<string> languages = _textsService.GetLanguages(org, app, developer);
 
             if (Request.Headers["accept"] == "application/json")
             {
@@ -85,7 +86,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("languages")]
         public IActionResult GetLanguages(string org, string app)
         {
-            List<string> languages = _repository.GetLanguages(org, app);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            List<string> languages = _textsService.GetLanguages(org, app, developer);
             return Json(languages);
         }
 
@@ -183,10 +185,10 @@ namespace Altinn.Studio.Designer.Controllers
             bool mutationHasOccured = false;
             try
             {
-                IList<string> langCodes = _repository.GetLanguages(org, app);
+                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                IList<string> langCodes = _textsService.GetLanguages(org, app, developer);
                 foreach (string languageCode in langCodes)
                 {
-                    string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
                     TextResource textResourceObject = await _textsService.GetTextV1(org, app, developer, languageCode);
 
                     foreach (TextIdMutation m in mutations)

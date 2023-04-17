@@ -31,6 +31,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ISchemaModelService _schemaModelService;
         private readonly IPreviewService _previewService;
+        private readonly ITextsService _textsService;
         private Instance MockInstance { get; set; }
 
         /// <summary>
@@ -41,12 +42,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="schemaModelService"></param>
         /// <param name="previewService"></param>
         /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
-        public PreviewController(IHttpContextAccessor httpContextAccessor, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISchemaModelService schemaModelService, IPreviewService previewService)
+        public PreviewController(IHttpContextAccessor httpContextAccessor, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISchemaModelService schemaModelService, IPreviewService previewService, ITextsService textsService)
         {
             _httpContextAccessor = httpContextAccessor;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _schemaModelService = schemaModelService;
             _previewService = previewService;
+            _textsService = textsService;
             MockInstance = new Instance();
         }
 
@@ -55,7 +57,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>default view for the app preview.</returns>
         [HttpGet]
-        [Route("preview/{*AllValues}")]
+        [Route("/preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/{*AllValues}")]
         public async Task<IActionResult> Index(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
@@ -254,18 +256,18 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for getting the nb text resource file
+        /// Action for getting the text resource file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Nb text resource file</returns>
         [HttpGet]
-        [Route("api/v1/texts/nb")]
-        public async Task<ActionResult<Models.TextResource>> Language(string org, string app)
+        [Route("api/v1/texts/{languageCode}")]
+        public async Task<ActionResult<Models.TextResource>> Language(string org, string app, string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+            Models.TextResource textResource = await altinnAppGitRepository.GetTextV1(languageCode);
             return Ok(textResource);
         }
 
@@ -294,7 +296,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Json schema for datamodel for datatask test-datatask-id</returns>
         [HttpGet]
         [Route("instances/1/test-id/data/test-datatask-id")]
-        public async Task<ActionResult> GetFormData(string org, string app, string currentTaskDataElementId)
+        public async Task<ActionResult> GetFormData(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             DataType dataType = await _previewService.GetDataTypeForTask1(org, app, developer);
@@ -302,6 +304,18 @@ namespace Altinn.Studio.Designer.Controllers
             string decodedPath = Uri.UnescapeDataString(modelPath);
             string formData = await _schemaModelService.GetSchema(org, app, developer, decodedPath);
             return Ok(formData);
+        }
+
+        /// <summary>
+        /// Action for updating the json schema for the datamodel for the default datatask test-datatask-id
+        /// </summary>
+        /// <remarks>Only for apps that does not use layoutsets. Must be adapted</remarks>
+        /// <returns>Json schema for datamodel for datatask test-datatask-id</returns>
+        [HttpPut]
+        [Route("instances/undefined/data/test-datatask-id")]
+        public ActionResult UpdateFormData(string org, string app)
+        {
+            return Ok();
         }
 
         /// <summary>
@@ -360,7 +374,6 @@ namespace Altinn.Studio.Designer.Controllers
             string decodedPath = Uri.UnescapeDataString(modelPath);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string json = await _schemaModelService.GetSchema(org, app, developer, decodedPath);
-
             return Ok(json);
         }
 
@@ -421,6 +434,34 @@ namespace Altinn.Studio.Designer.Controllers
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
                 string ruleConfig = await altinnAppGitRepository.GetRuleConfiguration(null);
                 return Ok(ruleConfig);
+            }
+            catch (NotFoundException)
+            {
+                return NoContent();
+            }
+
+        }
+
+        /// <summary>
+        /// Action for getting application languages
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>List of application languages in the format [{language: "nb"}, {language: "en"}]</returns>
+        [HttpGet]
+        [Route("api/v1/applicationlanguages")]
+        public ActionResult<IList<string>> GetApplicationLanguages(string org, string app)
+        {
+            try
+            {
+                List<ApplicationLanguage> applicationLanguages = new();
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                IList<string> languages = _textsService.GetLanguages(org, app, developer);
+                foreach (string language in languages)
+                {
+                    applicationLanguages.Add(new ApplicationLanguage() { Language = language });
+                }
+                return Ok(applicationLanguages);
             }
             catch (NotFoundException)
             {

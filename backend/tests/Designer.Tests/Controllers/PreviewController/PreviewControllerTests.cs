@@ -221,6 +221,16 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
+        public async Task UpdateFormData_Ok()
+        {
+            string dataPathWithData = $"{Org}/{App}/instances/undefined/data/test-datatask-id";
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
+
+            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        }
+
+        [Fact]
         public async Task GetProcess_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/undefined/process";
@@ -316,6 +326,19 @@ namespace Designer.Tests.Controllers
 
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetApplicationLanguages_Ok()
+        {
+            string dataPathWithData = $"{Org}/{App}/api/v1/applicationlanguages";
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+
+            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(@"[{""language"":""en""},{""language"":""nb""}]", responseBody);
         }
     }
 }
