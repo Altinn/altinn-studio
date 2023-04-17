@@ -80,14 +80,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(string org, string repository);
 
         /// <summary>
-        /// Fetch the content of a given org and repository
-        /// </summary>
-        /// <param name="org">The organisation that owns the repository</param>
-        /// <param name="repository">The repository to retrieve content for</param>
-        /// <returns></returns>
-        Task<List<ContentsResponse>> GetRepositoryContent(string org, string repository);
-
-        /// <summary>
         /// Returns organisation that user has access to
         /// </summary>
         /// <returns>A list over organisations</returns>

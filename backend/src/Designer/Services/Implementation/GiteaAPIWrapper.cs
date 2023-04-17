@@ -386,7 +386,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
+                _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with responsecode {response.StatusCode}");
             }
 
             if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
@@ -401,22 +401,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return returnRepository;
-        }
-
-        /// <inheritdoc />
-        public async Task<List<ContentsResponse>> GetRepositoryContent(string org, string repository)
-        {
-            string giteaUrl = $"repos/{org}/{repository}/contents";
-            HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                return await response.Content.ReadAsAsync<List<ContentsResponse>>();
-            }
-
-            _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching content in {org}/{repository} failed with reponsecode {response.StatusCode}");
-
-            return null;
         }
 
         /// <inheritdoc />

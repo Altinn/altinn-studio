@@ -185,25 +185,5 @@ namespace Designer.Tests.Mocks
         {
             throw new NotImplementedException();
         }
-
-        public Task<List<ContentsResponse>> GetRepositoryContent(string org, string repository)
-        {
-            if (org == "ttd")
-            {
-                List<ContentsResponse> contentList = new List<ContentsResponse>();
-                ContentsResponse content = new ContentsResponse();
-                content.size = 109;
-                content.path = repository;
-                content.name = "ttd_resource.json";
-                content.type = "file";
-                FileLinksResponse fileLinksResponse = new FileLinksResponse { git = "git.com", html = "html.com", self = "self.com"};
-                content.links = fileLinksResponse;
-                contentList.Add(content);
-
-                return Task.FromResult(contentList);
-            }
-
-            return Task.FromResult(new List<ContentsResponse>());
-        }
     }
 }
