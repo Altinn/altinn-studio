@@ -428,7 +428,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return await response.Content.ReadAsAsync<List<Organization>>();
             }
 
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
+            _logger.LogError($"User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
 
             return null;
         }

@@ -87,7 +87,7 @@ namespace Designer.Tests.Controllers
                         IsPartOf = string.Empty,
                         IsPublicService = true,
                         ThematicArea = string.Empty,
-                        ResourceReferences = new List<ResourceReference>(),
+                        ResourceReferences = GetTestResourceReferences(),
                         IsComplete = true,
                         Delegable = true,
                         Visible = true,
@@ -123,12 +123,22 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
         }
 
-        private List<Keyword> GetTestKeywords()
+        private static List<Keyword> GetTestKeywords()
         {
             List<Keyword> keywords = new List<Keyword>();
             Keyword keyword = new Keyword { Language = "No", Word = "test" };
             keywords.Add(keyword);
             return keywords;
+        }
+
+        private static List<ResourceReference> GetTestResourceReferences()
+        {
+            List<ResourceReference> resourceReferences = new List<ResourceReference>
+            {
+                new ResourceReference { Reference = string.Empty, ReferenceSource = ReferenceSource.Default, ReferenceType = ReferenceType.Default }
+            };
+
+            return resourceReferences;
         }
     }
 }
