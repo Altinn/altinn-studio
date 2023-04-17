@@ -129,6 +129,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case TitleKeyword:
                         keywords.MarkAsHandled<TitleKeyword>();
                         break;
+
+                    case CommentKeyword:
+                        keywords.MarkAsHandled<CommentKeyword>();
+                        break;
                 }
             }
 
