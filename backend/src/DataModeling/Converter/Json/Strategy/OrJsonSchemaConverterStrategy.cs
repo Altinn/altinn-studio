@@ -11,13 +11,15 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <inheritdoc />
         public IJsonSchemaAnalyzer GetAnalyzer()
         {
-            throw new System.NotImplementedException();
+            // Try to Analyse using GeneralJsonSchemaAnalyzer
+            return new GeneralJsonSchemaAnalyzer();
         }
 
         /// <inheritdoc />
         public IJsonSchemaConverter GetConverter()
         {
-            throw new System.NotImplementedException();
+            // Try to convert using GeneralJsonSchemaConverter
+            return new GeneralJsonSchemaConverter();
         }
     }
 }
