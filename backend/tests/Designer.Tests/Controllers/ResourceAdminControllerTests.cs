@@ -91,8 +91,8 @@ namespace Designer.Tests.Controllers
                         IsComplete = true,
                         Delegable = true,
                         Visible = true,
-                        HasCompetentAuthority = new CompetentAuthority(),
-                        Keywords = new List<Keyword>(),
+                        HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
+                        Keywords = GetTestKeywords(),
                         Sector = new List<string>(),
                         ResourceType = ResourceType.Default,
                         MainLanguage = "en-US",
@@ -121,6 +121,14 @@ namespace Designer.Tests.Controllers
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
+        }
+
+        private List<Keyword> GetTestKeywords()
+        {
+            List<Keyword> keywords = new List<Keyword>();
+            Keyword keyword = new Keyword { Language = "No", Word = "test" };
+            keywords.Add(keyword);
+            return keywords;
         }
     }
 }
