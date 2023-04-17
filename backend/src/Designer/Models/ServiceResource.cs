@@ -1,8 +1,8 @@
 ﻿#nullable enable
 using System.Collections.Generic;
-using System.Security.AccessControl;
 using System;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.Models
 {

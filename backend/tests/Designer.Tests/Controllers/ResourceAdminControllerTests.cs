@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
@@ -75,7 +76,26 @@ namespace Designer.Tests.Controllers
                 {
                     new ServiceResource
                     {
-                        Identifier = "testresource"
+                        Identifier = "testresource",
+                        Title = new Dictionary<string, string>(),
+                        Description = new Dictionary<string, string>(),
+                        RightDescription = new Dictionary<string, string>(),
+                        Homepage = "test.no",
+                        Status = string.Empty,
+                        ValidFrom = new System.DateTime(),
+                        ValidTo = new System.DateTime(),
+                        IsPartOf = string.Empty,
+                        IsPublicService = true,
+                        ThematicArea = string.Empty,
+                        ResourceReferences = new List<ResourceReference>(),
+                        IsComplete = true,
+                        Delegable = true,
+                        Visible = true,
+                        HasCompetentAuthority = new CompetentAuthority(),
+                        Keywords = new List<Keyword>(),
+                        Sector = new List<string>(),
+                        ResourceType = ResourceType.Default,
+                        MainLanguage = "en-US",
                     }
                 });
 

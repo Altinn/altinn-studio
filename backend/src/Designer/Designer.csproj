@@ -64,6 +64,7 @@
     <Watch Remove="Controllers\ResourceAdminController.cs" />
     <Watch Remove="Enums\ReferenceSource.cs" />
     <Watch Remove="Enums\ReferenceType.cs" />
+    <Watch Remove="Enums\ResourceType.cs" />
     <Watch Remove="Models\ContentsListResponse.cs" />
     <Watch Remove="Models\FileLinksResponse.cs" />
     <Watch Remove="Models\Keyword.cs" />
