@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class OrgReposTests : RepositoryControllerTestsBase<ContentsTests>
+    public class OrgReposTests : RepositoryControllerTestsBase<OrgReposTests>
     {
 
         public OrgReposTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)

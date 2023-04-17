@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CreateAppTests : RepositoryControllerTestsBase<ContentsTests>
+    public class CreateAppTests : RepositoryControllerTestsBase<CreateAppTests>
     {
 
         public CreateAppTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
