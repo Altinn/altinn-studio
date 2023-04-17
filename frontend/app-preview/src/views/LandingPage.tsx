@@ -4,10 +4,23 @@ import { PreviewContext } from '../PreviewContext';
 import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
+import * as signalR from "@microsoft/signalr";
 
 export const LandingPage = () => {
   const { org, app } = useParams();
   const { t } = useTranslation();
+
+  const connection = new signalR.HubConnectionBuilder().withUrl("/previewHub").build();
+
+  const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
+    input !== null && input.tagName === 'IFRAME';
+
+  connection.on("ReceiveMessage", function (message) {
+    let frame = document.getElementById('app-frontend-react-iframe');
+    if (isIFrame(frame) && frame.contentWindow){
+      frame.contentWindow.postMessage({ action: message }, '{baseurl}');
+    }
+  });
 
   return (
     <PreviewContext>
