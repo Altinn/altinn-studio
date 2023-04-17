@@ -43,15 +43,7 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult<List<ServiceResource>> GetRepositoryResourceList(string org)
         {
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, string.Format("{0}-resources", org));
-
-            if (repositoryResourceList != null && repositoryResourceList.Count > 0)
-            {
-                return repositoryResourceList;
-            }
-            else
-            {
-                return StatusCode(204);
-            }
+            return repositoryResourceList != null && repositoryResourceList.Count > 0 ? repositoryResourceList : StatusCode(204);
         }
     }
 }
