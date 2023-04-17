@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Get status if app is ready for preview
         /// </summary>
         [HttpGet]
-        [Route("preview-status")]
+        [Route("preview/preview-status")]
         public ActionResult<string> PreviewStatus()
         {
             return Ok("Ready for preview");
