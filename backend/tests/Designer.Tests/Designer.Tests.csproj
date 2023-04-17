@@ -89,7 +89,6 @@
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\35721.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.xsd" />
-    <None Remove="_TestData\Repositories\testUser\ttd\ttd-resources\test_resource.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_ExternalTypes.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_FlatNoTypes.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_InternalTypes.schema.json" />
