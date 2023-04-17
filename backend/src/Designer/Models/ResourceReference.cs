@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿#nullable enable
+using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.Models
