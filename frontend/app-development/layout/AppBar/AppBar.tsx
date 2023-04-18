@@ -78,7 +78,11 @@ export const AppBar = ({ activeSubHeaderSelection, user, showSubMenu }: IAppBarP
             </Button>
           </div>
           <div className={classes.profileMenuWrapper}>
-            <span>{user ? t('shared.header_user_for_org', { user, org }) : org}</span>
+            <span>
+              {user ? t('shared.header_user_for_org', { user, org }) : org}
+              <br /> {t('shared.header_for')}{' '}
+              {user ? t('shared.header_user_for_org', { user, org }) : app}
+            </span>
             <ProfileMenu showlogout />
           </div>
         </div>
