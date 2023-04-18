@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -44,6 +45,30 @@ namespace Altinn.Studio.Designer.Controllers
         {
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, string.Format("{0}-resources", org));
             return repositoryResourceList != null && repositoryResourceList.Count > 0 ? repositoryResourceList : StatusCode(204);
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/repository/{id}")]
+        public ActionResult<ServiceResource> GetResourceById(string org, string id)
+        {
+            if (id.ToLower().Contains("repository:"))
+            {
+                string[] idSplit = id.Split(':');
+                string repo = idSplit[1];
+                List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repo);
+                return repositoryResourceList.First();
+            }
+            else if (id.ToLower().Contains("id:"))
+            {
+                string[] idSplit = id.Split(':');
+                string identifier = idSplit[1];
+                ServiceResource resource = _repository.GetServiceResourceById(org, identifier);
+                return resource;
+            }
+            else
+            {
+                return StatusCode(404);
+            }
         }
     }
 }
