@@ -62,14 +62,15 @@ export const AppBar = ({
         </ul>
         <div className={classes.rightContent}>
           <div className={classes.rightContentButtons}>
-            <Button
+            {process.env.NODE_ENV !== 'production' &&
+              <Button
               className={classes.previewButton}
               onClick={null}
               variant={ButtonVariant.Outline}
               data-testid={TopBarMenu.Preview}
             >
               {t('top_menu.preview')}
-            </Button>
+            </Button>}
             <Button
               onClick={handlePubliserClick}
               variant={ButtonVariant.Outline}
