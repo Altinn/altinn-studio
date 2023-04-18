@@ -894,7 +894,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             { 
                 foreach (FileSystemObject resourceFile in contents)
                 {
-                    if (resourceFile.Name.Contains("resource"))
+                    if (resourceFile.Name.EndsWith("resource.json"))
                     {
                         resourceFiles.Add(resourceFile);
                     }
