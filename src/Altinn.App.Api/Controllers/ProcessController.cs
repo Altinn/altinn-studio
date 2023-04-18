@@ -237,6 +237,10 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="elementId">the id of the next element to move to. Query parameter is optional,
         /// but must be specified if more than one element can be reached from the current process ellement.</param>
+        /// <param name="lang">Optional parameter to pass on the language used in the form if this differs from the profile language,
+        /// which otherwise is used automatically. The language is picked up when generating the PDF when leaving a step, 
+        /// and is not used for anything else.
+        /// </param>
         [HttpPut("next")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -246,7 +250,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromQuery] string elementId = null)
+            [FromQuery] string elementId = null,
+            [FromQuery] string lang = null)
         {
             try
             {

@@ -13,6 +13,8 @@ using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Internal.Pdf;
@@ -85,11 +87,17 @@ public class PdfService : IPdfService
     {
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
         var pagePath = _pdfGeneratorSettings.AppPdfPagePathTemplate.ToLowerInvariant().Replace("{instanceid}", instance.Id);
+        string language = GetOverriddenLanguage();
 
-        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(new Uri(baseUrl + pagePath), ct);
+        // Avoid a costly call if the language is allready overriden by the user
+        language = language.IsNullOrEmpty() ? await GetLanguage() : language;
+
+        Uri uri = BuildUri(baseUrl, pagePath, language);
+
+        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(uri, ct);
 
         var appIdentifier = new AppIdentifier(instance);
-        var language = await GetLanguage();
+
         TextResource? textResource = await GetTextResource(appIdentifier.App, appIdentifier.Org, language);
         string fileName = GetFileName(instance, textResource);
 
@@ -99,6 +107,23 @@ public class PdfService : IPdfService
             PdfContentType,
             fileName,
             pdfContent);
+    }
+
+    private static Uri BuildUri(string baseUrl, string pagePath, string language)
+    {
+        // Uses string manipulation instead of UriBuilder, since UriBuilder messes up
+        // query parameters in combination with hash fragments in the url.
+        string url = baseUrl + pagePath;
+        if (url.Contains('?'))
+        {
+            url += $"&lang={language}";
+        }
+        else
+        {
+            url += $"?lang={language}";
+        }
+
+        return new Uri(url);
     }
 
     /// <inheritdoc/>
@@ -241,6 +266,22 @@ public class PdfService : IPdfService
         }
 
         return language;
+    }
+
+    private string GetOverriddenLanguage()
+    {
+        // If the user has overridden the language from his profile by selecting a
+        // language directly in the form, then use the selected language.
+        if (_httpContextAccessor.HttpContext != null)
+        {
+            bool hasQueryLanguage = _httpContextAccessor.HttpContext.Request.Query.TryGetValue("lang", out StringValues queryLanguage);
+            if (hasQueryLanguage)
+            {
+                return queryLanguage.ToString();
+            }
+        }
+
+        return string.Empty;
     }
 
     private async Task<TextResource?> GetTextResource(string app, string org, string language)
