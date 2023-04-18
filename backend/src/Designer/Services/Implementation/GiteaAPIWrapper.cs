@@ -386,7 +386,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
+                _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with responsecode {response.StatusCode}");
             }
 
             if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
@@ -412,7 +412,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return await response.Content.ReadAsAsync<List<Organization>>();
             }
 
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
+            _logger.LogError($"User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
 
             return null;
         }

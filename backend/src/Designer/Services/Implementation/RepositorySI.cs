@@ -838,6 +838,45 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return contents;
         }
 
+        public List<ServiceResource> GetServiceResources(string org, string repository, string path = "")
+        {
+            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, path);
+            List<ServiceResource> serviceResourceList = new List<ServiceResource>();
+            string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            foreach (FileSystemObject resourceFile in resourceFiles)
+            {
+                Stream fs = File.OpenRead($"{repopath}/{resourceFile.Path}");
+                ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(fs, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+                if (serviceResource != null)
+                {
+                    serviceResourceList.Add(serviceResource);
+                }
+            }
+
+            return serviceResourceList;
+        }
+
+        private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
+        {
+            List<FileSystemObject> contents = GetContents(org, repository, path);
+            List<FileSystemObject> resourceFiles = new List<FileSystemObject>();
+
+            if (contents != null)
+            { 
+                foreach (FileSystemObject resourceFile in contents)
+                {
+                    if (resourceFile.Name.EndsWith("resource.json"))
+                    {
+                        resourceFiles.Add(resourceFile);
+                    }
+                }
+            }
+
+            return resourceFiles;
+        }
+
         private FileSystemObject GetFileSystemObjectForFile(string path)
         {
             FileInfo fi = new(path);
