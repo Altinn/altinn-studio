@@ -184,6 +184,7 @@ export function SummaryGroupComponent({
             <EditButton
               onClick={onChangeClick}
               editText={changeText}
+              label={title}
             />
           ) : null}
         </div>

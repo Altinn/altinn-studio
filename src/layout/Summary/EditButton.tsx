@@ -6,6 +6,7 @@ import { Edit } from '@navikt/ds-icons';
 export interface IEditButtonProps {
   onClick: () => void;
   editText: string | null;
+  label: React.ReactNode;
 }
 
 export function EditButton(props: IEditButtonProps) {
@@ -16,6 +17,7 @@ export function EditButton(props: IEditButtonProps) {
       icon={<Edit aria-hidden={true} />}
       iconPlacement='right'
       onClick={props.onClick}
+      aria-label={`${props.editText} ${props.label}`}
     >
       {props.editText}
     </Button>

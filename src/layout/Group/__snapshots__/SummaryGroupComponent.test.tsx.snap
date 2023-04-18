@@ -15,6 +15,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
         Mock group
       </span>
       <button
+        aria-label="Change Mock group"
         class="Button-module_button__2ZuB7 Button-module_small__l39oh Button-module_quiet__1KlhF Button-module_secondary__R0waJ"
         type="button"
       >
