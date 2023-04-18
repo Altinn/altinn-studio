@@ -4,8 +4,8 @@ import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelect
 import { useMutation } from '@tanstack/react-query';
 import { ComponentType } from '../../components';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { deepCopy } from 'app-shared/pure';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
+import { removeComponent } from '../../utils/formLayout';
 
 export const useDeleteFormComponentsMutation = (org: string, app: string) =>  {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
@@ -14,20 +14,11 @@ export const useDeleteFormComponentsMutation = (org: string, app: string) =>  {
   return useMutation({
     mutationFn: async (components: string[]) => {
 
-      const updatedLayout: IInternalLayout = deepCopy(layout);
+      let updatedLayout: IInternalLayout = layout;
 
       for (const id of components) {
         const component = layout.components[id];
-        let containerId = Object.keys(layout.order)[0];
-        Object.keys(layout.order).forEach((cId) => {
-          if (layout.order[cId].find((componentId) => componentId === id)) {
-            containerId = cId;
-          }
-        });
-
-        delete updatedLayout.components[id];
-        updatedLayout.order[containerId].splice(layout.order[containerId].indexOf(id), 1);
-
+        updatedLayout = removeComponent(updatedLayout, id);
         if (component?.type === ComponentType.FileUpload) {
           await deleteAppAttachmentMetadataMutation.mutateAsync(id);
         }
