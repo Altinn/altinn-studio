@@ -75,7 +75,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             this.Owner = Owner;
             this.Parent = Parent;
             this.Permissions = Permissions;
-            IsPrivate = _Private;
+            this.IsPrivate = _Private;
             this.Size = Size;
             this.SshUrl = SshUrl;
             this.StarsCount = StarsCount;
