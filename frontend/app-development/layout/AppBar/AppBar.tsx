@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import { getTopBarMenu, TopBarMenu } from './appBarConfig';
@@ -13,23 +13,23 @@ import { BranchingIcon } from '@navikt/aksel-icons';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { publiserPath } from 'app-shared/api-paths';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
+import { HeaderContext } from 'app-shared/navigation/main-header/Header';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
   activeLeftMenuSelection?: string;
-  user?: string;
   showSubMenu?: boolean;
 }
 
-export const AppBar = ({ activeSubHeaderSelection, user, showSubMenu }: IAppBarProps) => {
+export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) => {
   const { t } = useTranslation();
   const { org, app } = useParams();
   const repositoryType = getRepositoryType(org, app);
   const menu = getTopBarMenu(repositoryType);
-
   const handlePubliserClick = () => {
     window.location.href = publiserPath(org, app);
   };
+  const { user } = useContext(HeaderContext);
 
   return (
     <div className={classes.root}>
@@ -79,9 +79,9 @@ export const AppBar = ({ activeSubHeaderSelection, user, showSubMenu }: IAppBarP
           </div>
           <div className={classes.profileMenuWrapper}>
             <span>
-              {user ? t('shared.header_user_for_org', { user, org }) : org}
-              <br /> {t('shared.header_for')}{' '}
-              {user ? t('shared.header_user_for_org', { user, org }) : app}
+              {/*  {org === user.full_name
+                ? user.full_name
+                : user.full_name + ' ' + t('shared.header_for') + ' ' + org} */}
             </span>
             <ProfileMenu showlogout />
           </div>
