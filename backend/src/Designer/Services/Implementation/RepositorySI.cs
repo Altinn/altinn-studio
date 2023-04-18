@@ -17,6 +17,7 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using IdentityModel.OidcClient;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -1628,8 +1629,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string path = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
-            string authorizationPolicyData = xacmlPolicy.ToString();
-            File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
+
+            MemoryStream stream = new MemoryStream();
+            XmlWriter writer = XmlWriter.Create(stream, new XmlWriterSettings() { Indent = true });
+
+            XacmlSerializer.WritePolicy(writer, xacmlPolicy);
+
+            writer.Flush();
+            stream.Position = 0;
+
+            using (var fs = new FileStream(policyPath, FileMode.OpenOrCreate))
+            {
+                stream.CopyTo(fs);
+            }
+
             return true;
         }
 

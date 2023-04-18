@@ -53,6 +53,20 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(applicationPolicy);
         }
 
+        [HttpGet]
+        [Route("validate")]
+        public ActionResult ValidatePolicy(string org, string app)
+        {
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
+
+            ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
+            ValidationProblemDetails vpd = ValidatePolicy(resourcePolicy);
+            if(vpd.Errors.Count == 0) {
+                vpd.Status = 200;
+            }
+            return Ok(vpd);
+        }
+
         /// <summary>
         /// Create an application metadata, url POST "/designer/api/org/app/metadata"
         /// </summary>
@@ -63,6 +77,40 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult CreateApplicationPolicy(string org, string app)
         {
             return Created($"/designer/api/{org}/{app}/apppolicy", new ResourcePolicy());
+        }
+
+        private ValidationProblemDetails ValidatePolicy(ResourcePolicy policy)
+        {
+
+           if(policy.Rules == null || policy.Rules.Count == 0)
+            {
+                ModelState.AddModelError("policy.rules", "policyerror.norules");
+            }
+
+            int ruleIndex = 0;
+            foreach (PolicyRule rule in policy.Rules)
+            {
+                if (rule.Subject == null || rule.Subject.Count == 0)
+                {
+                    ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingsubject");
+                }
+
+                if (rule.Actions == null || rule.Actions.Count == 0)
+                {
+                    ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingaction");
+                }
+
+                if (rule.Resources == null || rule.Resources.Count == 0)
+                {
+                    ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingresource");
+                }
+
+                ruleIndex++;
+            }
+
+            ValidationProblemDetails details = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
+
+            return details;
         }
     }
 }
