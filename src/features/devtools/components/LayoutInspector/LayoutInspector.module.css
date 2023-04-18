@@ -37,3 +37,42 @@
   white-space: nowrap;
   max-width: 0;
 }
+
+.properties {
+  font-family: monospace;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.properties > textarea {
+  font-family: monospace;
+  line-height: 1.2;
+  background: transparent;
+  flex: 1;
+  resize: none;
+  font-size: 0.8rem;
+  border: none;
+  outline: none;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.header h3 {
+  font-size: 1rem;
+}
+
+.header button {
+  height: 32px;
+  width: 32px;
+  position: absolute;
+  top: 32px;
+  right: 0;
+  z-index: 10001;
+}
+
+.error {
+  color: red;
+}

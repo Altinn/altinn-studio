@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React, { useRef } from 'react';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
@@ -6,6 +8,7 @@ import type { ILayoutComponentOrGroup } from 'src/layout/layout';
 
 interface ILayoutInspectorItemProps {
   component: ExprUnresolved<ILayoutComponentOrGroup>;
+  onClick: () => void;
 }
 
 function setHighlightStyle(highlightElement: HTMLElement, referenceElement: HTMLElement): void {
@@ -22,7 +25,7 @@ function setHighlightStyle(highlightElement: HTMLElement, referenceElement: HTML
   highlightElement.style.zIndex = '5000';
 }
 
-export const LayoutInspectorItem = ({ component }: ILayoutInspectorItemProps) => {
+export const LayoutInspectorItem = ({ component, onClick }: ILayoutInspectorItemProps) => {
   const highlightRef = useRef<Element[]>([]);
 
   function onMouseEnter() {
@@ -45,6 +48,7 @@ export const LayoutInspectorItem = ({ component }: ILayoutInspectorItemProps) =>
       className={classes.item}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={onClick}
     >
       <span className={classes.componentType}>{component.type}</span>
       <span className={classes.componentId}>id: &quot;{component.id}&quot;</span>

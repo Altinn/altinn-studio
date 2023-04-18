@@ -1,0 +1,30 @@
+.container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.panel {
+  min-height: 0;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.separator {
+  align-self: stretch;
+  min-width: 8px;
+  min-height: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.handle {
+  background-color: #666;
+  align-self: stretch;
+  min-width: 2px;
+  min-height: 2px;
+}
+
+.separator:hover .handle {
+  background-color: #333;
+}
