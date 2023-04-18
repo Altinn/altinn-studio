@@ -38,16 +38,28 @@ describe('ProfileMenu', () => {
   it('should show menu with link to documentation when clicking profile button', async () => {
     render();
 
-    expect(screen.queryByRole('menuitem', { name: /dokumentasjon/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: /åpne repository/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: /logout/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', { name: /sync_header.decumentation/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', { name: /dashboard.open_repository/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', { name: /shared.header_logout/i })
+    ).not.toBeInTheDocument();
 
-    const profileBtn = screen.getByRole('button', { name: /profilikon knapp/i });
+    const profileBtn = screen.getByRole('img', { name: /imgIcon/i });
     await act(() => user.click(profileBtn));
 
-    expect(screen.getByRole('menuitem', { name: /dokumentasjon/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /åpne repository/i })).toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: /logout/i })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: /sync_header.decumentation/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: /dashboard.open_repository/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', { name: /shared.header_logout/i })
+    ).not.toBeInTheDocument();
   });
 
   it('should show menu with link to documentation, logout and open repository when showlogout is true, window object has org and repo properties, and clicking profile button', async () => {
@@ -57,38 +69,38 @@ describe('ProfileMenu', () => {
 
     expect(
       screen.queryByRole('link', {
-        name: /dokumentasjon/i,
+        name: /sync_header.decumentation/i,
       })
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('link', {
-        name: /åpne repository/i,
+        name: /dashboard.open_repository/i,
       })
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('menuitem', {
-        name: /logout/i,
+        name: /shared.header_logout/i,
       })
     ).not.toBeInTheDocument();
 
-    const profileBtn = screen.getByRole('button', {
-      name: /profilikon knapp/i,
+    const profileBtn = screen.getByRole('img', {
+      name: /imgIcon/i,
     });
     await act(() => user.click(profileBtn));
 
     expect(
       screen.getByRole('link', {
-        name: /dokumentasjon/i,
+        name: /sync_header.decumentation/i,
       })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('link', {
-        name: /åpne repository/i,
+        name: /dashboard.open_repository/i,
       })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', {
-        name: /logout/i,
+        name: /shared.header_logout/i,
       })
     ).toBeInTheDocument();
   });
