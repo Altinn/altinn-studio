@@ -19,3 +19,5 @@ export const userService: UserService = {
   getCurrentUser,
   logout,
 };
+export { User };
+

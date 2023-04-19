@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import { getTopBarMenu, TopBarMenu } from './appBarConfig';
@@ -14,7 +14,6 @@ import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { publiserPath } from 'app-shared/api-paths';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { useUserQuery } from 'app-development/query-hooks/useUserQuery';
-import { HeaderContext, getOrgNameById } from 'app-shared/navigation/main-header/Header';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -31,9 +30,6 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
     window.location.href = publiserPath(org, app);
   };
   const { data: user } = useUserQuery();
-  const { selectedContext, selectableOrgs } = useContext(HeaderContext);
-
-  const orgFullName = getOrgNameById(selectedContext as number, selectableOrgs);
 
   return (
     <div className={classes.root}>
@@ -87,7 +83,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
                 <span>
                   {user.login === org
                     ? user.login
-                    : t('shared.header_user_for_org', { user: user.login, orgFullName })}
+                    : t('shared.header_user_for_org', { user: user.login, org })}
                 </span>
                 <ProfileMenu showlogout user={user} />
               </>
