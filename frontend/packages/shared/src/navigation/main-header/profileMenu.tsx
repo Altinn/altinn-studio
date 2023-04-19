@@ -6,12 +6,14 @@ import { post } from '../../utils/networking';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api-paths';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { User } from 'app-shared/types/User';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
+  user: User;
 }
 
-export function ProfileMenu({ showlogout }: IProfileMenuComponentProps) {
+export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
   const [anchorEl, setAnchorEl] = useState<null | Element>(null);
   const { org, app } = useParams();
   const handleClick = (event: any) => setAnchorEl(event.currentTarget);
@@ -25,8 +27,7 @@ export function ProfileMenu({ showlogout }: IProfileMenuComponentProps) {
   return (
     <div>
       <img
-        // url should be moved from her ...
-        src={'https://secure.gravatar.com/avatar/2cce393ac67a2a151bd3c0cb81dc65ba?d=identicon'}
+        src={user.avatar_url}
         className={classes.userAvatar}
         aria-haspopup
         onClick={handleClick}

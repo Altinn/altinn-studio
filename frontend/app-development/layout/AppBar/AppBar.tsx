@@ -13,7 +13,7 @@ import { BranchingIcon } from '@navikt/aksel-icons';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { publiserPath } from 'app-shared/api-paths';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-import { HeaderContext } from 'app-shared/navigation/main-header/Header';
+import { useUserQuery } from 'app-development/query-hooks/useUserQuery';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -29,7 +29,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
   const handlePubliserClick = () => {
     window.location.href = publiserPath(org, app);
   };
-  const { user } = useContext(HeaderContext);
+  const { data: user } = useUserQuery();
 
   return (
     <div className={classes.root}>
@@ -78,12 +78,16 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
             </Button>
           </div>
           <div className={classes.profileMenuWrapper}>
-            <span>
-              {/*  {org === user.full_name
-                ? user.full_name
-                : user.full_name + ' ' + t('shared.header_for') + ' ' + org} */}
-            </span>
-            <ProfileMenu showlogout />
+            {user && (
+              <>
+                <span>
+                  {user.login === org
+                    ? user.login
+                    : t('shared.header_user_for_org', { user: user.login, org })}
+                </span>
+                <ProfileMenu showlogout user={user} />
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -94,6 +98,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
           </div>
           <div className={classes.rightContent}>
             <VersionControlHeader />
+
             <ThreeDotsMenu />
           </div>
         </div>
