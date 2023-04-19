@@ -135,7 +135,9 @@
         "options": [
           {
             "label": "Ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det ",
-            "value": "Ja"
+            "value": "Ja",
+            "description": "Dette er en beskrivelse.",
+            "helpText": "Dette er en hjelpetekst."
           }
         ],
         "required": true,
