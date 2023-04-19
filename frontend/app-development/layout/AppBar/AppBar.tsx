@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import { getTopBarMenu, TopBarMenu } from './appBarConfig';
