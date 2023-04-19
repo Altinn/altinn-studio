@@ -12,6 +12,8 @@ import { Organization } from 'dashboard/services/organizationService';
 import { User } from 'dashboard/services/userService';
 import { useAddRepoMutation } from 'dashboard/hooks/useRepoQueries';
 import { DataModellingFormat } from 'dashboard/services/repoService';
+import { useParams } from 'react-router-dom';
+import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 enum PageState {
   Idle = 'Idle',
@@ -59,7 +61,8 @@ type CreateServiceProps = {
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
   const selectedFormat = DataModellingFormat.XSD;
-  const [selectedOrgOrUser, setSelectedOrgOrUser] = useState('');
+  const { selectedContext = SelectedContextType.Self } = useParams();
+  const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(selectedContext === SelectedContextType.Self ? user.login : selectedContext);
   const [orgErrorMessage, setOrgErrorMessage] = useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
   const [repoName, setRepoName] = useState('');

@@ -1,13 +1,16 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { Organization } from 'dashboard/services/organizationService';
 
 type GetUidFilter = {
   userId: number;
-  selectedContext: number | SelectedContextType;
+  selectedContext: string | SelectedContextType;
+  organizations: Organization[];
 };
 
 export const getUidFilter = ({
   selectedContext,
   userId,
+  organizations,
 }: GetUidFilter): undefined | number | SelectedContextType => {
   if (selectedContext === SelectedContextType.All) {
     return undefined;
@@ -17,5 +20,5 @@ export const getUidFilter = ({
     return userId;
   }
 
-  return selectedContext;
+  return organizations.find((org) => org.username === selectedContext)?.id;
 };

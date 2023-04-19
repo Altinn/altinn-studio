@@ -31,14 +31,14 @@ describe('getReposLabel', () => {
     expect(result).toEqual('my apps');
   });
 
-  it('should return "org-id apps" when selectedContext is org.id', () => {
+  it('should return "org-id apps" when selectedContext is org.username', () => {
     const result = getReposLabel({
-      selectedContext: 1,
+      selectedContext: 'username1',
       t,
       orgs: [
         {
           avatar_url: '',
-          username: '',
+          username: 'username1',
           id: 1,
           full_name: 'org-id',
         },
@@ -48,9 +48,9 @@ describe('getReposLabel', () => {
     expect(result).toEqual('org-id apps');
   });
 
-  it('should return "apps" when selectedContext is org.id, and orgs array is empty', () => {
+  it('should return "apps" when selectedContext is org.username, and orgs array is empty', () => {
     const result = getReposLabel({
-      selectedContext: 1,
+      selectedContext: 'username1',
       t,
       orgs: [],
     });

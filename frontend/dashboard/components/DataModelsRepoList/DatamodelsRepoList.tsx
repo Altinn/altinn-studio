@@ -8,7 +8,8 @@ import { User } from 'dashboard/services/userService';
 import { Organization } from 'dashboard/services/organizationService';
 import { useSearchReposQuery } from 'dashboard/hooks/useRepoQueries';
 import { IRepository } from 'app-shared/types/global';
-import { useAppContext } from '../../contexts/appContext';
+import { useParams } from 'react-router-dom';
+import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 type DataModelsReposListProps = {
   user: User;
@@ -20,12 +21,13 @@ export const DatamodelsReposList = ({
   organizations,
   starredRepos,
 }: DataModelsReposListProps) => {
-  const { selectedContext } = useAppContext();
+  const { selectedContext = SelectedContextType.Self } = useParams();
   const { t } = useTranslation();
 
   const uid = getUidFilter({
     selectedContext,
     userId: user.id,
+    organizations,
   });
 
   const { data: repos, isLoading: isLoadingOrgRepos } = useSearchReposQuery({

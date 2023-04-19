@@ -4,6 +4,7 @@ import type { IGiteaOrganisation, IUser } from '../../types/global';
 import AltinnStudioLogo from './AltinnStudioLogo';
 import { HeaderMenu } from './HeaderMenu';
 import classes from './Header.module.css';
+import { useParams } from 'react-router-dom';
 
 export enum SelectedContextType {
   All = 'all',
@@ -11,31 +12,28 @@ export enum SelectedContextType {
 }
 
 export interface IHeaderContext {
-  selectedContext: string | number;
   selectableOrgs: IGiteaOrganisation[];
-  setSelectedContext: React.Dispatch<React.SetStateAction<number | string | SelectedContextType>>;
   user: IUser;
 }
 
 export const HeaderContext = React.createContext<IHeaderContext>({
-  selectedContext: undefined,
   selectableOrgs: undefined,
-  setSelectedContext: undefined,
   user: undefined,
 });
 
-export const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
-  const org = orgs?.find((o) => o.id === id);
+export const getOrgNameByUsername = (username: string, orgs: IGiteaOrganisation[]) => {
+  const org = orgs?.find((o) => o.username === username);
   return org?.full_name || org?.username;
 };
 
-export const getOrgUsernameById = (id: number, orgs: IGiteaOrganisation[]) => {
-  const org = orgs?.find((o) => o.id === id);
+export const getOrgUsernameByUsername = (username: string, orgs: IGiteaOrganisation[]) => {
+  const org = orgs?.find((o) => o.username === username);
   return org?.username;
 };
 
 export function Header() {
-  const { selectedContext, selectableOrgs } = React.useContext(HeaderContext);
+  const { selectableOrgs } = React.useContext(HeaderContext);
+  const { selectedContext = SelectedContextType.Self } = useParams();
 
   return (
     <AppBar className={classes.appBar} position='static'>
@@ -52,13 +50,13 @@ export function Header() {
                 <Grid data-testid='Header-org-name'>
                   <Typography sx={{ fontSize: '1rem' }}>
                     <span className={classes.divider}>/</span>
-                    {getOrgNameById(selectedContext as number, selectableOrgs)}
+                    {getOrgNameByUsername(selectedContext, selectableOrgs)}
                   </Typography>
                 </Grid>
               )}
           </Grid>
           <Grid item>
-            <HeaderMenu org={getOrgUsernameById(selectedContext as number, selectableOrgs)} />
+            <HeaderMenu org={getOrgUsernameByUsername(selectedContext, selectableOrgs)} />
           </Grid>
         </Grid>
       </Toolbar>

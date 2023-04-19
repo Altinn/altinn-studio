@@ -73,7 +73,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               )}
             </div>
             <Link
-              to='/new'
+              to='new'
               className={classes.newLink}
               onMouseEnter={handleNewLinkFocus}
               onMouseLeave={handleNewLinkFocusOut}
