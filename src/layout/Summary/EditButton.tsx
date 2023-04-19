@@ -6,7 +6,7 @@ import { Edit } from '@navikt/ds-icons';
 export interface IEditButtonProps {
   onClick: () => void;
   editText: string | null;
-  label: React.ReactNode;
+  label: string;
 }
 
 export function EditButton(props: IEditButtonProps) {
