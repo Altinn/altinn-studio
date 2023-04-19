@@ -3,21 +3,18 @@ import { connect } from 'react-redux';
 import { v1 as uuidv1 } from 'uuid';
 import Modal from 'react-modal';
 import { getComponentTitleByComponentType } from '../../utils/language';
-import {
-  makeGetAllLayoutComponents,
-  makeGetALlLayoutContainers,
-  makeGetFullOrder,
-} from '../../selectors/getLayoutData';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type {
   IAppState,
   IFormComponent,
-  IFormDesignerComponents,
+  IFormDesignerComponents, IFormDesignerContainers,
   IFormLayoutOrder,
   IRuleModelFieldElement,
 } from '../../types/global';
 import classes from './ConditionalRenderingComponent.module.css';
 import { withTranslation } from 'react-i18next';
+import { ComponentType } from '../index';
+import { BASE_CONTAINER_ID } from 'app-shared/constants';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: any;
@@ -27,7 +24,7 @@ export interface IConditionalRenderingComponentProps {
   conditionalRendering: any;
   formLayoutComponents: IFormDesignerComponents;
   deleteConnection?: (connectionId: any) => void;
-  formLayoutContainers: any;
+  formLayoutContainers: IFormDesignerContainers;
   order: IFormLayoutOrder;
   t: any;
 }
@@ -215,7 +212,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
       return options;
     }
     if (!baseContainer) {
-      const name = getComponentTitleByComponentType('Group', this.props.t);
+      const name = getComponentTitleByComponentType(ComponentType.Group, this.props.t);
       options.push(
         <option key={id} value={id}>
           {`${name} (${id})`}
@@ -241,7 +238,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
     const options: JSX.Element[] = [];
     Object.keys(this.props.order).forEach((key) => {
       const containerKey = Object.keys(this.props.order)[0];
-      const isBaseContainer = this.props.formLayoutContainers[containerKey]?.Type !== 'Group';
+      const isBaseContainer = containerKey === BASE_CONTAINER_ID;
       const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(
         key,
         isBaseContainer
@@ -430,16 +427,10 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
 }
 
 const mapStateToProps = (state: IAppState, props: any): any => {
-  const getAllContainers = makeGetALlLayoutContainers();
-  const getAllComponents = makeGetAllLayoutComponents();
-  const getFullOrder = makeGetFullOrder();
   return {
     ruleModelElements: state.appData.ruleModel.model.filter((key: any) => key.type === 'condition'),
     conditionalRendering: state.serviceConfigurations.conditionalRendering,
     selectedFunction: props.selectedFunction,
-    formLayoutComponents: getAllComponents(state),
-    formLayoutContainers: getAllContainers(state),
-    order: getFullOrder(state),
   };
 };
 

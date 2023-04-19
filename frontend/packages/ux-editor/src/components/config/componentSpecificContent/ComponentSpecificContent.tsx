@@ -6,7 +6,7 @@ import { FileUploadComponent } from './FileUpload';
 import { SelectComponent } from './Select';
 import { CheckboxComponent } from './Checkbox';
 import type { IGenericEditComponent } from '../componentConfig';
-import { ComponentTypes } from '../..';
+import { ComponentType } from '../..';
 import { useText } from '../../../hooks';
 import type { IFormImageComponent } from '../../../types/global';
 import { MapComponent } from './Map';
@@ -20,8 +20,8 @@ export function ComponentSpecificContent({
   const t = useText();
 
   switch (component.type) {
-    case ComponentTypes.NavigationButtons:
-    case ComponentTypes.Button:
+    case ComponentType.NavigationButtons:
+    case ComponentType.Button:
       return (
         <ButtonComponent
           component={component}
@@ -30,7 +30,7 @@ export function ComponentSpecificContent({
         />
       );
 
-    case ComponentTypes.AddressComponent:
+    case ComponentType.AddressComponent:
       return (
         <AddressComponent
           component={component}
@@ -39,8 +39,8 @@ export function ComponentSpecificContent({
         />
       );
 
-    case ComponentTypes.FileUpload:
-    case ComponentTypes.FileUploadWithTag:
+    case ComponentType.FileUpload:
+    case ComponentType.FileUploadWithTag:
       return (
         <FileUploadComponent
           component={component}
@@ -49,7 +49,7 @@ export function ComponentSpecificContent({
         />
       );
 
-    case ComponentTypes.Image: {
+    case ComponentType.Image: {
       return (
         <ImageComponent
           component={component as IFormImageComponent}
@@ -59,7 +59,7 @@ export function ComponentSpecificContent({
       );
     }
 
-    case ComponentTypes.Panel: {
+    case ComponentType.Panel: {
       return (
         <>
           <EditTextResourceBinding
@@ -100,7 +100,7 @@ export function ComponentSpecificContent({
       );
     }
 
-    case ComponentTypes.Map: {
+    case ComponentType.Map: {
       return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
     }
     default: {

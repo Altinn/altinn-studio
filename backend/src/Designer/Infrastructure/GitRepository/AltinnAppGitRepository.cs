@@ -34,6 +34,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
         private const string LAYOUT_SETS_FILENAME = "layout-sets.json";
+        private const string RULE_HANDLER_FILENAME = "ruleHandler.js";
+        private const string RULE_CONFIGURATION_FILENAME = "RuleConfiguration.json";
 
         private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
 
@@ -194,6 +196,27 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public string GetRelativeModelFolder()
         {
             return MODEL_FOLDER_PATH;
+        }
+
+        public List<string> GetLanguages()
+        {
+            List<string> languages = new();
+            string pathToTexts = GetPathToTexts();
+            if (!Directory.Exists(pathToTexts))
+            {
+                Directory.CreateDirectory(pathToTexts);
+            }
+
+            string[] directoryFiles = GetFilesByRelativeDirectory(pathToTexts);
+            foreach (string directoryFile in directoryFiles)
+            {
+                string fileName = Path.GetFileName(directoryFile);
+                string[] nameParts = fileName.Split('.');
+                languages.Add(nameParts[1]);
+                languages.Sort(StringComparer.Ordinal);
+            }
+
+            return languages;
         }
 
         /// <summary>
@@ -482,11 +505,72 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         public async Task<LayoutSets> GetLayoutSetsFile()
         {
-            string layoutSetsFilePath = GetPathToLayoutSetsFile();
-            string fileContent = await ReadTextByRelativePathAsync(layoutSetsFilePath);
-            LayoutSets layoutSetsFile = JsonSerializer.Deserialize<LayoutSets>(fileContent, _jsonOptions);
+            if (AppUsesLayoutSets())
+            {
+                string layoutSetsFilePath = GetPathToLayoutSetsFile();
+                string fileContent = await ReadTextByRelativePathAsync(layoutSetsFilePath);
+                LayoutSets layoutSetsFile = JsonSerializer.Deserialize<LayoutSets>(fileContent, _jsonOptions);
+                return layoutSetsFile;
+            }
 
-            return layoutSetsFile;
+            throw new NotFoundException("No layoutset was found for this app");
+        }
+
+        /// <summary>
+        /// Saves the RuleHandler.js for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="ruleHandler">The layoutsettings to be saved</param>
+        /// <returns>The content of Settings.json</returns>
+        public async Task SaveRuleHandler(string layoutSetName, string ruleHandler)
+        {
+            string ruleHandlerPath = GetPathToRuleHandler(layoutSetName);
+            await WriteTextByRelativePathAsync(ruleHandlerPath, ruleHandler);
+        }
+
+        /// <summary>
+        /// Gets the RuleHandler.js for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <returns>The content of Settings.json</returns>
+        public async Task<string> GetRuleHandler(string layoutSetName)
+        {
+            string ruleHandlerPath = GetPathToRuleHandler(layoutSetName);
+            if (FileExistsByRelativePath(ruleHandlerPath))
+            {
+                string ruleHandler = await ReadTextByRelativePathAsync(ruleHandlerPath);
+                return ruleHandler;
+            }
+
+            throw new FileNotFoundException("Rule handler not found.");
+        }
+
+        /// <summary>
+        /// Saves the RuleConfiguration.json for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="ruleConfiguration">The layoutsettings to be saved</param>
+        /// <returns>The content of Settings.json</returns>
+        public async Task SaveRuleConfiguration(string layoutSetName, string ruleConfiguration)
+        {
+            string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);
+            await WriteTextByRelativePathAsync(ruleConfigurationPath, ruleConfiguration);
+        }
+
+        /// <summary>
+        /// Gets the RuleConfiguration.json for a specific layoutset
+        /// </summary>
+        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <returns>The content of Settings.json</returns>
+        public async Task<string> GetRuleConfiguration(string layoutSetName)
+        {
+            string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);
+            if (FileExistsByRelativePath(ruleConfigurationPath))
+            {
+                string ruleConfiguration = await ReadTextByRelativePathAsync(ruleConfigurationPath);
+                return ruleConfiguration;
+            }
+            throw new NotFoundException("Rule configuration not found.");
         }
 
         /// <summary>
@@ -497,6 +581,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private string GetRelativeModelFilePath(string modelName)
         {
             return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");
+        }
+
+        private static string GetPathToTexts()
+        {
+            return Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
         }
 
         private static string GetPathToJsonTextsFile([CanBeNull] string fileName)
@@ -538,6 +627,20 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private static string GetPathToLayoutSetsFile()
         {
             return Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETS_FILENAME);
+        }
+
+        private static string GetPathToRuleHandler(string layoutSetName)
+        {
+            return layoutSetName.IsNullOrEmpty() ?
+                Path.Combine(LAYOUTS_FOLDER_NAME, RULE_HANDLER_FILENAME) :
+                Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, RULE_HANDLER_FILENAME);
+        }
+
+        private static string GetPathToRuleConfiguration(string layoutSetName)
+        {
+            return layoutSetName.IsNullOrEmpty() ?
+                Path.Combine(LAYOUTS_FOLDER_NAME, RULE_CONFIGURATION_FILENAME) :
+                Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, RULE_CONFIGURATION_FILENAME);
         }
 
         /// <summary>

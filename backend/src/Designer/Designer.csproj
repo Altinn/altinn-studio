@@ -21,6 +21,7 @@
     <PackageReference Include="Altinn.Common.AccessToken" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" />
+    <PackageReference Include="Altinn.Platform.Models" />
     <PackageReference Include="CompilerAttributes" />
     <PackageReference Include="ini-parser-netstandard" />
     <PackageReference Include="JWTCookieAuthentication" />

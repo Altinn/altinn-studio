@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -35,6 +34,9 @@ namespace Altinn.Studio.Designer.Controllers
                     return repo;
                 }
             }
+
+            return StatusCode(204);
+        }
 
             return StatusCode(204);
         }

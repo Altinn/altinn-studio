@@ -1,21 +1,21 @@
 import React, { useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { RightMenu } from '../components/rightMenu/RightMenu';
 import { DesignView } from './DesignView';
-import type { IDataModelFieldElement, IFormLayoutOrder } from '../types/global';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import type { IFormLayoutOrder } from '../types/global';
 import { deepCopy } from 'app-shared/pure';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
 import { useText } from '../hooks';
 import { useParams } from 'react-router-dom';
+import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
+import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 
 type FormDesignerProps = {
   selectedLayout: string;
-  dataModel: IDataModelFieldElement[];
   activeList: any;
   layoutOrder: IFormLayoutOrder;
 };
@@ -23,18 +23,18 @@ export const FormDesigner = ({
   activeList,
   layoutOrder,
   selectedLayout,
-  dataModel,
 }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useParams();
-  const order = useSelector(makeGetLayoutOrderSelector());
+  const { order } = useFormLayoutsSelector(selectedLayoutSelector);
+  const addLayoutMutation = useAddLayoutMutation(org, app);
   const layoutOrderCopy = deepCopy(layoutOrder || {});
   const t = useText();
 
   useEffect((): void => {
     const addInitialPage = (): void => {
-      const name = `${t('general.page')}1`;
-      dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
+      const layoutName = `${t('general.page')}1`;
+      addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
     };
 
     const layoutsExist = layoutOrder && !Object.keys(layoutOrder).length;
@@ -43,7 +43,7 @@ export const FormDesigner = ({
     if (selectedLayout === 'default' && !layoutsExist) {
       addInitialPage();
     }
-  }, [app, dispatch, org, selectedLayout, t, layoutOrder]);
+  }, [app, dispatch, org, selectedLayout, t, layoutOrder, addLayoutMutation]);
 
   return (
     <DndProvider backend={HTML5Backend}>

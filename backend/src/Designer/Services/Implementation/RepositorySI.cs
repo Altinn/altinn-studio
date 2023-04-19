@@ -232,33 +232,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the app languages
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The text</returns>
-        public List<string> GetLanguages(string org, string app)
-        {
-            List<string> languages = new();
-
-            string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (!Directory.Exists(resourcePath))
-            {
-                Directory.CreateDirectory(resourcePath);
-            }
-
-            string[] directoryFiles = Directory.GetFiles(resourcePath, "resource.*.json");
-            foreach (string directoryFile in directoryFiles)
-            {
-                string fileName = Path.GetFileName(directoryFile);
-                string[] nameParts = fileName.Split('.');
-                languages.Add(nameParts[1]);
-            }
-
-            return languages;
-        }
-
-        /// <summary>
         /// Get the Json form model from disk for Dynamics
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

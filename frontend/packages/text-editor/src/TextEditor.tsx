@@ -44,7 +44,7 @@ export const TextEditor = ({
   const selectedLangCodes = textResourceFiles.map((translation) => translation.language);
 
   const availableLangCodesFiltered = useMemo(
-    () => availableLanguages.filter((code) => ISO6391.validate(code)),
+    () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages]
   );
 
@@ -100,6 +100,7 @@ export const TextEditor = ({
             searchQuery={searchQuery}
             updateEntryId={updateEntryId}
             upsertTextResource={upsertTextResource}
+            selectedLanguages={selectedLangCodes}
           />
         </div>
       </div>

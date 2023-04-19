@@ -6,10 +6,10 @@ import {
   IFormCheckboxComponent,
   IFormRadioButtonComponent,
 } from '../../types/global';
-import { ComponentTypes } from '../../components';
+import { ComponentType } from '../../components';
 
 // Test data:
-const component: FormComponentType = { id: '1' };
+const component: FormComponentType = { id: '1', type: ComponentType.Input, itemType: 'COMPONENT' };
 const handleComponentChange = jest.fn();
 const defaultProps: ComponentPreviewProps = {
   component,
@@ -34,7 +34,7 @@ describe('ComponentPreview', () => {
       ...component,
       options: [],
       optionsId: '1',
-      type: ComponentTypes.Checkboxes,
+      type: ComponentType.Checkboxes,
     };
     render({ component: checkboxesComponent });
     expect(screen.getByTestId(checkboxGroupPreviewId)).toBeInTheDocument();
@@ -45,30 +45,30 @@ describe('ComponentPreview', () => {
       ...component,
       options: [],
       optionsId: '1',
-      type: ComponentTypes.RadioButtons,
+      type: ComponentType.RadioButtons,
     };
     render({ component: radiosComponent });
     expect(screen.getByTestId(radioGroupPreviewId)).toBeInTheDocument();
   });
 
   it.each([
-    ComponentTypes.AddressComponent,
-    ComponentTypes.AttachmentList,
-    ComponentTypes.Datepicker,
-    ComponentTypes.Dropdown,
-    ComponentTypes.FileUpload,
-    ComponentTypes.FileUploadWithTag,
-    ComponentTypes.Group,
-    ComponentTypes.Header,
-    ComponentTypes.Image,
-    ComponentTypes.Input,
-    ComponentTypes.NavigationBar,
-    ComponentTypes.Map,
-    ComponentTypes.Panel,
-    ComponentTypes.Paragraph,
-    ComponentTypes.TextArea,
-    ComponentTypes.ThirdParty,
-  ])('Renders error text when component type is %s', (type: ComponentTypes) => {
+    ComponentType.AddressComponent,
+    ComponentType.AttachmentList,
+    ComponentType.Datepicker,
+    ComponentType.Dropdown,
+    ComponentType.FileUpload,
+    ComponentType.FileUploadWithTag,
+    ComponentType.Group,
+    ComponentType.Header,
+    ComponentType.Image,
+    ComponentType.Input,
+    ComponentType.NavigationBar,
+    ComponentType.Map,
+    ComponentType.Panel,
+    ComponentType.Paragraph,
+    ComponentType.TextArea,
+    ComponentType.ThirdParty,
+  ])('Renders error text when component type is %s', (type: ComponentType) => {
     render({ component: { ...component, type } });
     expect(
       screen.getByText('Forhåndsvisning er ikke implementert for denne komponenten.')

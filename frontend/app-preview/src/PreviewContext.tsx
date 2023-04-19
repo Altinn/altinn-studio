@@ -15,7 +15,7 @@ export const PreviewContext = (props: any) => {
   const [data, setData] = useState<undefined>();
   useEffect(() => {
     axios
-      .get(`/designer/api/${org}/${app}/preview-status`)
+      .get(`/${org}/${app}/preview/preview-status`)
       .then((result) => setData(result.data))
       .finally(() => setIsReady(true));
   }, [app, org]);

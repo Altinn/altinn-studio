@@ -19,6 +19,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task CreateLanguageResources(string org, string repo, string developer);
 
         /// <summary>
+        /// Returns the app languages
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">Username of developer</param>
+        /// <returns>The text</returns>
+        public List<string> GetLanguages(string org, string app, string developer);
+
+        /// <summary>
         /// Gets texts file in old format in app repository according to
         /// specified languageCode.
         /// </summary>

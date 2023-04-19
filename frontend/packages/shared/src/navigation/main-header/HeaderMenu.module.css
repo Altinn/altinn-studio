@@ -7,6 +7,7 @@
   text-align: right;
 }
 
-.iconButton:hover, .iconButton:focus {
+.iconButton:hover,
+.iconButton:focus {
   background-color: #193d61;
 }

@@ -1,5 +1,5 @@
 import { getComponentHelperTextByComponentType } from './language';
-import { ComponentTypes } from '../components';
+import { ComponentType } from '../components';
 
 const language = {
   'ux_editor.helper_text_for_header': 'header help text',
@@ -13,36 +13,35 @@ const language = {
 
 describe('Designer > utils/language', () => {
   it('should return specific help text when component type is known', () => {
-    expect(getComponentHelperTextByComponentType(ComponentTypes.Header, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.Header, language)).toBe(
       language['ux_editor.helper_text_for_header']
     );
-    expect(getComponentHelperTextByComponentType(ComponentTypes.Input, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.Input, language)).toBe(
       language['ux_editor.helper_text_for_input']
     );
-    expect(getComponentHelperTextByComponentType(ComponentTypes.Checkboxes, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.Checkboxes, language)).toBe(
       language['ux_editor.helper_text_for_check_box']
     );
-    expect(getComponentHelperTextByComponentType(ComponentTypes.RadioButtons, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.RadioButtons, language)).toBe(
       language['ux_editor.helper_text_for_radio_button']
     );
-    expect(getComponentHelperTextByComponentType(ComponentTypes.Image, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.Image, language)).toBe(
       language['ux_editor.helper_text_for_image']
     );
-    expect(getComponentHelperTextByComponentType(ComponentTypes.AttachmentList, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.AttachmentList, language)).toBe(
       language['ux_editor.helper_text_for_attachment_list']
     );
   });
 
   it('should return fallback help text when component type is unknown', () => {
-    const unknownComponentTypes = [
-      ComponentTypes.Paragraph,
-      ComponentTypes.Datepicker,
-      ComponentTypes.Dropdown,
-      ComponentTypes.TextArea,
-      ComponentTypes.FileUpload,
-      ComponentTypes.AddressComponent,
-      ComponentTypes.Group,
-      'undefined-component-type',
+    const unknownComponentTypes: ComponentType[] = [
+      ComponentType.Paragraph,
+      ComponentType.Datepicker,
+      ComponentType.Dropdown,
+      ComponentType.TextArea,
+      ComponentType.FileUpload,
+      ComponentType.AddressComponent,
+      ComponentType.Group,
     ];
 
     unknownComponentTypes.forEach((componentType) => {

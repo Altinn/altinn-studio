@@ -1,0 +1,17 @@
+﻿{
+    "language": "en",
+    "resources": [
+        {
+            "id": "appName",
+            "value": "preview-app"
+        },
+        {
+            "id": "side1-ledetekst",
+            "value": "test lead text"
+        },
+        {
+            "id": "Side2.Input-vl2X7X.title",
+            "value": "new text"
+        }
+    ]
+}

@@ -51,6 +51,7 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
     updateEntryId: (_arg) => undefined,
     removeEntry: (_arg) => undefined,
     upsertTextResource: (_entry) => undefined,
+    selectedLanguages: ['nb', 'en', 'nn'],
     ...props,
   };
   const user = userEvent.setup();

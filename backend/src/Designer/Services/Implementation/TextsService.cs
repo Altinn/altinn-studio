@@ -44,6 +44,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        public List<string> GetLanguages(string org, string app, string developer)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            List<string> languages = altinnAppGitRepository.GetLanguages();
+
+            return languages;
+        }
+
+        /// <inheritdoc />
         public async Task<TextResource> GetTextV1(string org, string repo, string developer, string languageCode)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);

@@ -13,6 +13,8 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+
 describe('Administration', () => {
   const mockService: IRepository = {
     clone_url: '',
