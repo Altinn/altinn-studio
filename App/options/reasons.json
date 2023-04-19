@@ -29,9 +29,7 @@
   },
   {
     "label": "Jeg tror navnet er nytt i Norge",
-    "value": "8",
-    "description": "Dette er en beskrivelse.",
-    "helpText": "Dette er en hjelpetekst."
+    "value": "8"
   },
   {
     "label": "Annen begrunnelse ",
