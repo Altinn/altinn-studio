@@ -12,12 +12,13 @@ import { OrgReposList } from '../../components/OrgRepoList';
 import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
 import { Footer } from '../../components/Footer';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
 import { User } from 'dashboard/services/userService';
 import { Organization } from 'dashboard/services/organizationService';
 import { useGetStarredRepos } from 'dashboard/hooks/useRepoQueries';
+import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 type DashboardProps = {
   user: User;
@@ -27,6 +28,7 @@ type DashboardProps = {
 
 export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
+  const { selectedContext = SelectedContextType.Self } = useParams();
   const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useGetStarredRepos();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
@@ -73,7 +75,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               )}
             </div>
             <Link
-              to='new'
+              to={'/' + selectedContext + '/new'}
               className={classes.newLink}
               onMouseEnter={handleNewLinkFocus}
               onMouseLeave={handleNewLinkFocusOut}

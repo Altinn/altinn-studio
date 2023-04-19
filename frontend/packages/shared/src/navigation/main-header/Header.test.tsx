@@ -12,6 +12,7 @@ jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useParams: jest.fn(),
   useNavigate: jest.fn(),
+  useLocation: jest.fn()
 }));
 
 describe('Header', () => {
