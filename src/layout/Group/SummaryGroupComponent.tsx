@@ -1,16 +1,15 @@
 import React from 'react';
 
-import { Grid, makeStyles, Typography } from '@material-ui/core';
 import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
+import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
 import { ComponentType } from 'src/layout/LayoutComponent';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
@@ -24,55 +23,6 @@ export interface ISummaryGroupComponent {
   overrides?: ISummaryComponent['overrides'];
 }
 
-const gridStyle = {
-  paddingTop: '12px',
-};
-
-const useStyles = makeStyles({
-  border: {
-    border: '2px solid #EFEFEF',
-    marginTop: 12,
-    marginBottom: 12,
-    padding: 12,
-    '@media print': {
-      pageBreakInside: 'avoid',
-    },
-  },
-  container: {
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  label: {
-    fontWeight: 500,
-    fontSize: '1.125rem',
-    '& p': {
-      fontWeight: 500,
-      fontSize: '1.125rem',
-    },
-  },
-  labelWithError: {
-    color: AltinnAppTheme.altinnPalette.primary.red,
-    '& p': {
-      color: AltinnAppTheme.altinnPalette.primary.red,
-    },
-  },
-  link: {
-    background: 'none',
-    border: 'none',
-    borderBottom: '2px solid #008FD6',
-    cursor: 'pointer',
-    paddingLeft: 0,
-  },
-  emptyField: {
-    fontStyle: 'italic',
-    fontSize: '1rem',
-    lineHeight: 1.6875,
-    marginTop: 4,
-  },
-});
-
 export function SummaryGroupComponent({
   onChangeClick,
   changeText,
@@ -80,7 +30,6 @@ export function SummaryGroupComponent({
   targetNode,
   overrides,
 }: ISummaryGroupComponent) {
-  const classes = useStyles();
   const textResourceBindings = targetNode.item.textResourceBindings;
   const excludedChildren = summaryNode.item.excludedChildren;
   const display = overrides?.display || summaryNode.item.display;
@@ -164,7 +113,6 @@ export function SummaryGroupComponent({
   if (!language) {
     return null;
   }
-
   return (
     <>
       <div
@@ -172,13 +120,11 @@ export function SummaryGroupComponent({
         style={{ width: '100%' }}
       >
         <div className={classes.container}>
-          <Typography
-            variant='body1'
+          <span
             className={cn(classes.label, groupHasErrors && !display?.hideValidationMessages && classes.labelWithError)}
-            component='span'
           >
             {title}
-          </Typography>
+          </span>
 
           {!display?.hideChangeButton ? (
             <EditButton
@@ -190,13 +136,7 @@ export function SummaryGroupComponent({
         </div>
         <div style={{ width: '100%' }}>
           {rowIndexes.length === 0 ? (
-            <Typography
-              variant='body1'
-              className={classes.emptyField}
-              component='p'
-            >
-              {getLanguageFromKey('general.empty_summary', language)}
-            </Typography>
+            <span className={classes.emptyField}>{getLanguageFromKey('general.empty_summary', language)}</span>
           ) : (
             rowIndexes.map((idx) => {
               const childSummaryComponents = targetNode
@@ -233,15 +173,9 @@ export function SummaryGroupComponent({
       </div>
 
       {groupHasErrors && !display?.hideValidationMessages && (
-        <Grid
-          container={true}
-          style={gridStyle}
-        >
+        <div className={classes.gridStyle}>
           <ErrorPaper message={getLanguageFromKey('group.row_error', language)} />
-          <Grid
-            item={true}
-            xs={12}
-          >
+          <div>
             {!display?.hideChangeButton && (
               <button
                 className={classes.link}
@@ -251,8 +185,8 @@ export function SummaryGroupComponent({
                 {getTextFromAppOrDefault('form_filler.summary_go_to_correct_page', textResources, language, [], true)}
               </button>
             )}
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       )}
     </>
   );

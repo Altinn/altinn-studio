@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Grid, makeStyles } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
@@ -9,6 +9,7 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SummaryBoilerplate } from 'src/layout/Summary/SummaryBoilerplate';
+import classes from 'src/layout/Summary/SummaryComponent.module.css';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
@@ -27,26 +28,10 @@ export interface ISummaryComponent {
   };
 }
 
-const useStyles = makeStyles({
-  border: {
-    marginBottom: 10,
-    paddingBottom: 10,
-    borderBottom: '1px dashed #008FD6',
-  },
-  link: {
-    background: 'none',
-    border: 'none',
-    borderBottom: '2px solid #008FD6',
-    cursor: 'pointer',
-    paddingLeft: 0,
-  },
-});
-
 export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) {
   const { id, grid, componentRef } = summaryNode.item;
   const { pageRef } = summaryNode.item;
   const display = overrides?.display || summaryNode.item.display;
-  const classes = useStyles();
   const dispatch = useAppDispatch();
   const summaryPageName = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const changeText = useAppSelector(

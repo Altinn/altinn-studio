@@ -1,0 +1,8 @@
+.data {
+  font-weight: 500;
+}
+
+.emptyField {
+  font-style: italic;
+  font-size: 0.875rem;
+}

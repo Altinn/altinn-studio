@@ -1,55 +1,22 @@
 import React from 'react';
 
-import { Grid, makeStyles, Typography } from '@material-ui/core';
-
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import classes from 'src/layout/Summary/SummaryItemSimple.module.css';
 
 export interface ISummaryItemSimple {
   formDataAsString: string | undefined;
 }
 
-const useStyles = makeStyles({
-  data: {
-    fontWeight: 500,
-    fontSize: '1.125rem',
-    '& p': {
-      fontWeight: 500,
-      fontSize: '1.125rem',
-    },
-  },
-  emptyField: {
-    fontStyle: 'italic',
-    fontSize: '1rem',
-    lineHeight: 1.6875,
-  },
-});
-
 export function SummaryItemSimple({ formDataAsString }: ISummaryItemSimple) {
-  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
-
   return (
-    <Grid
-      item
-      xs={12}
-      data-testid={'summary-item-simple'}
-    >
+    <div data-testid={'summary-item-simple'}>
       {formDataAsString ? (
-        <Typography
-          className={classes.data}
-          variant='body1'
-        >
-          {formDataAsString}
-        </Typography>
+        <span className={classes.data}>{formDataAsString}</span>
       ) : (
-        <Typography
-          variant='body1'
-          className={classes.emptyField}
-        >
-          {getLanguageFromKey('general.empty_summary', language || {})}
-        </Typography>
+        <span className={classes.emptyField}>{getLanguageFromKey('general.empty_summary', language || {})}</span>
       )}
-    </Grid>
+    </div>
   );
 }

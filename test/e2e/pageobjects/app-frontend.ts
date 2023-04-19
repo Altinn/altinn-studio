@@ -29,6 +29,7 @@ export class AppFrontend {
   public instantiationButton = '#instantiation-button';
   public errorReport = '[data-testid="ErrorReport"]';
   public altinnError = '[data-testid="AltinnError"]';
+  public instanceErrorCode = '[data-testid="StatusCode"]';
   public profileIconButton = '#profile-icon-button';
   public logOut = '#logout-menu-item';
   public logOutLink = 'a[href$="/ui/authentication/LogOut"]';

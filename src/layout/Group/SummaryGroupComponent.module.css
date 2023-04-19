@@ -1,0 +1,44 @@
+.gridStyle {
+  padding-top: 12px;
+}
+
+.border {
+  border: 2px solid #efefef;
+  margin: 12px 0;
+  padding: 12px;
+}
+@media print {
+  .border {
+    page-break-inside: avoid;
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.label {
+  font-weight: 500;
+  font-size: 1.125rem;
+}
+
+.labelError {
+  color: #d5203b;
+}
+.link {
+  background: none;
+  border: none;
+  border-bottom: var(--solid-border-primary);
+  cursor: pointer;
+  padding-left: 0px;
+}
+
+.emptyField {
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.6875;
+  margin-top: 4px;
+}

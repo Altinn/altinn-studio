@@ -1,0 +1,28 @@
+.flexContainer {
+  display: flex;
+  max-width: 750px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.contentContainer {
+  max-width: 500px;
+}
+.contentMargin {
+  display: block;
+  margin-bottom: 24px;
+}
+.statusCode {
+  font-size: 0.875rem;
+}
+.articleText {
+  font-size: 1.125rem;
+}
+.title {
+  font-weight: 500;
+  color: #022f51;
+}
+
+.imageContainer {
+  align-self: flex-end;
+}

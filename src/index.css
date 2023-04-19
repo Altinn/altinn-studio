@@ -15,7 +15,11 @@
   --repeating-group-edit-divider-color: var(--colors-blue-200);
   --repeating-group-error-color: var(--colors-red-200);
 
-  --file-list-border-color: #008fd6;
+  /*Border styles*/
+  --border-color-primary: #008fd6;
+  --dashed-border-primary: 1px dashed var(--border-color-primary);
+  --solid-border-primary: 2px solid var(--border-color-primary);
+  --dotted-border-primary: 2px dotted var(--border-color-primary);
 }
 
 @media only screen and (min-width: 768px) {
@@ -131,12 +135,12 @@ option {
 }
 
 .a-form-group .form-control {
-  border: 2px solid #008fd6;
+  border: var(--solid-border-primary);
   background-color: #fff;
 }
 
 .a-form-group .input-group .input-group-prepend {
-  border: 2px solid #008fd6;
+  border: var(--solid-border-primary);
 }
 
 .attachmentList-title p {

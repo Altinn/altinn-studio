@@ -21,7 +21,7 @@
 }
 
 .tableMobile thead tr th {
-  border-bottom: 2px solid var(--file-list-border-color);
+  border-bottom: var(--solid-border-primary);
 }
 
 .tableMobile thead,
@@ -32,7 +32,7 @@
 }
 
 .tableMobile tbody tr {
-  border-bottom: 2px dotted var(--file-list-border-color);
+  border-bottom: var(--dotted-border-primary);
 }
 
 .tableMobile tbody tr td {
@@ -55,7 +55,7 @@
 }
 
 .tableHeader {
-  border-bottom: 2px solid var(--file-list-border-color);
+  border-bottom: var(--solid-border-primary);
 }
 
 .tableHeader tr th {
@@ -74,7 +74,7 @@
   overflow: hidden;
   font-family: 'Altinn-DIN', sans-serif;
   font-weight: 400;
-  border-bottom: 1px dotted var(--file-list-border-color);
+  border-bottom: 1px dotted var(--border-color-primary);
   color: #000;
 }
 

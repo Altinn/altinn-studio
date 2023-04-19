@@ -7,10 +7,10 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
     style="width: 100%;"
   >
     <div
-      class="makeStyles-container-2"
+      class="container"
     >
       <span
-        class="MuiTypography-root makeStyles-label-3 MuiTypography-body1"
+        class="label"
       >
         Mock group
       </span>
@@ -44,10 +44,9 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       style="width: 100%;"
     >
       <div
-        class="makeStyles-border-1"
+        class="border"
       >
-        <p
-          class="MuiTypography-root MuiTypography-body1"
+        <div
           data-testid="summary-item-compact"
         >
           <span>
@@ -57,13 +56,12 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
              : 
           </span>
           <span
-            class="makeStyles-data-7"
+            class="data"
           >
             1
           </span>
-        </p>
-        <p
-          class="MuiTypography-root MuiTypography-body1"
+        </div>
+        <div
           data-testid="summary-item-compact"
         >
           <span>
@@ -73,11 +71,11 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
              : 
           </span>
           <span
-            class="makeStyles-data-7"
+            class="data"
           >
             2
           </span>
-        </p>
+        </div>
       </div>
     </div>
   </div>

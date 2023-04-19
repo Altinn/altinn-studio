@@ -1,9 +1,7 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { Common } from 'test/e2e/pageobjects/common';
 
 const appFrontend = new AppFrontend();
-const mui = new Common();
 
 describe('Redirect', () => {
   beforeEach(() => {
@@ -15,7 +13,7 @@ describe('Redirect', () => {
       statusCode: 403,
     });
     cy.startAppInstance(appFrontend.apps.frontendTest);
-    cy.get(mui.caption).should('have.text', 'Feil 403');
+    cy.get(appFrontend.instanceErrorCode).should('have.text', 'Feil 403');
     cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
   });
 
@@ -24,7 +22,7 @@ describe('Redirect', () => {
       statusCode: 401,
     });
     cy.startAppInstance(appFrontend.apps.frontendTest);
-    cy.get(mui.caption).should('have.text', 'Ukjent feil');
+    cy.get(appFrontend.instanceErrorCode).should('have.text', 'Ukjent feil');
     cy.get(appFrontend.altinnError).should('contain.text', texts.tryAgain);
   });
 });

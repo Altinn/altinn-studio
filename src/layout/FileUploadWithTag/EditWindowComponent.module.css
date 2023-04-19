@@ -25,7 +25,7 @@
 
 .editContainer {
   display: inline-block;
-  border: 2px dotted var(--file-list-border-color);
+  border: var(--dotted-border-primary);
   padding: 12px;
   width: 100%;
   margin-top: 12px;
