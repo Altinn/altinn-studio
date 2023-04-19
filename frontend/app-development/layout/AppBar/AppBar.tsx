@@ -14,6 +14,7 @@ import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { publiserPath } from 'app-shared/api-paths';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { useUserQuery } from 'app-development/query-hooks/useUserQuery';
+import { useOrganizationQuery } from 'app-development/query-hooks/useOrganizationQuery';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -30,6 +31,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
     window.location.href = publiserPath(org, app);
   };
   const { data: user } = useUserQuery();
+  const { data: organizations } = useOrganizationQuery();
 
   return (
     <div className={classes.root}>
@@ -83,7 +85,10 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
                 <span>
                   {user.login === org
                     ? user.login
-                    : t('shared.header_user_for_org', { user: user.login, org })}
+                    : t('shared.header_user_for_org', {
+                        user: user.login,
+                        organizations: organizations.full_name,
+                      })}
                 </span>
                 <ProfileMenu showlogout user={user} />
               </>
