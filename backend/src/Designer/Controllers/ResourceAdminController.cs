@@ -56,14 +56,14 @@ namespace Altinn.Studio.Designer.Controllers
                 string[] idSplit = id.Split(':');
                 string repo = idSplit[1];
                 List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repo);
-                return repositoryResourceList.First();
+                return repositoryResourceList != null ? repositoryResourceList.First() : StatusCode(204);
             }
             else if (id.ToLower().Contains("id:"))
             {
                 string[] idSplit = id.Split(':');
                 string identifier = idSplit[1];
                 ServiceResource resource = _repository.GetServiceResourceById(org, identifier);
-                return resource;
+                return resource != null ? resource : StatusCode(204);
             }
             else
             {
