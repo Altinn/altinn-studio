@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
 import { useSearchReposQuery } from 'dashboard/hooks/useRepoQueries';
 import { SearchRepository } from '../../services/repoService';
+import { useSearchParamsState } from '../useSearchParamsState';
 
 type UseRepoSearchResult = {
   searchResults: SearchRepository | undefined;
@@ -24,7 +25,7 @@ export const useReposSearch = ({
   defaultPageSize,
 }: UseReposSearchProps): UseRepoSearchResult => {
   const [pageNumber, setPageNumber] = useState(0);
-  const [pageSize, setPageSize] = useState<number>(defaultPageSize || 5);
+  const [pageSize, setPageSize] = useSearchParamsState<number>('pageSize', defaultPageSize || 5, Number);
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
 
   const { data: searchResults, isLoading: isLoadingSearchResults } = useSearchReposQuery({
