@@ -872,7 +872,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<FileSystemObject> resourceFiles = new List<FileSystemObject>();
 
             if (contents != null)
-            { 
+            {
                 foreach (FileSystemObject resourceFile in contents)
                 {
                     if (resourceFile.Name.EndsWith("resource.json"))
