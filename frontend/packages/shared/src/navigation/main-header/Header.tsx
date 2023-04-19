@@ -4,7 +4,7 @@ import type { IGiteaOrganisation, IUser } from '../../types/global';
 import AltinnStudioLogo from './AltinnStudioLogo';
 import { HeaderMenu } from './HeaderMenu';
 import classes from './Header.module.css';
-import { useParams } from 'react-router-dom';
+import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 
 export enum SelectedContextType {
   All = 'all',
@@ -33,7 +33,7 @@ export const getOrgUsernameByUsername = (username: string, orgs: IGiteaOrganisat
 
 export function Header() {
   const { selectableOrgs } = React.useContext(HeaderContext);
-  const { selectedContext = SelectedContextType.Self } = useParams();
+  const selectedContext = useSelectedContext();
 
   return (
     <AppBar className={classes.appBar} position='static'>

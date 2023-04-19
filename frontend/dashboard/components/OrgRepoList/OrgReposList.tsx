@@ -8,8 +8,7 @@ import { User } from 'dashboard/services/userService';
 import { Organization } from 'dashboard/services/organizationService';
 import { IRepository } from 'app-shared/types/global';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
-import { useParams } from 'react-router-dom';
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 
 const rowsPerPageOptions = [5, 10, 20, 50, 100];
 
@@ -19,7 +18,7 @@ type OrgReposListProps = {
   starredRepos: IRepository[];
 };
 export const OrgReposList = ({ user, organizations, starredRepos }: OrgReposListProps) => {
-  const { selectedContext = SelectedContextType.Self } = useParams();
+  const selectedContext = useSelectedContext();
   const { t } = useTranslation();
   const uid = getUidFilter({ selectedContext, userId: user.id, organizations });
 

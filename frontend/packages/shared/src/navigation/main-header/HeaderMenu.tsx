@@ -6,7 +6,8 @@ import { getOrgNameByUsername, HeaderContext, SelectedContextType } from './Head
 import { repositoryBasePath, repositoryOwnerPath, repositoryPath } from '../../api-paths';
 import classes from './HeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 
 export type HeaderMenuProps = {
   org: string;
@@ -18,7 +19,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
   const { user, selectableOrgs } = useContext(HeaderContext);
   const { t } = useTranslation();
-  const { selectedContext = SelectedContextType.Self } = useParams();
+  const selectedContext = useSelectedContext();
   const navigate = useNavigate();
   const location = useLocation();
 
