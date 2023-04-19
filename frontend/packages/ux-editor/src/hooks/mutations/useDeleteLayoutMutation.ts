@@ -1,42 +1,41 @@
 import { useMutation } from '@tanstack/react-query';
 import { queryClient, useServicesContext } from '../../../../../app-development/common/ServiceContext';
 import { useDispatch } from 'react-redux';
-import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { ComponentType } from '../../components';
-import { useDeleteFormComponentsMutation } from './useDeleteFormComponentsMutation';
 import { QueryKey } from '../../types/QueryKey';
-import { IFormLayouts } from '../../types/global';
+import { IExternalFormLayout, IInternalLayout } from '../../types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { ILayoutSettings } from 'app-shared/types/global';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
-
-export interface DeleteLayoutMutationArgs {
-  layoutName: string;
-  isReceiptPage?: boolean;
-}
+import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
+import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
+import { convertInternalToLayoutFormat } from '../../utils/formLayout';
 
 export const useDeleteLayoutMutation = (org: string, app: string) => {
-  const { deleteFormLayout } = useServicesContext();
-  const formLayoutsQuery = useFormLayoutsQuery(org, app);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
+  const { deleteFormLayout, saveFormLayout } = useServicesContext();
+  const { data: formLayouts } = useFormLayoutsQuery(org, app);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app);
-  const deleteFormComponentsMutation = useDeleteFormComponentsMutation(org, app);
   const dispatch = useDispatch();
+
+  const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
+    const convertedLayout: IExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
+    return await saveFormLayout(org, app, updatedLayoutName, convertedLayout);
+  };
+
   return useMutation({
-    mutationFn: async ({ layoutName, isReceiptPage }: DeleteLayoutMutationArgs) => {
+    mutationFn: async (layoutName: string) => {
+      let layouts = deepCopy(formLayouts);
+      delete layouts[layoutName];
+      layouts = await addOrRemoveNavigationButtons(layouts, saveLayout);
       await deleteFormLayout(org, app, layoutName);
-      return { layoutName, isReceiptPage };
+      return { layoutName, layouts };
     },
-    onSuccess: ({ layoutName, isReceiptPage }) => {
-      const layouts = formLayoutsQuery.data;
-      const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettingsQuery.data);
+    onSuccess: ({ layoutName, layouts }) => {
+      const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettings);
 
       const { order } = layoutSettings?.pages;
-      const lastPageKey = layoutName === order[0] ? order[1] : order[0];
-      const lastPage = layouts[lastPageKey];
-      const secondLastPageIsBeingDeleted = Object.keys(layouts).length === 2;
 
       if (order.includes(layoutName)) {
         order.splice(order.indexOf(layoutName), 1);
@@ -46,28 +45,9 @@ export const useDeleteLayoutMutation = (org: string, app: string) => {
       }
       formLayoutSettingsMutation.mutate(layoutSettings);
 
-      if (secondLastPageIsBeingDeleted && !isReceiptPage) {
-        const hasNavigationButton = Object.keys(layouts[lastPageKey].components).some(
-          (component: string) => lastPage.components[component].type === ComponentType.NavigationButtons
-        );
-        if (hasNavigationButton) {
-          const navigationButtonComponent = Object.keys(lastPage.components).find(
-            (component: string) => lastPage.components[component].type === ComponentType.NavigationButtons
-          );
-          dispatch(FormLayoutActions.updateSelectedLayout(lastPageKey));
-          const componentsToDelete = [lastPage.components[navigationButtonComponent].id];
-          deleteFormComponentsMutation.mutate(componentsToDelete);
-          dispatch(FormLayoutActions.updateSelectedLayout(layoutName));
-        }
-      }
-
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app],
-        (oldLayouts: IFormLayouts) => {
-          const newLayouts = deepCopy(oldLayouts);
-          delete newLayouts[layoutName];
-          return newLayouts;
-        }
+        () => layouts
       );
       dispatch(FormLayoutActions.deleteLayoutFulfilled({ layout: layoutName, pageOrder: order }));
     }
