@@ -6,7 +6,7 @@ import { useServicesContext } from '../common/ServiceContext';
 enum ServerStateCacheKey {
   GetOrganization = 'GET_ORGANIZATION',
 }
-
+/* 
 export const useOrganizationQuery = (): UseQueryResult<Organization> => {
   const { getOrganizations } = useServicesContext();
   return useQuery<Organization>([ServerStateCacheKey.GetOrganization], () => getOrganizations());
@@ -14,6 +14,6 @@ export const useOrganizationQuery = (): UseQueryResult<Organization> => {
 
 
 };
-
+ */
 
 

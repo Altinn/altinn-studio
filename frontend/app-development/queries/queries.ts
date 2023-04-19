@@ -34,5 +34,5 @@ export const getDatamodelsXsd = (owner, app) => get(datamodelsXsdPath(owner, app
 export const getDatamodel = (owner, app) => get(datamodelMetadataPath(owner, app));
 export const getFormLayouts = (owner, app) => get(formLayoutsPath(owner, app));
 export const getFormLayoutSettings = (owner, app) => get(layoutSettingsPath(owner, app));
-export const getUser = () => get(userCurrentPath());
-export const getOrganizations = () => get(orgsListPath());
+//export const getUser = () => get(userCurrentPath());
+//export const getOrganizations = () => get(orgsListPath());
