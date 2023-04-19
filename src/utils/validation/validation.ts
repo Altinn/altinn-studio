@@ -933,6 +933,17 @@ export function mapDataElementValidationToRedux(
     return validationResult;
   }
   validations.forEach((validation) => {
+    if (validation.code == 'required' && validation.code != validation.description) {
+      // Ignore required validations from backend. They will be duplicated by frontend running the same logic.
+      // verify that code != description because user validations always have code == description
+      // and we don't want issues in case someone wants to set additional required validations in backend
+      // and uses "required" as a key.
+
+      // Using "required" as key will likeliy be OK in the future, if we manage to inteligently deduplicate
+      // errors with a shared code. (eg, only display one error with code "required" per component)
+      return;
+    }
+
     // for each validation, map to correct component and field key
     const layoutIds = findLayoutIdsFromValidationIssue(layouts || {}, validation);
     if (layoutIds.length === 0) {
