@@ -62,6 +62,7 @@ export const AppBar = ({
         </ul>
         <div className={classes.rightContent}>
           <div className={classes.rightContentButtons}>
+            {/* TODO: Enable cypress usecase test when below button is enabled in prod/dev (testing/cypress/src/integration/usecase/usecase.js:57) */}
             {process.env.NODE_ENV !== 'production' &&
               <Button
               className={classes.previewButton}
