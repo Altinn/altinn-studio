@@ -42,22 +42,26 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationPolicy">The application metadata</param>
+        /// <param name="resourceid">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
-        public ActionResult UpdateApplicationPolicy(string org, string app, [FromBody] ResourcePolicy applicationPolicy)
+        [Route("")]
+        [Route("{resourceid}")]
+        public ActionResult UpdateApplicationPolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
         {
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
-            _repository.SavePolicy(org, app, null, xacmlPolicy);
+            _repository.SavePolicy(org, app, resourceid, xacmlPolicy);
 
             return Ok(applicationPolicy);
         }
 
         [HttpGet]
+        [Route("validate/{resourceid}")]
         [Route("validate")]
-        public ActionResult ValidatePolicy(string org, string app)
+        public ActionResult ValidatePolicy(string org, string app, string resourceid)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
             ValidationProblemDetails vpd = ValidatePolicy(resourcePolicy);
