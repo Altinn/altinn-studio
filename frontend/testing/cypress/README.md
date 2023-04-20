@@ -14,7 +14,7 @@ These instructions will get you run the integration tests on local studio.
 
 ### Starting the solutions for testing studio
 
-The [Prerequisites](https://github.com/Altinn/altinn-studio/tree/master/src/studio#prerequisites) defined here must be satisifed to start the solution.
+The [Prerequisites](https://github.com/Altinn/altinn-studio/#prerequisites) defined here must be satisifed to start the solution.
 
 The tests require that the solution has to be started with captcha settings disabled.
 
@@ -22,7 +22,7 @@ Remove the mounted volume of studio gitea using `docker-compose down -v` (only n
 
 Disable the captcha for user registration by making `ENABLE_CAPTCHA` to `false` in this [file](https://github.com/Altinn/altinn-studio/blob/master/gitea/files/conf/app.ini#L80).
 
-Start the solution by following the procedure [here](https://github.com/Altinn/altinn-studio/tree/master/src/studio#running-solutions-locally).
+Start the solution by following the procedure [here](https://github.com/Altinn/altinn-studio#running-the-solution-locally).
 
 ### Test data prerequisite
 
