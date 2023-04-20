@@ -946,10 +946,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public bool SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
         {
-            string policyFileName = _settings.AuthorizationPolicyFileName;
-
-            string path = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
+            string policyPath = GetPolicyPath(org, repo, resourceId);
 
             MemoryStream stream = new MemoryStream();
             XmlWriter writer = XmlWriter.Create(stream, new XmlWriterSettings() { Indent = true });
@@ -969,13 +966,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public XacmlPolicy GetPolicy(string org, string repo, string resourceId)
         {
-            string localRepoPath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string policyPath = Path.Combine(localRepoPath, _generalSettings.AuthorizationPolicyTemplate);
-            if(!string.IsNullOrEmpty(resourceId))
-            {
-                policyPath = Path.Combine(localRepoPath, resourceId, resourceId+"-policy.xml");
-            }
-
+            string policyPath = GetPolicyPath(org, repo, resourceId);
             XmlDocument policyDocument = new XmlDocument();
             policyDocument.Load(policyPath);
             XacmlPolicy policy;
@@ -987,6 +978,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return policy;
         }
 
+        private string GetPolicyPath(string org, string repo, string resourceId)
+        {
+            string localRepoPath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string policyPath = Path.Combine(localRepoPath, _generalSettings.AuthorizationPolicyTemplate);
+            if (!string.IsNullOrEmpty(resourceId))
+            {
+                policyPath = Path.Combine(localRepoPath, resourceId, resourceId + "-policy.xml");
+            }
 
+            return policyPath;
+        }
     }
 }
