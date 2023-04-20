@@ -39,7 +39,7 @@ namespace Altinn.Studio.Designer.Helpers
                         List<string> action = null;
                         List<string> resource = null;
 
-                        foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Subject)))
+                        foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Subject)))
                         {
                             if (subject == null)
                             {
@@ -49,7 +49,7 @@ namespace Altinn.Studio.Designer.Helpers
                             subject.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
                         }
 
-                        foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
+                        foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
                         {
                             if (resource == null)
                             {
@@ -60,7 +60,7 @@ namespace Altinn.Studio.Designer.Helpers
 
                         }
 
-                        foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action)))
+                        foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Action)))
                         {
                             if (action == null)
                             {
@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Helpers
             {
                 foreach (XacmlAttributeAssignmentExpression attributeAssignmentExpression in obligationExpression.AttributeAssignmentExpressions)
                 {
-                    if (attributeAssignmentExpression.Category.Equals(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel))
+                    if (attributeAssignmentExpression.Category.AbsoluteUri.Equals(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel))
                     {
                         XacmlAttributeValue astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
                         policy.RequiredAuthenticationLevelEndUser = astr.Value;
