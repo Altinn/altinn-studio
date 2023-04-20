@@ -14,7 +14,7 @@ import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { publiserPath } from 'app-shared/api-paths';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { useUserQuery } from 'app-development/query-hooks/useUserQuery';
-import { useAppSelector } from "../../common/hooks";
+import { useAppSelector } from '../../common/hooks';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -82,7 +82,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
           <div className={classes.profileMenuWrapper}>
             {user && (
               <>
-                <span>
+                <span className={classes.userOrgNames}>
                   {user.login === org
                     ? user.login
                     : t('shared.header_user_for_org', {
@@ -90,6 +90,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
                         org: repository.owner.full_name,
                       })}
                 </span>
+
                 <ProfileMenu showlogout user={user} />
               </>
             )}

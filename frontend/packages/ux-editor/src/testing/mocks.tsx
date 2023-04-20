@@ -168,7 +168,7 @@ export const queriesMock: ServicesContextProps = {
   getTextLanguages: jest.fn(),
   getTextResources: jest.fn(),
   getUser: jest.fn(),
-  getOrganizations: jest.fn(),
+
   pushRepoChanges: jest.fn(),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
