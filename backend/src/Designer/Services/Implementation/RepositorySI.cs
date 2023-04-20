@@ -969,10 +969,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public XacmlPolicy GetPolicy(string org, string repo, string resourceId)
         {
-            string policyFileName = _settings.AuthorizationPolicyFileName;
-
-            string path = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
+            string localRepoPath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string policyPath = Path.Combine(localRepoPath, _generalSettings.AuthorizationPolicyTemplate);
+            if(!string.IsNullOrEmpty(resourceId))
+            {
+                policyPath = Path.Combine(localRepoPath, resourceId, resourceId+"-policy.xml");
+            }
 
             XmlDocument policyDocument = new XmlDocument();
             policyDocument.Load(policyPath);

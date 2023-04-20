@@ -23,12 +23,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="applicationPolicy">The application metadata</param>
+        /// <param name="resourceid">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpGet]
-        public ActionResult GetApplicationPolicy(string org, string app)
+        [Route("")]
+        [Route("{resourceid}")]
+        public ActionResult GetPolicy(string org, string app, string resourceid)
         {
-            XacmlPolicy xacmlPolicy  = _repository.GetPolicy(org, app, null);
+            XacmlPolicy xacmlPolicy  = _repository.GetPolicy(org, app, resourceid);
 
             ResourcePolicy resourcePolicy =  PolicyConverter.ConvertPolicy(xacmlPolicy);
             

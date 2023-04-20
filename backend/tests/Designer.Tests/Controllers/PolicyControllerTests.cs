@@ -88,6 +88,31 @@ namespace Designer.Tests.Controllers
             }
         }
 
+        [Fact]
+        public async Task Get_ResourcePolicyOk()
+        {
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
+
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/ttdres1";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync();
+            ResourcePolicy resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            try
+            {
+                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+                Assert.NotNull(resourcePolicy.Rules);
+                Assert.Single(resourcePolicy.Rules);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
 
         [Fact]
         public async Task Validate_AppPolicyOk()
