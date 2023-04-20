@@ -8,9 +8,8 @@ import { User } from 'dashboard/services/userService';
 import { Organization } from 'dashboard/services/organizationService';
 import { IRepository } from 'app-shared/types/global';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
+import { DATAGRID_ROWS_PER_PAGE_OPTIONS } from '../../constants';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-
-const rowsPerPageOptions = [5, 10, 20, 50, 100];
 
 type OrgReposListProps = {
   user: User;
@@ -49,7 +48,7 @@ export const OrgReposList = ({ user, organizations, starredRepos }: OrgReposList
         onPageChange={setPageNumber}
         onSortModelChange={setSortModel}
         sortModel={sortModel}
-        rowsPerPageOptions={rowsPerPageOptions}
+        rowsPerPageOptions={DATAGRID_ROWS_PER_PAGE_OPTIONS}
         pageSize={pageSize}
       />
     </div>

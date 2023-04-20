@@ -3,9 +3,8 @@ import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarr
 import { RepoList } from '../../components/RepoList';
 import { useTranslation } from 'react-i18next';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
+import { DATAGRID_ROWS_PER_PAGE_OPTIONS } from '../../constants';
 import { IRepository } from 'app-shared/types/global';
-
-const rowsPerPageOptions = [8];
 
 type SearchResultReposList = {
   starredRepos: IRepository[];
@@ -13,7 +12,7 @@ type SearchResultReposList = {
 };
 export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResultReposList) => {
   const { t } = useTranslation();
-  const { searchResults, isLoadingSearchResults, sortModel, setPageNumber, setSortModel } =
+  const { searchResults, isLoadingSearchResults, sortModel, pageSize, setPageNumber, setSortModel, setPageSize } =
     useReposSearch({ keyword: searchValue });
 
   const reposWithStarred = useAugmentReposWithStarred({
@@ -27,13 +26,14 @@ export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResul
       <RepoList
         repos={reposWithStarred}
         isLoading={isLoadingSearchResults}
+        onPageSizeChange={setPageSize}
         isServerSort={true}
         rowCount={searchResults?.totalCount}
         onPageChange={setPageNumber}
         onSortModelChange={setSortModel}
         sortModel={sortModel}
-        pageSize={rowsPerPageOptions[0]}
-        rowsPerPageOptions={rowsPerPageOptions}
+        pageSize={pageSize}
+        rowsPerPageOptions={DATAGRID_ROWS_PER_PAGE_OPTIONS}
       />
     </div>
   );
