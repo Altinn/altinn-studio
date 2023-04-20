@@ -16,12 +16,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class ResourceAdminControllerTests : ApiTestsBase<RepositoryController, RepositoryControllerTests>
+    public class ResourceAdminControllerTests : ApiTestsBase<ResourceAdminController, ResourceAdminControllerTests>
     {
         private readonly string _versionPrefix = "/designer/api";
         private readonly Mock<IRepository> _repositoryMock;
 
-        public ResourceAdminControllerTests(WebApplicationFactory<RepositoryController> factory) : base(factory)
+        public ResourceAdminControllerTests(WebApplicationFactory<ResourceAdminController> factory) : base(factory)
         {
             _repositoryMock = new Mock<IRepository>();
         }
