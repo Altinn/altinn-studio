@@ -41,74 +41,73 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
 
+  if (isLoadingStarredRepos) {
+    return <AltinnSpinner spinnerText={t('dashboard.loading')} />;
+  }
+
   return (
     <>
       <CenterContainer>
         <div className={classes.createServiceContainer}>
-          {
-            isLoadingStarredRepos ? <AltinnSpinner spinnerText={t('dashboard.loading')} /> :
-            <>
-              <div className={classes.topBar}>
-                <div className={classes.searchFieldContainer}>
-                  <div>
-                    <SearchField
-                      id='search-repos'
-                      label={t('dashboard.search')}
-                      value={searchText}
-                      onChange={handleChangeSearch}
-                      onKeyDown={handleKeyDown}
-                    />
-                  </div>
-                  {searchText && (
-                    <Button
-                      data-testid='clear-search-button'
-                      className={classes.clearSearchButton}
-                      aria-label={t('dashboard.clear_search')}
-                      onClick={handleClearSearch}
-                      icon={<XMarkIcon />}
-                      variant={ButtonVariant.Quiet}
-                      size={ButtonSize.Small}
-                    />
-                  )}
-                </div>
-                <Link
-                  to='/new'
-                  className={classes.newLink}
-                  onMouseEnter={handleNewLinkFocus}
-                  onMouseLeave={handleNewLinkFocusOut}
-                  data-testid={'dashboard.new_app'}
-                >
-                  <span>{t('dashboard.new_service')}</span>
-                  <i
-                    className={cn('fa', classes.plusIcon, {
-                      'fa-circle-plus': isNewLinkFocused,
-                      'fa-circle-plus-outline': !isNewLinkFocused,
-                    })}
-                  />
-                </Link>
+          <div className={classes.topBar}>
+            <div className={classes.searchFieldContainer}>
+              <div>
+                <SearchField
+                  id='search-repos'
+                  label={t('dashboard.search')}
+                  value={searchText}
+                  onChange={handleChangeSearch}
+                  onKeyDown={handleKeyDown}
+                />
               </div>
-
-              {debouncedSearchText ? (
-                <SearchResultReposList searchValue={debouncedSearchText} starredRepos={starredRepos} />
-              ) : (
-                <>
-                  <FavoriteReposList />
-                  <div className={classes.marginTop}>
-                    <OrgReposList
-                      user={user}
-                      organizations={organizations}
-                      starredRepos={starredRepos}
-                    />
-                  </div>
-                  <DatamodelsReposList
-                    user={user}
-                    organizations={organizations}
-                    starredRepos={starredRepos}
-                  />
-                </>
+              {searchText && (
+                <Button
+                  data-testid='clear-search-button'
+                  className={classes.clearSearchButton}
+                  aria-label={t('dashboard.clear_search')}
+                  onClick={handleClearSearch}
+                  icon={<XMarkIcon />}
+                  variant={ButtonVariant.Quiet}
+                  size={ButtonSize.Small}
+                />
               )}
+            </div>
+            <Link
+              to='/new'
+              className={classes.newLink}
+              onMouseEnter={handleNewLinkFocus}
+              onMouseLeave={handleNewLinkFocusOut}
+              data-testid={'dashboard.new_app'}
+            >
+              <span>{t('dashboard.new_service')}</span>
+              <i
+                className={cn('fa', classes.plusIcon, {
+                  'fa-circle-plus': isNewLinkFocused,
+                  'fa-circle-plus-outline': !isNewLinkFocused,
+                })}
+              />
+            </Link>
+          </div>
+
+          {debouncedSearchText ? (
+            <SearchResultReposList searchValue={debouncedSearchText} starredRepos={starredRepos} />
+          ) : (
+            <>
+              <FavoriteReposList />
+              <div className={classes.marginTop}>
+                <OrgReposList
+                  user={user}
+                  organizations={organizations}
+                  starredRepos={starredRepos}
+                />
+              </div>
+              <DatamodelsReposList
+                user={user}
+                organizations={organizations}
+                starredRepos={starredRepos}
+              />
             </>
-          }
+          )}
         </div>
       </CenterContainer>
       <Footer />
