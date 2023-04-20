@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { CircularProgress, Popover } from '@mui/material';
+import { Popover } from '@mui/material';
 import classNames from 'classnames';
 import classes from './SyncModal.module.css';
 import { Button, ButtonColor, ButtonVariant, TextArea } from '@digdir/design-system-react';
 import { SimpleContainer } from 'app-shared/primitives';
+import { AltinnSpinner } from 'app-shared/components';
 
 export interface ISyncModalComponentProps {
   anchorEl: Element;
@@ -58,7 +59,7 @@ export const SyncModal = (props: ISyncModalComponentProps) => {
             })}
           </div>
         )}
-        {props.isLoading && <CircularProgress className={classNames(classes.spinner)} />}
+        {props.isLoading && <AltinnSpinner className={classNames(classes.spinner)} />}
         {props.shouldShowDoneIcon && (
           <div className={classNames(classes.doneLoadingIcon)}>
             <i className={classNames('fa fa-circlecheck')} />
