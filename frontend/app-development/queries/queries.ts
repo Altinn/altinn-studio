@@ -15,7 +15,6 @@ import {
   formLayoutsPath,
   layoutSettingsPath,
   userCurrentPath,
-  orgsListPath,
 } from 'app-shared/api-paths';
 import { orgsListUrl } from 'app-shared/cdn-paths';
 
@@ -35,4 +34,3 @@ export const getDatamodel = (owner, app) => get(datamodelMetadataPath(owner, app
 export const getFormLayouts = (owner, app) => get(formLayoutsPath(owner, app));
 export const getFormLayoutSettings = (owner, app) => get(layoutSettingsPath(owner, app));
 export const getUser = () => get(userCurrentPath());
-export const getOrganizations = () => get(orgsListPath());

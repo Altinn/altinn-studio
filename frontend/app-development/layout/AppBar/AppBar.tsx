@@ -14,7 +14,7 @@ import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { publiserPath } from 'app-shared/api-paths';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { useUserQuery } from 'app-development/query-hooks/useUserQuery';
-import { useOrganizationQuery } from 'app-development/query-hooks/useOrganizationQuery';
+import { useAppSelector } from "../../common/hooks";
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -23,6 +23,7 @@ export interface IAppBarProps {
 }
 
 export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) => {
+  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const { t } = useTranslation();
   const { org, app } = useParams();
   const repositoryType = getRepositoryType(org, app);
@@ -31,7 +32,6 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
     window.location.href = publiserPath(org, app);
   };
   const { data: user } = useUserQuery();
-  const { data: organizations } = useOrganizationQuery();
 
   return (
     <div className={classes.root}>
@@ -87,7 +87,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
                     ? user.login
                     : t('shared.header_user_for_org', {
                         user: user.login,
-                        organizations: organizations.full_name,
+                        org: repository.owner.full_name,
                       })}
                 </span>
                 <ProfileMenu showlogout user={user} />
