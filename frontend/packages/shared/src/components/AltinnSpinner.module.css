@@ -1,4 +1,6 @@
 .spinner {
+  margin-right: auto;
+  margin-left: auto;
   display: inline-block;
   vertical-align: middle;
 }
