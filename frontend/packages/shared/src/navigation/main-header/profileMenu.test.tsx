@@ -17,6 +17,7 @@ jest.mock('react-router-dom', () => ({
 const render = (props: Partial<IProfileMenuComponentProps> = {}) => {
   const allProps = {
     showlogout: false,
+    user: false,
     ...props,
   } as IProfileMenuComponentProps;
   return rtlRender(<ProfileMenu {...allProps} />);

@@ -5,7 +5,6 @@ exports[`ProfileMenu should match snapshot 1`] = `
   <img
     aria-haspopup="true"
     aria-label="imgIcon"
-    src="https://secure.gravatar.com/avatar/2cce393ac67a2a151bd3c0cb81dc65ba?d=identicon"
   />
 </div>
 `;
@@ -15,7 +14,6 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
   <img
     aria-haspopup="true"
     aria-label="imgIcon"
-    src="https://secure.gravatar.com/avatar/2cce393ac67a2a151bd3c0cb81dc65ba?d=identicon"
   />
 </div>
 `;
