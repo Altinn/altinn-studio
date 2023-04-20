@@ -40,5 +40,6 @@
   "nestedOption3": "Opsjon 111",
   "change": "Endre",
   "view": "Se innhold",
-  "edit": "Rediger"
+  "edit": "Rediger",
+  "emptySummary": "Du har ikke lagt inn informasjon her"
 }

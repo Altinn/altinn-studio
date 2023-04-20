@@ -1,5 +1,8 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import type { ILayouts } from 'src/layout/layout';
+import type { IAltinnWindow } from 'src/types';
+
 const appFrontend = new AppFrontend();
 
 Cypress.Commands.add('reloadAndWait', () => {
@@ -65,8 +68,10 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator) 
   cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, times: 1 }, (req) => {
     req.reply((res) => {
       const set = JSON.parse(res.body);
-      for (const layout of Object.values(set)) {
-        (layout as any).data.layout.map(mutator);
+      if (mutator) {
+        for (const layout of Object.values(set)) {
+          (layout as any).data.layout.map(mutator);
+        }
       }
       if (wholeLayoutMutator) {
         wholeLayoutMutator(set);
@@ -74,4 +79,26 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator) 
       res.send(JSON.stringify(set));
     });
   }).as(`interceptLayout(${taskName})`);
+});
+
+Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
+  cy.window().then((win) => {
+    const aWin = win as unknown as IAltinnWindow;
+    const state = aWin.reduxStore.getState();
+    const layouts: ILayouts = structuredClone(state.formLayout.layouts || {});
+    if (mutator && layouts) {
+      for (const layout of Object.values(layouts)) {
+        for (const component of layout || []) {
+          mutator(component);
+        }
+      }
+    }
+    if (wholeLayoutMutator) {
+      wholeLayoutMutator(layouts);
+    }
+    aWin.reduxStore.dispatch({
+      type: 'formLayout/updateLayouts',
+      payload: layouts,
+    });
+  });
 });

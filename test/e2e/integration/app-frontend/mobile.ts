@@ -25,10 +25,7 @@ describe('Mobile', () => {
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.sendersName).type('automation');
     cy.get(appFrontend.navMenu).should('not.exist');
-    cy.get(appFrontend.group.navigationBarButton)
-
-      .and('have.attr', 'aria-expanded', 'false')
-      .click();
+    cy.get(appFrontend.group.navigationBarButton).should('have.attr', 'aria-expanded', 'false').click();
     cy.get(appFrontend.group.navigationBarButton).should('have.attr', 'aria-expanded', 'true');
     cy.get(appFrontend.navMenu).should('be.visible');
     cy.get(appFrontend.navMenu).find('li > button').last().click();

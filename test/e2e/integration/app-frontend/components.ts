@@ -63,40 +63,28 @@ describe('UI Components', () => {
 
   it('is possible to navigate between pages using navigation bar', () => {
     cy.goto('changename');
-    cy.get(appFrontend.navMenu)
+    cy.get(appFrontend.navMenuButtons).should('have.length', 2);
+    cy.navPage('form')
+      .should('have.attr', 'aria-current', 'page')
+      .and('have.css', 'background-color', 'rgb(2, 47, 81)');
+    cy.navPage('summary').should('have.css', 'background-color', 'rgba(0, 0, 0, 0)');
+    cy.navPage('summary').click();
+    cy.navPage('form').should('not.have.attr', 'aria-current', 'page');
+    cy.navPage('summary')
+      .should('have.attr', 'aria-current', 'page')
+      .and('have.css', 'background-color', 'rgb(2, 47, 81)');
+    cy.get(appFrontend.changeOfName.summaryNameChanges).should('be.visible');
 
-      .find('li > button')
-
-      .and('have.length', 2)
-      .then((navButtons) => {
-        cy.wrap(navButtons)
-          .first()
-          .should('have.attr', 'aria-current', 'page')
-          .and('have.css', 'background-color', 'rgb(2, 47, 81)');
-        cy.wrap(navButtons).last().should('have.css', 'background-color', 'rgba(0, 0, 0, 0)').click();
-      });
-    cy.get(`${appFrontend.navMenu} li:first-child > button`).should('not.have.attr', 'aria-current', 'page');
-    cy.get(appFrontend.navMenu)
-      .find('li > button')
-      .then((navButtons) => {
-        cy.wrap(navButtons).should('be.visible');
-        cy.wrap(navButtons)
-          .last()
-          .should('have.attr', 'aria-current', 'page')
-          .and('have.css', 'background-color', 'rgb(2, 47, 81)');
-        cy.get(appFrontend.changeOfName.summaryNameChanges).should('be.visible');
-      });
     cy.viewport('samsung-s10');
     cy.get(appFrontend.navMenu).should('not.exist');
     cy.get('[data-testid="NavigationBar"]').find('button:contains("form")').should('not.exist');
     cy.get('[data-testid="NavigationBar"]').find('button:contains("summary")').should('be.visible');
     cy.viewport('macbook-16');
-    cy.interceptLayout('changename', (component) => {
+    cy.changeLayout((component) => {
       if (component.type === 'NavigationBar') {
         component.compact = true;
       }
     });
-    cy.reload();
     cy.get(appFrontend.navMenu).should('not.exist');
     cy.get('[data-testid="NavigationBar"]').find('button:contains("form")').should('not.exist');
     cy.get('[data-testid="NavigationBar"]').find('button:contains("summary")').should('be.visible');

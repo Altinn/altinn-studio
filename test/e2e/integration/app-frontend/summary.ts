@@ -16,35 +16,36 @@ describe('Summary', () => {
       }
     });
     cy.goto('changename');
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
 
     // Verify empty summary components
     cy.get('[data-testid=summary-summary-2] > div > [data-testid=summary-item-simple]').should(
       'contain.text',
-      'Du har ikke lagt inn informasjon her',
+      texts.emptySummary,
     );
     cy.get('[data-testid=summary-summary-4] > div > [data-testid=summary-item-simple]').should(
       'contain.text',
-      'Du har ikke lagt inn informasjon her',
+      texts.emptySummary,
     );
     cy.get('[data-testid=summary-summary-5] > div > [data-testid=attachment-summary-component]').should(
       'contain.text',
-      'Du har ikke lagt inn informasjon her',
+      texts.emptySummary,
     );
     cy.get('[data-testid=summary-summary-6] > div > [data-testid=attachment-with-tag-summary]').should(
       'contain.text',
-      'Du har ikke lagt inn informasjon her',
+      texts.emptySummary,
     );
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
       .then((items) => {
         cy.wrap(items).eq(0).should('contain.text', 'hvor fikk du vite om skjemaet? : Altinn');
-        cy.wrap(items).eq(1).should('contain.text', 'Referanse : Du har ikke lagt inn informasjon her');
-        cy.wrap(items).eq(2).should('contain.text', 'Referanse 2 : Du har ikke lagt inn informasjon her');
+        cy.wrap(items).eq(1).should('contain.text', `Referanse : ${texts.emptySummary}`);
+        cy.wrap(items).eq(2).should('contain.text', `Referanse 2 : ${texts.emptySummary}`);
       });
 
-    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.navPage('form').click();
     cy.gotoAndComplete('changename');
+    cy.navPage('summary').click();
     cy.get(appFrontend.backButton).should('be.visible');
 
     // Summary displays change button for editable fields and does not for readonly fields
@@ -114,17 +115,17 @@ describe('Summary', () => {
 
     // Hide the component the Summary refers to, which should hide the summary component as well
     cy.get('[data-testid=summary-summary-1]').contains('span', 'Du har valgt å endre:').should('be.visible');
-    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.navPage('form').click();
     cy.get(appFrontend.changeOfName.newFirstName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).type('hidePrevName');
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
     cy.get('[data-testid=summary-summary-1]').should('not.exist');
 
     // Test summary of non-repeating group
-    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.navPage('form').click();
     cy.get('#reference').select('Ola Nordmann');
     cy.get('#reference2').select('Ole');
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
       .then((items) => {
@@ -133,11 +134,11 @@ describe('Summary', () => {
         cy.wrap(items).eq(2).should('contain.text', 'Referanse 2 : Ole');
       });
 
-    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.navPage('form').click();
     cy.get('#sources').select('Digitaliseringsdirektoratet');
     cy.get('#reference').select('Sophie Salt');
     cy.get('#reference2').select('Dole');
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
       .then((items) => {
@@ -146,11 +147,11 @@ describe('Summary', () => {
         cy.wrap(items).eq(2).should('contain.text', 'Referanse 2 : Dole');
       });
 
-    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.navPage('form').click();
     cy.get('#sources').select('Annet');
     cy.get('#reference').select('Test');
     cy.get('#reference2').select('Doffen');
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
       .then((items) => {
@@ -164,13 +165,11 @@ describe('Summary', () => {
     cy.goto('group');
 
     // Verify empty group summary
-    cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+    cy.navPage('repeating').click();
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
-    cy.get('[data-testid=summary-group-component] > div')
-      .last()
-      .should('contain.text', 'Du har ikke lagt inn informasjon her');
-    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.navPage('summary').click();
+    cy.get('[data-testid=summary-group-component] > div').last().should('contain.text', texts.emptySummary);
+    cy.navPage('prefill').click();
 
     cy.gotoAndComplete('group');
 
@@ -226,11 +225,11 @@ describe('Summary', () => {
         cy.wrap(item).eq(5).should('contain.text', `${texts.nestedOption2}, ${texts.nestedOption3}`);
       });
 
-    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.navPage('prefill').click();
     cy.get(appFrontend.group.prefill.liten).dsCheck();
     cy.get(appFrontend.group.prefill.middels).dsCheck();
     cy.get(appFrontend.group.prefill.svaer).dsCheck();
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
 
     function assertSummaryItem(groupRow: number, items: { [key: string]: boolean }) {
       cy.get(appFrontend.group.mainGroupSummary)
@@ -274,51 +273,51 @@ describe('Summary', () => {
     assertSummaryItem(3, prefillRowAbove100);
 
     // Verify empty values in group summary
-    cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+    cy.navPage('repeating').click();
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.saveSubGroup).click();
     cy.get(appFrontend.group.saveMainGroup).click();
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
     cy.get('#summary-mainGroup-4 > [data-testid=summary-currentValue-4] > div')
       .children()
       .last()
-      .should('contain.text', 'Du har ikke lagt inn informasjon her');
+      .should('contain.text', texts.emptySummary);
     cy.get('#summary-mainGroup-4 > [data-testid=summary-newValue-4] > div')
       .children()
       .last()
-      .should('contain.text', 'Du har ikke lagt inn informasjon her');
+      .should('contain.text', texts.emptySummary);
     cy.get('#summary-mainGroup-4 > [data-testid=summary-mainUploaderSingle-4] > div')
       .children()
       .last()
-      .should('contain.text', 'Du har ikke lagt inn informasjon her');
+      .should('contain.text', texts.emptySummary);
     cy.get('#summary-mainGroup-4 > [data-testid=summary-mainUploaderMulti-4] > div')
       .children()
       .last()
-      .should('contain.text', 'Du har ikke lagt inn informasjon her');
+      .should('contain.text', texts.emptySummary);
     cy.get('#summary-mainGroup-4 > [data-testid=summary-subGroup-4] > div > [data-testid=summary-group-component]')
       .children()
       .last()
       .first()
-      .should('contain.text', 'Kommentarer : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Nested uploader with tags : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Vis tillegg : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Referanse : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Skjul kommentar felt : Du har ikke lagt inn informasjon her');
+      .should('contain.text', `Kommentarer : ${texts.emptySummary}`)
+      .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
+      .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
+      .and('contain.text', `Referanse : ${texts.emptySummary}`)
+      .and('contain.text', `Skjul kommentar felt : ${texts.emptySummary}`);
     cy.get('#summary-mainGroup-4 > [data-testid=summary-source-4] > div')
       .children()
       .last()
-      .should('contain.text', 'Du har ikke lagt inn informasjon her');
+      .should('contain.text', texts.emptySummary);
     cy.get('#summary-mainGroup-4 > [data-testid=summary-reference-4] > div')
       .children()
       .last()
-      .should('contain.text', 'Du har ikke lagt inn informasjon her');
+      .should('contain.text', texts.emptySummary);
 
     // Hiding the group should hide the group summary as well
     cy.get('[data-testid=summary-summary-1]').should('be.visible');
-    cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+    cy.navPage('repeating').click();
     cy.get(appFrontend.group.showGroupToContinue).find('input[type=checkbox]').dsUncheck();
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
     cy.get('[data-testid=summary-summary-1]').should('not.exist');
   });
 
@@ -331,7 +330,7 @@ describe('Summary', () => {
     cy.goto('group');
 
     cy.get(appFrontend.group.prefill['liten']).dsCheck();
-    cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+    cy.navPage('repeating').click();
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     // Add data
     cy.get(appFrontend.group.row(0).editBtn).click();
@@ -348,7 +347,7 @@ describe('Summary', () => {
     cy.get(appFrontend.group.comments).type('third comment');
     cy.get(appFrontend.group.saveSubGroup).clickAndGone();
 
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
     //Skjul kommentar felt
     cy.get('#summary-mainGroup-0 > [data-testid=summary-subGroup-0] > div > [data-testid=summary-group-component]')
       .children()
@@ -356,9 +355,9 @@ describe('Summary', () => {
       .children()
       .eq(0)
       .should('contain.text', 'Kommentarer : first comment')
-      .and('contain.text', 'Nested uploader with tags : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Vis tillegg : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Referanse : Du har ikke lagt inn informasjon her')
+      .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
+      .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
+      .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('not.contain.text', 'Skjul kommentar felt');
     cy.get('#summary-mainGroup-0 > [data-testid=summary-subGroup-0] > div > [data-testid=summary-group-component]')
       .children()
@@ -366,9 +365,9 @@ describe('Summary', () => {
       .children()
       .eq(1)
       .should('not.contain.text', 'Kommentarer')
-      .and('contain.text', 'Nested uploader with tags : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Vis tillegg : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Referanse : Du har ikke lagt inn informasjon her')
+      .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
+      .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
+      .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('not.contain.text', 'Skjul kommentar felt');
     cy.get('#summary-mainGroup-0 > [data-testid=summary-subGroup-0] > div > [data-testid=summary-group-component]')
       .children()
@@ -376,9 +375,9 @@ describe('Summary', () => {
       .children()
       .eq(2)
       .should('contain.text', 'Kommentarer : third comment')
-      .and('contain.text', 'Nested uploader with tags : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Vis tillegg : Du har ikke lagt inn informasjon her')
-      .and('contain.text', 'Referanse : Du har ikke lagt inn informasjon her')
+      .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
+      .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
+      .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('not.contain.text', 'Skjul kommentar felt');
   });
 
@@ -392,7 +391,7 @@ describe('Summary', () => {
       const newFirstNameSummary = '[data-testid=summary-summary-2] > div > [data-testid=summary-item-simple]';
       const exampleSummary = '[data-testid=summary-summary-reference]';
 
-      cy.get(appFrontend.navMenu).find('li > button').first().click();
+      cy.navPage('form').click();
       cy.get(appFrontend.changeOfName.newFirstName).clear();
       cy.get(appFrontend.changeOfName.newFirstName).type(`Hello world`);
       cy.get(appFrontend.changeOfName.newLastName).clear();
@@ -400,9 +399,9 @@ describe('Summary', () => {
       cy.get(appFrontend.nextButton).click();
 
       if (trigger === undefined) {
-        cy.get(appFrontend.navMenu).find('li > button').eq(1).should('have.attr', 'aria-current', 'page');
+        cy.navPage('summary').should('have.attr', 'aria-current', 'page');
       } else {
-        cy.get(appFrontend.navMenu).find('li > button').eq(0).should('have.attr', 'aria-current', 'page');
+        cy.navPage('form').should('have.attr', 'aria-current', 'page');
         cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldLastName);
         cy.get(appFrontend.changeOfName.newLastName).type('a');
         cy.get(appFrontend.nextButton).click();
@@ -410,9 +409,9 @@ describe('Summary', () => {
 
       if (trigger === Triggers.ValidateAllPages) {
         cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut page3required');
-        cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+        cy.navPage('summary').click();
       } else if (trigger !== undefined) {
-        cy.get(appFrontend.navMenu).find('li > button').eq(1).should('have.attr', 'aria-current', 'page');
+        cy.navPage('summary').should('have.attr', 'aria-current', 'page');
       }
 
       cy.get(newFirstNameSummary).should('contain.text', `Hello world`);
@@ -429,23 +428,23 @@ describe('Summary', () => {
       // that the back to summary button goes away when navigating via the navMenu instead.
       cy.get(exampleSummary).find('button').click();
       cy.get(appFrontend.backToSummaryButton).should('exist');
-      cy.get(appFrontend.navMenu).find('li > button').last().click();
+      cy.navPage('lastPage').click();
       assertErrorReport();
       cy.get(appFrontend.backToSummaryButton).should('not.exist');
-      cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+      cy.navPage('summary').click();
       assertErrorReport();
       cy.get(exampleSummary).find('button').click();
       assertErrorReport();
       cy.get(appFrontend.backToSummaryButton).click();
       cy.get(appFrontend.backToSummaryButton).should('not.exist');
       assertErrorReport();
-      cy.get(appFrontend.navMenu).find('li > button').last().click();
+      cy.navPage('lastPage').click();
       cy.get(appFrontend.backToSummaryButton).should('not.exist');
-      cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+      cy.navPage('summary').click();
       assertErrorReport();
       cy.get(appFrontend.backButton).click();
       assertErrorReport();
-      cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+      cy.navPage('summary').click();
       assertErrorReport();
 
       // Sending in always validates all pages
@@ -457,22 +456,22 @@ describe('Summary', () => {
   it('Navigation to fields on other pages outside the summary should not show the back-to-summary button', () => {
     cy.gotoAndComplete('changename');
     injectExtraPageAndSetTriggers();
-    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.navPage('form').click();
     cy.get(appFrontend.changeOfName.newLastName).clear();
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('lastPage').click();
     cy.get('#page3-submit').click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut page3required');
     cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldLastName);
 
     // Clicking the error should lead us to the first page
     cy.get(appFrontend.errorReport).find(`li:contains("${texts.requiredFieldLastName}")`).find('button').click();
-    cy.get(appFrontend.navMenu).find('li > button').first().should('have.attr', 'aria-current', 'page');
+    cy.navPage('form').should('have.attr', 'aria-current', 'page');
 
     // The 'back to summary' button should not be here, and when we click 'next' we should land on the next
     // page (not the page we came from)
     cy.get(appFrontend.backToSummaryButton).should('not.exist');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.navMenu).find('li > button').eq(1).should('have.attr', 'aria-current', 'page');
+    cy.navPage('summary').should('have.attr', 'aria-current', 'page');
   });
 });
 
