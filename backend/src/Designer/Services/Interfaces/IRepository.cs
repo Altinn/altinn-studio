@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
-
+using Microsoft.AspNetCore.Mvc;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -241,6 +241,24 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="identifier">The identifier of the resource</param>
         /// <returns></returns>
         ServiceResource GetServiceResourceById(string org, string identifier);
+
+        /// <summary>
+        /// Update existing ServiceResource in repository
+        /// </summary>
+        /// <param name="org">The organisation which owns the repository</param>
+        /// <param name="repository">The Repository</param>
+        /// <param name="updatedResource">The resource that is to be updated</param>
+        /// <returns></returns>
+        ActionResult UpdateServiceResource(string org, string repository, ServiceResource updatedResource);
+
+        /// <summary>
+        /// Add new ServiceResource to repository
+        /// </summary>
+        /// <param name="org">The organisation which owns the repository</param>
+        /// <param name="repository">The Repository</param>
+        /// <param name="newResource">The new resource that is to be added to the repository</param>
+        /// <returns></returns>
+        ActionResult AddServiceResource(string org, string repository, ServiceResource newResource);
 
         /// <summary>
         /// Returns the path to the app folder

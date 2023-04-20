@@ -15,6 +15,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
@@ -856,6 +857,51 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return serviceResourceList;
+        }
+
+        public ActionResult UpdateServiceResource(string org, string id, ServiceResource updatedResource)
+        {
+            if (updatedResource != null && id == updatedResource.Identifier)
+            {
+                string repository = string.Format("{0}-resources", org);
+                List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
+                string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+                foreach (FileSystemObject resourceFile in resourceFiles)
+                {
+                    Stream fs = File.OpenRead($"{repopath}/{resourceFile.Path}");
+                    ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(fs, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+                    if (serviceResource != null && serviceResource.Identifier == updatedResource.Identifier)
+                    {
+                        Stream file = File.OpenWrite($"{repopath}/{resourceFile.Path}");
+                        System.Text.Json.JsonSerializer.Serialize(file, updatedResource);
+                        return new StatusCodeResult(201);
+                    }
+                }
+            }
+            else
+            {
+                return new StatusCodeResult(402);
+            }
+
+            return new StatusCodeResult(403);
+        }
+
+        public ActionResult AddServiceResource(string org, string repository, ServiceResource newResource)
+        {
+            try
+            {
+                string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                string fullPathOfNewResource = $"{repopath}/{newResource.Identifier}_resource.json";
+                Stream fileStream = File.Create(fullPathOfNewResource);
+                System.Text.Json.JsonSerializer.Serialize(fileStream, newResource);
+                return new StatusCodeResult(201);
+            }
+            catch (Exception)
+            {
+                return new StatusCodeResult(400);
+            }
         }
 
         public ServiceResource GetServiceResourceById(string org, string identifier)

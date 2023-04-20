@@ -70,5 +70,19 @@ namespace Altinn.Studio.Designer.Controllers
                 return StatusCode(404);
             }
         }
+
+        [HttpPut]
+        [Route("designer/api/{org}/resources/repository/updateresource/{id}")]
+        public ActionResult UpdateResource(string org, string id, [FromBody] ServiceResource resource)
+        {
+            return _repository.UpdateServiceResource(org, id, resource);
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/repository/addresource")]
+        public ActionResult<ServiceResource> AddResource(string org, string repository, [FromBody] ServiceResource resource)
+        {
+            return _repository.AddServiceResource(org, repository, resource);
+        }
     }
 }
