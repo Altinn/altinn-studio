@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './profileMenu.module.css';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Menu, MenuItem } from '@mui/material';
-import { PeopleInCircleFilled } from '@navikt/ds-icons';
+import { PeopleInCircle } from '@navikt/ds-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../utils/networking';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api-paths';
@@ -24,12 +24,13 @@ export function ProfileMenu({ showlogout }: IProfileMenuComponentProps) {
   return (
     <div>
       <Button
+        className={classes.profileIconButton}
         aria-owns={anchorEl ? 'simple-menu' : undefined}
-        aria-haspopup='true'
+        aria-haspopup
         aria-label='profilikon knapp'
         onClick={handleClick}
         variant={ButtonVariant.Quiet}
-        icon={<PeopleInCircleFilled aria-label='profilikon' />}
+        icon={<PeopleInCircle aria-label='profilikon' />}
       />
       <Menu
         id='simple-menu'

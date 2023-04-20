@@ -3,10 +3,13 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
-using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Configuration.Extensions;
+using Altinn.Studio.Designer.Configuration.Marker;
+using Altinn.Studio.Designer.Filters.Datamodeling;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
@@ -35,8 +38,6 @@ string applicationInsightsKey = string.Empty;
 ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddControllers();
 
 await SetConfigurationProviders(builder.Configuration, builder.Environment);
 
@@ -85,7 +86,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     config.AddEnvironmentVariables();
     config.AddCommandLine(args);
 
-    KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
+    KeyVaultSettings keyVaultSettings = new();
     config.GetSection("kvSetting").Bind(keyVaultSettings);
 
     if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
@@ -93,9 +94,9 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
         !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
     {
-        logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault.");
-        AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
-        KeyVaultClient keyVaultClient = new KeyVaultClient(
+        logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault.");
+        AzureServiceTokenProvider azureServiceTokenProvider = new($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
+        KeyVaultClient keyVaultClient = new(
             new KeyVaultClient.AuthenticationCallback(
                 azureServiceTokenProvider.KeyVaultTokenCallback));
         config.AddAzureKeyVault(
@@ -184,7 +185,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.ConfigureDataProtection(configuration, logger);
     services.ConfigureMvc();
-    services.ConfigureSettings(configuration);
+    services.ConfigureNonMarkedSettings(configuration);
 
     services.RegisterTypedHttpClients(configuration);
     services.ConfigureAuthentication(configuration, env);
@@ -225,6 +226,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             // Catch swashbuckle exception if it doesn't find the generated XML documentation file
         }
     });
+
+    // Auto register all settings classes
+    services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
     logger.LogInformation($"// Program.cs // ConfigureServices // Configuration complete");
 }
 
@@ -242,7 +246,7 @@ void Configure(IConfiguration configuration)
 
     if (configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
     {
-        ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
+        ConsoleTraceService traceService = new() { IsDebugEnabled = true };
 
         string connectionString = string.Format(
             configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),

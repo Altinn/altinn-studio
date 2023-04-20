@@ -5,25 +5,39 @@
   padding: 8px;
 }
 
-.toolbar > *, .toolbar > :global(.MuiGrid-item) {
+.toolbar > *,
+.toolbar > :global(.MuiGrid-item) {
   margin-right: 1rem;
 }
 
-.toolbar :global(.MuiButton-root) {
-  color: #0062ba;
-  transition: none;
-}
-
-.toolbar button[class*="selected"] {
+.toolbar button[class*='selected'] {
   color: #fff;
 }
 
-.toolbar button[class*="toggle"] {
+.toolbar button[class*='toggle'] {
   font-size: 1em;
   padding-top: 4px;
 }
 
-.saveButton:global(.MuiButton-root) {
-  margin-left: auto;
-  margin-right: 10px;
+.spinnerWrapper {
+  width: 200px;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.statusPopover {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statusPopover.success {
+  animation: fadeOut 1.5s;
 }

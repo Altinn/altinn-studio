@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import type { GroupedOption, ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';
 
@@ -34,19 +34,19 @@ describe('SchemaSelect', () => {
   ];
 
   it('should render empty select when there are no provided options', () => {
-    const utils = render();
-    const selectComponent = utils.getByRole('combobox');
+    render();
+    const selectComponent = screen.getByRole('combobox');
     expect(selectComponent.getAttribute('value')).toBe('');
   });
 
   it('should not select any item when there are provided options but no selected item provided', async () => {
-    const utils = render({ options: mockOptions });
-    const selectedOptionText = utils.queryByText('test123');
+    render({ options: mockOptions });
+    const selectedOptionText = screen.queryByText('test123');
     expect(selectedOptionText).toBeNull();
   });
 
   it('should select provided selected item when there are provided options', async () => {
-    const utils = render({
+    render({
       options: mockOptions,
       selectedOption: {
         label: 'test123',
@@ -57,7 +57,7 @@ describe('SchemaSelect', () => {
         },
       },
     });
-    const selectedOptionText = utils.getByText('test123');
+    const selectedOptionText = screen.getByText('test123');
     expect(selectedOptionText).toBeVisible();
   });
 });

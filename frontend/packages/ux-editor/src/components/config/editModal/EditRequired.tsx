@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Checkbox } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
@@ -6,6 +6,10 @@ import { useText } from '../../../hooks';
 export const EditRequired = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const [checked, setChecked] = useState(component.required);
   const t = useText();
+
+  useEffect(() => {
+    setChecked(component.required);
+  }, [component.required]);
 
   const handleChange = () => {
     setChecked(!checked);

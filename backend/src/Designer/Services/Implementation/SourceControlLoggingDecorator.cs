@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -30,10 +29,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="generalSettings">General settings for the applicatoin.</param>
         /// <param name="logger">Instance of <see cref="ILogger"/></param>
         /// <param name="httpContextAccessor">Instance of <see cref="IHttpContextAccessor"/></param>
-        public SourceControlLoggingDecorator(ISourceControl decoratedService, IOptions<GeneralSettings> generalSettings, ILogger<SourceControlLoggingDecorator> logger, IHttpContextAccessor httpContextAccessor)
+        public SourceControlLoggingDecorator(ISourceControl decoratedService, GeneralSettings generalSettings, ILogger<SourceControlLoggingDecorator> logger, IHttpContextAccessor httpContextAccessor)
         {
             _decoratedService = decoratedService;
-            _generalSettings = generalSettings.Value;
+            _generalSettings = generalSettings;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
         }

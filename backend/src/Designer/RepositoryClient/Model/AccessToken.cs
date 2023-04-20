@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateAccessTokenOption" /> class.
         /// </summary>
-        [JsonConstructorAttribute]
+        [JsonConstructor]
         protected CreateAccessTokenOption()
         {
         }
@@ -38,10 +38,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
             {
                 throw new InvalidDataException("Name is a required property for CreateAccessTokenOption and cannot be null");
             }
-            else
-            {
-                this.Name = Name;
-            }
+            this.Name = Name;
         }
 
         /// <summary>

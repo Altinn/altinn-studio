@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,9 +12,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Rest.TransientFaultHandling;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -37,16 +34,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="azureDevOpsBuildClient">IAzureDevOpsBuildClient</param>
         /// <param name="releaseRepository">IReleaseRepository</param>
-        /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
+        /// <param name="azureDevOpsOptions">AzureDevOpsSettings</param>
         /// <param name="logger">The logger.</param>
         public ReleaseService(
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IReleaseRepository releaseRepository,
-            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
+            AzureDevOpsSettings azureDevOpsOptions,
             ILogger<ReleaseService> logger)
         {
-            _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
+            _azureDevOpsSettings = azureDevOpsOptions;
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _releaseRepository = releaseRepository;
             _httpContext = httpContextAccessor.HttpContext;
@@ -60,7 +57,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await ValidateUniquenessOfRelease(release);
 
-            QueueBuildParameters queueBuildParameters = new QueueBuildParameters
+            QueueBuildParameters queueBuildParameters = new()
             {
                 AppCommitId = release.TargetCommitish,
                 AppOwner = release.Org,
@@ -95,10 +92,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAsync(ReleaseEntity release, string appOwner)
+        public async Task UpdateAsync(string buildNumber, string appOwner)
         {
-            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.Get(appOwner, release.Build.Id);
+            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.Get(appOwner, buildNumber);
             ReleaseEntity releaseEntity = releaseDocuments.Single();
+
+            BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
+            ReleaseEntity release = new() { Build = buildEntity };
 
             releaseEntity.Build.Status = release.Build.Status;
             releaseEntity.Build.Result = release.Build.Result;
@@ -110,12 +110,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task ValidateUniquenessOfRelease(ReleaseEntity release)
         {
-            List<string> buildStatus = new List<string>();
-            buildStatus.Add(BuildStatus.InProgress.ToEnumMemberAttributeValue());
-            buildStatus.Add(BuildStatus.NotStarted.ToEnumMemberAttributeValue());
+            List<string> buildStatus = new()
+                {
+                    BuildStatus.InProgress.ToEnumMemberAttributeValue(),
+                    BuildStatus.NotStarted.ToEnumMemberAttributeValue()
+                };
 
-            List<string> buildResult = new List<string>();
-            buildResult.Add(BuildResult.Succeeded.ToEnumMemberAttributeValue());
+            List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
 
             IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(release.Org, release.App, release.TagName, buildStatus, buildResult);
             if (existingReleaseEntity.Any())

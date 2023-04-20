@@ -1,15 +1,11 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 
-import { appDataMock, dataModelItemMock, dataModelStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
+import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
-import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { ComponentType } from '../../index';
 
 const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
@@ -17,30 +13,18 @@ const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = 
     textResources: {
       ...textResourcesMock,
     },
-    dataModel: {
-      ...dataModelStateMock,
-      model: [
-        {
-          ...dataModelItemMock,
-          dataBindingName: 'testModel.field1',
-        },
-        {
-          ...dataModelItemMock,
-          dataBindingName: 'testModel.field2',
-        },
-      ]
-    }
   }
   renderWithMockStore({ appData })(
     <EditDataModelBindings
       handleComponentChange={handleComponentChange}
       component={{
         id: 'someComponentId',
-        type: 'Input',
+        type: ComponentType.Input,
         textResourceBindings: {
           title: 'ServiceName',
         },
         dataModelBindings,
+        itemType: 'COMPONENT',
       }}
       renderOptions={{
         uniqueKey: 'someComponentId-datamodel-select'
@@ -52,7 +36,7 @@ const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = 
 describe('EditDataModelBindings', () => {
   it('should show select with no selected option by default', () => {
     render();
-    expect(screen.getByText('ux_editor.modal_properties_data_model_helper')).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.modal_properties_data_model_helper'))).toBeInTheDocument();
     expect(screen.getByRole('combobox').getAttribute('value')).toEqual("");
   });
 
@@ -60,7 +44,7 @@ describe('EditDataModelBindings', () => {
     render({ dataModelBindings: {
       simpleBinding: 'testModel.field1',
     } });
-    expect(screen.getByText('ux_editor.modal_properties_data_model_helper')).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.modal_properties_data_model_helper'))).toBeInTheDocument();
     expect(screen.getByText('testModel.field1')).toBeInTheDocument();
   })
 });

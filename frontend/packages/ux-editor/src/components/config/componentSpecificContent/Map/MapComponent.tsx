@@ -1,5 +1,5 @@
 import React from 'react';
-import { Add, Delete } from '@navikt/ds-icons';
+import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
 import {
   FieldSet,
   Button,
@@ -16,14 +16,14 @@ import classes from './MapComponent.module.css';
 export interface MapComponentProps extends IGenericEditComponent {}
 export const MapComponent = ({
   component,
-  handleComponentChange
+  handleComponentChange,
 }: MapComponentProps): JSX.Element => {
   const t = useText();
 
   const handleCenterLocationChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     handleComponentChange({
       ...component,
-      centerLocation: { ...component.centerLocation, [event.target.name]: event.target.value }
+      centerLocation: { ...component.centerLocation, [event.target.name]: event.target.value },
     });
   };
 
@@ -31,7 +31,7 @@ export const MapComponent = ({
     const parsedValue = parseInt(event.target.value, 10);
     handleComponentChange({
       ...component,
-      [event.target.name]: parsedValue || undefined
+      [event.target.name]: parsedValue || undefined,
     });
   };
 
@@ -48,11 +48,11 @@ export const MapComponent = ({
             className={classes.textField}
             validation={{
               required: {
-                message: t('validation_errors.required')
+                message: t('validation_errors.required'),
               },
               valueAsNumber: {
-                message: t('validation_errors.numbers_only')
-              }
+                message: t('validation_errors.numbers_only'),
+              },
             }}
             onChange={handleCenterLocationChange}
           />
@@ -66,11 +66,11 @@ export const MapComponent = ({
             inputMode='numeric'
             validation={{
               required: {
-                message: t('validation_errors.required')
+                message: t('validation_errors.required'),
               },
               valueAsNumber: {
-                message: t('validation_errors.numbers_only')
-              }
+                message: t('validation_errors.numbers_only'),
+              },
             }}
             onChange={handleCenterLocationChange}
           />
@@ -84,8 +84,8 @@ export const MapComponent = ({
         inputMode='numeric'
         validation={{
           valueAsNumber: {
-            message: t('validation_errors.numbers_only')
-          }
+            message: t('validation_errors.numbers_only'),
+          },
         }}
         className={classes.textField}
         onChange={handleNumberInputChange}
@@ -106,7 +106,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     layers[index][event.target.name] = event.target.value;
     handleComponentChange({
       ...component,
-      layers
+      layers,
     });
   };
 
@@ -118,7 +118,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     layers[index][event.target.name] = stringToArray(event.target.value);
     handleComponentChange({
       ...component,
-      layers
+      layers,
     });
   };
 
@@ -127,11 +127,11 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     layers.push({
       url: undefined,
       attattribution: undefined,
-      subdomains: undefined
+      subdomains: undefined,
     });
     handleComponentChange({
       ...component,
-      layers
+      layers,
     });
   };
 
@@ -140,7 +140,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     layers.splice(index, 1);
     handleComponentChange({
       ...component,
-      layers
+      layers,
     });
   };
 
@@ -156,7 +156,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
               </p>
               <Button
                 color={ButtonColor.Danger}
-                icon={<Delete title={t('general.delete')}/>}
+                icon={<XMarkIcon title={t('general.delete')} />}
                 onClick={(): void => handleOnDeleteLayer(index)}
                 variant={ButtonVariant.Quiet}
               />
@@ -167,7 +167,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
               className={classes.fullWidth}
               validation={{
                 required: { message: t('validation_errors.required') },
-                valueAsUrl: { message: t('validation_errors.value_as_url') }
+                valueAsUrl: { message: t('validation_errors.value_as_url') },
               }}
               value={layer.url}
               onChange={(event) => handleOnLayerChange(index, event)}
@@ -196,7 +196,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
       )}
       <Button
         className={classes.spacing}
-        icon={<Add title={t('general.add')}/>}
+        icon={<PlusIcon title={t('general.add')} />}
         variant={ButtonVariant.Outline}
         onClick={handleAddLayer}
         disabled={component.layers?.some((layer) => !layer.url)}

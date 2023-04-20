@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Models;
 
@@ -10,7 +11,7 @@ public interface IEnvironmentsService
     /// Gets list of environments
     /// </summary>
     /// <returns>List of environments</returns>
-    Task<EnvironmentModel[]> GetEnvironments();
+    Task<List<EnvironmentModel>> GetEnvironments();
 
     Task<Uri> CreatePlatformUri(string envName);
 

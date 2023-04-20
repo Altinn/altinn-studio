@@ -1,7 +1,7 @@
 # Building studio frontend
 FROM node:alpine AS generate-studio-frontend
 WORKDIR /build
-COPY frontend .
+COPY . .
 RUN corepack enable
 RUN yarn --immutable
 RUN yarn build
@@ -16,7 +16,7 @@ RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Prepare app template
 WORKDIR /app_template
 RUN apk add jq zip
-RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip 
+RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip
 
 # Building the final image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final
@@ -27,9 +27,10 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib
 
 COPY --from=generate-studio-backend /app_output .
-COPY --from=generate-studio-frontend /build/dist/app-development ./wwwroot/designer/frontend/app-development
-COPY --from=generate-studio-frontend /build/dist/dashboard ./wwwroot/designer/frontend/dashboard
-COPY --from=generate-studio-frontend /build/dist/language ./wwwroot/designer/frontend/lang
+COPY --from=generate-studio-frontend /build/frontend/dist/app-development ./wwwroot/designer/frontend/app-development
+COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/designer/frontend/app-preview
+COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/designer/frontend/dashboard
+COPY --from=generate-studio-frontend /build/frontend/dist/language ./wwwroot/designer/frontend/lang
 
 ## Copying app template
 COPY --from=generate-studio-backend /app_template ./Templates/AspNet

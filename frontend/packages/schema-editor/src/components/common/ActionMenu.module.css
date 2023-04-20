@@ -6,40 +6,47 @@
 .menu {
   all: initial;
   background: white;
-  border-radius: 8px;
+  border-radius: 3px;
   box-sizing: border-box;
   left: 0;
   position: absolute;
   top: 0;
-  width: 328px;
+  width: 150px;
   z-index: 1;
 }
 
 .root:focus-within .menu {
-  border: 1px solid #c9c9c9;
+  border: 1px solid #0062ba;
   box-shadow: 1px 1px 3px 1px #0003;
 }
 
 .openButton {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
   background: transparent;
-  border-radius: 8px;
-  border: 1px dashed #000;
-  color: black;
+  border-radius: 3px;
+  border: 1px solid #0062ba;
+  color: #0062ba;
   cursor: pointer;
-  height: 4rem;
+  height: 2.5rem;
   padding: 4px 0;
   text-transform: none;
   width: 100%;
+  font-size: 16px;
+  align-items: center;
+}
+
+.openButtonIcon {
+  font-size: 24px;
+}
+
+.openButtonText {
+  padding-left: 4px;
 }
 
 .root:focus-within .openButton {
   border: none;
-}
-
-.openButton::after {
-  content: "\f023";
-  font-family: AltinnStudio, sans-serif;
-  margin-left: 1rem;
 }
 
 .openButton:hover {
@@ -58,6 +65,7 @@
   list-style-type: none;
   border-top: 1px solid #c9c9c9;
   padding-top: 4px;
+  padding-left: 0;
 }
 
 .list:not(:last-child) {
@@ -81,16 +89,18 @@
 }
 
 .list:last-child .item:last-child .itemButton {
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
 }
 
-.openButton:focus, .itemButton:focus {
+.openButton:focus,
+.itemButton:focus {
   outline: none;
   border: none;
 }
 
-.openButton:focus-visible, .itemButton:focus-visible {
+.openButton:focus-visible,
+.itemButton:focus-visible {
   border-radius: 2px;
   outline: 2px solid #98177e;
 }

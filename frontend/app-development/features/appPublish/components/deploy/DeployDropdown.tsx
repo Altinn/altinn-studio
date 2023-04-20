@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
-import type { MouseEvent } from 'react';
 import { AltinnIcon, AltinnSpinner } from 'app-shared/components';
-import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { Button, Select } from '@digdir/design-system-react';
-import { DeploymentStatus } from '../appDeploymentComponent';
+import {
+  Button,
+  ButtonVariant,
+  Popover,
+  PopoverVariant,
+  Select,
+} from '@digdir/design-system-react';
+import { ButtonContainer } from 'app-shared/primitives';
+import { DeploymentStatus, ImageOption } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
 import { shouldDisplayDeployStatus } from './utils';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 
-interface Props {
+interface DeployDropdownProps {
   appDeployedVersion: string;
   envName: string;
-  releases?: any[];
+  imageOptions: ImageOption[];
   disabled: boolean;
   deployHistoryEntry: any;
-  deploymentStatus: DeploymentStatus;
+  deploymentStatus: DeploymentStatus | string | number;
   setSelectedImageTag: (tag) => void;
   selectedImageTag: string;
   startDeploy: any;
@@ -24,7 +29,7 @@ interface Props {
 
 export const DeployDropdown = ({
   appDeployedVersion,
-  releases,
+  imageOptions,
   envName,
   deploymentStatus,
   deployHistoryEntry,
@@ -32,49 +37,60 @@ export const DeployDropdown = ({
   setSelectedImageTag,
   disabled,
   startDeploy,
-}: Props) => {
+}: DeployDropdownProps) => {
+  const [popoverIsOpen, setPopoverIsOpen] = useState(false);
   const { t } = useTranslation();
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const onStartDeployClick = async () => {
+    await startDeploy();
+    setPopoverIsOpen(false);
+  };
   return (
     <>
       <div>{t('app_deploy_messages.choose_version')}</div>
       <div className={classes.select} id={`deploy-select-${envName.toLowerCase()}`}>
-        {releases.length > 0 && (
+        {imageOptions.length > 0 && (
           <Select
-            options={releases || []}
+            key={imageOptions.length}
+            options={imageOptions || []}
             onChange={(value: string) => setSelectedImageTag(value)}
           />
         )}
       </div>
       <div className={classes.deployButton}>
-        <Button
-          disabled={disabled}
-          onClick={(e: MouseEvent<HTMLButtonElement>) => setAnchorEl(e.currentTarget)}
-          id={`deploy-button-${envName.toLowerCase()}`}
-        >
-          {t('app_deploy_messages.btn_deploy_new_version')}
-        </Button>
-        <AltinnPopoverSimple
-          open={Boolean(anchorEl)}
-          anchorEl={anchorEl}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          btnCancelText='avbryt'
-          btnClick={() => {
-            startDeploy();
-            setAnchorEl(null);
-          }}
-          btnConfirmText={'Ja'}
-          btnPrimaryId={`deploy-button-${envName.toLowerCase()}-confirm`}
-          handleClose={() => setAnchorEl(null)}
-          transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-          paperProps={{ classes: { root: classes.paperProps } }}
+        <Popover
+          open={popoverIsOpen}
+          placement={'right'}
+          variant={PopoverVariant.Warning}
+          trigger={
+            <Button
+              disabled={disabled}
+              onClick={(_) => setPopoverIsOpen(!popoverIsOpen)}
+              id={`deploy-button-${envName.toLowerCase()}`}
+            >
+              {t('app_deploy_messages.btn_deploy_new_version')}
+            </Button>
+          }
         >
           <>
             {appDeployedVersion
-              ? t('app_deploy_messages.deploy_confirmation', { selectedImageTag, appDeployedVersion })
-              : t('app_deploy_messages.deploy_confirmation_short', [selectedImageTag])}
+              ? t('app_deploy_messages.deploy_confirmation', {
+                  selectedImageTag,
+                  appDeployedVersion,
+                })
+              : t('app_deploy_messages.deploy_confirmation_short', { selectedImageTag })}
+            <ButtonContainer>
+              <Button
+                id={`deploy-button-${envName.toLowerCase()}-confirm`}
+                onClick={onStartDeployClick}
+              >
+                Ja
+              </Button>
+              <Button onClick={(_) => setPopoverIsOpen(false)} variant={ButtonVariant.Quiet}>
+                Avbryt
+              </Button>
+            </ButtonContainer>
           </>
-        </AltinnPopoverSimple>
+        </Popover>
       </div>
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (
         <div className={classes.deployStatusGridContainer}>
@@ -101,44 +117,45 @@ export const DeployDropdown = ({
               t('app_deploy_messages.deploy_in_progress', {
                 createdBy: deployHistoryEntry?.createdBy,
                 tagName: deployHistoryEntry?.tagName,
-                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-            })}
+              })}
             {deploymentStatus === DeploymentStatus.succeeded &&
               t('app_deploy_messages.success', {
                 tagName: deployHistoryEntry?.tagName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
                 createdBy: deployHistoryEntry?.createdBy,
-                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-            })}
+              })}
             {deploymentStatus === DeploymentStatus.failed &&
               t('app_deploy_messages.failed', {
                 tagName: deployHistoryEntry?.tagName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
-                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-            })}
+              })}
             {deploymentStatus === DeploymentStatus.canceled &&
               t('app_deploy_messages.canceled', {
                 tagName: deployHistoryEntry?.tagName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
-                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-            })}
+              })}
             {deploymentStatus === DeploymentStatus.partiallySucceeded &&
               t('app_deploy_messages.partiallySucceeded', {
                 tagName: deployHistoryEntry?.tagName,
                 envName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
-                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
               })}
             {deploymentStatus === DeploymentStatus.none &&
               t('app_deploy_messages.none', {
                 tagName: deployHistoryEntry?.tagName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
-                buildResultUrl: getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id),
-              })}
+              })}{' '}
+            <Trans i18nKey={'app_deploy_messages.see_build_log'}>
+              <a
+                href={getAzureDevopsBuildResultUrl(deployHistoryEntry?.build.id)}
+                target='_newTab'
+                rel='noopener noreferrer'
+              />
+            </Trans>
           </div>
         </div>
       )}

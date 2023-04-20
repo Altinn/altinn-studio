@@ -4,20 +4,15 @@ import type { IXSDUploadProps } from './XSDUpload';
 import { XSDUpload } from './XSDUpload';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const clickUploadButton = async () => {
-  const btn = screen.getByText('app_data_modelling.upload_xsd');
+  const btn = screen.getByText(textMock('app_data_modelling.upload_xsd'));
   await act(() => user.click(btn));
 };
 
@@ -40,7 +35,7 @@ describe('XSDUpload', () => {
   it('should show file picker button', () => {
     render();
 
-    const button = screen.getByText('app_data_modelling.upload_xsd');
+    const button = screen.getByText(textMock('app_data_modelling.upload_xsd'));
     expect(button).toBeInTheDocument();
 
     const fileInput = screen.queryByTestId('FileSelector-input');
@@ -55,15 +50,15 @@ describe('XSDUpload', () => {
     await clickUploadButton();
 
     expect(
-      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)
+      screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload'))
     ).not.toBeInTheDocument();
 
     const fileInput = screen.getByTestId('FileSelector-input');
 
-    await user.upload(fileInput, file);
+    await act(() => user.upload(fileInput, file));
 
     expect(
-      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)
+      screen.getByText(textMock('form_filler.file_uploader_validation_error_upload'))
     ).toBeInTheDocument();
   });
 
@@ -77,7 +72,7 @@ describe('XSDUpload', () => {
 
     const fileInput = screen.getByTestId('FileSelector-input');
 
-    await user.upload(fileInput, file);
+    await act(() => user.upload(fileInput, file));
 
     expect(handleUpload).toHaveBeenCalledWith('hello.xsd');
   });

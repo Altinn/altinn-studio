@@ -9,7 +9,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Npgsql;
 using NpgsqlTypes;
@@ -17,7 +16,7 @@ using NpgsqlTypes;
 namespace Altinn.Studio.Designer.Repository
 {
     /// <summary>
-    /// Handles release repository. 
+    /// Handles release repository.
     /// </summary>
     [ExcludeFromCodeCoverage]
     public class ReleaseRepository : IReleaseRepository
@@ -33,11 +32,11 @@ namespace Altinn.Studio.Designer.Repository
         /// <summary>
         /// Initializes a new instance of the <see cref="ReleaseRepository"/> class.
         /// </summary>
-        public ReleaseRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<ReleaseRepository> logger)
+        public ReleaseRepository(PostgreSQLSettings postgresSettings, ILogger<ReleaseRepository> logger)
         {
             _connectionString = string.Format(
-                postgresSettings.Value.ConnectionString,
-                postgresSettings.Value.DesignerDbPwd);
+                postgresSettings.ConnectionString,
+                postgresSettings.DesignerDbPwd);
             _logger = logger;
         }
 

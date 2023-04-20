@@ -55,10 +55,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
 };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('SchemaInspector', () => {
   test('dispatches correctly when entering text in textboxes', async () => {
@@ -72,13 +69,12 @@ describe('SchemaInspector', () => {
     expect(tabpanel).toBeDefined();
     expect(screen.getAllByRole('tab')).toHaveLength(1);
     const textboxes = screen.getAllByRole('textbox');
-    await act(async () => {
-      for (const textbox of textboxes) {
-        await user.clear(textbox);
-        await user.type(textbox, 'new-value');
-        await user.tab();
-      }
-    });
+
+    for (const textbox of textboxes) {
+      await act(() => user.clear(textbox));
+      await act(() => user.type(textbox, 'new-value'));
+      await act(() => user.tab());
+    }
     const actions = store.getActions();
     expect(actions.length).toBeGreaterThanOrEqual(1);
     const actionTypes = actions.map((a) => a.type);
@@ -123,16 +119,15 @@ describe('SchemaInspector', () => {
     const testUiSchema = buildUiSchema({});
     const parentNode = createNodeBase(Keywords.Properties, 'test');
     parentNode.fieldType = FieldType.Object;
+    // eslint-disable-next-line testing-library/no-node-access
     parentNode.children = ['#/properties/test/properties/abc'];
     testUiSchema.push(parentNode);
     const childNode = createChildNode(parentNode, 'abc', false);
     testUiSchema.push(childNode);
     const { store, user } = renderSchemaInspector(testUiSchema, parentNode);
-    await act(async () => {
-      await user.click(screen.queryAllByRole('tab')[1]);
-      await user.click(screen.getByDisplayValue('abc'));
-      await user.keyboard('{Enter}');
-    });
+    await act(() => user.click(screen.queryAllByRole('tab')[1]));
+    await act(() => user.click(screen.getByDisplayValue('abc')));
+    await act(() => user.keyboard('{Enter}'));
     expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addProperty');
   });
 
@@ -143,11 +138,9 @@ describe('SchemaInspector', () => {
     item.enum = ['valid value'];
     testUiSchema.push(item);
     const { store, user } = renderSchemaInspector(testUiSchema, item);
-    await act(async () => {
-      await user.click(screen.queryAllByRole('tab')[1]);
-      await user.click(screen.getByDisplayValue('valid value'));
-      await user.keyboard('{Enter}');
-    });
+    await act(() => user.click(screen.queryAllByRole('tab')[1]));
+    await act(() => user.click(screen.getByDisplayValue('valid value')));
+    await act(() => user.keyboard('{Enter}'));
     expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addEnum');
   });
 });

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -31,10 +30,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="httpContextAccessor">The context accessor.</param>
         /// <param name="settings">The general settings.</param>
-        public SessionController(IHttpContextAccessor httpContextAccessor, IOptions<GeneralSettings> settings)
+        public SessionController(IHttpContextAccessor httpContextAccessor, GeneralSettings settings)
         {
             _httpContextAccessor = httpContextAccessor;
-            _settings = settings.Value;
+            _settings = settings;
         }
 
         /// <summary>

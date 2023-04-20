@@ -1,12 +1,12 @@
-import { useSelector } from 'react-redux';
-import type { IAppState } from '../../../types/global';
 import type { IGenericEditComponent } from '../componentConfig';
 import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
-import { ComponentTypes } from '../../index';
+import { ComponentType } from '../../index';
 import React from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { Label } from 'app-shared/components/Label';
+import { useDatamodelQuery } from '../../../hooks/queries/useDatamodelQuery';
+import { useParams } from 'react-router-dom';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -22,7 +22,8 @@ export const EditDataModelBindings = ({
   handleComponentChange,
   renderOptions,
 }: EditDataModelBindingsProps) => {
-  const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
+  const { org, app } = useParams();
+  const { data } = useDatamodelQuery(org, app);
   const t = useText();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
@@ -32,10 +33,10 @@ export const EditDataModelBindings = ({
         ...component.dataModelBindings,
         [key]: selectedDataModelElement,
       },
-      required: getMinOccursFromDataModel(selectedDataModelElement, dataModel) > 0,
+      required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0,
       timeStamp:
-        component.type === ComponentTypes.Datepicker
-          ? getXsdDataTypeFromDataModel(selectedDataModelElement, dataModel) === 'DateTime'
+        component.type === ComponentType.Datepicker
+          ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
           : undefined,
     });
   };

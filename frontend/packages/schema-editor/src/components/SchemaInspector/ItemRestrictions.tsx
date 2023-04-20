@@ -1,6 +1,6 @@
 import { MouseEvent, useState } from 'react';
 import React from 'react';
-import type { Dict, UiSchemaNode } from '@altinn/schema-model';
+import { Dict, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
 import { FieldType } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import {
@@ -26,7 +26,7 @@ import {
   ErrorMessage,
 } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 
 export interface RestrictionItemProps {
@@ -118,25 +118,29 @@ export const ItemRestrictions = ({
   };
   return (
     <>
-      <Checkbox
-        checked={isRequired}
-        label={t('schema_editor.required')}
-        name='checkedRequired'
-        onChange={handleRequiredChanged}
-      />
+      {!pointerIsDefinition(pointer) && (
+        <Checkbox
+          checked={isRequired}
+          label={t('schema_editor.required')}
+          name='checkedRequired'
+          onChange={handleRequiredChanged}
+        />
+      )}
       {reference === undefined &&
         {
-          [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
-          [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,
+          [FieldType.Integer]: <NumberRestrictions {...restrictionProps} isInteger />,
+          [FieldType.Number]: <NumberRestrictions {...restrictionProps} isInteger={false} />,
           [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
           [FieldType.String]: <StringRestrictions {...restrictionProps} />,
         }[fieldType as string]}
       {isArray && <ArrayRestrictions {...restrictionProps} />}
       {[FieldType.String, FieldType.Integer, FieldType.Number].includes(fieldType as FieldType) && (
         <>
-          <Divider inMenu />
+          <Divider marginless/>
           <FieldSet legend={t('schema_editor.enum_legend')}>
-            {!enums?.length && <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>}
+            {!enums?.length && (
+              <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
+            )}
             {enumError !== null && (
               <ErrorMessage>
                 <p>{t('schema_editor.enum_error_duplicate')}</p>
@@ -159,7 +163,7 @@ export const ItemRestrictions = ({
                 aria-label={t('schema_editor.add_enum')}
                 color={ButtonColor.Secondary}
                 fullWidth
-                icon={<Add />}
+                icon={<PlusIcon />}
                 id='add-enum-button'
                 onClick={onAddEnumButtonClick}
                 size={ButtonSize.Small}

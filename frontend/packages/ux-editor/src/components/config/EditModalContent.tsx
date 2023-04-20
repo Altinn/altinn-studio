@@ -1,6 +1,6 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
-import { ComponentTypes } from '../index';
+import { ComponentType } from '../index';
 import type { FormComponentType, IAppState, IThirdPartyComponent } from '../../types/global';
 import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
@@ -40,7 +40,7 @@ export const EditModalContent = ({
   };
 
   const getConfigDefinitionForComponent = (): EditSettings[] => {
-    if (component.type === ComponentTypes.ThirdParty) {
+    if (component.type === ComponentType.ThirdParty) {
       return thirdPartyComponentConfig[(component as IThirdPartyComponent).tagName];
     }
 

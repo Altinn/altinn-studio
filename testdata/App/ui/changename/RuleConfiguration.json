@@ -1,0 +1,133 @@
+﻿{
+  "data": {
+    "ruleConnection": {
+      "b9dcddd0-deb4-11e9-9cfd-6f791e4f04e5": {
+        "selectedFunction": "nyttNavn",
+        "inputParams": {
+          "fornavn": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value",
+          "mellomnavn": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value",
+          "etternavn": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonEtternavnNytt-datadef-34757.value"
+        },
+        "outParams": {
+          "outParam0": "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value"
+        }
+      }
+    },
+    "conditionalRendering": {
+      "42023260-dec3-11e9-9e0b-d7d51bf3a5ad": {
+        "selectedFunction": "sjekkNavnendringAvkreftelse",
+        "inputParams": {
+          "value": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+        },
+        "selectedAction": "Hide",
+        "selectedFields": {
+          "42019620-dec3-11e9-9e0b-d7d51bf3a5ad": "reasonRelationship",
+          "501a4a40-dec3-11e9-9e0b-d7d51bf3a5ad": "reasonParents",
+          "52e13270-dec3-11e9-9e0b-d7d51bf3a5ad": "reasonSSN",
+          "5612c350-dec3-11e9-9e0b-d7d51bf3a5ad": "reasonCohabitant1",
+          "59c17370-dec3-11e9-9e0b-d7d51bf3a5ad": "reasonCohabitant2",
+          "5c094090-dec3-11e9-9e0b-d7d51bf3a5ad": "reasonFarm1",
+          "5eab89c0-dec3-11e9-9e0b-d7d51bf3a5ad": "reasonFarm5",
+          "614631d0-dec3-11e9-9e0b-d7d51bf3a5ad": "reasonNewName",
+          "63261560-dec3-11e9-9e0b-d7d51bf3a5ad": "reasonOthers"
+        }
+      },
+      "392b6470-deb6-11e9-9cfd-6f791e4f04e5": {
+        "selectedFunction": "sjekkNavnendringBekreftelse",
+        "inputParams": {
+          "value": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "392aa120-deb6-11e9-9cfd-6f791e4f04e5": "reason"
+        }
+      },
+      "39ec5bc0-debc-11e9-9cfd-6f791e4f04e5": {
+        "selectedFunction": "sjekkBegrunnelseSlektskap",
+        "inputParams": {
+          "value": "Radioknapp"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "39eb4a50-debc-11e9-9cfd-6f791e4f04e5": "reasonRelationship"
+        }
+      },
+      "1f1bc690-debd-11e9-9f7a-974742fc24e0": {
+        "selectedFunction": "sjekkBegrunnelseSteforeldre",
+        "inputParams": {
+          "value": "Radioknapp"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "1f1b0340-debd-11e9-9f7a-974742fc24e0": "reasonParents",
+          "27f93720-debd-11e9-9f7a-974742fc24e0": "reasonSSN"
+        }
+      },
+      "33810730-debd-11e9-9f7a-974742fc24e0": {
+        "selectedFunction": "sjekkBegrunnelseSamboer",
+        "inputParams": {
+          "value": "Radioknapp"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "33809200-debd-11e9-9f7a-974742fc24e0": "reasonCohabitant1",
+          "3bbd55c0-debd-11e9-9f7a-974742fc24e0": "reasonCohabitant2"
+        }
+      },
+      "6a552160-debd-11e9-9f7a-974742fc24e0": {
+        "selectedFunction": "sjekkBegrunnelseGardsbruk",
+        "inputParams": {
+          "value": "Radioknapp"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "6a53e8e0-debd-11e9-9f7a-974742fc24e0": "reasonFarm1",
+          "786ebfe0-debd-11e9-9f7a-974742fc24e0": "reasonFarm2",
+          "7a410ee0-debd-11e9-9f7a-974742fc24e0": "reasonFarm3",
+          "3eb5bbb0-df61-11e9-90bb-75caf7f13328": "reasonFarm4",
+          "44dc49a0-df61-11e9-90bb-75caf7f13328": "reasonFarm5"
+        }
+      },
+      "9f82b780-debd-11e9-9f7a-974742fc24e0": {
+        "selectedFunction": "sjekkBegrunnelseNyttNavn",
+        "inputParams": {
+          "value": "Radioknapp"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "9f8157f0-debd-11e9-9f7a-974742fc24e0": "reasonNewName"
+        }
+      },
+      "b46f9eb0-debd-11e9-9f7a-974742fc24e0": {
+        "selectedFunction": "sjekkBegrunnelseAnnet",
+        "inputParams": {
+          "value": "Radioknapp"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "b46f0270-debd-11e9-9f7a-974742fc24e0": "reasonOthers"
+        }
+      },
+      "ac3758b0-dec6-11e9-b002-3d89dd6226b6": {
+        "selectedFunction": "sjekkRadioBtnHuket",
+        "inputParams": {
+          "value": "Radioknapp"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "ba2b94e0-dec6-11e9-b002-3d89dd6226b6": "toSummary"
+        }
+      },
+      "7f043d90-ee66-11e9-9911-afbd8cbd5c97": {
+        "selectedFunction": "sjekkNyttNavnSatt",
+        "inputParams": {
+          "value": "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "7f037a40-ee66-11e9-9911-afbd8cbd5c97": "confirmChangeName"
+        }
+      }
+    }
+  }
+}

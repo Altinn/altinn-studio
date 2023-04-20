@@ -32,6 +32,7 @@ public class CSharpEnd2EndTestData : IEnumerable<object[]>
         yield return new object[] { "Model/XmlSchema/Gitea/stami-mu-databehandler-2021.xsd", "Model/CSharp/Gitea/stami-mu-databehandler-2021.cs" };
         yield return new object[] { "Model/XmlSchema/Gitea/skd-formueinntekt-skattemelding-v2.xsd", "Model/CSharp/Gitea/skd-formueinntekt-skattemelding-v2.cs" };
         yield return new object[] { "Model/XmlSchema/Gitea/aal-vedlegg.xsd", "Model/CSharp/Gitea/aal-vedlegg.cs" };
+        yield return new object[] { "Model/XmlSchema/Gitea/krt-1188a-1.xsd", "Model/CSharp/Gitea/krt-1188a-1.cs" };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

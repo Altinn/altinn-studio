@@ -5,13 +5,9 @@ import type { ICommit, IRepository } from '../../../types/global';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
 
 describe('Administration', () => {
   const mockService: IRepository = {
@@ -97,24 +93,24 @@ describe('Administration', () => {
   });
 
   it('should show Apps view when repository is app repository', () => {
-    const utils = renderWithProviders(<Administration />, {
+    renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
       },
     });
-    const serviceIdText = utils.getByText('administration.service_id');
+    const serviceIdText = screen.getByText(textMock('administration.service_id'));
     expect(serviceIdText).not.toBeNull();
   });
 
   it('should show Datamodels view when repository name matches "<org>-datamodels" format', () => {
-    const utils = renderWithProviders(<Administration />, {
+    renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-org-datamodels`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
       },
     });
-    const infoText = utils.getByText('administration.datamodels_info1');
+    const infoText = screen.getByText(textMock('administration.datamodels_info1'));
     expect(infoText).not.toBeNull();
   });
 });

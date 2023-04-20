@@ -11,6 +11,7 @@ import {
 import type { IAppState } from '../../types/global';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -24,7 +25,9 @@ export function RuleModal(props: IRuleModalProps) {
   const ruleConnection = useSelector(
     (state: IAppState) => state.serviceConfigurations.ruleConnection
   );
+  const ruleModelElements = useSelector((state: IAppState) => state.appData.ruleModel.model)
   const { t } = useTranslation();
+  const datamodelQuery = useDatamodelQuery(org, app);
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -69,6 +72,8 @@ export function RuleModal(props: IRuleModalProps) {
     );
   }
 
+  const datamodelElements = datamodelQuery?.data ?? [];
+
   return (
     <>
       <Modal
@@ -84,12 +89,16 @@ export function RuleModal(props: IRuleModalProps) {
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={handleDeleteConnection}
+            datamodelElements={datamodelElements}
+            ruleModelElements={ruleModelElements}
           />
         ) : (
           <RuleComponent
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
+            datamodelElements={datamodelElements}
+            ruleModelElements={ruleModelElements}
           />
         )}
       </Modal>

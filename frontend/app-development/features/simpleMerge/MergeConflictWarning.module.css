@@ -1,0 +1,11 @@
+.container {
+  margin: 100px auto auto;
+  background-color: white;
+  padding: 50px 100px;
+  width: 660px;
+  border: 1px solid #c9c9c9;
+  border-radius: 3px;
+}
+.buttonContainer {
+  justify-content: flex-end;
+}

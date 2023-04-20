@@ -7,7 +7,7 @@ import { ImageComponent } from './ImageComponent';
 import { appDataMock, renderWithMockStore } from '../../../../testing/mocks';
 import { IAppDataState } from '../../../../features/appData/appDataReducers';
 import type { IFormImageComponent } from '../../../../types/global';
-import { ComponentTypes } from '../../../';
+import { ComponentType } from '../../../';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
@@ -15,10 +15,11 @@ const user = userEvent.setup();
 const componentData: IFormImageComponent = {
   id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
   textResourceBindings: {},
-  type: ComponentTypes.Image,
+  type: ComponentType.Image,
   image: {
     src: {},
   },
+  itemType: 'COMPONENT',
 };
 const texts = {
   'ux_editor.modal_properties_image_src_value_label': 'Source',

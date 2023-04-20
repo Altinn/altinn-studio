@@ -8,32 +8,34 @@ import {
   Button,
   ButtonColor,
   ButtonVariant,
+  Checkbox,
   FieldSet,
-  RadioButton,
 } from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
+import { removeArrayElement } from 'app-shared/pure';
 
 export interface RightMenuProps {
-  selectedLangCode: string;
-  onSelectedLangChange: (langCode: LangCode) => void;
-  availableLangCodes: string[];
-  onAddLang: (langCode: LangCode) => void;
-  onDeleteLang: (langCode: LangCode) => void;
+  addLanguage: (langCode: LangCode) => void;
+  availableLanguages: string[];
+  deleteLanguage: (langCode: LangCode) => void;
+  selectedLanguages: string[];
+  setSelectedLanguages: (langCode: LangCode[]) => void;
 }
 
 export const RightMenu = ({
-  selectedLangCode,
-  onSelectedLangChange,
-  availableLangCodes,
-  onAddLang,
-  onDeleteLang,
+  addLanguage,
+  availableLanguages,
+  deleteLanguage,
+  selectedLanguages,
+  setSelectedLanguages,
 }: RightMenuProps) => {
-  const addLangOptions = langOptions.filter((x) => !availableLangCodes.includes(x.value));
-  const canDeleteLang = (code) => availableLangCodes.length > 1 && code !== defaultLangCode;
-  const handleSelectChange = ({ target }: React.ChangeEvent<HTMLInputElement>) =>
-    onSelectedLangChange(target.value);
+  const addLangOptions = langOptions.filter((x) => !availableLanguages.includes(x.value));
+  const canDeleteLang = (code) => availableLanguages.length > 1 && code !== defaultLangCode;
+  const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) =>
+    target.checked
+      ? setSelectedLanguages([...selectedLanguages, target.name])
+      : setSelectedLanguages(removeArrayElement(selectedLanguages, target.name));
 
-  // TODO: is fetching translations
   return (
     <aside className={classes.RightMenu__sidebar}>
       <div className={classes.RightMenu__verticalContent}>
@@ -48,20 +50,19 @@ export const RightMenu = ({
       <div className={classes.RightMenu__verticalContent}>
         <FieldSet legend='Aktive språk:'>
           <div className={classes.RightMenu__radioGroup}>
-            {availableLangCodes?.map((langCode) => (
+            {availableLanguages?.map((langCode) => (
               <div key={langCode} className={classes.RightMenu__radio}>
-                <RadioButton
-                  value={langCode}
+                <Checkbox
                   label={getLangName({ code: langCode })}
-                  name={'activeLangs'}
+                  name={langCode}
                   onChange={handleSelectChange}
-                  checked={langCode === selectedLangCode}
+                  checked={selectedLanguages.includes(langCode)}
                 />
                 <Button
                   variant={canDeleteLang(langCode) ? ButtonVariant.Filled : ButtonVariant.Outline}
                   data-testid={`delete-${langCode}`}
                   color={ButtonColor.Danger}
-                  onClick={() => onDeleteLang(langCode)}
+                  onClick={() => deleteLanguage(langCode)}
                   disabled={!canDeleteLang(langCode)}
                 >
                   Delete
@@ -73,7 +74,7 @@ export const RightMenu = ({
       </div>
       <div className={classes.RightMenu__verticalContent}>
         <div className={classes['LangEditor__title-sm']}>Legg til språk:</div>
-        <LangSelector onAddLang={onAddLang} options={addLangOptions} />
+        <LangSelector onAddLang={addLanguage} options={addLangOptions} />
       </div>
     </aside>
   );

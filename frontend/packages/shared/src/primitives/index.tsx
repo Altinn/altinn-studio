@@ -12,3 +12,7 @@ interface Props {
 export const SimpleContainer = ({ children, className }: Props) => {
   return <div className={classnames(classes.simpleContainer, className)}>{children}</div>;
 };
+
+export const ButtonContainer = ({ children, className }: Props) => {
+  return <div className={classnames(classes.buttonContainer, className)}>{children}</div>;
+};

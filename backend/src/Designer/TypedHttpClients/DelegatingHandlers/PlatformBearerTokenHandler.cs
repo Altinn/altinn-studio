@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
 {
@@ -28,11 +27,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         public PlatformBearerTokenHandler(
             IAccessTokenGenerator accessTokenGenerator,
             IAltinnAuthenticationClient altinnAuthenticationClient,
-            IOptions<GeneralSettings> generalSettings)
+            GeneralSettings generalSettings)
         {
             _altinnAuthenticationClient = altinnAuthenticationClient;
             _accesTokenGenerator = accessTokenGenerator;
-            _generalSettings = generalSettings.Value;
+            _generalSettings = generalSettings;
         }
 
         /// <summary>

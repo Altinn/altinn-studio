@@ -1,8 +1,8 @@
 import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
-import type { ComponentTypes } from '..';
-import { InformationColored } from '@navikt/ds-icons';
+import type { ComponentType } from '..';
+import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import { Popover } from '@mui/material';
 
 import {
@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 export interface IInformationPanelProvidedProps {
   anchorElement: any;
-  selectedComponent: ComponentTypes;
+  selectedComponent: ComponentType;
   informationPanelOpen: boolean;
   onClose: () => void;
   thirdPartyLibrary?: boolean;
@@ -44,7 +44,7 @@ export const InformationPanelComponent = ({
         {getComponentHelperTextByComponentType(selectedComponent, t)}
       </div>
       <div className={classNames(classes.informationPanelText)}>
-        <InformationColored className={classes.informationIcon} />
+        <InformationSquareFillIcon className={classes.informationIcon} />
         {!thirdPartyLibrary
           ? t('ux_editor.information_altinn_library')
           : t('ux_editor.information_third_party_library')}

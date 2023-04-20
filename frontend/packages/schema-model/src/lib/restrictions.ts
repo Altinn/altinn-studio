@@ -1,6 +1,7 @@
 import type { Dict } from './types';
 
 export enum IntRestrictionKeys {
+  integer = "integer",
   exclusiveMaximum = 'exclusiveMaximum',
   exclusiveMinimum = 'exclusiveMinimum',
   maximum = 'maximum',
@@ -19,7 +20,7 @@ export enum StrRestrictionKeys {
   pattern = 'pattern',
 }
 
-export enum ObjRestrictionKeys {}
+export enum ObjRestrictionKeys { }
 
 export enum ArrRestrictionKeys {
   maxItems = 'maxItems',

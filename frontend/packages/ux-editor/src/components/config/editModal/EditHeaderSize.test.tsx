@@ -5,6 +5,7 @@ import { EditHeaderSize } from './EditHeaderSize';
 import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { ComponentType } from '../../index';
 
 const h4Text = 'Undertittel (H4)';
 const h3Text = 'Undertittel (H3)';
@@ -33,11 +34,12 @@ const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) =>
       handleComponentChange={handleComponentChange}
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-        type: 'Header',
+        type: ComponentType.Header,
         textResourceBindings: {
           title: 'ServiceName',
         },
         size,
+        itemType: 'COMPONENT',
       }}
     />,
   );
@@ -124,7 +126,8 @@ describe('HeaderSizeSelect', () => {
 
     expect(handleComponentChange).toHaveBeenCalledWith({
       id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-      type: 'Header',
+      itemType: 'COMPONENT',
+      type: ComponentType.Header,
       textResourceBindings: {
         title: 'ServiceName',
       },

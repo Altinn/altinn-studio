@@ -1,0 +1,26 @@
+.item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 11px 10px;
+  height: 40px;
+  box-sizing: border-box;
+  background: #ffffff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+}
+
+.item:hover {
+  background: #e3f7ff;
+  cursor: pointer;
+}
+
+.itemSelected {
+  background: #e3f7ff;
+  border: 1px solid #004c8f;
+}
+
+.typeIcon {
+  padding-right: 12px;
+  font-size: 24px !important;
+}

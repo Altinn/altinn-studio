@@ -1,17 +1,10 @@
 import React from 'react';
 import { unmountComponentAtNode } from 'react-dom';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { dataMock } from './mockData';
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 
 let container: any = null;
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 
 beforeEach(() => {
   container = document.createElement('div');
@@ -25,15 +18,14 @@ afterEach(() => {
 });
 
 test('renders schema editor app', () => {
-  act(() => {
-    render(
-      <SchemaEditorApp
-        schema={dataMock}
-        onSaveSchema={jest.fn()}
-        name='test'
-        LandingPagePanel={<div>landing page panel goes here</div>}
-      />
-    );
-  });
+  render(
+    <SchemaEditorApp
+      schema={dataMock}
+      schemaState={{ saving: false }}
+      onSaveSchema={jest.fn()}
+      name='test'
+      LandingPagePanel={<div>landing page panel goes here</div>}
+    />
+  );
   expect(screen.getByTestId('schema-editor')).toBeDefined();
 });

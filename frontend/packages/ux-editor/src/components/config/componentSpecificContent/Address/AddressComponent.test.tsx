@@ -3,29 +3,23 @@ import { IGenericEditComponent } from '../../componentConfig';
 import { IFormAddressComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { AddressComponent } from './AddressComponent';
-import { ComponentTypes } from '../../../';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { ComponentType } from '../../../';
 
 // Test data:
 const component: IFormAddressComponent = {
-  type: ComponentTypes.AddressComponent,
+  type: ComponentType.AddressComponent,
   dataModelBindings: {
     test: 'test'
   },
   id: '1',
   simplified: false,
+  itemType: 'COMPONENT',
 };
 const handleComponentChange = jest.fn();
 const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,
 };
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 
 describe('AddressComponent', () => {
   it('Renders without errors', () => {

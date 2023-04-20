@@ -1,0 +1,28 @@
+@{ViewBag.Title = "Altinn Studio";}
+
+<html lang="no">
+    <head>
+      <title>@ViewBag.Title</title>
+        <link rel="shortcut icon" href="/designer/img/favicon.ico"/>
+        <style>
+      html, body {
+      margin: 0;
+      padding: 0;
+      }
+      body {
+      height: 100vh;
+      width: 100vw;
+      }
+      div {
+      height: 100%;
+      width: 100%;
+      }
+    </style>
+    </head>
+    <body>
+    <div id="root" class="media-body flex-column d-flex"></div>
+    <link href="https://altinncdn.no/fonts/altinn-din/altinn-din.css" rel="stylesheet">
+        <link  href="/designer/frontend/app-preview/app-preview.css" asp-append-version="true" rel="stylesheet">
+        <script src="/designer/frontend/app-preview/app-preview.js" asp-append-version="true" type="text/javascript"></script>
+    </body>
+</html>

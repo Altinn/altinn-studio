@@ -32,6 +32,7 @@ const uiSchemaNodes = [parentNode];
 ['Donald', 'Dolly'].forEach((childNodeName) => {
   const childNode = createChildNode(parentNode, childNodeName, false);
   childNode.fieldType = FieldType.String;
+  // eslint-disable-next-line testing-library/no-node-access
   parentNode.children.push(childNode.pointer);
   uiSchemaNodes.push(childNode);
 });
@@ -44,10 +45,7 @@ const renderItemDataComponent = (
   selectedItemIndex?: number
 ) => {
   return renderWithRedux(
-    <ItemDataComponent
-      {...uiSchemaNodes[selectedItemIndex ?? 0]}
-      {...props}
-    >
+    <ItemDataComponent {...uiSchemaNodes[selectedItemIndex ?? 0]} {...props}>
       {props?.children}
     </ItemDataComponent>,
     { uiSchema: uiSchemaNodes }
@@ -61,20 +59,18 @@ jest.mock('react-i18next', () => ({
 
 describe('ItemDataComponent', () => {
   test('"Multiple answers" checkbox should appear if selected item is field', () => {
-    const { renderResult } = renderItemDataComponent({}, 1);
-    expect(
-      renderResult.container.querySelector('input[name="checkedMultipleAnswers"]')
-    ).toBeDefined();
+    renderItemDataComponent({}, 1);
+    expect(screen.getByLabelText('Multiple answers')).toBeDefined();
   });
 
   test('"Multiple answers" checkbox should not appear if selected item is combination', () => {
-    const { renderResult } = renderItemDataComponent({}, 0);
-    expect(renderResult.container.querySelector('input[name="checkedMultipleAnswers"]')).toBeNull();
+    renderItemDataComponent({}, 0);
+    expect(screen.queryByLabelText('Multiple answers')).toBeNull();
   });
 
   test('setType is called when "multiple answers" checkbox is checked', async () => {
-    const { store, user, renderResult } = renderItemDataComponent({}, 3);
-    const checkbox = renderResult.container.querySelector('input[name="checkedMultipleAnswers"]');
+    const { store, user } = renderItemDataComponent({}, 3);
+    const checkbox = screen.queryByLabelText('Multiple answers');
     if (checkbox === null) fail();
     await act(() => user.click(checkbox));
     expect(
@@ -83,18 +79,18 @@ describe('ItemDataComponent', () => {
   });
 
   test('"Nullable" checkbox should appear if selected item is combination', () => {
-    const { renderResult } = renderItemDataComponent({}, 0);
-    expect(renderResult.container.querySelector('input[name="checkedNullable"]')).toBeDefined();
+    renderItemDataComponent({}, 0);
+    expect(screen.getByLabelText('Nullable')).toBeDefined();
   });
 
   test('"Nullable" checkbox should not appear if selected item is not combination', () => {
-    const { renderResult } = renderItemDataComponent({}, 1);
-    expect(renderResult.container.querySelector('input[name="checkedNullable"]')).toBeNull();
+    renderItemDataComponent({}, 1);
+    expect(screen.queryByLabelText('Nullable')).toBeNull();
   });
 
   test('addCombinationItem is called when "nullable" checkbox is checked', async () => {
-    const { store, user, renderResult } = renderItemDataComponent({}, 0);
-    const checkbox = renderResult.container.querySelector('input[name="checkedNullable"]');
+    const { store, user } = renderItemDataComponent({}, 0);
+    const checkbox = screen.getByLabelText('Nullable');
     if (checkbox === null) fail();
     await act(() => user.click(checkbox));
     expect(
@@ -112,7 +108,9 @@ describe('ItemDataComponent', () => {
     const inputField = screen.getByLabelText(mockTexts['schema_editor.title']);
     await act(() => user.type(inputField, 'Lorem ipsum'));
     await act(() => user.tab());
-    const setTitleActions = store.getActions().filter(({ type }) => type === 'schemaEditor/setTitle');
+    const setTitleActions = store
+      .getActions()
+      .filter(({ type }) => type === 'schemaEditor/setTitle');
     expect(setTitleActions).toHaveLength(1);
     expect(setTitleActions[0].payload.title).toEqual('Lorem ipsum');
   });

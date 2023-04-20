@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
@@ -16,18 +19,77 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class TextsService : ITextsService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+        private readonly IApplicationMetadataService _applicationMetadataService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-        public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+        /// <param name="applicationMetadataService">IApplicationMetadataService</param>
+        public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IApplicationMetadataService applicationMetadataService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+            _applicationMetadataService = applicationMetadataService;
+        }
+
+        public async Task CreateLanguageResources(string org, string repo, string developer)
+        {
+            if (!string.IsNullOrEmpty(repo))
+            {
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+                TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+                textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = repo });
+                await altinnAppGitRepository.SaveTextV1("nb", textResource);
+            }
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, string>> GetTexts(string org, string repo, string developer, string languageCode)
+        public List<string> GetLanguages(string org, string app, string developer)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            List<string> languages = altinnAppGitRepository.GetLanguages();
+
+            return languages;
+        }
+
+        /// <inheritdoc />
+        public async Task<TextResource> GetTextV1(string org, string repo, string developer, string languageCode)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+            TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
+
+            return texts;
+        }
+
+        /// <inheritdoc />
+        public async Task SaveTextV1(string org, string repo, string developer, TextResource textResource, string languageCode)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+            string[] duplicateKeys = textResource.Resources.GroupBy(tre => tre.Id).Where(grp => grp.Count() > 1).Select(grp => grp.Key).ToArray();
+            if (duplicateKeys.Length > 0)
+            {
+                throw new ArgumentException($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
+            }
+
+            // updating application metadata with appTitle.
+            TextResourceElement appTitleResourceElement = textResource.Resources.FirstOrDefault(tre => tre.Id == "appName" || tre.Id == "ServiceName");
+
+            if (appTitleResourceElement != null && !string.IsNullOrEmpty(appTitleResourceElement.Value))
+            {
+                await _applicationMetadataService.UpdateAppTitleInAppMetadata(org, repo, "nb", appTitleResourceElement.Value);
+            }
+            else
+            {
+                throw new ArgumentException("The application name must be a value.");
+            }
+
+            await altinnAppGitRepository.SaveTextV1(languageCode, textResource);
+        }
+
+        /// <inheritdoc />
+        public async Task<Dictionary<string, string>> GetTextsV2(string org, string repo, string developer, string languageCode)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
@@ -94,11 +156,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            IEnumerable<string> languageFiles = altinnAppGitRepository.FindFiles(new string[] { "resource.*.json" });
+            IEnumerable<string> languageFiles = altinnAppGitRepository.FindFiles(new[] { "resource.*.json" });
 
             foreach (string languageFile in languageFiles.ToList())
             {
-                Dictionary<string, string> newTexts = new Dictionary<string, string>();
+                Dictionary<string, string> newTexts = new();
 
                 string languageCode = GetLanguageCodeFromFilePath(languageFile);
                 TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
@@ -128,6 +190,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        public async Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+            TextResource textResourceObject = await altinnAppGitRepository.GetTextV1(languageCode);
+
+            // handle if file not already exist
+
+            foreach (KeyValuePair<string, string> kvp in keysTexts)
+            {
+                if ((kvp.Key == "appName" || kvp.Key == "serviceName") && string.IsNullOrEmpty(kvp.Value))
+                {
+                    throw new ArgumentException("The application name must be a value.");
+                }
+
+                TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
+                if (textResourceContainsKey is null)
+                {
+                    textResourceObject.Resources.Add(new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
+                }
+                else
+                {
+                    int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
+                    textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value };
+                }
+            }
+
+            await altinnAppGitRepository.SaveTextV1(languageCode, textResourceObject);
+        }
+
         /// <inheritdoc />
         public async Task<string> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey)
         {
@@ -137,7 +228,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-            Dictionary<string, Dictionary<string, string>> tempUpdatedTexts = new Dictionary<string, Dictionary<string, string>>(languages.Count);
+            Dictionary<string, Dictionary<string, string>> tempUpdatedTexts = new(languages.Count);
             bool oldKeyExistsOriginally = false;
             string response = string.Empty;
             try
@@ -201,41 +292,62 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations);
         }
 
-        /// <inheritdoc />
-        public async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
+        /// <summary>
+        /// Updates text keys in layouts for a specific layoutset
+        /// </summary>
+        /// <param name="org">Identifier for the organisation</param>
+        /// <param name="app">Identifier for the application</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="layoutSetName">Name of the layoutset</param>
+        /// <param name="keyMutations">A list of the keys that are updated</param>
+        private async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
             foreach (string layoutName in layoutNames)
             {
-                Designer.Models.FormLayout layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
-                foreach (Designer.Models.Layout layoutObject in layout.data.layout)
+                JsonNode layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+                if (layout?["data"]?["layout"] is not JsonArray layoutArray)
                 {
-                    foreach (TextIdMutation mutation in keyMutations)
+                    continue;
+                }
+                foreach (var layoutObject in layoutArray)
+                {
+                    foreach (TextIdMutation mutation in keyMutations.Where(_ => layoutObject["textResourceBindings"] is not null))
                     {
-                        if (layoutObject.textResourceBindings != null)
-                        {
-                            UpdateKeyInTextResourceBinding(layoutObject.textResourceBindings, mutation);
-                        }
+                        layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
                     }
                 }
                 await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
             }
         }
 
-        private static void UpdateKeyInTextResourceBinding(Dictionary<string, string> textResourceBindings, TextIdMutation keyMutation)
+        private static JsonNode UpdateKey(JsonNode textResourceBindings, TextIdMutation keyMutation)
         {
-            foreach (KeyValuePair<string, string> trb in textResourceBindings.Where(trb => trb.Value == keyMutation.OldId))
+            JsonNode updatedTextResourceBindings = JsonNode.Parse(textResourceBindings.ToJsonString());
+            foreach ((string key, var value) in (textResourceBindings as JsonObject)!)
             {
+                if (value is null)
+                {
+                    continue;
+                }
+                var valueElement = value.AsValue().GetValue<JsonElement>();
+                // Only update if the value is a string and the value is the same as the old key
+                if (valueElement.ValueKind != JsonValueKind.String || valueElement.GetString() != keyMutation.OldId)
+                {
+                    continue;
+                }
+
                 if (keyMutation.NewId.HasValue)
                 {
-                    textResourceBindings[trb.Key] = keyMutation.NewId.Value;
+                    updatedTextResourceBindings![key] = keyMutation.NewId.Value;
                 }
                 else
                 {
-                    textResourceBindings.Remove(trb.Key);
+                    updatedTextResourceBindings = (updatedTextResourceBindings as JsonObject)!.Remove(key);
                 }
             }
+            return updatedTextResourceBindings;
         }
 
         private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
@@ -320,7 +432,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>List of markdown filenames</returns>
         private static List<string> ExtractMarkdownFileNames(Dictionary<string, string> texts)
         {
-            List<string> markdownFileNames = new List<string>();
+            List<string> markdownFileNames = new();
             foreach (KeyValuePair<string, string> text in texts.Where(text => IsFileReference(text.Value)))
             {
                 int fileNameStart = 7;

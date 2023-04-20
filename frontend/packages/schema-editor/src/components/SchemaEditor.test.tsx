@@ -18,6 +18,7 @@ import {
 } from '@altinn/schema-model';
 import { SchemaItemLabelTestIds } from '@altinn/schema-editor/components/TreeView/SchemaItemLabel';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { GenerateSchemaState } from 'app-shared/types/global';
 
 const typesText = 'Typer';
 const texts = {
@@ -29,8 +30,10 @@ const texts = {
   'schema_editor.field': 'Felt',
   'schema_editor.reference': 'Referanse',
   'schema_editor.types': typesText,
+  'schema_editor.types_editing': 'Du redigerer nå på',
 };
 const uiSchema = buildUiSchema(dataMock);
+const schemaState: GenerateSchemaState = { saving: false };
 
 const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) => {
   const mockInitialState = {
@@ -56,6 +59,7 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
         Toolbar={<div>toolbar goes here</div>}
         LandingPagePanel={<div>landing page panel goes here</div>}
         schema={dataMock}
+        schemaState={schemaState}
         saveUrl={''}
         onSaveSchema={onSaveSchema}
         name='test'
@@ -67,16 +71,13 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
   return { store, user };
 };
 
-const clickMenuItem = (user: UserEvent, testId: string) => user.click(screen.getByTestId(testId));
+const clickMenuItem = (user: UserEvent, testId: string) => act(() =>user.click(screen.getByTestId(testId)));
 
 const clickOpenContextMenuButton = async (user: UserEvent) =>
-  user.click(screen.getAllByTestId('open-context-menu-button')[0]);
+  await act(() => user.click(screen.getAllByTestId('open-context-menu-button')[0]));
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('SchemaEditor', () => {
   test('renders schema editor with populated schema in view mode', () => {
@@ -85,6 +86,7 @@ describe('SchemaEditor', () => {
     expect(screen.getByTestId('save-model-button')).toBeDefined();
     expect(screen.getByTestId('save-model-button')).toBeDisabled();
     expect(screen.queryByTestId('schema-inspector')).toBeNull();
+    expect(screen.getByTestId('types-inspector')).toBeDefined();
   });
 
   test('renders schema editor with populated schema in edit mode', () => {
@@ -92,7 +94,9 @@ describe('SchemaEditor', () => {
     expect(screen.getByTestId('schema-editor')).toBeDefined();
     expect(screen.getByTestId('save-model-button')).toBeDefined();
     expect(screen.getByTestId('save-model-button')).toBeEnabled();
+    // eslint-disable-next-line testing-library/prefer-presence-queries
     expect(screen.queryByTestId('schema-inspector')).toBeDefined();
+    expect(screen.getByTestId('types-inspector')).toBeDefined();
   });
 
   test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
@@ -307,12 +311,31 @@ describe('SchemaEditor', () => {
     expect(menuItemIds).not.toContain('add-combination-to-node-button');
   });
 
-  test('should trigger correct dispatch when changing tab', async () => {
-    const { store, user } = renderEditor();
-    const tab = screen.getByRole('tab', { name: typesText });
-    await act(() => user.click(tab));
-    const lastAction = store.getActions().at(-1);
-    expect(lastAction.type).toBe('schemaEditor/setSelectedTab');
-    expect(lastAction.payload).toStrictEqual({ selectedTab: 'definitions' });
+  test('when a type is selected, the type edit panel should be rendered', async () => {
+    const jsonSchema = {
+      [Keywords.Properties]: {
+        someProp: { [Keywords.Type]: FieldType.String },
+        testProp: { [Keywords.Reference]: `#/${Keywords.Definitions}/TestType` },
+      },
+      [Keywords.Definitions]: {
+        TestType: {
+          [Keywords.Type]: FieldType.Object,
+          [Keywords.Properties]: {
+            prop1: { [Keywords.Type]: FieldType.String },
+            prop2: { [Keywords.Type]: FieldType.String },
+          },
+        },
+      },
+    };
+    const uiSchemaToTest = buildUiSchema(jsonSchema);
+    const { user } = renderEditor({
+      schema: jsonSchema,
+      uiSchema: uiSchemaToTest,
+    });
+    const type = screen.getByTestId(`type-item-#/${Keywords.Definitions}/TestType`);
+
+    await act(() => user.click(type));
+
+    expect(screen.getByText('Du redigerer nå på TestType')).toBeDefined();
   });
 });

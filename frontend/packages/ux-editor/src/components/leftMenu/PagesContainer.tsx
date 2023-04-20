@@ -2,11 +2,13 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { PageElement } from './PageElement';
 import type { IAppState } from '../../types/global';
+import { useParams } from 'react-router-dom';
+import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 
 export function PagesContainer() {
-  const layoutOrder: string[] = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
-  );
+  const { org, app } = useParams();
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
+  const layoutOrder = formLayoutSettingsQuery.data.pages.order;
   const invalidLayouts: string[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.invalidLayouts
   );

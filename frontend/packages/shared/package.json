@@ -3,37 +3,27 @@
   "version": "0.1.0",
   "author": "Altinn",
   "dependencies": {
-    "3": "2.1.0",
-    "@altinn/altinn-design-system": "0.27.5",
-    "@altinn/schema-editor": "0.1.0",
-    "@digdir/design-system-react": "0.6.0",
-    "@mui/material": "5.11.8",
-    "@reduxjs/toolkit": "1.9.2",
-    "axios": "1.3.2",
+    "@altinn/altinn-design-system": "0.27.6",
+    "@digdir/design-system-react": "0.10.1",
+    "@mui/material": "5.11.16",
+    "@reduxjs/toolkit": "1.9.3",
+    "axios": "1.3.5",
     "classnames": "2.3.2",
-    "diff": "5.1.0",
-    "dompurify": "2.4.3",
-    "marked": "4.2.12",
-    "moment": "2.29.4",
-    "monaco-editor": "0.35.0",
-    "qs": "6.11.0",
+    "qs": "6.11.1",
     "react": "18.2.0",
-    "react-content-loader": "6.2.0",
+    "react-content-loader": "6.2.1",
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1",
     "react-dom": "18.2.0",
-    "react-html-parser": "2.0.2",
-    "react-monaco-editor": "0.51.0",
     "react-redux": "8.0.5",
-    "react-router-dom": "6.8.1",
-    "react-select": "5.7.0",
-    "redux-saga": "1.2.2"
+    "react-router-dom": "6.10.0",
+    "react-select": "5.7.2",
+    "redux-saga": "1.2.3"
   },
   "devDependencies": {
-    "@types/react": "18.0.28",
-    "jest": "29.4.2",
-    "tsc": "2.0.4",
-    "typescript": "4.9.5"
+    "@types/react": "18.0.34",
+    "jest": "29.5.0",
+    "typescript": "5.0.4"
   },
   "license": "3-Clause BSD",
   "peerDependencies": {
@@ -41,7 +31,6 @@
   },
   "private": true,
   "scripts": {
-    "compile-ts": "npx tsc --noEmit",
     "test": "jest --maxWorkers=50%"
   }
 }

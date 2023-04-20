@@ -13,7 +13,6 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Designer.Tests.Utils
 {
@@ -325,14 +324,17 @@ namespace Designer.Tests.Utils
                 });
         });
 
-        public static IOptions<ServiceRepositorySettings> GetServiceRepositorySettings()
+        public static ServiceRepositorySettings GetServiceRepositorySettings()
         {
-            IOptions<ServiceRepositorySettings> options = Options.Create(new ServiceRepositorySettings());
-            options.Value.RepositoryBaseURL = @"http://studio.localhost/repos";
+            var options = new ServiceRepositorySettings()
+            {
+                RepositoryBaseURL = @"http://studio.localhost/repos"
+            };
+
             return options;
         }
 
-        public static IOptions<ServiceRepositorySettings> ServiceRepositorySettings { get; } = GetServiceRepositorySettings();
+        public static ServiceRepositorySettings ServiceRepositorySettings { get; } = GetServiceRepositorySettings();
 
         public static IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter => new XmlSchemaToJsonSchemaConverter();
 

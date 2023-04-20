@@ -3,8 +3,7 @@ import { IGenericEditComponent } from '../../componentConfig';
 import { IFormFileUploaderComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { FileUploadComponent } from './FileUploadComponent';
-import { ComponentTypes } from '../../../index';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { ComponentType } from '../../../index';
 
 // Test data:
 const component: IFormFileUploaderComponent = {
@@ -16,19 +15,14 @@ const component: IFormFileUploaderComponent = {
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 0,
   onClickAction: jest.fn(),
-  type: ComponentTypes.FileUpload,
+  type: ComponentType.FileUpload,
+  itemType: 'COMPONENT',
 };
 const handleComponentChange = jest.fn();
 const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,
 };
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 
 describe('FileUploadComponent', () => {
   it('Renders without errors', () => {

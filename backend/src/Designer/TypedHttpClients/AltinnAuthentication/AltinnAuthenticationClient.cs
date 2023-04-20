@@ -4,7 +4,6 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
 {
@@ -25,11 +24,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
         /// <param name="logger">The logger.</param>
         public AltinnAuthenticationClient(
             HttpClient httpClient,
-            IOptionsMonitor<PlatformSettings> options,
+            PlatformSettings options,
             ILogger<AltinnAuthenticationClient> logger)
         {
             _httpClient = httpClient;
-            _platformSettings = options.CurrentValue;
+            _platformSettings = options;
             _logger = logger;
         }
 

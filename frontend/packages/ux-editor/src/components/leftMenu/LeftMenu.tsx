@@ -1,39 +1,39 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { IAppState } from '../../types/global';
+import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Add } from '@navikt/ds-icons';
+import { PlusIcon } from '@navikt/aksel-icons';
 import { PagesContainer } from './PagesContainer';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { ReceiptPageElement } from './ReceiptPageElement';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy } from 'app-shared/pure';
 import { useParams, useSearchParams } from 'react-router-dom';
 import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
+import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
+import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 
 export const LeftMenu = () => {
-  const dispatch = useDispatch();
-
+  const { org, app } = useParams();
+  const addLayoutMutation = useAddLayoutMutation(org, app);
   const [searchParams, setSearchParams] = useSearchParams();
-  const selectedLayout: string = useSelector(
-    (state: IAppState) => state.formDesigner.layout.selectedLayout
-  );
-  const receiptLayoutName = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.receiptLayoutName
-  );
-  const layoutOrder = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
-  );
+  const selectedLayout: string = useSelector(selectedLayoutNameSelector);
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
+  const { pages, receiptLayoutName } = formLayoutSettingsQuery.data;
+  const layoutOrder = pages.order;
 
   const t = useText();
-  const { org, app } = useParams();
 
   function handleAddPage() {
-    const name = t('left_menu.page') + (layoutOrder.length + 1);
-    dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false, org, app }));
+    let count = 1;
+    let name = t('left_menu.page') + (layoutOrder.length + count);
+    while (layoutOrder.indexOf(name) > -1) {
+      count += 1;
+      name = t('left_menu.page') + (layoutOrder.length + count);
+    }
+    addLayoutMutation.mutate({ layoutName: name, isReceiptPage: false });
     setSearchParams({ ...deepCopy(searchParams), layout: name });
   }
 
@@ -43,7 +43,7 @@ export const LeftMenu = () => {
         <span>{t('left_menu.pages')}</span>
         <Button
           aria-label={t('left_menu.pages_add_alt')}
-          icon={<Add />}
+          icon={<PlusIcon />}
           onClick={handleAddPage}
           variant={ButtonVariant.Quiet}
           color={ButtonColor.Secondary}

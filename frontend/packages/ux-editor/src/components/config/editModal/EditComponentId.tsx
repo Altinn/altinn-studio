@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { TextField } from '@digdir/design-system-react';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
-import type { FormComponentType, IAppState } from '../../../types/global';
-import { useSelector } from 'react-redux';
+import type { FormComponentType } from '../../../types/global';
 import { idExists, validComponentId } from '../../../utils/formLayout';
 import { useTranslation } from 'react-i18next';
+import { useFormLayoutsSelector } from '../../../hooks/useFormLayoutsSelector';
+import { selectedLayoutSelector } from '../../../selectors/formLayoutSelectors';
 
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponentType) => void;
@@ -13,14 +14,7 @@ export interface IEditComponentId {
 export const EditComponentId = ({ component, handleComponentUpdate }: IEditComponentId) => {
   const [error, setError] = useState<string | null>(null);
   const [tmpId, setTmpId] = useState<string>(component?.id || '');
-  const components = useSelector(
-    (state: IAppState) =>
-      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components
-  );
-  const containers = useSelector(
-    (state: IAppState) =>
-      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers
-  );
+  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
   const { t } = useTranslation();
   const errorMessageRef = useRef<HTMLDivElement>();
 

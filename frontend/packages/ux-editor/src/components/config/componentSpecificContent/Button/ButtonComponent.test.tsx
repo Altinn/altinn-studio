@@ -5,26 +5,21 @@ import { IGenericEditComponent } from '../../componentConfig';
 import { IFormButtonComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { ButtonComponent } from './ButtonComponent';
-import { ComponentTypes } from '../../../';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { ComponentType } from '../../../';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const component: IFormButtonComponent = {
   id: '1',
   onClickAction: jest.fn(),
-  type: ComponentTypes.Button,
+  type: ComponentType.Button,
+  itemType: 'COMPONENT',
 };
 const handleComponentChange = jest.fn();
 const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,
 };
-
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 
 describe('ButtonComponent', () => {
   it('Renders without errors', () => {
@@ -39,7 +34,7 @@ describe('ButtonComponent', () => {
     await act(() => user.click(screen.getAllByRole('option')[1]));
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
       ...component,
-      type: 'NavigationButtons',
+      type: ComponentType.NavigationButtons,
       showBackButton: true,
       textResourceBindings: {
         next: 'next',
@@ -54,7 +49,7 @@ describe('ButtonComponent', () => {
       handleComponentChange: mockHandleComponentChange,
       component: {
         ...component,
-        type: 'NavigationButtons',
+        type: ComponentType.NavigationButtons,
       },
     });
     const buttonTypeSelect = screen.getByRole('combobox');
@@ -62,9 +57,9 @@ describe('ButtonComponent', () => {
     await act(() => user.click(screen.getAllByRole('option')[0]));
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
       ...component,
-      type: 'Button',
+      type: ComponentType.Button,
       textResourceBindings: {
-        title: 'ux_editor.modal_properties_button_type_submit',
+        title: textMock('ux_editor.modal_properties_button_type_submit'),
       },
     });
   });

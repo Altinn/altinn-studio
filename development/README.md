@@ -48,10 +48,15 @@ docker compose -f ../docker-compose.yml up -d
 
 ### Beutify the nginx-config in the loadbalancer
 
-This is
-
 To format the nginx-file if needed.
 
 ```bash
 npx nginxbeautifier -i ./load-balancer/nginx.conf.conf
 ```
+
+### To work with the deploy-page
+
+You need to have an app in the `ttd`-organization, just as in the environments. This
+organization is created by default and the default user is added to it. So if using the
+script this should be allready there. If not you will need to add yourself to this
+organization in gitea.

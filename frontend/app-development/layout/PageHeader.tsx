@@ -1,15 +1,13 @@
 import React from 'react';
 import { AppBar } from './AppBar';
 import { Route, Routes } from 'react-router-dom';
-import routes from '../config/routes';
-import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
+import { routes } from '../config/routes';
 
-interface IPageHeaderProps {
-  repoStatus: any;
+interface PageHeaderProps {
+  showSubMenu: boolean;
 }
 
-const PageHeader = (ownProps: IPageHeaderProps) => {
-  const { repoStatus } = ownProps;
+export const PageHeader = ({ showSubMenu }: PageHeaderProps) => {
   return (
     <Routes>
       {routes.map((route) => (
@@ -20,23 +18,7 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
             <AppBar
               activeLeftMenuSelection={route.activeLeftMenuSelection}
               activeSubHeaderSelection={route.activeSubHeaderSelection}
-              logoutButton={repoStatus.hasMergeConflict}
-              showSubMenu={!repoStatus.hasMergeConflict}
-              mainMenuItems={[
-                {
-                  displayText: 'Om',
-                  navLink: '/:org/:app/',
-                  menuType: 'about',
-                  activeSubHeaderSelection: 'Om',
-                },
-                {
-                  displayText: 'Lage',
-                  navLink: '/:org/:app/ui-editor',
-                  menuType: 'create',
-                  activeSubHeaderSelection: 'Lage',
-                },
-              ]}
-              subMenuItems={appDevelopmentLeftDrawerSettings}
+              showSubMenu={showSubMenu}
             />
           }
         />
@@ -44,5 +26,3 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
     </Routes>
   );
 };
-
-export default PageHeader;

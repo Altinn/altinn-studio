@@ -27,7 +27,6 @@ namespace Designer.Tests.Controllers
         private readonly JsonSerializerOptions _options;
 
         private readonly Mock<IReleaseService> _releaseServiceMock;
-        private readonly Mock<IPipelineService> _pipelineServiceMock;
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
 
@@ -36,14 +35,12 @@ namespace Designer.Tests.Controllers
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());
             _releaseServiceMock = new Mock<IReleaseService>();
-            _pipelineServiceMock = new Mock<IPipelineService>();
         }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
             services.AddSingleton<IGitea, IGiteaMock>();
             services.AddSingleton(_releaseServiceMock.Object);
-            services.AddSingleton(_pipelineServiceMock.Object);
         }
 
         [Fact]
@@ -57,7 +54,7 @@ namespace Designer.Tests.Controllers
                 .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<ReleaseEntity> { Results = completedReleases });
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -69,7 +66,7 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(5, actual.Count());
             Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
-            _pipelineServiceMock.Verify(p => p.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _releaseServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             _releaseServiceMock.VerifyAll();
         }
 
@@ -80,15 +77,15 @@ namespace Designer.Tests.Controllers
             string uri = $"{_versionPrefix}/{_org}/{_app}/releases?sortDirection=Descending";
             List<ReleaseEntity> completedReleases = GetReleasesList("singleLaggingRelease.json");
 
-            _pipelineServiceMock
-                .Setup(ps => ps.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()))
+            _releaseServiceMock
+                .Setup(ps => ps.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
             _releaseServiceMock
                 .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<ReleaseEntity> { Results = completedReleases });
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -100,20 +97,21 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(5, actual.Count());
             Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
-            _pipelineServiceMock.Verify(p => p.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _releaseServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             _releaseServiceMock.VerifyAll();
         }
 
         private List<ReleaseEntity> GetReleasesList(string filename)
         {
             string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
-            if (File.Exists(path))
+            if (!File.Exists(path))
             {
-                string releases = File.ReadAllText(path);
-                return JsonSerializer.Deserialize<List<ReleaseEntity>>(releases, _options);
+                return null;
             }
 
-            return null;
+            string releases = File.ReadAllText(path);
+            return JsonSerializer.Deserialize<List<ReleaseEntity>>(releases, _options);
+
         }
     }
 }

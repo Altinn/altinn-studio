@@ -29,6 +29,7 @@ services:
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
+      - DEVELOP_PREVIEW=${DEVELOP_PREVIEW:-0}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
       - NGINX_HOST=localhost
@@ -57,6 +58,7 @@ services:
       - GeneralSettings:AppLocation=Templates/AspNet/App
       - GeneralSettings:DeploymentLocation=/Templates/deployment
       - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
+      - GeneralSettings:EnvironmentsUrl=http://studio-azure-mock:6161/environments.json
       - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
       - GeneralSettings:LanguageFilesLocation=Languages/
       - GeneralSettings:TemplateLocation=/Templates
@@ -72,7 +74,7 @@ services:
       - ServiceRepositorySettings:RepositoryBaseURL=http://studio-repositories:3000
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
-      - Integrations:AzureDevOpsSettings:BaseUri=http://host.docker.internal:6161/_apis/
+      - Integrations:AzureDevOpsSettings:BaseUri=http://studio-azure-mock:6161/_apis/
     ports:
       - "6000:6000"
     depends_on:

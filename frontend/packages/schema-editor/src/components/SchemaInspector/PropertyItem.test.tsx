@@ -45,10 +45,7 @@ const defaultProps: IPropertyItemProps = {
 };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const renderPropertyItem = (props?: Partial<IPropertyItemProps>) =>
   renderWithRedux(<PropertyItem {...defaultProps} {...props} />);
@@ -120,8 +117,8 @@ describe('PropertyItem', () => {
   });
 
   test('Name input field has given id', async () => {
-    const { container } = renderPropertyItem().renderResult;
-    expect(container.querySelector(`#${inputId}`)).toBeDefined();
+    renderPropertyItem().renderResult;
+    expect(screen.getByLabelText('Navn på felt')).toHaveAttribute('id', inputId);
   });
 
   test('Given type is selected', async () => {

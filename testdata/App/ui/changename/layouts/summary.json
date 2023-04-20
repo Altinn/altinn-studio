@@ -1,0 +1,86 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav2",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "send-in-text",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "summaryTitle"
+        },
+        "dataModelBindings": {}
+      },
+      {
+        "id": "nameChanges",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Endringer til navn"
+        },
+        "children": ["summary-1", "summary-2"]
+      },
+      {
+        "id": "summary-1",
+        "type": "Summary",
+        "componentRef": "changeNameFrom",
+        "pageRef": "form"
+      },
+      {
+        "id": "summary-2",
+        "type": "Summary",
+        "componentRef": "changeNameTo_æøå",
+        "pageRef": "form"
+      },
+      {
+        "id": "summary-3",
+        "type": "Summary",
+        "componentRef": "reason",
+        "pageRef": "form"
+      },
+      {
+        "id": "summary-4",
+        "type": "Summary",
+        "componentRef": "dateOfEffect",
+        "pageRef": "form"
+      },
+      {
+        "id": "summary-5",
+        "type": "Summary",
+        "componentRef": "fileUpload-changename",
+        "pageRef": "form"
+      },
+      {
+        "id": "summary-6",
+        "type": "Summary",
+        "componentRef": "fileUploadWithTags-changename",
+        "pageRef": "form"
+      },
+      {
+        "id": "summary-reference",
+        "type": "Summary",
+        "componentRef": "reference-group",
+        "pageRef": "form"
+      },
+      {
+        "id": "startAgain",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "startAgain"
+        }
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {},
+        "textResourceId": "Standard.Button.Button",
+        "customType": "Standard"
+      }
+    ]
+  }
+}

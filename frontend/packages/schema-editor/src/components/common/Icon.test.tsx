@@ -5,5 +5,6 @@ import { Icon, IconImage } from './Icon';
 test('Renders icon with correct class name', () =>
   Object.values(IconImage).forEach((iconImage) => {
     const { container } = render(<Icon image={iconImage} />);
+    // eslint-disable-next-line
     expect(container.querySelector(`.icon--${iconImage}`)).toBeDefined();
   }));

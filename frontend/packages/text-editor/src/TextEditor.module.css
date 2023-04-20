@@ -59,6 +59,10 @@
   justify-content: space-between;
 }
 
+.TextEditor__body {
+  margin-left: 2rem;
+}
+
 .TextEditor__main {
   padding-top: 2rem;
   margin: 0 auto;

@@ -11,6 +11,12 @@ import {
 import type { IAppState } from '../../types/global';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
+import {
+  allLayoutComponentsSelector,
+  allLayoutContainersSelector,
+  fullLayoutOrderSelector
+} from '../../selectors/formLayoutSelectors';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -24,6 +30,9 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   const conditionalRendering = useSelector(
     (state: IAppState) => state.serviceConfigurations.conditionalRendering
   );
+  const layoutContainers = useFormLayoutsSelector(allLayoutContainersSelector);
+  const layoutComponents = useFormLayoutsSelector(allLayoutComponentsSelector);
+  const layoutOrder = useFormLayoutsSelector(fullLayoutOrderSelector);
   const { t } = useTranslation();
 
   function selectConnection(newSelectedConnectionId: string) {
@@ -83,12 +92,18 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={handleDeleteConnection}
+            formLayoutContainers={layoutContainers}
+            formLayoutComponents={layoutComponents}
+            order={layoutOrder}
           />
         ) : (
           <ConditionalRenderingComponent
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
+            formLayoutContainers={layoutContainers}
+            formLayoutComponents={layoutComponents}
+            order={layoutOrder}
           />
         )}
       </Modal>

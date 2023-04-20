@@ -1,8 +1,9 @@
 import React from 'react';
-import { AltinnButton } from '../../../components';
-import { XSDUpload } from './XSDUpload';
 import classes from './LandingPagePanel.module.css';
+import { Button, ButtonColor } from '@digdir/design-system-react';
+import { XSDUpload } from './XSDUpload';
 import { useTranslation } from 'react-i18next';
+import { ButtonContainer } from 'app-shared/primitives';
 
 export interface LandingPageProps {
   org: string;
@@ -18,33 +19,25 @@ export function LandingPagePanel({
   handleCreateModelClick,
 }: LandingPageProps) {
   const { t } = useTranslation();
-
   return (
     <div className={classes.landingDialog}>
       <h1>{t('app_data_modelling.landing_dialog_header')}</h1>
       <p>{t('app_data_modelling.landing_dialog_paragraph')}</p>
-      <div className={classes.buttons}>
+      <ButtonContainer>
         <XSDUpload
-          onXSDUploaded={(filename): void => {
-            handleXSDUploaded(filename);
-          }}
+          onXSDUploaded={(filename): void => handleXSDUploaded(filename)}
           org={org}
           repo={repo}
           submitButtonRenderer={(fileInputClickHandler) => (
-            <AltinnButton
-              onClickFunction={fileInputClickHandler}
-              btnText={t('app_data_modelling.landing_dialog_upload')}
-            />
+            <Button color={ButtonColor.Primary} onClick={fileInputClickHandler}>
+              {t('app_data_modelling.landing_dialog_upload')}
+            </Button>
           )}
         />
-        <AltinnButton
-          btnText={t('app_data_modelling.landing_dialog_create')}
-          secondaryButton
-          onClickFunction={(): void => {
-            handleCreateModelClick();
-          }}
-        />
-      </div>
+        <Button color={ButtonColor.Secondary} onClick={(): void => handleCreateModelClick()}>
+          {t('app_data_modelling.landing_dialog_create')}
+        </Button>
+      </ButtonContainer>
     </div>
   );
 }

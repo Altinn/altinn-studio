@@ -1,22 +1,20 @@
 import React from 'react';
-import type { IAppState } from 'packages/ux-editor/src/types/global';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { PageElement } from './PageElement';
-import { useDispatch, useSelector } from 'react-redux';
 import { deepCopy } from 'app-shared/pure';
 import { useParams, useSearchParams } from 'react-router-dom';
 import classes from './ReceiptPageElement.module.css';
+import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
+import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 
 export function ReceiptPageElement() {
-  const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
-  const receiptName = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.receiptLayoutName
-  );
   const { org, app } = useParams();
+  const addLayoutMutation = useAddLayoutMutation(org, app);
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
+  const receiptName = formLayoutSettingsQuery.data.receiptLayoutName;
   const handleAddPage = () => {
-    dispatch(FormLayoutActions.addLayout({ layout: 'Kvittering', isReceiptPage: true, org, app }));
+    addLayoutMutation.mutate({ layoutName: 'Kvittering', isReceiptPage: true });
     setSearchParams({ ...deepCopy(searchParams), layout: 'Kvittering' });
   };
   return receiptName ? (

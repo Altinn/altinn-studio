@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -20,12 +19,15 @@ namespace Designer.Tests.Controllers
     {
         private readonly string _versionPrefix = "/designer/api/session";
         private readonly Mock<IHttpContextAccessor> _contextAccessorMock = new Mock<IHttpContextAccessor>();
-        private readonly IOptions<GeneralSettings> _generalSettings;
+        private readonly GeneralSettings _generalSettings;
         private SessionController _controller;
 
         public SessionControllerTest(WebApplicationFactory<SessionController> factory) : base(factory)
         {
-            _generalSettings = Options.Create(new GeneralSettings { SessionTimeoutCookieName = "timeoutCookie" });
+            _generalSettings = new GeneralSettings
+            {
+                SessionTimeoutCookieName = "timeoutCookie"
+            };
         }
 
         protected override void ConfigureTestServices(IServiceCollection services)

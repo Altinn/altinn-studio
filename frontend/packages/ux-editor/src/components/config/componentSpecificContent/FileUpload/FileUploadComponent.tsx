@@ -10,7 +10,7 @@ import {
 } from '../../../../types/global';
 import { EditDescription } from '../../editModal/EditDescription';
 import { TextResource } from '../../../TextResource';
-import { ComponentTypes } from '../../../index';
+import { ComponentType } from '../../../index';
 
 export const FileUploadComponent = ({
   component,
@@ -78,7 +78,7 @@ export const FileUploadComponent = ({
 
   return (
     <FieldSet className={classes.fieldset}>
-      {component.type === ComponentTypes.FileUpload ? (
+      {component.type === ComponentType.FileUpload ? (
         <>
           <RadioGroup
             items={[

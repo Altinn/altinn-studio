@@ -1,7 +1,9 @@
 import React from 'react';
-import type { PopoverOrigin } from '@mui/material';
-import { Button, Grid, Popover } from '@mui/material';
 import classes from './AltinnPopoverSimple.module.css';
+import type { PopoverOrigin } from '@mui/material';
+import { ButtonContainer } from 'app-shared/primitives';
+import { Popover } from '@mui/material';
+import { Button, ButtonColor } from '@digdir/design-system-react';
 
 export interface IAltinnPopoverProps {
   anchorEl: any;
@@ -45,48 +47,35 @@ export const AltinnPopoverSimple = (props: IAltinnPopoverProps) => {
 
   return (
     <Popover
-        open={props.open}
-        anchorEl={props.anchorEl}
-        onClose={props.handleClose}
-        anchorOrigin={anchorOrigin}
-        transformOrigin={transformOrigin}
-        anchorReference={props.anchorEl ? 'anchorEl' : 'none'}
-        PaperProps={{ square: true, ...props.paperProps }}
-        aria-label={props.ariaLabel ? props.ariaLabel : ''}
-        data-testid={props.testId}
-      >
-        <Grid container={true} direction='column' sx={{ width: '445px', margin: '24px' }}>
-          <Grid item={true}>
-            <div>{props.children}</div>
-          </Grid>
-          <Grid item={true}>
-            <div>
-              {props.btnConfirmText && (
-                <Button
-                  id={props.btnPrimaryId}
-                  variant='contained'
-                  color='primary'
-                  className={classes.buttonConfirm}
-                  onClick={btnClickedHandler}
-                  disableTouchRipple={true}
-                >
-                  {props.btnConfirmText}
-                </Button>
-              )}
-              {props.btnCancelText && (
-                <Button
-                  id={props.btnSecondaryId}
-                  color='primary'
-                  className={classes.buttonCancel}
-                  onClick={handleButtonClose}
-                  disableTouchRipple={true}
-                >
-                  <span className={classes.borderBottom}>{props.btnCancelText}</span>
-                </Button>
-              )}
-            </div>
-          </Grid>
-        </Grid>
-      </Popover>
+      open={props.open}
+      anchorEl={props.anchorEl}
+      onClose={props.handleClose}
+      anchorOrigin={anchorOrigin}
+      transformOrigin={transformOrigin}
+      anchorReference={props.anchorEl ? 'anchorEl' : 'none'}
+      PaperProps={{ square: true, ...props.paperProps }}
+      aria-label={props.ariaLabel ? props.ariaLabel : ''}
+      data-testid={props.testId}
+    >
+      <div className={classes.container}>
+        <div>{props.children}</div>
+        <ButtonContainer>
+          {props.btnConfirmText && (
+            <Button id={props.btnPrimaryId} color={ButtonColor.Primary} onClick={btnClickedHandler}>
+              {props.btnConfirmText}
+            </Button>
+          )}
+          {props.btnCancelText && (
+            <Button
+              id={props.btnSecondaryId}
+              color={ButtonColor.Inverted}
+              onClick={handleButtonClose}
+            >
+              {props.btnCancelText}
+            </Button>
+          )}
+        </ButtonContainer>
+      </div>
+    </Popover>
   );
 };

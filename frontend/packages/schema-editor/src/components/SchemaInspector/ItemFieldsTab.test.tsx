@@ -25,6 +25,7 @@ const childNodes = fieldNames.map((childNodeName) => ({
   fieldType: FieldType.String,
 }));
 const numberOfFields = fieldNames.length;
+// eslint-disable-next-line testing-library/no-node-access
 selectedItem.children = childNodes.map(({ pointer }) => pointer);
 const uiSchema: UiSchemaNodes = [selectedItem, ...childNodes];
 const textAdd = 'Legg til felt';
@@ -57,10 +58,7 @@ const defaultProps: ItemFieldsTabProps = { selectedItem };
 const defaultState = { uiSchema };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const renderItemFieldsTab = (props?: Partial<ItemFieldsTabProps>, state?: any) =>
   renderWithRedux(<ItemFieldsTab {...defaultProps} {...props} />, { ...defaultState, ...state });
@@ -167,10 +165,11 @@ describe('ItemFieldsTab', () => {
     };
     const newSelectedItem = {
       ...selectedItem,
+      // eslint-disable-next-line testing-library/no-node-access
       children: [...selectedItem.children, newChildNode.pointer],
     };
     const newUiSchema = [newSelectedItem, ...childNodes, newChildNode];
-    rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem}/>, {
+    rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />, {
       uiSchema: newUiSchema,
     });
     expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();

@@ -152,21 +152,14 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{repository} is an invalid repository name.");
             }
 
-            var config = new ServiceConfiguration
-            {
-                RepositoryName = repository,
-                ServiceName = repository
-            };
+            var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
 
             var repositoryResult = await _repository.CreateService(org, config);
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
                 return Created(repositoryResult.CloneUrl, repositoryResult);
             }
-            else
-            {
-                return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
-            }
+            return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
         }
 
         /// <summary>
@@ -176,7 +169,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The app repository</param>
         /// <returns>The given app repository</returns>
         [HttpGet]
-        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/metadata")]
         public async Task<RepositoryModel> GetRepository(string org, string repository)
         {
             RepositoryModel returnRepository = await _giteaApi.GetRepository(org, repository);
@@ -499,7 +492,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/contents.zip")]
         public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
         {
-            string appRoot = null;
+            string appRoot;
             try
             {
                 appRoot = _repository.GetAppPath(org, repository);

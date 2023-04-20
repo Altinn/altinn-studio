@@ -5,7 +5,7 @@ import { DataModelling, shouldSelectFirstEntry } from './DataModelling';
 import { LoadingState } from './sagas/metadata';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { LOCAL_STORAGE_KEY, setLocalStorageItem } from './functions/localStorage';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -57,12 +57,6 @@ const initialStoreCall = {
   },
 };
 
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
-
 const render = (
   state: {
     [K in keyof typeof defaultInitialState]?: Partial<(typeof defaultInitialState)[K]>;
@@ -97,11 +91,6 @@ const render = (
   return { store };
 };
 
-// Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
 
 describe('DataModelling', () => {
   it('should fetch models on mount', () => {
@@ -194,7 +183,7 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is cleared
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     render();
-    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
+    const dialogHeader = screen.queryByText(textMock('schema_editor.info_dialog_title'));
     expect(dialogHeader).toBeInTheDocument();
   });
 
@@ -204,7 +193,7 @@ describe('DataModelling', () => {
       dataModelling: { schema: undefined },
       dataModelsMetadataState: { loadState: LoadingState.ModelsLoaded },
     });
-    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
+    const dialogHeader = screen.queryByText(textMock('schema_editor.info_dialog_title'));
     expect(dialogHeader).toBeInTheDocument();
   });
 
@@ -220,7 +209,7 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
     render({ dataModelling: { schema: undefined } });
-    expect(screen.queryByText('app_data_modelling.landing_dialog_header')).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_data_modelling.landing_dialog_header'))).toBeInTheDocument();
   });
 
   it('Should not show start dialog when the models have not been loaded yet', () => {
@@ -229,7 +218,7 @@ describe('DataModelling', () => {
     render({
       dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
     });
-    expect(screen.queryByText('app_data_modelling.landing_dialog_header')).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('app_data_modelling.landing_dialog_header'))).not.toBeInTheDocument();
   });
 
   it('Should not show start dialog when the models have not been loaded yet', () => {
@@ -238,7 +227,7 @@ describe('DataModelling', () => {
     render({
       dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
     });
-    expect(screen.queryByText('app_data_modelling.landing_dialog_header')).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('app_data_modelling.landing_dialog_header'))).not.toBeInTheDocument();
   });
 
   it('Should not show start dialog when there are models present', () => {
@@ -249,6 +238,6 @@ describe('DataModelling', () => {
       $defs: { Something: { type: 'string' } },
     };
     render({ dataModelling: { schema } });
-    expect(screen.queryByText('app_data_modelling.landing_dialog_header')).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('app_data_modelling.landing_dialog_header'))).not.toBeInTheDocument();
   });
 });

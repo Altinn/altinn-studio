@@ -1,11 +1,10 @@
 import { SubApp } from '../../packages/ux-editor/src/SubApp';
 import { AccessControlContainer } from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
-import { TextEditor } from '../features/textEditor';
-import { DeployPage } from '../features/appPublish/pages/deployPage';
-import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
+import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
+import { DeployPage } from '../features/appPublish/pages/deployPage';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -30,7 +29,7 @@ interface IRoute {
   props?: IRouteProps;
 }
 
-const routes: IRoute[] = [
+export const routes: IRoute[] = [
   {
     path: '/:org/:app/ui-editor',
     exact: true,
@@ -58,7 +57,7 @@ const routes: IRoute[] = [
   {
     path: '/:org/:app/accesscontrol',
     exact: true,
-    activeSubHeaderSelection: TopBarMenu.Create,
+    activeSubHeaderSelection: TopBarMenu.None,
     activeLeftMenuSelection: 'Access-Controll',
     menu: 'create',
     subapp: AccessControlContainer,
@@ -75,23 +74,6 @@ const routes: IRoute[] = [
     subapp: DeployPage,
   },
   {
-    path: '/:org/:app/mergeconflict',
-    exact: true,
-    activeSubHeaderSelection: TopBarMenu.None,
-    activeLeftMenuSelection: 'Mergekonflikt',
-    menu: 'create',
-    subapp: HandleMergeConflictContainerComponent,
-    props: {
-      headerTextKey: 'shared.wip_title',
-      subtext1TextKey: 'shared.wip_subtext_1',
-      subtext2TextKey: 'shared.wip_subtext_2',
-      linkTextKey: 'shared.wip_link_text',
-      urlKey: 'shared.wip_link_github_url',
-      imageSource: '../../designer/img/illustration-help-circle.svg',
-      shadow: true,
-    },
-  },
-  {
     activeSubHeaderSelection: TopBarMenu.Text,
     activeLeftMenuSelection: 'Tekster',
     path: '/:org/:app/text-editor',
@@ -100,5 +82,3 @@ const routes: IRoute[] = [
     subapp: TextEditor,
   },
 ];
-
-export default routes;

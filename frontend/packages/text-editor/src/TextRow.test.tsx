@@ -1,61 +1,104 @@
 import React from 'react';
-import type { LangRowProps } from './TextRow';
-import type { TextDetail } from './types';
+import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import { screen, render as rtlRender, act } from '@testing-library/react';
+import { screen, render as rtlRender, waitFor, act } from '@testing-library/react';
+import { textMock } from '../../../testing/mocks/i18nMock';
+import { TextTableRowEntry } from './types';
+import { Table, TableBody } from '@digdir/design-system-react';
 
 describe('TextRow', () => {
-  const renderTextRow = (props: Partial<LangRowProps> = {}) => {
-    const textData: TextDetail = {
-      value: 'value1',
-    };
+  const renderTextRow = (props: Partial<TextRowProps> = {}) => {
+    const textRowEntries: TextTableRowEntry[] = [
+      {
+        lang: 'nb',
+        translation: 'value1',
+      },
+    ];
 
-    const allProps: LangRowProps = {
-      textId: 'key1',
-      langName: 'Norsk',
-      textData,
-      upsertEntry: (_args) => undefined,
-      removeEntry: (_args) => undefined,
-      updateEntryId: (_args) => undefined,
+    const allProps: TextRowProps = {
       idExists: (_arg) => false,
+      removeEntry: (_args) => undefined,
+      textId: 'key1',
+      textRowEntries,
+      variables: [],
+      updateEntryId: (_args) => undefined,
+      upsertTextResource: (_args) => undefined,
+      selectedLanguages: ['nb', 'en', 'nn'],
       ...props,
     };
     const user = userEvent.setup();
-    rtlRender(<TextRow {...allProps} />);
+    rtlRender(
+      <Table>
+        <TableBody>
+          <TextRow {...allProps} />
+        </TableBody>
+      </Table>
+    );
     return { user };
   };
 
+  test('Popover should be closed when the user clicks the cancel button', async () => {
+    const { user } = renderTextRow();
+
+    const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
+    await act(() => user.click(deleteButton));
+
+    const cancelPopoverButton = screen.getByRole('button', {
+      name: textMock('schema_editor.textRow-cancel-popover'),
+    });
+    await act(() => user.click(cancelPopoverButton));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
   test('upsertEntry should be called when changing text', async () => {
-    const upsertEntry = jest.fn();
-    const { user } = renderTextRow({ upsertEntry });
+    const upsertTextResource = jest.fn();
+    const { user } = renderTextRow({ upsertTextResource });
     const valueInput = screen.getByRole('textbox', {
-      name: /norsk/i,
+      name: 'nb translation',
     });
 
     await act(() => user.type(valueInput, '-updated'));
     await act(() => user.keyboard('{TAB}'));
 
-    expect(upsertEntry).toHaveBeenCalledWith({
-      id: 'key1',
-      value: 'value1-updated',
+    expect(upsertTextResource).toHaveBeenCalledWith({
+      language: 'nb',
+      textId: 'key1',
+      translation: 'value1-updated',
     });
   });
 
-  test('removeEntry should be called when deleting a entry', async () => {
+  test('Popover should be shown when the user clicks the delete button', async () => {
+    const { user } = renderTextRow();
+    const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
+    await act(() => user.click(deleteButton));
+    const popover = screen.getByRole('dialog');
+    expect(popover).toBeInTheDocument();
+  });
+
+  test('removeEntry should be called when deleting an entry', async () => {
     const removeEntry = jest.fn();
     const { user } = renderTextRow({ removeEntry });
-    const deleteButton = screen.getByTestId('delete-button');
-
+    const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
     await act(() => user.click(deleteButton));
+    const confirmDeleteButton = screen.getByRole('button', {
+      name: /schema_editor.textRow-confirm-cancel-popover/,
+    });
+    await act(() => user.click(confirmDeleteButton));
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
 
   test('that the user is warned if an illegal character is used', async () => {
     const updateEntryId = jest.fn();
     const { user } = renderTextRow({ updateEntryId });
+    const toggleKeyEditButton = screen.getByRole('button', {
+      name: 'toggle-textkey-edit',
+    });
+    await act(() => user.click(toggleKeyEditButton));
+
     const idInput = screen.getByRole('textbox', {
-      name: /id/i,
+      name: 'tekst key edit',
     });
     const emptyMsg = 'TextId kan ikke være tom';
     const illegalCharMsg = 'Det er ikke tillat med mellomrom i en textId';
@@ -63,17 +106,27 @@ describe('TextRow', () => {
     await act(() => user.keyboard('{BACKSPACE}'));
     const error = screen.getByRole('alertdialog');
     expect(error).toBeInTheDocument();
-    expect(screen.queryByText(emptyMsg)).not.toBeNull();
+    expect(screen.getByText(emptyMsg)).not.toBeNull();
     await act(() => user.keyboard('2'));
     expect(screen.queryByText(emptyMsg)).toBeNull();
     await act(() => user.keyboard(' '));
     expect(screen.getByText(illegalCharMsg)).toBeInTheDocument();
   });
-  test('that the text area has 3 rows', async () => {
-    renderTextRow();
-    const valueInput = screen.getByRole('textbox', {
-      name: /norsk/i,
+
+  test('that the full row of languages is shown even if a translation is missing', async () => {
+    renderTextRow({
+      textRowEntries: [
+        {
+          lang: 'nb',
+          translation: 'Dette er en tekst',
+        },
+        {
+          lang: 'nn',
+          translation: 'Dette er en tekst',
+        },
+      ],
     });
-    expect((valueInput as HTMLTextAreaElement).rows).toEqual(3);
+    const textFields = await screen.findAllByTestId('InputWrapper');
+    expect(textFields.length).toBe(3);
   });
 });

@@ -22,6 +22,7 @@
     <PackageReference Include="Altinn.Common.AccessToken" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" />
+    <PackageReference Include="Altinn.Platform.Models" />
     <PackageReference Include="CompilerAttributes" />
     <PackageReference Include="ini-parser-netstandard" />
     <PackageReference Include="JWTCookieAuthentication" />
@@ -71,7 +72,17 @@
     <Watch Remove="Models\Authorization\RuleAction.cs" />
     <Watch Remove="Models\Authorization\RuleResource.cs" />
     <Watch Remove="Models\Authorization\RuleSubject.cs" />
+    <Watch Remove="Controllers\CompetentAuthority.cs" />
+    <Watch Remove="Controllers\ResourceAdminController.cs" />
+    <Watch Remove="Enums\ReferenceSource.cs" />
+    <Watch Remove="Enums\ReferenceType.cs" />
+    <Watch Remove="Enums\ResourceType.cs" />
+    <Watch Remove="Models\Keyword.cs" />
+    <Watch Remove="Models\ResourceReference.cs" />
+    <Watch Remove="Models\ServiceResource.cs" />
+    <Watch Remove="Services\Implementation\ResourceService.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
+    <Watch Remove="Services\Interfaces\IResourceService.cs" />
     <Content Include="jwtselfsignedcert.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

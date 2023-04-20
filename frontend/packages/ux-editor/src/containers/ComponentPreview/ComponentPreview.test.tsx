@@ -1,11 +1,15 @@
 import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { ComponentPreview, ComponentPreviewProps } from './ComponentPreview';
-import { FormComponentType, IFormCheckboxComponent, IFormRadioButtonComponent } from '../../types/global';
-import { ComponentTypes } from '../../components';
+import {
+  FormComponentType,
+  IFormCheckboxComponent,
+  IFormRadioButtonComponent,
+} from '../../types/global';
+import { ComponentType } from '../../components';
 
 // Test data:
-const component: FormComponentType = { id: '1' };
+const component: FormComponentType = { id: '1', type: ComponentType.Input, itemType: 'COMPONENT' };
 const handleComponentChange = jest.fn();
 const defaultProps: ComponentPreviewProps = {
   component,
@@ -15,11 +19,11 @@ const defaultProps: ComponentPreviewProps = {
 // Mocks:
 const checkboxGroupPreviewId = 'CheckboxGroupPreview';
 jest.mock('./CheckboxGroupPreview', () => ({
-  CheckboxGroupPreview: () => <div data-testid={checkboxGroupPreviewId} />
+  CheckboxGroupPreview: () => <div data-testid={checkboxGroupPreviewId} />,
 }));
 const radioGroupPreviewId = 'RadioGroupPreview';
 jest.mock('./RadioGroupPreview', () => ({
-  RadioGroupPreview: () => <div data-testid={radioGroupPreviewId} />
+  RadioGroupPreview: () => <div data-testid={radioGroupPreviewId} />,
 }));
 
 describe('ComponentPreview', () => {
@@ -30,7 +34,7 @@ describe('ComponentPreview', () => {
       ...component,
       options: [],
       optionsId: '1',
-      type: ComponentTypes.Checkboxes,
+      type: ComponentType.Checkboxes,
     };
     render({ component: checkboxesComponent });
     expect(screen.getByTestId(checkboxGroupPreviewId)).toBeInTheDocument();
@@ -41,34 +45,34 @@ describe('ComponentPreview', () => {
       ...component,
       options: [],
       optionsId: '1',
-      type: ComponentTypes.RadioButtons,
+      type: ComponentType.RadioButtons,
     };
     render({ component: radiosComponent });
     expect(screen.getByTestId(radioGroupPreviewId)).toBeInTheDocument();
   });
 
   it.each([
-    ComponentTypes.AddressComponent,
-    ComponentTypes.AttachmentList,
-    ComponentTypes.Button,
-    ComponentTypes.Datepicker,
-    ComponentTypes.Dropdown,
-    ComponentTypes.FileUpload,
-    ComponentTypes.FileUploadWithTag,
-    ComponentTypes.Group,
-    ComponentTypes.Header,
-    ComponentTypes.Image,
-    ComponentTypes.Input,
-    ComponentTypes.NavigationBar,
-    ComponentTypes.NavigationButtons,
-    ComponentTypes.Map,
-    ComponentTypes.Panel,
-    ComponentTypes.Paragraph,
-    ComponentTypes.TextArea,
-    ComponentTypes.ThirdParty,
-  ])('Renders error text when component type is %s', (type: ComponentTypes) => {
+    ComponentType.AddressComponent,
+    ComponentType.AttachmentList,
+    ComponentType.Datepicker,
+    ComponentType.Dropdown,
+    ComponentType.FileUpload,
+    ComponentType.FileUploadWithTag,
+    ComponentType.Group,
+    ComponentType.Header,
+    ComponentType.Image,
+    ComponentType.Input,
+    ComponentType.NavigationBar,
+    ComponentType.Map,
+    ComponentType.Panel,
+    ComponentType.Paragraph,
+    ComponentType.TextArea,
+    ComponentType.ThirdParty,
+  ])('Renders error text when component type is %s', (type: ComponentType) => {
     render({ component: { ...component, type } });
-    expect(screen.getByText('Forhåndsvisning er ikke implementert for denne komponenten.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Forhåndsvisning er ikke implementert for denne komponenten.')
+    ).toBeInTheDocument();
   });
 });
 

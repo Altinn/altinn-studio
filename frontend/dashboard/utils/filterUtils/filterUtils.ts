@@ -1,15 +1,14 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import type { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
 
 type GetUidFilter = {
   userId: number;
-  selectedContext: SelectedContext;
+  selectedContext: number | SelectedContextType;
 };
 
 export const getUidFilter = ({
   selectedContext,
   userId,
-}: GetUidFilter): undefined | number | SelectedContext => {
+}: GetUidFilter): undefined | number | SelectedContextType => {
   if (selectedContext === SelectedContextType.All) {
     return undefined;
   }

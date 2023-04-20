@@ -12,6 +12,7 @@ export const EditTitle = ({
       handleComponentChange={handleComponentChange}
       textKey='title'
       labelKey='ux_editor.modal_properties_label'
+      placeholderKey='ux_editor.add_option_label_add'
     />
   );
 };

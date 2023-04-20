@@ -3,7 +3,7 @@ import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IErrorState } from '../features/error/errorSlice';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import type { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
-import { ComponentTypes } from '../components';
+import { ComponentType } from '../components';
 
 export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
   formDesigner: T1;
@@ -20,25 +20,6 @@ export type IAppState = IFormDesignerNameSpace<
   IWidgetState
 >;
 
-export interface IAltinnEditableComponent {
-  ModalContent: () => JSX.Element;
-}
-
-export interface IContainerProvidedProps {
-  containerIndex: number;
-}
-
-export interface IRowProvidedProps {
-  containerIndex: number;
-  rowIndex: number;
-}
-
-export interface IColumnProvidedProps {
-  containerIndex: number;
-  rowIndex: number;
-  columnIndex: number;
-}
-
 export interface IOption {
   label: string;
   value: any;
@@ -46,7 +27,7 @@ export interface IOption {
 
 export interface ICreateFormContainer {
   index?: number;
-  itemType?: string;
+  itemType: 'CONTAINER';
   dataModelBindings?: IDataModelBindings;
   maxCount?: number;
   textResourceBindings?: ITextResourceBindings;
@@ -59,8 +40,8 @@ export interface ITextResourceBindings {
 
 export interface ICreateFormComponent {
   component?: string;
-  itemType?: string;
-  type?: string;
+  itemType: 'COMPONENT';
+  type: ComponentType;
   name?: string;
   size?: string;
   options?: IOption[];
@@ -77,6 +58,8 @@ export interface ICreateFormComponent {
 
 export interface IFormComponent extends ICreateFormComponent {
   id: string;
+  itemType: 'COMPONENT';
+  type: ComponentType;
   disabled?: boolean;
   required?: boolean;
   hidden?: boolean;
@@ -85,26 +68,26 @@ export interface IFormComponent extends ICreateFormComponent {
 }
 
 export interface IFormHeaderComponent extends IFormComponent {
-  type: ComponentTypes.Header;
+  type: ComponentType.Header;
   size: string;
 }
 
 export interface IFormInputComponent extends IFormComponent {
-  type: ComponentTypes.Input;
+  type: ComponentType.Input;
   disabled?: boolean;
 }
 
 export interface IFormCheckboxComponent extends IFormGenericOptionsComponent {
-  type: ComponentTypes.Checkboxes;
+  type: ComponentType.Checkboxes;
 }
 
 export interface IFormButtonComponent extends IFormComponent {
-  type: ComponentTypes.Button;
+  type: ComponentType.Button | ComponentType.NavigationButtons;
   onClickAction: () => void;
 }
 
 export interface IFormRadioButtonComponent extends IFormGenericOptionsComponent {
-  type: ComponentTypes.RadioButtons;
+  type: ComponentType.RadioButtons;
 }
 
 export interface IFormGenericOptionsComponent extends IFormComponent {
@@ -114,12 +97,12 @@ export interface IFormGenericOptionsComponent extends IFormComponent {
 }
 
 export interface IFormDropdownComponent extends IFormComponent {
-  type: ComponentTypes.Dropdown;
+  type: ComponentType.Dropdown;
   optionsId: string;
 }
 
 export interface IFormFileUploaderComponent extends IFormComponent {
-  type: ComponentTypes.FileUpload;
+  type: ComponentType.FileUpload;
   description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
@@ -130,7 +113,7 @@ export interface IFormFileUploaderComponent extends IFormComponent {
 }
 
 export interface IFormFileUploaderWithTagComponent extends IFormComponent {
-  type: ComponentTypes.FileUploadWithTag;
+  type: ComponentType.FileUploadWithTag;
   description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
@@ -153,7 +136,7 @@ export interface IProperties extends IFormComponent {
 }
 
 export interface IFormImageComponent extends IFormComponent {
-  type: ComponentTypes.Image;
+  type: ComponentType.Image;
   image?: {
     src?: {
       [lang: string]: string;
@@ -164,30 +147,24 @@ export interface IFormImageComponent extends IFormComponent {
 }
 
 export interface IFormAddressComponent extends IFormComponent {
-  type: ComponentTypes.AddressComponent;
+  type: ComponentType.AddressComponent;
   simplified: boolean;
 }
 
-export interface IFormGroupComponent extends IFormComponent {
-  type: ComponentTypes.Group;
-  maxCount: number;
-  children: string[];
-}
-
 export interface IFormDatepickerComponent extends IFormComponent {
-  type: ComponentTypes.Datepicker;
+  type: ComponentType.Datepicker;
   timeStamp: boolean;
 }
 
 export interface IThirdPartyComponent extends IFormComponent {
-  type: ComponentTypes.ThirdParty;
+  type: ComponentType.ThirdParty;
   tagName: string;
   framework: string;
   [id: string]: any;
 }
 
 export interface PanelComponent extends IFormComponent {
-  type: ComponentTypes.Panel;
+  type: ComponentType.Panel;
   variant: {
     title: string;
     description: string;
@@ -204,7 +181,7 @@ export interface PanelComponent extends IFormComponent {
 }
 
 export interface MapComponent extends IFormComponent {
-  type: ComponentTypes.Map;
+  type: ComponentType.Map;
   centerLocation: {
     latitude: number;
     longitude: number;
@@ -237,36 +214,45 @@ export type FormComponentType =
 export interface IFormDesignerComponents {
   [id: string]: IFormComponent;
 }
-export interface IFormDesignerComponentProps {
-  [id: string]: IProperties;
-}
 
 export interface IFormDesignerContainers {
   [id: string]: ICreateFormContainer;
 }
 
-export interface IFormDesignerLayout {
-  layouts: IFormLayouts;
-}
-
 export interface IFormLayouts {
-  [id: string]: IFormLayout;
+  [id: string]: IInternalLayout;
 }
 
-export interface IFormLayout {
+export interface IInternalLayout {
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
   order: IFormLayoutOrder;
+  hidden?: any;
+}
+
+export interface IExternalFormLayouts {
+  [id: string]: IExternalFormLayout;
+}
+
+export interface IExternalFormLayout {
+  $schema: string;
+  data: IExternalData;
+  hidden?: any;
+}
+
+export interface IExternalComponent {
+  id: string;
+  type: ComponentType;
+  [key: string]: any; // Todo: Set type here
+}
+
+export interface IExternalData {
+  layout: IExternalComponent[];
+  hidden?: boolean;
 }
 
 export interface IFormLayoutOrder {
   [id: string]: string[];
-}
-
-export interface ISelectedLayoutElement {
-  elementId: string;
-  elementType: string;
-  indexes: number[];
 }
 
 export interface IDataModelFieldElement {
@@ -293,20 +279,6 @@ export interface IDataModelFieldElement {
   xsdValueType?: string;
 }
 
-export interface IDataModelBinding {
-  fieldName: string;
-  parentGroup: string;
-}
-
-/**
- * Defines how each element in the code list element list looks like
- */
-export interface ICodeListListElement {
-  codeListName: string;
-  org: string;
-  id: number;
-}
-
 export interface IRuleModelFieldElement {
   type: string;
   name: string;
@@ -328,7 +300,7 @@ export interface IVariable {
 export interface IWidget {
   components: any[];
   texts: IWidgetTexts[];
-  displayName: string;
+  displayName: ComponentType;
 }
 
 export interface IWidgetTexts {
@@ -336,12 +308,10 @@ export interface IWidgetTexts {
   resources: ITextResource[];
 }
 
-export type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
-
 export interface IToolbarElement {
   label: string;
   icon?: string;
-  type: string;
+  type: ComponentType;
   actionMethod: (containerId: string, position: number) => void;
 }
 
@@ -356,3 +326,7 @@ export enum LayoutItemType {
   Container = 'CONTAINER',
   Component = 'COMPONENT',
 }
+
+export type AppStateSelector<T> = (state: IAppState) => T;
+
+export type FormLayoutsSelector<T> = (state: IAppState, formLayoutsData: IFormLayouts) => T;

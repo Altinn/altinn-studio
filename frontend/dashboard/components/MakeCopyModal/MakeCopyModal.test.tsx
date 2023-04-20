@@ -1,108 +1,89 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import * as networking from 'app-shared/utils/networking';
-import { MemoryRouter } from 'react-router-dom';
-import type { IMakeCopyModalProps } from './MakeCopyModal';
 import { MakeCopyModal } from './MakeCopyModal';
-import { copyAppPath } from 'app-shared/api-paths';
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
+import { MockServicesContextWrapper, Services } from 'dashboard/dashboardTestUtils';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
+const originalWindowLocation = window.location;
+// eslint-disable-next-line
+const anchor = document.querySelector('body');
 
-afterEach(() => jest.restoreAllMocks());
-jest.mock('app-shared/utils/networking', () => ({
-  __esModule: true,
-  ...jest.requireActual('app-shared/utils/networking'),
-}));
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation() }),
-);
+type RenderWithMockServicesProps = Services;
+const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
+  render(
+    <MockServicesContextWrapper customServices={services}>
+      <MakeCopyModal anchorEl={anchor} handleClose={() => {}} serviceFullName={`${org}/${app}`} />
+    </MockServicesContextWrapper>
+  );
+};
+
 describe('MakeCopyModal', () => {
-  it('should show error message when clicking confirm without adding name', async () => {
-    render();
+  beforeEach(() => {
+    delete window.location;
+    window.location = {
+      ...originalWindowLocation,
+      assign: jest.fn(),
+    };
+  });
 
-    expect(screen.queryByText(/dashboard\.field_cannot_be_empty/i)).not.toBeInTheDocument();
+  test('should not show error message when clicking confirm and name is added', async () => {
+    const copyAppMock = jest.fn(() => Promise.resolve());
+    renderWithMockServices({
+      repoService: {
+        copyApp: copyAppMock,
+      },
+    });
+
+    await act(() => user.type(screen.getByRole('textbox'), 'new-repo-name'));
+    await act(() => user.click(screen.getByRole('button', {
+      name: textMock('dashboard.make_copy'),
+    })));
+
+    expect(screen.queryByText(textMock('dashboard.field_cannot_be_empty'))).not.toBeInTheDocument();
+    expect(copyAppMock).toHaveBeenCalledTimes(1);
+    expect(copyAppMock).toHaveBeenCalledWith("org", "app", "new-repo-name");
+  });
+
+  test('should show error message when clicking confirm without adding name', async () => {
+    renderWithMockServices();
+
+    expect(screen.queryByText(textMock('dashboard.field_cannot_be_empty'))).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
       name: /dashboard\.make_copy/i,
     });
-    await user.click(confirmButton);
-    expect(screen.getByText(/dashboard\.field_cannot_be_empty/i)).toBeInTheDocument();
+    await act(() => user.click(confirmButton));
+    expect(screen.getByText(textMock('dashboard.field_cannot_be_empty'))).toBeInTheDocument();
   });
 
-  it('should not show error message when clicking confirm and name is added', async () => {
-    const postSpy = jest.spyOn(networking, 'post').mockResolvedValue(null);
-    const repoName = 'newname';
+  test('should show error message when clicking confirm and name is too long', async () => {
+    renderWithMockServices();
 
-    render();
-
-    expect(screen.queryByText(/dashboard\.field_cannot_be_empty/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('dashboard.service_name_is_too_long'))).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
-      name: /dashboard\.make_copy/i,
+      name: textMock('dashboard.make_copy'),
     });
     const inputField = screen.getByRole('textbox');
-    await user.type(inputField, repoName);
-    await user.click(confirmButton);
-    expect(screen.queryByText(/dashboard\.field_cannot_be_empty/i)).not.toBeInTheDocument();
-
-    expect(postSpy).toHaveBeenCalledWith(copyAppPath(org, app, repoName));
+    await act(() => user.type(inputField, 'this-new-name-is-way-too-long-to-be-valid'));
+    await act(() => user.click(confirmButton));
+    expect(screen.getByText(textMock('dashboard.service_name_is_too_long'))).toBeInTheDocument();
   });
 
-  it('should show error message when clicking confirm and name is too long', async () => {
-    render();
-
-    expect(screen.queryByText(/dashboard\.service_name_is_too_long/i)).not.toBeInTheDocument();
-    const confirmButton = screen.getByRole('button', {
-      name: /dashboard\.make_copy/i,
-    });
-    const inputField = screen.getByRole('textbox');
-    await user.type(inputField, 'this-new-name-is-way-too-long-to-be-valid');
-    await user.click(confirmButton);
-    expect(screen.getByText(/dashboard\.service_name_is_too_long/i)).toBeInTheDocument();
-  });
-
-  it('should show error message when clicking confirm and name contains invalid characters', async () => {
-    render();
+  test('should show error message when clicking confirm and name contains invalid characters', async () => {
+    renderWithMockServices();
 
     expect(
       screen.queryByText(/dashboard\.service_name_has_illegal_characters/i)
     ).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
-      name: /dashboard\.make_copy/i,
+      name: textMock('dashboard.make_copy'),
     });
     const inputField = screen.getByRole('textbox');
-    await user.type(inputField, 'this name is invalid');
-    await user.click(confirmButton);
-    expect(screen.getByText(/dashboard\.service_name_has_illegal_characters/i)).toBeInTheDocument();
+    await act(() => user.type(inputField, 'this name is invalid'));
+    await act(() => user.click(confirmButton));
+    expect(screen.getByText(textMock('dashboard.service_name_has_illegal_characters'))).toBeInTheDocument();
   });
 });
-
-const render = (props: Partial<IMakeCopyModalProps> = {}) => {
-  const initialState = {
-    language: {
-      language: {},
-    },
-  };
-  const store = configureStore()(initialState);
-  const anchor = document.querySelector('body');
-
-  const allProps = {
-    anchorEl: anchor,
-    handleClose: jest.fn(),
-    serviceFullName: `${org}/${app}`,
-    ...props,
-  };
-
-  return rtlRender(
-    <MemoryRouter>
-      <Provider store={store}>
-        <MakeCopyModal {...allProps} />
-      </Provider>
-    </MemoryRouter>
-  );
-};

@@ -52,6 +52,10 @@ export function DataModelling({
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
+  const jsonSchemaState = useSelector((state: any) => {
+    const { error, saving } = state.dataModelling;
+    return { error, saving };
+  });
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
   const metadataLoadingState = useSelector((state: any) => state.dataModelsMetadataState.loadState);
   const [selectedOption, setSelectedOption] = React.useState(undefined);
@@ -70,7 +74,7 @@ export function DataModelling({
       shouldSelectFirstEntry({
         metadataOptions,
         selectedOption,
-        metadataLoadingState
+        metadataLoadingState,
       })
     ) {
       setSelectedOption(metadataOptions[0].options[0]);
@@ -93,29 +97,30 @@ export function DataModelling({
         const filename = selectedOption.value.fileName;
         const lowerCaseFileName = filename.toLowerCase();
         const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
-        const schemaName = filename.substring(0, filenameWithoutXsd.length);
-
-        uploadedOrCreatedFileName.current = schemaName;
+        uploadedOrCreatedFileName.current = filename.substring(0, filenameWithoutXsd.length);
       }
     }
   }, [selectedOption, dispatch, org, repo]);
 
   const handleSaveSchema = (schema: any) =>
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
-  const handleDeleteSchema = () => dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
+  const handleDeleteSchema = () => {
+    dispatch(deleteDataModel({ metadata: selectedOption, org, app: repo }));
+    // Needs to reset prevFetchedOption when deleting the data model.
+    prevFetchedOption.current = null;
+  };
   const handleCreateNewFromLandingPage = () => setCreateNewOpen(true);
 
   const handleCreateSchema = (model: { name: string; relativeDirectory?: string }) => {
     dispatch(createDataModel(model));
     uploadedOrCreatedFileName.current = model.name;
+    setCreateNewOpen(false);
   };
 
   const handleXSDUploaded = (filename: string) => {
     const lowerCaseFileName = filename.toLowerCase();
     const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
-    const schemaName = filename.substring(0, filenameWithoutXsd.length);
-
-    uploadedOrCreatedFileName.current = schemaName;
+    uploadedOrCreatedFileName.current = filename.substring(0, filenameWithoutXsd.length);
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
@@ -168,6 +173,7 @@ export function DataModelling({
         editMode={editMode}
         toggleEditMode={toggleEditMode}
         schema={jsonSchema}
+        schemaState={jsonSchemaState}
         onSaveSchema={handleSaveSchema}
         saveUrl={datamodelPath(org, repo, selectedOption?.value?.repositoryRelativeUrl)}
         name={selectedOption?.label}
@@ -188,7 +194,8 @@ export function DataModelling({
           dataModelNames={modelNames}
           createPathOption={createPathOption}
           disabled={shouldDisplayLandingPage}
-          openByDefault={createNewOpen}
+          open={createNewOpen}
+          setOpen={setCreateNewOpen}
         />
         <XSDUpload
           onXSDUploaded={handleXSDUploaded}

@@ -1,5 +1,6 @@
 using System.IO;
 using System.Runtime.InteropServices;
+using Altinn.Studio.Designer.Filters.Datamodeling;
 using Altinn.Studio.Designer.ModelBinding;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,13 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         public static IServiceCollection ConfigureMvc(this IServiceCollection services)
         {
-            services.AddControllers().AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()));
+            services.AddControllers()
+                .AddMvcOptions(options =>
+                {
+                    options.Filters.Add(typeof(DatamodelingExceptionFilterAttribute));
+                })
+                .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()));
+
             services.AddMvc(options => options.EnableEndpointRouting = false);
 
             services.AddRazorPages();
@@ -37,7 +44,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddAntiforgery(options =>
             {
                 // asp .net core expects two types of tokens: One that is attached to the request as header, and the other one as cookie.
-                // The values of the tokens are not the same and both need to be present and valid in a "unsafe" request. 
+                // The values of the tokens are not the same and both need to be present and valid in a "unsafe" request.
 
                 // Axios which we are using for client-side automatically extracts the value from the cookie named XSRF-TOKEN. We are setting this cookie in the UserController.
                 // We will therefore have two token cookies. One that contains the .net core cookie token; And one that is the request token and is added as a header in requests.

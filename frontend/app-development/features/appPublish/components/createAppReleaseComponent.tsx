@@ -1,85 +1,63 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import classes from './createAppReleaseComponent.module.css';
 import type { ChangeEvent } from 'react';
-import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
-import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { TextField, TextArea, Button } from '@digdir/design-system-react';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { versionNameValid } from './utils';
+import { useAppReleases, useBranchStatus } from '../hooks/query-hooks';
+import { useParams } from 'react-router-dom';
+import { useCreateReleaseMutation } from '../hooks/mutation-hooks';
 import { useTranslation } from 'react-i18next';
 
 export function CreateReleaseComponent() {
-  const dispatch = useAppDispatch();
-
+  const { org, app } = useParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
-
-  const releaseState: IAppReleaseState = useAppSelector((state) => state.appReleases);
-  const createReleaseErrorCode: number = useAppSelector(
-    (s) => s.appReleases.errors.createReleaseErrorCode
-  );
-  const repoStatus: IRepoStatusState = useAppSelector((state) => state.repoStatus);
+  const { data: releases = [] } = useAppReleases(org, app);
+  const { data: masterBranchStatus } = useBranchStatus(org, app, 'master');
   const { t } = useTranslation();
-
-  const [openErrorPopover, setOpenErrorPopover] = useState<boolean>(
-    createReleaseErrorCode !== null
-  );
+  const [openErrorPopover, setOpenErrorPopover] = useState<boolean>(false);
   const ref = useRef();
-
-  useEffect(() => {
-    if (createReleaseErrorCode !== null) {
-      setOpenErrorPopover(true);
-    }
-  }, [createReleaseErrorCode]);
 
   const handleTagNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     setTagName(e.currentTarget.value.toLowerCase());
 
   const handleBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.currentTarget.value);
 
-  function handleBuildVersionClick() {
-    if (versionNameValid(releaseState.releases, tagName) && tagName !== '') {
-      dispatch(
-        AppReleaseActions.createAppRelease({
-          tagName,
-          name: tagName,
-          body,
-          targetCommitish: repoStatus.branch.master.commit.id,
-        })
-      );
+  const mutation = useCreateReleaseMutation(org, app);
+  const handleBuildVersionClick = () => {
+    if (versionNameValid(releases, tagName) && tagName !== '') {
+      mutation.mutate({
+        tagName,
+        name: tagName,
+        body,
+        targetCommitish: masterBranchStatus.commit.id,
+      });
       setTagName('');
       setBody('');
     }
-    handlePopoverClose();
-  }
+    setOpenErrorPopover(false);
+  };
 
   const handlePopoverClose = () => setOpenErrorPopover(false);
 
-  if (releaseState.creatingRelease) {
-    return null;
-  }
-
   return (
     <>
-      <div>
-        <div className={classes.createReleaseFormItem}>
-          {!versionNameValid(releaseState.releases, tagName) ? (
-            <div className={classes.createReleaseInvalidTagName}>
-              {t('app_create_release.release_versionnumber_validation')}
-            </div>
-          ) : null}
-          <div style={{ width: '50%' }}>
-            <TextField
-              label={t('app_create_release.release_versionnumber')}
-              onChange={handleTagNameChange}
-              value={tagName}
-              isValid={versionNameValid(releaseState.releases, tagName)}
-            />
+      <div className={classes.createReleaseForm}>
+        {!versionNameValid(releases, tagName) ? (
+          <div className={classes.createReleaseInvalidTagName}>
+            {t('app_create_release.release_versionnumber_validation')}
           </div>
+        ) : null}
+        <div className={classes.releaseVersionInput}>
+          <TextField
+            label={t('app_create_release.release_versionnumber')}
+            onChange={handleTagNameChange}
+            value={tagName}
+            isValid={versionNameValid(releases, tagName)}
+          />
         </div>
-        <div className={classes.createReleaseFormItem}>
+        <div>
           <TextArea
             label={t('app_create_release.release_description')}
             value={body}
@@ -87,18 +65,18 @@ export function CreateReleaseComponent() {
             rows={4}
           />
         </div>
-        <div className={classes.createReleaseFormItem}>
+        <div>
           <Button
             ref={ref}
             onClick={handleBuildVersionClick}
-            disabled={!versionNameValid(releaseState.releases, tagName) || !tagName}
+            disabled={!versionNameValid(releases, tagName) || !tagName}
           >
             {t('app_create_release.build_version')}
           </Button>
         </div>
       </div>
       <AltinnPopoverSimple
-        open={createReleaseErrorCode !== null && openErrorPopover}
+        open={openErrorPopover}
         anchorEl={ref.current}
         handleClose={handlePopoverClose}
         anchorOrigin={{
@@ -125,8 +103,6 @@ export function CreateReleaseComponent() {
             </div>
             <div className={classes.popoverTechnicalErrorText}>
               {t('app_create_release_errors.technical_error_code')}
-              &nbsp;
-              {createReleaseErrorCode}
             </div>
           </div>
         </div>

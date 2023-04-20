@@ -13,6 +13,13 @@ import {
   swapArrayElements,
 } from 'app-shared/pure/array-functions';
 import { useParams } from 'react-router-dom';
+import { useDatamodelQuery } from '../hooks/queries/useDatamodelQuery';
+import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
+import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
+import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdateFormComponentOrderMutation';
+import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
+import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
 
 export interface DesignViewProps {
   activeList: any[];
@@ -39,6 +46,15 @@ export const DesignView = ({
     () => setState({ layoutOrder, isDragging }),
     [layoutOrder, isDragging]
   );
+
+  const { org, app } = useParams();
+  const datamodelQuery = useDatamodelQuery(org, app);
+  const datamodel = datamodelQuery.data;
+  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
+  const updateFormContainerMutation = useUpdateFormContainerMutation(org, app);
+  const updateFormComponentOrderMutation = useUpdateFormComponentOrderMutation(org, app);
+  const updateContainerIdMutation = useUpdateContainerIdMutation(org, app);
+  const deleteFormContainerMutation = useDeleteFormContainerMutation(org, app);
 
   const setContainerLayoutOrder = (containerId: string, newLayoutOrder: string[]) => {
     if (newLayoutOrder.includes(containerId)) {
@@ -129,18 +145,11 @@ export const DesignView = ({
     beforeDrag && setState({ layoutOrder: beforeDrag, isDragging: false });
   };
   const dispatch = useDispatch();
-  const { org, app } = useParams();
   const onDropItem = (reset?: boolean) => {
     if (reset) {
       resetState();
     } else {
-      dispatch(
-        FormLayoutActions.updateFormComponentOrder({
-          updatedOrder: state.layoutOrder,
-          org,
-          app,
-        })
-      );
+      updateFormComponentOrderMutation.mutate(state.layoutOrder);
       setState({ ...state, isDragging: false });
       dispatch(
         FormLayoutActions.updateActiveListOrder({
@@ -174,6 +183,13 @@ export const DesignView = ({
             items={state.layoutOrder[baseContainerId]}
             layoutOrder={state.layoutOrder}
             dndEvents={dndEvents}
+            dataModel={datamodel}
+            components={components}
+            containers={containers}
+            itemOrder={order}
+            updateFormContainerMutation={updateFormContainerMutation}
+            updateContainerIdMutation={updateContainerIdMutation}
+            deleteFormContainerMutation={deleteFormContainerMutation}
           />
         )}
       />

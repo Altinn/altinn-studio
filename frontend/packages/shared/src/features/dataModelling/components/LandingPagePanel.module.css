@@ -1,5 +1,5 @@
 .landingDialog {
-  background-color: #E3F7FF;
+  background-color: #e3f7ff;
   border-radius: 0;
   box-shadow: 1px 1px 3px 2px rgb(0 0 0 / 25%);
   height: 229px;
@@ -16,37 +16,5 @@
 }
 
 .background {
-  background-color: #F7F7F7;
-}
-
-.buttons {
-  display: flex;
-}
-
-.buttons > :first-child button  {
-  margin-right: 2rem;
-  overflow: hidden; /* Without this, the :before symbol makes the focus outline look weird */
-}
-
-.buttons > :first-child button:before {
-  content: "\f02f";
-  font-family: AltinnStudio, sans-serif;
-  font-size: 4rem;
-  margin-right: 1rem;
-}
-
-.buttons > :last-child {
-  background-color: #FFF;
-  border: 2px solid #50ABDD;
-  color: #50ABDD;
-  transition: none;
-}
-
-.buttons > :last-child .MuiButton-label span {
-  border-bottom-width: 0;
-}
-
-.buttons > :last-child:hover {
-  border-color: #0062BA;
-  color: #0062BA;
+  background-color: #f7f7f7;
 }

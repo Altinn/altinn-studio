@@ -1,6 +1,14 @@
 .simpleContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 16px;
+}
+.buttonContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  align-items: center;
 }

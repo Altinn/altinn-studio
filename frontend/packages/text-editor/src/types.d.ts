@@ -36,3 +36,21 @@ type Language = {
   label?: string;
   value: LangCode;
 };
+
+type TextTableRow = {
+  textKey: string;
+  variables?: TextResourceVariable[];
+  translations: TextTableRowEntry[];
+  usages?: any;
+};
+
+type TextTableRowEntry = {
+  lang: LangCode;
+  translation: string;
+};
+
+export interface UpsertTextResourcesMutation {
+  textId: string;
+  language: string;
+  translation: string;
+}

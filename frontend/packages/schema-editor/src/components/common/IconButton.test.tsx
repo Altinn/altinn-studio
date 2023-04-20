@@ -22,8 +22,8 @@ test('Button appears', () => {
 });
 
 test('Icon appears', () => {
-  const { container } = renderIconButton();
-  expect(container.querySelectorAll(`.${icon}`)).toHaveLength(1);
+  renderIconButton();
+  expect(screen.getByRole('button')).toContainHTML("<span class='element' />");
 });
 
 test('onCLick handler is called when button is clicked', async () => {
@@ -34,8 +34,8 @@ test('onCLick handler is called when button is clicked', async () => {
 
 test('Button has given id', () => {
   const id = 'test';
-  const { container } = renderIconButton({ id });
-  expect(container.querySelectorAll(`#${id}`)).toHaveLength(1);
+  renderIconButton({ id });
+  expect(screen.getByRole('button')).toHaveAttribute('id', 'test')
 });
 
 test('Button has given class', () => {

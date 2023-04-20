@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -6,11 +7,8 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -25,17 +23,17 @@ public class EnvironmentsService : IEnvironmentsService
     /// Initializes a new instance of the <see cref="EnvironmentsService"/> class.
     /// </summary>
     /// <param name="httpClient">System.Net.Http.HttpClient</param>
-    /// <param name="generalSettingsOptions">IOptionsMonitor of Type GeneralSettings</param>
+    /// <param name="generalSettingsOptions">GeneralSettings</param>
     /// <param name="memoryCache">The configured memory cache</param>
     /// <param name="logger">The configured logger</param>
     public EnvironmentsService(
         HttpClient httpClient,
-        IOptionsMonitor<GeneralSettings> generalSettingsOptions,
+        GeneralSettings generalSettingsOptions,
         IMemoryCache memoryCache,
         ILogger<EnvironmentsService> logger
     )
     {
-        _generalSettings = generalSettingsOptions.CurrentValue;
+        _generalSettings = generalSettingsOptions;
         _httpClient = httpClient;
         _cache = memoryCache;
         _logger = logger;
@@ -45,17 +43,18 @@ public class EnvironmentsService : IEnvironmentsService
     /// Gets list of environments
     /// </summary>
     /// <returns>List of environments</returns>
-    public async Task<EnvironmentModel[]> GetEnvironments()
+    public async Task<List<EnvironmentModel>> GetEnvironments()
     {
-        EnvironmentModel[] environmentModel = null;
+        List<EnvironmentModel> environmentModel;
         string cachekey = System.Reflection.MethodBase.GetCurrentMethod().Name;
         if (!_cache.TryGetValue(cachekey, out environmentModel))
         {
             HttpResponseMessage response = await _httpClient.GetAsync(_generalSettings.EnvironmentsUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                var result = await response.Content.ReadAsAsync<EnvironmentsModel>();
+                EnvironmentsModel result = await response.Content.ReadAsAsync<EnvironmentsModel>();
                 environmentModel = result.Environments;
+                _cache.Set(cachekey, environmentModel);
             }
         }
 
@@ -64,7 +63,7 @@ public class EnvironmentsService : IEnvironmentsService
 
     public async Task<EnvironmentModel> GetEnvModelByName(string envName)
     {
-        EnvironmentModel[] environmentModels = await this.GetEnvironments();
+        List<EnvironmentModel> environmentModels = await GetEnvironments();
         return environmentModels.SingleOrDefault(item => item.Name == envName);
     }
 
