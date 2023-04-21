@@ -11,7 +11,7 @@ import AltinnStudioLogo from 'app-shared/navigation/main-header/AltinnStudioLogo
 import { ThreeDotsMenu } from './ThreeDotsMenu';
 import { BranchingIcon } from '@navikt/aksel-icons';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
-import { publiserPath } from 'app-shared/api-paths';
+import { previewPath, publiserPath } from 'app-shared/api-paths';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { useUserQuery } from 'app-development/query-hooks/useUserQuery';
 import { useAppSelector } from '../../common/hooks';
@@ -32,6 +32,10 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
     window.location.href = publiserPath(org, app);
   };
   const { data: user } = useUserQuery();
+
+  const handlePreviewClick = () => {
+    window.location.href = previewPath(org, app);
+  };
 
   return (
     <div className={classes.root}>
@@ -64,7 +68,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
             {!_useIsProdHack() && (
               <Button
                 className={classes.previewButton}
-                onClick={null}
+                onClick={handlePreviewClick}
                 variant={ButtonVariant.Outline}
                 data-testid={TopBarMenu.Preview}
               >
