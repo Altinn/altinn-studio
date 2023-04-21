@@ -40,7 +40,7 @@ describe('ProfileMenu', () => {
     render();
 
     expect(
-      screen.queryByRole('menuitem', { name: /sync_header.decumentation/i })
+      screen.queryByRole('menuitem', { name: /sync_header.documentation/i })
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('menuitem', { name: /dashboard.open_repository/i })
@@ -53,7 +53,7 @@ describe('ProfileMenu', () => {
     await act(() => user.click(profileBtn));
 
     expect(
-      screen.getByRole('menuitem', { name: /sync_header.decumentation/i })
+      screen.getByRole('menuitem', { name: /sync_header.documentation/i })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: /dashboard.open_repository/i })
