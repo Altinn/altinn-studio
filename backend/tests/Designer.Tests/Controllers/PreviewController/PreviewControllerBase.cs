@@ -21,8 +21,8 @@ namespace Designer.Tests.Controllers.PreviewController
             {
                 TestDataHelper.DeleteDirectory(CreatedFolderPath);
             }
-            
-            if(HttpClient.IsValueCreated)
+
+            if (HttpClient.IsValueCreated)
             {
                 HttpClient.Value.Dispose();
             }
