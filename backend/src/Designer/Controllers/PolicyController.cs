@@ -30,10 +30,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("{resourceid}")]
         public ActionResult GetPolicy(string org, string app, string resourceid)
         {
-            XacmlPolicy xacmlPolicy  = _repository.GetPolicy(org, app, resourceid);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
 
-            ResourcePolicy resourcePolicy =  PolicyConverter.ConvertPolicy(xacmlPolicy);
-            
+            ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
+
             return Ok(resourcePolicy);
         }
 
@@ -67,7 +67,8 @@ namespace Altinn.Studio.Designer.Controllers
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
             ValidationProblemDetails vpd = ValidatePolicy(resourcePolicy);
-            if(vpd.Errors.Count == 0) {
+            if (vpd.Errors.Count == 0)
+            {
                 vpd.Status = 200;
             }
             return Ok(vpd);
@@ -88,7 +89,7 @@ namespace Altinn.Studio.Designer.Controllers
         private ValidationProblemDetails ValidatePolicy(ResourcePolicy policy)
         {
 
-           if(policy.Rules == null || policy.Rules.Count == 0)
+            if (policy.Rules == null || policy.Rules.Count == 0)
             {
                 ModelState.AddModelError("policy.rules", "policyerror.norules");
             }

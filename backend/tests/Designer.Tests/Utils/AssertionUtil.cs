@@ -71,7 +71,7 @@ namespace Altinn.AccessManagement.Tests.Utils
                 AssertEqual(expected.Results.First(), actual.Results.First());
             }
         }
-        
+
         /// <summary>
         /// Assert that two <see cref="XacmlJsonResponse"/> have the same property values.
         /// </summary>

@@ -12,7 +12,7 @@ namespace Altinn.Studio.Designer.Models.Authorization
 
         public List<string> Actions { get; set; }
 
-        public List<List<string>>  Resources { get; set; }
-        
+        public List<List<string>> Resources { get; set; }
+
     }
 }

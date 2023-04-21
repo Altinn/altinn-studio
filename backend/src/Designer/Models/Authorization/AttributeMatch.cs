@@ -6,5 +6,5 @@
 
         public string Designator { get; set; }
 
-     }
+    }
 }

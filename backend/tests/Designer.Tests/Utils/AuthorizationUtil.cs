@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
-using System.Xml;
-using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
 using Altinn.Studio.Designer.Models.Authorization;
-using System.Text.Json;
+using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
 
 namespace Designer.Tests.Utils
 {
@@ -49,7 +49,7 @@ namespace Designer.Tests.Utils
         {
             string policyPath = GetPolicyPath();
 
-            string jsonString = JsonSerializer.Serialize(policy, new JsonSerializerOptions() { WriteIndented = true});
+            string jsonString = JsonSerializer.Serialize(policy, new JsonSerializerOptions() { WriteIndented = true });
 
             File.WriteAllText(Path.Combine(policyPath, policyDocumentTitle), jsonString);
         }

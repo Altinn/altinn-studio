@@ -155,7 +155,7 @@ namespace Altinn.Studio.Designer.Helpers
             xacmlRule.Description = policyRule.Description;
 
             List<XacmlAnyOf> ruleAnyOfs = new List<XacmlAnyOf>();
-            if(policyRule.Subject != null && policyRule.Subject.Count > 0)
+            if (policyRule.Subject != null && policyRule.Subject.Count > 0)
             {
                 ruleAnyOfs.Add(GetSubjectAnyOfs(policyRule.Subject));
             }
@@ -163,7 +163,7 @@ namespace Altinn.Studio.Designer.Helpers
             {
                 ruleAnyOfs.Add(GetResourceAnyOfs(policyRule.Resources));
             }
-            if(policyRule.Actions!= null && policyRule.Actions.Count > 0)
+            if (policyRule.Actions != null && policyRule.Actions.Count > 0)
             {
                 ruleAnyOfs.Add(GetActionAnyOfs(policyRule.Actions));
             }
@@ -185,7 +185,7 @@ namespace Altinn.Studio.Designer.Helpers
                 {
                     int splitLocation = res.LastIndexOf(":");
                     string attributeDesignator = res.Substring(0, splitLocation);
-                    string attributeValue = res.Substring(splitLocation+1);
+                    string attributeValue = res.Substring(splitLocation + 1);
 
                     XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
                     xacmlAttributeValue.Value = attributeValue;
@@ -215,7 +215,7 @@ namespace Altinn.Studio.Designer.Helpers
                 List<XacmlMatch> matches = new List<XacmlMatch>();
                 int splitLocation = subject.LastIndexOf(":");
                 string attributeDesignator = subject.Substring(0, splitLocation);
-                string attributeValue = subject.Substring(splitLocation+1);
+                string attributeValue = subject.Substring(splitLocation + 1);
 
                 XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
                 xacmlAttributeValue.Value = attributeValue;
@@ -238,27 +238,27 @@ namespace Altinn.Studio.Designer.Helpers
         {
             List<XacmlAllOf> actionAllOfs = new List<XacmlAllOf>();
 
-                foreach (string action in actions)
-                {
-                    List<XacmlMatch> matches = new List<XacmlMatch>();
-                    XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
-                    xacmlAttributeValue.Value = action;
+            foreach (string action in actions)
+            {
+                List<XacmlMatch> matches = new List<XacmlMatch>();
+                XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
+                xacmlAttributeValue.Value = action;
 
-                    XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeIdentifiers.ActionId), new Uri(XacmlConstants.DataTypes.XMLString));
-                    xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Action);
-                    xacmlAttributeDesignator.MustBePresent = false;
+                XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeIdentifiers.ActionId), new Uri(XacmlConstants.DataTypes.XMLString));
+                xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Action);
+                xacmlAttributeDesignator.MustBePresent = false;
 
-                    XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqual), xacmlAttributeValue, xacmlAttributeDesignator);
-                    matches.Add(xacmlMatch);
-                    XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
-                    actionAllOfs.Add(xacmlAllOf);
-                }
-            
+                XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqual), xacmlAttributeValue, xacmlAttributeDesignator);
+                matches.Add(xacmlMatch);
+                XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
+                actionAllOfs.Add(xacmlAllOf);
+            }
+
             return new XacmlAnyOf(actionAllOfs);
         }
 
 
-        private static  XacmlObligationExpression GetAuthenticationLevelObligation(string level)
+        private static XacmlObligationExpression GetAuthenticationLevelObligation(string level)
         {
             XacmlObligationExpression expression = new XacmlObligationExpression(new Uri("urn:altinn:obligation:authenticationLevel1"), XacmlEffectType.Permit);
 

@@ -102,7 +102,7 @@ namespace Designer.Tests.Controllers
             HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
             string responseBody = await response.Content.ReadAsStringAsync();
-            ResourcePolicy resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
+            ResourcePolicy resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             try
             {
                 Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -202,7 +202,7 @@ namespace Designer.Tests.Controllers
             ResourcePolicy resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
             // Add empty illegal rule
-            resourcePolicy.Rules.Add(new PolicyRule() { RuleId = "xys"});
+            resourcePolicy.Rules.Add(new PolicyRule() { RuleId = "xys" });
 
             string dataPathWithData2 = $"{_versionPrefix}/ttd/{targetRepository}/policy";
             HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Put, dataPathWithData2);
@@ -298,7 +298,7 @@ namespace Designer.Tests.Controllers
             rule1.Actions.Add("read");
             rule1.Actions.Add("sign");
 
-            policy.Rules.Add(rule1);    
+            policy.Rules.Add(rule1);
 
             return policy;
         }
