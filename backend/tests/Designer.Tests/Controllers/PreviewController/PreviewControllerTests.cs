@@ -43,9 +43,9 @@ namespace Designer.Tests.Controllers
         public async Task GetPreviewStatus_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/preview/preview-status";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
@@ -55,9 +55,9 @@ namespace Designer.Tests.Controllers
             string expectedApplicationMetadata = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/config/applicationmetadata.json");
 
             string dataPathWithData = $"{Org}/{App}/api/v1/applicationmetadata";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -68,9 +68,9 @@ namespace Designer.Tests.Controllers
         public async Task GetApplicationSettings_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/applicationsettings";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -85,9 +85,9 @@ namespace Designer.Tests.Controllers
         public async Task GetLayoutSets_NotFound()
         {
             string dataPathWithData = $"{Org}/{App}/api/layoutsets";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
         }
 
@@ -97,9 +97,9 @@ namespace Designer.Tests.Controllers
             string expectedLayoutSettings = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/ui/Settings.json");
 
             string dataPathWithData = $"{Org}/{App}/api/layoutsettings";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -110,9 +110,9 @@ namespace Designer.Tests.Controllers
         public async Task GetAnonymous_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/data/anonymous";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -123,9 +123,9 @@ namespace Designer.Tests.Controllers
         public async Task GetKeepAlive_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/authentication/keepAlive";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
@@ -133,9 +133,9 @@ namespace Designer.Tests.Controllers
         public async Task GetCurrentUser_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/profile/user";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -148,9 +148,9 @@ namespace Designer.Tests.Controllers
         public async Task GetCurrentParty_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/authorization/parties/current";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -163,9 +163,9 @@ namespace Designer.Tests.Controllers
         public async Task PostValidateInstantiation_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/parties/validateInstantiation";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -193,9 +193,9 @@ namespace Designer.Tests.Controllers
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(Org, App, Developer, targetRepository);
 
             string dataPathWithData = $"{Org}/{targetRepository}/instances";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -211,9 +211,9 @@ namespace Designer.Tests.Controllers
             string expectedFormData = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/models/custom-dm-name.schema.json");
 
             string dataPathWithData = $"{Org}/{App}/instances/1/test-id/data/test-datatask-id";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -224,9 +224,9 @@ namespace Designer.Tests.Controllers
         public async Task UpdateFormData_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/undefined/data/test-datatask-id";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
@@ -234,9 +234,9 @@ namespace Designer.Tests.Controllers
         public async Task GetProcess_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/undefined/process";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -250,9 +250,9 @@ namespace Designer.Tests.Controllers
         public async Task GetProcessNext_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/instances/undefined/process/next";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -266,9 +266,9 @@ namespace Designer.Tests.Controllers
         public async Task GetTextResources_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/textresources";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -283,9 +283,9 @@ namespace Designer.Tests.Controllers
             string expectedDatamodel = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/models/custom-dm-name.schema.json");
 
             string dataPathWithData = $"{Org}/{App}/api/jsonschema/custom-dm-name";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -299,9 +299,9 @@ namespace Designer.Tests.Controllers
             string expectedFormLayouts = @"{""layout"": " + expectedFormLayout + "}";
 
             string dataPathWithData = $"{Org}/{App}/api/resource/FormLayout.json";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -312,9 +312,9 @@ namespace Designer.Tests.Controllers
         public async Task GetRuleHandler_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/resource/RuleHandler.js";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
         }
 
@@ -322,9 +322,9 @@ namespace Designer.Tests.Controllers
         public async Task GetRuleConfiguration_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/resource/RuleConfiguration.json";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
         }
 
@@ -332,9 +332,9 @@ namespace Designer.Tests.Controllers
         public async Task GetApplicationLanguages_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/applicationlanguages";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
