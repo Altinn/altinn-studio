@@ -5,22 +5,17 @@ using System.Threading.Tasks;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Services.Interfaces;
-using Designer.Tests.Controllers.PreviewController;
-using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using SharedResources.Tests;
 using Xunit;
 using TextResource = Altinn.Studio.Designer.Models.TextResource;
 
-namespace Designer.Tests.Controllers
+namespace Designer.Tests.Controllers.PreviewController
 {
     public class PreviewControllerTests : PreviewControllerTestsBase<PreviewControllerTests>
     {
@@ -30,13 +25,6 @@ namespace Designer.Tests.Controllers
 
         public PreviewControllerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
         {
-        }
-
-        protected override void ConfigureTestServices(IServiceCollection services)
-        {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
         }
 
         [Fact]
