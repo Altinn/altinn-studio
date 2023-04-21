@@ -86,6 +86,9 @@
 .userOrgNames {
   text-align: right;
   white-space: pre-line;
+  line-height: 25px;
+  font-size: 1rem;
+  margin-right: 15px;
 }
 
 .previewButton {
