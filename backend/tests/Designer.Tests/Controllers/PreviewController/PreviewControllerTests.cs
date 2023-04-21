@@ -172,7 +172,7 @@ namespace Designer.Tests.Controllers
             JsonUtils.DeepEquals(@"{""valid"": true}", responseBody).Should().BeTrue();
         }
 
-        [Fact(Skip = "Fail on CI")]
+        [Fact]
         public async Task GetText_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/texts/nb";

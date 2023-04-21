@@ -21,6 +21,11 @@ namespace Designer.Tests.Controllers.PreviewController
             {
                 TestDataHelper.DeleteDirectory(CreatedFolderPath);
             }
+            
+            if(HttpClient.IsValueCreated)
+            {
+                HttpClient.Value.Dispose();
+            }
         }
 
         public PreviewControllerTestsBase(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
