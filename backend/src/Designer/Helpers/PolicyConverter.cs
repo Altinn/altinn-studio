@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Helpers
             ResourcePolicy policy = new ResourcePolicy();
             policy.Rules = new List<PolicyRule>();
 
-            foreach(XacmlRule xr in xacmlPolicy.Rules)
+            foreach (XacmlRule xr in xacmlPolicy.Rules)
             {
                 PolicyRule rule = new PolicyRule();
                 rule.RuleId = xr.RuleId;
@@ -39,36 +39,11 @@ namespace Altinn.Studio.Designer.Helpers
                         List<string> action = null;
                         List<string> resource = null;
 
-                        foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Subject)))
-                        {
-                            if (subject == null)
-                            {
-                                subject = new List<string>();
-                            }
+                        subject = GetRuleSubjects(allOf, subject);
 
-                            subject.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
-                        }
+                        resource = GetRuleResources(allOf, resource);
 
-                        foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
-                        {
-                            if (resource == null)
-                            {
-                                resource = new List<string>();
-                            }
-
-                            resource.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
-
-                        }
-
-                        foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Action)))
-                        {
-                            if (action == null)
-                            {
-                                action = new List<string>();
-                            }
-
-                            action.Add(match.AttributeValue.Value);
-                        }
+                        action = GetRuleActions(allOf, action);
 
                         if (subject != null)
                         {
@@ -91,7 +66,14 @@ namespace Altinn.Studio.Designer.Helpers
                 policy.Rules.Add(rule);
             }
 
-            foreach(XacmlObligationExpression obligationExpression in xacmlPolicy.ObligationExpressions)
+            GetObligations(xacmlPolicy, policy);
+
+            return policy;
+        }
+
+        private static void GetObligations(XacmlPolicy xacmlPolicy, ResourcePolicy policy)
+        {
+            foreach (XacmlObligationExpression obligationExpression in xacmlPolicy.ObligationExpressions)
             {
                 foreach (XacmlAttributeAssignmentExpression attributeAssignmentExpression in obligationExpression.AttributeAssignmentExpressions)
                 {
@@ -103,10 +85,53 @@ namespace Altinn.Studio.Designer.Helpers
 
                 }
             }
-
-            return policy;
         }
 
+        private static List<string> GetRuleActions(XacmlAllOf allOf, List<string> action)
+        {
+            foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Action)))
+            {
+                if (action == null)
+                {
+                    action = new List<string>();
+                }
+
+                action.Add(match.AttributeValue.Value);
+            }
+
+            return action;
+        }
+
+        private static List<string> GetRuleResources(XacmlAllOf allOf, List<string> resource)
+        {
+            foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
+            {
+                if (resource == null)
+                {
+                    resource = new List<string>();
+                }
+
+                resource.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
+
+            }
+
+            return resource;
+        }
+
+        private static List<string> GetRuleSubjects(XacmlAllOf allOf, List<string> subject)
+        {
+            foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Subject)))
+            {
+                if (subject == null)
+                {
+                    subject = new List<string>();
+                }
+
+                subject.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
+            }
+
+            return subject;
+        }
 
         public static XacmlPolicy ConvertPolicy(ResourcePolicy policyInput)
         {
