@@ -27,18 +27,20 @@ namespace Designer.Tests.Utils
             string policyPath = GetPolicyPath();
 
             MemoryStream stream = new MemoryStream();
-            XmlWriter writer = XmlWriter.Create(stream, new XmlWriterSettings() {  Indent = true});
-            XacmlSerializer.WritePolicy(writer, policy);
-
-            writer.Flush();
-            stream.Position = 0;
-
-            using (FileStream file = new FileStream(Path.Combine(policyPath, policyDocumentTitle), FileMode.Create, System.IO.FileAccess.Write))
+            using (XmlWriter writer = XmlWriter.Create(stream, new XmlWriterSettings() { Indent = true }))
             {
-                byte[] bytes = new byte[stream.Length];
-                stream.Read(bytes, 0, (int)stream.Length);
-                file.Write(bytes, 0, bytes.Length);
-                stream.Close();
+                XacmlSerializer.WritePolicy(writer, policy);
+
+                writer.Flush();
+                stream.Position = 0;
+
+                using (FileStream file = new FileStream(Path.Combine(policyPath, policyDocumentTitle), FileMode.Create, System.IO.FileAccess.Write))
+                {
+                    byte[] bytes = new byte[stream.Length];
+                    stream.Read(bytes, 0, (int)stream.Length);
+                    file.Write(bytes, 0, bytes.Length);
+                    stream.Close();
+                }
             }
 
         }
