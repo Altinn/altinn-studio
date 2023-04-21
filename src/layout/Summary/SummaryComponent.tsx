@@ -8,8 +8,8 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { SummaryBoilerplate } from 'src/layout/Summary/SummaryBoilerplate';
 import classes from 'src/layout/Summary/SummaryComponent.module.css';
+import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
@@ -17,7 +17,6 @@ import type { IGrid } from 'src/layout/layout';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-
 export interface ISummaryComponent {
   summaryNode: LayoutNodeFromType<'Summary'>;
   overrides?: {
@@ -117,25 +116,15 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
         })}
       >
         {RenderSummary && 'renderSummaryBoilerplate' in component ? (
-          <>
-            {component.renderSummaryBoilerplate() ? (
-              <SummaryBoilerplate
-                onChangeClick={onChangeClick}
-                changeText={changeText}
-                label={label}
-                summaryNode={summaryNode}
-                targetNode={targetNode}
-                overrides={overrides}
-              />
-            ) : null}
-            <RenderSummary
-              onChangeClick={onChangeClick}
-              changeText={changeText}
-              summaryNode={summaryNode}
-              targetNode={targetNode as any}
-              overrides={overrides}
-            />
-          </>
+          <SummaryContent
+            onChangeClick={onChangeClick}
+            changeText={changeText}
+            label={label}
+            summaryNode={summaryNode}
+            targetNode={targetNode}
+            overrides={overrides}
+            RenderSummary={RenderSummary}
+          />
         ) : (
           <GenericComponent node={targetNode} />
         )}

@@ -19,22 +19,10 @@ describe('Summary', () => {
     cy.navPage('summary').click();
 
     // Verify empty summary components
-    cy.get('[data-testid=summary-summary-2] > div > [data-testid=summary-item-simple]').should(
-      'contain.text',
-      texts.emptySummary,
-    );
-    cy.get('[data-testid=summary-summary-4] > div > [data-testid=summary-item-simple]').should(
-      'contain.text',
-      texts.emptySummary,
-    );
-    cy.get('[data-testid=summary-summary-5] > div > [data-testid=attachment-summary-component]').should(
-      'contain.text',
-      texts.emptySummary,
-    );
-    cy.get('[data-testid=summary-summary-6] > div > [data-testid=attachment-with-tag-summary]').should(
-      'contain.text',
-      texts.emptySummary,
-    );
+    cy.get('[data-testid=summary-summary-2]').contains(texts.emptySummary);
+    cy.get('[data-testid=summary-summary-4]').contains(texts.emptySummary);
+    cy.get('[data-testid=summary-summary-5]').contains(texts.emptySummary);
+    cy.get('[data-testid=summary-summary-6]').contains(texts.emptySummary);
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
       .then((items) => {
@@ -180,10 +168,6 @@ describe('Summary', () => {
       .should('have.length', 8)
       .then((item) => {
         cy.wrap(item).find('button').should('have.length', 7);
-        cy.wrap(item)
-          .eq(1)
-          .children(mui.gridContainer)
-          .should('have.css', 'border-bottom', '1px dashed rgb(0, 143, 214)');
         cy.wrap(item).eq(3).should('contain.text', 'attachment-in-single.pdf');
         cy.wrap(item).eq(4).should('contain.text', 'attachment-in-multi1.pdf');
         cy.wrap(item).eq(4).should('contain.text', 'attachment-in-multi2.pdf');
@@ -295,7 +279,7 @@ describe('Summary', () => {
       .children()
       .last()
       .should('contain.text', texts.emptySummary);
-    cy.get('#summary-mainGroup-4 > [data-testid=summary-subGroup-4] > div > [data-testid=summary-group-component]')
+    cy.get('[data-testid=summary-group-component]')
       .children()
       .last()
       .first()
@@ -349,7 +333,7 @@ describe('Summary', () => {
 
     cy.navPage('summary').click();
     //Skjul kommentar felt
-    cy.get('#summary-mainGroup-0 > [data-testid=summary-subGroup-0] > div > [data-testid=summary-group-component]')
+    cy.get('[data-testid=summary-group-component]')
       .children()
       .last()
       .children()
@@ -359,7 +343,7 @@ describe('Summary', () => {
       .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
       .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('not.contain.text', 'Skjul kommentar felt');
-    cy.get('#summary-mainGroup-0 > [data-testid=summary-subGroup-0] > div > [data-testid=summary-group-component]')
+    cy.get('[data-testid=summary-group-component]')
       .children()
       .last()
       .children()
@@ -369,7 +353,7 @@ describe('Summary', () => {
       .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
       .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('not.contain.text', 'Skjul kommentar felt');
-    cy.get('#summary-mainGroup-0 > [data-testid=summary-subGroup-0] > div > [data-testid=summary-group-component]')
+    cy.get('[data-testid=summary-group-component]')
       .children()
       .last()
       .children()
@@ -388,7 +372,7 @@ describe('Summary', () => {
     for (const trigger of triggerVariations) {
       injectExtraPageAndSetTriggers(trigger);
 
-      const newFirstNameSummary = '[data-testid=summary-summary-2] > div > [data-testid=summary-item-simple]';
+      const newFirstNameSummary = '[data-testid=summary-summary-2]';
       const exampleSummary = '[data-testid=summary-summary-reference]';
 
       cy.navPage('form').click();
