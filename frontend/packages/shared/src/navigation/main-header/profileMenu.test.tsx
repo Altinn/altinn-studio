@@ -3,6 +3,7 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IProfileMenuComponentProps } from './profileMenu';
 import { ProfileMenu } from './profileMenu';
+import { textMock } from "../../../../../testing/mocks/i18nMock";
 
 const user = userEvent.setup();
 
@@ -39,28 +40,16 @@ describe('ProfileMenu', () => {
   it('should show menu with link to documentation when clicking profile button', async () => {
     render();
 
-    expect(
-      screen.queryByRole('menuitem', { name: /sync_header.documentation/i })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('menuitem', { name: /dashboard.open_repository/i })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('menuitem', { name: /shared.header_logout/i })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: textMock('sync_header.documentation') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: textMock('dashboard.open_repository') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: textMock('shared.header_logout') })).not.toBeInTheDocument();
 
     const profileBtn = screen.getByRole('img', { name: /imgIcon/i });
     await act(() => user.click(profileBtn));
 
-    expect(
-      screen.getByRole('menuitem', { name: /sync_header.documentation/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: /dashboard.open_repository/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('menuitem', { name: /shared.header_logout/i })
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: textMock('sync_header.documentation') })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: textMock('dashboard.open_repository') })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: textMock('shared.header_logout') })).not.toBeInTheDocument();
   });
 
   it('should show menu with link to documentation, logout and open repository when showlogout is true, window object has org and repo properties, and clicking profile button', async () => {
@@ -68,41 +57,17 @@ describe('ProfileMenu', () => {
     window.location = new URL('https://www.example.com/editor/org/app') as unknown as Location;
     render({ showlogout: true });
 
-    expect(
-      screen.queryByRole('link', {
-        name: /sync_header.decumentation/i,
-      })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('link', {
-        name: /dashboard.open_repository/i,
-      })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('menuitem', {
-        name: /shared.header_logout/i,
-      })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: textMock('sync_header.documentation') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: textMock('dashboard.open_repository') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: textMock('shared.header_logout') })).not.toBeInTheDocument();
 
     const profileBtn = screen.getByRole('img', {
       name: /imgIcon/i,
     });
     await act(() => user.click(profileBtn));
 
-    expect(
-      screen.getByRole('link', {
-        name: /sync_header.decumentation/i,
-      })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', {
-        name: /dashboard.open_repository/i,
-      })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', {
-        name: /shared.header_logout/i,
-      })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('sync_header.documentation') })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('dashboard.open_repository') })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: textMock('shared.header_logout') })).toBeInTheDocument();
   });
 });
