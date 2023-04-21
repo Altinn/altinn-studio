@@ -88,7 +88,7 @@ describe('Administration', () => {
     renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
     });
-    const contentLoader = screen.queryByText('Laster siden');
+    const contentLoader = screen.queryAllByText('Laster siden')[0];
     expect(contentLoader).not.toBeNull();
   });
 
