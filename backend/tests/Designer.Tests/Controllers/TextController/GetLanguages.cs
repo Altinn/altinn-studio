@@ -1,18 +1,17 @@
 ﻿using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.TestController
+namespace Designer.Tests.Controllers.TextController
 {
     public class GetLanguages : TextControllerTestsBase<GetLanguages>
     {
 
-        public GetLanguages(WebApplicationFactory<TextController> factory) : base(factory)
+        public GetLanguages(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 

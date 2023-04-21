@@ -7,7 +7,7 @@ using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Designer.Tests.Controllers.TestController
+namespace Designer.Tests.Controllers.TextController
 {
     public class TextControllerTestsBase<TControllerTestType> : ApiTestsBase<Altinn.Studio.Designer.Controllers.TextController, TControllerTestType>, IDisposable
         where TControllerTestType : class

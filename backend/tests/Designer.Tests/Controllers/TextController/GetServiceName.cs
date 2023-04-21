@@ -1,18 +1,15 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
-using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.TestController
+namespace Designer.Tests.Controllers.TextController
 {
     public class GetServiceName : TextControllerTestsBase<GetServiceName>
     {
 
-        public GetServiceName(WebApplicationFactory<TextController> factory) : base(factory)
+        public GetServiceName(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 

@@ -3,19 +3,18 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.TestController
+namespace Designer.Tests.Controllers.TextController
 {
     public class SaveResource : TextControllerTestsBase<SaveResource>
     {
 
-        public SaveResource(WebApplicationFactory<TextController> factory) : base(factory)
+        public SaveResource(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 
@@ -28,7 +27,7 @@ namespace Designer.Tests.Controllers.TestController
 
             string url = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
 
-            var httpContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var httpContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
 
             // Act
             using var response = await HttpClient.Value.PostAsync(url, httpContent);

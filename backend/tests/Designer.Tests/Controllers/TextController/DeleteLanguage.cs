@@ -1,16 +1,15 @@
 ﻿using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Designer.Tests.Controllers.TestController
+namespace Designer.Tests.Controllers.TextController
 {
     public class DeleteLanguage : TextControllerTestsBase<DeleteLanguage>
     {
 
-        public DeleteLanguage(WebApplicationFactory<TextController> factory) : base(factory)
+        public DeleteLanguage(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 

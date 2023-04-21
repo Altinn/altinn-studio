@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -14,12 +13,12 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.TestController
+namespace Designer.Tests.Controllers.TextController
 {
     public class UpdateTextsForKeys : TextControllerTestsBase<UpdateTextsForKeys>
     {
 
-        public UpdateTextsForKeys(WebApplicationFactory<TextController> factory) : base(factory)
+        public UpdateTextsForKeys(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
 
@@ -45,7 +44,7 @@ namespace Designer.Tests.Controllers.TestController
 
             string url = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
 
-            var httpContent = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var httpContent = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
 
             // Act
             using HttpResponseMessage response = await HttpClient.Value.PutAsync(url, httpContent);
