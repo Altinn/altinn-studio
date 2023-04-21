@@ -79,7 +79,8 @@ export const ControlledRadioGroup = ({
               value: option.value,
               checkboxId: `${id}-${option.label.replace(/\s/g, '-')}`,
               label: getTextResource(option.label),
-              helpText: option.helpText && getTextResource(option.helpText),
+              description: getTextResource(option.description),
+              helpText: getTextResource(option.helpText),
             }))}
           />
         </div>

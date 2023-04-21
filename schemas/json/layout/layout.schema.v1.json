@@ -662,6 +662,16 @@
           "type": "string",
           "title": "Value",
           "description": "The option value."
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "A description of the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding."
+        },
+        "helpText": {
+          "type": "string",
+          "title": "Help Text",
+          "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding."
         }
       },
       "required": ["label", "value"]

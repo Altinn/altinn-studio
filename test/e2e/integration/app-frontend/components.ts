@@ -138,4 +138,23 @@ describe('UI Components', () => {
     // Assert the last click had no effect
     cy.get('#form-content-reasonFarm3').should('be.visible');
   });
+
+  it('description and helptext for options in radio and checkbox groups', () => {
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
+    cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
+    cy.get(appFrontend.changeOfName.newLastName).blur();
+
+    cy.get(appFrontend.changeOfName.confirmChangeName).findByText('Dette er en beskrivelse.').should('be.visible');
+    cy.get(appFrontend.changeOfName.confirmChangeName).findByRole('button').click();
+    cy.get(appFrontend.changeOfName.confirmChangeName).findByText('Dette er en hjelpetekst.').should('be.visible');
+
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+
+    cy.get(appFrontend.changeOfName.reasons).findByText('Dette er en beskrivelse.').should('be.visible');
+    cy.get(appFrontend.changeOfName.reasons).findByRole('button').click();
+    cy.get(appFrontend.changeOfName.reasons).findByText('Dette er en hjelpetekst.').should('be.visible');
+  });
 });
