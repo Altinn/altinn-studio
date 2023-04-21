@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -175,10 +176,9 @@ namespace Designer.Tests.Controllers
         public async Task GetText_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/v1/texts/nb";
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            using HttpResponseMessage response = await HttpClient.Value.GetAsync(dataPathWithData);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
