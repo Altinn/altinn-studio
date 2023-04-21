@@ -33,7 +33,7 @@ namespace Designer.Tests.Controllers.TestController
 
         [Theory]
         [MemberData(nameof(Data))]
-        public async Task UpdateTextsForKeys_WithValidInput_ReturnsOk(string org, string app, string developer, string lang, Dictionary<string,string> updateDictionary)
+        public async Task UpdateTextsForKeys_WithValidInput_ReturnsOk(string org, string app, string developer, string lang, Dictionary<string, string> updateDictionary)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -64,7 +64,7 @@ namespace Designer.Tests.Controllers.TestController
                 if (textResourceContainsKey is null)
                 {
                     resource.Resources.Add(new TextResourceElement
-                        { Id = key, Value = value });
+                    { Id = key, Value = value });
                     continue;
                 }
 

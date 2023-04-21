@@ -18,7 +18,7 @@ namespace Designer.Tests.Controllers.TestController
 
         [Theory]
         [InlineData("ttd", "hvem-er-hvem", "testUser", "en", "nb")]
-        public async Task GetLanguage_WithValidInput_ReturnsOk(string org, string app, string developer, params string[] expectedLangs)
+        public async Task GetLanguage_WithValidInput_ReturnsOk(string org, string app, params string[] expectedLangs)
         {
             string url = $"{VersionPrefix(org, app)}/languages";
 

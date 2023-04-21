@@ -35,7 +35,7 @@ namespace Designer.Tests.Controllers.TestController
 
         [Theory]
         [InlineData("ttd", "hvem-er-hvem", "testUser", "sr")]
-        public async Task GetLanguage_WithNonExistingLang_ReturnsNotFound(string org, string app, string developer, string language)
+        public async Task GetLanguage_WithNonExistingLang_ReturnsNotFound(string org, string app, string language)
         {
             string url = $"{VersionPrefix(org, app)}/language/{language}";
 
