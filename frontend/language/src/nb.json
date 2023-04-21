@@ -717,7 +717,7 @@
   "sync_header.describe_and_validate": "Beskriv og valider endringene som er gjort",
   "sync_header.describe_and_validate_btnText": "Valider endringer",
   "sync_header.describe_and_validate_submessage": "Gode beskrivelser av hva som er endret gjør det enklere å finne tilbake til tidligere versjoner.",
-  "sync_header.describe_and_validate_subsubmessage": "Før endringene kan deles må du validere slik at ingen andre har gjort uppdateringer på samme sted.",
+  "sync_header.describe_and_validate_subsubmessage": "Før endringene kan deles må du validere slik at ingen andre har gjort oppdateringer på samme sted.",
   "sync_header.favourite_tool": "Jobb i ditt foretrukne utviklerverktøy.",
   "sync_header.favourite_tool_link": "Lær mer på Altinn Studio docs",
   "sync_header.fetch_changes": "Hent Endringer",
