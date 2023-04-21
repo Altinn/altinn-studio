@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 export type HeaderMenuProps = {
   org: string;
   repo?: string;
+  user?: any;
 };
 
 export function HeaderMenu({ org, repo }: HeaderMenuProps) {

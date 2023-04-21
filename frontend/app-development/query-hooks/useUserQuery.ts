@@ -1,5 +1,5 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { useServicesContext } from '../../contexts/servicesContext';
+import { useServicesContext } from '../common/ServiceContext';
 import { User } from 'app-shared/types/User';
 
 enum ServerStateCacheKey {
@@ -7,6 +7,6 @@ enum ServerStateCacheKey {
 }
 
 export const useUserQuery = (): UseQueryResult<User> => {
-  const { userService } = useServicesContext();
-  return useQuery<User>([ServerStateCacheKey.GetCurrentUser], () => userService.getCurrentUser());
+  const { getUser } = useServicesContext();
+  return useQuery<User>([ServerStateCacheKey.GetCurrentUser], () => getUser());
 };

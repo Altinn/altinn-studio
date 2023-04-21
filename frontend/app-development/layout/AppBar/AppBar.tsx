@@ -13,23 +13,25 @@ import { BranchingIcon } from '@navikt/aksel-icons';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { publiserPath } from 'app-shared/api-paths';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
+import { useUserQuery } from 'app-development/query-hooks/useUserQuery';
+import { useAppSelector } from '../../common/hooks';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
   activeLeftMenuSelection?: string;
-  user?: string;
   showSubMenu?: boolean;
 }
 
-export const AppBar = ({ activeSubHeaderSelection, user, showSubMenu }: IAppBarProps) => {
+export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) => {
+  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const { t } = useTranslation();
   const { org, app } = useParams();
   const repositoryType = getRepositoryType(org, app);
   const menu = getTopBarMenu(repositoryType);
-
   const handlePubliserClick = () => {
     window.location.href = publiserPath(org, app);
   };
+  const { data: user } = useUserQuery();
 
   return (
     <div className={classes.root}>
@@ -78,8 +80,20 @@ export const AppBar = ({ activeSubHeaderSelection, user, showSubMenu }: IAppBarP
             </Button>
           </div>
           <div className={classes.profileMenuWrapper}>
-            <span>{user ? t('shared.header_user_for_org', { user, org }) : org}</span>
-            <ProfileMenu showlogout />
+            {user && (
+              <>
+                <span className={classes.userOrgNames}>
+                  {user.login === org
+                    ? user.login
+                    : t('shared.header_user_for_org', {
+                        user: user.login,
+                        org: repository.owner.full_name,
+                      })}
+                </span>
+
+                <ProfileMenu showlogout user={user} />
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -90,6 +104,7 @@ export const AppBar = ({ activeSubHeaderSelection, user, showSubMenu }: IAppBarP
           </div>
           <div className={classes.rightContent}>
             <VersionControlHeader />
+
             <ThreeDotsMenu />
           </div>
         </div>

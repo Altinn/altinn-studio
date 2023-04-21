@@ -32,7 +32,17 @@ const render = (props: Partial<IAppBarProps> = {}) => {
   } as IAppBarProps;
 
   const createStore = configureStore();
-  const initialState = {};
+  const initialState = {
+    serviceInformation: {
+      repositoryInfo: {
+        repository: {
+          owner: {
+            full_name: "Jest Test Org"
+          }
+        }
+      }
+    }
+  };
   const store = createStore(initialState);
   const queries: Partial<ServicesContextProps> = {
     getRepoMetadata: async () => ({
