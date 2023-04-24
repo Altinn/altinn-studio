@@ -18,7 +18,7 @@ describe('App', () => {
 
   test('should display spinner while loading', () => {
     renderWithMockServices();
-    expect(screen.getAllByText(/dashboard.loading/).length).toBe(2);
+    expect(screen.getByText(/dashboard.loading/)).toBeInTheDocument();
   });
 
   test('should display error when failing to fetch current user', async () => {
@@ -52,7 +52,7 @@ describe('App', () => {
 
   test('should display dashboard page if successfully loading data', async () => {
     renderWithMockServices();
-    await waitForElementToBeRemoved(screen.queryAllByText(textMock('dashboard.loading'))[0]);
+    await waitForElementToBeRemoved(screen.queryByText(textMock('dashboard.loading')));
     expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.favourites') }));
     expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.my_apps') }));
     expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.resources') }));

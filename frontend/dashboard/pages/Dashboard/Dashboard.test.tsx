@@ -21,7 +21,7 @@ describe('Dashboard', () => {
 
   test('should display spinner while loading starred repositories', () => {
     renderWithMockServices();
-    expect(screen.getAllByText(textMock('dashboard.loading')).length).toBe(2);
+    expect(screen.getByText(textMock('dashboard.loading'))).toBeInTheDocument();
   });
 
   test('should display no favorites when starred repos is empty', async () => {
@@ -39,7 +39,7 @@ describe('Dashboard', () => {
         getStarredRepos: () => Promise.resolve([starredRepo]),
       },
     });
-    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('dashboard.loading'))[0]);
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('dashboard.loading')));
     expect(await screen.findAllByRole('menuitem', { name: textMock('dashboard.unstar') })).toHaveLength(1);
   });
 
@@ -49,7 +49,7 @@ describe('Dashboard', () => {
         searchRepos: () => Promise.resolve({ ...searchedRepos } as unknown as SearchRepository),
       },
     });
-    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('dashboard.loading'))[0]);
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('dashboard.loading')));
     expect(await screen.findAllByRole('menuitem', { name: textMock('dashboard.star') })).toHaveLength(1);
   });
 });
