@@ -10,6 +10,7 @@ public class TestSetupUtils
     {
         if (System.Environment.OSVersion.Platform == PlatformID.Unix)
         {
+            Environment.SetEnvironmentVariable("DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS", "600"); // 10 min
             Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
         }
     }
