@@ -9,6 +9,7 @@ import { useParams } from 'react-router-dom';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { ComponentType } from './index';
+import { useTextResourcesQuery } from '../hooks/queries/useTextResourcesQuery';
 
 /**
  * Properties defined for input for wrapper
@@ -29,7 +30,6 @@ export interface IProvidedProps {
  */
 export interface IFormElementProps extends IProvidedProps {
   validationErrors: any[];
-  textResources: any[];
 }
 
 const FormComponent = (props: IFormElementProps) => {
@@ -37,6 +37,7 @@ const FormComponent = (props: IFormElementProps) => {
   const dispatch = useDispatch();
   const { sendListToParent, activeList } = props;
   const { org, app } = useParams();
+  const { data: textResources } = useTextResourcesQuery(org, app);
 
   const { components, order } = useFormLayoutsSelector(selectedLayoutSelector);
   const component: FormComponentType = components[props.id];
@@ -97,7 +98,7 @@ const FormComponent = (props: IFormElementProps) => {
    * Return a given textresource from all textresources avaiable
    */
   const getTextResource = (resourceKey: string): string => {
-    const textResource = props.textResources?.find((resource) => resource.id === resourceKey);
+    const textResource = textResources?.[DEFAULT_LANGUAGE]?.find((resource) => resource.id === resourceKey);
     return textResource ? textResource.value : resourceKey;
   };
 
@@ -170,7 +171,6 @@ const makeMapStateToProps = () => {
     sendListToParent: props.sendListToParent,
     singleSelected: props.singleSelected,
     validationErrors: null,
-    textResources: state.appData.textResources.resources?.[DEFAULT_LANGUAGE],
     dragHandleRef: props.dragHandleRef,
   });
 };

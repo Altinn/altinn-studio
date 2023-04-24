@@ -2,8 +2,7 @@ import React from 'react';
 import { fireEvent, screen, within } from '@testing-library/react';
 
 import { EditHeaderSize } from './EditHeaderSize';
-import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
-import { IAppDataState } from '../../../features/appData/appDataReducers';
+import { renderWithMockStore } from '../../../testing/mocks';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from '../../index';
 
@@ -20,16 +19,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
-  const appData: IAppDataState = {
-    ...appDataMock,
-    textResources: {
-      ...textResourcesMock,
-      resources: {
-        nb: [{ id: 'title-1', value: 'Another title' }]
-      },
-    }
-  }
-  renderWithMockStore({ appData })(
+  renderWithMockStore()(
     <EditHeaderSize
       handleComponentChange={handleComponentChange}
       component={{

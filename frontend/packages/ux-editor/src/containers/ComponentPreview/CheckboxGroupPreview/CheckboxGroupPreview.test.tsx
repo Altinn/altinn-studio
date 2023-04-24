@@ -1,18 +1,20 @@
 import React from 'react';
-import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
+import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import { CheckboxGroupPreview, CheckboxGroupPreviewProps } from './CheckboxGroupPreview';
-import { IFormCheckboxComponent, IOption, ITextResource } from '../../../types/global';
-import { act, screen } from '@testing-library/react';
-import { ITextResourcesState } from '../../../features/appData/textResources/textResourcesSlice';
-import { IAppDataState } from '../../../features/appData/appDataReducers';
+import { IFormCheckboxComponent, IOption } from '../../../types/global';
+import type { ITextResource } from 'app-shared/types/global';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
 import { ComponentType } from '../../../components';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { useTextResourcesQuery } from '../../../hooks/queries/useTextResourcesQuery';
 
 const user = userEvent.setup();
 
 // Test data:
+const org = 'org';
+const app = 'app';
 const titleTextKey = 'title';
 const descriptionTextKey = 'description';
 const titleText = 'Sjekkbokser';
@@ -75,21 +77,21 @@ jest.mock(
 describe('CheckboxGroupPreview', () => {
   afterEach(jest.resetAllMocks);
 
-  it('Renders checkbox group with legend, description and given options', () => {
-    render();
+  it('Renders checkbox group with legend, description and given options', async () => {
+    await render();
     expect(screen.getByText(titleText)).toBeInTheDocument();
     expect(screen.getByText(descriptionText)).toBeInTheDocument();
     expect(screen.getByText(option1Text)).toBeInTheDocument();
     expect(screen.getByText(option2Text)).toBeInTheDocument();
   });
 
-  it('Renders button to add option by default', () => {
-    render();
+  it('Renders button to add option by default', async () => {
+    await render();
     expect(screen.getByRole('button', { name: addOptionText })).toBeInTheDocument();
   });
 
-  it('Does not render button to add option if optionsId is set', () => {
-    render({ component: { ...component, optionsId: '1' } });
+  it('Does not render button to add option if optionsId is set', async () => {
+    await render({ component: { ...component, optionsId: '1' } });
     expect(screen.queryByText(addOptionText)).toBeFalsy();
   });
 
@@ -149,21 +151,14 @@ describe('CheckboxGroupPreview', () => {
   });
 });
 
-const render = (props: Partial<CheckboxGroupPreviewProps> = {}) => {
+const render = async (props: Partial<CheckboxGroupPreviewProps> = {}) => {
 
-  const textResources: ITextResourcesState = {
-    ...textResourcesMock,
-    resources: {
-      nb: nbTextResources,
-    },
-  };
+  const { result } = renderHookWithMockStore({}, {
+    getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
+  })(() => useTextResourcesQuery(org, app)).renderHookResult;
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-  const appData: IAppDataState = {
-    ...appDataMock,
-    textResources,
-  };
-
-  return renderWithMockStore({ appData })(
+  return renderWithMockStore()(
     <CheckboxGroupPreview
       {...defaultProps}
       {...props}
@@ -172,7 +167,7 @@ const render = (props: Partial<CheckboxGroupPreviewProps> = {}) => {
 };
 
 const renderAndOpenAddSection = async (props?: Partial<CheckboxGroupPreviewProps>) => {
-  render(props);
+  await render(props);
   const openAddSectionButton = screen.getByRole('button', { name: addOptionText });
   await act(() => user.click(openAddSectionButton));
 };

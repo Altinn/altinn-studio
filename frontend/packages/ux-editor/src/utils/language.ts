@@ -1,4 +1,4 @@
-import type { ITextResource } from '../types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
 import { ComponentType } from '../components';
 import i18next from 'i18next';
@@ -132,6 +132,6 @@ export function truncate(s: string, size: number) {
 }
 
 export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {
-  const textResource = textResources.find((resource) => resource.id === resourceKey);
+  const textResource = textResources?.find((resource) => resource.id === resourceKey);
   return textResource ? textResource.value : resourceKey;
 }

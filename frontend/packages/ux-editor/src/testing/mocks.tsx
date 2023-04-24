@@ -25,14 +25,6 @@ import { BrowserRouter } from 'react-router-dom';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
-  error: null,
-  fetched: true,
-  fetching: false,
-  language: null,
-  languages: [],
-  resources: { nb: [] },
-  saved: true,
-  saving: false,
 };
 
 export const appDataMock: IAppDataState = {
@@ -141,6 +133,8 @@ export const formLayoutSettingsMock: ILayoutSettings = {
   },
 };
 
+export const textLanguagesMock = ['nb', 'nn', 'en'];
+
 export const queriesMock: ServicesContextProps = {
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   addLanguageCode: jest.fn(),
@@ -157,18 +151,15 @@ export const queriesMock: ServicesContextProps = {
   getDeployPermissions: jest.fn(),
   getDeployments: jest.fn(),
   getEnvironments: jest.fn(),
-  getFormLayoutSettings: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
+  getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
   getOrgList: jest.fn(),
   getRepoMetadata: jest.fn(),
   getRepoPull: jest.fn(),
   getRepoStatus: jest.fn(),
-  getTextLanguages: jest.fn(),
-  getTextResources: jest.fn(),
+  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+  getTextResources: jest.fn().mockImplementation(() => Promise.resolve([])),
   getUser: jest.fn(),
-
   pushRepoChanges: jest.fn(),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
@@ -176,7 +167,7 @@ export const queriesMock: ServicesContextProps = {
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve({})),
   updateTextId: jest.fn(),
   updateTranslationByLangCode: jest.fn(),
-  upsertTextResources: jest.fn(),
+  upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
 };
 
 export const renderWithMockStore =

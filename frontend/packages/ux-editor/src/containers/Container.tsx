@@ -16,7 +16,6 @@ import type {
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
-  ITextResource,
 } from '../types/global';
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
@@ -36,13 +35,13 @@ import { XMarkIcon, ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon, Check
 import { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
 import { TextResource } from '../components/TextResource';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import { withTranslation } from 'react-i18next';
 import i18next from 'i18next';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
+import { ITextResource } from 'app-shared/types/global';
 
 export interface IProvidedContainerProps {
   isBaseContainer?: boolean;
@@ -62,6 +61,7 @@ export interface IProvidedContainerProps {
   updateFormContainerMutation: ReturnType<typeof useUpdateFormContainerMutation>;
   updateContainerIdMutation: ReturnType<typeof useUpdateContainerIdMutation>;
   deleteFormContainerMutation: ReturnType<typeof useDeleteFormContainerMutation>;
+  textResources: ITextResource[];
 }
 
 export interface IContainerProps extends IProvidedContainerProps {
@@ -70,7 +70,6 @@ export interface IContainerProps extends IProvidedContainerProps {
   repeating: boolean;
   index?: number;
   activeList: any[];
-  textResources: ITextResource[];
 }
 
 export interface IContainerState {
@@ -545,6 +544,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             updateFormContainerMutation={this.props.updateFormContainerMutation}
             updateContainerIdMutation={this.props.updateContainerIdMutation}
             deleteFormContainerMutation={this.props.deleteFormContainerMutation}
+            textResources={this.props.textResources}
           />
         )}
       />
@@ -607,7 +607,6 @@ const makeMapStateToProps = () => {
       dataModelGroup: container?.dataModelGroup,
       itemOrder: !props.items ? props.itemOrder : props.items,
       repeating: container?.repeating,
-      textResources: state.appData.textResources.resources?.[DEFAULT_LANGUAGE],
     };
   };
 };

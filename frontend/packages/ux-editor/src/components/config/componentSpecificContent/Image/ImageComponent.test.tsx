@@ -4,8 +4,7 @@ import userEvent from '@testing-library/user-event';
 
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
-import { appDataMock, renderWithMockStore } from '../../../../testing/mocks';
-import { IAppDataState } from '../../../../features/appData/appDataReducers';
+import { renderWithMockStore } from '../../../../testing/mocks';
 import type { IFormImageComponent } from '../../../../types/global';
 import { ComponentType } from '../../../';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
@@ -37,20 +36,7 @@ const render = (props: Partial<IGenericEditComponent> = {}) => {
     ...props,
   };
 
-  const appData: IAppDataState = {
-    ...appDataMock,
-    textResources: {
-      ...appDataMock.textResources,
-      resources: {
-        nb: [
-          { id: 'altTextImg', value: 'Alternative text' },
-          { id: 'altTextImg2', value: 'Alternative text 2' },
-        ],
-      },
-    },
-  };
-
-  return renderWithMockStore({ appData })(<ImageComponent {...allProps} />);
+  return renderWithMockStore()(<ImageComponent {...allProps} />);
 };
 
 // Mocks:
