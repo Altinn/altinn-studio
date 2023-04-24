@@ -21,7 +21,7 @@ describe('Dashboard', () => {
 
   test('should display spinner while loading starred repositories', () => {
     renderWithMockServices();
-    expect(screen.getAllByText(textMock('dashboard.loading'))[0]).toBeInTheDocument();
+    expect(screen.getAllByText(textMock('dashboard.loading')).length).toBe(2);
   });
 
   test('should display no favorites when starred repos is empty', async () => {

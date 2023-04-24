@@ -88,8 +88,8 @@ describe('Administration', () => {
     renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
     });
-    const contentLoader = screen.queryAllByText('Laster siden')[0];
-    expect(contentLoader).not.toBeNull();
+    const contentLoader = screen.queryAllByText('Laster siden').length;
+    expect(contentLoader).toBe(2);
   });
 
   it('should show Apps view when repository is app repository', () => {

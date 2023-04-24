@@ -18,7 +18,7 @@ describe('App', () => {
 
   test('should display spinner while loading', () => {
     renderWithMockServices();
-    expect(screen.getAllByText(/dashboard.loading/)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/dashboard.loading/).length).toBe(2);
   });
 
   test('should display error when failing to fetch current user', async () => {
