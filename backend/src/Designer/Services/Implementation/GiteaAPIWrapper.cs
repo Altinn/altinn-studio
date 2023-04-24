@@ -515,19 +515,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
             formValues.Add(new KeyValuePair<string, string>("scope", "repo"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "repo:status"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "public_repo"));
             formValues.Add(new KeyValuePair<string, string>("scope", "admin:org"));
             formValues.Add(new KeyValuePair<string, string>("scope", "admin:public_key"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "admin:repo_hook"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "admin:org_hook"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "notification"));
             formValues.Add(new KeyValuePair<string, string>("scope", "user"));
             formValues.Add(new KeyValuePair<string, string>("scope", "delete_repo"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "package"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "admin:application"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "admin:gpg_key"));
-            formValues.Add(new KeyValuePair<string, string>("scope", "sudo"));
             FormUrlEncodedContent content = new(formValues);
 
             using (HttpClient client = GetWebHtmlClient(false))
