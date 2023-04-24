@@ -319,7 +319,7 @@ namespace Designer.Tests.Controllers
         }
 
         //[Fact]
-        public async Task GetRuleConfiguration_Ok()
+        private async Task GetRuleConfiguration_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/resource/RuleConfiguration.json";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
