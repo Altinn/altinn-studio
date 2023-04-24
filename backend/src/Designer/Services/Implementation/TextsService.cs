@@ -344,7 +344,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 else
                 {
-                    updatedTextResourceBindings = (updatedTextResourceBindings as JsonObject)!.Remove(key);
+                    (updatedTextResourceBindings as JsonObject)!.Remove(key);
                 }
             }
             return updatedTextResourceBindings;
