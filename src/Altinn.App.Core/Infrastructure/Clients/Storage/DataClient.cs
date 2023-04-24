@@ -21,6 +21,7 @@ using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
 using System.Xml;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Storage
 {
@@ -31,8 +32,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     {
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly AppSettings _settings;
+        private readonly IUserTokenProvider _userTokenProvider;
         private readonly HttpClient _client;
 
         /// <summary>
@@ -40,26 +40,23 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">the logger</param>
-        /// <param name="httpContextAccessor">The http context accessor </param>
-        /// <param name="settings">The current app settings.</param>
         /// <param name="httpClient">A HttpClient from the built in HttpClient factory.</param>
+        /// <param name="userTokenProvider">Service to obtain json web token</param>
         public DataClient(
             IOptions<PlatformSettings> platformSettings,
             ILogger<DataClient> logger,
-            IHttpContextAccessor httpContextAccessor,
-            IOptionsMonitor<AppSettings> settings,
-            HttpClient httpClient)
+            HttpClient httpClient, 
+            IUserTokenProvider userTokenProvider)
         {
             _platformSettings = platformSettings.Value;
             _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
-            _settings = settings.CurrentValue;
 
             httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             _client = httpClient;
+            _userTokenProvider = userTokenProvider;
         }
 
         /// <inheritdoc />
@@ -77,7 +74,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
         {
             string apiUrl = $"instances/{instance.Id}/data?dataType={dataType}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
             DataElement dataElement;
             
             using MemoryStream stream = new MemoryStream();
@@ -105,7 +102,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
 
             using MemoryStream stream = new MemoryStream();
             
@@ -147,7 +144,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
 
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
 
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
@@ -168,7 +165,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
 
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
             if (response.IsSuccessStatusCode)
@@ -194,7 +191,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/dataelements";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
 
             DataElementList dataList;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
@@ -259,7 +256,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}?delay={delay}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
 
             HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
 
@@ -277,7 +274,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data?dataType={dataType}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
             DataElement dataElement;
 
             StreamContent content = CreateContentStream(request);
@@ -300,7 +297,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
             DataElement dataElement;
 
             StreamContent content = new StreamContent(stream);
@@ -333,7 +330,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
 
             StreamContent content = CreateContentStream(request);
 
@@ -348,6 +345,30 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             }
 
             _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
+            throw await PlatformHttpException.CreateAsync(response);
+        }
+        
+        /// <inheritdoc />
+        public async Task<DataElement> UpdateBinaryData(InstanceIdentifier instanceIdentifier, string? contentType, string filename, Guid dataGuid, Stream stream)
+        {
+            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
+            string token = _userTokenProvider.GetUserToken();
+            StreamContent content = new StreamContent(stream);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+            content.Headers.ContentDisposition = new ContentDispositionHeaderValue(DispositionTypeNames.Attachment)
+            {
+                FileName = filename,
+                FileNameStar = filename
+            };
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content);
+            _logger.LogInformation("Update binary data result: {ResultCode}", response.StatusCode);
+            if (response.IsSuccessStatusCode)
+            {
+                string instancedata = await response.Content.ReadAsStringAsync();
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
+
+                return dataElement;
+            }
             throw await PlatformHttpException.CreateAsync(response);
         }
 
@@ -368,7 +389,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public async Task<DataElement> Update(Instance instance, DataElement dataElement)
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instance.Id}/dataelements/{dataElement.Id}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = _userTokenProvider.GetUserToken();
 
             StringContent jsonString = new StringContent(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _client.PutAsync(token, apiUrl, jsonString);

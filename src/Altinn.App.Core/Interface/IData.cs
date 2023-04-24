@@ -119,10 +119,21 @@ namespace Altinn.App.Core.Interface
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataGuid">The data id</param>
         /// <param name="request">Http request containing the attachment to be saved</param>
+        [Obsolete(message:"Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead", error: false)]
         Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request);
 
         /// <summary>
-        /// Updates a binary data element.
+        /// Method that updates a form attachments to disk/storage and returns the updated data element.
+        /// </summary>
+        /// <param name="instanceIdentifier">Instance identifier instanceOwnerPartyId and instanceGuid</param>
+        /// <param name="contentType">Content type of the updated binary data</param>
+        /// <param name="filename">Filename of the updated binary data</param>
+        /// <param name="dataGuid">Guid of the data element to update</param>
+        /// <param name="stream">Updated binary data</param>
+        Task<DataElement> UpdateBinaryData(InstanceIdentifier instanceIdentifier, string? contentType, string filename, Guid dataGuid, Stream stream);
+
+        /// <summary>
+        /// Insert a binary data element.
         /// </summary>
         /// <param name="instanceId">isntanceId = {instanceOwnerPartyId}/{instanceGuid}</param>
         /// <param name="dataType">data type</param>
