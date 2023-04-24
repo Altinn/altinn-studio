@@ -223,7 +223,7 @@ export function asExpression(
   validateRecursively(obj, ctx, []);
 
   if (Object.keys(ctx.errors).length) {
-    if (typeof config !== 'undefined') {
+    if (typeof config !== 'undefined' && !config.errorAsException) {
       const prettyPrinted = prettyErrorsToConsole({
         input: obj,
         errors: ctx.errors,

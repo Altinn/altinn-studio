@@ -203,7 +203,7 @@ export function evalExpr(
     } else {
       throw err;
     }
-    if (options && options.config) {
+    if (options && options.config && !options.config.errorAsException) {
       // When we know of a default value, we can safely print it as an error to the console and safely recover
       ctx.trace(err, {
         config: options.config,

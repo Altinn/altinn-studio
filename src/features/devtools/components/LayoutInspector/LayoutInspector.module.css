@@ -44,12 +44,14 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
+  background: white;
+  padding: 4px;
 }
 
 .properties > textarea {
+  background: transparent;
   font-family: monospace;
   line-height: 1.2;
-  background: transparent;
   flex: 1;
   resize: none;
   font-size: 0.8rem;

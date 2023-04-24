@@ -1,0 +1,26 @@
+.container {
+  height: 100%;
+  width: 100%;
+}
+
+.textbox {
+  width: 100%;
+  height: 100%;
+  font-family: monospace;
+  line-height: 1.2;
+  resize: none;
+  font-size: 1rem;
+  outline: none;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  padding: 8px;
+  border: none;
+}
+
+.input {
+}
+
+.output {
+  background: transparent;
+}

@@ -147,6 +147,7 @@ type OmitNeverArrays<T> = T extends never[] ? never : T;
 export interface ExprConfig<V extends ExprVal = ExprVal> {
   returnType: V;
   defaultValue: ExprValToActual<V> | null;
+  errorAsException?: true;
 
   // Setting this to true means that if there are such expressions on a repeating 'Group' layout component, they will
   // be evaluated separately for each row in the group. This means you can have a property like edit.deleteButton which
