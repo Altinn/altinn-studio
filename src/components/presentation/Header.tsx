@@ -60,7 +60,10 @@ export const Header = ({ type, header, appOwner }: IHeaderProps) => {
             </Grid>
           </Grid>
           {showProgress && (
-            <Grid item>
+            <Grid
+              item
+              aria-live='polite'
+            >
               <Progress />
             </Grid>
           )}
