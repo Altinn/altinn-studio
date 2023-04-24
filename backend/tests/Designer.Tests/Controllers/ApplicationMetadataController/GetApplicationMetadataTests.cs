@@ -24,7 +24,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
 
             // replace metadata file
-            var metadataFile = SharedResourcesHelper.LoadTestDataAsString(metadataPath);
+            string metadataFile = SharedResourcesHelper.LoadTestDataAsString(metadataPath);
             string filePath = Path.Combine(CreatedFolderPath, "App", "config", "applicationmetadata.json");
             await File.WriteAllTextAsync(filePath, metadataFile);
 
