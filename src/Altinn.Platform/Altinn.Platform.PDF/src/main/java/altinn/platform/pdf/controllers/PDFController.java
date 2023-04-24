@@ -1,16 +1,16 @@
 package altinn.platform.pdf.controllers;
 
-import altinn.platform.pdf.services.PDFGenerator;
 import altinn.platform.pdf.models.PdfContext;
 import altinn.platform.pdf.services.BasicLogger;
+import altinn.platform.pdf.services.PDFGenerator;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;

@@ -1,8 +1,8 @@
 package altinn.platform.pdf.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Schema(description = "An altinn party object")
