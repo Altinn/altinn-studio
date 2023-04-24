@@ -2,10 +2,9 @@ import React, { useMemo } from 'react';
 import classes from './TextEditor.module.css';
 import type {
   LangCode,
-  TextResourceFile,
   TextResourceEntryDeletion,
   TextResourceIdMutation,
-  UpsertTextResourcesMutation,
+  UpsertTextResourceMutation,
 } from './types';
 import { SearchField } from '@altinn/altinn-design-system';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
@@ -14,34 +13,34 @@ import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
 import { TextList } from './TextList';
 import ISO6391 from 'iso-639-1';
+import { ITextResources } from 'app-shared/types/global';
 
 export interface TextEditorProps {
   addLanguage: (language: LangCode) => void;
   availableLanguages: string[];
   deleteLanguage: (language: LangCode) => void;
   searchQuery: string;
+  selectedLangCodes: LangCode[];
   setSearchQuery: (searchQuery: string) => void;
   setSelectedLangCodes: (language: LangCode[]) => void;
-  textResourceFiles: TextResourceFile[];
+  textResourceFiles: ITextResources;
   updateTextId: (data: TextResourceIdMutation) => void;
-  upsertTextResource: (data: UpsertTextResourcesMutation) => void;
-  upsertTextResourceFile: (data: TextResourceFile) => void;
+  upsertTextResource: (data: UpsertTextResourceMutation) => void;
 }
 
 export const TextEditor = ({
-  availableLanguages,
   addLanguage,
+  availableLanguages,
   deleteLanguage,
-  updateTextId,
   searchQuery,
+  selectedLangCodes,
   setSearchQuery,
   setSelectedLangCodes,
   textResourceFiles,
-  upsertTextResourceFile,
+  updateTextId,
   upsertTextResource,
 }: TextEditorProps) => {
   const resourceRows = mapResourceFilesToTableRows(textResourceFiles);
-  const selectedLangCodes = textResourceFiles.map((translation) => translation.language);
 
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),

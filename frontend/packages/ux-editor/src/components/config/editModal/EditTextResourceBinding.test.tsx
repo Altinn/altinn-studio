@@ -8,7 +8,7 @@ import type { ITextResource } from 'app-shared/types/global';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from '../../index';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { useTextResourcesQuery } from '../../../hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
 
 const user = userEvent.setup();
 

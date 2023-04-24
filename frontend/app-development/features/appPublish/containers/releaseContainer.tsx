@@ -10,12 +10,12 @@ import { CreateReleaseComponent } from '../components/createAppReleaseComponent'
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { gitCommitPath } from 'app-shared/api-paths';
-import { useMediaQuery } from '../../../common/hooks';
+import { useMediaQuery } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 import { useAppReleases, useBranchStatus, useRepoStatus } from '../hooks/query-hooks';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { CacheKey } from 'app-shared/api-paths/cache-key';
+import { QueryKey } from '../../../types/QueryKey';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
@@ -46,7 +46,7 @@ export function ReleaseContainer() {
     const interval = setInterval(async () => {
       const index = releases.findIndex((release) => release.build.status !== BuildStatus.completed);
       if (index > -1) {
-        await queryClient.invalidateQueries([CacheKey.AppReleases, org, app]);
+        await queryClient.invalidateQueries([QueryKey.AppReleases, org, app]);
       }
     }, 7777);
     return () => clearInterval(interval);

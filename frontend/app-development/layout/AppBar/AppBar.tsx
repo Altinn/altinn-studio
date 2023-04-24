@@ -13,8 +13,8 @@ import { BranchingIcon } from '@navikt/aksel-icons';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { publiserPath } from 'app-shared/api-paths';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-import { useUserQuery } from 'app-development/query-hooks/useUserQuery';
-import { useAppSelector } from '../../common/hooks';
+import { useUserQuery } from 'app-development/hooks/queries/useUserQuery';
+import { useAppSelector } from '../../hooks';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;

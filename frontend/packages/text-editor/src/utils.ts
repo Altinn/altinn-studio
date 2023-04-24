@@ -1,5 +1,7 @@
 import ISO6391 from 'iso-639-1';
-import type { Option, TextResourceFile, TextTableRow, TextTableRowEntry } from './types';
+import type { Option, TextTableRow, TextTableRowEntry } from './types';
+import { ITextResources } from 'app-shared/types/global';
+import { alphabeticalCompareFunction } from 'app-shared/utils/compareFunctions';
 
 const intlNb = new Intl.DisplayNames(['nb'], { type: 'language' });
 
@@ -53,22 +55,24 @@ export const filterFunction = (
   id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
   textTableRowEntries.filter((entry) => entry.translation.includes(searchQuery)).length > 0;
 
-export const mapResourceFilesToTableRows = (files: TextResourceFile[]): TextTableRow[] => {
+export const mapResourceFilesToTableRows = (files: ITextResources): TextTableRow[] => {
   const rows = new Map();
-  files.forEach((file) =>
-    file.resources.forEach((resource) => {
-      if (!rows.has(resource.id)) {
-        rows.set(resource.id, {
-          textKey: resource.id,
-          variables: resource.variables,
-          translations: [],
+  Object.entries(files).forEach(([lang, resources]) =>
+    resources
+      .sort((a, b) => alphabeticalCompareFunction(a.id, b.id))
+      .forEach((resource) => {
+        if (!rows.has(resource.id)) {
+          rows.set(resource.id, {
+            textKey: resource.id,
+            variables: resource.variables,
+            translations: [],
+          });
+        }
+        rows.get(resource.id).translations.push({
+          lang,
+          translation: resource.value,
         });
-      }
-      rows.get(resource.id).translations.push({
-        lang: file.language,
-        translation: resource.value,
-      });
-    })
+      })
   );
   return Array.from(rows.values());
 };

@@ -49,7 +49,7 @@ type TextTableRowEntry = {
   translation: string;
 };
 
-export interface UpsertTextResourcesMutation {
+export interface UpsertTextResourceMutation {
   textId: string;
   language: string;
   translation: string;

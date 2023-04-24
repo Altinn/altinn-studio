@@ -1,5 +1,5 @@
 import { filterFunction, getLangName, getRandNumber, mapResourceFilesToTableRows } from './utils';
-import { TextResourceFile } from './types';
+import { ITextResources } from 'app-shared/types/global';
 
 describe('getLangName', () => {
   it('should return empty string when language code is undefined', () => {
@@ -41,38 +41,33 @@ describe('getRandNumber', () => {
   });
 });
 
-test('that filter function works as intended', () => {
-  const entry = [{ lang: 'nb', translation: 'spock' }];
-  expect(filterFunction('test', entry, 'ock')).toBe(true);
-  expect(filterFunction('test', entry, 'rock')).toBe(false);
-  expect(filterFunction('test', entry, '')).toBe(true);
-  expect(filterFunction('test', entry, 'test')).toBe(true);
-  expect(filterFunction('test', entry, 'testen')).toBe(false);
-  expect(filterFunction('test', entry, undefined)).toBe(true);
-  expect(filterFunction('test', undefined, undefined)).toBe(true);
+describe('filterFunction', () => {
+  test('that filter function works as intended', () => {
+    const entry = [{ lang: 'nb', translation: 'spock' }];
+    expect(filterFunction('test', entry, 'ock')).toBe(true);
+    expect(filterFunction('test', entry, 'rock')).toBe(false);
+    expect(filterFunction('test', entry, '')).toBe(true);
+    expect(filterFunction('test', entry, 'test')).toBe(true);
+    expect(filterFunction('test', entry, 'testen')).toBe(false);
+    expect(filterFunction('test', entry, undefined)).toBe(true);
+    expect(filterFunction('test', undefined, undefined)).toBe(true);
+  });
 });
 
-test('that we can map two resource files to a text table', () => {
-  const file1: TextResourceFile = {
-    language: 'nb',
-    resources: [
-      {
-        id: 'my-key',
-        value: 'Min nøkkel',
-      },
-    ],
-  };
-  const file2: TextResourceFile = {
-    language: 'en',
-    resources: [
-      {
-        id: 'my-key',
-        value: 'My key',
-      },
-    ],
-  };
-  const rows = mapResourceFilesToTableRows([file1, file2]);
-  expect(rows).toHaveLength(1);
-  expect(rows[0].textKey).toBe('my-key');
-  expect(rows[0].translations).toHaveLength(2);
-});
+describe('mapResourceFilesToTableRows', () => {
+  test('Converts from ITextResources format to table format', () => {
+    const id = 'some-key';
+    const textResources: ITextResources = {
+      nb: [
+        { id, value: 'Min nøkkel' }
+      ],
+      en: [
+        { id, value: 'My key' }
+      ]
+    };
+    const rows = mapResourceFilesToTableRows(textResources);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textKey).toBe(id);
+    expect(rows[0].translations).toHaveLength(2);
+  });
+})

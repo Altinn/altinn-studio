@@ -1,5 +1,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { useServicesContext } from '../common/ServiceContext';
+import { useServicesContext } from '../../common/ServiceContext';
+import { QueryKey } from '../../types/QueryKey';
 
 export type DatamodelsXsd = {
   description: string;
@@ -12,9 +13,9 @@ export type DatamodelsXsd = {
   repositoryRelativeUrl: string;
 };
 
-export const useDatamodelsXsd = (owner, app): UseQueryResult<DatamodelsXsd[]> => {
+export const useDatamodelsXsdQuery = (owner, app): UseQueryResult<DatamodelsXsd[]> => {
   const { getDatamodelsXsd } = useServicesContext();
-  return useQuery<DatamodelsXsd[]>(['useDatamodelsXsd', owner, app], () =>
+  return useQuery<DatamodelsXsd[]>([QueryKey.DatamodelsXsd, owner, app], () =>
     getDatamodelsXsd(owner, app)
   );
 };

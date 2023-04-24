@@ -5,7 +5,7 @@ import { AddWidgetMutationArgs, useAddWidgetMutation } from './useAddWidgetMutat
 import { IWidget, IWidgetTexts } from '../../types/global';
 import { ComponentType } from '../../components';
 import { ITextResource } from 'app-shared/types/global';
-import { useTextResourcesQuery } from '../queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from '../../../../../app-development/hooks/queries/useTextResourcesQuery';
 
 // Test data:
 const org = 'org';

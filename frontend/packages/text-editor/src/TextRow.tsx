@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './TextRow.module.css';
-import type { UpsertTextResourcesMutation } from './types';
+import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
 import {
   Button,
@@ -27,7 +27,7 @@ export interface TextRowProps {
   textId: string;
   textRowEntries: TextTableRowEntry[];
   updateEntryId: (data: TextResourceIdMutation) => void;
-  upsertTextResource: (data: UpsertTextResourcesMutation) => void;
+  upsertTextResource: (data: UpsertTextResourceMutation) => void;
   variables: TextResourceVariable[];
   selectedLanguages: string[];
 }

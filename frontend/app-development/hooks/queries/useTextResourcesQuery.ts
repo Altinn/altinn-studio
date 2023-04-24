@@ -1,4 +1,4 @@
-import { useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import { useServicesContext } from '../../common/ServiceContext';
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { ITextResources } from 'app-shared/types/global';
 import { QueryKey } from '../../types/QueryKey';

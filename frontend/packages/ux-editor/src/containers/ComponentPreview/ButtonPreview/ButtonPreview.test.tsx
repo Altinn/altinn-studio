@@ -4,7 +4,7 @@ import { IFormButtonComponent } from '../../../types/global';
 import { ButtonPreview } from './ButtonPreview';
 import { ComponentType } from '../../../components';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
-import { useTextResourcesQuery } from '../../../hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
 import { ITextResource } from 'app-shared/types/global';
 
 // Test data:

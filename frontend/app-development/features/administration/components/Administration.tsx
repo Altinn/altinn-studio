@@ -7,7 +7,7 @@ import { RepositoryType } from 'app-shared/types/global';
 import { ServiceAdministration } from './ServiceAdministration';
 import { SideMenuContent } from './SideMenuContent';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import { useAppSelector } from '../../../common/hooks';
+import { useAppSelector } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 

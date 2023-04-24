@@ -7,13 +7,9 @@ import { ShareChangesButton } from './ShareChangesButton';
 import { SyncModal } from './SyncModal';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  useCreateRepoCommitMutation,
-  useRepoMetadata,
-  useRepoPullData,
-  useRepoPushMutation,
-} from '../../query-hooks/repo';
 import { useRepoStatus } from '../../features/appPublish/hooks/query-hooks';
+import { useRepoMetadataQuery, useRepoPullQuery } from '../../hooks/queries';
+import { useRepoPushMutation, useCreateRepoCommitMutation } from '../../hooks/mutations';
 
 export interface IVersionControlHeaderProps {
   hasPushRight?: boolean;
@@ -44,9 +40,9 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const [hasChangesInLocalRepo, setHasChangesInLocalRepo] = useState(false);
   const [modalState, setModalState] = useState(initialModalState);
   const [syncModalAnchorEl, setSyncModalAnchorEl] = useState(null);
-  const { data: currentRepo } = useRepoMetadata(org, app);
+  const { data: currentRepo } = useRepoMetadataQuery(org, app);
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatus(org, app);
-  const { refetch: fetchPullData } = useRepoPullData(org, app);
+  const { refetch: fetchPullData } = useRepoPullQuery(org, app);
   useEffect(() => {
     if (hasPushRight === undefined && currentRepo) {
       setHasPushRight(currentRepo.permissions.push);

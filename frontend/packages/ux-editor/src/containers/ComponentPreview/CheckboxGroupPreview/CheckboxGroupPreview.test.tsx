@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
 import { ComponentType } from '../../../components';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { useTextResourcesQuery } from '../../../hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
 
 const user = userEvent.setup();
 

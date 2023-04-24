@@ -14,9 +14,9 @@ import { setCurrentEditId } from '../features/appData/textResources/textResource
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
-import { useUpsertTextResourcesMutation } from '../hooks/mutations/useUpsertTextResourcesMutation';
+import { useUpsertTextResourcesMutation } from '../../../../app-development/hooks/mutations/useUpsertTextResourcesMutation';
 import { useTranslation } from 'react-i18next';
-import { useTextResourcesQuery } from '../hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();

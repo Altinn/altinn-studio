@@ -1,4 +1,4 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock, renderHookWithMockStore } from '../../../packages/ux-editor/src/testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useTextResourcesQuery } from '../queries/useTextResourcesQuery';
 import { UpsertTextResourcesMutationArgs, useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';
