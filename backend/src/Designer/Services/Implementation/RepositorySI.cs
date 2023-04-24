@@ -232,33 +232,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the app languages
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The text</returns>
-        public List<string> GetLanguages(string org, string app)
-        {
-            List<string> languages = new();
-
-            string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (!Directory.Exists(resourcePath))
-            {
-                Directory.CreateDirectory(resourcePath);
-            }
-
-            string[] directoryFiles = Directory.GetFiles(resourcePath, "resource.*.json");
-            foreach (string directoryFile in directoryFiles)
-            {
-                string fileName = Path.GetFileName(directoryFile);
-                string[] nameParts = fileName.Split('.');
-                languages.Add(nameParts[1]);
-            }
-
-            return languages;
-        }
-
-        /// <summary>
         /// Get the Json form model from disk for Dynamics
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -863,6 +836,45 @@ namespace Altinn.Studio.Designer.Services.Implementation
             contents.ForEach(c => c.Path = Path.GetRelativePath(repositoryPath, c.Path).Replace("\\", "/"));
 
             return contents;
+        }
+
+        public List<ServiceResource> GetServiceResources(string org, string repository, string path = "")
+        {
+            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, path);
+            List<ServiceResource> serviceResourceList = new List<ServiceResource>();
+            string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            foreach (FileSystemObject resourceFile in resourceFiles)
+            {
+                Stream fs = File.OpenRead($"{repopath}/{resourceFile.Path}");
+                ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(fs, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+                if (serviceResource != null)
+                {
+                    serviceResourceList.Add(serviceResource);
+                }
+            }
+
+            return serviceResourceList;
+        }
+
+        private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
+        {
+            List<FileSystemObject> contents = GetContents(org, repository, path);
+            List<FileSystemObject> resourceFiles = new List<FileSystemObject>();
+
+            if (contents != null)
+            { 
+                foreach (FileSystemObject resourceFile in contents)
+                {
+                    if (resourceFile.Name.EndsWith("resource.json"))
+                    {
+                        resourceFiles.Add(resourceFile);
+                    }
+                }
+            }
+
+            return resourceFiles;
         }
 
         private FileSystemObject GetFileSystemObjectForFile(string path)

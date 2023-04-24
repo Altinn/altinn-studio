@@ -7,7 +7,7 @@ import type {
   IExternalFormLayout,
   IExternalFormLayouts,
   IFormComponent,
-  IInternalLayout
+  IInternalLayout,
 } from '../types/global';
 import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
@@ -44,7 +44,7 @@ export const formDesignerMock: IFormDesignerState = {
     activeList: null,
     selectedLayout: layout1NameMock,
     invalidLayouts: [],
-  }
+  },
 };
 
 export const serviceConfigurationsMock: IServiceConfigurationState = {
@@ -88,7 +88,7 @@ export const layoutMock: IInternalLayout = {
     },
     [container1IdMock]: {
       itemType: 'CONTAINER',
-    }
+    },
   },
   order: {
     [baseContainerIdMock]: [container1IdMock],
@@ -103,7 +103,7 @@ export const layout1Mock: IExternalFormLayout = {
       {
         id: container1IdMock,
         type: ComponentType.Group,
-        children: [component1IdMock, component2IdMock]
+        children: [component1IdMock, component2IdMock],
       },
       {
         id: component1IdMock,
@@ -112,15 +112,15 @@ export const layout1Mock: IExternalFormLayout = {
       {
         id: component2IdMock,
         type: component2TypeMock,
-      }
-    ]
-  }
+      },
+    ],
+  },
 };
 const layout2Mock: IExternalFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
-    layout: []
-  }
+    layout: [],
+  },
 };
 export const externalLayoutsMock: IExternalFormLayouts = {
   [layout1NameMock]: layout1Mock,
@@ -130,7 +130,7 @@ export const externalLayoutsMock: IExternalFormLayouts = {
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
     order: [layout1NameMock, layout2NameMock],
-  }
+  },
 };
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];
@@ -159,6 +159,7 @@ export const queriesMock: ServicesContextProps = {
   getRepoStatus: jest.fn(),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
   getTextResources: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getUser: jest.fn(),
   pushRepoChanges: jest.fn(),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
@@ -171,30 +172,28 @@ export const queriesMock: ServicesContextProps = {
 
 export const renderWithMockStore =
   (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
-    (component: ReactNode) => {
-      const store = configureStore()({ ...appStateMock, ...state });
-      const renderResult = render(
-        <ServicesContextProvider {...queriesMock} {...queries}>
-          <Provider store={store}>
-            <BrowserRouter>
-              {component}
-            </BrowserRouter>
-          </Provider>
-        </ServicesContextProvider>
-      );
-      return { renderResult, store };
-    };
+  (component: ReactNode) => {
+    const store = configureStore()({ ...appStateMock, ...state });
+    const renderResult = render(
+      <ServicesContextProvider {...queriesMock} {...queries}>
+        <Provider store={store}>
+          <BrowserRouter>{component}</BrowserRouter>
+        </Provider>
+      </ServicesContextProvider>
+    );
+    return { renderResult, store };
+  };
 
 export const renderHookWithMockStore =
   (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
-    (hook: () => any) => {
-      const store = configureStore()({ ...appStateMock, ...state });
-      const renderHookResult = renderHook(hook, {
-        wrapper: ({ children }) => (
-          <ServicesContextProvider {...queriesMock} {...queries}>
-            <Provider store={store}>{children}</Provider>
-          </ServicesContextProvider>
-        )
-      });
-      return { renderHookResult, store };
-    };
+  (hook: () => any) => {
+    const store = configureStore()({ ...appStateMock, ...state });
+    const renderHookResult = renderHook(hook, {
+      wrapper: ({ children }) => (
+        <ServicesContextProvider {...queriesMock} {...queries}>
+          <Provider store={store}>{children}</Provider>
+        </ServicesContextProvider>
+      ),
+    });
+    return { renderHookResult, store };
+  };

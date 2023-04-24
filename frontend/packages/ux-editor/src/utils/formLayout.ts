@@ -3,6 +3,8 @@ import type { IComponent } from '../components';
 import { ComponentType } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type {
+  IExternalFormLayout,
+  IFormButtonComponent,
   IFormComponent,
   IFormDesignerComponents,
   IFormDesignerContainers,
@@ -17,6 +19,8 @@ import { useAddFormComponentMutation } from '../hooks/mutations/useAddFormCompon
 import { useAddFormContainerMutation } from '../hooks/mutations/useAddFormContainerMutation';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
+import { removeItemByValue } from 'app-shared/utils/arrayUtils';
+import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
 const { addWidget, updateActiveListOrder } = FormLayoutActions;
 
@@ -81,17 +85,28 @@ export function topLevelComponents(layout: IExternalComponent[]): IExternalCompo
   return layout.filter((component) => !inGroup.has(component.id));
 }
 
-export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): IExternalComponent[] {
+/**
+ * Creates an external form layout with the given components.
+ * @param layout The components to add to the layout.
+ * @param hidden The hidden parameter.
+ * @returns The external form layout.
+ */
+export const createExternalLayout = (layout: IExternalComponent[], hidden?: boolean): IExternalFormLayout => ({
+  $schema: layoutSchemaUrl(),
+  data: { layout, hidden },
+});
+
+export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): IExternalFormLayout {
   const formLayout: IExternalComponent[] = [];
 
-  if (!internalFormat) return formLayout;
+  if (!internalFormat) return createExternalLayout(formLayout);
 
   const { components, containers, order } = deepCopy(internalFormat);
 
-  if (!containers) return formLayout;
+  if (!containers) return createExternalLayout(formLayout, internalFormat.hidden);
 
   const containerIds = Object.keys(containers);
-  if (!containerIds.length) return formLayout;
+  if (!containerIds.length) return createExternalLayout(formLayout, internalFormat.hidden);
 
   let groupChildren: string[] = [];
   Object.keys(order).forEach((groupKey: string) => {
@@ -131,7 +146,7 @@ export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): 
       });
     }
   }
-  return formLayout;
+  return createExternalLayout(formLayout, internalFormat.hidden);
 }
 
 function extractChildrenFromGroupInternal(
@@ -274,3 +289,116 @@ export function idExists(
 }
 
 export const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/;
+
+/**
+ * Checks if a layout has navigation buttons.
+ * @param layout The layout to check.
+ * @returns True if the layout has navigation buttons, false otherwise.
+ */
+export const hasNavigationButtons = (layout: IInternalLayout): boolean => {
+  const { components } = layout;
+  return Object.values(components).map(({ type }) => type).includes(ComponentType.NavigationButtons);
+}
+
+/**
+ * Finds the id of the container that contains a given component.
+ * @param layout The layout in which the component is located.
+ * @param componentId The id of the component.
+ * @returns The id of the container that contains the component.
+ */
+export const findContainerId = (layout: IInternalLayout, componentId: string): string => {
+  const { order } = layout;
+  return Object.keys(order).find((key) => order[key].includes(componentId));
+}
+
+/**
+ * Adds a component to a layout.
+ * @param layout The layout to add the component to.
+ * @param component The component to add.
+ * @param containerId The id of the container to add the component to. Defaults to the base container id.
+ * @param position The desired index of the component within its container. Set it to a negative value to add it at the end. Defaults to -1.
+ * @returns The new layout.
+ */
+export const addComponent = (
+  layout: IInternalLayout,
+  component: IFormComponent,
+  containerId: string = BASE_CONTAINER_ID,
+  position: number = -1,
+): IInternalLayout => {
+  const newLayout = deepCopy(layout);
+  newLayout.components[component.id] = component;
+  if (position < 0) newLayout.order[containerId].push(component.id);
+  else newLayout.order[containerId].splice(position, 0, component.id);
+  return newLayout;
+}
+
+/**
+ * Removes a component from a layout.
+ * @param layout The layout to remove the component from.
+ * @param componentId The id of the component to remove.
+ * @returns The new layout.
+ */
+export const removeComponent = (layout: IInternalLayout, componentId: string): IInternalLayout => {
+  const newLayout = deepCopy(layout);
+  const containerId = findContainerId(layout, componentId);
+  if (containerId) {
+    newLayout.order[containerId] = removeItemByValue(newLayout.order[containerId], componentId);
+    delete newLayout.components[componentId];
+  }
+  return newLayout;
+}
+
+/**
+ * Removes all components of a given type from a layout.
+ * @param layout The layout to remove the components from.
+ * @param componentType The type of the components to remove.
+ * @returns The new layout.
+ */
+export const removeComponentsByType = (layout: IInternalLayout, componentType: ComponentType): IInternalLayout => {
+  let newLayout = layout;
+  Object
+    .keys(layout.components)
+    .filter((id) => layout.components[id].type === componentType)
+    .forEach((id) => {
+      newLayout = removeComponent(newLayout, id);
+    });
+  return newLayout;
+}
+
+/**
+ * Adds a navigation button component to the end of the base container of a layout.
+ * @param layout The layout to add the component to.
+ * @param id The id of the new component.
+ * @returns The new layout.
+ */
+export const addNavigationButtons = (layout: IInternalLayout, id: string): IInternalLayout => {
+  const navigationButtons: IFormButtonComponent = {
+    componentType: ComponentType.NavigationButtons,
+    dataModelBindings: {},
+    id,
+    itemType: 'COMPONENT',
+    onClickAction: () => {},
+    showBackButton: true,
+    textResourceBindings: { next: 'next', back: 'back', },
+    type: ComponentType.NavigationButtons,
+  };
+  return addComponent(layout, navigationButtons);
+}
+
+/**
+ * Creates a layout with no components.
+ * @returns The empty layout.
+ */
+export const createEmptyLayout = (): IInternalLayout => (
+  {
+    components: {},
+    containers: {
+      [BASE_CONTAINER_ID]: {
+        itemType: 'CONTAINER',
+      }
+    },
+    order: {
+      [BASE_CONTAINER_ID]: [],
+    },
+  }
+);

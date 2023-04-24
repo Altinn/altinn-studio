@@ -119,7 +119,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const handleConfirmDelete = () => {
     setDeleteAnchorEl(null);
-    deleteLayout({ layoutName: name });
+    deleteLayout(name);
     setSearchParams(removeKey(searchParams, 'layout'));
   };
 

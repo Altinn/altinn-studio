@@ -25,6 +25,7 @@ export function RuleModal(props: IRuleModalProps) {
   const ruleConnection = useSelector(
     (state: IAppState) => state.serviceConfigurations.ruleConnection
   );
+  const ruleModelElements = useSelector((state: IAppState) => state.appData.ruleModel.model)
   const { t } = useTranslation();
   const datamodelQuery = useDatamodelQuery(org, app);
 
@@ -72,7 +73,6 @@ export function RuleModal(props: IRuleModalProps) {
   }
 
   const datamodelElements = datamodelQuery?.data ?? [];
-  const ruleModelElements = datamodelElements.filter((key: any) => key.type === 'rule');
 
   return (
     <>

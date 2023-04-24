@@ -40,7 +40,7 @@ public class PreviewService : IPreviewService
             Data = new()
                 { new ()
                 {
-                    DataType = dataType.Id,
+                    DataType = dataType?.Id,
                     Id = "test-datatask-id"
                 } },
             Process = new()
@@ -58,7 +58,11 @@ public class PreviewService : IPreviewService
     public async Task<DataType> GetDataTypeForTask1(string org, string app, string developer)
     {
         Application mockApplicationMetadata = await GetApplication(org, app, developer);
-        DataType dataType = mockApplicationMetadata.DataTypes.Find(element => !string.IsNullOrEmpty(element.AppLogic?.ClassRef) && element.TaskId == "Task_1");
-        return dataType;
+        if (mockApplicationMetadata.DataTypes != null && mockApplicationMetadata.DataTypes?.Count > 0)
+        {
+            DataType dataType = mockApplicationMetadata.DataTypes.Find(element => !string.IsNullOrEmpty(element.AppLogic?.ClassRef) && element.TaskId == "Task_1");
+            return dataType;
+        }
+        return null;
     }
 }

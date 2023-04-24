@@ -1,81 +1,102 @@
 import {
+  addComponent, addNavigationButtons,
   convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
-  extractChildrenFromGroup,
+  extractChildrenFromGroup, findContainerId, hasNavigationButtons, removeComponent, removeComponentsByType,
 } from './formLayout';
 import { ComponentType } from '../components';
-import { IExternalComponent, IInternalLayout } from '../types/global';
+import {
+  ICreateFormContainer,
+  IExternalComponent, IExternalFormLayout, IFormButtonComponent,
+  IFormComponent,
+  IFormHeaderComponent,
+  IInternalLayout
+} from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 
+// Test data:
+const baseContainer: ICreateFormContainer = {
+  index: 0,
+  itemType: 'CONTAINER',
+};
+const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
+const headerComponent: IFormHeaderComponent = {
+  id: headerId,
+  type: ComponentType.Header,
+  itemType: 'COMPONENT',
+  textResourceBindings: {
+    title: 'ServiceName',
+  },
+  dataModelBindings: {},
+  size: 'L',
+};
+const paragraphId = 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729';
+const paragraphComponent: IFormComponent = {
+  id: paragraphId,
+  type: ComponentType.Paragraph,
+  itemType: 'COMPONENT',
+  textResourceBindings: {
+    title: 'ServiceName',
+  },
+  dataModelBindings: {},
+};
+const groupId = 'group-container';
+const groupContainer: ICreateFormContainer = {
+  dataModelBindings: {},
+  itemType: 'CONTAINER',
+};
+const paragraphInGroupId = 'group-paragraph';
+const paragraphInGroupComponent: IFormComponent = {
+  id: paragraphInGroupId,
+  type: ComponentType.Paragraph,
+  itemType: 'COMPONENT',
+  textResourceBindings: {
+    title: 'ServiceName',
+  },
+  dataModelBindings: {},
+};
+const groupInGroupId = 'group-child-container';
+const groupInGroupContainer: ICreateFormContainer = {
+  dataModelBindings: {},
+  itemType: 'CONTAINER',
+};
+const paragraphInGroupInGroupId = 'group-child-paragraph';
+const paragraphInGroupInGroupComponent: IFormComponent = {
+  id: paragraphInGroupInGroupId,
+  type: ComponentType.Paragraph,
+  itemType: 'COMPONENT',
+  textResourceBindings: {
+    title: 'ServiceName',
+  },
+  dataModelBindings: {},
+};
+const mockInternal: IInternalLayout = {
+  components: {
+    [headerId]: headerComponent,
+    [paragraphId]: paragraphComponent,
+    [paragraphInGroupId]: paragraphInGroupComponent,
+    [paragraphInGroupInGroupId]: paragraphInGroupInGroupComponent,
+  },
+  containers: {
+    [BASE_CONTAINER_ID]: baseContainer,
+    [groupId]: groupContainer,
+    [groupInGroupId]: groupInGroupContainer
+  },
+  order: {
+    [BASE_CONTAINER_ID]: [
+      headerId,
+      paragraphId,
+      groupId,
+    ],
+    [groupId]: [paragraphInGroupId, groupInGroupId],
+    [groupInGroupId]: [paragraphInGroupInGroupId],
+  },
+};
+
 describe('utils/formLayout', () => {
-  let mockInternal: IInternalLayout;
   let mockLayout: IExternalComponent[];
 
   beforeEach(() => {
-    mockInternal = {
-      components: {
-        '46882e2b-8097-4170-ad4c-32cdc156634e': {
-          id: '46882e2b-8097-4170-ad4c-32cdc156634e',
-          type: ComponentType.Header,
-          itemType: 'COMPONENT',
-          textResourceBindings: {
-            title: 'ServiceName',
-          },
-          dataModelBindings: {},
-          size: 'L',
-        },
-        'ede0b05d-2c53-4feb-bdd4-4c61b89bd729': {
-          id: 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729',
-          type: ComponentType.Paragraph,
-          itemType: 'COMPONENT',
-          textResourceBindings: {
-            title: 'ServiceName',
-          },
-          dataModelBindings: {},
-        },
-        'group-paragraph': {
-          id: 'group-paragraph',
-          type: ComponentType.Paragraph,
-          itemType: 'COMPONENT',
-          textResourceBindings: {
-            title: 'ServiceName',
-          },
-          dataModelBindings: {},
-        },
-        'group-child-paragraph': {
-          id: 'group-child-paragraph',
-          type: ComponentType.Paragraph,
-          itemType: 'COMPONENT',
-          textResourceBindings: {
-            title: 'ServiceName',
-          },
-          dataModelBindings: {},
-        },
-      },
-      containers: {
-        [BASE_CONTAINER_ID]: {
-          index: 0,
-          itemType: 'CONTAINER',
-        },
-        'group-container': {
-          dataModelBindings: {},
-          itemType: 'CONTAINER',
-        },
-        'group-child-container': {
-          dataModelBindings: {},
-          itemType: 'CONTAINER',
-        },
-      },
-      order: {
-        [BASE_CONTAINER_ID]: [
-          '46882e2b-8097-4170-ad4c-32cdc156634e',
-          'ede0b05d-2c53-4feb-bdd4-4c61b89bd729',
-          'group-container',
-        ],
-        'group-container': ['group-paragraph', 'group-child-container'],
-        'group-child-container': ['group-child-paragraph'],
-      },
-    };
     mockLayout = [
       {
         id: '17314adc-f75d-4a49-b726-242e2ae32ad2',
@@ -235,46 +256,52 @@ describe('utils/formLayout', () => {
   describe('convertInternalToLayoutFormat', () => {
     it('should convert to correct format', () => {
       const convertedLayout = convertInternalToLayoutFormat(mockInternal);
-      const expectedResult = [
-        {
-          id: '46882e2b-8097-4170-ad4c-32cdc156634e',
-          type: ComponentType.Header,
-          textResourceBindings: { title: 'ServiceName' },
-          dataModelBindings: {},
-          size: 'L',
-        },
-        {
-          id: 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729',
-          type: ComponentType.Paragraph,
-          textResourceBindings: { title: 'ServiceName' },
-          dataModelBindings: {},
-        },
-        {
-          id: 'group-container',
-          type: ComponentType.Group,
-          dataModelBindings: {},
-          children: ['group-paragraph', 'group-child-container'],
-        },
-        {
-          id: 'group-paragraph',
-          type: ComponentType.Paragraph,
-          textResourceBindings: { title: 'ServiceName' },
-          dataModelBindings: {},
-        },
-        {
-          id: 'group-child-container',
-          type: ComponentType.Group,
-          dataModelBindings: {},
-          children: ['group-child-paragraph'],
-        },
-        {
-          id: 'group-child-paragraph',
-          type: ComponentType.Paragraph,
-          textResourceBindings: { title: 'ServiceName' },
-          dataModelBindings: {},
-        },
-      ];
-      expect(Array.isArray(convertedLayout)).toBe(true);
+      const expectedResult: IExternalFormLayout = {
+        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+        data: {
+          layout: [
+            {
+              id: headerId,
+              type: ComponentType.Header,
+              textResourceBindings: { title: 'ServiceName' },
+              dataModelBindings: {},
+              size: 'L',
+            },
+            {
+              id: paragraphId,
+              type: ComponentType.Paragraph,
+              textResourceBindings: { title: 'ServiceName' },
+              dataModelBindings: {},
+            },
+            {
+              id: groupId,
+              type: ComponentType.Group,
+              dataModelBindings: {},
+              children: [paragraphInGroupId, groupInGroupId],
+            },
+            {
+              id: paragraphInGroupId,
+              type: ComponentType.Paragraph,
+              textResourceBindings: { title: 'ServiceName' },
+              dataModelBindings: {},
+            },
+            {
+              id: groupInGroupId,
+              type: ComponentType.Group,
+              dataModelBindings: {},
+              children: [paragraphInGroupInGroupId],
+            },
+            {
+              id: paragraphInGroupInGroupId,
+              type: ComponentType.Paragraph,
+              textResourceBindings: { title: 'ServiceName' },
+              dataModelBindings: {},
+            },
+          ],
+          hidden: undefined
+        }
+      };
+      expect(Array.isArray(convertedLayout.data.layout)).toBe(true);
       expect(convertedLayout).toEqual(expectedResult);
     });
   });
@@ -313,6 +340,106 @@ describe('utils/formLayout', () => {
       };
       extractChildrenFromGroup(mockGroup, mockComponents, mockConvertedLayout);
       expect(mockConvertedLayout).toEqual(expectedConvertedLayoutResult);
+    });
+  });
+
+  describe('hasNavigationButtons', () => {
+    it('Returns true if navigation buttons are present', () => {
+      const navigationButtonsId = 'navigationButtons';
+      const navigationButtonsComponent: IFormButtonComponent = {
+        id: navigationButtonsId,
+        itemType: 'COMPONENT',
+        onClickAction: jest.fn(),
+        type: ComponentType.NavigationButtons,
+      };
+      const layout: IInternalLayout = {
+        containers: mockInternal.containers,
+        components: {
+          ...mockInternal.components,
+          [navigationButtonsId]: navigationButtonsComponent
+        },
+        order: {
+          ...mockInternal.order,
+          [BASE_CONTAINER_ID]: [
+            ...mockInternal.order[BASE_CONTAINER_ID],
+            navigationButtonsId,
+          ]
+        }
+      };
+      expect(hasNavigationButtons(layout)).toBe(true);
+    });
+
+    it('Returns false if navigation buttons are not present', () => {
+      expect(hasNavigationButtons(mockInternal)).toBe(false);
+    });
+  });
+
+  describe('findContainerId', () => {
+    it('Finds the container id for a given component id', () => {
+      const containerId = findContainerId(mockInternal, paragraphInGroupId);
+      expect(containerId).toEqual(groupId);
+    });
+
+    it('Returns undefined if no container is found', () => {
+      const componentId = 'inexistentId';
+      const containerId = findContainerId(mockInternal, componentId);
+      expect(containerId).toBeUndefined();
+    });
+  });
+
+  describe('addComponent', () => {
+    const newComponent: IFormComponent = {
+      id: 'newComponent',
+      type: ComponentType.Paragraph,
+      itemType: 'COMPONENT',
+    };
+
+    it('Adds component to the end of the base container by default', () => {
+      const layout = addComponent(mockInternal, newComponent);
+      expect(layout.components[newComponent.id]).toEqual(newComponent);
+      expect(layout.order[BASE_CONTAINER_ID].slice(-1)[0]).toEqual(newComponent.id);
+      expect(layout.order[BASE_CONTAINER_ID].length).toEqual(mockInternal.order[BASE_CONTAINER_ID].length + 1);
+    });
+
+    it('Adds component to the given position of the given container', () => {
+      const position = 1;
+      const layout = addComponent(mockInternal, newComponent, groupId, position);
+      expect(layout.components[newComponent.id]).toEqual(newComponent);
+      expect(layout.order[groupId][position]).toEqual(newComponent.id);
+      expect(layout.order[groupId].length).toEqual(mockInternal.order[groupId].length + 1);
+    })
+  });
+
+  describe('removeComponent', () => {
+    it('Removes component from the layout', () => {
+      const layout = removeComponent(mockInternal, paragraphInGroupId);
+      expect(layout.components[paragraphInGroupId]).toBeUndefined();
+      expect(layout.order[groupId]).not.toContain(paragraphInGroupId);
+      expect(layout.order[groupId].length).toEqual(mockInternal.order[groupId].length - 1);
+    });
+  });
+
+  describe('removeComponentsByType', () => {
+    it('Removes components of the given type from the layout', () => {
+      const layout = removeComponentsByType(mockInternal, ComponentType.Paragraph);
+      expect(layout.components[paragraphId]).toBeUndefined();
+      expect(layout.components[paragraphInGroupId]).toBeUndefined();
+      expect(layout.components[paragraphInGroupInGroupId]).toBeUndefined();
+      expect(layout.order[BASE_CONTAINER_ID].length).toEqual(mockInternal.order[BASE_CONTAINER_ID].length - 1);
+      expect(layout.order[groupId].length).toEqual(mockInternal.order[groupId].length - 1);
+      expect(layout.order[groupInGroupId].length).toEqual(mockInternal.order[groupInGroupId].length - 1);
+    });
+  });
+
+  describe('addNavigationButtons', () => {
+    it('Adds navigation buttons to the layout', () => {
+      const id = 'navigationButtons';
+      const layout = addNavigationButtons(mockInternal, id);
+      expect(layout.components[id]).toBeDefined();
+      expect(layout.components[id].type).toEqual(ComponentType.NavigationButtons);
+      expect(layout.components[id].textResourceBindings).toEqual({ next: 'next', back: 'back' });
+      expect(layout.order[BASE_CONTAINER_ID].slice(-1)[0]).toEqual(id);
+      expect(layout.order[BASE_CONTAINER_ID].length).toEqual(mockInternal.order[BASE_CONTAINER_ID].length + 1);
     });
   });
 });

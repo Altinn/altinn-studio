@@ -105,14 +105,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(string org, string app);
 
         /// <summary>
-        /// Returns the app languages
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The text</returns>
-        List<string> GetLanguages(string org, string app);
-
-        /// <summary>
         /// Returns a list of files in the Implementation directory.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -236,6 +228,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Lists the content of a repository
         /// </summary>
         List<FileSystemObject> GetContents(string org, string repository, string path = "");
+
+        /// <summary>
+        /// Lists the ServiceResource files in a repository
+        /// </summary>
+        List<ServiceResource> GetServiceResources(string org, string repository, string path = "");
 
         /// <summary>
         /// Returns the path to the app folder

@@ -198,6 +198,27 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return MODEL_FOLDER_PATH;
         }
 
+        public List<string> GetLanguages()
+        {
+            List<string> languages = new();
+            string pathToTexts = GetPathToTexts();
+            if (!Directory.Exists(pathToTexts))
+            {
+                Directory.CreateDirectory(pathToTexts);
+            }
+
+            string[] directoryFiles = GetFilesByRelativeDirectory(pathToTexts);
+            foreach (string directoryFile in directoryFiles)
+            {
+                string fileName = Path.GetFileName(directoryFile);
+                string[] nameParts = fileName.Split('.');
+                languages.Add(nameParts[1]);
+                languages.Sort(StringComparer.Ordinal);
+            }
+
+            return languages;
+        }
+
         /// <summary>
         /// Returns a specific text resource written in the old text format
         /// based on language code from the application.
@@ -560,6 +581,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private string GetRelativeModelFilePath(string modelName)
         {
             return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");
+        }
+
+        private static string GetPathToTexts()
+        {
+            return Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
         }
 
         private static string GetPathToJsonTextsFile([CanBeNull] string fileName)

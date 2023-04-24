@@ -14,6 +14,7 @@ import {
   datamodelMetadataPath,
   formLayoutsPath,
   layoutSettingsPath,
+  userCurrentPath,
 } from 'app-shared/api-paths';
 import { orgsListUrl } from 'app-shared/cdn-paths';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
@@ -33,3 +34,4 @@ export const getDatamodelsXsd = (owner: string, app: string) => get(datamodelsXs
 export const getDatamodel = (owner: string, app: string) => get(datamodelMetadataPath(owner, app));
 export const getFormLayouts = (owner: string, app: string) => get(formLayoutsPath(owner, app));
 export const getFormLayoutSettings = (owner: string, app: string) => get(layoutSettingsPath(owner, app));
+export const getUser = () => get(userCurrentPath());
