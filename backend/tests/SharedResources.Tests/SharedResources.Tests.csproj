@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\..\testdata\App\ui\**\*.*">
-      <LinkBase>TestData\App\ui</LinkBase>
+    <EmbeddedResource Include="..\..\..\testdata\App\**\*.*">
+      <LinkBase>TestData\App</LinkBase>
     </EmbeddedResource>
   </ItemGroup>
 
