@@ -318,8 +318,8 @@ namespace Designer.Tests.Controllers
             Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
         }
 
-        //[Fact]
-        private async Task GetRuleConfiguration_Ok()
+        [Fact]
+        public async Task GetRuleConfiguration_Ok()
         {
             string dataPathWithData = $"{Org}/{App}/api/resource/RuleConfiguration.json";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
