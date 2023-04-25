@@ -13,7 +13,7 @@ describe('Anonymous (stateless) - Options', () => {
     cy.get(dropdownComponent).should('exist').and('be.visible');
     cy.get(dropdownComponent).should('have.value', '');
 
-    cy.get(dropdownComponent).select('test@test.com');
+    cy.get(dropdownComponent).dsSelect('test@test.com');
     cy.get(dropdownComponent).should('have.value', 'test@test.com');
   });
 });

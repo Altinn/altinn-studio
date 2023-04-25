@@ -9,24 +9,24 @@ describe('Options', () => {
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
 
     // Make sure we wait until the option is visible, as it's not instant
-    cy.get(appFrontend.changeOfName.reference).get(`option[value=nordmann]`).should('be.visible');
+    cy.get('[role=option][value="nordmann"]').should('exist');
 
-    cy.get(appFrontend.changeOfName.reference).select('nordmann');
-    cy.get(appFrontend.changeOfName.reference).should('have.value', 'nordmann');
+    cy.get(appFrontend.changeOfName.reference).dsSelect('Ola Nordmann');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
 
     //Secure options
-    cy.get(appFrontend.changeOfName.reference2).get('option[value=1]').should('be.visible');
-    cy.get(appFrontend.changeOfName.reference2).select('1');
-    cy.get(appFrontend.changeOfName.reference2).should('have.value', '1');
+    cy.get(appFrontend.changeOfName.reference2).get('[role=option][value=1]').should('exist');
+    cy.get(appFrontend.changeOfName.reference2).dsSelect('Ole');
+    cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Ole');
 
     // Select a different source, expect previous selection to be cleared and
     // new value to be selectable in the reference option
-    cy.get(appFrontend.changeOfName.sources).select('digdir');
+    cy.get(appFrontend.changeOfName.sources).dsSelect('Digitaliseringsdirektoratet');
     cy.get(appFrontend.changeOfName.reference).and('have.value', '');
-    cy.get(appFrontend.changeOfName.reference).select('salt');
-    cy.get(appFrontend.changeOfName.reference).should('have.value', 'salt');
-    cy.get(appFrontend.changeOfName.reference2).select('2');
-    cy.get(appFrontend.changeOfName.reference2).should('have.value', '2');
+    cy.get(appFrontend.changeOfName.reference).dsSelect('Sophie Salt');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', 'Sophie Salt');
+    cy.get(appFrontend.changeOfName.reference2).dsSelect('Dole');
+    cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Dole');
   });
 
   it('is possible to build options from repeating groups', () => {
@@ -38,10 +38,18 @@ describe('Options', () => {
     cy.addItemToGroup(3, 4, 'altinn');
     cy.get(appFrontend.group.options).then((options) => {
       cy.wrap(options).should('be.visible');
-      cy.wrap(options).find('option').eq(1).should('have.text', 'Endre fra: 1, Endre til: 2');
-      cy.wrap(options).find('option').eq(2).should('have.text', 'Endre fra: 3, Endre til: 4');
-      cy.wrap(options).select('1');
-      cy.wrap(options).should('have.value', '1');
+      cy.wrap(options)
+        .parents('[data-testid="select-root"]')
+        .find('[role=option]')
+        .eq(0)
+        .should('have.text', 'Endre fra: 1, Endre til: 2');
+      cy.wrap(options)
+        .parents('[data-testid="select-root"]')
+        .find('[role=option]')
+        .eq(1)
+        .should('have.text', 'Endre fra: 3, Endre til: 4');
+      cy.wrap(options).dsSelect('Endre fra: 1, Endre til: 2');
+      cy.wrap(options).should('have.value', 'Endre fra: 1, Endre til: 2');
     });
   });
 });

@@ -49,3 +49,9 @@ afterEach(function () {
     });
   }
 });
+
+/**
+ * This is a workaround for the ResizeObserver loop limit exceeded error.
+ * Remove when the design system has fixed the issue.
+ */
+Cypress.on('uncaught:exception', (err) => !err.message.includes('ResizeObserver loop limit exceeded'));

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { fireEvent, screen } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
@@ -39,18 +39,20 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
 };
 
 describe('MultipleSelect', () => {
+  jest.useFakeTimers();
   it('should display correct options as selected when supplied with a comma separated form data', () => {
     render({
       genericProps: {
         formData: { simpleBinding: 'value1,value3' },
       },
     });
-    expect(screen.getByText('label1')).toBeInTheDocument();
-    expect(screen.queryByText('label2')).not.toBeInTheDocument();
-    expect(screen.getByText('label3')).toBeInTheDocument();
+    const input = screen.getByTestId('InputWrapper');
+    expect(within(input).getByText('label1')).toBeInTheDocument();
+    expect(within(input).queryByText('label2')).not.toBeInTheDocument();
+    expect(within(input).getByText('label3')).toBeInTheDocument();
   });
 
-  it('should remove item from comma separated form data on delete', () => {
+  it('should remove item from comma separated form data on delete', async () => {
     const handleDataChange = jest.fn();
     render({
       genericProps: {
@@ -58,11 +60,10 @@ describe('MultipleSelect', () => {
         formData: { simpleBinding: 'value1,value2,value3' },
       },
     });
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /remove label2/i,
-      }),
-    );
-    expect(handleDataChange).toBeCalledWith('value1,value3');
+
+    await act(() => screen.getByRole('button', { name: /Slett label2/i }).click());
+    jest.runOnlyPendingTimers();
+
+    expect(handleDataChange).toBeCalledWith('value1,value3', { validate: true });
   });
 });

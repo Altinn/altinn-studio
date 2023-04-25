@@ -47,3 +47,5 @@ jest.mock('axios');
   const { sagaMiddleware } = setupStore();
   initSagas(sagaMiddleware);
 })();
+
+global.ResizeObserver = require('resize-observer-polyfill');

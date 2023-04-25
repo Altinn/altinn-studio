@@ -160,15 +160,11 @@ const completeFormSlow: { [key in FrontendTestTask]: () => void } = {
       'not.exist',
     );
 
-    cy.get('#nested-source-0-0').select('Annet');
-    cy.get('#nested-source-0-0').blur();
-    cy.get('#nested-reference-0-0').select('Test');
-    cy.get('#nested-reference-0-0').blur();
+    cy.get('#nested-source-0-0').dsSelect('Annet');
+    cy.get('#nested-reference-0-0').dsSelect('Test');
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
-    cy.get('#source-0').select('Digitaliseringsdirektoratet');
-    cy.get('#source-0').blur();
-    cy.get('#reference-0').select('Sophie Salt');
-    cy.get('#reference-0').blur();
+    cy.get('#source-0').dsSelect('Digitaliseringsdirektoratet');
+    cy.get('#reference-0').dsSelect('Sophie Salt');
 
     cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 

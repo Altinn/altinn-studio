@@ -20,6 +20,13 @@ Cypress.Commands.add('dsUncheck', { prevSubject: true }, (subject: JQueryWithSel
   }
 });
 
+Cypress.Commands.add('dsSelect', { prevSubject: true }, (subject: JQueryWithSelector | undefined, name) => {
+  cy.wrap(subject).click();
+  cy.wrap(subject).parents('[data-testid="select-root"]').findByRole('option', { name }).click();
+  cy.get('body').click();
+  cy.wrap(subject);
+});
+
 Cypress.Commands.add('clickAndGone', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
   // eslint-disable-next-line cypress/unsafe-to-chain-command
   cy.wrap(subject).click().should('not.exist');

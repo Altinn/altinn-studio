@@ -11,7 +11,7 @@ describe('Rules', () => {
     cy.get(appFrontend.changeOfName.newFullName)
       .should('have.value', 'automation is fun')
       .parents()
-      .eq(2)
+      .eq(3)
       .should('have.css', 'max-width', '50%');
   });
 

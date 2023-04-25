@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
@@ -78,7 +78,8 @@ describe('DropdownComponent', () => {
       },
     });
 
-    await act(() => user.selectOptions(screen.getByRole('combobox'), [screen.getByText('Sweden')]));
+    await act(() => user.click(screen.getByRole('combobox')));
+    await act(() => user.click(screen.getByText('Sweden')));
 
     expect(handleDataChange).not.toHaveBeenCalled();
 
@@ -144,8 +145,7 @@ describe('DropdownComponent', () => {
 
     expect(handleDataChange).toHaveBeenCalledTimes(1);
 
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(() => fireEvent.blur(select));
+    await act(() => user.tab());
 
     expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true });
     expect(handleDataChange).toHaveBeenCalledTimes(2);
@@ -186,11 +186,8 @@ describe('DropdownComponent', () => {
       },
     });
 
-    await act(() =>
-      user.selectOptions(screen.getByRole('combobox'), [
-        screen.getByText('The value from the group is: Label for first'),
-      ]),
-    );
+    await act(() => user.click(screen.getByRole('combobox')));
+    await act(() => user.click(screen.getByText('The value from the group is: Label for first')));
 
     expect(handleDataChange).not.toHaveBeenCalled();
 
@@ -198,11 +195,8 @@ describe('DropdownComponent', () => {
 
     expect(handleDataChange).toHaveBeenCalledWith('Value for first', { validate: true });
 
-    await act(() =>
-      user.selectOptions(screen.getByRole('combobox'), [
-        screen.getByText('The value from the group is: Label for second'),
-      ]),
-    );
+    await act(() => user.click(screen.getByRole('combobox')));
+    await act(() => user.click(screen.getByText('The value from the group is: Label for second')));
 
     expect(handleDataChange).toHaveBeenCalledTimes(1);
 

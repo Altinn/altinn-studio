@@ -1,12 +1,14 @@
 import React from 'react';
 
+import { Select } from '@digdir/design-system-react';
+
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { Select } from 'src/components/Select';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useGetOptions } from 'src/hooks/useGetOptions';
 import { useHasChangedIgnoreUndefined } from 'src/hooks/useHasChangedIgnoreUndefined';
-import { getOptionLookupKey } from 'src/utils/options';
+import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { duplicateOptionFilter, formatLabelForSelect, getOptionLookupKey } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
@@ -19,7 +21,9 @@ export function DropdownComponent({
   getTextResourceAsString,
 }: IDropdownProps) {
   const { optionsId, preselectedOptionIndex, id, readOnly, mapping, source } = node.item;
-  const options = useGetOptions({ optionsId, mapping, source });
+  const language = useAppSelector((state) => state.language.language);
+  const textResources = useAppSelector((state) => state.textResources.resources);
+  const options = useGetOptions({ optionsId, mapping, source })?.filter(duplicateOptionFilter);
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions = useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading);
   const hasSelectedInitial = React.useRef(false);
@@ -50,25 +54,24 @@ export function DropdownComponent({
     }
   }, [optionsHasChanged, formData, setValue]);
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setValue(event.target.value);
-  };
-
   return (
     <>
-      {fetchingOptions ? (
+      {fetchingOptions || !language ? (
         <AltinnSpinner />
       ) : (
         <Select
-          id={id}
-          onChange={handleChange}
+          label={getLanguageFromKey('general.choose', language)}
+          hideLabel={true}
+          inputId={id}
+          onChange={setValue}
           onBlur={saveValue}
           value={value}
           disabled={readOnly}
           error={!isValid}
           options={
             options?.map((option) => ({
-              label: getTextResourceAsString(option.label) ?? '',
+              label: getTextResourceAsString(option.label) ?? option.value,
+              formattedLabel: formatLabelForSelect(option, textResources),
               value: option.value,
             })) || []
           }

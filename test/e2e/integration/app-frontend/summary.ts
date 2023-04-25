@@ -111,8 +111,8 @@ describe('Summary', () => {
 
     // Test summary of non-repeating group
     cy.navPage('form').click();
-    cy.get('#reference').select('Ola Nordmann');
-    cy.get('#reference2').select('Ole');
+    cy.get('#reference').dsSelect('Ola Nordmann');
+    cy.get('#reference2').dsSelect('Ole');
     cy.navPage('summary').click();
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
@@ -123,9 +123,9 @@ describe('Summary', () => {
       });
 
     cy.navPage('form').click();
-    cy.get('#sources').select('Digitaliseringsdirektoratet');
-    cy.get('#reference').select('Sophie Salt');
-    cy.get('#reference2').select('Dole');
+    cy.get('#sources').dsSelect('Digitaliseringsdirektoratet');
+    cy.get('#reference').dsSelect('Sophie Salt');
+    cy.get('#reference2').dsSelect('Dole');
     cy.navPage('summary').click();
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
@@ -136,9 +136,9 @@ describe('Summary', () => {
       });
 
     cy.navPage('form').click();
-    cy.get('#sources').select('Annet');
-    cy.get('#reference').select('Test');
-    cy.get('#reference2').select('Doffen');
+    cy.get('#sources').dsSelect('Annet');
+    cy.get('#reference').dsSelect('Test');
+    cy.get('#reference2').dsSelect('Doffen');
     cy.navPage('summary').click();
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
@@ -379,7 +379,7 @@ describe('Summary', () => {
       cy.get(appFrontend.changeOfName.newFirstName).clear();
       cy.get(appFrontend.changeOfName.newFirstName).type(`Hello world`);
       cy.get(appFrontend.changeOfName.newLastName).clear();
-      cy.get(appFrontend.changeOfName.sources).should('have.value', 'altinn');
+      cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
       cy.get(appFrontend.nextButton).click();
 
       if (trigger === undefined) {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
@@ -124,10 +124,10 @@ describe('NavBar', () => {
     });
     await waitForElementToBeRemoved(screen.queryByRole('progressbar'));
     const dropdown = screen.getByRole('combobox', { name: /Språk/i });
-    await userEvent.click(dropdown);
+    await act(() => dropdown.click());
     const en = screen.getByText(/Engelsk/i, { selector: '[role=option]' });
-    await userEvent.click(en);
-    expect(dropdown).toHaveValue('en');
+    await act(() => en.click());
+    expect(dropdown).toHaveValue('Engelsk');
   });
   it('should render app language with custom labels', async () => {
     renderNavBar({
