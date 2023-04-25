@@ -3,7 +3,6 @@
   <xs:element name="Skjema">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="kjonn" type="xs:string" />
         <xs:element minOccurs="0" name="OpplysningerOmArbeidstakeren-grp-8819" type="OpplysningerOmArbeidstakeren-grp-8819" />
         <xs:element minOccurs="0" name="StillingsbrokGrad-grp-8821" type="StillingsbrokGrad-grp-8821" />
         <xs:element minOccurs="0" name="Permisjonsopplysninger-grp-8822" type="Permisjonsopplysninger-grp-8822" />
@@ -71,6 +70,14 @@
       <xs:element minOccurs="0" name="OppgavegiverTelefonnummer-datadef-27335" type="OppgavegiverTelefonnummer-datadef-27335" />
       <xs:element minOccurs="0" name="OppgavegiverEPost-datadef-27334" type="OppgavegiverEPost-datadef-27334" />
       <xs:element minOccurs="0" name="AnsattSoknadAFPDato-datadef-33282" type="AnsattSoknadAFPDato-datadef-33282" />
+      <xs:element minOccurs="0" name="AnsattKjonn">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="value" type="xs:string" />
+            <xs:element name="orid" type="xs:long" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
     </xs:sequence>
     <xs:attribute fixed="8855" name="gruppeid" type="xs:positiveInteger" use="required" />
   </xs:complexType>

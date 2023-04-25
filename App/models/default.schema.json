@@ -59,22 +59,11 @@
           "enum": [
             "987414502"
           ]
-        },
-        "kjonn": {
-          "type": "string",
-          "title": "Velg kjønn",
-          "description": "Hvilket kjønn er du?",
-          "enum": [
-            "mann",
-            "kvinne",
-            "annet"
-          ]
         }
       },
       "required": [
         "skjemanummer",
-        "spesifikasjonsnummer",
-        "kjonn"
+        "spesifikasjonsnummer"
       ]
     },
     {
@@ -272,6 +261,21 @@
               "@xsdType": "#ref",
               "@xsdMinOccurs": 0,
               "$ref": "#/$defs/AnsattSoknadAFPDato-datadef-33282"
+            },
+            "AnsattKjonn": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "orid": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "value",
+                "orid"
+              ]
             }
           }
         }

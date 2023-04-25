@@ -38,27 +38,22 @@ namespace Altinn.App.Models
     [XmlAttribute("etatid")]
     public string etatid { get; set; }
 
-    [XmlElement("kjonn", Order = 1)]
-    [JsonProperty("kjonn")]
-    [JsonPropertyName("kjonn")]
-    public string kjonn { get; set; }
-
-    [XmlElement("OpplysningerOmArbeidstakeren-grp-8819", Order = 2)]
+    [XmlElement("OpplysningerOmArbeidstakeren-grp-8819", Order = 1)]
     [JsonProperty("OpplysningerOmArbeidstakeren-grp-8819")]
     [JsonPropertyName("OpplysningerOmArbeidstakeren-grp-8819")]
     public OpplysningerOmArbeidstakerengrp8819 OpplysningerOmArbeidstakerengrp8819 { get; set; }
 
-    [XmlElement("StillingsbrokGrad-grp-8821", Order = 3)]
+    [XmlElement("StillingsbrokGrad-grp-8821", Order = 2)]
     [JsonProperty("StillingsbrokGrad-grp-8821")]
     [JsonPropertyName("StillingsbrokGrad-grp-8821")]
     public StillingsbrokGradgrp8821 StillingsbrokGradgrp8821 { get; set; }
 
-    [XmlElement("Permisjonsopplysninger-grp-8822", Order = 4)]
+    [XmlElement("Permisjonsopplysninger-grp-8822", Order = 3)]
     [JsonProperty("Permisjonsopplysninger-grp-8822")]
     [JsonPropertyName("Permisjonsopplysninger-grp-8822")]
     public Permisjonsopplysningergrp8822 Permisjonsopplysningergrp8822 { get; set; }
 
-    [XmlElement("Foretak-grp-8820", Order = 5)]
+    [XmlElement("Foretak-grp-8820", Order = 4)]
     [JsonProperty("Foretak-grp-8820")]
     [JsonPropertyName("Foretak-grp-8820")]
     public Foretakgrp8820 Foretakgrp8820 { get; set; }
@@ -169,6 +164,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("AnsattSoknadAFPDato-datadef-33282")]
     public AnsattSoknadAFPDatodatadef33282 AnsattSoknadAFPDatodatadef33282 { get; set; }
 
+    [XmlElement("AnsattKjonn", Order = 6)]
+    [JsonProperty("AnsattKjonn")]
+    [JsonPropertyName("AnsattKjonn")]
+    public AnsattKjonn AnsattKjonn { get; set; }
+
   }
 
   public class AnsattNavndatadef1223
@@ -237,6 +237,22 @@ namespace Altinn.App.Models
     [XmlAttribute("orid")]
     [BindNever]
     public decimal orid {get; set;} = 33282;
+
+  }
+
+  public class AnsattKjonn
+  {
+    [XmlElement("value", Order = 1)]
+    [JsonProperty("value")]
+    [JsonPropertyName("value")]
+    public string value { get; set; }
+
+    [Range(Double.MinValue,Double.MaxValue)]
+    [XmlElement("orid", Order = 2)]
+    [JsonProperty("orid")]
+    [JsonPropertyName("orid")]
+    [Required]
+    public decimal? orid { get; set; }
 
   }
 
