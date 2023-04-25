@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.RepositorySettingsController
 
         [Theory]
         [InlineData("ttd", "xyz-datamodels", "testUser")]
-        public async Task Get_RepositorySettings_ShouldReturnOk(string org, string repo, string developer)
+        public async Task Get_RepositorySettings_ShouldReturnOk(string org, string repo)
         {
             string requestUrl = VersionPrefix(org, repo);
             using HttpResponseMessage response = await HttpClient.Value.GetAsync(requestUrl);
