@@ -54,6 +54,7 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
         _factory = factory;
         HttpClient = new Lazy<HttpClient>(GetTestClient);
         SetupDirtyHackIfLinux();
+        Environment.SetEnvironmentVariable("DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS", "20");
     }
 
     /// <summary>
