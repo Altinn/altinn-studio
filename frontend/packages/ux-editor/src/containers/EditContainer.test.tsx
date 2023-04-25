@@ -73,8 +73,7 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
     appData: {
       textResources: {
         currentEditId: undefined,
-      },
-      ruleModel: null
+      }
     },
     formDesigner: {
       layout: {

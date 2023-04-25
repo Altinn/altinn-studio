@@ -8,7 +8,7 @@ import {
   addConditionalRenderingConnection,
   deleteConditionalRenderingConnnection,
 } from '../../features/serviceConfigurations/serviceConfigurationSlice';
-import type { IAppState } from '../../types/global';
+import type { IAppState, IRuleModelFieldElement } from '../../types/global';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
@@ -17,6 +17,7 @@ import {
   allLayoutContainersSelector,
   fullLayoutOrderSelector
 } from '../../selectors/formLayoutSelectors';
+import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -30,10 +31,13 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   const conditionalRendering = useSelector(
     (state: IAppState) => state.serviceConfigurations.conditionalRendering
   );
+  const { data: ruleModel } = useRuleModelQuery(org, app);
   const layoutContainers = useFormLayoutsSelector(allLayoutContainersSelector);
   const layoutComponents = useFormLayoutsSelector(allLayoutComponentsSelector);
   const layoutOrder = useFormLayoutsSelector(fullLayoutOrderSelector);
   const { t } = useTranslation();
+
+  const conditionRules = ruleModel?.filter(({ type }: IRuleModelFieldElement) => type === 'condition');
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -95,6 +99,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
             formLayoutContainers={layoutContainers}
             formLayoutComponents={layoutComponents}
             order={layoutOrder}
+            ruleModelElements={conditionRules}
           />
         ) : (
           <ConditionalRenderingComponent
@@ -104,6 +109,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
             formLayoutContainers={layoutContainers}
             formLayoutComponents={layoutComponents}
             order={layoutOrder}
+            ruleModelElements={conditionRules}
           />
         )}
       </Modal>
