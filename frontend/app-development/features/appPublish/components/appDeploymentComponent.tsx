@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
-import { AltinnIcon, AltinnLink } from 'app-shared/components';
+import { AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import { Panel, PanelVariant, Table, TableRow, TableHeader, TableCell, TableBody } from '@altinn/altinn-design-system';
 import { formatDateTime } from 'app-shared/pure/date-format';
@@ -133,7 +133,7 @@ export const AppDeploymentComponent = ({
               startDeploy={startDeploy}
             />
           )}
-          {deployInProgress && <div>{t('app_publish.deployment_in_progress')}...</div>}
+          {deployInProgress && <AltinnSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />}
           {deployPermission && latestDeploy && deployedVersionNotReachable && (
             <Panel variant={PanelVariant.Error}>
               <Trans i18nKey={'app_deploy_messages.unable_to_list_deploys'}>
