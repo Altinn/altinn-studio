@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useRepoStatus } from '../../features/appPublish/hooks/query-hooks';
 import { useRepoMetadataQuery, useRepoPullQuery } from '../../hooks/queries';
 import { useRepoPushMutation, useCreateRepoCommitMutation } from '../../hooks/mutations';
+import { AltinnSpinner } from 'app-shared/components';
 
 export interface IVersionControlHeaderProps {
   hasPushRight?: boolean;
@@ -43,6 +44,8 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const { data: currentRepo } = useRepoMetadataQuery(org, app);
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatus(org, app);
   const { refetch: fetchPullData } = useRepoPullQuery(org, app);
+  const [altinnSpinnerState, setAltinnSpinnerState] = useState(false);
+
   useEffect(() => {
     if (hasPushRight === undefined && currentRepo) {
       setHasPushRight(currentRepo.permissions.push);
@@ -157,22 +160,27 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
       });
     }
   };
+
   const repoPushMutation = useRepoPushMutation(org, app);
   const pushChanges = async () => {
+    setAltinnSpinnerState(true);
     setModalState({
       ...initialModalState,
       header: t('sync_header.sharing_changes'),
       isLoading: true,
     });
-    await repoPushMutation.mutate();
+    repoPushMutation.mutate();
     setHasChangesInMaster(false);
     setHasChangesInLocalRepo(false);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setAltinnSpinnerState(false);
     setModalState({
       ...initialModalState,
       header: t('sync_header.sharing_changes_completed'),
       descriptionText: [t('sync_header.sharing_changes_completed_submessage')],
       shouldShowDoneIcon: true,
     });
+
     forceRepoStatusCheck();
   };
 
@@ -184,7 +192,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
       descriptionText: [],
       isLoading: true,
     });
-
     await repoCommitMutation.mutate({ commitMessage });
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
@@ -218,6 +225,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
         fetchChanges={fetchChanges}
         buttonText={t('sync_header.fetch_changes')}
       />
+      {altinnSpinnerState && <AltinnSpinner />}
       <ShareChangesButton
         changesInLocalRepo={hasChangesInLocalRepo}
         hasMergeConflict={hasMergeConflict}
