@@ -5,7 +5,6 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import { Button, ButtonSize, ButtonVariant, Popover } from '@digdir/design-system-react';
-import { CircularProgress } from '@mui/material';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
@@ -16,6 +15,7 @@ import { useAppReleases, useBranchStatus, useRepoStatus } from '../hooks/query-h
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from '../../../types/QueryKey';
+import { AltinnSpinner } from 'app-shared/components';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
@@ -83,7 +83,7 @@ export function ReleaseContainer() {
       return (
         <div style={{ padding: '2rem' }}>
           <div>
-            <CircularProgress style={{ color: '#1EAEF7' }} />
+            <AltinnSpinner />
           </div>
           <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
         </div>

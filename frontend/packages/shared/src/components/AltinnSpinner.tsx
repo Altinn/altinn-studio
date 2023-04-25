@@ -1,15 +1,31 @@
 import React from 'react';
 import classes from './AltinnSpinner.module.css';
-import { CircularProgress } from '@mui/material';
+import { Spinner } from '@digdir/design-system-react';
+import type { SpinnerProps } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
-export interface IAltinnSpinnerComponentProvidedProps {
+export type IAltinnSpinnerComponentProvidedProps = {
   spinnerText?: string;
   className?: string;
-}
+} & Pick<SpinnerProps, 'size' | 'variant'>;
 
-export const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => (
-  <div className={props.className}>
-    <CircularProgress className={classes.spinner} />
-    {props.spinnerText && <div className={classes.spinnerText}>{props.spinnerText}</div>}
-  </div>
-);
+export const AltinnSpinner = ({
+  spinnerText,
+  className,
+  size = '1xLarge',
+  variant = 'interaction',
+}: IAltinnSpinnerComponentProvidedProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className={className}>
+      <Spinner
+        title={!spinnerText && t('general.loading')}
+        size={size}
+        variant={variant}
+        className={classes.spinner}
+      />
+      {spinnerText && <div className={classes.spinnerText}>{spinnerText}</div>}
+    </div>
+  )
+};
