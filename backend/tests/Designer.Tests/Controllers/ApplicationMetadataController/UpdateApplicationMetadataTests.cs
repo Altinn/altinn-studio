@@ -36,8 +36,6 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             JsonUtils.DeepEquals(expectedMetadata, responseContent).Should().BeTrue();
             string fileFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
             JsonUtils.DeepEquals(expectedMetadata, fileFromRepo).Should().BeTrue();
-
-
         }
     }
 }

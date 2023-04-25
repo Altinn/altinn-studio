@@ -22,11 +22,6 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
         {
         }
 
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
         [Theory]
         [MemberData(nameof(TestData))]
         public async Task AddMetadataForAttachment_WhenExists_ShouldReturnConflict(string org, string app, string developer, DataType payload)
@@ -37,13 +32,13 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             string url = $"{VersionPrefix(org, targetRepository)}/attachment-component";
 
             // payload
-            using var payloadContent = new StringContent(JsonSerializer.Serialize(payload, _jsonSerializerOptions), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var payloadContent = new StringContent(JsonSerializer.Serialize(payload, JsonSerializerOptions), Encoding.UTF8, MediaTypeNames.Application.Json);
             using var response = await HttpClient.Value.PostAsync(url, payloadContent);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string applicationMetadataFile = await File.ReadAllTextAsync(Path.Combine(CreatedFolderPath, "App", "config", "applicationmetadata.json"));
-            var applicationMetadata = JsonSerializer.Deserialize<Application>(applicationMetadataFile, _jsonSerializerOptions);
+            var applicationMetadata = JsonSerializer.Deserialize<Application>(applicationMetadataFile, JsonSerializerOptions);
 
             var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == payload.Id);
             attachmentDataType.MaxCount.Should().Be(payload.MaxCount);
