@@ -19,6 +19,7 @@ const baseContainer: ICreateFormContainer = {
   index: 0,
   itemType: 'CONTAINER',
 };
+const customProperty = 'some-custom-property';
 const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
 const headerComponent: IFormHeaderComponent = {
   id: headerId,
@@ -39,6 +40,7 @@ const paragraphComponent: IFormComponent = {
     title: 'ServiceName',
   },
   dataModelBindings: {},
+  customProperty,
 };
 const groupId = 'group-container';
 const groupContainer: ICreateFormContainer = {
@@ -117,6 +119,7 @@ describe('utils/formLayout', () => {
         dataModelBindings: {},
         required: false,
         readOnly: false,
+        customProperty,
       },
     ];
   });
@@ -147,6 +150,7 @@ describe('utils/formLayout', () => {
               title: 'Input',
             },
             type: ComponentType.Input,
+            customProperty,
           },
         },
         containers: {
@@ -272,6 +276,7 @@ describe('utils/formLayout', () => {
               type: ComponentType.Paragraph,
               textResourceBindings: { title: 'ServiceName' },
               dataModelBindings: {},
+              customProperty,
             },
             {
               id: groupId,
