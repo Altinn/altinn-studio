@@ -25,8 +25,8 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string url = VersionPrefix(org, targetRepository);
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-            var response = await HttpClient.Value.SendAsync(request);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+            using var response = await HttpClient.Value.SendAsync(request);
 
             response.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
@@ -42,8 +42,8 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
 
             string url = VersionPrefix(org, targetRepository);
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-            var response = await HttpClient.Value.SendAsync(request);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+            using var response = await HttpClient.Value.SendAsync(request);
 
             response.StatusCode.Should().Be(HttpStatusCode.Created);
         }

@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             Assert.Contains(applicationMetadataPreDelete.DataTypes, x => x.Id == attacmentIdToDelete);
             string url = $"{VersionPrefix(org, targetRepository)}/attachment-component";
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+            using var requestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
             requestMessage.Content = new StringContent($"\"{attacmentIdToDelete}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
 
             var response = await HttpClient.Value.SendAsync(requestMessage);
