@@ -59,6 +59,11 @@ namespace Altinn.App.logic.Validation
                     validationResults.AddModelError(modelCheckboxes, "*FIXED*Ugyldig valg 1");
                     validationResults.AddModelError(modelRadios, "*FIXED*Ugyldig valg 2");
                 }
+
+                if (model?.GridData?.TotalProsent != 100)
+                {
+                    validationResults.AddModelError("GridData.TotalProsent", "Må summeres opp til 100%");
+                }
             }
 
             if (data.GetType() == typeof(NestedGroup))

@@ -429,6 +429,18 @@
             "Postnr",
             "Poststed"
           ]
+        },
+        "GridData": {
+          "type": "object",
+          "properties": {
+            "TotalGjeld": { "type": "integer" },
+            "Bolig": { "$ref": "#/definitions/GjeldsFordeling" },
+            "Studie": { "$ref": "#/definitions/GjeldsFordeling" },
+            "Kredittkort": { "$ref": "#/definitions/GjeldsFordeling" },
+            "TotalProsent": { "type": "integer" },
+            "ShowAll": { "type": "string" },
+            "Examples": { "$ref":  "#/definitions/GridExamples" }
+          }
         }
       },
       "required": [
@@ -436,6 +448,24 @@
         "spesifikasjonsnummer"
       ],
       "@xsdAnyAttribute": true
+    },
+    "GridExamples": {
+      "type": "object",
+        "properties": {
+          "ExampleDate": { "type": "string" },
+          "ExampleDropdown": { "type": "string" },
+          "ExampleMultiSelect": { "type": "string" },
+          "ExampleTextArea": { "type": "string" }
+        }
+    },
+    "GjeldsFordeling": {
+      "type": "object",
+      "properties": {
+        "Prosent": { "type": "integer" },
+        "Belop": { "type": "integer" },
+        "Verifisert": { "type": "string" },
+        "IBruk": { "type": "string" }
+      }
     },
     "Innledning-grp-9309": {
       "properties": {

@@ -65,6 +65,18 @@
         "pageRef": "form"
       },
       {
+        "id": "summaryGrid1",
+        "type": "Summary",
+        "componentRef": "page3-grid",
+        "pageRef": "grid"
+      },
+      {
+        "id": "summaryGrid2",
+        "type": "Summary",
+        "componentRef": "all-grid-components",
+        "pageRef": "grid"
+      },
+      {
         "id": "startAgain",
         "type": "Paragraph",
         "textResourceBindings": {
@@ -72,14 +84,14 @@
         }
       },
       {
-        "id": "sendInButton",
-        "type": "Button",
+        "id": "nav-buttons-from-summary",
+        "type": "NavigationButtons",
+        "showPrev": true,
         "textResourceBindings": {
-          "title": "Send inn"
+          "prev": "Forrige",
+          "next": "Neste"
         },
-        "dataModelBindings": {},
-        "textResourceId": "Standard.Button.Button",
-        "customType": "Standard"
+        "dataModelBindings": {}
       }
     ]
   }

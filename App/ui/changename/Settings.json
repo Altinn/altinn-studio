@@ -3,7 +3,8 @@
     "pages": {
         "order": [
             "form",
-            "summary"
+            "summary",
+            "grid"
         ],
         "excludeFromPdf": [
             "summary"

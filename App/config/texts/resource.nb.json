@@ -284,6 +284,18 @@
     {
       "id": "id_7098",
       "value": "Dette er en test"
+    },
+    {
+      "id": "laan-bolig",
+      "value": "Boliglån"
+    },
+    {
+      "id": "laan-studie",
+      "value": "Studielån"
+    },
+    {
+      "id": "laan-kredittkort",
+      "value": "Kredittkort"
     }
   ]
 }

@@ -116,6 +116,27 @@ namespace Altinn.App.logic.DataProcessing
                     model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759.value = "MiddleNameFromCalculation";
                     edited = true;
                 }
+
+                if (model != null)
+                {
+                    edited = true;
+                    model.GridData ??= new GridData();
+                    model.GridData.TotalGjeld ??= 0;
+                    model.GridData.Bolig ??= new GjeldsFordeling();
+                    model.GridData.Kredittkort ??= new GjeldsFordeling();
+                    model.GridData.Studie ??= new GjeldsFordeling();
+                    model.GridData.Bolig.Prosent ??= 0;
+                    model.GridData.Kredittkort.Prosent ??= 0;
+                    model.GridData.Studie.Prosent ??= 0;
+                    model.GridData.Bolig.Belop ??= 0;
+                    model.GridData.Kredittkort.Belop ??= 0;
+                    model.GridData.Studie.Belop ??= 0;
+                    model.GridData.TotalProsent = model.GridData.Bolig.Prosent + model.GridData.Kredittkort.Prosent +
+                                                  model.GridData.Studie.Prosent;
+                    model.GridData.Bolig.Belop = model.GridData.TotalGjeld * model.GridData.Bolig.Prosent / 100;
+                    model.GridData.Studie.Belop = model.GridData.TotalGjeld * model.GridData.Studie.Prosent / 100;
+                    model.GridData.Kredittkort.Belop = model.GridData.TotalGjeld * model.GridData.Kredittkort.Prosent / 100;
+                }
             }
 
             return await Task.FromResult(edited);
