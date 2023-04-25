@@ -1,4 +1,7 @@
 ﻿using System.Net;
+using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -25,11 +28,12 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             string previousMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
             Application applicationMetadataPreDelete = JsonSerializer.Deserialize<Application>(previousMetadata, JsonSerializerOptions);
             Assert.Contains(applicationMetadataPreDelete.DataTypes, x => x.Id == attacmentIdToDelete);
+            string url = $"{VersionPrefix(org, targetRepository)}/attachment-component";
 
-            // Id should be parameter of the url instead of query parameter.
-            string url = $"{VersionPrefix(org, targetRepository)}/attachment-component?id={attacmentIdToDelete}";
+            var requestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+            requestMessage.Content = new StringContent($"\"{attacmentIdToDelete}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
 
-            var response = await HttpClient.Value.DeleteAsync(url);
+            var response = await HttpClient.Value.SendAsync(requestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string currentMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
