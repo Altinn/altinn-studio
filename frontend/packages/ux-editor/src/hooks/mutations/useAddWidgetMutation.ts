@@ -9,7 +9,7 @@ import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { queryClient } from '../../../../../app-development/common/ServiceContext';
 import { QueryKey } from '../../types/QueryKey';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';
+import { useUpsertTextResourcesMutation } from '../../../../../app-development/hooks/mutations/useUpsertTextResourcesMutation';
 import { extractLanguagesFromWidgetTexts, extractTextsFromWidgetTextsByLanguage } from '../../utils/widgetUtils';
 
 export interface AddWidgetMutationArgs {

@@ -3,48 +3,45 @@ import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { TextResourceFile } from './types';
 import { textMock } from '../../../testing/mocks/i18nMock';
+import { ITextResource, ITextResources } from 'app-shared/types/global';
+
+const user = userEvent.setup();
 
 describe('TextEditor', () => {
-  const norwegianTranslation: TextResourceFile = {
-    language: 'nb',
-    resources: [
-      {
-        id: 'textId1',
-        value: 'norsk-1',
-      },
-      {
-        id: 'textId2',
-        value: 'norsk-2',
-      },
-    ],
-  };
+  const nb: ITextResource[] = [
+    {
+      id: 'textId1',
+      value: 'norsk-1',
+    },
+    {
+      id: 'textId2',
+      value: 'norsk-2',
+    },
+  ];
+  const textResourceFiles: ITextResources = { nb };
 
   const renderTextEditor = (props: Partial<TextEditorProps> = {}) => {
-    const user = userEvent.setup();
-    const allProps: TextEditorProps = {
+    const defaultProps: TextEditorProps = {
       addLanguage: jest.fn(),
       availableLanguages: ['nb', 'en'],
       deleteLanguage: jest.fn(),
       searchQuery: undefined,
+      selectedLangCodes: ['nb'],
       setSearchQuery: jest.fn(),
       setSelectedLangCodes: jest.fn(),
-      textResourceFiles: [norwegianTranslation],
+      textResourceFiles,
       updateTextId: jest.fn(),
       upsertTextResource: jest.fn(),
-      upsertTextResourceFile: jest.fn(),
-      ...props,
     };
-    rtlRender(<TextEditor {...allProps} />);
-    return { user };
+    return rtlRender(<TextEditor {...defaultProps} {...props} />);
   };
 
   it('fires upsertTextResource when Add new is clicked', async () => {
     jest.spyOn(global.Math, 'random').mockReturnValue(0);
 
     const upsertTextResource = jest.fn();
-    const { user } = renderTextEditor({
+    renderTextEditor({
       upsertTextResource,
     });
     const addBtn = screen.getByRole('button', {
@@ -63,7 +60,7 @@ describe('TextEditor', () => {
 
   it('fires onDeleteLang when Delete lang is clicked', async () => {
     const handleDeleteLang = jest.fn();
-    const { user } = renderTextEditor({
+    renderTextEditor({
       deleteLanguage: handleDeleteLang,
     });
     const deleteBtn = screen.getByTestId('delete-en');
@@ -75,7 +72,7 @@ describe('TextEditor', () => {
 
   it('calls setSelectedLang code when lang is changed', async () => {
     const setSelectedLangCodes = jest.fn((langs: string[]) => langs);
-    const { user } = renderTextEditor({
+    renderTextEditor({
       setSelectedLangCodes: setSelectedLangCodes,
     });
     const norwegianCheckbox = screen.getByRole('checkbox', {
@@ -94,14 +91,14 @@ describe('TextEditor', () => {
 
   it('signals correctly when a translation is changed', async () => {
     const upsertTextResource = jest.fn();
-    const { user } = renderTextEditor({
+    renderTextEditor({
       upsertTextResource,
     });
     const translationsToChange = screen.getAllByRole('textbox', {
       name: 'nb translation',
     });
     expect(translationsToChange).toHaveLength(2);
-    const changedTranslations = [...norwegianTranslation.resources];
+    const changedTranslations = nb;
     changedTranslations[0].value = 'new translation';
     await act(() => user.tripleClick(translationsToChange[0])); // select all text
     await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`)); // type new text and blur
@@ -114,7 +111,7 @@ describe('TextEditor', () => {
 
   describe('text-id mutation', () => {
     const deleteSomething = async (onTextIdChange = jest.fn()) => {
-      const { user } = renderTextEditor({
+      renderTextEditor({
         updateTextId: onTextIdChange,
       });
       const result = screen.getAllByRole('button', {
@@ -132,15 +129,13 @@ describe('TextEditor', () => {
         )
       );
 
-      await expect(onTextIdChange).toHaveBeenCalledWith({
-        oldId: norwegianTranslation.resources[0].id,
-      });
+      await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });
     };
 
     const getInputs = (name: RegExp) => screen.getAllByRole('textbox', { name });
 
     const makeChangesToTextIds = async (onTextIdChange = jest.fn()) => {
-      const { user } = renderTextEditor({
+      renderTextEditor({
         updateTextId: onTextIdChange,
       });
 
@@ -155,7 +150,7 @@ describe('TextEditor', () => {
       await act(() => user.keyboard('new-key{TAB}')); // type new text and blur
 
       await expect(onTextIdChange).toHaveBeenCalledWith({
-        oldId: norwegianTranslation.resources[0].id,
+        oldId: nb[0].id,
         newId: 'new-key',
       });
       return textIdInputs;

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CacheKey } from 'app-shared/api-paths/cache-key';
+import { QueryKey } from '../../../types/QueryKey';
 import { useServicesContext } from '../../../common/ServiceContext';
 
 export type CreateReleasePayload = {
@@ -15,7 +15,7 @@ export const useCreateReleaseMutation = (owner, app) => {
   return useMutation({
     mutationFn: (payload: CreateReleasePayload) => createRelease(owner, app, payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [CacheKey.AppReleases, owner, app] }),
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AppReleases, owner, app] }),
   });
 };
 
@@ -30,6 +30,6 @@ export const useCreateDeployMutation = (owner, app) => {
   return useMutation({
     mutationFn: (payload: CreateDeploymentPayload) => createDeployment(owner, app, payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [CacheKey.AppDeployments, owner, app] }),
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AppDeployments, owner, app] }),
   });
 };

@@ -18,7 +18,7 @@ import { useFormLayoutsQuery } from './hooks/queries/useFormLayoutsQuery';
 import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
 import { useAddLayoutMutation } from './hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
-import { useTextResourcesQuery } from './hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from '../../../app-development/hooks/queries/useTextResourcesQuery';
 
 /**
  * This is the main React component responsible for controlling

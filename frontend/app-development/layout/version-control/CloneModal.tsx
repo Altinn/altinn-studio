@@ -8,7 +8,7 @@ import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
 import { Button, TextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelsXsd } from '../../query-hooks/datamodel';
+import { useDatamodelsXsdQuery } from '../../hooks/queries';
 
 export interface ICloneModalProps {
   anchorEl: Element;
@@ -20,7 +20,7 @@ export function CloneModal(props: ICloneModalProps) {
   const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
   const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;
-  const { data: dataModel = [] } = useDatamodelsXsd(org, app);
+  const { data: dataModel = [] } = useDatamodelsXsdQuery(org, app);
   const { t } = useTranslation();
   const open = Boolean(props.anchorEl);
   return (

@@ -7,7 +7,7 @@ import { ResetRepoModal } from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { DownloadRepoModal } from './DownloadRepoModal';
 import classes from './SideMenuContent.module.css';
-import { useAppDispatch } from '../../../common/hooks';
+import { useAppDispatch } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useRepoStatus } from '../../appPublish/hooks/query-hooks';

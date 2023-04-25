@@ -3,7 +3,7 @@ import { TextRow } from './TextRow';
 import type {
   TextResourceEntryDeletion,
   TextResourceIdMutation,
-  UpsertTextResourcesMutation,
+  UpsertTextResourceMutation,
 } from './types';
 import { filterFunction, getLangName } from './utils';
 import { TextTableRow } from './types';
@@ -13,7 +13,7 @@ export type TextListProps = {
   resourceRows: TextTableRow[];
   searchQuery: string;
   selectedLanguages: string[];
-  upsertTextResource: (entry: UpsertTextResourcesMutation) => void;
+  upsertTextResource: (entry: UpsertTextResourceMutation) => void;
   removeEntry: ({ textId }: TextResourceEntryDeletion) => void;
   updateEntryId: ({ oldId, newId }: TextResourceIdMutation) => void;
 };

@@ -5,7 +5,7 @@ import { ApplicationMetadataActions } from '../../../sharedResources/application
 import { CheckboxGroup, CheckboxGroupVariant } from '@digdir/design-system-react';
 import classes from './AccessControlContainer.module.css';
 import type { RootState } from '../../../store';
-import { useAppSelector } from 'app-development/common/hooks';
+import { useAppSelector } from 'app-development/hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 

@@ -3,7 +3,7 @@ import classes from './deployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { AppDeploymentComponent, ImageOption } from '../components/appDeploymentComponent';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
-import { useAppSelector } from '../../../common/hooks';
+import { useAppSelector } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 import {
   useAppDeployments,
@@ -15,7 +15,7 @@ import {
 import { ICreateAppDeploymentEnvObject, IDeployment } from '../../../sharedResources/appDeployment/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { useQueryClient } from '@tanstack/react-query';
-import { CacheKey } from 'app-shared/api-paths/cache-key';
+import { QueryKey } from '../../../types/QueryKey';
 
 
 export interface IDeployEnvironment {
@@ -47,7 +47,7 @@ export const DeployContainerComponent = () => {
         (deployment) => deployment.build.status !== BuildStatus.completed
       );
       if (index > -1) {
-        await queryClient.invalidateQueries([CacheKey.AppDeployments, org, app]);
+        await queryClient.invalidateQueries([QueryKey.AppDeployments, org, app]);
       }
     }, 6666);
     return () => clearInterval(interval);

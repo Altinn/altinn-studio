@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { ComponentType } from './index';
-import { useTextResourcesQuery } from '../hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
 
 /**
  * Properties defined for input for wrapper

@@ -24,7 +24,7 @@ import cn from 'classnames';
 import { useParams } from 'react-router-dom';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
-import { useUpsertTextResourcesMutation } from '../hooks/mutations/useUpsertTextResourcesMutation';
+import { useUpsertTextResourcesMutation } from '../../../../app-development/hooks/mutations/useUpsertTextResourcesMutation';
 
 export interface TextResourceProps {
   description?: string;
