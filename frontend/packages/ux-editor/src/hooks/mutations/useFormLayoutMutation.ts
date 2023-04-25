@@ -17,7 +17,7 @@ export const useFormLayoutMutation = (org: string, app: string, layoutName: stri
       console.log(err);
       setTimeout(start, 5000);
     }
-  };
+  }
 
   const { saveFormLayout } = useServicesContext();
 
@@ -30,10 +30,6 @@ export const useFormLayoutMutation = (org: string, app: string, layoutName: stri
       await start();
       connection.send("sendMessage", "reload-layouts").catch(function (err) {
         return console.error(err.toString());
-      });
-
-      connection.onclose(async () => {
-        await start();
       });
 
       queryClient.setQueryData(

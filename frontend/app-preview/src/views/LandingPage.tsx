@@ -10,12 +10,15 @@ export const LandingPage = () => {
   const { org, app } = useParams();
   const { t } = useTranslation();
 
+  const connection = new signalR.HubConnectionBuilder().withUrl("/previewHub").configureLogging(signalR.LogLevel.Information).build();
+  connection.start();
+
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
-  const connection = new signalR.HubConnectionBuilder().withUrl("/previewHub").build();
-
   connection.on("ReceiveMessage", function (message) {
+    console.log("SignalR message received: " + message);
+    window.location.reload();
     let frame = document.getElementById('app-frontend-react-iframe');
     if (isIFrame(frame) && frame.contentWindow){
       frame.contentWindow.postMessage({ action: message }, '{baseurl}');
