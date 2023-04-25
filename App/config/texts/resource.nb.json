@@ -16,6 +16,10 @@
     {
       "id": "text",
       "value": "## Dette er en anonym stateless app brukt for cypress tester. "
-    }    
+    },
+    {
+      "id": "appName",
+      "value": "anonymous-stateless-app"
+    }
   ]
 }
