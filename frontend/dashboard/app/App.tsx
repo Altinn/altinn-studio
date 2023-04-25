@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import classes from './App.module.css';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import { AltinnSpinner } from 'app-shared/components';
-import { CenterContainer } from '../components/CenterContainer';
+import { PageSpinner } from 'app-shared/components';
 import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
 import { Route, Routes } from 'react-router-dom';
@@ -90,9 +89,5 @@ export const App = (): JSX.Element => {
     );
   }
 
-  return (
-    <CenterContainer>
-      <AltinnSpinner spinnerText={t('dashboard.loading')} />
-    </CenterContainer>
-  );
+  return <PageSpinner text={t('dashboard.loading')} />;
 };

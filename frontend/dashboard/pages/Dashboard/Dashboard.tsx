@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
-import { AltinnSpinner } from 'app-shared/components';
+import { PageSpinner } from 'app-shared/components';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
@@ -42,7 +42,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
 
   if (isLoadingStarredRepos) {
-    return <AltinnSpinner spinnerText={t('dashboard.loading')} />;
+    return <PageSpinner text={t('dashboard.loading')} />;
   }
 
   return (

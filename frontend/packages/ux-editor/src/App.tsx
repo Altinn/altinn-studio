@@ -11,7 +11,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import type { IAppState } from './types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useText } from './hooks';
-import { PageSpinner } from './components/PageSpinner';
+import { PageSpinner } from 'app-shared/components/PageSpinner';
 import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelQuery } from './hooks/queries/useDatamodelQuery';
 import { useFormLayoutsQuery } from './hooks/queries/useFormLayoutsQuery';

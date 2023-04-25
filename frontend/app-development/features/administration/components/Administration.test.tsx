@@ -89,7 +89,7 @@ describe('Administration', () => {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
     });
     const contentLoader = screen.queryByText('Laster siden');
-    expect(contentLoader).not.toBeNull();
+    expect(contentLoader).toBeInTheDocument();
   });
 
   it('should show Apps view when repository is app repository', () => {

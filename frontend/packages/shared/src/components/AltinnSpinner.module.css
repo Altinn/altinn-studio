@@ -1,8 +1,8 @@
 .spinner {
-  color: #0062ba;
   margin-right: auto;
   margin-left: auto;
   display: inline-block;
+  vertical-align: middle;
 }
 
 .spinnerText {
@@ -10,5 +10,4 @@
   font-size: 16px;
   margin-left: 10px;
   vertical-align: middle;
-  margin-bottom: 25px;
 }
