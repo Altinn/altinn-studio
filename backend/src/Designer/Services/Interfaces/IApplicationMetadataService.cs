@@ -59,6 +59,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<Application> GetApplicationMetadataFromRepository(string org, string app);
 
         /// <summary>
+        /// Returns the application metadata exists in repo.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>Flag if application metadata for an application.</returns>
+        public bool ApplicationMetadataExistsInRepository(string org, string app);
+
+        /// <summary>
         /// update  metadata for attachment
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

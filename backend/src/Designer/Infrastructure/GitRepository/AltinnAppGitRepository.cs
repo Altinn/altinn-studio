@@ -71,6 +71,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return applicationMetaData;
         }
 
+        public bool ApplicationMetadataExists()
+        {
+            string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
+            return FileExistsByRelativePath(appMetadataRelativeFilePath);
+        }
+
         /// <summary>
         /// Saves the application metadata file to disk.
         /// </summary>

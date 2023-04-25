@@ -70,8 +70,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateApplicationMetadata(string org, string app)
         {
-            Application applicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
-            if (applicationMetadata != null)
+            bool applicationMetadataAlreadyExists = _applicationMetadataService.ApplicationMetadataExistsInRepository(org, app);
+            if (applicationMetadataAlreadyExists)
             {
                 return Conflict("ApplicationMetadata already exists.");
             }
