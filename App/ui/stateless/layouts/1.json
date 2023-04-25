@@ -83,6 +83,32 @@
         "labelSettings": {"optionalIndicator": false}
       },
       {
+        "id": "idnummer3",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Velg kjønn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattKjonn.value"
+        },
+        "options": [
+          {
+            "label": "mann",
+            "value": "mann"
+          },
+          {
+            "label": "kvinne",
+            "value": "kvinne"
+          },
+          {
+            "label": "annet",
+            "value": "annet"
+          }
+        ],
+        "required": true,
+        "optionsId": null
+      },
+      {
         "id": "options",
         "type": "Dropdown",
         "dataModelBindings": {
