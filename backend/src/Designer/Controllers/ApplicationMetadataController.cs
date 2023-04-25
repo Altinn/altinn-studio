@@ -139,7 +139,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns></returns>
         [HttpDelete]
         [Route("attachment-component")]
-        public async Task<ActionResult> DeleteMetadataForAttachment(string org, string app, string id)
+        public async Task<ActionResult> DeleteMetadataForAttachment(string org, string app, [FromBody] string id)
         {
             try
             {
