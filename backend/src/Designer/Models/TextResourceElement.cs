@@ -23,7 +23,7 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Gets or sets the variables
         /// </summary>
-        [JsonProperty(PropertyName = "variables")]
+        [JsonProperty(PropertyName = "variables", NullValueHandling = NullValueHandling.Ignore)]
         public List<TextResourceVariable> Variables { get; set; }
     }
 }

@@ -151,12 +151,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
         [HttpPut]
         [Route("language/{languageCode}")]
-        public IActionResult UpdateTextsForKeys(string org, string app, [FromBody] Dictionary<string, string> keysTexts, string languageCode)
+        public async Task<IActionResult> UpdateTextsForKeys(string org, string app, [FromBody] Dictionary<string, string> keysTexts, string languageCode)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                _textsService.UpdateTextsForKeys(org, app, developer, keysTexts, languageCode);
+                await _textsService.UpdateTextsForKeys(org, app, developer, keysTexts, languageCode);
                 return Ok($"The text resource, resource.{languageCode}.json, was updated.");
 
             }

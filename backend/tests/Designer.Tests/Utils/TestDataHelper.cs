@@ -311,6 +311,12 @@ namespace Designer.Tests.Utils
             return string.Empty;
         }
 
+        public static bool FileExistsInRepo(string org, string repository, string developer, string relativePath)
+        {
+            string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
+            return File.Exists(filePath);
+        }
+
         public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();
 
         public static ILoggerFactory LogFactory { get; } = LoggerFactory.Create(builder =>
