@@ -36,7 +36,8 @@
         window.org = appId[1];
         window.app = appId[2];
       }
-
+      
+      // TODO: Remove when devtools supports setting permissions
       async function waitForSelector(selector) {
         while ( document.querySelector(selector) === null) {
           await new Promise( resolve => requestAnimationFrame(resolve) )
@@ -99,7 +100,9 @@
     </div>
     <script>
       loadScript();
-      if (document.location.host === "local.altinn.cloud") {
+
+      // TODO: Remove when devtools supports setting permissions
+      if (document.location.host === "local.altinn.cloud" && false) { // Remove '&& false' to enable local "devtools"
         document.querySelector("#permissionContainer").style.display = "block";
         
         document.querySelector("#writePermission").checked = localStorage.getItem('writePermission') === "true" ?? true;

@@ -107,13 +107,13 @@
         "dataModelBindings": {}
       },
       {
-        "id": "SigningButtons",
-        "type": "SigningButtons",
+        "id": "SigningButton",
+        "type": "ActionButton",
         "textResourceBindings": {
-          "sign": "Signer",
-          "reject": "Avslå"
+          "title": "Signer"
         },
-        "showRejectButton": false
+        "action": "sign",
+        "buttonStyle": "primary"
       }
     ]
   }
