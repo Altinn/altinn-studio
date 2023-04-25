@@ -6,7 +6,18 @@ import { queryClient, useServicesContext } from '../../../../../app-development/
 import * as signalR from "@microsoft/signalr";
 
 export const useFormLayoutMutation = (org: string, app: string, layoutName: string) => {
-  const connection = new signalR.HubConnectionBuilder().withUrl("/previewHub").build();
+
+  const connection = new signalR.HubConnectionBuilder().withUrl("/previewHub").configureLogging(signalR.LogLevel.Information).build();
+
+  async function start() {
+    try {
+      await connection.start();
+      console.log("SignalR Connected.");
+    } catch (err) {
+      console.log(err);
+      setTimeout(start, 5000);
+    }
+  };
 
   const { saveFormLayout } = useServicesContext();
 
@@ -15,8 +26,16 @@ export const useFormLayoutMutation = (org: string, app: string, layoutName: stri
       const convertedLayout: IExternalFormLayout = convertInternalToLayoutFormat(layout);
       return saveFormLayout(org, app, layoutName, convertedLayout).then(() => layout);
     },
-    onSuccess: (savedLayout) => {
-      connection.send("sendMessage", "reload-layouts");
+    onSuccess: async (savedLayout) => {
+      await start();
+      connection.send("sendMessage", "reload-layouts").catch(function (err) {
+        return console.error(err.toString());
+      });
+
+      connection.onclose(async () => {
+        await start();
+      });
+
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app],
         (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout })

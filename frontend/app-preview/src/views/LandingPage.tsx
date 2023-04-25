@@ -10,10 +10,10 @@ export const LandingPage = () => {
   const { org, app } = useParams();
   const { t } = useTranslation();
 
-  const connection = new signalR.HubConnectionBuilder().withUrl("/previewHub").build();
-
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
+
+  const connection = new signalR.HubConnectionBuilder().withUrl("/previewHub").build();
 
   connection.on("ReceiveMessage", function (message) {
     let frame = document.getElementById('app-frontend-react-iframe');

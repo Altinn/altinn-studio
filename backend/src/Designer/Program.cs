@@ -10,7 +10,7 @@ using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
-using Altinn.Studio.Designer.WebSockets.PreviewHubs;
+using Altinn.Studio.Designer.Hubs;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
@@ -265,6 +265,8 @@ void Configure(IConfiguration configuration)
             });
     }
 
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
         OnPrepareResponse = context =>
