@@ -54,8 +54,6 @@ namespace Designer.Tests.Fixtures
             await _giteaNetwork.DeleteAsync();
         }
 
-
-
         private async Task BuildAndStartAltinnGiteaAsync()
         {
             string giteaDockerFilePath = Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "gitea");
@@ -89,14 +87,10 @@ namespace Designer.Tests.Fixtures
             var policy = Policy.HandleResult<ExecResult>(x => x.ExitCode != 0)
                 .WaitAndRetryAsync(10, retryAttempt => TimeSpan.FromSeconds(1));
 
-            await policy.ExecuteAsync(_ =>
+            await policy.ExecuteAsync(_ => _giteaContainer.ExecAsync(new[]
             {
-                return _giteaContainer.ExecAsync(new[]
-                {
-                    "/bin/sh", "-c", "gitea admin user create --username testadmin --password TestAdmin1234$ --email testadmin@digdir.no --must-change-password=false"
-                }, _);
-
-            }, CancellationToken.None);
+                "/bin/sh", "-c", $"gitea admin user create --username {Constants.GiteaAdminUser} --password {Constants.GiteaAdminPassword} --email {Constants.GiteaAdminEmail} --must-change-password=false"
+            }, _), CancellationToken.None);
 
         }
     }
