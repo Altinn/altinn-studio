@@ -62,6 +62,7 @@
     <Compile Remove="Controllers\ManualTestingController.cs" />
     <None Remove="jwtselfsignedcert.pfx" />
     <Watch Remove="Controllers\CompetentAuthority.cs" />
+    <Watch Remove="Controllers\ResourceAdmController.cs" />
     <Watch Remove="Controllers\ResourceAdminController.cs" />
     <Watch Remove="Enums\ReferenceSource.cs" />
     <Watch Remove="Enums\ReferenceType.cs" />
