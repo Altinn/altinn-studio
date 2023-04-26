@@ -23,13 +23,13 @@ import { ILayoutSettings } from 'app-shared/types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { BrowserRouter } from 'react-router-dom';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import ruleHandlerMock from './ruleHandlerMock';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
 };
 
 export const appDataMock: IAppDataState = {
-  ruleModel: null,
   textResources: textResourcesMock,
 };
 
@@ -170,6 +170,7 @@ export const queriesMock: ServicesContextProps = {
   getRepoMetadata: jest.fn(),
   getRepoPull: jest.fn(),
   getRepoStatus: jest.fn(),
+  getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
   getTextResources: jest.fn().mockImplementation(() => Promise.resolve([])),
   getUser: jest.fn(),

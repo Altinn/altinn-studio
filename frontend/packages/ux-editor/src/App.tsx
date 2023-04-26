@@ -5,7 +5,6 @@ import { ErrorMessageComponent } from './components/message/ErrorMessageComponen
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
 import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
-import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
 import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
 import { useParams, useSearchParams } from 'react-router-dom';
 import type { IAppState } from './types/global';
@@ -19,6 +18,7 @@ import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
 import { useAddLayoutMutation } from './hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
 import { useTextResourcesQuery } from '../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -36,6 +36,7 @@ export function App() {
   const { data: formLayouts, isError: layoutFetchedError  } = useFormLayoutsQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
   const { data: textResources } = useTextResourcesQuery(org, app);
+  const { data: ruleModel } = useRuleModelQuery(org, app);
   const addLayoutMutation = useAddLayoutMutation(org, app);
 
   const selectedLayout = useSelector(selectedLayoutNameSelector);
@@ -53,7 +54,8 @@ export function App() {
     isWidgetFetched &&
     formLayoutSettings &&
     datamodel &&
-    textResources;
+    textResources &&
+    ruleModel;
 
   const componentHasError =
     dataModelFetchedError || layoutFetchedError || widgetFetchedError;
@@ -93,7 +95,6 @@ export function App() {
   useEffect(() => {
     const fetchFiles = () => {
       dispatch(fetchServiceConfiguration({ org, app }));
-      dispatch(fetchRuleModel({ org, app }));
       dispatch(fetchWidgetSettings({ org, app }));
       dispatch(fetchWidgets({ org, app }));
     };

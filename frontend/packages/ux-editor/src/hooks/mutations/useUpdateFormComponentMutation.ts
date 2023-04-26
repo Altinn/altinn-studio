@@ -49,7 +49,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string) => {
       }
 
       return formLayoutMutation.mutateAsync(updatedLayout).then(async (data) => {
-        if (updatedComponent.type === ComponentType.FileUpload) {
+        if (updatedComponent.type === ComponentType.FileUpload || updatedComponent.type === ComponentType.FileUploadWithTag) {
           // Todo: Consider handling this in the backend
           const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
             updatedComponent as IFormFileUploaderComponent;

@@ -273,7 +273,7 @@ export interface IDataModelFieldElement {
 }
 
 export interface IRuleModelFieldElement {
-  type: string;
+  type: 'rule' | 'condition';
   name: string;
   inputs: any;
 }
