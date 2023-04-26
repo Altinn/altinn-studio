@@ -34,7 +34,7 @@ export const useAddFormComponentMutation = (org: string, app: string) => {
       const updatedLayout: IInternalLayout = addComponent(layout, component, containerId, position);
 
       return formLayoutsMutation.mutateAsync(updatedLayout).then(() => {
-        if (component.type === ComponentType.FileUpload) {
+        if (component.type === ComponentType.FileUpload || component.type === ComponentType.FileUploadWithTag) {
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
           const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
             component as IFormFileUploaderComponent;
