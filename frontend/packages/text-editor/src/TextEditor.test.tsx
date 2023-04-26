@@ -150,7 +150,7 @@ describe('TextEditor', () => {
       await act(() => user.keyboard('new-key{TAB}')); // type new text and blur
 
       await expect(onTextIdChange).toHaveBeenCalledWith({
-        oldId: nb[1].id,
+        oldId: nb[0].id,
         newId: 'new-key',
       });
       return textIdInputs;
@@ -165,7 +165,7 @@ describe('TextEditor', () => {
 
     it('signals that a textId has changed', async () => {
       await makeChangesToTextIds();
-      const textIdRefsAfter1 = screen.getAllByText('textId1');
+      const textIdRefsAfter1 = screen.getAllByText('textId2');
       expect(textIdRefsAfter1).toHaveLength(1); // The id is also on the delete button
     });
 
@@ -175,7 +175,7 @@ describe('TextEditor', () => {
       const { error, onTextIdChange } = setupError();
       const original = await makeChangesToTextIds(onTextIdChange);
       expect(error).toHaveBeenCalledWith('Renaming text-id failed:\n', 'some error');
-      const textIdRefsAfter1 = screen.getAllByText('textId1');
+      const textIdRefsAfter1 = screen.getAllByText('textId2');
       expect(textIdRefsAfter1).toHaveLength(1);
 
       const textIdRefsAfter2 = screen.queryAllByText(/new-key/i);
