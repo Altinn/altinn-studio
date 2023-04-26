@@ -85,7 +85,7 @@ namespace Designer.Tests.Fixtures
 
             // Make sure that gitea is up and running before we try to create the admin user
             var policy = Policy.HandleResult<ExecResult>(x => x.ExitCode != 0)
-                .WaitAndRetryAsync(10, retryAttempt => TimeSpan.FromSeconds(1));
+                .WaitAndRetryAsync(4, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
 
             await policy.ExecuteAsync(_ => _giteaContainer.ExecAsync(new[]
             {
