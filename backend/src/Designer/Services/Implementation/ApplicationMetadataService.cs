@@ -219,6 +219,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return applicationMetadata;
         }
 
+        public bool ApplicationMetadataExistsInRepository(string org, string app)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            return altinnAppGitRepository.ApplicationMetadataExists();
+        }
+
         private async Task<Application> GetApplicationMetadataFromStorage(string org, string app, string envName)
         {
             try
