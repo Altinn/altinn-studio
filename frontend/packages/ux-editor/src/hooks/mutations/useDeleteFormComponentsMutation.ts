@@ -19,7 +19,7 @@ export const useDeleteFormComponentsMutation = (org: string, app: string) =>  {
       for (const id of components) {
         const component = layout.components[id];
         updatedLayout = removeComponent(updatedLayout, id);
-        if (component?.type === ComponentType.FileUpload) {
+        if (component?.type === ComponentType.FileUpload || component?.type ===ComponentType.FileUploadWithTag) {
           await deleteAppAttachmentMetadataMutation.mutateAsync(id);
         }
       }
