@@ -1,6 +1,6 @@
 import type { ExprVal } from 'src/features/expressions/types';
 import type { ILayoutCompBase, ITableColumnFormatting } from 'src/layout/layout';
-import type { IGroupPanel, ILayoutCompPanelBase } from 'src/layout/Panel/types';
+import type { ILayoutCompPanelBase } from 'src/layout/Panel/types';
 
 export interface IGroupFilter {
   key: string;

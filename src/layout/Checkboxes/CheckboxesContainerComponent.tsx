@@ -27,6 +27,8 @@ export const CheckboxContainerComponent = ({
   language,
   handleDataChange,
   getTextResource,
+  getTextResourceAsString,
+  overrideDisplay,
 }: ICheckboxContainerProps) => {
   const {
     id,
@@ -103,6 +105,8 @@ export const CheckboxContainerComponent = ({
     </span>
   );
 
+  const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1;
+
   return fetchingOptions ? (
     <AltinnSpinner />
   ) : (
@@ -115,9 +119,14 @@ export const CheckboxContainerComponent = ({
         compact={false}
         disabled={readOnly}
         onChange={(values) => handleChange(values)}
-        legend={labelText}
+        legend={overrideDisplay?.renderLegend === false ? null : labelText}
         description={textResourceBindings?.description && getTextResource(textResourceBindings.description)}
         error={!isValid}
+        fieldSetProps={{
+          'aria-label': overrideDisplay?.renderedInTable
+            ? getTextResourceAsString(textResourceBindings?.title)
+            : undefined,
+        }}
         helpText={textResourceBindings?.help && getTextResource(textResourceBindings.help)}
         variant={
           shouldUseRowLayout({
@@ -131,9 +140,10 @@ export const CheckboxContainerComponent = ({
           name: option.value,
           checkboxId: `${id}-${option.label.replace(/\s/g, '-')}`,
           checked: selected.includes(option.value),
-          label: getTextResource(option.label),
+          hideLabel,
+          label: hideLabel ? getTextResourceAsString(option.label) : getTextResource(option.label),
           description: getTextResource(option.description),
-          helpText: getTextResource(option.helpText),
+          helpText: option.helpText && getTextResource(option.helpText),
         }))}
       />
     </div>

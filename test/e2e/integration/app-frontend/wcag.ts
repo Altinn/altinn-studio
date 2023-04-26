@@ -5,8 +5,11 @@ const appFrontend = new AppFrontend();
 describe('WCAG', () => {
   it('WCAG test in changename', () => {
     cy.gotoAndComplete('changename');
+    cy.navPage('form').click();
     cy.testWcag();
-    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.navPage('summary').click();
+    cy.testWcag();
+    cy.navPage('grid').click();
     cy.testWcag();
   });
 

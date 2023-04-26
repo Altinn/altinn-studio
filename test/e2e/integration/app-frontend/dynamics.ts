@@ -28,7 +28,10 @@ describe('Dynamics', () => {
         component.hidden = ['equals', 'hideFirstName', ['component', 'newLastName']];
       }
     });
-    cy.goto('changename');
+    cy.gotoAndComplete('changename');
+    cy.navPage('form').click();
+    cy.get(appFrontend.changeOfName.newFirstName).clear();
+    cy.get(appFrontend.changeOfName.newLastName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
     cy.get(appFrontend.errorReport).should('contain.text', texts.testIsNotValidValue);
     cy.get(appFrontend.changeOfName.newLastName).type('hideFirstName');
@@ -68,13 +71,13 @@ describe('Dynamics', () => {
     cy.goto('changename');
 
     // Make sure the summary page can be hidden
-    cy.get(appFrontend.navMenuButtons).should('have.length', 2);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 3);
     cy.get(appFrontend.changeOfName.newFirstName).type('hideSummary');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 1);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 2);
 
     cy.get(appFrontend.changeOfName.newFirstName).clear();
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 2);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 3);
 
     // Typing 1234 into the field should hide the last name component
     cy.navPage('summary').click();
@@ -87,6 +90,6 @@ describe('Dynamics', () => {
     // the value found in the component lookup is null now)
     cy.get(appFrontend.changeOfName.newFirstName).type('hideSummary');
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 1);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 2);
   });
 });

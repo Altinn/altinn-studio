@@ -1,0 +1,42 @@
+.rowReadOnly,
+.rowReadOnly td,
+.rowReadOnly th {
+  background-color: var(--component-input-read_only_info-color-background-default);
+}
+
+tr > .fullWidthCellFirst {
+  padding-left: calc(var(--modal-padding-x) - var(--table-input-margin));
+}
+
+tr > .fullWidthCellLast {
+  padding-right: calc(var(--modal-padding-x) - var(--table-input-margin));
+}
+
+.contentFormatting {
+  --cell-max-number-of-lines: 2;
+  --cell-text-alignment: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--cell-max-number-of-lines);
+  line-clamp: var(--cell-max-number-of-lines);
+  text-align: var(--cell-text-alignment);
+}
+
+.tableCellFormatting {
+  --cell-width: auto;
+  width: var(--cell-width);
+}
+
+/* The width here should be: calc(var(--cell-width) + var(--modal-padding-x) - var(--table-input-margin));
+   Adding 8.15% is a workaround for calc not working with both percentages and pixels inside a cell element.
+*/
+.tableCellFormatting:first-child {
+  width: calc(var(--cell-width) + 8.15%);
+}
+
+.tableCellFormatting:last-child {
+  width: calc(var(--cell-width) + 8.15%);
+}

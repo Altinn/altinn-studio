@@ -26,4 +26,8 @@ export class FileUploadWithTag extends FormComponent<'FileUploadWithTag'> {
   renderSummary({ targetNode }: SummaryRendererProps<'FileUploadWithTag'>): JSX.Element | null {
     return <AttachmentWithTagSummaryComponent targetNode={targetNode} />;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

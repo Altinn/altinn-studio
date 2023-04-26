@@ -12,7 +12,7 @@ import type { ISelectionComponent } from 'src/layout/layout';
 export function useCommaSeparatedOptionsToText(component: ISelectionComponent, value: string) {
   const textResources = useAppSelector((state) => state.textResources.resources);
   const optionList = useOptionList(component);
-  const split = value.split(',');
+  const split = value.split(',').filter((value) => !!value.trim());
   const out: { [key: string]: string } = {};
   split?.forEach((part) => {
     const textKey = optionList.find((option) => option.value === part)?.label || '';

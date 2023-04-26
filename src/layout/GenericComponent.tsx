@@ -27,6 +27,11 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export interface IGenericComponentProps<Type extends ComponentTypes> {
   node: LayoutNode | LayoutNodeFromType<Type>;
   overrideItemProps?: Partial<Omit<AnyItem<Type>, 'id'>>;
+  overrideDisplay?: {
+    renderLabel?: false;
+    renderLegend?: false;
+    renderedInTable?: true;
+  };
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -78,6 +83,7 @@ const useStyles = makeStyles((theme) => ({
 export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
   node,
   overrideItemProps,
+  overrideDisplay,
 }: IGenericComponentProps<Type>) {
   let item = node.item;
   const id = item.id;
@@ -180,18 +186,24 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
   const layoutComponent = node.def as unknown as LayoutComponent<Type>;
   const RenderComponent = layoutComponent.render;
 
-  const RenderLabel = () => (
-    <Label
-      key={`label-${id}`}
-      labelText={texts.title}
-      helpText={texts.help}
-      language={language}
-      id={id}
-      readOnly={item.readOnly}
-      required={item.required}
-      labelSettings={item.labelSettings}
-    />
-  );
+  const RenderLabel = () => {
+    if (overrideDisplay?.renderLabel === false) {
+      return null;
+    }
+
+    return (
+      <Label
+        key={`label-${id}`}
+        labelText={texts.title}
+        helpText={texts.help}
+        language={language}
+        id={id}
+        readOnly={item.readOnly}
+        required={item.required}
+        labelSettings={item.labelSettings}
+      />
+    );
+  };
 
   const RenderDescription = () => {
     if (!item.textResourceBindings?.description) {
@@ -207,19 +219,25 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     );
   };
 
-  const RenderLegend = () => (
-    <Legend
-      key={`legend-${id}`}
-      labelText={texts.title}
-      descriptionText={texts.description}
-      helpText={texts.help}
-      language={language}
-      id={id}
-      required={item.required}
-      labelSettings={item.labelSettings}
-      layout={('layout' in item && item.layout) || undefined}
-    />
-  );
+  const RenderLegend = () => {
+    if (overrideDisplay?.renderLegend === false) {
+      return null;
+    }
+
+    return (
+      <Legend
+        key={`legend-${id}`}
+        labelText={texts.title}
+        descriptionText={texts.description}
+        helpText={texts.help}
+        language={language}
+        id={id}
+        required={item.required}
+        labelSettings={item.labelSettings}
+        layout={('layout' in item && item.layout) || undefined}
+      />
+    );
+  };
 
   const getTextResourceWrapper = (key: string | undefined) => getTextResource(key, textResources);
 
@@ -240,11 +258,12 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
     componentValidations,
   };
 
-  const componentProps = {
+  const componentProps: PropsFromGenericComponent<Type> = {
     ...fixedComponentProps,
-    node,
+    node: node as unknown as LayoutNodeFromType<Type>,
     overrideItemProps,
-  } as unknown as PropsFromGenericComponent<Type>;
+    overrideDisplay,
+  };
 
   const showValidationMessages = hasValidationMessages && layoutComponent.renderDefaultValidations();
 
@@ -274,7 +293,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
         )}
         alignItems='baseline'
       >
-        {layoutComponent.renderWithLabel() && (
+        {layoutComponent.renderWithLabel() && overrideDisplay?.renderLabel !== false && (
           <Grid
             item={true}
             {...gridBreakpoints(item.grid?.labelGrid)}

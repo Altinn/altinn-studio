@@ -37,4 +37,8 @@ export class Likert extends FormComponent<'Likert'> {
     const displayData = this.useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

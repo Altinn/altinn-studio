@@ -12,4 +12,8 @@ export class NavigationButtons extends ActionComponent<'NavigationButtons'> {
   renderWithLabel(): boolean {
     return false;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

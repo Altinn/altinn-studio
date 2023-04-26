@@ -41,6 +41,13 @@ abstract class AnyComponent<Type extends ComponentTypes> {
   }
 
   /**
+   * Return false to prevent this component from being rendered in a table
+   */
+  canRenderInTable(): boolean {
+    return true;
+  }
+
+  /**
    * Should GenericComponent render validation messages for simpleBinding outside of this component?
    * This has no effect if:
    *  - Your component renders directly, using directRender()

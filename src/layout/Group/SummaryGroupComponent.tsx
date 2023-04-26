@@ -56,7 +56,7 @@ export function SummaryGroupComponent({
   }, [textResources, textResourceBindings, language]);
 
   const rowIndexes: (number | undefined)[] = [];
-  if ('rows' in targetNode.item) {
+  if (targetNode.isRepGroup()) {
     for (const row of targetNode.item.rows) {
       row && rowIndexes.push(row.index);
     }
@@ -71,11 +71,7 @@ export function SummaryGroupComponent({
     return (
       <>
         {rowIndexes.map((idx) => {
-          if (
-            idx !== undefined &&
-            'rows' in targetNode.item &&
-            targetNode.item.rows[idx]?.groupExpressions?.hiddenRow
-          ) {
+          if (idx !== undefined && targetNode.isRepGroup() && targetNode.item.rows[idx]?.groupExpressions?.hiddenRow) {
             return null;
           }
 

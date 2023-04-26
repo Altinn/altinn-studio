@@ -27,4 +27,8 @@ export class Summary extends ContainerComponent<'Summary'> {
   useDisplayData(): string {
     return '';
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

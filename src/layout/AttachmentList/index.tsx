@@ -12,4 +12,8 @@ export class AttachmentList extends PresentationComponent<'AttachmentList'> {
   renderWithLabel(): boolean {
     return false;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

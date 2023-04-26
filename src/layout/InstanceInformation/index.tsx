@@ -8,4 +8,8 @@ export class InstanceInformation extends PresentationComponent<'InstanceInformat
   render(props: PropsFromGenericComponent<'InstanceInformation'>): JSX.Element | null {
     return <InstanceInformationComponent {...props} />;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

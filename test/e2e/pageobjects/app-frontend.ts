@@ -50,6 +50,50 @@ export class AppFrontend {
   public prevButton = `[data-testid=NavigationButtons] button:contains("${texts.prev}")`;
   public backToSummaryButton = `[data-testid=NavigationButtons] button:contains("${texts.backToSummary}")`;
 
+  public grid = {
+    grid: '#page3-grid',
+    gridWithAll: '#all-grid-components',
+    showGridWithAll: '#show-all-components',
+    hasCreditCard: '#has-credit-card',
+    totalAmount: '#gjeld',
+    totalPercent: '#fordeling-total',
+    bolig: {
+      percent: '#fordeling-bolig',
+      percentComponent: 'div[data-componentid="fordeling-bolig"]',
+      percentSummary: 'div[data-testid="summary-fordeling-bolig"]',
+      amount: '#belop-bolig',
+      amountComponent: 'div[data-componentid="belop-bolig"]',
+      amountSummary: 'div[data-testid="summary-belop-bolig"]',
+      verified: '#innhentet-bolig',
+      verifiedComponent: 'div[data-componentid="innhentet-bolig"]',
+      verifiedSummary: 'div[data-testid="summary-innhentet-bolig"]',
+    },
+    studie: {
+      percent: '#fordeling-studie',
+      percentComponent: 'div[data-componentid="fordeling-studie"]',
+      percentSummary: 'div[data-testid="summary-fordeling-studie"]',
+      amount: '#belop-studie',
+      amountComponent: 'div[data-componentid="belop-studie"]',
+      amountSummary: 'div[data-testid="summary-belop-studie"]',
+      verified: '#innhentet-studie',
+      verifiedComponent: 'div[data-componentid="innhentet-studie"]',
+      verifiedSummary: 'div[data-testid="summary-innhentet-studie"]',
+    },
+    kredittkort: {
+      percent: '#fordeling-kredittkort',
+      percentComponent: 'div[data-componentid="fordeling-kredittkort"]',
+      percentSummary: 'div[data-testid="summary-fordeling-kredittkort"]',
+      amount: '#belop-kredittkort',
+      amountComponent: 'div[data-componentid="belop-kredittkort"]',
+      amountSummary: 'div[data-testid="summary-belop-kredittkort"]',
+      verified: '#innhentet-kredittkort',
+      verifiedComponent: 'div[data-componentid="innhentet-kredittkort"]',
+      verifiedSummary: 'div[data-testid="summary-innhentet-kredittkort"]',
+    },
+    summary: 'div[data-testid="summary-summaryGrid1"]',
+    summaryAll: 'div[data-testid="summary-summaryGrid2"]',
+  };
+
   //Receipt
   public receipt = {
     container: '#ReceiptContainer',

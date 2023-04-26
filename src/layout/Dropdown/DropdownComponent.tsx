@@ -18,9 +18,10 @@ export function DropdownComponent({
   formData,
   handleDataChange,
   isValid,
+  overrideDisplay,
   getTextResourceAsString,
 }: IDropdownProps) {
-  const { optionsId, preselectedOptionIndex, id, readOnly, mapping, source } = node.item;
+  const { optionsId, preselectedOptionIndex, id, readOnly, mapping, source, textResourceBindings } = node.item;
   const language = useAppSelector((state) => state.language.language);
   const textResources = useAppSelector((state) => state.textResources.resources);
   const options = useGetOptions({ optionsId, mapping, source })?.filter(duplicateOptionFilter);
@@ -74,6 +75,9 @@ export function DropdownComponent({
               formattedLabel: formatLabelForSelect(option, textResources),
               value: option.value,
             })) || []
+          }
+          aria-label={
+            overrideDisplay?.renderedInTable ? getTextResourceAsString(textResourceBindings?.title) : undefined
           }
         />
       )}

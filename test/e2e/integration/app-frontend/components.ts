@@ -63,7 +63,7 @@ describe('UI Components', () => {
 
   it('is possible to navigate between pages using navigation bar', () => {
     cy.goto('changename');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 2);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 3);
     cy.navPage('form')
       .should('have.attr', 'aria-current', 'page')
       .and('have.css', 'background-color', 'rgb(2, 47, 81)');

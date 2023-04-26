@@ -3,6 +3,7 @@ import type { $Keys, DeepPartial, PickByValue } from 'utility-types';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { ComponentClassMapTypes } from 'src/layout';
+import type { ILayoutGridHierarchy } from 'src/layout/Grid/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type {
   ComponentExceptGroup,
@@ -19,7 +20,9 @@ import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 /**
  * In the hierarchy, components and groups will always have their layout expressions evaluated and resolved.
  */
-export type HComponent<T extends ComponentExceptGroup = ComponentExceptGroup> = ExprResolved<ILayoutComponentExact<T>>;
+export type HComponent<T extends ComponentExceptGroup = ComponentExceptGroup> = T extends 'Grid'
+  ? ILayoutGridHierarchy
+  : ExprResolved<ILayoutComponentExact<T>>;
 
 /**
  * Base type used for repeating group and non-repeating groups
@@ -96,7 +99,9 @@ export interface HierarchyDataSources extends ContextDataSources {
   validations: IValidations;
 }
 
-export type LayoutNodeFromType<Type> = Type extends ComponentExceptGroup
+export type LayoutNodeFromType<Type> = Type extends 'Grid'
+  ? LayoutNode<ILayoutGridHierarchy>
+  : Type extends ComponentExceptGroup
   ? LayoutNode<HComponent<Type> | HComponentInRepGroup<Type>, Type>
   : Type extends 'Group'
   ? LayoutNode<HGroups, 'Group'>

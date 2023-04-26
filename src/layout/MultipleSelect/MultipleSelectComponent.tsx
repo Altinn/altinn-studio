@@ -20,8 +20,9 @@ export function MultipleSelectComponent({
   getTextResourceAsString,
   formData,
   isValid,
+  overrideDisplay,
 }: IMultipleSelectProps) {
-  const { options, optionsId, mapping, source, id, readOnly } = node.item;
+  const { options, optionsId, mapping, source, id, readOnly, textResourceBindings } = node.item;
   const apiOptions = useGetOptions({ optionsId, mapping, source });
   const language = useAppSelector((state) => state.language.language);
   const { value, setValue, saveValue } = useDelayedSavedState(handleDataChange, formData?.simpleBinding);
@@ -63,6 +64,7 @@ export function MultipleSelectComponent({
       onChange={handleChange}
       onBlur={saveValue}
       value={selectedValues}
+      aria-label={overrideDisplay?.renderedInTable ? getTextResourceAsString(textResourceBindings?.title) : undefined}
     />
   );
 }

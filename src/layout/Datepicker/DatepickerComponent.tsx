@@ -103,7 +103,15 @@ class AltinnMomentUtils extends MomentUtils {
 // We dont use the built-in validation for the 3rd party component, so it is always empty string
 const emptyString = '';
 
-export function DatepickerComponent({ node, language, formData, handleDataChange, isValid }: IDatepickerProps) {
+export function DatepickerComponent({
+  node,
+  language,
+  formData,
+  handleDataChange,
+  isValid,
+  overrideDisplay,
+  getTextResourceAsString,
+}: IDatepickerProps) {
   const classes = useStyles();
   const { minDate, maxDate, format, timeStamp = true, readOnly, required, id, textResourceBindings } = node.item;
 
@@ -182,6 +190,11 @@ export function DatepickerComponent({ node, language, formData, handleDataChange
               ...(textResourceBindings?.description && {
                 'aria-describedby': `description-${id}`,
               }),
+            }}
+            inputProps={{
+              'aria-label': overrideDisplay?.renderedInTable
+                ? getTextResourceAsString(textResourceBindings?.title)
+                : undefined,
             }}
             DialogProps={{ className: classes.dialog }}
             PopoverProps={{ className: classes.dialog }}

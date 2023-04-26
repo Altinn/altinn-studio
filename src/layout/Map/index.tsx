@@ -25,4 +25,8 @@ export class Map extends FormComponent<'Map'> {
   renderSummary({ targetNode }: SummaryRendererProps<'Map'>): JSX.Element | null {
     return <MapComponentSummary targetNode={targetNode} />;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

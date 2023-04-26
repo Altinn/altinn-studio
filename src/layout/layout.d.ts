@@ -11,6 +11,7 @@ import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
 import type { ILayoutCompDropdown } from 'src/layout/Dropdown/types';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
 import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
+import type { ILayoutCompGrid } from 'src/layout/Grid/types';
 import type { IDataModelBindingsForGroup, ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompHeader } from 'src/layout/Header/types';
 import type { ILayoutCompImage } from 'src/layout/Image/types';
@@ -117,6 +118,7 @@ interface Map {
   Dropdown: ILayoutCompDropdown;
   FileUpload: ILayoutCompFileUpload;
   FileUploadWithTag: ILayoutCompFileUploadWithTag;
+  Grid: ILayoutCompGrid;
   Group: ILayoutGroup;
   Header: ILayoutCompHeader;
   Image: ILayoutCompImage;

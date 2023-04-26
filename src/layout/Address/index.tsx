@@ -25,4 +25,8 @@ export class Address extends FormComponent<'AddressComponent'> {
     const data = this.useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={data} />;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

@@ -28,7 +28,7 @@ export interface ISummaryComponent {
 }
 
 export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) {
-  const { id, grid, componentRef } = summaryNode.item;
+  const { id, grid } = summaryNode.item;
   const { pageRef } = summaryNode.item;
   const display = overrides?.display || summaryNode.item.display;
   const dispatch = useAppDispatch();
@@ -46,7 +46,7 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
   );
 
   const summaryItem = summaryNode.item;
-  const targetNode = useResolvedNode(overrides?.targetNode || componentRef);
+  const targetNode = useResolvedNode(overrides?.targetNode || summaryNode.item.componentRef);
   const targetItem = targetNode?.item;
 
   const goToCorrectPageLinkText = useAppSelector(
@@ -81,7 +81,7 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
       FormLayoutActions.updateCurrentView({
         newView: pageRef,
         returnToView: summaryPageName,
-        focusComponentId: componentRef,
+        focusComponentId: targetNode?.item.id,
       }),
     );
   };

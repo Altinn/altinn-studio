@@ -12,4 +12,8 @@ export class NavigationBar extends ActionComponent<'NavigationBar'> {
   renderWithLabel(): boolean {
     return false;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

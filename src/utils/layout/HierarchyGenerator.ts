@@ -134,7 +134,7 @@ export class HierarchyGenerator {
     private readonly layouts: ILayouts,
     public readonly repeatingGroups: IRepeatingGroups | null,
     public readonly dataSources: HierarchyDataSources,
-    private getLayoutComponentObject: DefGetter,
+    public readonly getLayoutComponentObject: DefGetter,
   ) {}
 
   /**

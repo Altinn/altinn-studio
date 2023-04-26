@@ -12,4 +12,8 @@ export class Panel extends PresentationComponent<'Panel'> {
   renderWithLabel(): boolean {
     return false;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

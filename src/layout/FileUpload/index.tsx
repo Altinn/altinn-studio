@@ -26,4 +26,8 @@ export class FileUpload extends FormComponent<'FileUpload'> {
   renderSummary({ targetNode }: SummaryRendererProps<'FileUpload'>): JSX.Element | null {
     return <AttachmentSummaryComponent targetNode={targetNode} />;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

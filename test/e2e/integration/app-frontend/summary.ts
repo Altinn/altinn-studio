@@ -432,6 +432,7 @@ describe('Summary', () => {
       assertErrorReport();
 
       // Sending in always validates all pages
+      cy.navPage('grid').click();
       cy.get(appFrontend.sendinButton).click();
       cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut page3required');
     }
@@ -523,7 +524,7 @@ function injectExtraPageAndSetTriggers(trigger?: Triggers | undefined) {
       // Injecting the new page into redux
       type: 'formLayout/calculatePageOrderAndMoveToNextPageFulfilled',
       payload: {
-        order: ['form', 'summary', 'lastPage'],
+        order: ['form', 'summary', 'grid', 'lastPage'],
       },
     });
   });

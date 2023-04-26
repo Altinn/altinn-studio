@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { render as rtlRender } from '@testing-library/react';
-
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
+import { renderWithProviders } from 'src/testUtils';
 import type { IMultipleChoiceSummaryProps } from 'src/layout/Checkboxes/MultipleChoiceSummary';
 
 describe('MultipleChoiceSummary', () => {
@@ -17,7 +16,7 @@ function render(props: Partial<IMultipleChoiceSummaryProps> = {}) {
     formData: { 'some-key': 'This is a text', 'some-other-key': 'This is another text' },
   };
 
-  return rtlRender(
+  return renderWithProviders(
     <MultipleChoiceSummary
       {...defaultProps}
       {...props}

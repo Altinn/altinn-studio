@@ -32,4 +32,8 @@ export class List extends FormComponent<'List'> {
     const displayData = this.useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }

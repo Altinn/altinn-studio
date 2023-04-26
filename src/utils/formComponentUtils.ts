@@ -276,10 +276,19 @@ export function getColumnStyles(columnSettings: ITableColumnProperties) {
   const lineClampToggle =
     columnSettings.textOverflow?.lineWrap || columnSettings.textOverflow?.lineWrap === undefined ? 1 : 0;
 
+  let width: string | number | undefined = columnSettings.width ?? 'auto';
+  const widthPercentage = Number(width.substring(0, width.length - 1));
+  if (width.charAt(width.length - 1) === '%' && widthPercentage) {
+    // 16.3% of the tables width is dedicated to padding. Therefore we need multiply every configured
+    // width with 0.837 in order to allow the user to specify column widths that sum up to 100% without
+    // the total width exceeding 100% of the tables width in css.
+    width = `${widthPercentage * 0.837}%`;
+  }
+
   const columnStyleVariables = {
     '--cell-max-number-of-lines': (columnSettings.textOverflow?.maxHeight ?? 2) * lineClampToggle,
     '--cell-text-alignment': columnSettings.alignText,
-    '--cell-width': columnSettings.width,
+    '--cell-width': width,
   };
 
   return columnStyleVariables as React.CSSProperties;

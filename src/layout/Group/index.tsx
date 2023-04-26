@@ -46,4 +46,8 @@ export class Group extends ContainerComponent<'Group'> {
   hierarchyGenerator(generator: HierarchyGenerator): ComponentHierarchyGenerator<'Group'> {
     return new GroupHierarchyGenerator(generator);
   }
+
+  canRenderInTable(): boolean {
+    return false;
+  }
 }
