@@ -5,7 +5,7 @@ import configureStore from 'redux-mock-store';
 import { render as rtlRender, screen } from '@testing-library/react';
 import type { IAppBarProps } from './AppBar';
 import { AppBar } from './AppBar';
-import { menu } from './appBarConfig';
+import { menu, TopBarMenu } from './appBarConfig';
 import { ServicesContextProps, ServicesContextProvider } from '../../common/ServiceContext';
 
 describe('AppBar', () => {
@@ -27,7 +27,7 @@ const render = (props: Partial<IAppBarProps> = {}) => {
     org: 'jest-test-org',
     app: 'jest-test-app',
     showSubMenu: true,
-    activeSubHeaderSelection: 'Lage',
+    activeSubHeaderSelection: TopBarMenu.Create,
     ...props,
   } as IAppBarProps;
 
