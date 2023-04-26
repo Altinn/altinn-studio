@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { User } from 'dashboard/services/userService';
 import { Organization } from 'dashboard/services/organizationService';
 import { useGetStarredRepos } from 'dashboard/hooks/useRepoQueries';
+import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 
 type DashboardProps = {
   user: User;
@@ -27,6 +28,7 @@ type DashboardProps = {
 
 export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
+  const selectedContext = useSelectedContext();
   const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useGetStarredRepos();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
@@ -73,7 +75,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               )}
             </div>
             <Link
-              to='/new'
+              to={'/' + selectedContext + '/new'}
               className={classes.newLink}
               onMouseEnter={handleNewLinkFocus}
               onMouseLeave={handleNewLinkFocusOut}

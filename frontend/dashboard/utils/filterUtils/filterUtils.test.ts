@@ -6,6 +6,7 @@ describe('getUidFilter', () => {
     const result = getUidFilter({
       selectedContext: SelectedContextType.All,
       userId: 1,
+      organizations: []
     });
 
     expect(result).toBeUndefined();
@@ -15,6 +16,7 @@ describe('getUidFilter', () => {
     const result = getUidFilter({
       selectedContext: SelectedContextType.Self,
       userId: 1,
+      organizations: []
     });
 
     expect(result).toBe(1);
@@ -22,8 +24,16 @@ describe('getUidFilter', () => {
 
   it('should return selectedContext when selectedContext is not All or Self', () => {
     const result = getUidFilter({
-      selectedContext: 2,
+      selectedContext: 'username2',
       userId: 1,
+      organizations: [
+        {
+          avatar_url: '',
+          username: 'username2',
+          id: 2,
+          full_name: '',
+        },
+      ],
     });
 
     expect(result).toBe(2);

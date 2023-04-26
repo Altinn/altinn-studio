@@ -22,7 +22,7 @@ describe('userHasAccessToSelectedContext', () => {
 
   it('should return true when context id is present in orgs list', () => {
     const result = userHasAccessToSelectedContext({
-      selectedContext: 1,
+      selectedContext: 'username1',
       orgs: [
         {
           avatar_url: 'avatar_url',
@@ -30,7 +30,7 @@ describe('userHasAccessToSelectedContext', () => {
           full_name: 'full_name',
           id: 1,
           location: '',
-          username: 'username',
+          username: 'username1',
           website: '',
         },
       ],
@@ -41,7 +41,7 @@ describe('userHasAccessToSelectedContext', () => {
 
   it('should return false when context id is not present in orgs list', () => {
     const result = userHasAccessToSelectedContext({
-      selectedContext: 2,
+      selectedContext: 'username2',
       orgs: [
         {
           avatar_url: 'avatar_url',

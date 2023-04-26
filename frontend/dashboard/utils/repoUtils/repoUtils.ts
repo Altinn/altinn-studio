@@ -4,7 +4,7 @@ import { Organization } from 'dashboard/services/organizationService';
 import i18next from 'i18next';
 
 type GetReposLabel = {
-  selectedContext: number | SelectedContextType;
+  selectedContext: string | SelectedContextType;
   orgs: Organization[];
   t: typeof i18next.t;
   isDatamodelsRepo?: boolean;
@@ -30,7 +30,7 @@ export const getReposLabel = ({
   }
 
   const orgName =
-    orgs.length > 0 ? `${orgs.find((org) => org.id === selectedContext).full_name} ` : '';
+    orgs.length > 0 ? `${orgs.find((org) => org.username === selectedContext).full_name} ` : '';
 
   const reposLabel = isDatamodelsRepo ? t('dashboard.datamodels') : t('dashboard.apps');
   return `${orgName}${reposLabel}`;

@@ -12,7 +12,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ServicesContextProvider } from './contexts/servicesContext';
 import { userService } from './services/userService';
 import { organizationService } from './services/organizationService';
-import { AppContextProvider } from './contexts/appContext';
 import { repoService } from './services/repoService';
 
 i18next.use(initReactI18next).init({
@@ -40,15 +39,13 @@ const queryClient = new QueryClient({
 root.render(
   <BrowserRouter basename={DASHBOARD_BASENAME}>
     <QueryClientProvider client={queryClient}>
-      <AppContextProvider>
-        <ServicesContextProvider
-          userService={userService}
-          organizationService={organizationService}
-          repoService={repoService}
-        >
-          <App />
-        </ServicesContextProvider>
-      </AppContextProvider>
+      <ServicesContextProvider
+        userService={userService}
+        organizationService={organizationService}
+        repoService={repoService}
+      >
+        <App />
+      </ServicesContextProvider>
     </QueryClientProvider>
   </BrowserRouter>
 );

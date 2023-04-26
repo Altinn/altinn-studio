@@ -2,10 +2,12 @@ import React, { useContext, useState } from 'react';
 import { Avatar, Divider, Grid, IconButton, MenuItem, Typography } from '@mui/material';
 import { AltinnMenu } from '../../components';
 import { post } from '../../utils/networking';
-import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
+import { getOrgNameByUsername, HeaderContext, SelectedContextType } from './Header';
 import { repositoryBasePath, repositoryOwnerPath, repositoryPath } from '../../api-paths';
 import classes from './HeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 
 export type HeaderMenuProps = {
   org: string;
@@ -15,8 +17,11 @@ export type HeaderMenuProps = {
 
 export function HeaderMenu({ org, repo }: HeaderMenuProps) {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
-  const { user, selectedContext, selectableOrgs, setSelectedContext } = useContext(HeaderContext);
+  const { user, selectableOrgs } = useContext(HeaderContext);
   const { t } = useTranslation();
+  const selectedContext = useSelectedContext();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const openMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -37,8 +42,8 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
     return true;
   };
 
-  const handleSetSelectedContext = (context: string | number) => {
-    setSelectedContext(context);
+  const handleSetSelectedContext = (context: string | SelectedContextType) => {
+    navigate("/" + context + location.search);
     setMenuAnchorEl(null);
   };
 
@@ -63,7 +68,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
               selectedContext !== SelectedContextType.Self && (
                 <>
                   <br /> {t('shared.header_for')}{' '}
-                  {getOrgNameById(selectedContext as number, selectableOrgs)}
+                  {getOrgNameByUsername(selectedContext, selectableOrgs)}
                 </>
               )}
           </Typography>
@@ -90,9 +95,9 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
           return (
             <MenuItem
               id={`menu-org-${selectableOrg.id}`}
-              selected={selectedContext === selectableOrg.id}
+              selected={selectedContext === selectableOrg.username}
               key={selectableOrg.id}
-              onClick={() => handleSetSelectedContext(selectableOrg.id)}
+              onClick={() => handleSetSelectedContext(selectableOrg.username)}
             >
               {selectableOrg.full_name || selectableOrg.username}
             </MenuItem>
@@ -101,7 +106,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
         <MenuItem
           id='menu-self'
           selected={selectedContext === SelectedContextType.Self}
-          onClick={() => handleSetSelectedContext(SelectedContextType.Self)}
+          onClick={() => handleSetSelectedContext("")}
         >
           {user.full_name || user.login}
         </MenuItem>

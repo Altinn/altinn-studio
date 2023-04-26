@@ -2,7 +2,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IRepository } from 'app-shared/types/global';
 import React, { useMemo } from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { AppContextProvider } from './contexts/appContext';
 import { ServicesContextProvider } from './contexts/servicesContext';
 import { OrganizationService } from './services/organizationService';
 import { AddRepo, RepoService, SearchRepository } from './services/repoService';
@@ -64,15 +63,13 @@ export const MockServicesContextWrapper = ({
   return (
     <MemoryRouter>
       <QueryClientProvider client={client}>
-        <AppContextProvider>
-          <ServicesContextProvider
-            userService={userService}
-            organizationService={organizationService}
-            repoService={repoService}
-          >
-            {children}
-          </ServicesContextProvider>
-        </AppContextProvider>
+        <ServicesContextProvider
+          userService={userService}
+          organizationService={organizationService}
+          repoService={repoService}
+        >
+          {children}
+        </ServicesContextProvider>
       </QueryClientProvider>
     </MemoryRouter>
   );
