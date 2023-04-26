@@ -24,11 +24,11 @@ import type { IApplicationSettings } from 'src/types/shared';
 export const App = () => {
   const { data: applicationSettings, isError: hasApplicationSettingsError } = useApplicationSettingsQuery();
   const { data: applicationMetadata, isError: hasApplicationMetadataError } = useApplicationMetadataQuery();
-  const { data: layoutSets, isError: hasLayoutSetError } = useLayoutSetsQuery();
-  const { data: orgs, isError: hasOrgsError } = useOrgsQuery();
+  const { isError: hasLayoutSetError } = useLayoutSetsQuery();
+  const { isError: hasOrgsError } = useOrgsQuery();
   useFooterLayoutQuery(!!applicationMetadata?.features?.footer);
 
-  const componentIsReady = applicationSettings && applicationMetadata && layoutSets && orgs;
+  const componentIsReady = applicationSettings && applicationMetadata;
   const componentHasError =
     hasApplicationSettingsError || hasApplicationMetadataError || hasLayoutSetError || hasOrgsError;
 
