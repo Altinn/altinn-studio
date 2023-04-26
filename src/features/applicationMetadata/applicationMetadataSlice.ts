@@ -1,4 +1,3 @@
-import { getApplicationMetadataSaga } from 'src/features/applicationMetadata/getApplicationMetadataSaga';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type {
   IApplicationMetadataState,
@@ -18,9 +17,6 @@ export const applicationMetadataSlice = () => {
     name: 'applicationMetadata',
     initialState,
     actions: {
-      get: mkAction<void>({
-        takeLatest: getApplicationMetadataSaga,
-      }),
       getFulfilled: mkAction<IGetApplicationMetadataFulfilled>({
         reducer: (state, action) => {
           state.applicationMetadata = action.payload.applicationMetadata;

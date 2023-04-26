@@ -1,6 +1,8 @@
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
+export type HttpClientError = AxiosError;
+
 export async function httpGet(url: string, options?: AxiosRequestConfig): Promise<any> {
   const response: AxiosResponse = await axios.get(url, {
     headers: { Pragma: 'no-cache' },

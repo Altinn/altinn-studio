@@ -1,15 +1,9 @@
 import { put } from 'redux-saga/effects';
 
 import { OptionsActions } from 'src/features/options/optionsSlice';
-import { fetchProfileSaga } from 'src/features/profile/fetchProfileSagas';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import { getLanguageQueryParam } from 'src/utils/party';
-import type {
-  IFetchProfile,
-  IFetchProfileFulfilled,
-  IFetchProfileRejected,
-  IProfileState,
-} from 'src/features/profile/index';
+import type { IFetchProfileFulfilled, IFetchProfileRejected, IProfileState } from 'src/features/profile/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
 import type { IAltinnWindow } from 'src/types';
 import type { IProfile } from 'src/types/shared';
@@ -37,9 +31,6 @@ export const profileSlice = () => {
     name: 'profile',
     initialState,
     actions: {
-      fetch: mkAction<IFetchProfile>({
-        takeLatest: fetchProfileSaga,
-      }),
       fetchFulfilled: mkAction<IFetchProfileFulfilled>({
         reducer: (state, action) => {
           state.profile = action.payload.profile;

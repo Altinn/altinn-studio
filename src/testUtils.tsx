@@ -3,14 +3,17 @@ import { Provider } from 'react-redux';
 import { MemoryRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render as rtlRender } from '@testing-library/react';
 import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from 'redux';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { AppQueriesContextProvider } from 'src/contexts/appQueriesContext';
 import { setupStore } from 'src/redux/store';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { ExprContextWrapper, useResolvedNode } from 'src/utils/layout/ExprContext';
+import type { AppQueriesContext } from 'src/contexts/appQueriesContext';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { ComponentTypes } from 'src/layout/layout';
 import type { AppStore, RootState } from 'src/redux/store';
@@ -25,16 +28,48 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 export const renderWithProviders = (
   component: any,
   { preloadedState = {}, store = setupStore(preloadedState).store, ...renderOptions }: ExtendedRenderOptions = {},
+  queries?: Partial<AppQueriesContext>,
 ) => {
   function Wrapper({ children }: React.PropsWithChildren) {
     const theme = createTheme(AltinnAppTheme);
 
+    const mockedQueries = {
+      doPartyValidation: () => Promise.resolve({ data: { isValid: true, validParties: [] } }),
+      fetchActiveInstances: () => Promise.resolve([]),
+      fetchApplicationMetadata: () => Promise.resolve({}),
+      fetchCurrentParty: () => Promise.resolve({}),
+      fetchApplicationSettings: () => Promise.resolve({}),
+      fetchFooterLayout: () => Promise.resolve({}),
+      fetchLayoutSets: () => Promise.resolve([]),
+      fetchOrgs: () => Promise.resolve({}),
+      fetchUserProfile: () => Promise.resolve({}),
+      ...queries,
+    } as AppQueriesContext;
+
+    const client = new QueryClient({
+      logger: {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        log: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        warn: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        error: () => {},
+      },
+      defaultOptions: {
+        mutations: { retry: false },
+        queries: { retry: false, staleTime: Infinity },
+      },
+    });
     return (
-      <MuiThemeProvider theme={theme}>
-        <Provider store={store}>
-          <ExprContextWrapper>{children}</ExprContextWrapper>
-        </Provider>
-      </MuiThemeProvider>
+      <QueryClientProvider client={client}>
+        <AppQueriesContextProvider {...mockedQueries}>
+          <MuiThemeProvider theme={theme}>
+            <Provider store={store}>
+              <ExprContextWrapper>{children}</ExprContextWrapper>
+            </Provider>
+          </MuiThemeProvider>
+        </AppQueriesContextProvider>
+      </QueryClientProvider>
     );
   }
 

@@ -25,6 +25,7 @@ export const instanceDataSlice = () => {
       getFulfilled: mkAction<IGetInstanceDataFulfilled>({
         reducer: (state, action) => {
           state.instance = action.payload.instanceData;
+          state.error = null;
         },
       }),
       getRejected: mkAction<IGetInstanceDataRejected>({

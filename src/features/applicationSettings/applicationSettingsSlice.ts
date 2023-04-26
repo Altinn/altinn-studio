@@ -1,4 +1,3 @@
-import { getApplicationSettings } from 'src/features/applicationSettings/fetchApplicationSettingsSaga';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type {
   IFetchApplicationSettingsFulfilled,
@@ -23,9 +22,6 @@ export const applicationSettingsSlice = () => {
     name: 'applicationSettings',
     initialState,
     actions: {
-      fetchApplicationSettings: mkAction<void>({
-        takeLatest: getApplicationSettings,
-      }),
       fetchApplicationSettingsFulfilled: mkAction<IFetchApplicationSettingsFulfilled>({
         reducer: (state, action) => {
           const { settings } = action.payload;

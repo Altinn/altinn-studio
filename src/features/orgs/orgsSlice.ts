@@ -1,4 +1,3 @@
-import { fetchOrgsSaga } from 'src/features/orgs/fetchOrgsSagas';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type { IFetchOrgsFulfilled, IFetchOrgsRejected, IOrgsState } from 'src/features/orgs/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
@@ -14,9 +13,6 @@ export const orgsSlice = () => {
     name: 'organisationMetaData',
     initialState,
     actions: {
-      fetch: mkAction<void>({
-        takeLatest: fetchOrgsSaga,
-      }),
       fetchFulfilled: mkAction<IFetchOrgsFulfilled>({
         reducer: (state, action) => {
           state.allOrgs = action.payload.orgs;

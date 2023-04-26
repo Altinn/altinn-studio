@@ -5,32 +5,68 @@ import { ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
-import { PdfActions } from 'src/features/pdf/data/pdfSlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
+import { useApplicationMetadataQuery } from 'src/hooks/queries/useApplicationMetadataQuery';
+import { useApplicationSettingsQuery } from 'src/hooks/queries/useApplicationSettingsQuery';
+import { useFooterLayoutQuery } from 'src/hooks/queries/useFooterLayoutQuery';
+import { useCurrentPartyQuery } from 'src/hooks/queries/useGetCurrentPartyQuery';
+import { useLayoutSetsQuery } from 'src/hooks/queries/useLayoutSetsQuery';
+import { useOrgsQuery } from 'src/hooks/queries/useOrgsQuery';
+import { useProfileQuery } from 'src/hooks/queries/useProfileQuery';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useKeepAlive } from 'src/hooks/useKeepAlive';
+import { useUpdatePdfState } from 'src/hooks/useUpdatePdfState';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
-import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
-import { httpGet } from 'src/utils/network/networking';
-import { shouldGeneratePdf } from 'src/utils/pdf';
-import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from 'src/utils/urls/appUrlHelper';
-
-// 1 minute = 60.000ms
-const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
+import type { IApplicationSettings } from 'src/types/shared';
 
 export const App = () => {
-  const dispatch = useAppDispatch();
-  const hasErrorSelector = makeGetHasErrorsSelector();
-  const hasApiErrors: boolean = useAppSelector(hasErrorSelector);
-  const appOidcProvider = useAppSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
-  const lastRefreshTokenTimestamp = React.useRef(0);
+  const { data: applicationSettings, isError: hasApplicationSettingsError } = useApplicationSettingsQuery();
+  const { data: applicationMetadata, isError: hasApplicationMetadataError } = useApplicationMetadataQuery();
+  const { data: layoutSets, isError: hasLayoutSetError } = useLayoutSetsQuery();
+  const { data: orgs, isError: hasOrgsError } = useOrgsQuery();
+  useFooterLayoutQuery(!!applicationMetadata?.features?.footer);
 
+  const componentIsReady = applicationSettings && applicationMetadata && layoutSets && orgs;
+  const componentHasError =
+    hasApplicationSettingsError || hasApplicationMetadataError || hasLayoutSetError || hasOrgsError;
+
+  const dispatch = useAppDispatch();
+
+  React.useEffect(() => {
+    dispatch(QueueActions.startInitialAppTaskQueue());
+  }, [dispatch]);
+
+  if (componentHasError) {
+    return <UnknownError />;
+  }
+
+  if (componentIsReady) {
+    return <AppInternal applicationSettings={applicationSettings} />;
+  }
+
+  return null;
+};
+
+type AppInternalProps = {
+  applicationSettings: IApplicationSettings;
+};
+
+const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | null => {
   const allowAnonymousSelector = makeGetAllowAnonymousSelector();
-  const allowAnonymous = useAppSelector(allowAnonymousSelector);
+  const allowAnonymous: boolean = useAppSelector(allowAnonymousSelector);
+
+  const { isError: hasProfileError } = useProfileQuery(allowAnonymous === false);
+  const { isError: hasCurrentPartyError } = useCurrentPartyQuery(allowAnonymous === false);
 
   const appName = useAppSelector(selectAppName);
   const appOwner = useAppSelector(selectAppOwner);
+
+  useKeepAlive(applicationSettings.appOidcProvider, allowAnonymous);
+  useUpdatePdfState(allowAnonymous);
+
+  const hasComponentError = hasProfileError || hasCurrentPartyError;
 
   // Set the title of the app
   React.useEffect(() => {
@@ -43,82 +79,31 @@ export const App = () => {
     }
   }, [appOwner, appName]);
 
-  React.useEffect(() => {
-    function setUpEventListeners() {
-      window.addEventListener('mousemove', refreshJwtToken);
-      window.addEventListener('scroll', refreshJwtToken);
-      window.addEventListener('onfocus', refreshJwtToken);
-      window.addEventListener('keydown', refreshJwtToken);
-      window.addEventListener('hashchange', setPdfState);
-    }
+  const isReadyToRenderRoutes = allowAnonymous !== undefined;
+  if (isReadyToRenderRoutes) {
+    return (
+      <>
+        <Routes>
+          <Route
+            path='/'
+            element={<Entrypoint allowAnonymous={allowAnonymous} />}
+          />
+          <Route
+            path='/partyselection/*'
+            element={<PartySelection />}
+          />
+          <Route
+            path='/instance/:partyId/:instanceGuid'
+            element={<ProcessWrapper />}
+          />
+        </Routes>
+      </>
+    );
+  }
 
-    function removeEventListeners() {
-      window.removeEventListener('mousemove', refreshJwtToken);
-      window.removeEventListener('scroll', refreshJwtToken);
-      window.removeEventListener('onfocus', refreshJwtToken);
-      window.removeEventListener('keydown', refreshJwtToken);
-      window.removeEventListener('hashchange', setPdfState);
-    }
-
-    function setPdfState() {
-      if (shouldGeneratePdf()) {
-        dispatch(PdfActions.pdfStateChanged());
-      }
-    }
-
-    function refreshJwtToken() {
-      const timeNow = Date.now();
-      if (timeNow - lastRefreshTokenTimestamp.current > TEN_MINUTE_IN_MILLISECONDS) {
-        lastRefreshTokenTimestamp.current = timeNow;
-        httpGet(refreshJwtTokenUrl).catch((err) => {
-          // Most likely the user has an expired token, so we redirect to the login-page
-          try {
-            window.location.href = getEnvironmentLoginUrl(appOidcProvider || null);
-          } catch (error) {
-            console.error(err, error);
-          }
-        });
-      }
-    }
-
-    if (allowAnonymous === false) {
-      refreshJwtToken();
-      dispatch(QueueActions.startInitialUserTaskQueue());
-      setUpEventListeners();
-
-      return () => {
-        removeEventListeners();
-      };
-    }
-  }, [allowAnonymous, dispatch, appOidcProvider]);
-
-  React.useEffect(() => {
-    dispatch(QueueActions.startInitialAppTaskQueue());
-  }, [dispatch]);
-
-  if (hasApiErrors) {
+  if (hasComponentError) {
     return <UnknownError />;
   }
 
-  // Page is ready to be rendered once allowAnonymous value has been determined
-  const ready = allowAnonymous !== undefined;
-  if (!ready) {
-    return null;
-  }
-  return (
-    <Routes>
-      <Route
-        path='/'
-        element={<Entrypoint allowAnonymous={allowAnonymous} />}
-      />
-      <Route
-        path='/partyselection/*'
-        element={<PartySelection />}
-      />
-      <Route
-        path='/instance/:partyId/:instanceGuid'
-        element={<ProcessWrapper />}
-      />
-    </Routes>
-  );
+  return null;
 };
