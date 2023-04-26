@@ -1,6 +1,8 @@
 import { IExternalFormLayouts, IFormLayouts, IInternalLayout } from '../types/global';
 import {
-  addNavigationButtons, convertFromLayoutToInternalFormat, createEmptyLayout,
+  addNavigationButtons,
+  convertFromLayoutToInternalFormat,
+  createEmptyLayout,
   hasNavigationButtons,
   removeComponentsByType
 } from './formLayoutUtils';
@@ -60,7 +62,7 @@ export const addOrRemoveNavigationButtons = async (
   return updatedLayouts;
 }
 
-export interface AllLayouts {
+interface AllLayouts {
   convertedLayouts: IFormLayouts;
   invalidLayouts: string[];
 }

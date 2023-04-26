@@ -105,11 +105,11 @@ const mockInternal: IInternalLayout = {
   customDataProperties: customDataPropertiesMock,
 };
 
-describe('utils/formLayout', () => {
+describe('formLayoutUtils', () => {
   let mockLayout: IExternalFormLayout;
 
   beforeEach(() => {
-    mockLayout ={
+    mockLayout = {
       $schema: null,
       data: {
         layout: [
