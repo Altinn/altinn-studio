@@ -79,6 +79,16 @@
           "mainUploaderSingle",
           "mainUploaderMulti"
         ],
+        "tableColumns": {
+          "currentValue": {
+            "editInTable": false,
+            "showInExpandedEdit": true
+          },
+          "newValue": {
+            "editInTable": false,
+            "showInExpandedEdit": true
+          }
+        },
         "triggers": ["validation"],
         "hiddenRow": [
           "greaterThanEq",
@@ -90,6 +100,8 @@
         ],
         "edit": {
           "mode": "showTable",
+          "alwaysShowAddButton": false,
+          "editButton": true,
           "saveButton": [
             "not",
             [
@@ -116,7 +128,8 @@
         "id": "currentValue",
         "type": "Input",
         "textResourceBindings": {
-          "title": "37131.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.Label"
+          "title": "37131.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.Label",
+          "tableTitle": "Endre fra"
         },
         "dataModelBindings": {
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
@@ -143,7 +156,14 @@
         "id": "newValue",
         "type": "Input",
         "textResourceBindings": {
-          "title": "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label"
+          "title": [
+            "if",
+            ["equals", ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"], null],
+            "2. Endre verdi til",
+            "else",
+            "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label"
+          ],
+          "tableTitle": "Endre til"
         },
         "dataModelBindings": {
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
@@ -170,7 +190,14 @@
         "id": "mainUploaderSingle",
         "type": "FileUpload",
         "textResourceBindings": {
-          "title": "Single uploader in repeating group"
+          "title": "Single uploader in repeating group",
+          "tableTitle": [
+            "if",
+            ["equals", ["component", "sendersName"], "otherTitlesInTable"],
+            "Uploader (single)",
+            "else",
+            "Uploader (one)"
+          ]
         },
         "dataModelBindings": {
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.fileUpload"
@@ -188,7 +215,14 @@
         "id": "mainUploaderMulti",
         "type": "FileUpload",
         "textResourceBindings": {
-          "title": "Multi uploader in repeating group"
+          "title": "Multi uploader in repeating group",
+          "tableTitle": [
+            "if",
+            ["equals", ["component", "sendersName"], "otherTitlesInTable"],
+            "Uploader (multi)",
+            "else",
+            "Uploader (many)"
+          ]
         },
         "dataModelBindings": {
           "list": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.fileUploadList"
