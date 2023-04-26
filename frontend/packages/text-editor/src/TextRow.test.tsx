@@ -2,7 +2,7 @@ import React from 'react';
 import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import { screen, render as rtlRender, waitFor, act } from '@testing-library/react';
+import { screen, render as rtlRender, waitFor, act, render } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { TextTableRowEntry } from './types';
 import { Table, TableBody } from '@digdir/design-system-react';
@@ -87,6 +87,18 @@ describe('TextRow', () => {
     });
     await act(() => user.click(confirmDeleteButton));
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
+  });
+
+  test('renders a Button component with a PencilIcon when showButton is true', () => {
+    renderTextRow({ showButton: true });
+    const button = screen.getByRole('button', { name: 'toggle-textkey-edit' });
+    expect(button).toBeInTheDocument();
+  });
+
+  test('Hide a Button component with a PencilIcon when showButton is false', () => {
+    renderTextRow({ showButton: false });
+    const button = screen.queryByRole('button', { name: 'toggle-textkey-edit' });
+    expect(button).not.toBeInTheDocument();
   });
 
   test('that the user is warned if an illegal character is used', async () => {

@@ -41,7 +41,7 @@ export const TextList = ({
       <TableBody>
         {resourceRows
           .filter((row) => filterFunction(row.textKey, row.translations, searchQuery))
-          .map((row) => (
+          .map((row, index) => (
             <TextRow
               key={`${row.translations[0].lang}.${row.textKey}`}
               textId={row.textKey}
@@ -49,6 +49,7 @@ export const TextList = ({
               textRowEntries={row.translations}
               variables={row.variables || []}
               selectedLanguages={selectedLanguages}
+              showButton={index !== 0}
               {...rest}
             />
           ))}
