@@ -44,7 +44,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const { data: currentRepo } = useRepoMetadataQuery(org, app);
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatus(org, app);
   const { refetch: fetchPullData } = useRepoPullQuery(org, app);
-  const [altinnSpinnerState, setAltinnSpinnerState] = useState(false);
+  const [shouldShowSpinner, setShouldShowSpinner] = useState(false);
 
   useEffect(() => {
     if (hasPushRight === undefined && currentRepo) {
@@ -161,19 +161,18 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
     }
   };
 
-  const repoPushMutation = useRepoPushMutation(org, app);
+  const repoPushMutation = useRepoPushMutation(org, app, setShouldShowSpinner);
   const pushChanges = async () => {
-    setAltinnSpinnerState(true);
+    setShouldShowSpinner(true);
     setModalState({
       ...initialModalState,
       header: t('sync_header.sharing_changes'),
       isLoading: true,
     });
-    repoPushMutation.mutate();
-    setHasChangesInMaster(false);
-    setHasChangesInLocalRepo(false);
+    await repoPushMutation.mutateAsync();
+
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    setAltinnSpinnerState(false);
+    setShouldShowSpinner(false);
     setModalState({
       ...initialModalState,
       header: t('sync_header.sharing_changes_completed'),
@@ -225,7 +224,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
         fetchChanges={fetchChanges}
         buttonText={t('sync_header.fetch_changes')}
       />
-      {altinnSpinnerState && <AltinnSpinner />}
+      {shouldShowSpinner && <AltinnSpinner />}
       <ShareChangesButton
         changesInLocalRepo={hasChangesInLocalRepo}
         hasMergeConflict={hasMergeConflict}

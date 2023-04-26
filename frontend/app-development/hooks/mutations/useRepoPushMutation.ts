@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../common/ServiceContext';
 import { QueryKey } from '../../types/QueryKey';
 
-export const useRepoPushMutation = (owner, app) => {
+export const useRepoPushMutation = (owner, app, setShouldShowSpinner) => {
   const q = useQueryClient();
   const { pushRepoChanges } = useServicesContext();
   return useMutation({

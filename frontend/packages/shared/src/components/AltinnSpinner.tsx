@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 export type IAltinnSpinnerComponentProvidedProps = {
   spinnerText?: string;
   className?: string;
-  altinnSpinner?: boolean;
 } & Pick<SpinnerProps, 'size' | 'variant'>;
 
 export const AltinnSpinner = ({
