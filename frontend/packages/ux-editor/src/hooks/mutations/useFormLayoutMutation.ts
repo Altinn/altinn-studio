@@ -4,16 +4,15 @@ import { convertInternalToLayoutFormat } from '../../utils/formLayoutUtils';
 import { previewSignalRHubSubPath } from 'app-shared/api-paths';
 import { QueryKey } from '../../types/QueryKey';
 import { queryClient, useServicesContext } from '../../../../../app-development/common/ServiceContext';
-import * as signalR from "@microsoft/signalr";
+import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
 export const useFormLayoutMutation = (org: string, app: string, layoutName: string) => {
 
-  const connection = new signalR.HubConnectionBuilder().withUrl(previewSignalRHubSubPath()).configureLogging(signalR.LogLevel.Information).build();
+  const connection = new HubConnectionBuilder().withUrl(previewSignalRHubSubPath()).configureLogging(LogLevel.Information).build();
 
   async function start() {
     try {
       await connection.start();
-      console.log("SignalR Connected.");
     } catch (err) {
       console.log(err);
       setTimeout(start, 5000);

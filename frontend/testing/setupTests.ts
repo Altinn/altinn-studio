@@ -4,6 +4,7 @@ import 'whatwg-fetch';
 
 import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
+import { SignalR } from './mocks/signalr';
 import { ReactNode } from 'react';
 
 failOnConsole({
@@ -42,6 +43,9 @@ jest.mock(
     withTranslation: () => (Component: ReactNode) => Component,
   }),
 );
+
+// SignalR PreviewHub mock to simulate setup of websockets.
+jest.mock('@microsoft/signalr', () => SignalR );
 
 // Mock org and app params
 jest.mock('react-router-dom', () => ({
