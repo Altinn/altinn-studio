@@ -43,8 +43,6 @@ export function App() {
   const layoutPagesOrder = formLayoutSettings?.pages.order;
   const layoutOrder = formLayouts?.[selectedLayout]?.order || {};
 
-  const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-
   const isWidgetFetched = useSelector((state: IAppState) => state.widgets.fetched);
   const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
 
@@ -127,7 +125,6 @@ export function App() {
       <>
         <ErrorMessageComponent />
         <FormDesigner
-          activeList={activeList}
           layoutOrder={layoutOrder}
           selectedLayout={selectedLayout}
         />

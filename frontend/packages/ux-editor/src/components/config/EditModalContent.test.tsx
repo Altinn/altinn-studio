@@ -160,8 +160,6 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
     ...appStateMock,
     formDesigner: {
       layout: {
-        activeContainer: null,
-        activeList: null,
         error: null,
         invalidLayouts: [],
         saving: false,

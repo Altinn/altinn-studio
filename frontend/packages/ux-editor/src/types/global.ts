@@ -36,9 +36,7 @@ export interface ICreateFormContainer {
   tableHeaders?: string[];
 }
 
-export interface ITextResourceBindings {
-  [id: string]: string;
-}
+export type ITextResourceBindings = KeyValuePairs<string>;
 
 export interface ICreateFormComponent {
   component?: string;

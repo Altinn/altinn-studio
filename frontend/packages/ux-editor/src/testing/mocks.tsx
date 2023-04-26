@@ -41,8 +41,6 @@ export const formDesignerMock: IFormDesignerState = {
     error: null,
     saving: false,
     unSavedChanges: false,
-    activeContainer: '',
-    activeList: null,
     selectedLayout: layout1NameMock,
     invalidLayouts: [],
   },

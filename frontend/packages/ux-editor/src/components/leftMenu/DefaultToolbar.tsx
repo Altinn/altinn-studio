@@ -28,7 +28,6 @@ export function DefaultToolbar() {
     [CollapsableMenus.Widgets]: { expanded: false, animationDone: false },
   });
 
-  const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const { t } = useTranslation();
   const { order } = useFormLayoutsSelector(selectedLayoutSelector);
   const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);
@@ -39,7 +38,6 @@ export function DefaultToolbar() {
     (component) => mapComponentToToolbarElement(
       component,
       t,
-      activeList,
       order,
       dispatch,
       addFormComponentMutation,
@@ -51,7 +49,6 @@ export function DefaultToolbar() {
     (component) => mapComponentToToolbarElement(
       component,
       t,
-      activeList,
       order,
       dispatch,
       addFormComponentMutation,
@@ -63,7 +60,6 @@ export function DefaultToolbar() {
     (component) => mapComponentToToolbarElement(
       component,
       t,
-      activeList,
       order,
       dispatch,
       addFormComponentMutation,
@@ -72,7 +68,7 @@ export function DefaultToolbar() {
   );
 
   const widgetComponentsList: IToolbarElement[] = widgetsList.map(
-    (widget) => mapWidgetToToolbarElement(widget, activeList, order, t, dispatch)
+    (widget) => mapWidgetToToolbarElement(widget, order, t, dispatch)
   );
 
   const allComponentLists: any = {
