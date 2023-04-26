@@ -4,7 +4,8 @@ import { IRelease } from '../../../sharedResources/appRelease/types';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from '../../../types/QueryKey';
 import { useServicesContext } from '../../../common/ServiceContext';
-import { IDeployEnvironment } from "../containers/deployContainer";
+import { IDeployEnvironment } from '../containers/deployContainer';
+import { DEPLOYMENTS_REFETCH_INTERVAL } from 'app-shared/constants';
 
 interface IOrgsState {
   orgs: any;
@@ -49,9 +50,13 @@ export const useAppReleases = (owner, app): UseQueryResult<IRelease[]> => {
 
 export const useAppDeployments = (owner, app): UseQueryResult<IDeployment[]> => {
   const { getDeployments } = useServicesContext();
-  return useQuery<IDeployment[]>([QueryKey.AppDeployments, owner, app], async () => {
-    const res = await getDeployments(owner, app);
-    return res.results;
+  return useQuery<IDeployment[]>({
+    queryKey: [QueryKey.AppDeployments, owner, app],
+    queryFn: async () => {
+      const res = await getDeployments(owner, app);
+      return res.results;
+    },
+    refetchInterval: DEPLOYMENTS_REFETCH_INTERVAL,
   });
 };
 export interface BranchStatus {

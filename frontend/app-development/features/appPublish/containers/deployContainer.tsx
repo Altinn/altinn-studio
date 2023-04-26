@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import classes from './deployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { AppDeploymentComponent, ImageOption } from '../components/appDeploymentComponent';
-import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
+import { BuildResult } from '../../../sharedResources/appRelease/types';
 import { useAppSelector } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 import {
@@ -12,11 +12,11 @@ import {
   useEnvironments,
   useOrgList,
 } from '../hooks/query-hooks';
-import { ICreateAppDeploymentEnvObject, IDeployment } from '../../../sharedResources/appDeployment/types';
+import {
+  ICreateAppDeploymentEnvObject,
+  IDeployment,
+} from '../../../sharedResources/appDeployment/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
-import { useQueryClient } from '@tanstack/react-query';
-import { QueryKey } from '../../../types/QueryKey';
-
 
 export interface IDeployEnvironment {
   appsUrl: string;
@@ -40,19 +40,6 @@ export const DeployContainerComponent = () => {
   const { data: orgs = { orgs: {} }, isLoading: orgsIsLoading } = useOrgList();
   const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissions(org, app);
 
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const index = appDeployments.findIndex(
-        (deployment) => deployment.build.status !== BuildStatus.completed
-      );
-      if (index > -1) {
-        await queryClient.invalidateQueries([QueryKey.AppDeployments, org, app]);
-      }
-    }, 6666);
-    return () => clearInterval(interval);
-  }, [appDeployments, queryClient, org, app]);
-
   const isLoading = () =>
     releasesIsLoading || orgsIsLoading || permissionsIsLoading || envIsLoading || deploysAreLoading;
 
@@ -67,7 +54,9 @@ export const DeployContainerComponent = () => {
   const deployEnvironments: ICreateAppDeploymentEnvObject[] = useMemo(
     () =>
       orgs?.orgs[org]?.environments
-        .map((envName: string) => environmentList.find((env: IDeployEnvironment) => env.name === envName))
+        .map((envName: string) =>
+          environmentList.find((env: IDeployEnvironment) => env.name === envName)
+        )
         .filter((element: any) => element != null),
     [orgs, org, environmentList]
   );
@@ -98,7 +87,9 @@ export const DeployContainerComponent = () => {
   return (
     <div className={classes.deployContainer}>
       {deployEnvironments.map((env: IDeployEnvironment, index: number) => {
-        const deploymentsInEnv: IDeployment[] = appDeployments.filter((x) => x.envName === env.name);
+        const deploymentsInEnv: IDeployment[] = appDeployments.filter(
+          (x) => x.envName === env.name
+        );
         return (
           <AppDeploymentComponent
             key={index}
@@ -112,7 +103,11 @@ export const DeployContainerComponent = () => {
               permissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }
             orgName={orgName}
-            showLinkToApp={deploymentsInEnv.length > 0 && deploymentsInEnv[0].deployedInEnv && deploymentsInEnv[0].build.result === BuildResult.succeeded}
+            showLinkToApp={
+              deploymentsInEnv.length > 0 &&
+              deploymentsInEnv[0].deployedInEnv &&
+              deploymentsInEnv[0].build.result === BuildResult.succeeded
+            }
           />
         );
       })}
