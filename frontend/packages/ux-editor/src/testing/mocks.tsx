@@ -22,6 +22,7 @@ import { ComponentType } from '../components';
 import { ILayoutSettings } from 'app-shared/types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { BrowserRouter } from 'react-router-dom';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -77,6 +78,14 @@ export const component2Mock: IFormComponent = {
   itemType: 'COMPONENT',
 };
 export const container1IdMock = 'Container-1';
+export const customRootPropertiesMock: KeyValuePairs = {
+  someCustomRootProp: 'someStringValue',
+  someOtherCustomRootProp: 5,
+};
+export const customDataPropertiesMock: KeyValuePairs = {
+  someCustomDataProp: 'aStringValue',
+  someOtherCustomDataProp: 10,
+};
 export const layoutMock: IInternalLayout = {
   components: {
     [component1IdMock]: component1Mock,
@@ -94,6 +103,8 @@ export const layoutMock: IInternalLayout = {
     [baseContainerIdMock]: [container1IdMock],
     [container1IdMock]: [component1IdMock, component2IdMock],
   },
+  customRootProperties: customRootPropertiesMock,
+  customDataProperties: customDataPropertiesMock,
 };
 
 export const layout1Mock: IExternalFormLayout = {
@@ -114,7 +125,9 @@ export const layout1Mock: IExternalFormLayout = {
         type: component2TypeMock,
       },
     ],
+    ...customDataPropertiesMock,
   },
+  ...customRootPropertiesMock,
 };
 const layout2Mock: IExternalFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',

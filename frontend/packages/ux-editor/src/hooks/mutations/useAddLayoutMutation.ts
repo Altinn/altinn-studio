@@ -6,7 +6,7 @@ import { deepCopy } from 'app-shared/pure';
 import {
   convertInternalToLayoutFormat,
   createEmptyLayout
-} from '../../utils/formLayout';
+} from '../../utils/formLayoutUtils';
 import { IExternalFormLayout, IInternalLayout } from '../../types/global';
 import { queryClient, useServicesContext } from '../../../../../app-development/common/ServiceContext';
 import { QueryKey } from '../../types/QueryKey';

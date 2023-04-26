@@ -21,33 +21,20 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 const { addWidget, updateActiveListOrder } = FormLayoutActions;
 
-export function convertFromLayoutToInternalFormat(
-  formLayout: IExternalComponent[],
-  hidden: any
-): IInternalLayout {
-  const convertedLayout: IInternalLayout = {
-    containers: {},
-    components: {},
-    order: {},
-    hidden: hidden,
-  };
+export function convertFromLayoutToInternalFormat(formLayout: IExternalFormLayout): IInternalLayout {
+  const convertedLayout: IInternalLayout = createEmptyLayout();
 
-  const baseContainerId: string = BASE_CONTAINER_ID;
-  convertedLayout.order[baseContainerId] = [];
-  convertedLayout.containers[baseContainerId] = {
-    index: 0,
-    itemType: 'CONTAINER',
-  };
+  if (!formLayout || !formLayout.data) return convertedLayout;
 
-  if (!formLayout) {
-    return convertedLayout;
-  }
-  const formLayoutCopy: IExternalComponent[] = deepCopy(formLayout);
+  const formLayoutCopy: IExternalFormLayout = deepCopy(formLayout);
+  const { data, $schema, ...customRootProperties } = formLayoutCopy;
+  const { layout, ...customDataProperties } = data;
 
-  for (const element of topLevelComponents(formLayoutCopy)) {
+  for (const element of topLevelComponents(layout)) {
     if (element.type !== ComponentType.Group) {
       const { id, ...rest } = element;
       if (!rest.type && rest.component) {
@@ -59,13 +46,17 @@ export function convertFromLayoutToInternalFormat(
         id,
         ...rest
       } as IFormComponent;
-      convertedLayout.order[baseContainerId].push(id);
+      convertedLayout.order[BASE_CONTAINER_ID].push(id);
     } else {
-      extractChildrenFromGroup(element, formLayoutCopy, convertedLayout);
-      convertedLayout.order[baseContainerId].push(element.id);
+      extractChildrenFromGroup(element, layout, convertedLayout);
+      convertedLayout.order[BASE_CONTAINER_ID].push(element.id);
     }
   }
-  return convertedLayout;
+  return {
+    ...convertedLayout,
+    customRootProperties,
+    customDataProperties,
+  };
 }
 
 /**
@@ -88,25 +79,37 @@ export function topLevelComponents(layout: IExternalComponent[]): IExternalCompo
 /**
  * Creates an external form layout with the given components.
  * @param layout The components to add to the layout.
- * @param hidden The hidden parameter.
+ * @param customRootProperties Custom properties to add to the root of the layout.
+ * @param customDataProperties Custom properties to add to the data object of the layout.
  * @returns The external form layout.
  */
-export const createExternalLayout = (layout: IExternalComponent[], hidden?: boolean): IExternalFormLayout => ({
+const createExternalLayout = (
+  layout: IExternalComponent[],
+  customRootProperties: KeyValuePairs,
+  customDataProperties: KeyValuePairs,
+): IExternalFormLayout => ({
+  ...customRootProperties,
   $schema: layoutSchemaUrl(),
-  data: { layout, hidden },
+  data: { ...customDataProperties, layout },
 });
 
 export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): IExternalFormLayout {
   const formLayout: IExternalComponent[] = [];
 
-  if (!internalFormat) return createExternalLayout(formLayout);
+  if (!internalFormat) return createExternalLayout(formLayout, {}, {});
 
-  const { components, containers, order } = deepCopy(internalFormat);
+  const {
+    components,
+    containers,
+    order,
+    customRootProperties,
+    customDataProperties,
+  } = deepCopy(internalFormat);
 
-  if (!containers) return createExternalLayout(formLayout, internalFormat.hidden);
+  if (!containers) return createExternalLayout(formLayout, customRootProperties, customDataProperties);
 
   const containerIds = Object.keys(containers);
-  if (!containerIds.length) return createExternalLayout(formLayout, internalFormat.hidden);
+  if (!containerIds.length) return createExternalLayout(formLayout, customRootProperties, customDataProperties);
 
   let groupChildren: string[] = [];
   Object.keys(order).forEach((groupKey: string) => {
@@ -124,7 +127,6 @@ export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): 
         ...components[id],
       });
     } else if (containers[id]) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { itemType, ...restOfGroup } = containers[id];
       formLayout.push({
         id,
@@ -146,7 +148,7 @@ export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): 
       });
     }
   }
-  return createExternalLayout(formLayout, internalFormat.hidden);
+  return createExternalLayout(formLayout, customRootProperties, customDataProperties);
 }
 
 function extractChildrenFromGroupInternal(
@@ -394,11 +396,14 @@ export const createEmptyLayout = (): IInternalLayout => (
     components: {},
     containers: {
       [BASE_CONTAINER_ID]: {
+        index: 0,
         itemType: 'CONTAINER',
       }
     },
     order: {
       [BASE_CONTAINER_ID]: [],
     },
+    customRootProperties: {},
+    customDataProperties: {},
   }
 );

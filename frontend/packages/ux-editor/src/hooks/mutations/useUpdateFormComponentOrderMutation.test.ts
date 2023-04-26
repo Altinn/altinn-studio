@@ -36,13 +36,13 @@ describe('useUpdateFormComponentOrderMutation', () => {
       app,
       layout1NameMock,
       expect.objectContaining({
-        data: {
+        data: expect.objectContaining({
           layout: [
             expect.objectContaining({ id: container1IdMock }),
             expect.objectContaining({ id: component2IdMock }),
             expect.objectContaining({ id: component1IdMock }),
           ]
-        }
+        })
       })
     );
   });

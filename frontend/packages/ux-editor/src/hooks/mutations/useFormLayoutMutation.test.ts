@@ -34,6 +34,8 @@ describe('useFormLayoutMutation', () => {
         [baseContaierId]: [containerId],
         [containerId]: [componentId]
       },
+      customDataProperties: {},
+      customRootProperties: {},
     }
     await renderAndMutate(newLayout);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);

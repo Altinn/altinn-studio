@@ -4,16 +4,14 @@ import {
   IFormDesignerContainers,
   IInternalLayout
 } from '../types/global';
+import { createEmptyLayout } from '../utils/formLayoutUtils';
 
 export const selectedLayoutNameSelector: AppStateSelector<string> =
   (state) => state.formDesigner.layout.selectedLayout;
 
 export const selectedLayoutSelector: FormLayoutsSelector<IInternalLayout> =
-  (state, formLayoutsData) => formLayoutsData?.[selectedLayoutNameSelector(state)] || {
-    containers: {},
-    components: {},
-    order: {},
-  };
+  (state, formLayoutsData) =>
+    formLayoutsData?.[selectedLayoutNameSelector(state)] || createEmptyLayout();
 
 interface SelectedLayoutWithName {
   layout: IInternalLayout;

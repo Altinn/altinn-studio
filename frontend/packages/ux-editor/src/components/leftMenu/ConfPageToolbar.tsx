@@ -5,7 +5,7 @@ import { InformationPanelComponent } from '../toolbar/InformationPanelComponent'
 import { ToolbarItem } from './ToolbarItem';
 import { confOnScreenComponents } from '..';
 import { getComponentTitleByComponentType } from '../../utils/language';
-import { mapComponentToToolbarElement } from '../../utils/formLayout';
+import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

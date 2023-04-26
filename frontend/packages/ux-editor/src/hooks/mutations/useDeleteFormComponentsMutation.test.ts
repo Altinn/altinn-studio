@@ -23,11 +23,11 @@ describe('useDeleteFormComponentsMutation', () => {
       app,
       layout1NameMock,
       expect.objectContaining({
-        data: {
+        data: expect.objectContaining({
           layout: expect.not.arrayContaining([
             expect.objectContaining({ id: component2IdMock })
           ])
-        }
+        })
       })
     );
   });

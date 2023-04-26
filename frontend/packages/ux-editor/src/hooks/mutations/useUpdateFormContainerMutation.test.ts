@@ -37,7 +37,7 @@ describe('useUpdateFormContainerMutation', () => {
       app,
       layout1NameMock,
       expect.objectContaining({
-        data: {
+        data: expect.objectContaining({
           layout: expect.arrayContaining([
             {
               ...layout1Mock.data.layout[0],
@@ -45,7 +45,7 @@ describe('useUpdateFormContainerMutation', () => {
               maxCount,
             }
           ])
-        }
+        })
       })
     );
   });

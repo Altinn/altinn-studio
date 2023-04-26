@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { ComponentType } from '../../components';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
-import { removeComponent } from '../../utils/formLayout';
+import { removeComponent } from '../../utils/formLayoutUtils';
 
 export const useDeleteFormComponentsMutation = (org: string, app: string) =>  {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
