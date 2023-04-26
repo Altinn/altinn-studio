@@ -1,6 +1,7 @@
 # Additional configurations are available. See: https://docs.altinn.studio/app/development/configuration/deployment/
 
 deployment:
+  replicaCount: 1
 
   volumeMounts:
     - name: datakeys
