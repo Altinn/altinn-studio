@@ -48,27 +48,21 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/repository/{id}")]
-        public ActionResult<ServiceResource> GetResourceById(string org, string id)
+        [Route("designer/api/{org}/resources/repository/{repository}")]
+        [Route("designer/api/{org}/resources/repository/{repository}/{id}")]
+        public ActionResult<ServiceResource> GetResourceById(string org, string repository, string id = "")
         {
-            if (id.ToLower().Contains("repository:"))
+            if (id != "")
             {
-                string[] idSplit = id.Split(':');
-                string repo = idSplit[1];
-                List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repo);
-                return repositoryResourceList != null ? repositoryResourceList.First() : StatusCode(204);
-            }
-            else if (id.ToLower().Contains("id:"))
-            {
-                string[] idSplit = id.Split(':');
-                string identifier = idSplit[1];
-                ServiceResource resource = _repository.GetServiceResourceById(org, identifier);
+                ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
                 return resource != null ? resource : StatusCode(204);
             }
             else
             {
-                return StatusCode(404);
+                List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
+                return repositoryResourceList != null ? repositoryResourceList.First() : StatusCode(204);
             }
+
         }
 
         [HttpPut]

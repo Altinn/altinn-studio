@@ -906,9 +906,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public ServiceResource GetServiceResourceById(string org, string identifier)
         {
-            string repository = string.Format("{0}-resources", org);
             List<ServiceResource> resourcesInRepo = GetServiceResources(org, repository);
-
             return resourcesInRepo.Where(r => r.Identifier == identifier).First();
         }
 

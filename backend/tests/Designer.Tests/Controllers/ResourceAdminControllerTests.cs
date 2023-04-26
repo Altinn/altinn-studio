@@ -135,10 +135,10 @@ namespace Designer.Tests.Controllers
         public async Task GetResourceById_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/id:ttd_testresource";
+            string uri = $"{_versionPrefix}/ttd/resources/repository/ttd-resources/ttd_testresource";
 
             _repositoryMock
-                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(
                     new ServiceResource
                     {
@@ -248,10 +248,10 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetResourceById_PassingNoValidArgument_NotFound()
+        public async Task GetResourceById_PassingNoValidArgument_NoContent()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/id";
+            string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/orgwithoutrepo-resources/notvalidresource";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -259,7 +259,7 @@ namespace Designer.Tests.Controllers
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
         }
 
         private static List<ResourceReference> GetTestResourceReferences()

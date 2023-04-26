@@ -238,9 +238,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Gets a specific ServiceResource based on the identifier
         /// </summary>
         /// <param name="org">The organisation that owns the repository where the resource resides</param>
+        /// <param name="repository">The repository where the resource resides</param>
         /// <param name="identifier">The identifier of the resource</param>
         /// <returns></returns>
-        ServiceResource GetServiceResourceById(string org, string identifier);
+        ServiceResource GetServiceResourceById(string org, string repository, string identifier);
 
         /// <summary>
         /// Update existing ServiceResource in repository
