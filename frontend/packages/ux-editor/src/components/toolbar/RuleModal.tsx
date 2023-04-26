@@ -12,6 +12,7 @@ import type { IAppState } from '../../types/global';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
+import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -25,7 +26,7 @@ export function RuleModal(props: IRuleModalProps) {
   const ruleConnection = useSelector(
     (state: IAppState) => state.serviceConfigurations.ruleConnection
   );
-  const ruleModelElements = useSelector((state: IAppState) => state.appData.ruleModel.model)
+  const { data: ruleModelElements } = useRuleModelQuery(org, app);
   const { t } = useTranslation();
   const datamodelQuery = useDatamodelQuery(org, app);
 
