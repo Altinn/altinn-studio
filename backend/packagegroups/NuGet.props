@@ -49,5 +49,7 @@
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.5.0" />
+    <PackageReference Update="Testcontainers" Version="3.0.0" />
+    <PackageReference Update="Testcontainers.PostgreSql" Version="3.0.0" />
   </ItemGroup>
 </Project>
