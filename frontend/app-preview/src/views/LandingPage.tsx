@@ -18,10 +18,11 @@ export const LandingPage = () => {
 
   connection.on("ReceiveMessage", function (message) {
     console.log("SignalR message received: " + message);
-    window.location.reload();
     let frame = document.getElementById('app-frontend-react-iframe');
     if (isIFrame(frame) && frame.contentWindow){
-      frame.contentWindow.postMessage({ action: message }, '{baseurl}');
+      const targetOrigin = window.origin;
+      console.log("Sending reload message to app-frontend with targetOrigin: " + targetOrigin);
+      frame.contentWindow.postMessage({ action: message }, targetOrigin);
     }
   });
 
