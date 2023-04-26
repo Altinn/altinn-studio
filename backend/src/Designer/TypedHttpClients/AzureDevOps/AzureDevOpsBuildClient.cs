@@ -58,6 +58,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             string requestUri = $"{buildId}?api-version=5.1";
             _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
             HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            response.EnsureSuccessStatusCode();
             Build build = await response.Content.ReadAsAsync<Build>();
             return ToBuildEntity(build);
         }

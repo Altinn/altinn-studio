@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
@@ -133,14 +133,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 await _deploymentRepository.Update(deploymentEntity);
             }
-            catch (Exception)
+            catch (HttpRequestException)
             {
                 _logger.LogInformation("The requested build number {buildNumber} does not exist, updating it as failed in the database", buildNumber);
-                deploymentEntity.Build.Status = BuildStatus.None;
+                deploymentEntity.Build.Status = BuildStatus.Completed;
                 deploymentEntity.Build.Result = BuildResult.Failed;
                 await _deploymentRepository.Update(deploymentEntity);
             }
-
         }
 
         private async Task<Build> QueueDeploymentBuild(
