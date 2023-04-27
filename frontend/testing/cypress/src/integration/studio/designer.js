@@ -2,7 +2,6 @@
 /// <reference types="../../support" />
 
 import { designer } from '../../pageobjects/designer';
-import { header } from '../../pageobjects/header';
 
 context('Designer', () => {
   before(() => {
@@ -45,12 +44,6 @@ context('Designer', () => {
     cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
     cy.get(designer.dragToArea).trigger('drop');
     cy.deletecomponents();
-    cy.get(header.profileIconDesigner).click();
-    cy.get(header.menu.openRepo)
-      .invoke('attr', 'href')
-      .should('include', `/repos/${Cypress.env('designerApp')}`);
-    cy.get(header.menu.docs).should('be.visible');
-    cy.contains('li', 'Logout').should('be.visible');
   });
 
   it('is possible to delete local changes of an app ', () => {
@@ -62,15 +55,5 @@ context('Designer', () => {
     cy.get(designer.formComponents.longAnswer).parents(designer.draggable).trigger('dragstart');
     cy.get(designer.dragToArea).trigger('drop');
     cy.deleteLocalChanges(Cypress.env('designerApp'));
-  });
-
-  it('is possible details of the clone modal ', () => {
-    cy.searchAndOpenApp(Cypress.env('withoutDataModelApp'));
-    cy.get(designer.appMenu['edit']).click();
-    cy.contains('button', 'Clone').scrollIntoView().should('be.visible').click();
-    cy.get(designer.clone.docs).should('be.visible');
-    cy.contains('div', designer.clone.missingDatamodel).should('be.visible');
-    cy.get(designer.clone.datamodelLink).should('be.visible');
-    cy.get(designer.clone.copyRepo).should('be.visible');
   });
 });

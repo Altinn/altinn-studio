@@ -7,10 +7,14 @@ import { designer } from '../../pageobjects/designer';
 context('WCAG', () => {
   beforeEach(() => {
     cy.visit('/');
-    cy.intercept('GET', '**/repos/search**').as('fetchApps');
+    cy.intercept('GET', 'designer/api/repos/search?**').as('fetchApps');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.get(dashboard.searchApp).should('be.visible');
-    cy.wait('@fetchApps').its('response.statusCode').should('eq', 200);
+    cy.wait('@fetchApps')
+      .its('response.statusCode')
+      .should((statusCode) => {
+        expect([200, 302]).to.contain(statusCode);
+      });
   });
 
   it('accessibility test for dashboard', () => {

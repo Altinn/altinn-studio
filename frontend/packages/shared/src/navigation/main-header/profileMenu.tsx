@@ -26,13 +26,19 @@ export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
 
   return (
     <div>
-      <img
-        src={user.avatar_url}
-        className={classes.userAvatar}
-        aria-haspopup
-        onClick={handleClick}
-        aria-label='imgIcon'
-      />
+      <button
+        id='profile-icon-button'
+        className={classes.profileIconButton}
+        aria-label='profilikon'
+      >
+        <img
+          src={user.avatar_url}
+          className={classes.userAvatar}
+          aria-haspopup
+          onClick={handleClick}
+          aria-label='imgIcon'
+        />
+      </button>
       <Menu
         id='simple-menu'
         anchorEl={anchorEl}
