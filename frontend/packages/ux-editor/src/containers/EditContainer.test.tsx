@@ -66,7 +66,9 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
           itemType: 'COMPONENT'
         }
       },
-      containers: null
+      containers: null,
+      customRootProperties: {},
+      customDataProperties: {},
     }
   }
   const initialState: IAppState = {

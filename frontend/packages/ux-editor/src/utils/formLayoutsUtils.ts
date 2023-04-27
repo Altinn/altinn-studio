@@ -1,9 +1,11 @@
-import { IFormLayouts, IInternalLayout } from '../types/global';
+import { IExternalFormLayouts, IFormLayouts, IInternalLayout } from '../types/global';
 import {
   addNavigationButtons,
+  convertFromLayoutToInternalFormat,
+  createEmptyLayout,
   hasNavigationButtons,
   removeComponentsByType
-} from './formLayout';
+} from './formLayoutUtils';
 import { ComponentType } from '../components';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { generateComponentId } from './generateId';
@@ -59,3 +61,30 @@ export const addOrRemoveNavigationButtons = async (
   }
   return updatedLayouts;
 }
+
+interface AllLayouts {
+  convertedLayouts: IFormLayouts;
+  invalidLayouts: string[];
+}
+
+/**
+ * Converts list of external layouts to internal format.
+ * @param layouts List of layouts in external format.
+ * @returns A list of layouts in internal format and a list of layouts with an invalid format.
+ */
+export const convertExternalLayoutsToInternalFormat = (layouts: IExternalFormLayouts): AllLayouts => {
+  const convertedLayouts: IFormLayouts = {};
+  const invalidLayouts: string[] = [];
+  Object.entries(layouts).forEach(([name, layout]) => {
+    if (!layout || !layout.data) {
+      convertedLayouts[name] = createEmptyLayout();
+    } else {
+      try {
+        convertedLayouts[name] = convertFromLayoutToInternalFormat(layouts[name]);
+      } catch {
+        invalidLayouts.push(name);
+      }
+    }
+  });
+  return { convertedLayouts, invalidLayouts };
+};

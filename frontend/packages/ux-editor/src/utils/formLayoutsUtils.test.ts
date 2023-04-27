@@ -1,8 +1,9 @@
 import { IFormButtonComponent, IFormLayouts } from '../types/global';
-import { addOrRemoveNavigationButtons } from './formLayoutsUtils';
+import { addOrRemoveNavigationButtons, convertExternalLayoutsToInternalFormat } from './formLayoutsUtils';
 import { ComponentType } from '../components';
-import { createEmptyLayout } from './formLayout';
+import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/mocks';
 
 describe('formLayoutsUtils', () => {
   describe('addOrRemoveNavigationButtons', () => {
@@ -40,7 +41,9 @@ describe('formLayoutsUtils', () => {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
           containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
-          order: { [BASE_CONTAINER_ID]: [navButtonsId] }
+          order: { [BASE_CONTAINER_ID]: [navButtonsId] },
+          customRootProperties: {},
+          customDataProperties: {},
         },
       };
       const updatedLayouts = await addOrRemoveNavigationButtons(layouts, callback);
@@ -48,6 +51,17 @@ describe('formLayoutsUtils', () => {
       expect(layout1Components.length).toBe(0);
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(layoutId, updatedLayouts[layoutId]);
+    });
+  });
+
+  describe('convertExternalLayoutsToInternalFormat', () => {
+    it('Converts external layouts to internal format', () => {
+      const { convertedLayouts, invalidLayouts } = convertExternalLayoutsToInternalFormat(externalLayoutsMock);
+      expect(convertedLayouts).toEqual({
+        [layout1NameMock]: expect.any(Object),
+        [layout2NameMock]: expect.any(Object),
+      });
+      expect(invalidLayouts).toEqual([]);
     });
   });
 });

@@ -7,7 +7,7 @@ import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { EditGroupDataModelBindings } from '../components/config/group/EditGroupDataModelBindings';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
-import { idExists, validComponentId } from '../utils/formLayout';
+import { idExists, validComponentId } from '../utils/formLayoutUtils';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type {
   IAppState,

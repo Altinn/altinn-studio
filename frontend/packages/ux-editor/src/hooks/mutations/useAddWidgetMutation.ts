@@ -1,5 +1,5 @@
 import { IFormDesignerComponents, IFormLayouts, IInternalLayout, IWidget } from '../../types/global';
-import { convertFromLayoutToInternalFormat } from '../../utils/formLayout';
+import { convertFromLayoutToInternalFormat } from '../../utils/formLayoutUtils';
 import { useMutation } from '@tanstack/react-query';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
@@ -24,7 +24,10 @@ export const useAddWidgetMutation = (org: string, app: string) => {
   const { mutateAsync: updateText } = useUpsertTextResourcesMutation(org, app);
   return useMutation({
     mutationFn: async ({ widget, position, containerId }: AddWidgetMutationArgs) => {
-      const internalComponents = convertFromLayoutToInternalFormat(widget.components, layout.hidden);
+      const internalComponents = convertFromLayoutToInternalFormat({
+        data: { layout: widget.components },
+        $schema: null
+      });
       const components: IFormDesignerComponents = deepCopy(layout.components);
       if (!containerId) containerId = BASE_CONTAINER_ID; // If containerId is not set, set it to the base-container's ID
       const containerOrder: string[] = [...layout.order[containerId]];

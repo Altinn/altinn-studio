@@ -7,7 +7,7 @@ import { ComponentType } from '../../components';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
-import { addComponent } from '../../utils/formLayout';
+import { addComponent } from '../../utils/formLayoutUtils';
 
 export interface AddFormComponentMutationArgs {
   component: IFormComponent;

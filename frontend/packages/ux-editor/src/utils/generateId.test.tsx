@@ -21,6 +21,8 @@ describe('generateComponentId', () => {
       order: {
         container1: ['Input-1bd34'],
       },
+      customRootProperties: {},
+      customDataProperties: {},
     },
     layout2: {
       containers: {
@@ -39,6 +41,8 @@ describe('generateComponentId', () => {
       order: {
         container2: ['Input-abfr34'],
       },
+      customRootProperties: {},
+      customDataProperties: {},
     },
   };
   it('should generate unique component id within provided layouts', () => {

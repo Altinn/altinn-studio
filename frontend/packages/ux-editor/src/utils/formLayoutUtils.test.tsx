@@ -1,18 +1,26 @@
 import {
-  addComponent, addNavigationButtons,
+  addComponent,
+  addNavigationButtons,
   convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
-  extractChildrenFromGroup, findContainerId, hasNavigationButtons, removeComponent, removeComponentsByType,
-} from './formLayout';
+  extractChildrenFromGroup,
+  findContainerId,
+  hasNavigationButtons,
+  removeComponent,
+  removeComponentsByType,
+} from './formLayoutUtils';
 import { ComponentType } from '../components';
 import {
   ICreateFormContainer,
-  IExternalComponent, IExternalFormLayout, IFormButtonComponent,
+  IExternalComponent,
+  IExternalFormLayout,
+  IFormButtonComponent,
   IFormComponent,
   IFormHeaderComponent,
   IInternalLayout
 } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/mocks';
 
 // Test data:
 const baseContainer: ICreateFormContainer = {
@@ -93,40 +101,50 @@ const mockInternal: IInternalLayout = {
     [groupId]: [paragraphInGroupId, groupInGroupId],
     [groupInGroupId]: [paragraphInGroupInGroupId],
   },
+  customRootProperties: customRootPropertiesMock,
+  customDataProperties: customDataPropertiesMock,
 };
 
-describe('utils/formLayout', () => {
-  let mockLayout: IExternalComponent[];
+describe('formLayoutUtils', () => {
+  let mockLayout: IExternalFormLayout;
 
   beforeEach(() => {
-    mockLayout = [
-      {
-        id: '17314adc-f75d-4a49-b726-242e2ae32ad2',
-        type: ComponentType.Input,
-        textResourceBindings: {
-          title: 'Input',
-        },
-        dataModelBindings: {},
-        required: false,
-        readOnly: false,
+    mockLayout = {
+      $schema: null,
+      data: {
+        layout: [
+          {
+            id: '17314adc-f75d-4a49-b726-242e2ae32ad2',
+            type: ComponentType.Input,
+            textResourceBindings: {
+              title: 'Input',
+            },
+            dataModelBindings: {},
+            required: false,
+            readOnly: false,
+          },
+          {
+            id: '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a',
+            type: ComponentType.Input,
+            textResourceBindings: {
+              title: 'Input',
+            },
+            dataModelBindings: {},
+            required: false,
+            readOnly: false,
+            customProperty,
+          },
+        ],
+        ...customDataPropertiesMock,
       },
-      {
-        id: '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a',
-        type: ComponentType.Input,
-        textResourceBindings: {
-          title: 'Input',
-        },
-        dataModelBindings: {},
-        required: false,
-        readOnly: false,
-        customProperty,
-      },
-    ];
+      hidden: undefined,
+      ...customRootPropertiesMock,
+    } ;
   });
 
   describe('convertFromLayoutToInternalFormat', () => {
     it('should convert to correct format', () => {
-      const convertedLayout = convertFromLayoutToInternalFormat(mockLayout, false);
+      const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
       const expectedResult: IInternalLayout = {
         components: {
           '17314adc-f75d-4a49-b726-242e2ae32ad2': {
@@ -160,21 +178,23 @@ describe('utils/formLayout', () => {
         },
         order: {
           [BASE_CONTAINER_ID]: ['17314adc-f75d-4a49-b726-242e2ae32ad2', '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a'],
-        }
+        },
+        customDataProperties: customDataPropertiesMock,
+        customRootProperties: customRootPropertiesMock,
       };
 
       expect(convertedLayout.components).toEqual(expectedResult.components);
     });
 
     it('should initiate a form layout with a base container', () => {
-      const convertedLayout = convertFromLayoutToInternalFormat(null, false);
+      const convertedLayout = convertFromLayoutToInternalFormat(null);
       expect(Object.keys(convertedLayout.containers).length).toEqual(1);
       expect(Object.keys(convertedLayout.components).length).toEqual(0);
       expect(Object.keys(convertedLayout.order).length).toEqual(1);
     });
 
     it('if the element contains children, extractChildrenFromContainer should run', () => {
-      mockLayout = [
+      mockLayout.data.layout = [
         {
           id: 'mockChildID_1',
           type: ComponentType.Group,
@@ -248,10 +268,12 @@ describe('utils/formLayout', () => {
           mockChildID_1: ['mockChildID_2'],
           mockChildID_3: ['mockChildID_4', 'mockChildID_6'],
           mockChildID_6: ['mockChildID_7'],
-        }
+        },
+        customRootProperties: customRootPropertiesMock,
+        customDataProperties: customDataPropertiesMock,
       };
 
-      const convertedLayout = convertFromLayoutToInternalFormat(mockLayout, false);
+      const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
       expect(convertedLayout.components).toEqual(expectedComponentResult.components);
       expect(Object.keys(convertedLayout.order).length).toEqual(4);
     });
@@ -303,8 +325,9 @@ describe('utils/formLayout', () => {
               dataModelBindings: {},
             },
           ],
-          hidden: undefined
-        }
+          ...customDataPropertiesMock
+        },
+        ...customRootPropertiesMock
       };
       expect(Array.isArray(convertedLayout.data.layout)).toBe(true);
       expect(convertedLayout).toEqual(expectedResult);
@@ -334,6 +357,8 @@ describe('utils/formLayout', () => {
         containers: {},
         components: {},
         order: {},
+        customRootProperties: {},
+        customDataProperties: {},
       };
       const expectedConvertedLayoutResult: IInternalLayout = {
         containers: { 'mock-group-id': { itemType: 'CONTAINER' } },
@@ -342,6 +367,8 @@ describe('utils/formLayout', () => {
           'mock-component-2': { someProp: '2', itemType: 'COMPONENT', type: ComponentType.Paragraph, id: 'mock-component-2' },
         },
         order: { 'mock-group-id': ['mock-component-1', 'mock-component-2'] },
+        customRootProperties: {},
+        customDataProperties: {},
       };
       extractChildrenFromGroup(mockGroup, mockComponents, mockConvertedLayout);
       expect(mockConvertedLayout).toEqual(expectedConvertedLayoutResult);
@@ -369,7 +396,9 @@ describe('utils/formLayout', () => {
             ...mockInternal.order[BASE_CONTAINER_ID],
             navigationButtonsId,
           ]
-        }
+        },
+        customRootProperties: {},
+        customDataProperties: {},
       };
       expect(hasNavigationButtons(layout)).toBe(true);
     });

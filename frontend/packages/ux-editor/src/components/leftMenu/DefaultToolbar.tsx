@@ -5,7 +5,7 @@ import { CollapsableMenus } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarGroup } from './ToolbarGroup';
 import { advancedComponents, schemaComponents, textComponents } from '..';
-import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../../utils/formLayout';
+import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../../utils/formLayoutUtils';
 import { useDispatch, useSelector } from 'react-redux';
 
 import './DefaultToolbar.css';

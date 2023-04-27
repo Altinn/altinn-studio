@@ -31,7 +31,7 @@ describe('useAddFormContainerMutation', () => {
       app,
       layout1NameMock,
       expect.objectContaining({
-        data: {
+        data: expect.objectContaining({
           layout: expect.arrayContaining([
             {
               id,
@@ -39,7 +39,7 @@ describe('useAddFormContainerMutation', () => {
               children: [],
             }
           ])
-        }
+        })
       })
     );
   });

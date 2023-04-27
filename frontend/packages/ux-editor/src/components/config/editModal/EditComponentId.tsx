@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { TextField } from '@digdir/design-system-react';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import type { FormComponentType } from '../../../types/global';
-import { idExists, validComponentId } from '../../../utils/formLayout';
+import { idExists, validComponentId } from '../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { useFormLayoutsSelector } from '../../../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../../../selectors/formLayoutSelectors';

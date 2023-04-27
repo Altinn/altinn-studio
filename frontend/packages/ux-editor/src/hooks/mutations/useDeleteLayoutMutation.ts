@@ -10,7 +10,7 @@ import { ILayoutSettings } from 'app-shared/types/global';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
-import { convertInternalToLayoutFormat } from '../../utils/formLayout';
+import { convertInternalToLayoutFormat } from '../../utils/formLayoutUtils';
 
 export const useDeleteLayoutMutation = (org: string, app: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
