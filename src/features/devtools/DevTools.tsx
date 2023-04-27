@@ -4,7 +4,8 @@ import type { ReactNode } from 'react';
 import { OpenDevToolsButton } from 'src/features/devtools/components/OpenDevToolsButton/OpenDevToolsButton';
 import { DevToolsPanel } from 'src/features/devtools/DevToolsPanel';
 
-const localEnv = window.location.hostname === 'local.altinn.cloud';
+const devHostNames = ['local.altinn.cloud', 'dev.altinn.studio', 'altinn.studio', 'studio.localhost'];
+const shouldShowButton = devHostNames.includes(window.location.hostname);
 
 interface IDevToolsProps {
   children: ReactNode;
@@ -26,7 +27,7 @@ export const DevTools = ({ children }: IDevToolsProps) => {
 
   return (
     <>
-      {localEnv && (
+      {shouldShowButton && (
         <OpenDevToolsButton
           isHidden={panelOpen}
           onClick={() => setPanelOpen(true)}
