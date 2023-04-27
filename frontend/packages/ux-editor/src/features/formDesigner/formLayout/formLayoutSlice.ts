@@ -4,6 +4,7 @@ import { actions, moduleName } from './formLayoutActions';
 import { sortArray } from '../../../utils/arrayHelpers/arrayLogic';
 import type {
   IAddActiveFormContainerAction,
+  IAddLayoutFulfilledAction,
   IDeleteLayoutAction,
   IFormDesignerActionRejected,
   IUpdateActiveListActionFulfilled,
@@ -16,7 +17,7 @@ export interface IFormLayoutState {
   unSavedChanges: boolean;
   activeContainer: string;
   activeList: any;
-  selectedLayout: string
+  selectedLayout: string;
   invalidLayouts: string[];
 }
 
@@ -44,9 +45,9 @@ const formLayoutSlice = createSlice({
       }
       state.activeContainer = containerId;
     },
-    addLayoutFulfilled: (state, action: PayloadAction<string[]>) => {
-      const layoutOrder = action.payload;
-      state.selectedLayout = layoutOrder[layoutOrder.length - 1];
+    addLayoutFulfilled: (state, action: PayloadAction<IAddLayoutFulfilledAction>) => {
+      const { layoutOrder, receiptLayoutName } = action.payload;
+      state.selectedLayout = receiptLayoutName || layoutOrder[layoutOrder.length - 1];
     },
     addLayoutRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;

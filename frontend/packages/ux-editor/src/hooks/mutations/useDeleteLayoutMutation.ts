@@ -1,5 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
-import { queryClient, useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import {
+  queryClient,
+  useServicesContext,
+} from '../../../../../app-development/common/ServiceContext';
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from '../../types/QueryKey';
@@ -28,7 +31,12 @@ export const useDeleteLayoutMutation = (org: string, app: string) => {
     mutationFn: async (layoutName: string) => {
       let layouts = deepCopy(formLayouts);
       delete layouts[layoutName];
-      layouts = await addOrRemoveNavigationButtons(layouts, saveLayout);
+      layouts = await addOrRemoveNavigationButtons(
+        layouts,
+        saveLayout,
+        undefined,
+        formLayoutSettings.receiptLayoutName
+      );
       await deleteFormLayout(org, app, layoutName);
       return { layoutName, layouts };
     },
@@ -45,11 +53,8 @@ export const useDeleteLayoutMutation = (org: string, app: string) => {
       }
       formLayoutSettingsMutation.mutate(layoutSettings);
 
-      queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app],
-        () => layouts
-      );
+      queryClient.setQueryData([QueryKey.FormLayouts, org, app], () => layouts);
       dispatch(FormLayoutActions.deleteLayoutFulfilled({ layout: layoutName, pageOrder: order }));
-    }
+    },
   });
 };

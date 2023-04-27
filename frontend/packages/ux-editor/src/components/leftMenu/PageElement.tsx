@@ -120,7 +120,11 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const handleConfirmDelete = () => {
     setDeleteAnchorEl(null);
     deleteLayout(name);
-    setSearchParams(removeKey(searchParams, 'layout'));
+    setSearchParams({
+      ...removeKey(searchParams, 'layout'),
+      deletedLayout: name,
+    });
+    dispatch(FormLayoutActions.updateSelectedLayout('default'));
   };
 
   return (
@@ -186,7 +190,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           id='edit-page-button'
           disabled={invalid}
         />
-        <Divider marginless/>
+        <Divider marginless />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'delete')}
           text={t('left_menu.page_menu_delete')}
