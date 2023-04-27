@@ -57,17 +57,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of the layoutset to get layouts for</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [UseSystemTextJson]
         [Route("form-layouts")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app)
+        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, string layoutSetName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, null);
+                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, layoutSetName);
                 return Ok(formLayouts);
             }
             catch (FileNotFoundException exception)
@@ -81,19 +82,20 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of layoutSet the specific layout belongs to</param>
         /// <param name="layoutName">The name of the form layout to be saved.</param>
         /// /// <param name="formLayout">The content to be saved to the layout</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [UseSystemTextJson]
         [Route("form-layout/{layoutName}")]
-        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromRoute] string layoutName, [FromBody] JsonNode formLayout)
+        public async Task<ActionResult> SaveFormLayout(string org, string app,[FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] JsonNode formLayout)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                await _appDevelopmentService.SaveFormLayout(org, app, developer, null, layoutName, formLayout);
+                await _appDevelopmentService.SaveFormLayout(org, app, developer, layoutSetName, layoutName, formLayout);
                 return Ok("Layout successfully saved.");
             }
             catch (FileNotFoundException exception)
@@ -107,17 +109,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">The name of the layoutset the specific layout belongs to</param>
         /// <param name="layoutName">The form layout to be deleted</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpDelete]
         [Route("form-layout/{layoutName}")]
-        public ActionResult DeleteFormLayout(string org, string app, string layoutName)
+        public ActionResult DeleteFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                _appDevelopmentService.DeleteFormLayout(org, app, developer, null, layoutName);
+                _appDevelopmentService.DeleteFormLayout(org, app, developer, layoutSetName, layoutName);
                 return Ok("Layout successfully deleted.");
             }
             catch (FileNotFoundException exception)
@@ -132,17 +135,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="newName">The new name of the form layout.</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of the layoutset the specific layout belongs to</param>
         /// <param name="layoutName">The current name of the form layout</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("form-layout-name/{layoutName}")]
-        public ActionResult UpdateFormLayoutName(string org, string app, string layoutName, [FromBody] string newName)
+        public ActionResult UpdateFormLayoutName(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] string newName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                _appDevelopmentService.UpdateFormLayoutName(org, app, developer, null, layoutName, newName);
+                _appDevelopmentService.UpdateFormLayoutName(org, app, developer, layoutSetName, layoutName, newName);
                 return Ok("Layout name successfully changed.");
             }
             catch (FileNotFoundException exception)
@@ -154,6 +158,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Saves the layout settings for an app without layoutsets
         /// </summary>
+        /// <param name="layoutSetName">Name of the layoutset the layoutsettings belong to</param>
         /// <param name="layoutSettings">The data to be saved</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -161,11 +166,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromBody] JsonNode layoutSettings)
+        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromQuery] string layoutSetName, [FromBody] JsonNode layoutSettings)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, null);
+            await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, layoutSetName);
             return Ok("Layout settings successfully saved.");
         }
 
@@ -174,17 +179,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of the layoutset the specific layputsettings belong to</param>
         /// <returns>The content of the settings file</returns>
         [HttpGet]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult<JsonNode>> GetLayoutSettings(string org, string app)
+        public async Task<ActionResult<JsonNode>> GetLayoutSettings(string org, string app, [FromQuery] string layoutSetName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             try
             {
-                var layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, null);
+                var layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, layoutSetName);
                 return Ok(layoutSettings);
             }
             catch (FileNotFoundException exception)
@@ -192,6 +198,56 @@ namespace Altinn.Studio.Designer.Controllers
                 return NotFound(exception.Message);
             }
         }
+
+        /// <summary>
+        /// Get all layoutsets in the layout-set.json file
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The layout-sets.json</returns>
+        [HttpGet]
+        [UseSystemTextJson]
+        [Route("layout-sets")]
+        public async Task<ActionResult<JsonNode>> GetLayoutSets(string org, string app)
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                LayoutSets layoutSets = await _appDevelopmentService.GetLayoutSets(org, app, developer);
+                return Ok(layoutSets);
+            }
+            catch (FileNotFoundException)
+            {
+                return NotFound("Layout-sets.json not found");
+            }
+        }
+
+        /// <summary>
+        /// Add a layoutset to the layout-sets.json file
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSet">The config needed for the layoutset to be added to layout-sets.json</param>
+        [HttpPut]
+        [UseSystemTextJson]
+        [Route("layout-set")]
+        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromQuery] LayoutSetConfig layoutSet)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                await _appDevelopmentService.AddLayoutSet(org, app, developer, layoutSet);
+                return Ok("Layout set added");
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound($"Layout-sets.json not found: {exception}");
+            }
+        }
+
+        // How should we handle first creation of layoutsets/layout-sets.json and potentially deletion/regretting introducing this?
+        // Need POST and DELETE
 
         /// <summary>
         /// Get rule handler in JSON structure

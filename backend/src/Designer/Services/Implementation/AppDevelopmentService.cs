@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -106,6 +107,33 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return;
             }
             await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
+        }
+
+        public async Task<LayoutSets> GetLayoutSets(string org, string app, string developer)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                LayoutSets layoutsets = await altinnAppGitRepository.GetLayoutSetsFile();
+                return layoutsets;
+            }
+
+            throw new NotFoundException("No layoutset was found for this app");
+        }
+
+        public async Task AddLayoutSet(string org, string app, string developer, LayoutSetConfig layoutSet)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+                layoutSets.Sets.Add(layoutSet);
+                await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
+            }
+
+            throw new NotFoundException("No layoutset was found for this app");
         }
 
         /// <inheritdoc />

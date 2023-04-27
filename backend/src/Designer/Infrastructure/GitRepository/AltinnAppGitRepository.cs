@@ -524,6 +524,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             throw new NotFoundException("No layoutset was found for this app");
         }
 
+        public async Task SaveLayoutSetsFile(LayoutSets layoutSets)
+        {
+            if (AppUsesLayoutSets())
+            {
+                string layoutSetsFilePath = GetPathToLayoutSetsFile();
+                string layoutSetsString = JsonSerializer.Serialize(layoutSets, _jsonOptions);
+                await WriteTextByRelativePathAsync(layoutSetsFilePath, layoutSetsString);
+            }
+
+            throw new NotFoundException("No layoutset was found for this app");
+        }
+
         /// <summary>
         /// Saves the RuleHandler.js for a specific layoutset
         /// </summary>
