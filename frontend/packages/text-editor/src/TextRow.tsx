@@ -30,6 +30,7 @@ export interface TextRowProps {
   upsertTextResource: (data: UpsertTextResourceMutation) => void;
   variables: TextResourceVariable[];
   selectedLanguages: string[];
+  showButton?: boolean;
 }
 
 export const TextRow = ({
@@ -41,12 +42,12 @@ export const TextRow = ({
   idExists,
   variables,
   selectedLanguages,
+  showButton = true,
 }: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
   const [keyError, setKeyError] = useState('');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-
   const { t } = useTranslation();
 
   const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -68,7 +69,6 @@ export const TextRow = ({
   };
 
   const handleDeleteClick = () => removeEntry({ textId });
-
   const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
 
   return (
@@ -106,13 +106,15 @@ export const TextRow = ({
               <span>{textIdValue}</span>
             </div>
           )}
-          <Button
-            aria-label={'toggle-textkey-edit'}
-            icon={<PencilIcon className={classes.smallIcon} />}
-            variant={ButtonVariant.Quiet}
-            size={ButtonSize.Small}
-            onClick={() => setTextIdEditOpen(!textIdEditOpen)}
-          />
+          {showButton && (
+            <Button
+              aria-label={'toggle-textkey-edit'}
+              icon={<PencilIcon className={classes.smallIcon} />}
+              variant={ButtonVariant.Quiet}
+              size={ButtonSize.Small}
+              onClick={() => setTextIdEditOpen(!textIdEditOpen)}
+            />
+          )}
         </ButtonContainer>
       </TableCell>
       <TableCell>

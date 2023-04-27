@@ -8,6 +8,7 @@ import type {
 import { filterFunction, getLangName } from './utils';
 import { TextTableRow } from './types';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
+import { APP_NAME } from '../../shared/src/constants';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
@@ -49,6 +50,7 @@ export const TextList = ({
               textRowEntries={row.translations}
               variables={row.variables || []}
               selectedLanguages={selectedLanguages}
+              showButton={row.textKey !== APP_NAME}
               {...rest}
             />
           ))}

@@ -89,6 +89,18 @@ describe('TextRow', () => {
     expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
 
+  test('renders a Button component with a PencilIcon when showButton is true', () => {
+    renderTextRow({ showButton: true });
+    const button = screen.getByRole('button', { name: 'toggle-textkey-edit' });
+    expect(button).toBeInTheDocument();
+  });
+
+  test('Hide a Button component with a PencilIcon when showButton is false', () => {
+    renderTextRow({ showButton: false });
+    const button = screen.queryByRole('button', { name: 'toggle-textkey-edit' });
+    expect(button).not.toBeInTheDocument();
+  });
+
   test('that the user is warned if an illegal character is used', async () => {
     const updateEntryId = jest.fn();
     const { user } = renderTextRow({ updateEntryId });
