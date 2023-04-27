@@ -82,6 +82,10 @@
   text-align: var(--cell-text-alignment);
 }
 
+.spaceAfterContent {
+  padding-right: 5px;
+}
+
 .tableCellFormatting {
   --cell-width: auto;
   width: var(--cell-width);

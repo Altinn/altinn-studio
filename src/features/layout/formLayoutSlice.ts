@@ -350,13 +350,12 @@ export const formLayoutSlice = () => {
           state.uiConfig.tracks.hidden = action.payload.hiddenLayouts;
         },
       }),
-      initRepeatingGroups: mkAction<void>({
+      initRepeatingGroups: mkAction<LayoutTypes.IInitRepeatingGroups>({
         takeEvery: initRepeatingGroupsSaga,
         saga: () =>
           function* (): SagaIterator {
-            yield takeLatest(
-              [FormDataActions.fetchFulfilled, FormLayoutActions.initRepeatingGroups, FormLayoutActions.fetchFulfilled],
-              initRepeatingGroupsSaga,
+            yield takeLatest([FormDataActions.fetchFulfilled, FormLayoutActions.fetchFulfilled], () =>
+              initRepeatingGroupsSaga({ payload: {} }),
             );
           },
       }),

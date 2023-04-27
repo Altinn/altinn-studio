@@ -53,6 +53,7 @@ import type { IFormDataState } from 'src/features/formData';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type {
   ICalculatePageOrderAndMoveToNextPage,
+  IInitRepeatingGroups,
   IUpdateCurrentView,
   IUpdateFileUploaderWithTagChosenOptions,
   IUpdateFileUploaderWithTagEditIndex,
@@ -671,7 +672,9 @@ export function* updateRepeatingGroupEditIndexSaga({
   }
 }
 
-export function* initRepeatingGroupsSaga(): SagaIterator {
+export function* initRepeatingGroupsSaga({
+  payload: { changedFields },
+}: Pick<PayloadAction<IInitRepeatingGroups>, 'payload'>): SagaIterator {
   const layouts = yield selectNotNull(selectFormLayouts);
   const formDataState: IFormDataState = yield select(selectFormData);
   const state: IRuntimeState = yield select();
@@ -737,6 +740,17 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
       }
       if (currentGroup.multiPageIndex !== undefined) {
         newGroup.multiPageIndex = currentGroup.multiPageIndex;
+      }
+
+      const dmBinding = newGroup.dataModelBinding;
+      const changesInThisGroup = dmBinding && Object.keys(changedFields || {}).some((key) => key.startsWith(dmBinding));
+
+      if (currentGroup.index > newGroup.index && !changesInThisGroup) {
+        // A user might have clicked the 'add' button multiple times without having started to fill out every new row
+        // yet. We need to preserve the index of the last row that was added so that the user can continue to fill out
+        // the form from where they left off. If, however, the server changed something in our group, they might
+        // also have deleted rows. In that case we need to reset the index to the last row.
+        newGroup.index = currentGroup.index;
       }
     });
   yield put(

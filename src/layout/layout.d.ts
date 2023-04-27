@@ -90,8 +90,8 @@ export interface IInputFormatting {
   align?: 'right' | 'center' | 'left';
 }
 
-export interface ITableColumnFormatting {
-  [key: string]: ITableColumnProperties;
+export interface ITableColumnFormatting<T extends ITableColumnProperties = ITableColumnProperties> {
+  [key: string]: T;
 }
 
 export interface ITableColumnProperties {

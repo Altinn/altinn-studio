@@ -217,7 +217,7 @@ function* handleChangedFields(changedFields: IFormData | undefined, lastSavedFor
     }),
   );
 
-  yield put(FormLayoutActions.initRepeatingGroups());
+  yield put(FormLayoutActions.initRepeatingGroups({ changedFields }));
 
   return lastSavedFormData;
 }

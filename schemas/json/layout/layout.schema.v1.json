@@ -563,10 +563,30 @@
           "title": "Table Columns",
           "description": "An object containing key-value pairs where the key is a table header and the value is an object containing settings for the headers column",
           "type": "object",
-          "patternProperties": {
-            ".*": {
-              "$ref": "#/definitions/tableColumnOptions"
-            }
+          "additionalProperties": {
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/definitions/tableColumnOptions"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "editInTable": {
+                    "title": "Edit in table",
+                    "description": "Boolean to decide whether the component should be editable in table view",
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "showInExpandedEdit": {
+                    "title": "Show in expanded edit",
+                    "description": "Boolean to decide whether the component should be shown in the expanded edit view",
+                    "default": true,
+                    "type": "boolean"
+                  }
+                }
+              }
+            ]
           }
         }
       },
@@ -578,7 +598,7 @@
           "title": "Edit mode",
           "description": "Mode for how repeating group table is displayed in edit mode",
           "type": "string",
-          "enum": ["hideTable", "likert", "showAll", "showTable"]
+          "enum": ["hideTable", "likert", "showAll", "showTable", "onlyTable"]
         },
         "filter": {
           "title": "Filter",
@@ -590,17 +610,22 @@
         },
         "saveButton": {
           "title": "Save button",
-          "description": "Boolean or expression indicating whether save button should be shown or not in edit mode of repeating group item.",
+          "description": "Boolean or expression indicating whether save button should be shown or not for a given row",
           "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "saveAndNextButton": {
           "title": "Save and open next button",
-          "description": "Boolean or expression indicating whether save and go to next button should be shown or not in addition to save and close button in edit mode of repeating group item.",
+          "description": "Boolean or expression indicating whether save and go to next button should be shown or not in addition to save and close button",
           "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "deleteButton": {
           "title": "Delete button",
-          "description": "Boolean or expression indicating whether delete button should be shown or not in edit mode of repeating group item.",
+          "description": "Boolean or expression indicating whether delete button should be shown or not for a given row",
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
+        "editButton": {
+          "title": "Edit button",
+          "description": "Boolean or expression indicating whether edit button should be shown or not for a given row",
           "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "multiPage": {
@@ -686,15 +711,22 @@
       "title": "Column options",
       "description": "Column options for specified header.",
       "type": "object",
-      "properties": {
-        "width":{
-          "title": "Width",
-          "description": "Width of cell in % or 'auto'. Defaults to 'auto'",
-          "type": "string",
-          "pattern": "^([0-9]{1,2}%|100%|auto)$"
+      "allOf": [
+        {
+          "$ref": "#/definitions/tableColumnTextOptions"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "width":{
+              "title": "Width",
+              "description": "Width of cell in % or 'auto'. Defaults to 'auto'",
+              "type": "string",
+              "pattern": "^([0-9]{1,2}%|100%|auto)$"
+            }
+          }
         }
-      },
-      "$ref": "#/definitions/tableColumnTextOptions"
+      ]
     },
     "tableColumnTextOptions": {
       "properties": {

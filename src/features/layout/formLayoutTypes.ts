@@ -1,4 +1,5 @@
 import type { ExprUnresolved } from 'src/features/expressions/types';
+import type { IFormData } from 'src/features/formData';
 import type { ILayouts } from 'src/layout/layout';
 import type {
   IFileUploadersWithTag,
@@ -150,4 +151,8 @@ export interface ICalculatePageOrderAndMoveToNextPageFulfilled {
 
 export interface IHiddenLayoutsUpdate {
   hiddenLayouts: string[];
+}
+
+export interface IInitRepeatingGroups {
+  changedFields?: IFormData;
 }

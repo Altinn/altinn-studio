@@ -3,6 +3,7 @@ import React from 'react';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import { GroupContainer } from 'src/layout/Group/GroupContainer';
+import { RepeatingGroupsFocusProvider } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -12,10 +13,12 @@ export function GroupRenderer({ node }: GroupRendererProps) {
   const isRepeatingGroup = node.item.maxCount && node.item.maxCount > 1;
   if (isRepeatingGroup) {
     return (
-      <GroupContainer
-        id={node.item.id}
-        key={node.item.id}
-      />
+      <RepeatingGroupsFocusProvider>
+        <GroupContainer
+          id={node.item.id}
+          key={node.item.id}
+        />
+      </RepeatingGroupsFocusProvider>
     );
   }
 

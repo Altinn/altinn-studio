@@ -723,6 +723,11 @@ export const ExprConfigForGroup: ExprObjConfig<ILayoutGroup> = {
       defaultValue: true,
       resolvePerRow: true,
     },
+    editButton: {
+      returnType: ExprVal.Boolean,
+      defaultValue: true,
+      resolvePerRow: true,
+    },
     alertOnDelete: {
       returnType: ExprVal.Boolean,
       defaultValue: false,

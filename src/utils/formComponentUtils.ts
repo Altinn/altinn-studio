@@ -260,14 +260,13 @@ export function getTextAlignment(component: AnyItem): 'left' | 'center' | 'right
   return 'left';
 }
 
-export function getColumnStylesRepeatingGroups(tableHeader, columnSettings: ITableColumnFormatting) {
-  const column = columnSettings && columnSettings[tableHeader.baseComponentId];
+export function getColumnStylesRepeatingGroups(tableItem: AnyItem, columnSettings: ITableColumnFormatting | undefined) {
+  const column = columnSettings && columnSettings[tableItem.baseComponentId || tableItem.id];
   if (!column) {
     return;
   }
 
-  const textAlignment = column.alignText ?? getTextAlignment(tableHeader);
-  column.alignText = textAlignment;
+  column.alignText = column.alignText ?? getTextAlignment(tableItem);
 
   return getColumnStyles(column);
 }

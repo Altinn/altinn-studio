@@ -494,4 +494,107 @@ describe('Group', () => {
       });
     cy.get(appFrontend.group.mainGroup).find(mui.tableElement).should('have.length', 0);
   });
+
+  it('should be able to edit components directly in the table', () => {
+    cy.goto('group');
+    cy.navPage('prefill').should('be.visible');
+    cy.changeLayout((component) => {
+      if (component.type === 'Group' && component.tableColumns && component.edit && component.id === 'mainGroup') {
+        component.tableColumns['currentValue'].editInTable = true;
+        component.tableColumns['newValue'].editInTable = true;
+        component.edit.editButton = false;
+      }
+    });
+
+    cy.navPage('prefill').click();
+    cy.get(appFrontend.group.prefill.liten).dsCheck();
+    cy.get(appFrontend.group.prefill.middels).dsCheck();
+    cy.get(appFrontend.group.prefill.enorm).dsCheck();
+    cy.navPage('repeating').click();
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 3);
+
+    for (const row of [0, 1, 2]) {
+      cy.get(appFrontend.group.mainGroupTableBody)
+        .find('tr')
+        .eq(row)
+        .find(appFrontend.group.currentValue)
+        .should('be.visible')
+        .should('have.attr', 'readonly', 'readonly')
+        .should('have.attr', 'id', `currentValue-${row}`);
+      cy.get(appFrontend.group.mainGroupTableBody)
+        .find('tr')
+        .eq(row)
+        .find(appFrontend.group.newValue)
+        .should('be.visible')
+        .should('have.attr', 'readonly', 'readonly')
+        .should('have.attr', 'id', `newValue-${row}`);
+    }
+
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(3).should('not.exist');
+    cy.get(appFrontend.group.edit).should('not.exist');
+    cy.get(appFrontend.group.addNewItem).click();
+
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 5);
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(3).find(appFrontend.group.currentValue).type('123');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(3).find(appFrontend.group.newValue).type('456');
+
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.currentValue).should('have.value', 'NOK 123');
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.newValue).should('have.value', 'NOK 456');
+
+    // This does not exist later, when we enter 'onlyTable' mode
+    cy.get(appFrontend.group.saveMainGroup).click();
+
+    cy.get(appFrontend.group.edit).should('not.exist');
+    cy.get(appFrontend.group.delete).should('have.length', 1);
+    cy.get(appFrontend.group.delete).click();
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 3);
+
+    cy.changeLayout((component) => {
+      if (component.type === 'Group' && component.tableColumns && component.edit && component.id === 'mainGroup') {
+        component.tableColumns['currentValue'].showInExpandedEdit = false;
+        component.tableColumns['newValue'].showInExpandedEdit = false;
+      }
+    });
+
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 5);
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(3).find(appFrontend.group.currentValue).type('789');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(3).find(appFrontend.group.newValue).type('987');
+
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.currentValue).should('not.exist');
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.newValue).should('not.exist');
+    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
+
+    cy.changeLayout((component) => {
+      if (component.type === 'Group' && component.tableColumns && component.edit && component.id === 'mainGroup') {
+        component.edit.mode = 'onlyTable';
+
+        // This has no effect, as the edit button is always hidden when editing always is done in table. Still, we
+        // set it to false to make sure that functionality works as intended without setting this to false.
+        component.edit.editButton = true;
+
+        // This also should not have any effect, but since we are in 'onlyTable' mode, the add button should always
+        // be visible anyway. That's because when we add a new row, we never enter 'edit mode', because the row is
+        // just present in the table, ready for editing.
+        component.edit.alwaysShowAddButton = false;
+      }
+    });
+
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 5);
+
+    for (const extraRows of [6, 7]) {
+      cy.get(appFrontend.group.addNewItem).click();
+      cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', extraRows);
+    }
+
+    // Typing into the second to last row
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(5).find(appFrontend.group.currentValue).type('1');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(5).find(appFrontend.group.newValue).type('2');
+
+    // This should not change the maximum number of rows
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 7);
+  });
 });
