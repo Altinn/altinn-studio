@@ -9,6 +9,7 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from '../../../../app-development/common/ServiceContext';
 import { renderWithMockStore } from '../testing/mocks';
 import { ComponentType } from '../components';
+import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
 
 const user = userEvent.setup();
 
