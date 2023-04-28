@@ -31,7 +31,7 @@ export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
         className={classes.userAvatar}
         aria-haspopup
         onClick={handleClick}
-        aria-label='imgIcon'
+        aria-label='profilikon'
       />
       <Menu
         id='simple-menu'

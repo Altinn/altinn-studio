@@ -4,7 +4,7 @@ exports[`ProfileMenu should match snapshot 1`] = `
 <div>
   <img
     aria-haspopup="true"
-    aria-label="imgIcon"
+    aria-label="profilikon"
   />
 </div>
 `;
@@ -13,7 +13,7 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
 <div>
   <img
     aria-haspopup="true"
-    aria-label="imgIcon"
+    aria-label="profilikon"
   />
 </div>
 `;
