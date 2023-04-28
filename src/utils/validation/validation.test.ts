@@ -42,6 +42,7 @@ function toCollection(
       formData: {},
       applicationSettings: null,
       hiddenFields,
+      authContext: null,
       validations: {},
     },
     getLayoutComponentObject,

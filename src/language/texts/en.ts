@@ -1,5 +1,11 @@
 export function en() {
   return {
+    actions: {
+      sign: 'Sign',
+      confirm: 'Confirm',
+      reject: 'Reject',
+      instantiate: 'Instantiate',
+    },
     address_component: {
       address: 'Street Address',
       care_of: 'C/O or other additional address',

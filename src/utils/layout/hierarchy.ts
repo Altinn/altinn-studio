@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLayoutComponentObject } from 'src/layout';
+import { buildAuthContext } from 'src/utils/authContext';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -132,6 +133,7 @@ export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources
     applicationSettings: state.applicationSettings.applicationSettings,
     instanceContext: buildInstanceContext(state.instanceData?.instance),
     hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
+    authContext: buildAuthContext(state.process),
     validations: state.formValidations.validations,
   };
 }
@@ -171,6 +173,7 @@ function useResolvedExpressions() {
   const state = useAppSelector((state) => state);
   const instance = state.instanceData?.instance;
   const formData = state.formData.formData;
+  const process = state.process;
   const applicationSettings = state.applicationSettings.applicationSettings;
   const hiddenFields = state.formLayout.uiConfig.hiddenFields;
   const validations = state.formValidations.validations;
@@ -184,10 +187,11 @@ function useResolvedExpressions() {
       formData,
       applicationSettings,
       instanceContext: buildInstanceContext(instance),
+      authContext: buildAuthContext(process),
       hiddenFields: new Set(hiddenFields),
       validations,
     }),
-    [formData, applicationSettings, instance, hiddenFields, validations],
+    [formData, applicationSettings, instance, process, hiddenFields, validations],
   );
 
   return useMemo(

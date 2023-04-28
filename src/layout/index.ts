@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import type React from 'react';
 
+import { ActionButton } from 'src/layout/ActionButton/index';
 import { Address } from 'src/layout/Address/index';
 import { AttachmentList } from 'src/layout/AttachmentList/index';
 import { Button } from 'src/layout/Button/index';
@@ -38,6 +39,7 @@ import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { AnyItem, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
 export const components = {
+  ActionButton: new ActionButton(),
   AddressComponent: new Address(),
   AttachmentList: new AttachmentList(),
   Button: new Button(),

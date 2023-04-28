@@ -1,3 +1,5 @@
+import type { IProcessPermissions } from 'src/features/process';
+
 export type user = 'default' | 'manager' | 'accountant' | 'auditor';
 
 type UserInfo = {
@@ -94,4 +96,55 @@ Cypress.Commands.add('switchUser', (user: user) => {
   logout();
   login(user);
   cy.reload();
+});
+
+function getPermissions(format: string): IProcessPermissions {
+  const permissions: IProcessPermissions = {
+    read: false,
+    write: false,
+    actions: {},
+  };
+  for (const i of format) {
+    switch (i) {
+      case 'r':
+        permissions.read = true;
+        break;
+      case 'w':
+        permissions.write = true;
+        break;
+      case 'i':
+        permissions.actions = { ...permissions.actions, instantiate: true };
+        break;
+      case 'c':
+        permissions.actions = { ...permissions.actions, confirm: true };
+        break;
+      case 's':
+        permissions.actions = { ...permissions.actions, sign: true };
+        break;
+      case 'j':
+        permissions.actions = { ...permissions.actions, reject: true };
+        break;
+    }
+  }
+  return permissions;
+}
+
+Cypress.Commands.add('setPermissions', (permissionFormat: string) => {
+  Cypress.env('authPermissions', permissionFormat);
+});
+
+Cypress.Commands.add('interceptPermissions', () => {
+  const interceptor = (req) => {
+    const permissionFormat = Cypress.env('authPermissions') ?? '';
+    const permissions = getPermissions(permissionFormat);
+    req.on('response', (res) => {
+      if (res.body.currentTask) {
+        res.body.currentTask.read = permissions.read;
+        res.body.currentTask.write = permissions.write;
+        res.body.currentTask.actions = permissions.actions;
+      }
+    });
+  };
+  cy.intercept({ method: 'GET', url: '**/process' }, interceptor).as('getProcess');
+  cy.intercept({ method: 'PUT', url: '**/process/next*' }, interceptor).as('processNext');
 });

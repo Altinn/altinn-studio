@@ -27,6 +27,15 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   const submittingId = useAppSelector((state) => state.formData.submittingId);
   const savingId = useAppSelector((state) => state.formData.savingId);
   const currentTaskType = useAppSelector((state) => state.instanceData.instance?.process.currentTask?.altinnTaskType);
+  const processActionsFeature = useAppSelector(
+    (state) => state.applicationMetadata.applicationMetadata?.features?.processActions,
+  );
+  const { actions, write } = useAppSelector((state) => state.process);
+
+  const disabled =
+    processActionsFeature &&
+    ((currentTaskType === 'data' && !write) || (currentTaskType === 'confirmation' && !actions?.confirm));
+
   if (mode && !(mode === 'save' || mode === 'submit')) {
     const GenericButton = getComponentFromMode(mode);
     if (!GenericButton) {
@@ -35,9 +44,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
 
     return (
       <div className={classes['button-group']}>
-        <div className={classes['button-row']}>
-          <GenericButton {...props}>{props.text}</GenericButton>
-        </div>
+        <GenericButton {...props}>{props.text}</GenericButton>
       </div>
     );
   }
@@ -46,41 +53,49 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   };
 
   const submitTask = ({ componentId }: { componentId: string }) => {
-    const { org, app, instanceId } = window as Window as IAltinnWindow;
-    if (currentTaskType === 'data') {
-      dispatch(
-        FormDataActions.submit({
-          url: `${window.location.origin}/${org}/${app}/api/${instanceId}`,
-          apiMode: 'Complete',
-          stopWithWarnings: false,
-          componentId,
-        }),
-      );
-    } else {
-      dispatch(ProcessActions.complete());
+    if (!disabled) {
+      const { org, app, instanceId } = window as Window as IAltinnWindow;
+      if (currentTaskType === 'data') {
+        dispatch(
+          FormDataActions.submit({
+            url: `${window.location.origin}/${org}/${app}/api/${instanceId}`,
+            apiMode: 'Complete',
+            stopWithWarnings: false,
+            componentId,
+          }),
+        );
+      } else if (currentTaskType === 'confirmation' && processActionsFeature) {
+        dispatch(ProcessActions.complete({ action: 'confirm' }));
+      } else {
+        dispatch(ProcessActions.complete());
+      }
     }
   };
   const busyWithId = savingId || submittingId || '';
   return (
-    <div className={classes['button-group']}>
-      {autoSave === false && ( // can this be removed from the component?
-        <SaveButton
-          onClick={saveFormData}
-          id='saveBtn'
-          busyWithId={busyWithId}
+    <>
+      <div className={classes['button-group']}>
+        {autoSave === false && ( // can this be removed from the component?
+          <SaveButton
+            onClick={saveFormData}
+            id='saveBtn'
+            busyWithId={busyWithId}
+            language={props.language}
+            disabled={disabled}
+          >
+            {getLanguageFromKey('general.save', props.language)}
+          </SaveButton>
+        )}
+        <SubmitButton
+          onClick={() => submitTask({ componentId: id })}
+          id={id}
           language={props.language}
+          busyWithId={busyWithId}
+          disabled={disabled}
         >
-          {getLanguageFromKey('general.save', props.language)}
-        </SaveButton>
-      )}
-      <SubmitButton
-        onClick={() => submitTask({ componentId: id })}
-        id={id}
-        language={props.language}
-        busyWithId={busyWithId}
-      >
-        {props.text}
-      </SubmitButton>
-    </div>
+          {props.text}
+        </SubmitButton>
+      </div>
+    </>
   );
 };

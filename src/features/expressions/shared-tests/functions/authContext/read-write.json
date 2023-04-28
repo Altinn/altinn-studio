@@ -1,0 +1,15 @@
+{
+  "name": "Read/Write",
+  "expression": ["and", ["authContext", "read"], ["authContext", "write"]],
+  "expects": true,
+  "permissions": {
+    "read": true,
+    "write": true,
+    "actions": {
+      "instantiate": true,
+      "confirm": false,
+      "sign": false,
+      "reject": false
+    }
+  }
+}

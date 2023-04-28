@@ -1,3 +1,5 @@
+import type { IProcessPermissions } from 'src/features/process';
+
 export interface IAltinnWindow extends Window {
   org: string;
   app: string;
@@ -214,7 +216,7 @@ export interface ISelfLinks {
   platform: string;
 }
 
-export interface ITask {
+export type ITask = {
   flow: number;
   started: string;
   elementId: string;
@@ -222,7 +224,7 @@ export interface ITask {
   altinnTaskType: string;
   ended?: string | null;
   validated?: IValidated | null;
-}
+} & Partial<IProcessPermissions>;
 
 export interface ITitle {
   [key: string]: string;
@@ -271,6 +273,13 @@ export interface IInstanceContext {
   instanceOwnerPartyId: string;
   instanceOwnerPartyType: InstanceOwnerPartyType;
 }
+
+export type IActionType = 'instantiate' | 'confirm' | 'sign' | 'reject';
+
+export type IAuthContext = {
+  read: boolean;
+  write: boolean;
+} & { [action in IActionType]: boolean };
 
 export type HTMLAutoCompleteValues =
   | 'on'

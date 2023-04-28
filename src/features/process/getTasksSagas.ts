@@ -9,8 +9,8 @@ import { getProcessNextUrl } from 'src/utils/urls/appUrlHelper';
 import type { IGetTasksFulfilled } from 'src/features/process/index';
 import type { IProcess } from 'src/types/shared';
 
-export function* getTasksSaga({ payload: { processStep } }: PayloadAction<IGetTasksFulfilled>): SagaIterator {
-  if (processStep === ProcessTaskType.Archived) {
+export function* getTasksSaga({ payload: { taskType } }: PayloadAction<IGetTasksFulfilled>): SagaIterator {
+  if (taskType === ProcessTaskType.Archived) {
     yield put(
       ProcessActions.getTasksFulfilled({
         tasks: [],

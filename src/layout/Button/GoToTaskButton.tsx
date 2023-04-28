@@ -6,7 +6,6 @@ import { ProcessActions } from 'src/features/process/processSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
-import { ProcessTaskType } from 'src/types';
 import type { IButtonProvidedProps } from 'src/layout/Button/ButtonComponent';
 
 export const GoToTaskButton = ({ children, ...props }: React.PropsWithChildren<IButtonProvidedProps>) => {
@@ -19,7 +18,6 @@ export const GoToTaskButton = ({ children, ...props }: React.PropsWithChildren<I
       dispatch(
         ProcessActions.complete({
           taskId,
-          processStep: ProcessTaskType.Unknown,
         }),
       );
     }

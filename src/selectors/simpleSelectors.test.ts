@@ -1,5 +1,6 @@
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getProcessStateMock } from 'src/__mocks__/processMock';
 import {
   appMetaDataSelector,
   currentSelectedPartyIdSelector,
@@ -8,15 +9,12 @@ import {
   processStateSelector,
   profileStateSelector,
 } from 'src/selectors/simpleSelectors';
-import { ProcessTaskType } from 'src/types';
 
 describe('simpleSelectors', () => {
   const state = getInitialStateMock({
-    process: {
-      error: null,
+    process: getProcessStateMock({
       taskId: 'Task1',
-      taskType: ProcessTaskType.Data,
-    },
+    }),
     formLayout: {
       ...getFormLayoutStateMock(),
       layoutsets: {

@@ -92,7 +92,8 @@
         { "$ref": "#/definitions/func-lessThanEq" },
         { "$ref": "#/definitions/func-not" },
         { "$ref": "#/definitions/func-and" },
-        { "$ref": "#/definitions/func-or" }
+        { "$ref": "#/definitions/func-or" },
+        { "$ref": "#/definitions/func-authContext" }
       ]
     },
     "number": {
@@ -165,6 +166,16 @@
       "items": [
         { "const":  "instanceContext" },
         { "enum": ["appId", "instanceId", "instanceOwnerPartyId"] }
+      ],
+      "additionalItems": false
+    },
+    "func-authContext": {
+      "title": "Auth context lookup function",
+      "description": "This function can be used to check the users permissions on the current process step.",
+      "type": "array",
+      "items": [
+        { "const":  "authContext" },
+        { "enum": ["read", "write", "instantiate", "confirm", "sign", "reject"] }
       ],
       "additionalItems": false
     },

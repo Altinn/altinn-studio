@@ -52,6 +52,7 @@ function evalAllExpressions(layouts: Layouts) {
     applicationSettings: {} as any,
     instanceContext: {} as any,
     hiddenFields: new Set(),
+    authContext: null,
     validations: {},
   };
   const nodes = generateEntireHierarchy(

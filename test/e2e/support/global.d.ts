@@ -136,6 +136,8 @@ declare global {
 
       switchUser(user: user): any;
       assertUser(user: user): any;
+      interceptPermissions(): void;
+      setPermissions(permissionFormat: string): void;
 
       /**
        * Check a checkbox/radio from the design system.

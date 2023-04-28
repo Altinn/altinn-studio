@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 
 import type { Expression } from 'src/features/expressions/types';
+import type { IProcessPermissions } from 'src/features/process';
 import type { ILayout, ILayouts } from 'src/layout/layout';
 import type { IApplicationSettings, IInstance } from 'src/types/shared';
 
@@ -19,6 +20,7 @@ export interface SharedTest {
   layouts?: Layouts;
   dataModel?: any;
   instance?: IInstance;
+  permissions?: IProcessPermissions;
   frontendSettings?: IApplicationSettings;
 }
 

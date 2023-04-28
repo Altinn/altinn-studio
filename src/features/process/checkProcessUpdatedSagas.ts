@@ -31,6 +31,9 @@ export function* getUpdatedProcess(): SagaIterator {
       return {
         state: currentProcessState.taskType,
         taskId: currentProcessState.taskId,
+        read: currentProcessState.read,
+        write: currentProcessState.write,
+        actions: currentProcessState.actions,
       };
     }
 
@@ -45,6 +48,9 @@ export function* getUpdatedProcess(): SagaIterator {
   return {
     state: currentProcessState.taskType,
     taskId: currentProcessState.taskId,
+    read: currentProcessState.read,
+    write: currentProcessState.write,
+    actions: currentProcessState.actions,
   };
 }
 
@@ -53,8 +59,11 @@ export function* checkProcessUpdated(): SagaIterator {
     const process = yield call(getUpdatedProcess);
     yield put(
       ProcessActions.getFulfilled({
-        processStep: process.state,
+        taskType: process.state,
         taskId: process.taskId,
+        read: process.read,
+        write: process.write,
+        actions: process.actions,
       }),
     );
   } catch (error) {

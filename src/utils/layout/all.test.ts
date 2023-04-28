@@ -32,6 +32,7 @@ describe('All known layout sets', () => {
         instanceContext: null,
         formData: {},
         hiddenFields: new Set(),
+        authContext: null,
         validations: {},
       },
       getLayoutComponentObject,
