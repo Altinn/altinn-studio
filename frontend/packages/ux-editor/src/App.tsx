@@ -19,6 +19,7 @@ import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSetting
 import { useTextResourcesQuery } from '../../../app-development/hooks/queries/useTextResourcesQuery';
 import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
 import { firstAvailableLayout } from './utils/formLayoutsUtils';
+import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 
 /**
  * This is the main React component responsible for controlling
@@ -74,12 +75,19 @@ export function App() {
     return createErrorMessage(t('general.unknown_error'));
   };
 
-  // Set Layout to first layout in the page set if none is selected.
+  /**
+   * Set the correct selected layout based on url parameters
+   */
   useEffect(() => {
     if (searchParams.has('deletedLayout')) {
-      const useLayout = firstAvailableLayout(searchParams.get('deletedLayout'), layoutPagesOrder);
-      dispatch(FormLayoutActions.updateSelectedLayout(useLayout));
-      setSearchParams(useLayout !== 'default' ? { layout: useLayout } : {});
+      const layoutToSelect = firstAvailableLayout(
+        searchParams.get('deletedLayout'),
+        layoutPagesOrder
+      );
+      dispatch(FormLayoutActions.updateSelectedLayout(layoutToSelect));
+      setSearchParams(
+        layoutToSelect !== DEFAULT_SELECTED_LAYOUT_NAME ? { layout: layoutToSelect } : {}
+      );
     } else if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
       setSearchParams({ ...deepCopy(searchParams), layout: layoutPagesOrder[0] });
       dispatch(FormLayoutActions.updateSelectedLayout(layoutPagesOrder[0]));

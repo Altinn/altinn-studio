@@ -10,6 +10,7 @@ import { ComponentType } from '../components';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { generateComponentId } from './generateId';
 import { deepCopy } from 'app-shared/pure';
+import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 
 /**
  * Update layouts to have navigation buttons if there are multiple layouts, or remove them if this is the only one.
@@ -17,6 +18,7 @@ import { deepCopy } from 'app-shared/pure';
  * @param layouts All layouts.
  * @param callback Callback to be called for each layout if there are changes or if the layout is the one specified by the currentLayoutName parameter.
  * @param currentLayoutName The name of the current layout. Callback will always be called for this layout if set.
+ * @param receiptLayoutName The name of the receipt layout. Ensures that receipt layout is ignored when adding/deleting navigation buttons.
  */
 export const addOrRemoveNavigationButtons = async (
   layouts: IFormLayouts,
@@ -108,5 +110,5 @@ export const firstAvailableLayout = (deletedLayoutName: string, layoutPagesOrder
     return layoutPagesOrder[deletedLayoutIndex + 1];
   }
 
-  return 'default';
+  return DEFAULT_SELECTED_LAYOUT_NAME;
 };
