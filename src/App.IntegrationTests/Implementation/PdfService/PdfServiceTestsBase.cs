@@ -11,6 +11,7 @@ using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
@@ -110,7 +111,8 @@ namespace App.IntegrationTestsRef.Implementation.PdfService
         internal virtual AppResourcesSI BuildAppResourcesService()
         {
             var appOptionSettings = BuildAppOptionSettings();
-            var appResources = new AppResourcesSI(appOptionSettings, null, null);
+            var appMetadataService = new AppMetadata(appOptionSettings, new FrontendFeatures()); 
+            var appResources = new AppResourcesSI(appOptionSettings, appMetadataService, null, null);
 
             return appResources;
         }
@@ -138,6 +140,21 @@ namespace App.IntegrationTestsRef.Implementation.PdfService
             return Options.Create(appSettings);
         }
 
+        internal virtual IOptions<GeneralSettings> BuildGeneralSettings()
+        {
+            var generalSettings = new GeneralSettings()
+            {
+
+            };
+            return Options.Create(generalSettings);
+        }
+
+        internal virtual IOptions<PdfGeneratorSettings> BuildPdfGeneratorSettings()
+        {
+            var pdfGeneratorSettings = new PdfGeneratorSettings();
+            return Options.Create(pdfGeneratorSettings);
+        }
+
         internal virtual Altinn.App.Core.Internal.Pdf.PdfService BuildPdfService(Action<HttpRequestMessage, CancellationToken> onDataPostCallback)
         {
             PDFClient pdfClient = MockPdfClient(onDataPostCallback);
@@ -146,11 +163,14 @@ namespace App.IntegrationTestsRef.Implementation.PdfService
             Mock<IData> dataClient = MockDataClient();
             Mock<IHttpContextAccessor> httpContextAccessor = MockUserInHttpContext();
             Mock<IProfile> profileClient = MockProfileClient();
+            Mock<IPdfGeneratorClient> pdfGeneratorClientMock = new Mock<IPdfGeneratorClient>();
             var registerClient = new Mock<IRegister>();
             var customPdfHandler = new NullPdfFormatter();
             var pdfOptionsMapping = new PdfOptionsMapping(appOptionsService);
+            var pdfGeneratorSettings =BuildPdfGeneratorSettings();
+            var generalSettings = BuildGeneralSettings();
 
-            var pdfService = new Altinn.App.Core.Internal.Pdf.PdfService(pdfClient, appResources, pdfOptionsMapping, dataClient.Object, httpContextAccessor.Object, profileClient.Object, registerClient.Object, customPdfHandler);
+            var pdfService = new Altinn.App.Core.Internal.Pdf.PdfService(pdfClient, appResources, pdfOptionsMapping, dataClient.Object, httpContextAccessor.Object, profileClient.Object, registerClient.Object, customPdfHandler, pdfGeneratorClientMock.Object, pdfGeneratorSettings, generalSettings);
 
             return pdfService;
         }

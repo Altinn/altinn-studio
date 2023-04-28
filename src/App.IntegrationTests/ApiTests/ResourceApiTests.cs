@@ -76,7 +76,7 @@ namespace App.IntegrationTestsRef.ApiTests
         }
 
         [Fact]
-        public async Task GetRuleConfiguration_NoFileInLayoutSet_Ok()
+        public async Task GetRuleConfiguration_NoFileInLayoutSet_NoContent()
         {
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "frontend-test");
@@ -86,7 +86,7 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
         }    
     }
 }
