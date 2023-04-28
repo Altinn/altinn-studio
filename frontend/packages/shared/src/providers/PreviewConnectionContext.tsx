@@ -17,13 +17,7 @@ export const PreviewConnectionContextProvider = ({ children }: PreviewConnection
   }, []);
 
   useEffect(() => {
-    async function start() {
-      await connection.start().catch(e => console.log('Connection failed: ', e));
-    }
-
-    if (connection) {
-      start();
-    }
+    if (connection) { connection.start().catch(e => console.log('Connection failed: ', e)); }
   }, [connection])
 
   return (

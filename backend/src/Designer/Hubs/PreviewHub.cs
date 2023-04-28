@@ -1,27 +1,22 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Hubs;
 
 public class PreviewHub : Hub
 {
+    private readonly ILogger _logger;
+
+    public PreviewHub(ILogger<PreviewHub> logger)
+    {
+        _logger = logger;
+    }
+
     public async Task SendMessage(string message)
     {
-        Console.WriteLine($"Connection made with connectionID: {Context.ConnectionId}");
-        Console.WriteLine($"Message received from client: {message}");
+        _logger.LogInformation("Message received from client: {MessageFromClient}", message);
         await Clients.Others.SendAsync("ReceiveMessage", message);
-    }
-
-    public override async Task OnConnectedAsync()
-    {
-        Console.WriteLine("Websocket connected");
-        await base.OnConnectedAsync();
-    }
-
-    public override async Task OnDisconnectedAsync(Exception exception)
-    {
-        Console.WriteLine("Websocket disconnected");
-        await base.OnDisconnectedAsync(exception);
     }
 }
