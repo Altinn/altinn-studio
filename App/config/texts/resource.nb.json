@@ -296,6 +296,10 @@
     {
       "id": "laan-kredittkort",
       "value": "Kredittkort"
+    },
+    {
+      "id": "repeating2",
+      "value": "repeating (store endringer)"
     }
   ]
 }

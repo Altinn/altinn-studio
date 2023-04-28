@@ -24,6 +24,18 @@ namespace Altinn.App.Models
     [JsonProperty("hideRowValue")]
     public int hideRowValue {get; set;} = 99999999;
 
+    [XmlAttribute("sumAll")]
+    [JsonProperty("sumAll")]
+    public decimal sumAll {get; set;}
+
+    [XmlAttribute("sumAboveLimit")]
+    [JsonProperty("sumAboveLimit")]
+    public decimal sumAboveLimit {get; set;}
+
+    [XmlAttribute("numAboveLimit")]
+    [JsonProperty("numAboveLimit")]
+    public decimal numAboveLimit {get; set;}
+
     [XmlAttribute("blankettnummer")]
     [BindNever]
     public  string blankettnummer {get; set; } = "RF-1366";
@@ -70,7 +82,7 @@ namespace Altinn.App.Models
     [XmlElement("OversiktOverEndringene-grp-9788")]
     [JsonProperty("OversiktOverEndringene-grp-9788")]
     [JsonPropertyName("OversiktOverEndringene-grp-9788")]
-    public List<OversiktOverEndringenegrp9788> OversiktOverEndringenegrp9788 { get; set; }
+    public List<OversiktOverEndringenegrp9788>? OversiktOverEndringenegrp9788 { get; set; }
 
     [XmlElement("Gruppe2")]
     [JsonProperty("Gruppe2")]
@@ -165,12 +177,12 @@ namespace Altinn.App.Models
     [XmlElement("SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131")]
     [JsonProperty("SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131")]
     [JsonPropertyName("SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131")]
-    public SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131 SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131 { get; set; }
+    public SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131? SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131 { get; set; }
 
     [XmlElement("SkattemeldingEndringEtterFristNyttBelop-datadef-37132")]
     [JsonProperty("SkattemeldingEndringEtterFristNyttBelop-datadef-37132")]
     [JsonPropertyName("SkattemeldingEndringEtterFristNyttBelop-datadef-37132")]
-    public SkattemeldingEndringEtterFristNyttBelopdatadef37132 SkattemeldingEndringEtterFristNyttBelopdatadef37132 { get; set; }
+    public SkattemeldingEndringEtterFristNyttBelopdatadef37132? SkattemeldingEndringEtterFristNyttBelopdatadef37132 { get; set; }
 
     [XmlElement("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
     [JsonProperty("SkattemeldingEndringEtterFristKommentar-datadef-37133")]

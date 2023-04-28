@@ -25,6 +25,23 @@
         "readOnly": false
       },
       {
+        "id": "info-msg",
+        "type": "Panel",
+        "textResourceBindings": {
+          "title": "Obs: Noen rader er skjult",
+          "body": [
+            "concat",
+            "Oida, noen av radene har forsvunnet! De ble skjult fordi de har en fra-verdi som er høyere enn ",
+            ["component", "hideRepeatingGroupRow"], " NOK. ",
+            "Ta en titt på neste side, så finner du dem igjen der. For å få dem tilbake hit, senk fra-verdien til ",
+            "noe lavere enn ",
+            ["component", "hideRepeatingGroupRow"], " NOK"
+          ]
+        },
+        "variant": "warning",
+        "hidden": ["equals", ["dataModel", "numAboveLimit"], 0]
+      },
+      {
         "id": "mainGroup",
         "type": "Group",
         "children": [
@@ -450,7 +467,7 @@
         "optionsId": "list"
       },
       {
-        "id": "group-2",
+        "id": "group2",
         "type": "Group",
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.Gruppe2"
@@ -561,7 +578,7 @@
         "readOnly": false
       },
       {
-        "id": "nav-page-1",
+        "id": "nav-page-repeating",
         "type": "NavigationButtons",
         "textResourceBindings": {
           "next": "Neste",

@@ -16,7 +16,7 @@
         "dataModelBindings": {}
       },
       {
-        "id": "summary-1",
+        "id": "summary1",
         "type": "Summary",
         "componentRef": "mainGroup",
         "pageRef": "repeating",
@@ -26,7 +26,7 @@
         }
       },
       {
-        "id": "summary-2",
+        "id": "summary2",
         "type": "Summary",
         "componentRef": "sendersName",
         "pageRef": "hide",

@@ -23,7 +23,7 @@
         }
       },
       {
-        "id": "nav-page-2",
+        "id": "nav-page-hide",
         "type": "NavigationButtons",
         "textResourceBindings": {
           "next": "Neste",

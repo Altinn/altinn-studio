@@ -284,6 +284,11 @@
     {
       "id": "id_7098",
       "value": "Dette er en test"
+    },
+    {
+      "id": "repeating2",
+      "value": "repeating (large numbers)"
     }
+
   ]
 }

@@ -22,7 +22,7 @@ namespace Altinn.App.logic.DataProcessing
             if (data.GetType() == typeof(NestedGroup))
             {
                 NestedGroup model = (NestedGroup)data;
-                if (model?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?[0]?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value == 1337)
+                if (model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?[0]?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value == 1337)
                 {
                     model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0].SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.value = 1338;
                     edited = true;
@@ -30,23 +30,19 @@ namespace Altinn.App.logic.DataProcessing
 
                 // Server-side computed values for prefilling values in a group
                 // See https://github.com/Altinn/app-frontend-react/issues/319
-                if (!string.IsNullOrEmpty(model?.PrefillValues) || model?.PrefillValues != model?.PrefillValuesShadow)
+                if (!string.IsNullOrEmpty(model.PrefillValues) || model.PrefillValues != model.PrefillValuesShadow)
                 {
-                    if (model.Endringsmeldinggrp9786 == null)
-                    {
-                        model.Endringsmeldinggrp9786 = new Endringsmeldinggrp9786();
-                    }
-                    if (model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788 == null)
-                    {
-                        model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788 = new List<OversiktOverEndringenegrp9788>();
-                    }
+                    model.Endringsmeldinggrp9786 ??= new Endringsmeldinggrp9786();
+                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788 ??= new List<OversiktOverEndringenegrp9788>();
 
-                    var prefillRows = new Dictionary<string, List<int>>();
-                    prefillRows["liten"] = new List<int> { 1, 5 };
-                    prefillRows["middels"] = new List<int> { 120, 350 };
-                    prefillRows["stor"] = new List<int> { 1233, 3488 };
-                    prefillRows["svaer"] = new List<int> { 80323, 123455 };
-                    prefillRows["enorm"] = new List<int> { 9872345, 18872345 };
+                    var prefillRows = new Dictionary<string, List<int>>
+                    {
+                        ["liten"] = new() { 1, 5 },
+                        ["middels"] = new() { 120, 350 },
+                        ["stor"] = new() { 1233, 3488 },
+                        ["svaer"] = new() { 80323, 123455 },
+                        ["enorm"] = new() { 9872345, 18872345 }
+                    };
 
                     var valgList = string.IsNullOrEmpty(model.PrefillValues)
                         ? new List<string>()
@@ -64,9 +60,9 @@ namespace Altinn.App.logic.DataProcessing
                         foreach (var aRow in model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788)
                         {
                             if (aRow.isPrefill &&
-                                aRow.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.value ==
+                                aRow.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value ==
                                 prefillRows[toRemove][0] &&
-                                aRow.SkattemeldingEndringEtterFristNyttBelopdatadef37132.value ==
+                                aRow.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value ==
                                 prefillRows[toRemove][1])
                             {
                                 rowsToRemove.Add(aRow);
@@ -102,6 +98,40 @@ namespace Altinn.App.logic.DataProcessing
                     model.PrefillValuesShadow = model.PrefillValues;
                     edited = true;
                 }
+
+                // Calculating the sum of all changes, and selected changes (above hideRowValue)
+                decimal newSumAll = 0;
+                decimal newSumAboveLimit = 0;
+                int newNumAboveLimit = 0;
+                if (model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788 != null)
+                    foreach (var row in model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788)
+                    {
+                        var from = row?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value ?? 0;
+                        var to = row?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value ?? 0;
+                        var change = to - from;
+                        newSumAll += change;
+                        if (from >= model.hideRowValue)
+                        {
+                            newSumAboveLimit += change;
+                            newNumAboveLimit++;
+                        }
+                    }
+
+                if (newNumAboveLimit > 0)
+                {
+                    // We _only_ want to update these numbers if there are rows above the limit. This is because
+                    // we have multiple bugs in app-frontend that causes weird things to happen if the server sends
+                    // back new data while we're editing in the group. For now, we simply avoid setting these values
+                    // unless the page with these numbers displayed is visible. In the future, tests should pass even
+                    // if we remove the if above here.
+                    if (newSumAll != model.sumAll || newSumAboveLimit != model.sumAboveLimit || newNumAboveLimit != model.numAboveLimit)
+                    {
+                        model.sumAll = newSumAll;
+                        model.sumAboveLimit = newSumAboveLimit;
+                        model.numAboveLimit = newNumAboveLimit;
+                        edited = true;
+                    }
+                }
             }
 
             if (data.GetType() == typeof(Skjema))
@@ -109,10 +139,7 @@ namespace Altinn.App.logic.DataProcessing
                 Skjema model = (Skjema)data;
                 if (model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value == "TriggerCalculation")
                 {
-                    if (model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759 == null)
-                    {
-                        model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759 = new PersonMellomnavnNyttdatadef34759();
-                    }
+                    model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759 ??= new PersonMellomnavnNyttdatadef34759();
                     model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759.value = "MiddleNameFromCalculation";
                     edited = true;
                 }

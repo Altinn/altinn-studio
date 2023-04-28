@@ -96,6 +96,18 @@
           "type": "integer",
           "@xsdType": "XmlAttribute"
         },
+        "sumAll": {
+          "type": "number",
+          "@xsdType": "XmlAttribute"
+        },
+        "sumAboveLimit": {
+          "type": "number",
+          "@xsdType": "XmlAttribute"
+        },
+        "numAboveLimit": {
+          "type": "integer",
+          "@xsdType": "XmlAttribute"
+        },
         "skjemanummer": {
           "const": "1603",
           "type": "integer",

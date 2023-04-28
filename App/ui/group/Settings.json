@@ -4,6 +4,7 @@
     "order": [
       "prefill",
       "repeating",
+      "repeating2",
       "hide",
       "summary"
     ],
