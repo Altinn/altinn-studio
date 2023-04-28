@@ -15,10 +15,11 @@ import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelQuery } from './hooks/queries/useDatamodelQuery';
 import { useFormLayoutsQuery } from './hooks/queries/useFormLayoutsQuery';
 import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
-import { useAddLayoutMutation } from './hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
 import { useTextResourcesQuery } from '../../../app-development/hooks/queries/useTextResourcesQuery';
 import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
+import { firstAvailableLayout } from './utils/formLayoutsUtils';
+import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 
 /**
  * This is the main React component responsible for controlling
@@ -33,12 +34,10 @@ export function App() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: datamodel, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
-  const { data: formLayouts, isError: layoutFetchedError  } = useFormLayoutsQuery(org, app);
+  const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { data: ruleModel } = useRuleModelQuery(org, app);
-  const addLayoutMutation = useAddLayoutMutation(org, app);
-
   const selectedLayout = useSelector(selectedLayoutNameSelector);
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
@@ -50,15 +49,9 @@ export function App() {
   const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
 
   const componentIsReady =
-    formLayouts &&
-    isWidgetFetched &&
-    formLayoutSettings &&
-    datamodel &&
-    textResources &&
-    ruleModel;
+    formLayouts && isWidgetFetched && formLayoutSettings && datamodel && textResources && ruleModel;
 
-  const componentHasError =
-    dataModelFetchedError || layoutFetchedError || widgetFetchedError;
+  const componentHasError = dataModelFetchedError || layoutFetchedError || widgetFetchedError;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -66,7 +59,7 @@ export function App() {
 
     const createErrorMessage = (resource: string): { title: string; message: string } => ({
       title: `${defaultTitle} ${resource}`,
-      message: defaultMessage
+      message: defaultMessage,
     });
 
     if (dataModelFetchedError) {
@@ -82,15 +75,27 @@ export function App() {
     return createErrorMessage(t('general.unknown_error'));
   };
 
-  // Set Layout to first layout in the page set if none is selected.
+  /**
+   * Set the correct selected layout based on url parameters
+   */
   useEffect(() => {
-    if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
+    if (searchParams.has('deletedLayout')) {
+      const layoutToSelect = firstAvailableLayout(
+        searchParams.get('deletedLayout'),
+        layoutPagesOrder
+      );
+      dispatch(FormLayoutActions.updateSelectedLayout(layoutToSelect));
+      setSearchParams(
+        layoutToSelect !== DEFAULT_SELECTED_LAYOUT_NAME ? { layout: layoutToSelect } : {}
+      );
+    } else if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
       setSearchParams({ ...deepCopy(searchParams), layout: layoutPagesOrder[0] });
-    }
-    if (selectedLayout === 'default' && searchParams.has('layout')) {
+      dispatch(FormLayoutActions.updateSelectedLayout(layoutPagesOrder[0]));
+    } else if (searchParams.has('layout')) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParams.get('layout')));
     }
-  }, [dispatch, layoutPagesOrder, searchParams, setSearchParams, selectedLayout, org, app]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, layoutPagesOrder, selectedLayout, org, app]);
 
   useEffect(() => {
     const fetchFiles = () => {
@@ -111,14 +116,6 @@ export function App() {
       window.removeEventListener('message', shouldRefetchFiles);
     };
   }, [dispatch, org, app]);
-
-  // Make sure to create a new page when the last one is deleted!
-  useEffect(() => {
-    if (!selectedLayout && layoutPagesOrder.length === 0) {
-      const layoutName = t('general.page') + (layoutPagesOrder.length + 1);
-      addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
-    }
-  }, [app, dispatch, layoutOrder?.length, layoutPagesOrder?.length, org, selectedLayout, t, addLayoutMutation]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();

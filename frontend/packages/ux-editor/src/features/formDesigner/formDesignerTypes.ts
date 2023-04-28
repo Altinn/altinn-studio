@@ -1,8 +1,9 @@
-import type {
-  IFormComponent,
-  IWidget,
-  IFormLayoutOrder,
-} from '../../types/global';
+import type { IFormComponent, IWidget, IFormLayoutOrder } from '../../types/global';
+
+export interface IAddLayoutFulfilledAction {
+  layoutOrder: string[];
+  receiptLayoutName?: string;
+}
 
 export interface IFormDesignerActionRejected {
   error: Error;
@@ -27,7 +28,7 @@ export interface IAddApplicationMetadataAction {
   minFiles: number;
   maxSize: number;
   fileType: string;
-  org :string;
+  org: string;
   app: string;
 }
 

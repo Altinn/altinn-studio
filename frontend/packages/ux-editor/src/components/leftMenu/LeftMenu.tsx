@@ -14,9 +14,12 @@ import { useText } from '../../hooks';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
+import { useDispatch } from 'react-redux';
+import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 
 export const LeftMenu = () => {
   const { org, app } = useParams();
+  const dispatch = useDispatch();
   const addLayoutMutation = useAddLayoutMutation(org, app);
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
@@ -35,6 +38,7 @@ export const LeftMenu = () => {
     }
     addLayoutMutation.mutate({ layoutName: name, isReceiptPage: false });
     setSearchParams({ ...deepCopy(searchParams), layout: name });
+    dispatch(FormLayoutActions.updateSelectedLayout(name));
   }
 
   return (
