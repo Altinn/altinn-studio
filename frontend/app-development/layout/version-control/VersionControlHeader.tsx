@@ -171,8 +171,6 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
     });
     await repoPushMutation.mutateAsync();
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setShouldShowSpinner(false);
     setModalState({
       ...initialModalState,
       header: t('sync_header.sharing_changes_completed'),

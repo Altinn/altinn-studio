@@ -8,6 +8,7 @@ export const useRepoPushMutation = (owner, app, setShouldShowSpinner) => {
   return useMutation({
     mutationFn: () => pushRepoChanges(owner, app),
     onSuccess: () => {
+      setShouldShowSpinner(false);
       q.invalidateQueries({ queryKey: [QueryKey.RepoStatus, owner, app] }).then();
       q.invalidateQueries({ queryKey: [QueryKey.BranchStatus, owner, app, 'master'] }).then();
     },
