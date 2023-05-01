@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Container } from './Container';
 import type { IFormLayoutOrder } from '../types/global';
-import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 
 import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
 import { ItemType } from './helpers/dnd-types';
@@ -162,30 +161,22 @@ export const DesignView = ({
     moveItemToTop,
     onDropItem,
   };
+
   return (
     baseContainerId && (
-      <DroppableDraggableContainer
-        id={baseContainerId}
+      <Container
         isBaseContainer={true}
         canDrag={false}
+        id={baseContainerId}
+        layoutOrder={state.layoutOrder}
         dndEvents={dndEvents}
-        container={() => (
-          <Container
-            isBaseContainer={true}
-            id={baseContainerId}
-            items={state.layoutOrder[baseContainerId]}
-            layoutOrder={state.layoutOrder}
-            dndEvents={dndEvents}
-            dataModel={datamodel}
-            components={components}
-            containers={containers}
-            itemOrder={order}
-            updateFormContainerMutation={updateFormContainerMutation}
-            updateContainerIdMutation={updateContainerIdMutation}
-            deleteFormContainerMutation={deleteFormContainerMutation}
-            textResources={textResources}
-          />
-        )}
+        dataModel={datamodel}
+        components={components}
+        containers={containers}
+        updateFormContainerMutation={updateFormContainerMutation}
+        updateContainerIdMutation={updateContainerIdMutation}
+        deleteFormContainerMutation={deleteFormContainerMutation}
+        textResources={textResources}
       />
     )
   );
