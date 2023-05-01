@@ -305,7 +305,6 @@ export const Container = (props: IContainerProps) => {
   const renderHoverIcons = (): JSX.Element => (
     <>
       <Button
-        data-testid='delete-component'
         icon={<TrashIcon title={t('general.delete')} />}
         onClick={handleContainerDelete}
         variant={ButtonVariant.Quiet}
@@ -393,7 +392,7 @@ export const Container = (props: IContainerProps) => {
           )}
         >
           {!props.isBaseContainer && (
-            <div className={classes.formGroup}>
+            <div className={classes.formGroup} data-testid='form-group'>
               <div ref={dragHandleRef} className={classes.dragHandle}>
                 <DragHandle />
               </div>
