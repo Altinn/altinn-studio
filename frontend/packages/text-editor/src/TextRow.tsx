@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
@@ -50,12 +50,6 @@ export const TextRow = ({
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const { t } = useTranslation();
 
-  useEffect(() => {
-    if (textId !== textIdValue) {
-      setTextIdValue(textId);
-    }
-  }, [textId, textIdValue]);
-
   const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const newTextId = event.currentTarget.value;
     if (newTextId !== textId) {
@@ -75,9 +69,7 @@ export const TextRow = ({
   };
 
   const handleDeleteClick = () => {
-    localStorage.removeItem(textId);
     removeEntry({ textId });
-    setIsConfirmDeleteOpen(false);
   };
 
   const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);

@@ -5,13 +5,13 @@ import { QueryKey } from '../../types/QueryKey';
 import { QueryKey as UxEditorQueryKey } from '../../../packages/ux-editor/src/types/QueryKey';
 
 export const useTextIdMutation = (owner, app) => {
-  const { invalidateQueries } = useQueryClient();
+  const query = useQueryClient();
   const { updateTextId } = useServicesContext();
   return useMutation({
     mutationFn: (payload: TextResourceIdMutation[]) => updateTextId(owner, app, payload),
     onSuccess: async () => {
-      await invalidateQueries({ queryKey: [QueryKey.TextResources, owner, app] });
-      await invalidateQueries({ queryKey: [UxEditorQueryKey.FormLayouts, owner, app] });
+      await query.invalidateQueries({ queryKey: [QueryKey.TextResources, owner, app] });
+      await query.invalidateQueries({ queryKey: [UxEditorQueryKey.FormLayouts, owner, app] });
     },
   });
 };
