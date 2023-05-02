@@ -61,6 +61,7 @@ export function runClientSideValidation(state: IRuntimeState): ValidationResult 
     layouts,
     layoutOrder,
     state.language.language,
+    state.profile.selectedAppLanguage || state.profile.profile.profileSettingPreference.language,
   );
   out.emptyFieldsValidations = validateEmptyFields(
     state.formData.formData,

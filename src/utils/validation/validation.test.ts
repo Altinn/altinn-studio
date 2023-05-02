@@ -760,6 +760,7 @@ describe('utils > validation', () => {
         toCollection(mockLayout),
         Object.keys(mockLayoutState.layouts),
         mockLanguage.language,
+        'nb',
       );
 
       const mockResult = {
@@ -785,6 +786,7 @@ describe('utils > validation', () => {
         toCollection(mockLayout),
         Object.keys(mockLayoutState.layouts),
         mockLanguage.language,
+        'nb',
       );
 
       const mockResult = {
@@ -818,6 +820,7 @@ describe('utils > validation', () => {
         toCollection(mockLayout),
         Object.keys(mockLayout),
         mockLanguage.language,
+        'nb',
       );
 
       const mockResult = {
@@ -844,6 +847,7 @@ describe('utils > validation', () => {
         toCollection(mockLayout, {}, new Set(['componentId_4'])),
         Object.keys(mockLayout),
         mockLanguage.language,
+        'nb',
       );
 
       const mockResult = {
@@ -870,6 +874,7 @@ describe('utils > validation', () => {
         toCollection(mockLayout),
         [],
         mockLanguage.language,
+        'nb',
       );
 
       expect(componentSpecificValidations).toEqual({});
@@ -2500,6 +2505,7 @@ describe('utils > validation', () => {
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
         mockLanguage.language,
+        'nb',
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2516,6 +2522,7 @@ describe('utils > validation', () => {
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
         mockLanguage.language,
+        'nb',
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2532,6 +2539,7 @@ describe('utils > validation', () => {
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
         mockLanguage.language,
+        'nb',
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2548,6 +2556,7 @@ describe('utils > validation', () => {
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
         mockLanguage.language,
+        'nb',
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2564,6 +2573,7 @@ describe('utils > validation', () => {
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
         mockLanguage.language,
+        'nb',
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2580,6 +2590,7 @@ describe('utils > validation', () => {
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
         mockLanguage.language,
+        'nb',
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2596,6 +2607,7 @@ describe('utils > validation', () => {
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
         mockLanguage.language,
+        'nb',
       );
 
       expect(validations.simpleBinding).toEqual({
@@ -2612,6 +2624,7 @@ describe('utils > validation', () => {
           format: 'DD.MM.YYYY',
         } as ExprUnresolved<ILayoutCompDatepicker>,
         mockLanguage.language,
+        'nb',
       );
 
       expect(validations.simpleBinding).toEqual({

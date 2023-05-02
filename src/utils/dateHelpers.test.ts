@@ -5,6 +5,7 @@ import {
   DatepickerMaxDateDefault,
   DatepickerMinDateDefault,
   getDateConstraint,
+  getDateFormat,
   getDateString,
   getISOString,
 } from 'src/utils/dateHelpers';
@@ -33,6 +34,29 @@ describe('dateHelpers', () => {
       expect(moment(result).isSame(validISOString, 'day')).toEqual(true);
     });
   });
+
+  describe('getDateFormat', () => {
+    it('should return format if format is provided', () => {
+      const result = getDateFormat('YYYY-MM-DD');
+      expect(result).toEqual('YYYY-MM-DD');
+    });
+
+    it('should return english format', () => {
+      const result = getDateFormat(undefined, 'en');
+      expect(result).toEqual('MM/DD/YYYY');
+    });
+
+    it('should return norwegian format', () => {
+      const result = getDateFormat(undefined, 'nb');
+      expect(result).toEqual('DD.MM.YYYY');
+    });
+
+    it('should return norwegian format as default', () => {
+      const result = getDateFormat(undefined, undefined);
+      expect(result).toEqual('DD.MM.YYYY');
+    });
+  });
+
   describe('getDateString', () => {
     it.each([true, false])('should return a string that can be parsed as ISO_8601', (timestamp) => {
       const date = moment();

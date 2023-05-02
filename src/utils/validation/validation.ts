@@ -354,12 +354,13 @@ export function validateFormComponents(
   nodeLayout: LayoutPages,
   layoutOrder: string[],
   language: ILanguage,
+  profileLanguage: string,
 ) {
   const validations: IValidations = {};
   const layouts = nodeLayout.all();
   for (const id of Object.keys(layouts)) {
     if (layoutOrder.includes(id)) {
-      validations[id] = validateFormComponentsForNodes(attachments, layouts[id], language);
+      validations[id] = validateFormComponentsForNodes(attachments, layouts[id], language, profileLanguage);
     }
   }
 
@@ -373,6 +374,7 @@ function validateFormComponentsForNodes(
   attachments: IAttachments,
   nodes: LayoutPage | LayoutNode,
   language: ILanguage,
+  profileLanguage: string,
   onlyInRowIndex?: number,
 ): ILayoutValidations {
   const validations: ILayoutValidations = {};
@@ -432,7 +434,12 @@ function validateFormComponentsForNodes(
 
     if (node.item.type === 'Datepicker') {
       const componentFormData = node.getFormData();
-      validations[node.item.id] = validateDatepickerFormData(componentFormData?.simpleBinding, node.item, language);
+      validations[node.item.id] = validateDatepickerFormData(
+        componentFormData?.simpleBinding,
+        node.item,
+        language,
+        profileLanguage,
+      );
     }
   }
 
@@ -457,10 +464,11 @@ export function validateDatepickerFormData(
   formData: string | null | undefined,
   component: ExprUnresolved<ILayoutCompDatepicker> | ExprResolved<ILayoutCompDatepicker>,
   language: ILanguage,
+  profileLanguage: string,
 ): IComponentValidations {
   const minDate = getDateConstraint(component.minDate, 'min');
   const maxDate = getDateConstraint(component.maxDate, 'max');
-  const format = getDateFormat(component.format);
+  const format = getDateFormat(component.format, profileLanguage);
 
   const validations: IComponentBindingValidation = { errors: [], warnings: [] };
   const date = formData ? moment(formData, moment.ISO_8601) : null;
@@ -574,10 +582,11 @@ export function validateComponentSpecificValidations(
   formData: string | null | undefined,
   component: ExprUnresolved<ILayoutComponentOrGroup> | undefined,
   language: ILanguage,
+  profileLanguage: string,
 ): IComponentValidations {
   let customComponentValidations: IComponentValidations = {};
   if (component?.type === 'Datepicker') {
-    customComponentValidations = validateDatepickerFormData(formData, component, language);
+    customComponentValidations = validateDatepickerFormData(formData, component, language, profileLanguage);
   }
   return customComponentValidations;
 }
@@ -1278,6 +1287,7 @@ function removeFixedValidations(validations?: string[], fixed?: string[]): strin
  */
 export function validateGroup(groupId: string, state: IRuntimeState, onlyInRowIndex?: number): IValidations {
   const language = state.language.language;
+  const profileLanguage = state.profile.selectedAppLanguage || state.profile.profile.profileSettingPreference.language;
   const textResources = state.textResources.resources;
   const attachments = state.attachments.attachments;
   const formData = state.formData.formData;
@@ -1297,7 +1307,13 @@ export function validateGroup(groupId: string, state: IRuntimeState, onlyInRowIn
   });
   const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
   const emptyFieldsValidations = validateEmptyFieldsForNodes(formData, node, language, textResources, onlyInRowIndex);
-  const componentValidations = validateFormComponentsForNodes(attachments, node, language, onlyInRowIndex);
+  const componentValidations = validateFormComponentsForNodes(
+    attachments,
+    node,
+    language,
+    profileLanguage,
+    onlyInRowIndex,
+  );
   const formDataValidations = validateFormDataForLayout(
     jsonFormData,
     node,

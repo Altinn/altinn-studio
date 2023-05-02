@@ -4,6 +4,7 @@ import { useAppSelector } from 'src/hooks/useAppSelector';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import { formatISOString } from 'src/utils/formatDate';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -17,11 +18,12 @@ export class Datepicker extends FormComponent<'Datepicker'> {
 
   useDisplayData(node: LayoutNodeFromType<'Datepicker'>): string {
     const formData = useAppSelector((state) => state.formData.formData);
+    const language = useAppSelector(appLanguageStateSelector);
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    const dateFormat = getDateFormat(node.item.format);
+    const dateFormat = getDateFormat(node.item.format, language);
     const data = formData[node.item.dataModelBindings?.simpleBinding] || '';
     return formatISOString(data, dateFormat) ?? data;
   }

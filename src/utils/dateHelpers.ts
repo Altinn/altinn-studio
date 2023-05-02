@@ -21,8 +21,11 @@ export function getISOString(potentialDate: string | undefined): string | undefi
 const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb';
 moment.locale(locale);
 
-export function getDateFormat(format?: string): string {
-  return moment.localeData().longDateFormat('L') || format || DatepickerFormatDefault;
+export function getDateFormat(format?: string, selectedLanguage = 'nb'): string {
+  if (format) {
+    return format;
+  }
+  return moment.localeData(selectedLanguage).longDateFormat('L') || DatepickerFormatDefault;
 }
 
 export function getDateString(date: moment.Moment | null, timestamp: boolean) {
