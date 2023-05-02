@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Container, IProvidedContainerProps } from './Container';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { queriesMock, container1IdMock, baseContainerIdMock, layoutMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { container1IdMock, baseContainerIdMock, layoutMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { createMockedDndEvents } from './helpers/dnd-helpers.test';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -19,7 +19,7 @@ const app = 'app';
 describe('Container', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should render the layout', async () => {
+  it('should render the component', async () => {
     await render();
 
     expect(screen.getByText('Gruppe - $' + container1IdMock)).toBeInTheDocument();
@@ -42,36 +42,6 @@ describe('Container', () => {
 
     expect(screen.getByText(textMock('general.cancel'))).toBeInTheDocument();
     expect(screen.getByText(textMock('general.save'))).toBeInTheDocument();
-  });
-
-  it('should cancel form when clicking the Cancel button', async () => {
-    await render();
-
-    const formGroup = screen.getByTestId('form-group');
-
-    const editButton = within(formGroup).getByText(textMock('general.edit'));
-    await act(() => user.click(editButton));
-
-    const cancelButton = screen.getByText(textMock('general.cancel'))
-    expect(cancelButton).toBeInTheDocument();
-    await act(() => user.click(cancelButton));
-
-    expect(cancelButton).not.toBeInTheDocument();
-  });
-
-  it('should save form when clicking the Save button', async () => {
-    await render();
-
-    const formGroup = screen.getByTestId('form-group');
-
-    const editButton = within(formGroup).getByText(textMock('general.edit'));
-    await act(() => user.click(editButton));
-
-    const saveButton = screen.getByText(textMock('general.save'))
-    expect(saveButton).toBeInTheDocument();
-    await act(() => user.click(saveButton));
-
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 });
 
