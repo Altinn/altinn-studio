@@ -847,8 +847,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             foreach (FileSystemObject resourceFile in resourceFiles)
             {
-                Stream fs = File.OpenRead($"{repopath}/{resourceFile.Path}");
-                ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(fs, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+                string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
+                ServiceResource serviceResource = JsonConvert.DeserializeObject<ServiceResource>(jsonString);
 
                 if (serviceResource != null)
                 {
@@ -869,20 +869,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 foreach (FileSystemObject resourceFile in resourceFiles)
                 {
-                    Stream fs = File.OpenRead($"{repopath}/{resourceFile.Path}");
-                    ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(fs, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+                    string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
+                    ServiceResource serviceResource = JsonConvert.DeserializeObject<ServiceResource>(jsonString);
 
                     if (serviceResource != null && serviceResource.Identifier == updatedResource.Identifier)
                     {
-                        Stream file = File.OpenWrite($"{repopath}/{resourceFile.Path}");
-                        System.Text.Json.JsonSerializer.Serialize(file, updatedResource);
+                        string updatedResourceString = JsonConvert.SerializeObject(updatedResource);
+                        File.WriteAllText($"{repopath}/{resourceFile.Path}", updatedResourceString);
                         return new StatusCodeResult(201);
                     }
                 }
             }
             else
             {
-                return new StatusCodeResult(402);
+                return new StatusCodeResult(400);
             }
 
             return new StatusCodeResult(403);
@@ -893,9 +893,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             try
             {
                 string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                string fullPathOfNewResource = $"{repopath}/{newResource.Identifier}_resource.json";
-                Stream fileStream = File.Create(fullPathOfNewResource);
-                System.Text.Json.JsonSerializer.Serialize(fileStream, newResource);
+                string fullPathOfNewResource = $"{repopath}\\{org}-resources\\{newResource.Identifier}_resource.json";
+                string newResourceJson = JsonConvert.SerializeObject(newResource);
+                File.WriteAllText(fullPathOfNewResource, newResourceJson);
+
                 return new StatusCodeResult(201);
             }
             catch (Exception)
@@ -907,7 +908,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public ServiceResource GetServiceResourceById(string org, string repository, string identifier)
         {
             List<ServiceResource> resourcesInRepo = GetServiceResources(org, repository);
-            return resourcesInRepo.Where(r => r.Identifier == identifier).First();
+            return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
         }
 
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
