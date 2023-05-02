@@ -39,11 +39,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="storageAppMetadataClient">IAltinnStorageAppMetadataClient</param>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
+        /// <param name="giteaApiWrapper"></param>
         public ApplicationMetadataService(
             ILogger<ApplicationMetadataService> logger,
             IAltinnStorageAppMetadataClient storageAppMetadataClient,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-            IHttpContextAccessor httpContextAccessor, IGitea giteaApiWrapper)
+            IHttpContextAccessor httpContextAccessor,
+            IGitea giteaApiWrapper)
         {
             _logger = logger;
             _storageAppMetadataClient = storageAppMetadataClient;
