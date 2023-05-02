@@ -72,11 +72,7 @@ describe('Group', () => {
           cy.wrap(table).find(mui.tableElement).eq(1).invoke('text').should('equal', 'NOK 2');
           cy.wrap(table).find(mui.tableElement).find(appFrontend.group.edit).click();
         });
-      cy.get(appFrontend.group.mainGroup)
-        .find(appFrontend.group.editContainer)
-        .find(appFrontend.group.next)
-
-        .click();
+      cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
       cy.get(appFrontend.group.subGroup)
         .find(mui.tableBody)
         .then((table) => {
@@ -94,11 +90,7 @@ describe('Group', () => {
         cy.get(appFrontend.group.comments).should('not.exist');
       }
 
-      cy.get(appFrontend.group.mainGroup)
-        .find(appFrontend.group.editContainer)
-        .find(appFrontend.group.back)
-
-        .click();
+      cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.back).click();
       cy.get(appFrontend.group.mainGroup)
         .find(mui.tableBody)
         .then((table) => {
@@ -215,6 +207,8 @@ describe('Group', () => {
   });
 
   it('should support panel group adding item to referenced group', () => {
+    // TODO: Add a new test with calculations happening on the server, with data updated in the source group.
+    // It will fail, and we need to fix that.
     init();
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     cy.get(appFrontend.group.secondGroup_add).click();

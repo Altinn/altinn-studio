@@ -1,3 +1,4 @@
+import { GridHierarchyGenerator } from 'src/layout/Grid/hierarchy';
 import { getRepeatingGroupStartStopIndex } from 'src/utils/formLayout';
 import { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { HRepGroupChild, HRepGroupRow } from 'src/utils/layout/hierarchy.types';
@@ -6,6 +7,7 @@ import type {
   ChildFactoryProps,
   ChildMutator,
   HierarchyContext,
+  HierarchyGenerator,
   UnprocessedItem,
 } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -21,6 +23,12 @@ interface GroupPanelRef {
 
 export class GroupHierarchyGenerator extends ComponentHierarchyGenerator<'Group'> {
   private groupPanelRefs: { [key: string]: GroupPanelRef } = {};
+  private innerGrid: GridHierarchyGenerator;
+
+  constructor(generator: HierarchyGenerator) {
+    super(generator);
+    this.innerGrid = new GridHierarchyGenerator(generator);
+  }
 
   stage1(item: UnprocessedItem<'Group'>): void {
     for (const id of item.children) {
@@ -43,6 +51,15 @@ export class GroupHierarchyGenerator extends ComponentHierarchyGenerator<'Group'
         parentPage: this.generator.topKey,
         parentId: item.id,
       };
+    }
+
+    for (const rows of [item.rowsBefore, item.rowsAfter]) {
+      if (rows) {
+        this.innerGrid.stage1({
+          id: item.id,
+          rows,
+        });
+      }
     }
   }
 
@@ -196,6 +213,12 @@ export class GroupHierarchyGenerator extends ComponentHierarchyGenerator<'Group'
         }
 
         ref.nextChildren = nextChildren;
+      }
+
+      for (const gridRows of [me.item.rowsBefore, me.item.rowsAfter]) {
+        if (gridRows) {
+          this.innerGrid.stage2Rows(ctx, me, gridRows);
+        }
       }
 
       if (me.isRepGroup()) {

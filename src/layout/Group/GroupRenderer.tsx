@@ -10,12 +10,12 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type GroupRendererProps = PropsFromGenericComponent<'Group'>;
 
 export function GroupRenderer({ node }: GroupRendererProps) {
-  const isRepeatingGroup = node.item.maxCount && node.item.maxCount > 1;
+  const isRepeatingGroup = node.isRepGroup();
   if (isRepeatingGroup) {
     return (
       <RepeatingGroupsFocusProvider>
         <GroupContainer
-          id={node.item.id}
+          node={node}
           key={node.item.id}
         />
       </RepeatingGroupsFocusProvider>

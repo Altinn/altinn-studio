@@ -7,7 +7,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { getFormLayoutGroupMock } from 'src/__mocks__/formLayoutGroupMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
-import { GroupContainer } from 'src/layout/Group/GroupContainer';
+import { GroupContainerTester } from 'src/layout/Group/GroupContainerTestUtills';
 import { setupStore } from 'src/redux/store';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import { Triggers } from 'src/types';
@@ -135,15 +135,7 @@ function render({ container = mockContainer }: IRender = {}) {
 
   mockStore.dispatch = jest.fn();
 
-  const { store } = renderWithProviders(
-    <GroupContainer
-      id={container.id}
-      key='testKey'
-    />,
-    {
-      store: mockStore,
-    },
-  );
+  const { store } = renderWithProviders(<GroupContainerTester id={container?.id} />, { store: mockStore });
 
   return store;
 }

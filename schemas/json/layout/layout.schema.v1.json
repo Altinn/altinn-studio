@@ -551,6 +551,22 @@
           "description": "The maximum number of iterations of a group. Only relevant if group is repeating.",
           "minimum": 0
         },
+        "rowsBefore": {
+          "title": "Static rows before",
+          "description": "An array of rows to be rendered before the group table (using Grid component configuration)",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/gridRow"
+          }
+        },
+        "rowsAfter": {
+          "title": "Static rows after",
+          "description": "An array of rows to be rendered after the group table (using Grid component configuration)",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/gridRow"
+          }
+        },
         "tableHeaders": {
           "title": "Table Headers",
           "description": "An array of the id of child components that should be included as table headers. If not defined all components are shown.",

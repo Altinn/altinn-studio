@@ -5,7 +5,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
-import { GroupContainer } from 'src/layout/Group/GroupContainer';
+import { GroupContainerTester } from 'src/layout/Group/GroupContainerTestUtills';
 import { setupStore } from 'src/redux/store';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import type { ExprUnresolved } from 'src/features/expressions/types';
@@ -238,7 +238,7 @@ export const render = ({
   const mockStoreDispatch = jest.fn();
   mockStore.dispatch = mockStoreDispatch;
   setScreenWidth(mobileView ? 600 : 1200);
-  renderWithProviders(<GroupContainer id={mockLikertContainer.id} />, {
+  renderWithProviders(<GroupContainerTester id={mockLikertContainer.id} />, {
     store: mockStore,
   });
 

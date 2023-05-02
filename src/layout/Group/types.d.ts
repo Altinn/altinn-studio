@@ -1,4 +1,5 @@
 import type { ExprVal } from 'src/features/expressions/types';
+import type { GridRow } from 'src/layout/Grid/types';
 import type { ILayoutCompBase, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/layout';
 import type { ILayoutCompPanelBase } from 'src/layout/Panel/types';
 
@@ -29,6 +30,8 @@ export interface ILayoutGroup extends ILayoutCompBase<'Group'> {
   edit?: IGroupEditProperties;
   panel?: IGroupPanel;
   hiddenRow?: ExprVal.Boolean;
+  rowsBefore?: GridRow[];
+  rowsAfter?: GridRow[];
 }
 
 export interface IGroupColumnFormatting extends ITableColumnProperties {

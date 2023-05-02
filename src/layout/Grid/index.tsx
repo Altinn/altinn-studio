@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { GridComponent } from 'src/layout/Grid/GridComponent';
+import { RenderGrid } from 'src/layout/Grid/GridComponent';
 import { GridSummaryComponent } from 'src/layout/Grid/GridSummaryComponent';
 import { GridHierarchyGenerator } from 'src/layout/Grid/hierarchy';
 import { ContainerComponent } from 'src/layout/LayoutComponent';
@@ -11,7 +11,7 @@ import type { ComponentHierarchyGenerator, HierarchyGenerator } from 'src/utils/
 
 export class Grid extends ContainerComponent<'Grid'> {
   render(props: PropsFromGenericComponent<'Grid'>): JSX.Element | null {
-    return <GridComponent {...props} />;
+    return <RenderGrid {...props} />;
   }
 
   renderSummary(props: SummaryRendererProps<'Grid'>): JSX.Element | null {

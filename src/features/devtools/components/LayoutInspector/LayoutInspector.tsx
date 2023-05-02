@@ -93,6 +93,14 @@ export const LayoutInspector = () => {
           <textarea
             value={componentProperties ?? ''}
             onChange={handleChange}
+            onKeyDown={(event) => {
+              if (event.ctrlKey && event.key.toLowerCase() === 's') {
+                // Save when pressing ctrl + s
+                !error && handleSave();
+                event.preventDefault();
+                event.stopPropagation();
+              }
+            }}
           />
           {error && <span className={classes.error}>Ugyldig JSON</span>}
           {propertiesHaveChanged && <Button onClick={handleSave}>Lagre</Button>}

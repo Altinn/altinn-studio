@@ -298,16 +298,16 @@ describe('Summary', () => {
       .should('contain.text', texts.emptySummary);
 
     // Hiding the group should hide the group summary as well
-    cy.get('[data-testid=summary-summary-1]').should('be.visible');
+    cy.get('[data-testid=summary-summary1]').should('be.visible');
     cy.navPage('repeating').click();
     cy.get(appFrontend.group.showGroupToContinue).find('input[type=checkbox]').dsUncheck();
     cy.navPage('summary').click();
-    cy.get('[data-testid=summary-summary-1]').should('not.exist');
+    cy.get('[data-testid=summary-summary1]').should('not.exist');
   });
 
   it('Can exclude children from group summary', () => {
     cy.interceptLayout('group', (component) => {
-      if (component.type === 'Summary' && component.id === 'summary-1') {
+      if (component.type === 'Summary' && component.id === 'summary1') {
         component.excludedChildren = ['comments-0-1', 'hideComment'];
       }
     });
@@ -380,7 +380,7 @@ describe('Summary', () => {
       cy.get(appFrontend.changeOfName.newFirstName).type(`Hello world`);
       cy.get(appFrontend.changeOfName.newLastName).clear();
       cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
-      cy.get(appFrontend.nextButton).click();
+      cy.get(appFrontend.nextButton).clickAndGone();
 
       if (trigger === undefined) {
         cy.navPage('summary').should('have.attr', 'aria-current', 'page');
@@ -388,7 +388,7 @@ describe('Summary', () => {
         cy.navPage('form').should('have.attr', 'aria-current', 'page');
         cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldLastName);
         cy.get(appFrontend.changeOfName.newLastName).type('a');
-        cy.get(appFrontend.nextButton).click();
+        cy.get(appFrontend.nextButton).clickAndGone();
       }
 
       if (trigger === Triggers.ValidateAllPages) {

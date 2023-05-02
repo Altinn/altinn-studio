@@ -161,6 +161,14 @@ declare global {
        * Shortcut for clicking an element and waiting for it to disappear
        */
       clickAndGone(): Chainable<null>;
+
+      /**
+       * Input fields with number formatting have a problem with cypress, as the .clear() command does not always
+       * work. This command will forcibly clear the value of the input field, and should be used instead of .clear()
+       * for number formatted input fields. Changes can be reverted after this problem is fixed in react-number-format.
+       * @see https://github.com/s-yadav/react-number-format/issues/736
+       */
+      numberFormatClear(): Chainable<null>;
     }
   }
 }

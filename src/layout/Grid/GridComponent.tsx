@@ -7,18 +7,20 @@ import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
+import { useAppSelector } from 'src/hooks/useAppSelector';
+import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import css from 'src/layout/Grid/Grid.module.css';
 import { isGridRowHidden, nodesFromGrid } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { GridRow } from 'src/layout/Grid/types';
+import type { GridComponent, GridRow } from 'src/layout/Grid/types';
 import type { ITableColumnFormatting, ITableColumnProperties } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function GridComponent(props: PropsFromGenericComponent<'Grid'>) {
-  const { node, getTextResource } = props;
+export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
+  const { node } = props;
   const { rows } = node.item;
   const shouldHaveFullWidth = node.parent instanceof LayoutPage;
   const columnSettings: ITableColumnFormatting = {};
@@ -34,64 +36,78 @@ export function GridComponent(props: PropsFromGenericComponent<'Grid'>) {
       wrapper={(child) => <FullWidthWrapper>{child}</FullWidthWrapper>}
     >
       <Table id={node.item.id}>
-        {rows.map((row, rowIdx) =>
-          isGridRowHidden(row) ? null : (
-            <Row
-              key={rowIdx}
-              header={row.header}
-              readOnly={row.readOnly}
-            >
-              {row.cells.map((cell, cellIdx) => {
-                const isFirst = cellIdx === 0;
-                const isLast = cellIdx === row.cells.length - 1;
-                const className = cn({
-                  [css.fullWidthCellFirst]: isFirst,
-                  [css.fullWidthCellLast]: isLast,
-                });
-
-                if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
-                  columnSettings[cellIdx] = cell.columnOptions;
-                }
-
-                if (cell && 'text' in cell) {
-                  let textCellSettings: ITableColumnProperties = columnSettings[cellIdx]
-                    ? structuredClone(columnSettings[cellIdx])
-                    : {};
-                  textCellSettings = { ...textCellSettings, ...cell };
-
-                  return (
-                    <CellWithText
-                      key={cell.text}
-                      className={className}
-                      columnStyleOptions={textCellSettings}
-                    >
-                      {getTextResource(cell.text)}
-                    </CellWithText>
-                  );
-                }
-
-                const node = cell?.node as LayoutNode;
-                const componentId = node?.item.id;
-                return (
-                  <CellWithComponent
-                    key={componentId || `${rowIdx}-${cellIdx}`}
-                    node={node}
-                    className={className}
-                    columnStyleOptions={columnSettings[cellIdx]}
-                  />
-                );
-              })}
-            </Row>
-          ),
-        )}
+        {rows.map((row, rowIdx) => (
+          <GridRowRenderer
+            key={rowIdx}
+            row={row}
+            mutableColumnSettings={columnSettings}
+          />
+        ))}
       </Table>
     </ConditionalWrapper>
   );
 }
 
-type RowProps = PropsWithChildren<Pick<GridRow<any>, 'header' | 'readOnly'>>;
+interface GridRowProps {
+  row: GridRow<GridComponent>;
+  mutableColumnSettings: ITableColumnFormatting;
+}
 
-function Row({ header, readOnly, children }: RowProps) {
+export function GridRowRenderer({ row, mutableColumnSettings }: GridRowProps) {
+  const textResources = useAppSelector((state) => state.textResources.resources);
+
+  return isGridRowHidden(row) ? null : (
+    <InternalRow
+      header={row.header}
+      readOnly={row.readOnly}
+    >
+      {row.cells.map((cell, cellIdx) => {
+        const isFirst = cellIdx === 0;
+        const isLast = cellIdx === row.cells.length - 1;
+        const className = cn({
+          [css.fullWidthCellFirst]: isFirst,
+          [css.fullWidthCellLast]: isLast,
+        });
+
+        if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
+          mutableColumnSettings[cellIdx] = cell.columnOptions;
+        }
+
+        if (cell && 'text' in cell) {
+          let textCellSettings: ITableColumnProperties = mutableColumnSettings[cellIdx]
+            ? structuredClone(mutableColumnSettings[cellIdx])
+            : {};
+          textCellSettings = { ...textCellSettings, ...cell };
+
+          return (
+            <CellWithText
+              key={`${cell.text}/${cellIdx}`}
+              className={className}
+              columnStyleOptions={textCellSettings}
+            >
+              {getTextResourceByKey(cell.text, textResources)}
+            </CellWithText>
+          );
+        }
+
+        const node = cell?.node as LayoutNode;
+        const componentId = node?.item.id;
+        return (
+          <CellWithComponent
+            key={`${componentId}/${cellIdx}`}
+            node={node}
+            className={className}
+            columnStyleOptions={mutableColumnSettings[cellIdx]}
+          />
+        );
+      })}
+    </InternalRow>
+  );
+}
+
+type InternalRowProps = PropsWithChildren<Pick<GridRow, 'header' | 'readOnly'>>;
+
+function InternalRow({ header, readOnly, children }: InternalRowProps) {
   const className = readOnly ? css.rowReadOnly : undefined;
 
   if (header) {
