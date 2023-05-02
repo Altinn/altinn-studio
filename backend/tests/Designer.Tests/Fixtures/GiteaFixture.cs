@@ -77,7 +77,7 @@ namespace Designer.Tests.Fixtures
             await _postgreSqlContainer.DisposeAsync();
             await _giteaContainer.DisposeAsync();
             await _giteaNetwork.DeleteAsync();
-            if(GiteaClient.IsValueCreated)
+            if (GiteaClient.IsValueCreated)
             {
                 GiteaClient.Value.Dispose();
             }
@@ -166,7 +166,7 @@ namespace Designer.Tests.Fixtures
 
         private async Task AddUserToTeams(params string[] teams)
         {
-            var allTeams =  await GiteaClient.Value.GetAsync($"api/v1/orgs/{GiteaConstants.TestOrgUsername}/teams");
+            var allTeams = await GiteaClient.Value.GetAsync($"api/v1/orgs/{GiteaConstants.TestOrgUsername}/teams");
             string allTeamsContent = await allTeams.Content.ReadAsStringAsync();
             JsonArray teamsJson = JsonNode.Parse(allTeamsContent) as JsonArray;
             var teamIds = teamsJson.Where(x => teams.Contains(x["name"].GetValue<string>())).Select(x => x["id"].GetValue<long>());
