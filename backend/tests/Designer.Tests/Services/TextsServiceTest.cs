@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
+using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Json.More;
@@ -166,7 +167,7 @@ public class TextsServiceTest : IDisposable
         };
         EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
         AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings());
-        ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object);
+        ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object, new IGiteaMock());
         TextsService textsService = new(altinnGitRepositoryFactory, applicationMetadataService);
 
         return textsService;
