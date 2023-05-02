@@ -27,5 +27,5 @@ export const AltinnSpinner = ({
       />
       {spinnerText && <div className={classes.spinnerText}>{spinnerText}</div>}
     </div>
-  )
+  );
 };
