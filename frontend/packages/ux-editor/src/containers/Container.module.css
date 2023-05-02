@@ -46,7 +46,3 @@
   flex-direction: row;
   align-items: center;
 }
-
-.emptyContainerText {
-  margin-left: var(--margin-horizontal);
-}
