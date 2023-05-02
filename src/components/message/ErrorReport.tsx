@@ -1,9 +1,10 @@
 import React from 'react';
 
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
-import { Grid, makeStyles } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
+import classes from 'src/components/message/ErrorReport.module.css';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
@@ -19,40 +20,12 @@ export interface IErrorReportProps {
   nodes: LayoutNode[];
 }
 
-const iconSize = 16;
-const ArrowForwardIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${iconSize}" style="position: relative; top: 2px">
-  <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"></path>
+const ArrowForwardSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" style="position: relative; top: 2px">
+<path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"></path>
 </svg>`;
-
-const useStyles = makeStyles((theme) => ({
-  errorList: {
-    listStylePosition: 'outside',
-    marginLeft: iconSize + theme.spacing(1),
-    listStyleImage: `url("data:image/svg+xml,${encodeURIComponent(ArrowForwardIcon)}")`,
-    '& > li': {
-      marginBottom: theme.spacing(1),
-    },
-    '& > li > button': {
-      textAlign: 'left',
-      borderBottom: '2px solid transparent',
-    },
-    '& > li > button:hover': {
-      borderBottom: `2px solid black`,
-    },
-  },
-  buttonAsInvisibleLink: {
-    backgroundColor: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    textDecoration: 'none',
-    display: 'inline',
-    margin: 0,
-    padding: 0,
-  },
-}));
+const listStyleImg = `url("data:image/svg+xml,${encodeURIComponent(ArrowForwardSvg)}")`;
 
 export const ErrorReport = ({ nodes }: IErrorReportProps) => {
-  const classes = useStyles();
   const dispatch = useAppDispatch();
   const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const [errorsMapped, errorsUnmapped] = useAppSelector((state) => [
@@ -142,14 +115,20 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
             >
               <ul className={classes.errorList}>
                 {errorsUnmapped.map((error: string) => (
-                  <li key={`unmapped-${error}`}>
+                  <li
+                    key={`unmapped-${error}`}
+                    style={{ listStyleImage: listStyleImg }}
+                  >
                     {getParsedLanguageFromText(error, {
                       disallowedTags: ['a'],
                     })}
                   </li>
                 ))}
                 {errorsMapped.map((error) => (
-                  <li key={`mapped-${error.componentId}-${error.message}`}>
+                  <li
+                    key={`mapped-${error.componentId}-${error.message}`}
+                    style={{ listStyleImage: listStyleImg }}
+                  >
                     <button
                       className={classes.buttonAsInvisibleLink}
                       onClick={handleErrorClick(error)}

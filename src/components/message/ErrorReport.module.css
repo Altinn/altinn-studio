@@ -1,0 +1,28 @@
+.errorList {
+  list-style-position: outside;
+  margin-left: 24px;
+}
+
+.errorList li {
+  margin-bottom: 8px;
+}
+.errorList span {
+  font-size: 1rem;
+}
+.errorList button {
+  text-align: left;
+  border-bottom: 2px solid transparent;
+}
+
+.errorList button:hover {
+  border-bottom: 2px solid black;
+}
+
+.buttonAsInvisibleLink {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
