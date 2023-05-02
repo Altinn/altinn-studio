@@ -247,19 +247,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Update existing ServiceResource in repository
         /// </summary>
         /// <param name="org">The organisation which owns the repository</param>
-        /// <param name="repository">The Repository</param>
+        /// <param name="id">The id of the resource that should be updated</param>
         /// <param name="updatedResource">The resource that is to be updated</param>
         /// <returns></returns>
-        ActionResult UpdateServiceResource(string org, string repository, ServiceResource updatedResource);
+        ActionResult UpdateServiceResource(string org, string id, ServiceResource updatedResource);
 
         /// <summary>
         /// Add new ServiceResource to repository
         /// </summary>
         /// <param name="org">The organisation which owns the repository</param>
-        /// <param name="repository">The Repository</param>
         /// <param name="newResource">The new resource that is to be added to the repository</param>
         /// <returns></returns>
-        ActionResult AddServiceResource(string org, string repository, ServiceResource newResource);
+        ActionResult AddServiceResource(string org, ServiceResource newResource);
 
         /// <summary>
         /// Returns the path to the app folder

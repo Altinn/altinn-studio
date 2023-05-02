@@ -888,21 +888,42 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new StatusCodeResult(403);
         }
 
-        public ActionResult AddServiceResource(string org, string repository, ServiceResource newResource)
+        public ActionResult AddServiceResource(string org, ServiceResource newResource)
         {
             try
             {
-                string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                string fullPathOfNewResource = $"{repopath}\\{org}-resources\\{newResource.Identifier}_resource.json";
-                string newResourceJson = JsonConvert.SerializeObject(newResource);
-                File.WriteAllText(fullPathOfNewResource, newResourceJson);
+                string repository = $"{org}-resources";
+                if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
+                {
+                    string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                    string fullPathOfNewResource = $"{repopath}\\{newResource.Identifier}_resource.json";
+                    string newResourceJson = JsonConvert.SerializeObject(newResource);
+                    File.WriteAllText(fullPathOfNewResource, newResourceJson);
 
-                return new StatusCodeResult(201);
+                    return new StatusCodeResult(201);
+                }
+                else
+                {
+                    return new StatusCodeResult(409);
+                }
             }
             catch (Exception)
             {
                 return new StatusCodeResult(400);
             }
+        }
+
+        public bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository)
+        {
+            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
+            foreach (var _ in from FileSystemObject resourceFile in resourceFiles
+                              where resourceFile.Name.Contains(identifier)
+                              select new { })
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public ServiceResource GetServiceResourceById(string org, string repository, string identifier)
@@ -920,7 +941,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 foreach (FileSystemObject resourceFile in contents)
                 {
-                    if (resourceFile.Name.EndsWith("resource.json"))
+                    if (resourceFile.Name.EndsWith("_resource.json"))
                     {
                         resourceFiles.Add(resourceFile);
                     }
