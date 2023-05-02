@@ -28,6 +28,7 @@ export interface IGenericComponentProps<Type extends ComponentTypes> {
   node: LayoutNode | LayoutNodeFromType<Type>;
   overrideItemProps?: Partial<Omit<AnyItem<Type>, 'id'>>;
   overrideDisplay?: {
+    directRender?: true;
     renderLabel?: false;
     renderLegend?: false;
     renderedInTable?: true;
@@ -267,7 +268,7 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
 
   const showValidationMessages = hasValidationMessages && layoutComponent.renderDefaultValidations();
 
-  if (layoutComponent.directRender(componentProps)) {
+  if (layoutComponent.directRender(componentProps) || overrideDisplay?.directRender) {
     return (
       <FormComponentContext.Provider value={formComponentContext}>
         <RenderComponent {...componentProps} />

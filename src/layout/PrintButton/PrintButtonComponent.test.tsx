@@ -2,33 +2,27 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PrintButtonComponent } from 'src/layout/PrintButton/PrintButtonComponent';
-import { renderWithProviders } from 'src/testUtils';
+import { renderGenericComponentTest } from 'src/testUtils';
 
-const render = (preloaded = {}) => {
-  const preloadedState = {
-    ...getInitialStateMock(),
-    ...preloaded,
-  };
-
-  renderWithProviders(<PrintButtonComponent />, {
-    preloadedState,
+const render = (genericProps = {}) => {
+  renderGenericComponentTest({
+    type: 'PrintButton',
+    renderer: (props) => <PrintButtonComponent {...props} />,
+    genericProps,
   });
 };
 
 describe('PrintButton', () => {
-  it('should display the resource binding key if the text resource is not defined', () => {
+  it('should display the default text if the text resource is not defined', () => {
     render();
 
     expect(screen.getByText('Print / Lagre PDF')).toBeInTheDocument();
   });
 
-  it('should display the resource if the resource is defined', () => {
+  it('should display custom text id defined', () => {
     render({
-      textResources: {
-        resources: [{ id: 'general.print_button_text', value: 'Skriv ut' }],
-      },
+      text: 'Skriv ut',
     });
 
     expect(screen.getByText('Skriv ut')).toBeInTheDocument();

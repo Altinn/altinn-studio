@@ -8,7 +8,7 @@ import type { PropsFromGenericComponent } from '..';
 import { ProcessActions } from 'src/features/process/processSlice';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
-import classes from 'src/layout/ActionButton/ActionButtonComponent.module.css';
+import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ActionButtonStyle } from 'src/layout/ActionButton/types';
 
 export const buttonStyles: { [style in ActionButtonStyle]: { color: ButtonColor; variant: ButtonVariant } } = {
@@ -37,6 +37,8 @@ export function ActionButtonComponent({ node }: IActionButton) {
     }
   }
 
+  const parentIsPage = node.parent instanceof LayoutPage;
+
   const buttonText =
     getTextResourceByKey(textResourceBindings?.title, textResources) ??
     getLanguageFromKey(`actions.${action}`, language ?? {});
@@ -44,16 +46,15 @@ export function ActionButtonComponent({ node }: IActionButton) {
   const { color, variant } = buttonStyles[buttonStyle];
 
   return (
-    <div className={classes.container}>
-      <Button
-        id={`action-button-${id}`}
-        variant={variant}
-        color={color}
-        disabled={disabled}
-        onClick={handleClick}
-      >
-        {buttonText}
-      </Button>
-    </div>
+    <Button
+      id={`action-button-${id}`}
+      style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
+      variant={variant}
+      color={color}
+      disabled={disabled}
+      onClick={handleClick}
+    >
+      {buttonText}
+    </Button>
   );
 }

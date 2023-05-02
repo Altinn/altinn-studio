@@ -6,13 +6,14 @@ import { Grid } from '@material-ui/core';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { reducePageValidations, Triggers } from 'src/types';
+import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ILayoutNavigation, INavigationConfig } from 'src/types';
-
 export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 
 export function NavigationButtonsComponent({ node }: INavigationButtons) {
@@ -41,6 +42,8 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const activeTriggers = triggers || pageTriggers;
   const nextTextKey = returnToView ? 'form_filler.back_to_summary' : textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
+
+  const parentIsPage = node.parent instanceof LayoutPage;
 
   React.useEffect(() => {
     const currentViewIndex = orderedLayoutKeys?.indexOf(currentView);
@@ -112,10 +115,10 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   }
 
   return (
-    <Grid
+    <div
       data-testid='NavigationButtons'
-      container
-      spacing={1}
+      className={classes.container}
+      style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
     >
       {!disableBack && showBackButton && (
         <Grid item>
@@ -139,7 +142,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
           </Button>
         </Grid>
       )}
-    </Grid>
+    </div>
   );
 }
 

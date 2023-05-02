@@ -157,4 +157,29 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.reasons).findByRole('button').click();
     cy.get(appFrontend.changeOfName.reasons).findByText('Dette er en hjelpetekst.').should('be.visible');
   });
+
+  it('button group with navigation, printbutton and go-to-task', () => {
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
+    cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
+    cy.get(appFrontend.changeOfName.newLastName).blur();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+
+    cy.get('#form-content-button-group-1').within(() => {
+      cy.get(appFrontend.printButton).should('be.visible');
+      cy.get(appFrontend.nextButton).should('be.visible');
+      cy.get('button#toNextTask').should('be.visible');
+    });
+
+    // Check that the buttons are moved inside the error paper
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.errorReport).within(() => {
+      cy.get('#form-content-button-group-1').within(() => {
+        cy.get(appFrontend.printButton).should('be.visible');
+        cy.get(appFrontend.nextButton).should('be.visible');
+        cy.get('button#toNextTask').should('be.visible');
+      });
+    });
+  });
 });

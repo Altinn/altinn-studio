@@ -48,6 +48,13 @@ abstract class AnyComponent<Type extends ComponentTypes> {
   }
 
   /**
+   * Return true to allow this component to be rendered in a ButtonGroup
+   */
+  canRenderInButtonGroup(): boolean {
+    return false;
+  }
+
+  /**
    * Should GenericComponent render validation messages for simpleBinding outside of this component?
    * This has no effect if:
    *  - Your component renders directly, using directRender()

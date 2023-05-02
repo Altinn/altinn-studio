@@ -6,6 +6,7 @@ import type { ILayoutCompActionButton } from 'src/layout/ActionButton/types';
 import type { IDataModelBindingsForAddress, ILayoutCompAddress } from 'src/layout/Address/types';
 import type { ILayoutCompAttachmentList } from 'src/layout/AttachmentList/types';
 import type { ILayoutCompButton } from 'src/layout/Button/types';
+import type { ILayoutCompButtonGroup } from 'src/layout/ButtonGroup/types';
 import type { ILayoutCompCheckboxes } from 'src/layout/Checkboxes/types';
 import type { ILayoutCompCustom } from 'src/layout/Custom/types';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
@@ -114,6 +115,7 @@ interface Map {
   AddressComponent: ILayoutCompAddress;
   AttachmentList: ILayoutCompAttachmentList;
   Button: ILayoutCompButton;
+  ButtonGroup: ILayoutCompButtonGroup;
   Checkboxes: ILayoutCompCheckboxes;
   Custom: ILayoutCompCustom;
   Datepicker: ILayoutCompDatepicker;

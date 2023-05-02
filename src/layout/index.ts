@@ -5,6 +5,7 @@ import { ActionButton } from 'src/layout/ActionButton/index';
 import { Address } from 'src/layout/Address/index';
 import { AttachmentList } from 'src/layout/AttachmentList/index';
 import { Button } from 'src/layout/Button/index';
+import { ButtonGroup } from 'src/layout/ButtonGroup/index';
 import { Checkboxes } from 'src/layout/Checkboxes/index';
 import { Custom } from 'src/layout/Custom/index';
 import { Datepicker } from 'src/layout/Datepicker/index';
@@ -43,6 +44,7 @@ export const components = {
   AddressComponent: new Address(),
   AttachmentList: new AttachmentList(),
   Button: new Button(),
+  ButtonGroup: new ButtonGroup(),
   Checkboxes: new Checkboxes(),
   Custom: new Custom(),
   Datepicker: new Datepicker(),

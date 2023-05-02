@@ -42,7 +42,7 @@
           "type": "string",
           "title": "Type",
           "description": "The component type.",
-          "enum": ["ActionButton","AddressComponent", "AttachmentList", "Button", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Group", "Header", "Image", "Input", "InstanceInformation", "InstantiationButton", "Likert","List", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
+          "enum": ["ActionButton", "AddressComponent", "AttachmentList", "Button", "ButtonGroup", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Group", "Header", "Image", "Input", "InstanceInformation", "InstantiationButton", "Likert","List", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
         },
         "required": {
           "title": "Required",
@@ -125,6 +125,7 @@
         { "if": {"properties": {"type": { "const": "ActionButton"}}}, "then": {"$ref": "#/definitions/actionButtonComponent"}},
         { "if": {"properties": {"type": { "const": "AddressComponent"}}}, "then": { "$ref": "#/definitions/addressComponent"}},
         { "if": {"properties": {"type": { "const": "AttachmentList"}}}, "then": { "$ref": "#/definitions/attachmentListComponent"}},
+        { "if": {"properties": {"type": { "const": "ButtonGroup"}}}, "then": { "$ref": "#/definitions/buttonGroupComponent"}},
         { "if": {"properties": {"type": { "const": "Checkboxes"}}}, "then": { "$ref": "#/definitions/radioAndCheckboxComponents"}},
         { "if": {"properties": {"type": { "const": "Custom"}}}, "then": { "$ref": "#/definitions/customComponent"}},
         { "if": {"properties": {"type": { "const": "Datepicker"}}}, "then": { "$ref": "#/definitions/datepickerComponent"}},
@@ -518,6 +519,20 @@
       },
       "$ref": "#/definitions/tableColumnOptions",
       "required": ["component"]
+    },
+    "buttonGroupComponent": {
+      "properties": {
+        "children": {
+          "title": "Children",
+          "description": "An array of the \"id\" of child components belonging to the button group.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": ["children"]
     },
     "groupComponent": {
       "properties": {

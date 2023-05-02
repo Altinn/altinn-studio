@@ -2,7 +2,7 @@ import type { IAttachmentState } from 'src/features/attachments';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { IGroupEditProperties, IGroupFilter, ILayoutGroup } from 'src/layout/Group/types';
-import type { ComponentTypes, ILayout, ILayoutComponent } from 'src/layout/layout';
+import type { ILayout, ILayoutComponent } from 'src/layout/layout';
 import type {
   IFileUploadersWithTag,
   ILayoutNavigation,
@@ -373,13 +373,11 @@ export function topLevelComponents(layout: ILayout) {
  * value is the input layout except for these extracted components.
  */
 export function extractBottomButtons(page: LayoutPage) {
-  const extract = new Set<ComponentTypes>(['NavigationButtons', 'Button', 'PrintButton']);
-
   const all = [...page.children()];
   const toMainLayout: LayoutNode[] = [];
   const toErrorReport: LayoutNode[] = [];
   for (const node of all.reverse()) {
-    if (extract.has(node.item.type) && toMainLayout.length === 0) {
+    if ((node.isType('ButtonGroup') || node.def.canRenderInButtonGroup()) && toMainLayout.length === 0) {
       toErrorReport.push(node);
     } else {
       toMainLayout.push(node);

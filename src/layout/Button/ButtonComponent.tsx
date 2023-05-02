@@ -9,6 +9,7 @@ import classes from 'src/layout/Button/ButtonComponent.module.css';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { SaveButton } from 'src/layout/Button/SaveButton';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
+import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAltinnWindow } from 'src/types';
 import type { HComponent } from 'src/utils/layout/hierarchy.types';
@@ -36,6 +37,8 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     processActionsFeature &&
     ((currentTaskType === 'data' && !write) || (currentTaskType === 'confirmation' && !actions?.confirm));
 
+  const parentIsPage = node.parent instanceof LayoutPage;
+
   if (mode && !(mode === 'save' || mode === 'submit')) {
     const GenericButton = getComponentFromMode(mode);
     if (!GenericButton) {
@@ -43,7 +46,10 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     }
 
     return (
-      <div className={classes['button-group']}>
+      <div
+        className={classes.container}
+        style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
+      >
         <GenericButton {...props}>{props.text}</GenericButton>
       </div>
     );
@@ -73,29 +79,30 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   };
   const busyWithId = savingId || submittingId || '';
   return (
-    <>
-      <div className={classes['button-group']}>
-        {autoSave === false && ( // can this be removed from the component?
-          <SaveButton
-            onClick={saveFormData}
-            id='saveBtn'
-            busyWithId={busyWithId}
-            language={props.language}
-            disabled={disabled}
-          >
-            {getLanguageFromKey('general.save', props.language)}
-          </SaveButton>
-        )}
-        <SubmitButton
-          onClick={() => submitTask({ componentId: id })}
-          id={id}
-          language={props.language}
+    <div
+      className={classes.container}
+      style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
+    >
+      {autoSave === false && ( // can this be removed from the component?
+        <SaveButton
+          onClick={saveFormData}
+          id='saveBtn'
           busyWithId={busyWithId}
+          language={props.language}
           disabled={disabled}
         >
-          {props.text}
-        </SubmitButton>
-      </div>
-    </>
+          {getLanguageFromKey('general.save', props.language)}
+        </SaveButton>
+      )}
+      <SubmitButton
+        onClick={() => submitTask({ componentId: id })}
+        id={id}
+        language={props.language}
+        busyWithId={busyWithId}
+        disabled={disabled}
+      >
+        {props.text}
+      </SubmitButton>
+    </div>
   );
 };

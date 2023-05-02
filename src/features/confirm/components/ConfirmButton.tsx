@@ -51,13 +51,15 @@ export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: st
   };
 
   return (
-    <SubmitButton
-      {...props}
-      busyWithId={busyWithId}
-      onClick={handleConfirmClick}
-      disabled={disabled}
-    >
-      {getTextFromAppOrDefault('confirm.button_text', textResources, props.language)}
-    </SubmitButton>
+    <div style={{ marginTop: 'var(--button-margin-top)' }}>
+      <SubmitButton
+        {...props}
+        busyWithId={busyWithId}
+        onClick={handleConfirmClick}
+        disabled={disabled}
+      >
+        {getTextFromAppOrDefault('confirm.button_text', textResources, props.language)}
+      </SubmitButton>
+    </div>
   );
 };

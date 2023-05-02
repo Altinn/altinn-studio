@@ -9,6 +9,10 @@ export class InstantiationButton extends ActionComponent<'InstantiationButton'> 
     return <InstantiationButtonComponent {...props} />;
   }
 
+  canRenderInButtonGroup(): boolean {
+    return true;
+  }
+
   renderWithLabel(): boolean {
     return false;
   }

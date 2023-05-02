@@ -3,6 +3,7 @@ import type { $Keys, DeepPartial, PickByValue } from 'utility-types';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { ComponentClassMapTypes } from 'src/layout';
+import type { ILayoutCompButtonGroupInHierarchy } from 'src/layout/ButtonGroup/types';
 import type { GridComponent, GridRow, ILayoutGridHierarchy } from 'src/layout/Grid/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type {
@@ -22,6 +23,8 @@ import type { LayoutPage } from 'src/utils/layout/LayoutPage';
  */
 export type HComponent<T extends ComponentExceptGroup = ComponentExceptGroup> = T extends 'Grid'
   ? ILayoutGridHierarchy
+  : T extends 'ButtonGroup'
+  ? ILayoutCompButtonGroupInHierarchy
   : ExprResolved<ILayoutComponentExact<T>>;
 
 /**
@@ -104,6 +107,8 @@ export interface HierarchyDataSources extends ContextDataSources {
 
 export type LayoutNodeFromType<Type> = Type extends 'Grid'
   ? LayoutNode<ILayoutGridHierarchy>
+  : Type extends 'ButtonGroup'
+  ? LayoutNode<ILayoutCompButtonGroupInHierarchy>
   : Type extends ComponentExceptGroup
   ? LayoutNode<HComponent<Type> | HComponentInRepGroup<Type>, Type>
   : Type extends 'Group'

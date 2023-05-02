@@ -9,6 +9,10 @@ export class Button extends ActionComponent<'Button'> {
     return <ButtonComponent {...props} />;
   }
 
+  canRenderInButtonGroup(): boolean {
+    return true;
+  }
+
   renderWithLabel(): boolean {
     return false;
   }
