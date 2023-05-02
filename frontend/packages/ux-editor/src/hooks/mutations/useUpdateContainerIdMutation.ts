@@ -1,13 +1,12 @@
-import {
-  selectedLayoutWithNameSelector
-} from '../../selectors/formLayoutSelectors';
+import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { deepCopy } from 'app-shared/pure';
 import { IInternalLayout } from '../../types/global';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { useDispatch } from 'react-redux';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
+import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
+import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
+import { useRuleConfigMutation } from './useRuleConfigMutation';
 
 export interface UpdateContainerIdMutationArgs {
   currentId: string;
@@ -16,8 +15,10 @@ export interface UpdateContainerIdMutationArgs {
 
 export const useUpdateContainerIdMutation = (org: string, app: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutMutation = useFormLayoutMutation(org, app, layoutName);
-  const dispatch = useDispatch();
+  const { data: ruleConfig } = useRuleConfigQuery(org, app);
+  const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName);
+  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app);
+
   return useMutation({
     mutationFn: ({ currentId, newId }: UpdateContainerIdMutationArgs) => {
       const newLayout: IInternalLayout = deepCopy(layout);
@@ -43,10 +44,10 @@ export const useUpdateContainerIdMutation = (org: string, app: string) => {
       delete newLayout.order[currentId];
 
       // Save:
-      return formLayoutMutation.mutateAsync(newLayout).then(() => ({ currentId, newId }));
+      return saveLayout(newLayout).then(() => ({ currentId, newId }));
     },
-    onSuccess: ({ currentId, newId }) => {
-      dispatch(FormLayoutActions.updateContainerId({ currentId, newId }));
+    onSuccess: async ({ currentId, newId }) => {
+      await switchSelectedFieldId(ruleConfig, currentId, newId, saveRuleConfig);
     }
   });
 }

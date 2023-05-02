@@ -1,11 +1,8 @@
-import {
-  baseContainerIdMock,
-  queriesMock,
-  renderHookWithMockStore
-} from '../../testing/mocks';
+import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { IInternalLayout } from '../../types/global';
 import { ComponentType } from '../../components';
+import { baseContainerIdMock } from '../../testing/layoutMock';
 
 // Test data:
 const org = 'org';

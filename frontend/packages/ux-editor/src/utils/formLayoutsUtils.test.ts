@@ -7,7 +7,7 @@ import {
 import { ComponentType } from '../components';
 import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/mocks';
+import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
 
 describe('formLayoutsUtils', () => {
   describe('addOrRemoveNavigationButtons', () => {

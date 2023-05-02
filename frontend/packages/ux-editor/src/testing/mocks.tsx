@@ -2,15 +2,8 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import configureStore from 'redux-mock-store';
 import type { IAppDataState } from '../features/appData/appDataReducers';
-import type {
-  IAppState,
-  IExternalFormLayout,
-  IExternalFormLayouts,
-  IFormComponent,
-  IInternalLayout,
-} from '../types/global';
+import type { IAppState } from '../types/global';
 import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
-import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 import { Provider } from 'react-redux';
 import { render, renderHook } from '@testing-library/react';
 import {
@@ -18,13 +11,12 @@ import {
   ServicesContextProvider,
 } from '../../../../app-development/common/ServiceContext';
 import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
-import { ComponentType } from '../components';
 import { ILayoutSettings } from 'app-shared/types/global';
-import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { BrowserRouter } from 'react-router-dom';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import ruleHandlerMock from './ruleHandlerMock';
 import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
+import { ruleConfig as ruleConfigMock } from './ruleConfigMock';
+import { externalLayoutsMock, layout1NameMock, layout2NameMock } from './layoutMock';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -33,9 +25,6 @@ export const textResourcesMock: ITextResourcesState = {
 export const appDataMock: IAppDataState = {
   textResources: textResourcesMock,
 };
-
-export const layout1NameMock = 'Side1';
-export const layout2NameMock = 'Side2';
 
 export const formDesignerMock: IFormDesignerState = {
   layout: {
@@ -47,96 +36,11 @@ export const formDesignerMock: IFormDesignerState = {
   },
 };
 
-export const serviceConfigurationsMock: IServiceConfigurationState = {
-  conditionalRendering: null,
-  manageServiceConfiguration: null,
-  ruleConnection: null,
-};
-
 export const appStateMock: IAppState = {
   appData: appDataMock,
   errors: null,
   formDesigner: formDesignerMock,
-  serviceConfigurations: serviceConfigurationsMock,
   widgets: null,
-};
-
-export const baseContainerIdMock = BASE_CONTAINER_ID;
-export const component1IdMock = 'Component-1';
-export const component1TypeMock = ComponentType.Input;
-export const component1Mock: IFormComponent = {
-  id: component1IdMock,
-  type: component1TypeMock,
-  itemType: 'COMPONENT',
-};
-export const component2IdMock = 'Component-2';
-export const component2TypeMock = ComponentType.Paragraph;
-export const component2Mock: IFormComponent = {
-  id: component2IdMock,
-  type: component2TypeMock,
-  itemType: 'COMPONENT',
-};
-export const container1IdMock = 'Container-1';
-export const customRootPropertiesMock: KeyValuePairs = {
-  someCustomRootProp: 'someStringValue',
-  someOtherCustomRootProp: 5,
-};
-export const customDataPropertiesMock: KeyValuePairs = {
-  someCustomDataProp: 'aStringValue',
-  someOtherCustomDataProp: 10,
-};
-export const layoutMock: IInternalLayout = {
-  components: {
-    [component1IdMock]: component1Mock,
-    [component2IdMock]: component2Mock,
-  },
-  containers: {
-    [baseContainerIdMock]: {
-      itemType: 'CONTAINER',
-    },
-    [container1IdMock]: {
-      itemType: 'CONTAINER',
-    },
-  },
-  order: {
-    [baseContainerIdMock]: [container1IdMock],
-    [container1IdMock]: [component1IdMock, component2IdMock],
-  },
-  customRootProperties: customRootPropertiesMock,
-  customDataProperties: customDataPropertiesMock,
-};
-
-export const layout1Mock: IExternalFormLayout = {
-  $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
-  data: {
-    layout: [
-      {
-        id: container1IdMock,
-        type: ComponentType.Group,
-        children: [component1IdMock, component2IdMock],
-      },
-      {
-        id: component1IdMock,
-        type: component1TypeMock,
-      },
-      {
-        id: component2IdMock,
-        type: component2TypeMock,
-      },
-    ],
-    ...customDataPropertiesMock,
-  },
-  ...customRootPropertiesMock,
-};
-const layout2Mock: IExternalFormLayout = {
-  $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
-  data: {
-    layout: [],
-  },
-};
-export const externalLayoutsMock: IExternalFormLayouts = {
-  [layout1NameMock]: layout1Mock,
-  [layout2NameMock]: layout2Mock,
 };
 
 export const formLayoutSettingsMock: ILayoutSettings = {
@@ -169,6 +73,7 @@ export const queriesMock: ServicesContextProps = {
   getRepoMetadata: jest.fn(),
   getRepoPull: jest.fn(),
   getRepoStatus: jest.fn(),
+  getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
   getTextResources: jest.fn().mockImplementation(() => Promise.resolve([])),
@@ -176,6 +81,7 @@ export const queriesMock: ServicesContextProps = {
   pushRepoChanges: jest.fn(),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
+  saveRuleConfig: jest.fn(),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve({})),
   updateTextId: jest.fn(),

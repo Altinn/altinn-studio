@@ -1,15 +1,10 @@
-// Test data:
-import {
-  component1IdMock,
-  layout1NameMock,
-  queriesMock,
-  renderHookWithMockStore
-} from '../../testing/mocks';
+import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { IFormComponent } from '../../types/global';
 import { ComponentType } from '../../components';
 import { UpdateFormComponentArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
+import { component1IdMock, layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:
 const org = 'org';

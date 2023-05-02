@@ -5,7 +5,6 @@ import { ErrorMessageComponent } from './components/message/ErrorMessageComponen
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
 import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
-import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
 import { useParams, useSearchParams } from 'react-router-dom';
 import type { IAppState } from './types/global';
 import { deepCopy } from 'app-shared/pure';
@@ -20,6 +19,7 @@ import { useTextResourcesQuery } from '../../../app-development/hooks/queries/us
 import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
 import { firstAvailableLayout } from './utils/formLayoutsUtils';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { useRuleConfigQuery } from './hooks/queries/useRuleConfigQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -33,11 +33,12 @@ export function App() {
   const { org, app } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { data: datamodel, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
+  const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
-  const { data: textResources } = useTextResourcesQuery(org, app);
-  const { data: ruleModel } = useRuleModelQuery(org, app);
+  const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
+  const { isSuccess: isRuleModelFetched } = useRuleModelQuery(org, app);
+  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
@@ -47,7 +48,7 @@ export function App() {
   const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
 
   const componentIsReady =
-    formLayouts && isWidgetFetched && formLayoutSettings && datamodel && textResources && ruleModel;
+    formLayouts && isWidgetFetched && formLayoutSettings && isDatamodelFetched && areTextResourcesFetched && isRuleModelFetched && isRuleConfigFetched;
 
   const componentHasError = dataModelFetchedError || layoutFetchedError || widgetFetchedError;
 
@@ -97,7 +98,6 @@ export function App() {
 
   useEffect(() => {
     const fetchFiles = () => {
-      dispatch(fetchServiceConfiguration({ org, app }));
       dispatch(fetchWidgetSettings({ org, app }));
       dispatch(fetchWidgets({ org, app }));
     };
