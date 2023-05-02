@@ -73,7 +73,6 @@ namespace Altinn.Studio.Designer.Controllers
             return _repository.UpdateServiceResource(org, id, resource);
         }
 
-        [IgnoreAntiforgeryToken]
         [HttpPost]
         [Route("designer/api/{org}/resources/repository/addresource")]
         public ActionResult<ServiceResource> AddResource(string org, [FromBody] ServiceResource resource)
