@@ -105,7 +105,7 @@
             "value": "annet"
           }
         ],
-        "required": true,
+        "required": false,
         "optionsId": null
       },
       {
