@@ -49,3 +49,17 @@ Accept: application/json;charset=utf-8
 # Grunnbeløp i folketrygden
 GET http://data.ssb.no/api/klass/v1/classifications/20/codesAt?date=2023-03-12
 Accept: application/json;charset=utf-8
+
+###
+# Småvilt med variant
+GET https://data.ssb.no/api/klass/v1/classifications/74/codesAt?date=2023-03-12
+Accept: application/json;charset=utf-8
+
+###
+GET https://data.ssb.no/api/klass/v1/classifications/74/variantAt?&date=2023-01-01&language=nb&variantName=Hønsefugler, spurvefugler, skarver og due 2023-03  - variant av Klassifisering av småvilt 2017-04
+Accept: application/json;charset=utf-8
+
+###
+
+GET http://data.ssb.no/api/klass/v1/variants/2103
+Accept: application/json;charset=utf-8
