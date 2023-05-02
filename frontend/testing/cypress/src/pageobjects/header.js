@@ -6,7 +6,7 @@ export const header = {
     item: '[role="menuitem"]',
     all: '#menu-all',
     self: '#menu-self',
-    org: "[id='menu-org*']",
+    org: (orgUserName) => (orgUserName ? `[id='menu-org-${orgUserName}']` : "[id='menu-org*']"),
     gitea: '#menu-gitea',
     logOut: '#menu-logout',
     openRepo: 'a[href*="repos"]',

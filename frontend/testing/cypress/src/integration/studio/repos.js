@@ -10,7 +10,7 @@ context('Repository', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
   });
 
-  it('is possible to open repository of an app', () => {
+  it('is possible to open repository of an app from app development page', () => {
     cy.get(header.profileIconDesigner).click();
     cy.get(header.menu.openRepo)
       .invoke('attr', 'href')
