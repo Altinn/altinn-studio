@@ -19,7 +19,7 @@ import {
   FieldSet,
   TextField,
 } from '@digdir/design-system-react';
-import classes from './Container.module.css';
+import classes from './EditFormGroup.module.css';
 import { XMarkIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
