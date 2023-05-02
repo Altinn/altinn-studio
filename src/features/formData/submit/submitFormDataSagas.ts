@@ -1,4 +1,4 @@
-import { all, call, put, select } from 'redux-saga/effects';
+import { all, call, cancelled, put, select } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
@@ -23,6 +23,7 @@ import {
   mapDataElementValidationToRedux,
   mergeValidationObjects,
 } from 'src/utils/validation/validation';
+import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IFormData } from 'src/features/formData';
 import type { ISubmitDataAction, IUpdateFormDataFulfilled } from 'src/features/formData/formDataTypes';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
@@ -30,6 +31,7 @@ import type { IRuntimeState, IRuntimeStore, IUiConfig, IValidationIssue } from '
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
+const getApplicationMetaData = (store: IRuntimeState) => store.applicationMetadata?.applicationMetadata;
 
 export function* submitFormSaga({
   payload: { apiMode, stopWithWarnings },
@@ -269,8 +271,6 @@ interface SaveDataParams {
 }
 
 export function* saveStatelessData({ field, componentId }: SaveDataParams) {
-  yield call(waitForSaving);
-
   const state: IRuntimeState = yield select();
   const model = getModelToSave(state);
   const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
@@ -292,10 +292,28 @@ export function* saveStatelessData({ field, componentId }: SaveDataParams) {
     layoutSets: state.formLayout.layoutsets,
   });
   if (currentDataType) {
-    const response = yield call(httpPost, getStatelessFormDataUrl(currentDataType, allowAnonymous), { headers }, model);
-    const formData = convertModelToDataBinding(response?.data);
-    yield put(FormDataActions.fetchFulfilled({ formData }));
-    yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
+    const abortController = new AbortController();
+    try {
+      const response = yield call(
+        httpPost,
+        getStatelessFormDataUrl(currentDataType, allowAnonymous),
+        {
+          headers,
+          signal: abortController.signal,
+        },
+        model,
+      );
+      const formData = convertModelToDataBinding(response?.data);
+      yield put(FormDataActions.fetchFulfilled({ formData }));
+      yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
+    } finally {
+      if (yield cancelled()) {
+        // If the saga were cancelled (takeLatest), we would abort the HTTP request/promise
+        // to ensure we do not update the redux-state with staled data.
+        abortController.abort();
+        console.warn('Request aborted due to saga cancellation');
+      }
+    }
   }
 
   yield put(FormDataActions.savingEnded({ model: state.formData.formData }));
@@ -309,8 +327,16 @@ export function* autoSaveSaga({
   }
 
   const uiConfig: IUiConfig = yield select(UIConfigSelector);
-  if (uiConfig.autoSave !== false) {
-    // undefined should default to auto save
-    yield put(FormDataActions.save({ field, componentId, singleFieldValidation }));
+  const applicationMetadata: IApplicationMetadata = yield select(getApplicationMetaData);
+
+  // undefined should default to auto save
+  const shouldAutoSave = uiConfig.autoSave !== false;
+
+  if (shouldAutoSave) {
+    if (isStatelessApp(applicationMetadata)) {
+      yield put(FormDataActions.saveLatest({ field, componentId, singleFieldValidation }));
+    } else {
+      yield put(FormDataActions.saveEvery({ field, componentId, singleFieldValidation }));
+    }
   }
 }

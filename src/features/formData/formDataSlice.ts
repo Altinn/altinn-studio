@@ -123,8 +123,11 @@ export const formDataSlice = () => {
           state.error = error;
         },
       }),
-      save: mkAction<ISaveAction>({
+      saveEvery: mkAction<ISaveAction>({
         takeEvery: saveFormDataSaga,
+      }),
+      saveLatest: mkAction<ISaveAction>({
+        takeLatest: saveFormDataSaga,
       }),
       deleteAttachmentReference: mkAction<IDeleteAttachmentReference>({
         takeLatest: deleteAttachmentReferenceSaga,

@@ -28,4 +28,13 @@ describe('Anonymous (stateless)', () => {
     cy.get(appFrontend.stateless.name).should('have.value', 'automation');
     cy.get(appFrontend.stateless.idnummer2).should('have.value', '1234567890');
   });
+
+  it('should cancel previous requests when changing answers', () => {
+    // Do not remove the delay, it's added to ensure that the test has time to cancel the request
+    cy.intercept('**/data/anonymous?dataType=default', { delay: 200 }).as('postDefault');
+    cy.get(appFrontend.stateless.name).type('test');
+    cy.get('label:contains("kvinne")').click();
+    cy.get('label:contains("mann")').click();
+    cy.get('@console.warn').should('have.been.calledWith', 'Request aborted due to saga cancellation');
+  });
 });
