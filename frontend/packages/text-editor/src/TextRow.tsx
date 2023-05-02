@@ -50,12 +50,6 @@ export const TextRow = ({
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const { t } = useTranslation();
 
-  useEffect(() => {
-    if (textId !== textIdValue) {
-      setTextIdValue(textId);
-    }
-  }, [textId, textIdValue]);
-
   const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const newTextId = event.currentTarget.value;
     if (newTextId !== textId) {
