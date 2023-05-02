@@ -344,11 +344,7 @@
           "title": "Referanser"
         },
         "dataModelBindings": {},
-        "children": [
-          "sources",
-          "reference",
-          "reference2"
-        ]
+        "children": ["sources", "reference", "reference2"]
       },
       {
         "id": "sources",
@@ -454,6 +450,11 @@
         "hasCustomFileEndings": true,
         "validFileEndings": [".jpeg", ".jpg", ".pdf"],
         "optionsId": "tags"
+      },
+      {
+        "id": "button-group-1",
+        "type": "ButtonGroup",
+        "children": ["printBtn", "toSummary", "toNextTask"]
       },
       {
         "id": "printBtn",
