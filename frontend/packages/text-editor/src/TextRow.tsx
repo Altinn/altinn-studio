@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
