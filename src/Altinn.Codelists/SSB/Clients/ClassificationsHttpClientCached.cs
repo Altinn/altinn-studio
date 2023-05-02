@@ -13,7 +13,7 @@ namespace Altinn.Codelists.SSB.Clients
     public class ClassificationsHttpClientCached : IClassificationsClient
     {
         /// <inheritdoc/>
-        public Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "")
+        public Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "", string variant = "")
         {
             throw new NotImplementedException();
         }

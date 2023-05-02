@@ -15,6 +15,7 @@ public class ClassificationsHttpClientMock : IClassificationsClient
     private const string COUNTIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.counties.json";
     private const string MUNICIPALITIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.municipalities.json";
     private const string COUNTRIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.countries.json";
+    private const string SMALL_GAME_VARIANT_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.smallGame_Variant.json";
     
     private readonly IClassificationsClient _client;
     private readonly IOptions<ClassificationSettings> _options;
@@ -59,12 +60,16 @@ public class ClassificationsHttpClientMock : IClassificationsClient
             .When("http://data.ssb.no/api/klass/v1/classifications/552/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(COUNTRIES_TESTDATA_RESOURCE).Result);
 
+        HttpMessageHandlerMock
+            .When("http://data.ssb.no/api/klass/v1/classifications/74/variantAt*")
+            .Respond("application/json", EmbeddedResource.LoadDataAsString(SMALL_GAME_VARIANT_TESTDATA_RESOURCE).Result);
+
         _client = new ClassificationsHttpClient(_options, new HttpClient(HttpMessageHandlerMock));
     }
 
-    public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "")
+    public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "", string variant = "")
     {
-        ClassificationCodes classificationCodes = await _client.GetClassificationCodes(classificationId, language, atDate, level);
+        ClassificationCodes classificationCodes = await _client.GetClassificationCodes(classificationId, language, atDate, level, variant);
 
         return level == string.Empty
             ? classificationCodes

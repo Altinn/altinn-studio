@@ -1,5 +1,4 @@
 ﻿using Altinn.Codelists.SSB.Clients;
-using Altinn.Codelists.SSB.Models;
 
 namespace Altinn.Codelists.SSB
 {
@@ -11,6 +10,6 @@ namespace Altinn.Codelists.SSB
         /// <summary>
         /// Gets the codes for the specified classification. If no date is specified, the current date is used.
         /// </summary>
-        Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "");
+        Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "", string variant = "");
     }
 }

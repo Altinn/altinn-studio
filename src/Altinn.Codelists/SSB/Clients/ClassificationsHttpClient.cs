@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Altinn.Codelists.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Codelists.SSB.Clients;
 
@@ -29,16 +30,30 @@ public class ClassificationsHttpClient : IClassificationsClient
     /// <param name="atDate">The date the classification should be valid</param>
     /// <param name="level">The hierarchy level for classifications with multiple levels. Defaults to empty string, ie. all levels.</param>
     /// <returns></returns>
-    public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language="nb", DateOnly? atDate = null, string level = "")
+    public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language="nb", DateOnly? atDate = null, string level = "", string variant = "")
     {
-        //If no date is specified we use todays date to get the latest classification codes.
-        DateOnly date = atDate ?? DateOnly.FromDateTime(DateTime.Today);
-        string atDateformatted = date.ToString("yyyy-MM-dd");
+        string selectLanguage = $"language={language}";
 
-        //No level specified means all levels will be returned
+        // If no date is specified we use todays date to get the latest classification codes.
+        DateOnly date = atDate ?? DateOnly.FromDateTime(DateTime.Today);
+        string selectDate = $"&date={date.ToString("yyyy-MM-dd")}";
+
+        // No level specified means all levels will be returned
         string selectLevel = level == string.Empty ? string.Empty : $"&selectLevel={level}";
 
-        var response = await _httpClient.GetAsync($"{classificationId}/codesAt?date={atDateformatted}&language={language}{selectLevel}");
+        // Variants are referenced by name
+        string selectVariant = variant.IsNullOrEmpty() ? string.Empty : $"&variantName={variant}";
+
+        // Start of url differs depending on if we are getting codes or variants
+        string url = $"{classificationId}/codesAt";
+        if (!variant.IsNullOrEmpty())
+        {
+            url = $"{classificationId}/variantAt";
+        }
+
+        string query = $"?{selectLanguage}{selectDate}{selectLevel}{selectVariant}";
+
+        var response = await _httpClient.GetAsync($"{url}{query}");
         var responseJson = await response.Content.ReadAsStringAsync();
 
         var classificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(responseJson);
