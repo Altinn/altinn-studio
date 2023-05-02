@@ -107,6 +107,11 @@
         "dataModelBindings": {}
       },
       {
+        "id": "ButtonGroup",
+        "type": "ButtonGroup",
+        "children": ["RejectButton", "SigningButton"]
+      },
+      {
         "id": "RejectButton",
         "type": "ActionButton",
         "textResourceBindings": {
