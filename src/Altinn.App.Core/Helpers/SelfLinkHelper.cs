@@ -1,5 +1,6 @@
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using System.Text;
 
 namespace Altinn.App.Core.Helpers
 {
@@ -71,6 +72,22 @@ namespace Altinn.App.Core.Helpers
             dataElement.SelfLinks ??= new ResourceLinks();
 
             dataElement.SelfLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
+        }
+
+        /// <summary>
+        /// Build a url that can be opened in a browser
+        /// </summary>
+        /// <param name="instance">The instance metadata document.</param>
+        /// <param name="request">The original http request.</param>
+        /// <returns></returns>
+        public static string BuildFrontendSelfLink(Instance instance, HttpRequest request)
+        {
+            StringBuilder urlBuilder = new($"https://{request.Host.ToUriComponent()}/");
+            urlBuilder.Append(instance.AppId);
+            urlBuilder.Append("/#/instance/");
+            urlBuilder.Append(instance.Id);
+
+            return urlBuilder.ToString();
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using System.Net;
 using System.Text;
+
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Mappers;
@@ -24,10 +25,12 @@ using Altinn.Common.PEP.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -174,8 +177,6 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("The path parameter 'app' cannot be empty");
             }
 
-            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
-
             MultipartRequestReader parsedRequest = new MultipartRequestReader(Request);
             await parsedRequest.Read();
 
@@ -186,26 +187,17 @@ namespace Altinn.App.Api.Controllers
 
             Instance? instanceTemplate = await ExtractInstanceTemplate(parsedRequest);
 
-            if (!instanceOwnerPartyId.HasValue && instanceTemplate == null)
+            if (instanceOwnerPartyId is null && instanceTemplate is null)
             {
                 return BadRequest("Cannot create an instance without an instanceOwner.partyId. Either provide instanceOwner party Id as a query parameter or an instanceTemplate object in the body.");
             }
 
-            if (instanceOwnerPartyId.HasValue && instanceTemplate?.InstanceOwner?.PartyId != null)
+            if (instanceOwnerPartyId is not null && instanceTemplate?.InstanceOwner?.PartyId is not null)
             {
                 return BadRequest("You cannot provide an instanceOwnerPartyId as a query param as well as an instance template in the body. Choose one or the other.");
             }
 
-            RequestPartValidator requestValidator = new RequestPartValidator(application);
-
-            string multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
-
-            if (!string.IsNullOrEmpty(multipartError))
-            {
-                return BadRequest($"Error when comparing content to application metadata: {multipartError}");
-            }
-
-            if (instanceTemplate != null)
+            if (instanceTemplate is not null)
             {
                 InstanceOwner lookup = instanceTemplate.InstanceOwner;
 
@@ -216,11 +208,20 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
-                // create minimum instance template
                 instanceTemplate = new Instance
                 {
                     InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() }
                 };
+            }
+
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+
+            RequestPartValidator requestValidator = new RequestPartValidator(application);
+            string multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
+
+            if (!string.IsNullOrEmpty(multipartError))
+            {
+                return BadRequest($"Error when comparing content to application metadata: {multipartError}");
             }
 
             Party party;
@@ -261,24 +262,17 @@ namespace Altinn.App.Api.Controllers
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
             }
 
+            instanceTemplate.Org = application.Org;
+            ConditionallySetReadStatus(instanceTemplate);
+
             Instance instance;
-            ProcessStateChange processResult;
             instanceTemplate.Process = null;
             ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
             try
             {
-                // start process and goto next task
+                // start process
                 processChangeContext.DontUpdateProcessAndDispatchEvents = true;
                 processChangeContext = await _processEngine.StartProcess(processChangeContext);
-                processResult = processChangeContext.ProcessStateChange;
-
-                string? userOrgClaim = User.GetOrg();
-
-                if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    instanceTemplate.Status ??= new InstanceStatus();
-                    instanceTemplate.Status.ReadStatus = ReadStatus.Read;
-                }
 
                 // create the instance
                 instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
@@ -399,6 +393,9 @@ namespace Altinn.App.Api.Controllers
                 DueBefore = instansiationInstance.DueBefore
             };
 
+            instanceTemplate.Org = application.Org;
+            ConditionallySetReadStatus(instanceTemplate);
+
             // Run custom app logic to validate instantiation
             InstantiationValidationResult? validationResult = await _instantiationValidator.Validate(instanceTemplate);
             if (validationResult != null && !validationResult.Valid)
@@ -407,25 +404,15 @@ namespace Altinn.App.Api.Controllers
             }
 
             Instance instance;
-            ProcessStateChange processResult;
             try
             {
-                // start process and goto next task
                 instanceTemplate.Process = null;
 
+                // start process
                 ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
                 processChangeContext.Prefill = instansiationInstance.Prefill;
                 processChangeContext.DontUpdateProcessAndDispatchEvents = true;
                 processChangeContext = await _processEngine.StartProcess(processChangeContext);
-                processResult = processChangeContext.ProcessStateChange;
-
-                string? userOrgClaim = User.GetOrg();
-
-                if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    instanceTemplate.Status ??= new InstanceStatus();
-                    instanceTemplate.Status.ReadStatus = ReadStatus.Read;
-                }
 
                 Instance? source = null;
 
@@ -443,7 +430,7 @@ namespace Altinn.App.Api.Controllers
                         return StatusCode(500, $"Retrieving source instance failed with status code {exception.Response.StatusCode}");
                     }
 
-                    if (source.Process.Ended == null)
+                    if (!source.Status.IsArchived)
                     {
                         return BadRequest("It is not possible to copy an instance that isn't archived.");
                     }
@@ -475,66 +462,101 @@ namespace Altinn.App.Api.Controllers
             return Created(url, instance);
         }
 
-        private async Task CopyDataFromSourceInstance(ApplicationMetadata application, Instance targetInstance, Instance sourceInstance)
+        /// <summary>
+        /// This method handles the copy endpoint for when a user wants to create a copy of an existing instance.
+        /// The endpoint will primarily be accessed directly by a user clicking the copy button for an archived instance.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">Application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">Unique id to identify the instance</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        /// <remarks>
+        /// The endpoint will return a redirect to the new instance if the copy operation was successful.
+        /// </remarks>
+        [Obsolete("This endpoint will be removed in a future release of the app template packages.")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [Authorize]
+        [HttpGet("/{org}/{app}/legacy/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/copy")]
+        [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> CopyInstance(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid)
         {
-            string org = application.Org;
-            string app = application.AppIdentifier.App;
-            int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId);
-
-            string[] sourceSplit = sourceInstance.Id.Split("/");
-            Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
-
-            List<DataType> dts = application.DataTypes
-                .Where(dt => dt.AppLogic?.ClassRef != null)
-                .Where(dt => dt.TaskId != null && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId))
-                .ToList();
-            List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
-
-            foreach (DataElement de in sourceInstance.Data)
+            // This endpoint should be used exclusively by end users. Ideally from a browser as a request after clicking
+            // a button in the message box, but for now we simply just exclude app owner(s).
+            string? orgClaim = User.GetOrg();
+            if (orgClaim is not null)
             {
-                if (excludedDataTypes != null && excludedDataTypes.Contains(de.DataType))
-                {
-                    continue;
-                }
-
-                if (dts.Any(dts => dts.Id.Equals(de.DataType)))
-                {
-                    DataType dt = dts.First(dt => dt.Id.Equals(de.DataType));
-
-                    Type type;
-                    try
-                    {
-                        type = _appModel.GetModelType(dt.AppLogic.ClassRef);
-                    }
-                    catch (Exception altinnAppException)
-                    {
-                        throw new ServiceException(HttpStatusCode.InternalServerError, $"App.GetAppModelType failed: {altinnAppException.Message}", altinnAppException);
-                    }
-
-                    object data = await _dataClient.GetFormData(sourceInstanceGuid, type, org, app, instanceOwnerPartyId, Guid.Parse(de.Id));
-
-                    if (application.CopyInstanceSettings.ExcludedDataFields != null)
-                    {
-                        DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data);
-                    }
-
-                    await _prefillService.PrefillDataModel(instanceOwnerPartyId.ToString(), dt.Id, data);
-
-                    await _instantiationProcessor.DataCreation(targetInstance, data, null);
-
-                    await _dataClient.InsertFormData(
-                        data,
-                        Guid.Parse(targetInstance.Id.Split("/")[1]),
-                        type,
-                        org,
-                        app,
-                        instanceOwnerPartyId,
-                        dt.Id);
-
-                    await UpdatePresentationTextsOnInstance(application.PresentationFields, targetInstance, dt.Id, data);
-                    await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
-                }
+                return Forbid();
             }
+
+            ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+
+            if (application.CopyInstanceSettings?.Enabled is null or false)
+            {
+                return BadRequest("Creating instance based on a copy from an archived instance is not enabled for this app.");
+            }
+
+            EnforcementResult readAccess = await AuthorizeAction(org, app, instanceOwnerPartyId, instanceGuid, "read");
+
+            if (!readAccess.Authorized)
+            {
+                return Forbidden(readAccess);
+            }
+
+            Instance sourceInstance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+
+            if (sourceInstance?.Status?.IsArchived is null or false)
+            {
+                return BadRequest("The instance being copied must be archived.");
+            }
+
+            EnforcementResult instantiateAccess = await AuthorizeAction(org, app, instanceOwnerPartyId, null, "instantiate");
+
+            if (!instantiateAccess.Authorized)
+            {
+                return Forbidden(instantiateAccess);
+            }
+
+            // Multiple properties like Org and AppId will be set by Storage
+            Instance targetInstance = new()
+            {
+                InstanceOwner = sourceInstance.InstanceOwner,
+                VisibleAfter = sourceInstance.VisibleAfter,
+                Status = new() { ReadStatus = ReadStatus.Read }
+            };
+
+            InstantiationValidationResult? validationResult = await _instantiationValidator.Validate(targetInstance);
+            if (validationResult != null && !validationResult.Valid)
+            {
+                return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
+            }
+
+            ProcessChangeContext processChangeContext = new(targetInstance, User)
+            {
+                DontUpdateProcessAndDispatchEvents = true
+            };
+            processChangeContext = await _processEngine.StartProcess(processChangeContext);
+
+            targetInstance = await _instanceClient.CreateInstance(org, app, targetInstance);
+
+            await CopyDataFromSourceInstance(application, targetInstance, sourceInstance);
+
+            targetInstance = await _instanceClient.GetInstance(targetInstance);
+
+            processChangeContext.Instance = targetInstance;
+            processChangeContext.DontUpdateProcessAndDispatchEvents = false;
+            await _processEngine.StartTask(processChangeContext);
+
+            await RegisterEvent("app.instance.created", targetInstance);
+
+            string url = SelfLinkHelper.BuildFrontendSelfLink(targetInstance, Request);
+
+            return Redirect(url);
         }
 
         /// <summary>
@@ -702,6 +724,82 @@ namespace Altinn.App.Api.Controllers
             return Ok(SimpleInstanceMapper.MapInstanceListToSimpleInstanceList(activeInstances, userAndOrgLookup));
         }
 
+        private void ConditionallySetReadStatus(Instance instance)
+        {
+            string? orgClaimValue = User.GetOrg();
+
+            if (orgClaimValue == instance.Org)
+            {
+                // Default value for ReadStatus is "not read"
+                return;
+            }
+
+            instance.Status ??= new InstanceStatus();
+            instance.Status.ReadStatus = ReadStatus.Read;
+        }
+
+        private async Task CopyDataFromSourceInstance(ApplicationMetadata application, Instance targetInstance, Instance sourceInstance)
+        {
+            string org = application.Org;
+            string app = application.AppIdentifier.App;
+            int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId);
+
+            string[] sourceSplit = sourceInstance.Id.Split("/");
+            Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+
+            List<DataType> dts = application.DataTypes
+                .Where(dt => dt.AppLogic?.ClassRef != null)
+                .Where(dt => dt.TaskId != null && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId))
+                .ToList();
+            List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
+
+            foreach (DataElement de in sourceInstance.Data)
+            {
+                if (excludedDataTypes != null && excludedDataTypes.Contains(de.DataType))
+                {
+                    continue;
+                }
+
+                if (dts.Any(dts => dts.Id.Equals(de.DataType)))
+                {
+                    DataType dt = dts.First(dt => dt.Id.Equals(de.DataType));
+
+                    Type type;
+                    try
+                    {
+                        type = _appModel.GetModelType(dt.AppLogic.ClassRef);
+                    }
+                    catch (Exception altinnAppException)
+                    {
+                        throw new ServiceException(HttpStatusCode.InternalServerError, $"App.GetAppModelType failed: {altinnAppException.Message}", altinnAppException);
+                    }
+
+                    object data = await _dataClient.GetFormData(sourceInstanceGuid, type, org, app, instanceOwnerPartyId, Guid.Parse(de.Id));
+
+                    if (application.CopyInstanceSettings.ExcludedDataFields != null)
+                    {
+                        DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data);
+                    }
+
+                    await _prefillService.PrefillDataModel(instanceOwnerPartyId.ToString(), dt.Id, data);
+
+                    await _instantiationProcessor.DataCreation(targetInstance, data, null);
+
+                    await _dataClient.InsertFormData(
+                        data,
+                        Guid.Parse(targetInstance.Id.Split("/")[1]),
+                        type,
+                        org,
+                        app,
+                        instanceOwnerPartyId,
+                        dt.Id);
+
+                    await UpdatePresentationTextsOnInstance(application.PresentationFields, targetInstance, dt.Id, data);
+                    await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
+                }
+            }
+        }
+
         private ActionResult ExceptionResponse(Exception exception, string message)
         {
             _logger.LogError(exception, message);
@@ -733,7 +831,8 @@ namespace Altinn.App.Api.Controllers
 
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Instances Controller // Authorization of action {action} failed with request: {JsonConvert.SerializeObject(request)}.");
+                string serializedRequest = JsonConvert.SerializeObject(request);
+                _logger.LogInformation("// Instances Controller // Authorization of action {action} failed with request: {serializedRequest}.", action, serializedRequest);
                 return enforcementResult;
             }
 
@@ -751,7 +850,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 catch (Exception e) when (e is not ServiceException)
                 {
-                    _logger.LogWarning($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}");
+                    _logger.LogWarning(e, "Failed to lookup party by partyId: {partyId}", instanceOwner.PartyId);
                     throw new ServiceException(HttpStatusCode.BadRequest, $"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}", e);
                 }
             }
@@ -778,7 +877,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 catch (Exception e)
                 {
-                    _logger.LogWarning($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e}");
+                    _logger.LogWarning(e, "Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}", lookupNumber, personOrOrganisationNumber);
                     throw new ServiceException(HttpStatusCode.BadRequest, $"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}", e);
                 }
             }
