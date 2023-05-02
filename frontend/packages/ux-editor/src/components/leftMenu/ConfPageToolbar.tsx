@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import type { ComponentType } from '..';
-import type { IAppState, IToolbarElement } from '../../types/global';
+import type { IToolbarElement } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarItem } from './ToolbarItem';
 import { confOnScreenComponents } from '..';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
@@ -18,7 +18,6 @@ export const ConfPageToolbar = () => {
   const dispatch = useDispatch();
   const [anchorElement, setAnchorElement] = useState<any>(null);
   const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentType>(null);
-  const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const { order } = useFormLayoutsSelector(selectedLayoutSelector);
   const { app, org } = useParams();
   const addFormComponentMutation = useAddFormComponentMutation(org, app);
@@ -28,7 +27,6 @@ export const ConfPageToolbar = () => {
     (component) => mapComponentToToolbarElement(
       component,
       t,
-      activeList,
       order,
       dispatch,
       addFormComponentMutation,

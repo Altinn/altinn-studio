@@ -23,7 +23,7 @@ import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-const { addWidget, updateActiveListOrder } = FormLayoutActions;
+const { addWidget } = FormLayoutActions;
 
 export function convertFromLayoutToInternalFormat(formLayout: IExternalFormLayout): IInternalLayout {
   const convertedLayout: IInternalLayout = createEmptyLayout();
@@ -206,7 +206,6 @@ export function extractChildrenFromGroup(
 
 export const mapWidgetToToolbarElement = (
   widget: IWidget,
-  activeList: any,
   order: IFormLayoutOrder,
   t: typeof i18next.t,
   dispatch: Dispatch
@@ -223,7 +222,6 @@ export const mapWidgetToToolbarElement = (
           containerId,
         })
       );
-      dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
     },
   };
 };
@@ -231,7 +229,6 @@ export const mapWidgetToToolbarElement = (
 export const mapComponentToToolbarElement = (
   c: IComponent,
   t: typeof i18next.t,
-  activeList: any,
   order: IFormLayoutOrder,
   dispatch: Dispatch,
   addFormComponentMutation: ReturnType<typeof useAddFormComponentMutation>,
@@ -253,7 +250,6 @@ export const mapComponentToToolbarElement = (
       position,
       containerId,
     });
-    dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
   };
 
   if (c.name === ComponentType.Group) {

@@ -16,7 +16,6 @@ export const useFormLayoutsQuery =
       () => getFormLayouts(org, app).then((formLayouts) => {
         const { convertedLayouts, invalidLayouts } = convertExternalLayoutsToInternalFormat(formLayouts);
         dispatch(FormLayoutActions.setInvalidLayouts(invalidLayouts));
-        dispatch(FormLayoutActions.deleteActiveListFulfilled());
         return convertedLayouts;
       })
     );

@@ -5,18 +5,17 @@ import {
   renderHookWithMockStore
 } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
-import { useDeleteFormComponentsMutation } from './useDeleteFormComponentsMutation';
+import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 
 // Test data:
 const org = 'org';
 const app = 'app';
-const components = [component2IdMock];
 
-describe('useDeleteFormComponentsMutation', () => {
+describe('useDeleteFormComponentMutation', () => {
   it('Should save layout without deleted component', async () => {
     const { result } = await renderDeleteFormComponentsMutation();
-    await result.current.mutateAsync(components);
+    await result.current.mutateAsync(component2IdMock);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
       org,
@@ -36,5 +35,5 @@ describe('useDeleteFormComponentsMutation', () => {
 const renderDeleteFormComponentsMutation = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useDeleteFormComponentsMutation(org, app)).renderHookResult;
+  return renderHookWithMockStore()(() => useDeleteFormComponentMutation(org, app)).renderHookResult;
 }

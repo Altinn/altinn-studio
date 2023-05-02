@@ -1,23 +1,23 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { IEditContainerProps } from './EditContainer';
 import { EditContainer } from './EditContainer';
 import { IAppState, IFormLayouts } from '../types/global';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import { ServicesContextProvider } from '../../../../app-development/common/ServiceContext';
-import { queriesMock } from '../testing/mocks';
+import { ServicesContextProps } from '../../../../app-development/common/ServiceContext';
+import { renderWithMockStore } from '../testing/mocks';
 import { ComponentType } from '../components';
+
+const user = userEvent.setup();
 
 // Test data:
 const id = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88'
 
 describe('EditContainer', () => {
   test('should show edit id when edit button is clicked', async () => {
-    const { user } = render();
+    await render();
 
     expect(
       screen.queryByText(textMock('ux_editor.modal_properties_component_change_id'))
@@ -35,7 +35,7 @@ describe('EditContainer', () => {
   });
 
   test('should have 3 accessible buttons, edit, cancel and save', async () => {
-    const { user } = render();
+    await render();
 
     const editButton = screen.getByRole('button', { name: textMock('general.edit') });
     expect(editButton).toBeInTheDocument();
@@ -46,16 +46,15 @@ describe('EditContainer', () => {
   });
 });
 
-const render = (props: Partial<IEditContainerProps> = {}) => {
-  const createStore = configureStore();
+const render = async (props: Partial<IEditContainerProps> = {}) => {
   const layouts: IFormLayouts = {
     default: {
       order: {
-        'd70339c4-bb2d-4c09-b786-fed3622d042c': ['4a66b4ea-13f1-4187-864a-fd4bb6e8cf88']
+        'd70339c4-bb2d-4c09-b786-fed3622d042c': [id]
       },
       components: {
-        '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88': {
-          id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+        [id]: {
+          id,
           dataModelBindings: {},
           readOnly: false,
           required: false,
@@ -79,16 +78,7 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
     },
     formDesigner: {
       layout: {
-        activeList: [
-          {
-            firstInActiveList: true,
-            id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-            inEditMode: true,
-            lastInActiveList: true
-          }
-        ],
         selectedLayout: 'default',
-        activeContainer: null,
         error: null,
         invalidLayouts: [],
         saving: false,
@@ -121,25 +111,14 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
       itemType: 'COMPONENT'
     },
     id,
-    firstInActiveList: false,
-    lastInActiveList: false,
-    singleSelected: false,
-    sendItemToParent: jest.fn(),
     dragHandleRef: null,
     children: null,
     ...props
   };
 
-  const user = userEvent.setup();
-  const mockStore = createStore(initialState);
-  rtlRender(
-    <ServicesContextProvider {...queriesMock} getFormLayouts={async () => layouts}>
-      <Provider store={mockStore}>
-        {/* eslint-disable-next-line testing-library/no-node-access */}
-        <EditContainer {...allProps}>{allProps.children}</EditContainer>
-      </Provider>
-    </ServicesContextProvider>
-  );
+  const queries: Partial<ServicesContextProps> = { getFormLayouts: async () => layouts };
 
-  return { user };
+  return renderWithMockStore(initialState, queries)(
+    <EditContainer {...allProps}>{allProps.children}</EditContainer> // eslint-disable-line testing-library/no-node-access
+  );
 };

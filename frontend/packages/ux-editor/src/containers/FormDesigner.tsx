@@ -12,11 +12,9 @@ import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 
 type FormDesignerProps = {
   selectedLayout: string;
-  activeList: any;
   layoutOrder: IFormLayoutOrder;
 };
 export const FormDesigner = ({
-  activeList,
   layoutOrder,
   selectedLayout,
 }: FormDesignerProps): JSX.Element => {
@@ -34,7 +32,6 @@ export const FormDesigner = ({
             <h1 className={classes.pageHeader}>{selectedLayout}</h1>
             <DesignView
               order={order}
-              activeList={activeList}
               isDragging={false}
               layoutOrder={layoutOrderCopy}
             />

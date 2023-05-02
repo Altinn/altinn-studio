@@ -1,6 +1,5 @@
-import React, { useCallback } from 'react';
-import { connect, useDispatch } from 'react-redux';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import React from 'react';
+import { connect } from 'react-redux';
 import { EditContainer } from '../containers/EditContainer';
 import type { FormComponentType, IAppState } from '../types/global';
 import { ConnectDragSource } from 'react-dnd';
@@ -16,11 +15,6 @@ import { useTextResourcesQuery } from '../../../../app-development/hooks/queries
  */
 export interface IProvidedProps {
   id: string;
-  activeList: any[];
-  firstInActiveList: boolean;
-  lastInActiveList: boolean;
-  sendListToParent: any;
-  singleSelected: boolean;
   partOfGroup?: boolean;
   dragHandleRef: ConnectDragSource;
 }
@@ -33,66 +27,11 @@ export interface IFormElementProps extends IProvidedProps {
 }
 
 const FormComponent = (props: IFormElementProps) => {
-  const [wrapperRef, setWrapperRef] = React.useState(null);
-  const dispatch = useDispatch();
-  const { sendListToParent, activeList } = props;
   const { org, app } = useParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
 
-  const { components, order } = useFormLayoutsSelector(selectedLayoutSelector);
+  const { components } = useFormLayoutsSelector(selectedLayoutSelector);
   const component: FormComponentType = components[props.id];
-
-  const handleActiveListChange = useCallback(
-    (obj: any) => {
-      if (Object.keys(obj).length === 0 && obj.constructor === Object) {
-        dispatch(FormLayoutActions.deleteActiveList({ org, app }));
-      } else {
-        dispatch(
-          FormLayoutActions.updateActiveList({
-            listItem: obj,
-            containerList: activeList,
-            org,
-            app
-          })
-        );
-      }
-      sendListToParent(activeList);
-    },
-    [sendListToParent, activeList, dispatch, org, app]
-  );
-
-  /*
-   * Handle all types of clicks.
-   * Tracks if the click is outside of the formComponent
-   */
-  const handleClick = useCallback(
-    (e: any) => {
-      const serviceLogicMenu = document.getElementById('serviceLogicMenu');
-      if (serviceLogicMenu && !serviceLogicMenu.contains(e.target)) {
-        const key: any = Object.keys(order)[0];
-        const orderNumber = order[key].indexOf(props.id);
-
-        if (wrapperRef && !wrapperRef.contains(e.target) && orderNumber === 0) {
-          handleActiveListChange({});
-        }
-      }
-    },
-    [handleActiveListChange, props.id, order, wrapperRef]
-  );
-
-  React.useEffect(() => {
-    window.addEventListener('mousedown', handleClick);
-
-    return () => {
-      window.removeEventListener('mousedown', handleClick);
-    };
-  }, [handleClick]);
-
-  const getWrapperRef = (node: any) => {
-    if (node) {
-      setWrapperRef(node.parentElement.parentElement);
-    }
-  };
 
   /**
    * Return a given textresource from all textresources avaiable
@@ -134,27 +73,15 @@ const FormComponent = (props: IFormElementProps) => {
     return null;
   };
 
-  /**
-   * Method that allows user to set focus to elements in the compoenent
-   * instead of opening the edit modal on click.
-   */
-  const disableEditOnClickForAddedComponent = (e: any) => {
-    e.stopPropagation();
-  };
-
   return (
-    <div ref={getWrapperRef}>
+    <div>
       <EditContainer
         component={component}
         id={props.id}
-        firstInActiveList={props.firstInActiveList}
-        lastInActiveList={props.lastInActiveList}
-        sendItemToParent={handleActiveListChange}
-        singleSelected={props.singleSelected}
         partOfGroup={props.partOfGroup}
         dragHandleRef={props.dragHandleRef}
       >
-        <button className={'divider'} onClick={disableEditOnClickForAddedComponent}>
+        <button className={'divider'}>
           {renderLabel()}
         </button>
       </EditContainer>
@@ -164,12 +91,7 @@ const FormComponent = (props: IFormElementProps) => {
 
 const makeMapStateToProps = () => {
   return (state: IAppState, props: IProvidedProps): IFormElementProps => ({
-    activeList: props.activeList,
     id: props.id,
-    firstInActiveList: props.firstInActiveList,
-    lastInActiveList: props.lastInActiveList,
-    sendListToParent: props.sendListToParent,
-    singleSelected: props.singleSelected,
     validationErrors: null,
     dragHandleRef: props.dragHandleRef,
   });
