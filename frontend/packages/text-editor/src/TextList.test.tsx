@@ -91,10 +91,10 @@ describe('TextList', () => {
     await act(() => user.keyboard('2'));
     expect(screen.queryByText(errorMsg)).toBeNull();
     await act(() => user.keyboard('{BACKSPACE}'));
-    expect(screen.queryByText(errorMsg)).toBeNull();
+    expect(screen.getByText(errorMsg)).toBeInTheDocument();
     await act(() => user.keyboard('{TAB}'));
     expect(updateEntryId).not.toHaveBeenCalled();
     await act(() => user.keyboard('{SHIFT>}{TAB}{/SHIFT}{END}2{TAB}'));
-    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'a2' });
+    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'b2' });
   });
 });
