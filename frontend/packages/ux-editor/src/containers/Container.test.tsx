@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Container, IProvidedContainerProps } from './Container';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { container1IdMock, baseContainerIdMock, layoutMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { queriesMock, container1IdMock, baseContainerIdMock, layoutMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { createMockedDndEvents } from './helpers/dnd-helpers.test';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -30,6 +30,17 @@ describe('Container', () => {
 
     expect(within(formGroup).getByText(textMock('general.delete'))).toBeInTheDocument();
     expect(within(formGroup).getByText(textMock('general.edit'))).toBeInTheDocument();
+  });
+
+  it('should delete container when clicking the Delete button', async () => {
+    await render();
+
+    const formGroup = screen.getByTestId('form-group');
+
+    const deleteButton = within(formGroup).getByText(textMock('general.delete'));
+    await act(() => user.click(deleteButton));
+
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 
   it('should be in edit mode when clicking the Edit button', async () => {

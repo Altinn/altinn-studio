@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { EditFormGroup, IEditFormGroupProps } from './EditFormGroup';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { baseContainerIdMock, layoutMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { queriesMock, baseContainerIdMock, layoutMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
@@ -42,6 +42,7 @@ describe('EditFormGroup', () => {
     expect(saveButton).toBeInTheDocument();
     await act(() => user.click(saveButton));
 
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(setEditModeMock).toHaveBeenCalledWith(false);
   });
 });
