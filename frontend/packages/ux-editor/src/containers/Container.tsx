@@ -35,6 +35,7 @@ import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContai
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
 import { ITextResource } from 'app-shared/types/global';
 import { useText } from '../hooks/useText';
+import { useParams } from 'react-router-dom';
 
 export interface IContainerProps {
   isBaseContainer?: boolean;
@@ -46,14 +47,17 @@ export interface IContainerProps {
   dataModel: IDataModelFieldElement[];
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
-  updateFormContainerMutation: ReturnType<typeof useUpdateFormContainerMutation>;
-  updateContainerIdMutation: ReturnType<typeof useUpdateContainerIdMutation>;
-  deleteFormContainerMutation: ReturnType<typeof useDeleteFormContainerMutation>;
   textResources: ITextResource[];
 }
 
 export const Container = (props: IContainerProps) => {
   const t = useText();
+
+  const { org, app } = useParams();
+
+  const updateFormContainerMutation = useUpdateFormContainerMutation(org, app);
+  const updateContainerIdMutation = useUpdateContainerIdMutation(org, app);
+  const deleteFormContainerMutation = useDeleteFormContainerMutation(org, app);
 
   const [editMode, setEditMode] = useState<boolean>(false);
   const [tmpContainer, setTmpContainer] = useState<ICreateFormContainer>(props.containers[props.id]);
@@ -94,7 +98,7 @@ export const Container = (props: IContainerProps) => {
   };
 
   const handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    props.deleteFormContainerMutation.mutate(props.id);
+    deleteFormContainerMutation.mutate(props.id);
   };
 
   const handleDiscard = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -110,11 +114,11 @@ export const Container = (props: IContainerProps) => {
       } else if (!validComponentId.test(tmpId)) {
         setGroupIdError(t('ux_editor.modal_properties_group_id_not_valid'));
       } else {
-        props.updateFormContainerMutation.mutate({
+        updateFormContainerMutation.mutate({
           updatedContainer: tmpContainer,
           id: props.id,
         });
-        props.updateContainerIdMutation.mutate({
+        updateContainerIdMutation.mutate({
           currentId: props.id,
           newId: tmpId,
         });
@@ -124,7 +128,7 @@ export const Container = (props: IContainerProps) => {
       setTableHeadersError(t('ux_editor.modal_properties_group_table_headers_error'));
     } else {
       // No validations, save.
-      props.updateFormContainerMutation.mutate({
+      updateFormContainerMutation.mutate({
         updatedContainer: tmpContainer,
         id: props.id,
       });
@@ -345,9 +349,6 @@ export const Container = (props: IContainerProps) => {
         dataModel={props.dataModel}
         components={props.components}
         containers={props.containers}
-        updateFormContainerMutation={props.updateFormContainerMutation}
-        updateContainerIdMutation={props.updateContainerIdMutation}
-        deleteFormContainerMutation={props.deleteFormContainerMutation}
         textResources={props.textResources}
       />
     );

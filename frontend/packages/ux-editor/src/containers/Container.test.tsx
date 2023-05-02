@@ -5,9 +5,6 @@ import { Container, IProvidedContainerProps } from './Container';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { queriesMock, container1IdMock, baseContainerIdMock, layoutMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
-import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
-import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
-import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { createMockedDndEvents } from './helpers/dnd-helpers.test';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -86,10 +83,6 @@ const waitForData = async () => {
 };
 
 const render = async (props: Partial<IProvidedContainerProps> = {}) => {
-  const updateFormContainerMutation = await renderHookWithMockStore()(() => useUpdateFormContainerMutation(org, app)).renderHookResult.result.current;
-  const updateContainerIdMutation = await renderHookWithMockStore()(() => useUpdateContainerIdMutation(org, app)).renderHookResult.result.current;
-  const deleteFormContainerMutation = await renderHookWithMockStore()(() => useDeleteFormContainerMutation(org, app)).renderHookResult.result.current;
-
   const allProps: IProvidedContainerProps = {
     isBaseContainer: true,
     canDrag: false,
@@ -99,9 +92,6 @@ const render = async (props: Partial<IProvidedContainerProps> = {}) => {
     dataModel: [],
     components: layoutMock.components,
     containers: layoutMock.containers,
-    updateFormContainerMutation,
-    updateContainerIdMutation,
-    deleteFormContainerMutation,
     textResources: null,
     ...props
   };

@@ -13,10 +13,7 @@ import { useParams } from 'react-router-dom';
 import { useDatamodelQuery } from '../hooks/queries/useDatamodelQuery';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
-import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdateFormComponentOrderMutation';
-import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
-import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
 import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -50,10 +47,7 @@ export const DesignView = ({
   const { data: datamodel } = useDatamodelQuery(org, app);
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
-  const updateFormContainerMutation = useUpdateFormContainerMutation(org, app);
   const updateFormComponentOrderMutation = useUpdateFormComponentOrderMutation(org, app);
-  const updateContainerIdMutation = useUpdateContainerIdMutation(org, app);
-  const deleteFormContainerMutation = useDeleteFormContainerMutation(org, app);
 
   const setContainerLayoutOrder = (containerId: string, newLayoutOrder: string[]) => {
     if (newLayoutOrder.includes(containerId)) {
@@ -173,9 +167,6 @@ export const DesignView = ({
         dataModel={datamodel}
         components={components}
         containers={containers}
-        updateFormContainerMutation={updateFormContainerMutation}
-        updateContainerIdMutation={updateContainerIdMutation}
-        deleteFormContainerMutation={deleteFormContainerMutation}
         textResources={textResources}
       />
     )
