@@ -306,13 +306,13 @@ namespace Designer.Tests.Controllers
                 Visible = true,
                 HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                 Keywords = GetTestKeywords(),
-                Sector = new List<string> { "private", "public"},
+                Sector = new List<string> { "private", "public" },
                 ResourceType = ResourceType.Default,
                 MainLanguage = "en-US",
             };
 
             _repositoryMock.Setup(r => r.UpdateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(serviceResource), System.Text.Encoding.UTF8,"application/json");
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(serviceResource), System.Text.Encoding.UTF8, "application/json");
 
             //Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
