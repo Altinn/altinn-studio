@@ -42,7 +42,6 @@ jobs:
         uses: cypress-io/github-action@v5
         with:
           install: false
-          working-directory: frontend/testing/
-          project: ./cypress
+          working-directory: frontend/testing/cypress
           env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }}
           spec: src/integration/studio/*.js
