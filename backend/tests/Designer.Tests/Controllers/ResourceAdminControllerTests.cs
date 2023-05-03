@@ -312,8 +312,6 @@ namespace Designer.Tests.Controllers
             };
 
             _repositoryMock.Setup(r => r.UpdateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
-
-            string resource1 = JsonConvert.SerializeObject(serviceResource);
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(serviceResource), System.Text.Encoding.UTF8,"application/json");
 
             //Act
