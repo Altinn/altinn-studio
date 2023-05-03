@@ -9,7 +9,7 @@ public class ClassificationsHttpClientMock : IClassificationsClient
 {
     private const string SEX_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.sex.json";
     private const string INDUSTRY_GROUPING_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.industryGrouping.json";
-    private const string CLASSIFICATIONS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.occupations.json";
+    private const string OCCUPATIONS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.occupations.json";
     private const string MARITAL_STATUS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.maritalStatus.json";
     private const string BASE_AMOUT_NATIONAL_INSURANCE_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.baseAmountNationalInsurance.json";
     private const string COUNTIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.counties.json";
@@ -22,6 +22,7 @@ public class ClassificationsHttpClientMock : IClassificationsClient
 
     public MockHttpMessageHandler HttpMessageHandlerMock { get; private set; }
     public MockedRequest MockedClassificationsRequest { get; private set; }
+    public MockedRequest MockedMaritalStatusRequest { get; private set; }
 
     public ClassificationsHttpClientMock(IOptions<ClassificationSettings> classificationOptions)
     {
@@ -30,7 +31,7 @@ public class ClassificationsHttpClientMock : IClassificationsClient
         HttpMessageHandlerMock = new MockHttpMessageHandler();
 
         HttpMessageHandlerMock
-             .When("http://data.ssb.no/api/klass/v1/classifications/2/*")
+            .When("http://data.ssb.no/api/klass/v1/classifications/2/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(SEX_TESTDATA_RESOURCE).Result);
 
         HttpMessageHandlerMock
@@ -39,9 +40,9 @@ public class ClassificationsHttpClientMock : IClassificationsClient
 
         HttpMessageHandlerMock
             .When("http://data.ssb.no/api/klass/v1/classifications/7/*")
-            .Respond("application/json", EmbeddedResource.LoadDataAsString(CLASSIFICATIONS_TESTDATA_RESOURCE).Result);
+            .Respond("application/json", EmbeddedResource.LoadDataAsString(OCCUPATIONS_TESTDATA_RESOURCE).Result);
 
-        MockedClassificationsRequest = HttpMessageHandlerMock
+        MockedMaritalStatusRequest = HttpMessageHandlerMock
             .When("http://data.ssb.no/api/klass/v1/classifications/19/*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(MARITAL_STATUS_TESTDATA_RESOURCE).Result);
         

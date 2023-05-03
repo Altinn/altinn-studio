@@ -1,4 +1,6 @@
 ﻿using Altinn.App.Core.Features;
+using Altinn.Codelists.Kartverket.AdministrativeUnits.Clients;
+using Altinn.Codelists.Kartverket.AdministrativeUnits;
 using Altinn.Codelists.SSB.Clients;
 using Altinn.Codelists.SSB.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,10 +16,14 @@ public static class ServiceCollectionExtensions
     /// Registers the services required to get support for SSB Classifiations.
     /// </summary>
     public static IServiceCollection AddSSBClassifications(this IServiceCollection services)
-    {   
+    {
+        // Basic setup
+        services.AddMemoryCache();
         services.AddOptions<ClassificationSettings>();
         services.AddHttpClient<IClassificationsClient, ClassificationsHttpClient>();
+        services.Decorate<IClassificationsClient, ClassificationsHttpClientCached>();
 
+        // Add the codelist providers
         services.AddSSBClassificationCodelistProvider("kjønn", Classification.Sex);
         services.AddSSBClassificationCodelistProvider("næringsgruppering", Classification.IndustryGrouping);
         services.AddSSBClassificationCodelistProvider("yrker", Classification.Occupations);
