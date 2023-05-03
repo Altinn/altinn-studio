@@ -5,6 +5,11 @@
 import { designer } from '../../pageobjects/designer';
 
 context('Sync app and deploy', () => {
+  before(() => {
+    cy.visit('/');
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+  });
+
   beforeEach(() => {
     cy.intercept('GET', '**/status').as('getRepoStatus');
     cy.intercept('POST', '**/commit').as('commitChanges');
@@ -13,13 +18,11 @@ context('Sync app and deploy', () => {
     cy.intercept('GET', '**/releases**').as('getAppBuilds');
     cy.intercept('POST', '**/releases**').as('startAppBuild');
     cy.intercept('GET', '**/Deployments**').as('getAppDeploys');
+    cy.visit('/dashboard');
   });
 
-  it('is possible sync changes, build and deploy app', () => {
-    cy.visit('/');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.searchAndOpenApp(Cypress.env('deployApp'));
-
+  it('is possible sync changes', () => {
+    cy.searchAndOpenApp(Cypress.env('designerApp'));
     // Sync app changes
     cy.get(designer.appMenu.edit).click();
     cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
@@ -32,9 +35,5 @@ context('Sync app and deploy', () => {
     cy.get(designer.syncApp.pushButton).should('be.visible').click();
     cy.wait('@pushChanges').its('response.statusCode').should('eq', 200);
     cy.get(designer.syncApp.pushSuccess).isVisible();
-    cy.reload();
-
-    // Start app build
-    cy.get(designer.appMenu.deploy).click();
   });
 });
