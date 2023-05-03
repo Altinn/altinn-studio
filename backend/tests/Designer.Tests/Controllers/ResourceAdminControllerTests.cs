@@ -41,7 +41,6 @@ namespace Designer.Tests.Controllers
         {
             // Arrange
             string uri = $"{_versionPrefix}/ttd/resources/repository";
-
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
@@ -115,7 +114,6 @@ namespace Designer.Tests.Controllers
         {
             // Arrange
             string uri = $"{_versionPrefix}/orgwithoutrepo/resources/repository/resourcelist";
-
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
@@ -130,13 +128,12 @@ namespace Designer.Tests.Controllers
         {
             // Arrange
             string uri = $"/resourceadm/ttd/resources";
-
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
-
             string contenthtml = await res.Content.ReadAsStringAsync();
+
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Contains("resourceadm.js", contenthtml);

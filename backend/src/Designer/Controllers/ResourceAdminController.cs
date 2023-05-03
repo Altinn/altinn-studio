@@ -63,7 +63,6 @@ namespace Altinn.Studio.Designer.Controllers
                 List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
                 return repositoryResourceList != null ? repositoryResourceList.First() : StatusCode(204);
             }
-
         }
 
         [HttpPut]
