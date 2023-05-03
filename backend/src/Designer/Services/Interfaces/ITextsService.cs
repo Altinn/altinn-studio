@@ -106,7 +106,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Organisation</param>
         /// <param name="repo">Repository</param>
         /// <param name="developer">Username of developer</param>
-        public void ConvertV1TextsToV2(string org, string repo, string developer);
+        public Task ConvertV1TextsToV2(string org, string repo, string developer);
 
         /// <summary>
         /// Updates an old key to a new key in all texts files.
