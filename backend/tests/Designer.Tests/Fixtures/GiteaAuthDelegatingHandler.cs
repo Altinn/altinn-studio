@@ -45,8 +45,8 @@ namespace Designer.Tests.Fixtures
                 AllowAutoRedirect = false
             });
 
-            using var giteaLoginResponse = await giteaClient.GetAsync(giteaLoginUrl, cancellationToken);
-            string htmlContent = await giteaLoginResponse.Content.ReadAsStringAsync(cancellationToken);
+            using var giteaGetLoginResponse = await giteaClient.GetAsync(giteaLoginUrl, cancellationToken);
+            string htmlContent = await giteaGetLoginResponse.Content.ReadAsStringAsync(cancellationToken);
             List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("user_name", GiteaConstants.TestUser),
@@ -56,12 +56,12 @@ namespace Designer.Tests.Fixtures
 
             using FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
 
-            var giteaPostLoginMessage = new HttpRequestMessage(HttpMethod.Post, giteaLoginUrl)
+            using var giteaPostLoginMessage = new HttpRequestMessage(HttpMethod.Post, giteaLoginUrl)
             {
                 Content = content
             };
 
-            giteaPostLoginMessage.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(giteaLoginResponse));
+            giteaPostLoginMessage.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(giteaGetLoginResponse));
 
             return await giteaClient.SendAsync(giteaPostLoginMessage, cancellationToken);
         }
@@ -69,13 +69,13 @@ namespace Designer.Tests.Fixtures
         private async Task<HttpResponseMessage> LoginToDesignerAndProxyRequest(HttpResponseMessage giteaAuthorizedResponse, HttpRequestMessage request, CancellationToken cancellationToken)
         {
             string loginUrl = $"{_baseAddress}/Login";
-            var httpRequestMessageLogin = new HttpRequestMessage(HttpMethod.Get, loginUrl);
+            using var httpRequestMessageLogin = new HttpRequestMessage(HttpMethod.Get, loginUrl);
             SetCookies(httpRequestMessageLogin, GetGiteaAuthCookiesFromResponseMessage(giteaAuthorizedResponse));
 
-            var loginResponse = await base.SendAsync(httpRequestMessageLogin, cancellationToken);
+            using var loginResponse = await base.SendAsync(httpRequestMessageLogin, cancellationToken);
 
             string xsrfUrl = $"{_baseAddress}/designer/api/user/current";
-            var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
+            using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
             SetCookies(httpRequestMessageXsrf, GetGiteaAuthCookiesFromResponseMessage(loginResponse));
 
             IEnumerable<string> cookies = null;
