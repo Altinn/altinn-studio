@@ -1,7 +1,6 @@
 ﻿using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.Codelists.SSB.Models;
-using static System.Net.WebRequestMethods;
 
 namespace Altinn.Codelists.SSB;
 
@@ -51,16 +50,46 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
         var classificationCode = await _classificationsClient.GetClassificationCodes(_classificationId, language, dateOnly, level, variant);
 
         string parentCode = mergedKeyValuePairs.GetValueOrDefault("parentCode") ?? string.Empty;
-        var appOptions = new AppOptions
-        {
-            // The api we use doesn't support filtering on partentCode,
-            // hence we need to filter afterwards.
-            Options = string.IsNullOrEmpty(parentCode)
-            ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
-            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
-        };
+
+        AppOptions appOptions = GetAppOptions(classificationCode, parentCode);
 
         return appOptions;
+    }
+
+    private static AppOptions GetAppOptions(Clients.ClassificationCodes classificationCode, string parentCode)
+    {
+        AppOptions appOptions;
+        // From Altinn.App.Core version 7.8.0 we can add description to AppOptions.
+        // This is not supported in older versions, and we need to check if the property exists.
+        if (AppOptionsSupportsDescription())
+        {
+            appOptions = new AppOptions
+            {
+                // The api we use doesn't support filtering on partentCode,
+                // hence we need to filter afterwards.
+                Options = string.IsNullOrEmpty(parentCode)
+            ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description = x.Notes }).ToList()
+            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description = x.Notes }).ToList()
+            };
+        }
+        else
+        {
+            appOptions = new AppOptions
+            {
+                // The api we use doesn't support filtering on partentCode,
+                // hence we need to filter afterwards.
+                Options = string.IsNullOrEmpty(parentCode)
+            ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
+            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
+            };
+        }
+
+        return appOptions;
+    }
+
+    private static bool AppOptionsSupportsDescription()
+    {
+        return typeof(AppOption).GetProperties().Any(x => x.Name == "Description");
     }
 
     private static Dictionary<string, string> MergeDictionaries(Dictionary<string, string> defaultValues, Dictionary<string, string> overridingValues)
