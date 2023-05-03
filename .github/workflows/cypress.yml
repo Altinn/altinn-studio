@@ -50,4 +50,4 @@ jobs:
         if: failure()
         with:
           name: cypress-videos
-          path: screenshots
+          path: frontend/testing/cypress/screenshots
