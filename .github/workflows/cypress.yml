@@ -40,7 +40,7 @@ jobs:
           HUSKY: '0'
 
       - name: Wait for deploy to environment
-        run: sleep 8m
+        run: sleep 6m
         shell: bash
 
       - name: Cypress run
