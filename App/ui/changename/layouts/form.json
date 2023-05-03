@@ -456,6 +456,65 @@
         "optionsId": "tags"
       },
       {
+        "id": "pageSummary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Oppsummering"
+        },
+        "dataModelBindings": {},
+        "size": "L"
+      },
+      {
+        "id": "summaryFirstName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "PersonNyttFornavn",
+          "help": "PersonNyttFornavn.helptext"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value"
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "summaryMiddleName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "PersonNyttMellomnavn",
+          "description": "HintMellomnavn",
+          "somethingThatIsVeryInvalid": null
+        },
+        "dataModelBindings": {
+          "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value"
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "summaryLastName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "PersonNyttEtternavn",
+          "description": "HintEtternavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonEtternavnNytt-datadef-34757.value"
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "adresseSummary",
+        "type": "AddressComponent",
+        "textResourceBindings": {
+          "title": "Adresse"
+        },
+        "dataModelBindings": {
+          "address": "Adresse.Gateadresse_æøå",
+          "zipCode": "Adresse.Postnr",
+          "postPlace": "Adresse.Poststed"
+        },
+        "renderAsSummary": true
+      },
+      {
         "id": "printBtn",
         "type": "PrintButton"
       },
