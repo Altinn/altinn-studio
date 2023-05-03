@@ -4,10 +4,28 @@ import { PreviewContext } from '../PreviewContext';
 import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
+import { usePreviewConnection } from "app-shared/providers/PreviewConnectionContext";
 
 export const LandingPage = () => {
   const { org, app } = useParams();
   const { t } = useTranslation();
+  const previewConnection = usePreviewConnection();
+
+  const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
+    input !== null && input.tagName === 'IFRAME';
+
+  if (previewConnection) {
+    previewConnection.on("ReceiveMessage", function (message) {
+      const frame = document.getElementById('app-frontend-react-iframe');
+      if (isIFrame(frame) && frame.contentWindow) {
+        const targetOrigin = window.origin;
+        // Trigger a reload of preview window until app-frontend implements re-calling api #https://github.com/Altinn/app-frontend-react/issues/1088
+        window.location.reload();
+        console.log("Sending reload message to app-frontend with targetOrigin: " + targetOrigin);
+        frame.contentWindow.postMessage({ action: message }, targetOrigin);
+      }
+    })
+  }
 
   return (
     <PreviewContext>

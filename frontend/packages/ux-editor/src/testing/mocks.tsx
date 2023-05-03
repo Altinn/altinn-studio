@@ -24,6 +24,7 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { BrowserRouter } from 'react-router-dom';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import ruleHandlerMock from './ruleHandlerMock';
+import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -184,28 +185,32 @@ export const queriesMock: ServicesContextProps = {
 
 export const renderWithMockStore =
   (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
-  (component: ReactNode) => {
-    const store = configureStore()({ ...appStateMock, ...state });
-    const renderResult = render(
-      <ServicesContextProvider {...queriesMock} {...queries}>
-        <Provider store={store}>
-          <BrowserRouter>{component}</BrowserRouter>
-        </Provider>
-      </ServicesContextProvider>
-    );
-    return { renderResult, store };
-  };
+    (component: ReactNode) => {
+      const store = configureStore()({ ...appStateMock, ...state });
+      const renderResult = render(
+        <ServicesContextProvider {...queriesMock} {...queries}>
+          <PreviewConnectionContextProvider>
+            <Provider store={store}>
+              <BrowserRouter>{component}</BrowserRouter>
+            </Provider>
+          </PreviewConnectionContextProvider>
+        </ServicesContextProvider>
+      );
+      return { renderResult, store };
+    };
 
 export const renderHookWithMockStore =
   (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
-  (hook: () => any) => {
-    const store = configureStore()({ ...appStateMock, ...state });
-    const renderHookResult = renderHook(hook, {
-      wrapper: ({ children }) => (
-        <ServicesContextProvider {...queriesMock} {...queries}>
-          <Provider store={store}>{children}</Provider>
-        </ServicesContextProvider>
-      ),
-    });
-    return { renderHookResult, store };
-  };
+    (hook: () => any) => {
+      const store = configureStore()({ ...appStateMock, ...state });
+      const renderHookResult = renderHook(hook, {
+        wrapper: ({ children }) => (
+          <ServicesContextProvider {...queriesMock} {...queries}>
+            <PreviewConnectionContextProvider>
+              <Provider store={store}>{children}</Provider>
+            </PreviewConnectionContextProvider>
+          </ServicesContextProvider>
+        ),
+      });
+      return { renderHookResult, store };
+    };

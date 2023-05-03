@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
-using Altinn.Studio.Designer.Filters.Datamodeling;
 using Altinn.Studio.Designer.Health;
+using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Tracing;
@@ -180,6 +180,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddMemoryCache();
     services.AddResponseCompression();
     services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
+    services.AddSignalR();
 
     CreateDirectory(configuration);
 
@@ -264,6 +265,8 @@ void Configure(IConfiguration configuration)
             });
     }
 
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
         OnPrepareResponse = context =>
@@ -303,6 +306,7 @@ void Configure(IConfiguration configuration)
     app.MapControllers();
 
     app.MapHealthChecks("/health");
+    app.MapHub<PreviewHub>("/previewHub");
 
     logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }
