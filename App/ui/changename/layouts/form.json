@@ -344,11 +344,7 @@
           "title": "Referanser"
         },
         "dataModelBindings": {},
-        "children": [
-          "sources",
-          "reference",
-          "reference2"
-        ]
+        "children": ["sources", "reference", "reference2"]
       },
       {
         "id": "sources",
@@ -513,6 +509,11 @@
           "postPlace": "Adresse.Poststed"
         },
         "renderAsSummary": true
+      },
+      {
+        "id": "button-group-1",
+        "type": "ButtonGroup",
+        "children": ["printBtn", "toSummary", "toNextTask"]
       },
       {
         "id": "printBtn",

@@ -56,8 +56,8 @@
             "header": true,
             "cells": [
               {
-                "width": "25%",
                 "columnOptions": {
+                  "width": "20%",
                   "alignText": "left",
                   "textOverflow": {
                     "lineWrap": true,
