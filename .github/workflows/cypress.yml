@@ -46,3 +46,10 @@ jobs:
           working-directory: frontend/testing/cypress
           env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }}
           spec: src/integration/studio/*.js
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: cypress-videos
+          path: cypress/videos
