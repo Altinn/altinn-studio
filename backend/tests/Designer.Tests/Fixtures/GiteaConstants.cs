@@ -1,5 +1,8 @@
-﻿namespace Designer.Tests.Fixtures
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Designer.Tests.Fixtures
 {
+    [ExcludeFromCodeCoverage]
     public abstract class GiteaConstants
     {
         public const string AdminUser = "adminUser";

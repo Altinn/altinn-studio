@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -21,13 +22,14 @@ using static System.IO.Path;
 
 namespace Designer.Tests.Fixtures
 {
+    [ExcludeFromCodeCoverage]
     public class GiteaFixture : IAsyncLifetime
     {
         private INetwork _giteaNetwork;
 
-        public PostgreSqlContainer _postgreSqlContainer;
+        private PostgreSqlContainer _postgreSqlContainer;
 
-        public IContainer _giteaContainer;
+        private IContainer _giteaContainer;
 
         private Lazy<HttpClient> _giteaClient;
         private Lazy<HttpClient> GiteaClient
@@ -41,6 +43,8 @@ namespace Designer.Tests.Fixtures
                 DefaultRequestHeaders = { Authorization = new BasicAuthenticationHeaderValue(GiteaConstants.AdminUser, GiteaConstants.AdminPassword) }
             });
         }
+
+        public string GiteaUrl => $"http://localhost:{_giteaContainer.GetMappedPublicPort(3000)}/";
 
         private static AsyncRetryPolicy GiteaClientRetryPolicy => Policy.Handle<HttpRequestException>()
             .Or<SocketException>()
