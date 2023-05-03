@@ -66,7 +66,6 @@ namespace Altinn.Studio.Designer.Controllers
 
         }
 
-        [IgnoreAntiforgeryToken]
         [HttpPut]
         [Route("designer/api/{org}/resources/repository/updateresource/{id}")]
         public ActionResult UpdateResource(string org, string id, [FromBody] ServiceResource resource)
