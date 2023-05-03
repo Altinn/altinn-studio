@@ -42,7 +42,7 @@ jobs:
         with:
           install: false
           working-directory: frontend/testing/cypress
-          env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }}
+          env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }},accessToken=${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
           spec: src/integration/studio/*.js
 
       - name: Store artifacts
