@@ -10,15 +10,14 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 
 export const DevNavigationButtons = () => {
-  const {
-    currentView,
-    tracks: { order },
-  } = useAppSelector((state) => state.formLayout.uiConfig);
+  const { currentView, tracks } = useAppSelector((state) => state.formLayout.uiConfig);
   const dispatch = useDispatch();
 
   function handleChange(newView: string) {
     dispatch(FormLayoutActions.updateCurrentView({ newView }));
   }
+
+  const order = (tracks?.order ?? []).filter((page) => !tracks.hidden.includes(page));
 
   if (!order?.length) {
     return null;

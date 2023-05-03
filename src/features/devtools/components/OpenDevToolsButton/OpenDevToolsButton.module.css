@@ -7,7 +7,7 @@
 }
 
 .devToolsButton > button {
-  transform: translateX(30px);
+  transform: translateX(24px);
   transition: transform 0.2s;
 }
 
