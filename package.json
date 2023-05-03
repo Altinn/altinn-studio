@@ -1,11 +1,11 @@
 {
   "name": "altinn-studio",
   "dependencies": {
-    "@microsoft/signalr": "^7.0.5",
+    "@microsoft/signalr": "7.0.5",
     "@navikt/aksel-icons": "2.8.11",
     "@tanstack/react-query-devtools": "4.29.1",
     "react-i18next": "12.2.0",
-    "react-router-dom": "^6.10.0"
+    "react-router-dom": "6.10.0"
   },
   "devDependencies": {
     "@emotion/react": "11.10.6",

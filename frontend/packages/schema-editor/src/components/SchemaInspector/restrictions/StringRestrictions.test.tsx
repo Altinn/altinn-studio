@@ -68,22 +68,24 @@ describe('StringRestrictions', () => {
     onChangeRestrictions.mockReset();
   });
 
-  test('All default fields should appear by default', () => {
+  test.each([
+    [StrRestrictionKeys.format, 'button'],
+    [StrRestrictionKeys.minLength, 'textbox'],
+    [StrRestrictionKeys.maxLength, 'textbox'],
+    [StrRestrictionKeys.pattern, 'textbox'],
+    ['pattern_test_field', 'textbox'],
+  ])('%s %s should appear by default', async (key, role) => {
     renderStringRestrictions();
-    [
-      StrRestrictionKeys.format,
-      StrRestrictionKeys.minLength,
-      StrRestrictionKeys.maxLength,
-      StrRestrictionKeys.pattern,
-      'pattern_test_field',
-    ].forEach((key) => expect(screen.getByLabelText(texts[`schema_editor.${key}`])).toBeDefined());
+    const field = await screen.findByRole(role, { name: texts[`schema_editor.${key}`] });
+    expect(field).toBeInTheDocument();
   });
 
   test('Format selection appears with all options', async () => {
     renderStringRestrictions();
     expect(screen.getByText(texts[`schema_editor.format`])).toBeDefined();
-    expect(screen.getByLabelText(texts[`schema_editor.format`])).toBeDefined();
-    await act(() => user.click(screen.getByLabelText(texts[`schema_editor.format`])));
+    const select = screen.getByRole('combobox', { name: texts[`schema_editor.format`] });
+    expect(select).toBeInTheDocument();
+    await act(() => user.click(select));
     Object.values(StringFormat).forEach((format) => {
       expect(
         screen.getByRole('option', { name: texts[`schema_editor.format_${format}`] })
@@ -94,20 +96,25 @@ describe('StringRestrictions', () => {
     ).toHaveAttribute('value', '');
   });
 
-  test('Empty format option is selected by default', () => {
+  test('Empty format option is selected by default', async () => {
     renderStringRestrictions();
-    expect(screen.getByLabelText(texts[`schema_editor.format`])).toHaveValue('');
+    const select = screen.getByRole('combobox', { name: texts[`schema_editor.format`] });
+    await act(() => user.click(select));
+    expect(
+      screen.getByRole('option', { name: texts['schema_editor.format_none'] })
+    ).toHaveAttribute('aria-selected', 'true');
   });
 
-  test('Given format option is selected', () => {
+  test('Given format option is selected', async () => {
     const format = StringFormat.Date;
     renderStringRestrictions({ restrictions: { format } });
-    expect(screen.getByLabelText(texts[`schema_editor.format`])).toHaveValue(format);
+    expect(await getFormatSelect()).toHaveValue(texts[`schema_editor.format_${format}`]);
   });
 
   test('onChangeRestrictions is called with correct input when format is changed', async () => {
     const { rerender } = renderStringRestrictions();
-    await act(() => user.click(screen.getByLabelText(texts[`schema_editor.format`])));
+    const formatSelect = await getFormatSelect();
+    await act(() => user.click(formatSelect));
     await act(() => user.click(
       screen.getByRole('option', { name: texts[`schema_editor.format_${StringFormat.Date}`] })
     ));
@@ -118,7 +125,7 @@ describe('StringRestrictions', () => {
     );
     onChangeRestrictions.mockReset();
     rerender(<StringRestrictions {...defaultProps} />);
-    await act(() => user.click(screen.getByLabelText(texts[`schema_editor.format`])));
+    await act(() => user.click(formatSelect));
     await act(() => user.click(screen.getByRole('option', { name: texts[`schema_editor.format_none`] })));
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
@@ -164,46 +171,42 @@ describe('StringRestrictions', () => {
     });
   });
 
-  test('"Earliest" field has given value and checkbox is checked when inclusive', () => {
+  test('"Earliest" field has given value and checkbox is checked when inclusive', async () => {
     const format = StringFormat.Date;
     const formatMinimum = '1000-01-01';
     renderStringRestrictions({ restrictions: { format, formatMinimum } });
-    expect(screen.getByLabelText(texts['schema_editor.format_date_after_incl'])).toHaveValue(
-      formatMinimum
-    );
+    const inclField = await screen.findByLabelText(texts['schema_editor.format_date_after_incl']);
+    expect(inclField).toHaveValue(formatMinimum);
     expect(screen.queryByLabelText(texts['schema_editor.format_date_after_excl'])).toBeFalsy();
     expect(getMinimumInclusiveCheckbox()).toBeChecked();
   });
 
-  test('"Earliest" field has given value and checkbox is unchecked when exclusive', () => {
+  test('"Earliest" field has given value and checkbox is unchecked when exclusive', async () => {
     const format = StringFormat.Date;
     const formatExclusiveMinimum = '1000-01-01';
     renderStringRestrictions({ restrictions: { format, formatExclusiveMinimum } });
-    expect(screen.getByLabelText(texts['schema_editor.format_date_after_excl'])).toHaveValue(
-      formatExclusiveMinimum
-    );
+    const exclField = await screen.findByLabelText(texts['schema_editor.format_date_after_excl']);
+    expect(exclField).toHaveValue(formatExclusiveMinimum);
     expect(screen.queryByLabelText(texts['schema_editor.format_date_after_incl'])).toBeFalsy();
     expect(getMinimumInclusiveCheckbox()).not.toBeChecked();
   });
 
-  test('"Latest" field has given value and checkbox is checked when inclusive', () => {
+  test('"Latest" field has given value and checkbox is checked when inclusive', async () => {
     const format = StringFormat.Date;
     const formatMaximum = '3000-01-01';
     renderStringRestrictions({ restrictions: { format, formatMaximum } });
-    expect(screen.getByLabelText(texts['schema_editor.format_date_before_incl'])).toHaveValue(
-      formatMaximum
-    );
+    const inclField = await screen.findByLabelText(texts['schema_editor.format_date_before_incl']);
+    expect(inclField).toHaveValue(formatMaximum);
     expect(screen.queryByLabelText(texts['schema_editor.format_date_before_excl'])).toBeFalsy();
     expect(getMaximumInclusiveCheckbox()).toBeChecked();
   });
 
-  test('"Latest" field has given value and checkbox is unchecked when exclusive', () => {
+  test('"Latest" field has given value and checkbox is unchecked when exclusive', async () => {
     const format = StringFormat.Date;
     const formatExclusiveMaximum = '3000-01-01';
     renderStringRestrictions({ restrictions: { format, formatExclusiveMaximum } });
-    expect(screen.getByLabelText(texts['schema_editor.format_date_before_excl'])).toHaveValue(
-      formatExclusiveMaximum
-    );
+    const exclField = await screen.findByLabelText(texts['schema_editor.format_date_before_excl']);
+    expect(exclField).toHaveValue(formatExclusiveMaximum);
     expect(screen.queryByLabelText(texts['schema_editor.format_date_before_incl'])).toBeFalsy();
     expect(getMaximumInclusiveCheckbox()).not.toBeChecked();
   });
@@ -293,9 +296,8 @@ describe('StringRestrictions', () => {
   test('Minimum length field has given value', async () => {
     const minLength = 3;
     renderStringRestrictions({ restrictions: { minLength } });
-    expect(screen.getByLabelText(texts[`schema_editor.minLength`])).toHaveValue(
-      minLength.toString()
-    );
+    const minLengthField = await screen.findByLabelText(texts[`schema_editor.minLength`]);
+    expect(minLengthField).toHaveValue(minLength.toString());
   });
 
   test('onChangeRestrictions is called with correct input when minimum length is changed', async () => {
@@ -311,9 +313,8 @@ describe('StringRestrictions', () => {
   test('Maximum length field has given value', async () => {
     const maxLength = 255;
     renderStringRestrictions({ restrictions: { maxLength } });
-    expect(screen.getByLabelText(texts[`schema_editor.maxLength`])).toHaveValue(
-      maxLength.toString()
-    );
+    const maxLengthField = await screen.findByLabelText(texts[`schema_editor.maxLength`]);
+    expect(maxLengthField).toHaveValue(maxLength.toString());
   });
 
   test('onChangeRestrictions is called with correct input when maximum length is changed', async () => {
@@ -329,7 +330,8 @@ describe('StringRestrictions', () => {
   test('Pattern field has given value', async () => {
     const pattern = '[A-Z]';
     renderStringRestrictions({ restrictions: { pattern } });
-    expect(screen.getByLabelText(texts[`schema_editor.pattern`])).toHaveValue(pattern);
+    const patternField = await screen.findByLabelText(texts[`schema_editor.pattern`]);
+    expect(patternField).toHaveValue(pattern);
   });
 
   test('onChangeRestrictionValue is called with correct input when pattern is changed', async () => {
@@ -340,6 +342,7 @@ describe('StringRestrictions', () => {
   });
 });
 
+const getFormatSelect = () => screen.findByRole('combobox', { name: texts['schema_editor.format'] });
 const getInclusiveCheckboxes = () =>
   screen.getAllByLabelText(texts['schema_editor.format_date_inclusive']);
 const getMinimumInclusiveCheckbox = () => getInclusiveCheckboxes()[0];

@@ -49,7 +49,7 @@ describe('SelectComponent', () => {
       ],
     });
 
-    expect(screen.getByLabelText('Choose variant')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Choose variant' })).toBeInTheDocument();
 
     await act(() => user.click(screen.getByRole('combobox')));
     expect(screen.getAllByRole('option')).toHaveLength(3);
@@ -104,6 +104,6 @@ describe('SelectComponent', () => {
       handleComponentChange: () => {},
     });
 
-    expect(screen.getByRole('combobox')).toHaveValue('md');
+    expect(await screen.findByRole('combobox')).toHaveValue('Medium');
   });
 });

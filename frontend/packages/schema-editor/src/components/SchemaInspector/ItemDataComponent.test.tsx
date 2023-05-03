@@ -58,19 +58,20 @@ jest.mock('react-i18next', () => ({
 }));
 
 describe('ItemDataComponent', () => {
-  test('"Multiple answers" checkbox should appear if selected item is field', () => {
+  test('"Multiple answers" checkbox should appear if selected item is field', async () => {
     renderItemDataComponent({}, 1);
-    expect(screen.getByLabelText('Multiple answers')).toBeDefined();
+    expect(await screen.findByLabelText(mockTexts['schema_editor.multiple_answers'])).toBeDefined();
   });
 
-  test('"Multiple answers" checkbox should not appear if selected item is combination', () => {
+  test('"Multiple answers" checkbox should not appear if selected item is combination', async () => {
     renderItemDataComponent({}, 0);
-    expect(screen.queryByLabelText('Multiple answers')).toBeNull();
+    await screen.findByLabelText(mockTexts['schema_editor.name']);
+    expect(screen.queryByLabelText(mockTexts['schema_editor.multiple_answers'])).toBeNull()
   });
 
   test('setType is called when "multiple answers" checkbox is checked', async () => {
     const { store, user } = renderItemDataComponent({}, 3);
-    const checkbox = screen.queryByLabelText('Multiple answers');
+    const checkbox = screen.queryByLabelText(mockTexts['schema_editor.multiple_answers']);
     if (checkbox === null) fail();
     await act(() => user.click(checkbox));
     expect(
@@ -78,19 +79,20 @@ describe('ItemDataComponent', () => {
     ).toBeTruthy();
   });
 
-  test('"Nullable" checkbox should appear if selected item is combination', () => {
+  test('"Nullable" checkbox should appear if selected item is combination', async () => {
     renderItemDataComponent({}, 0);
-    expect(screen.getByLabelText('Nullable')).toBeDefined();
+    expect(await screen.findByLabelText(mockTexts['schema_editor.nullable'])).toBeDefined();
   });
 
-  test('"Nullable" checkbox should not appear if selected item is not combination', () => {
+  test('"Nullable" checkbox should not appear if selected item is not combination', async () => {
     renderItemDataComponent({}, 1);
-    expect(screen.queryByLabelText('Nullable')).toBeNull();
+    await screen.findAllByRole('combobox');
+    expect(screen.queryByLabelText(mockTexts['schema_editor.nullable'])).toBeNull();
   });
 
   test('addCombinationItem is called when "nullable" checkbox is checked', async () => {
     const { store, user } = renderItemDataComponent({}, 0);
-    const checkbox = screen.getByLabelText('Nullable');
+    const checkbox = screen.getByLabelText(mockTexts['schema_editor.nullable']);
     if (checkbox === null) fail();
     await act(() => user.click(checkbox));
     expect(
@@ -98,9 +100,9 @@ describe('ItemDataComponent', () => {
     ).toBeTruthy();
   });
 
-  test('"Title" field appears', () => {
+  test('"Title" field appears', async () => {
     renderItemDataComponent();
-    expect(screen.getByLabelText(mockTexts['schema_editor.title'])).toBeDefined();
+    expect(await screen.findByLabelText(mockTexts['schema_editor.title'])).toBeDefined();
   });
 
   test('setTitle action is called with correct payload when the "title" field loses focus', async () => {
@@ -115,9 +117,9 @@ describe('ItemDataComponent', () => {
     expect(setTitleActions[0].payload.title).toEqual('Lorem ipsum');
   });
 
-  test('"Description" text area appears', () => {
+  test('"Description" text area appears', async () => {
     renderItemDataComponent();
-    expect(screen.getByLabelText(mockTexts['schema_editor.description'])).toBeDefined();
+    expect(await screen.findByLabelText(mockTexts['schema_editor.description'])).toBeDefined();
   });
 
   test('setDescription action is called with correct payload when the "description" text area loses focus', async () => {
