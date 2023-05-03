@@ -44,11 +44,10 @@ jobs:
           working-directory: frontend/testing/cypress
           env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }},accessToken=${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
           spec: src/integration/studio/*.js
-          video: true
 
       - name: Store artifacts
         uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: cypress-videos
-          path: frontend/testing/cypress/videos
+          name: cypress-screenshots
+          path: frontend/testing/cypress/screenshots
