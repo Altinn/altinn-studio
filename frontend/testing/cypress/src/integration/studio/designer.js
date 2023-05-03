@@ -10,14 +10,14 @@ context('Designer', () => {
     cy.getrepo(Cypress.env('designerApp'), Cypress.env('accessToken')).then((response) => {
       if (response.status === 404) {
         const [_, appName] = Cypress.env('designerApp').split('/');
-        cy.createapp('Testdepartementet', appName);
+        cy.createapp(Cypress.env('autoTestUser'), appName);
       }
     });
     cy.visit('/');
     cy.getrepo(Cypress.env('withoutDataModelApp'), Cypress.env('accessToken')).then((response) => {
       if (response.status !== 200) {
         const [_, appName] = Cypress.env('withoutDataModelApp').split('/');
-        cy.createapp('Testdepartementet', appName);
+        cy.createapp(Cypress.env('autoTestUser'), appName);
       }
     });
     cy.clearCookies();
