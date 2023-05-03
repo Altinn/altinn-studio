@@ -3,7 +3,8 @@ import classNames from 'classnames';
 import classes from './AltinnPopover.module.css';
 import { Button, ButtonColor, TextArea } from '@digdir/design-system-react';
 import { ButtonContainer } from 'app-shared/primitives';
-import { CircularProgress, Grid, Popover } from '@mui/material';
+import { Grid, Popover } from '@mui/material';
+import { AltinnSpinner } from './AltinnSpinner';
 
 export interface AltinnPopoverProps {
   anchorEl: any;
@@ -49,7 +50,7 @@ export const AltinnPopover = (props: AltinnPopoverProps) => {
 
   const renderSpinnerOrDoneIcon = () => {
     if (props.isLoading) {
-      return <CircularProgress className={classNames(classes.spinner)} role='progressbar' />;
+      return <AltinnSpinner className={classNames(classes.spinner)} />;
     }
     if (props.shouldShowDoneIcon) {
       return (

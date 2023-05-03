@@ -1,36 +1,37 @@
 import React, { useState } from 'react';
 import classes from './profileMenu.module.css';
-import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Menu, MenuItem } from '@mui/material';
-import { PeopleInCircle } from '@navikt/ds-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../utils/networking';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api-paths';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { User } from 'app-shared/types/User';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
+  user: User;
 }
 
-export function ProfileMenu({ showlogout }: IProfileMenuComponentProps) {
+export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
   const [anchorEl, setAnchorEl] = useState<null | Element>(null);
   const { org, app } = useParams();
   const handleClick = (event: any) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
+  const { t } = useTranslation();
   const handleLogout = () =>
     post(userLogoutPath())
       .then(() => window.location.assign(userLogoutAfterPath()))
       .finally(() => true);
+
   return (
     <div>
-      <Button
-        className={classes.profileIconButton}
-        aria-owns={anchorEl ? 'simple-menu' : undefined}
+      <img
+        src={user.avatar_url}
+        className={classes.userAvatar}
         aria-haspopup
-        aria-label='profilikon knapp'
         onClick={handleClick}
-        variant={ButtonVariant.Quiet}
-        icon={<PeopleInCircle aria-label='profilikon' />}
+        aria-label='profilikon'
       />
       <Menu
         id='simple-menu'
@@ -49,18 +50,18 @@ export function ProfileMenu({ showlogout }: IProfileMenuComponentProps) {
         {org && app && (
           <MenuItem className={classes.menuItem}>
             <a href={repositoryPath(org, app)} target='_blank' rel='noopener noreferrer'>
-              Åpne repository
+              {t('dashboard.open_repository')}
             </a>
           </MenuItem>
         )}
         <MenuItem className={classes.menuItem}>
           <a href={altinnDocsUrl()} target='_blank' rel='noopener noreferrer'>
-            Dokumentasjon
+            {t('sync_header.documentation')}
           </a>
         </MenuItem>
         {showlogout && (
           <MenuItem onClick={handleLogout} className={classes.menuItem}>
-            Logout
+            {t('shared.header_logout')}
           </MenuItem>
         )}
       </Menu>

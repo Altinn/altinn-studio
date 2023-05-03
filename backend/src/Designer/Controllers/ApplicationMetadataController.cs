@@ -70,8 +70,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateApplicationMetadata(string org, string app)
         {
-            Application applicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
-            if (applicationMetadata != null)
+            bool applicationMetadataAlreadyExists = _applicationMetadataService.ApplicationMetadataExistsInRepository(org, app);
+            if (applicationMetadataAlreadyExists)
             {
                 return Conflict("ApplicationMetadata already exists.");
             }
@@ -139,7 +139,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns></returns>
         [HttpDelete]
         [Route("attachment-component")]
-        public async Task<ActionResult> DeleteMetadataForAttachment(string org, string app, string id)
+        public async Task<ActionResult> DeleteMetadataForAttachment(string org, string app, [FromBody] string id)
         {
             try
             {

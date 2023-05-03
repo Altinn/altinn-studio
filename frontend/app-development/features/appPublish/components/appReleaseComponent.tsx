@@ -2,12 +2,12 @@ import React from 'react';
 import classes from './appReleaseComponent.module.css';
 import type { IBuild, IRelease } from '../../../sharedResources/appRelease/types';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
-import { CircularProgress } from '@mui/material';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api-paths';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { AltinnSpinner } from 'app-shared/components';
 
 interface IAppReleaseComponent {
   release: IRelease;
@@ -26,7 +26,7 @@ export function ReleaseComponent(props: IAppReleaseComponent) {
       return <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`} />;
     }
     if (status.status !== BuildStatus.completed) {
-      return <CircularProgress classes={{ root: classes.spinnerRoot }} size='2.4rem' />;
+      return <AltinnSpinner className={classes.spinnerRoot} />;
     }
     return null;
   }

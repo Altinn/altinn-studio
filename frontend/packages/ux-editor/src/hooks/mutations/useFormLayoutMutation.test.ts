@@ -1,4 +1,8 @@
-import { baseContainerIdMock, queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import {
+  baseContainerIdMock,
+  queriesMock,
+  renderHookWithMockStore
+} from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { IInternalLayout } from '../../types/global';
 import { ComponentType } from '../../components';
@@ -30,6 +34,8 @@ describe('useFormLayoutMutation', () => {
         [baseContaierId]: [containerId],
         [containerId]: [componentId]
       },
+      customDataProperties: {},
+      customRootProperties: {},
     }
     await renderAndMutate(newLayout);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);

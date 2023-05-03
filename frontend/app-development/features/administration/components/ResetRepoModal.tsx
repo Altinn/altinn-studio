@@ -3,7 +3,7 @@ import classes from './RepoModal.module.css';
 import { AltinnSpinner } from 'app-shared/components';
 import { Button, ButtonColor, ButtonVariant, TextField } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
-import { useAppSelector } from '../../../common/hooks';
+import { useAppSelector } from '../../../hooks';
 import { useTranslation } from 'react-i18next';
 
 export interface IResetRepoModalProps {

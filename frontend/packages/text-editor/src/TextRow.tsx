@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './TextRow.module.css';
-import type { UpsertTextResourcesMutation } from './types';
+import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
 import {
   Button,
@@ -27,9 +27,10 @@ export interface TextRowProps {
   textId: string;
   textRowEntries: TextTableRowEntry[];
   updateEntryId: (data: TextResourceIdMutation) => void;
-  upsertTextResource: (data: UpsertTextResourcesMutation) => void;
+  upsertTextResource: (data: UpsertTextResourceMutation) => void;
   variables: TextResourceVariable[];
   selectedLanguages: string[];
+  showButton?: boolean;
 }
 
 export const TextRow = ({
@@ -41,12 +42,12 @@ export const TextRow = ({
   idExists,
   variables,
   selectedLanguages,
+  showButton = true,
 }: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
   const [keyError, setKeyError] = useState('');
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-
   const { t } = useTranslation();
 
   const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -67,7 +68,9 @@ export const TextRow = ({
     }
   };
 
-  const handleDeleteClick = () => removeEntry({ textId });
+  const handleDeleteClick = () => {
+    removeEntry({ textId });
+  };
 
   const toggleConfirmDeletePopover = () => setIsConfirmDeleteOpen((prev) => !prev);
 
@@ -106,13 +109,15 @@ export const TextRow = ({
               <span>{textIdValue}</span>
             </div>
           )}
-          <Button
-            aria-label={'toggle-textkey-edit'}
-            icon={<PencilIcon className={classes.smallIcon} />}
-            variant={ButtonVariant.Quiet}
-            size={ButtonSize.Small}
-            onClick={() => setTextIdEditOpen(!textIdEditOpen)}
-          />
+          {showButton && (
+            <Button
+              aria-label={'toggle-textkey-edit'}
+              icon={<PencilIcon className={classes.smallIcon} />}
+              variant={ButtonVariant.Quiet}
+              size={ButtonSize.Small}
+              onClick={() => setTextIdEditOpen(!textIdEditOpen)}
+            />
+          )}
         </ButtonContainer>
       </TableCell>
       <TableCell>

@@ -18,12 +18,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class ResourceAdminControllerTests : ApiTestsBase<RepositoryController, RepositoryControllerTests>
+    public class ResourceAdminControllerTests : ApiTestsBase<ResourceAdminController, ResourceAdminControllerTests>
     {
         private readonly string _versionPrefix = "/designer/api";
         private readonly Mock<IRepository> _repositoryMock;
 
-        public ResourceAdminControllerTests(WebApplicationFactory<RepositoryController> factory) : base(factory)
+        public ResourceAdminControllerTests(WebApplicationFactory<ResourceAdminController> factory) : base(factory)
         {
             _repositoryMock = new Mock<IRepository>();
         }
@@ -124,6 +124,25 @@ namespace Designer.Tests.Controllers
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
         }
+
+        [Fact]
+        public async Task GetResourceAdmIndexOK()
+        {
+            // Arrange
+            string uri = $"/resourceadm/ttd/resources";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            // Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            string contenthtml = await res.Content.ReadAsStringAsync();
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Contains("resourceadm.js", contenthtml);
+        }
+
+
 
         private static List<Keyword> GetTestKeywords()
         {

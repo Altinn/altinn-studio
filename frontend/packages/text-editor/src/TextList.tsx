@@ -3,17 +3,18 @@ import { TextRow } from './TextRow';
 import type {
   TextResourceEntryDeletion,
   TextResourceIdMutation,
-  UpsertTextResourcesMutation,
+  UpsertTextResourceMutation,
 } from './types';
 import { filterFunction, getLangName } from './utils';
 import { TextTableRow } from './types';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
+import { APP_NAME } from '../../shared/src/constants';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
   searchQuery: string;
   selectedLanguages: string[];
-  upsertTextResource: (entry: UpsertTextResourcesMutation) => void;
+  upsertTextResource: (entry: UpsertTextResourceMutation) => void;
   removeEntry: ({ textId }: TextResourceEntryDeletion) => void;
   updateEntryId: ({ oldId, newId }: TextResourceIdMutation) => void;
 };
@@ -49,6 +50,7 @@ export const TextList = ({
               textRowEntries={row.translations}
               variables={row.variables || []}
               selectedLanguages={selectedLanguages}
+              showButton={row.textKey !== APP_NAME}
               {...rest}
             />
           ))}

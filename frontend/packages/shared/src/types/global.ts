@@ -90,3 +90,28 @@ export interface GenerateSchemaState {
   error?: Error;
   saving: boolean;
 }
+
+export interface ITextResources {
+  [langCode: string]: ITextResource[];
+}
+
+export interface ITextResource {
+  id: string;
+  value: string;
+  unparsedValue?: string;
+  variables?: ITextResourceVariable[];
+}
+
+export interface ITextResourceVariable {
+  key: string;
+  dataSource: string;
+}
+
+export interface ITextResourcesObjectFormat {
+  [key: string]: string;
+}
+
+export interface ITextResourcesWithLanguage {
+  language: string;
+  resources: ITextResource[];
+}

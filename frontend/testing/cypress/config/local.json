@@ -3,10 +3,11 @@
   "baseUrl": "http://studio.localhost",
   "env": {
     "testEmail": "test1@test.com",
-    "deployApp": "ttd/autodeploy-v3",
+    "deployApp": "ttd/auto-deploy-app-v3",
     "designerApp": "ttd/designer",
     "withoutDataModelApp": "ttd/appwithout-dm",
-    "appOwner": "ttd"
+    "appOwner": "Testdepartementet",
+    "appOwnerUsername": "ttd"
   },
   "defaultCommandTimeout": 10000,
   "requestTimeout": 10000

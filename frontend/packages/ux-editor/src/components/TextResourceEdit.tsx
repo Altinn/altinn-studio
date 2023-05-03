@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
-import type { ITextResource } from '../types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import {
   Button,
   ButtonColor,
@@ -9,31 +9,32 @@ import {
   TextArea,
 } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
-import { getAllTextResources, getCurrentEditId } from '../selectors/textResourceSelectors';
-import {
-  setCurrentEditId,
-  upsertTextResources,
-} from '../features/appData/textResources/textResourcesSlice';
+import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
+import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { useText } from '../hooks';
 import { useParams } from 'react-router-dom';
+import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
+import { useUpsertTextResourcesMutation } from '../../../../app-development/hooks/mutations/useUpsertTextResourcesMutation';
+import { useTranslation } from 'react-i18next';
+import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();
   const editId = useSelector(getCurrentEditId);
-  const textResources = useSelector(getAllTextResources);
+  const { org, app } = useParams();
+  const { data: textResources } = useTextResourcesQuery(org, app);
+  const languages: string[] = useTextResourcesSelector<string[]>(getAllLanguages);
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
-  const t = useText();
+  const { t } = useTranslation();
 
   if (!editId) {
     return null;
   }
-  const languages = Object.keys(textResources);
 
   return (
     <FieldSet
       legend={t('ux_editor.edit_text_resource')}
-      description={t('ux_editor.field_id').replace('{id}', editId)}
+      description={t('ux_editor.field_id', { id: editId })}
       contentClassName={classes.textBoxList}
     >
       {languages.map((language) => (
@@ -41,7 +42,7 @@ export const TextResourceEdit = () => {
           key={language}
           language={language}
           t={t}
-          textResource={textResources[language]?.find((resource) => resource.id === editId)}
+          textResource={textResources?.[language]?.find((resource) => resource.id === editId)}
           textResourceId={editId}
         />
       ))}
@@ -65,14 +66,11 @@ interface TextBoxProps {
 }
 
 const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) => {
-  const dispatch = useDispatch();
   const { org, app } = useParams();
+  const { mutate } = useUpsertTextResourcesMutation(org, app);
 
-  const updateTextResource = (text: string) => {
-    dispatch(
-      upsertTextResources({ language, textResources: { [textResourceId]: text }, org, app })
-    );
-  };
+  const updateTextResource =
+    (text: string) => mutate({ language, textResources: [{ id: textResourceId, value: text }] });
 
   const [value, setValue] = useState<string>(textResource?.value || '');
 

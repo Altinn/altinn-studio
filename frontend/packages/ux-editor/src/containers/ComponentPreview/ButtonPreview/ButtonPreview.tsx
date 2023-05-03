@@ -1,19 +1,20 @@
 import React from 'react';
 import { Button, ButtonVariant, ButtonColor } from '@digdir/design-system-react';
-import { IAppState, IFormButtonComponent } from '../../../types/global';
+import { IFormButtonComponent } from '../../../types/global';
 import { getTextResource } from '../../../utils/language';
-import { useSelector } from 'react-redux';
 import { ComponentType } from '../../../components';
 import classes from './ButtonPreview.module.css';
+import { ITextResource } from 'app-shared/types/global';
+import { useTextResourcesSelector } from '../../../hooks/useTextResourcesSelector';
+import { textResourcesByLanguageSelector } from '../../../selectors/textResourceSelectors';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export interface ButtonPreviewProps {
   component: IFormButtonComponent;
 }
 
 export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element => {
-  const textLanguage = useSelector(
-    (state: IAppState) => state.appData.textResources.resources?.['nb']
-  );
+  const texts: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
 
   const isNavigationButton = component.type === ComponentType.NavigationButtons;
   const buttonColor = isNavigationButton ? ButtonColor.Primary : ButtonColor.Success;
@@ -28,19 +29,19 @@ export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element =>
         {
           variant: ButtonVariant.Filled,
           color: buttonColor,
-          text: getTextResource(component.textResourceBindings?.back, textLanguage),
+          text: getTextResource(component.textResourceBindings?.back, texts),
         },
         {
           variant: ButtonVariant.Filled,
           color: buttonColor,
-          text: getTextResource(component.textResourceBindings?.next, textLanguage),
+          text: getTextResource(component.textResourceBindings?.next, texts),
         },
       ]
     : [
         {
           variant: ButtonVariant.Filled,
           color: buttonColor,
-          text: getTextResource(buttonText, textLanguage),
+          text: getTextResource(buttonText, texts),
         },
       ];
 

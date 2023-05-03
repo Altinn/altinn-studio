@@ -1,12 +1,19 @@
 import React from 'react';
 
 import { render as rtlRender, screen } from '@testing-library/react';
+import Router from "react-router-dom";
 
-import type { IHeaderContext } from './Header';
-import { getOrgNameById, Header, HeaderContext, SelectedContextType } from './Header';
+import { getOrgNameByUsername, Header, HeaderContext, SelectedContextType } from './Header';
 
-const orgId = 1;
+const orgUsername = 'username1';
 const orgFullName = 'Organization 1';
+
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useParams: jest.fn(),
+  useNavigate: jest.fn(),
+  useLocation: jest.fn()
+}));
 
 describe('Header', () => {
   const orgProps = {
@@ -14,13 +21,13 @@ describe('Header', () => {
     description: 'description',
     id: 1,
     location: 'location',
-    username: 'username',
+    username: 'username1',
     website: 'website',
     full_name: 'full_name',
   };
 
-  it(`should render org name when selected context is a org id`, () => {
-    render({ selectedContext: orgId });
+  it(`should render org name when selected context is a org username`, () => {
+    render({ selectedContext: orgUsername });
 
     expect(screen.getByTestId('Header-org-name')).toBeInTheDocument();
     expect(screen.getByText(orgFullName)).toBeInTheDocument();
@@ -35,26 +42,28 @@ describe('Header', () => {
     });
   });
 
-  describe('getOrgNameById', () => {
-    it('should return org name by id', () => {
+  describe('getOrgNameByUsername', () => {
+    it('should return org name by username', () => {
       const orgs = [
         {
           ...orgProps,
           id: 1,
           full_name: 'full_name 1',
+          username: 'username1'
         },
         {
           ...orgProps,
           id: 2,
           full_name: 'full_name 2',
+          username: 'username2'
         },
       ];
 
-      expect(getOrgNameById(1, orgs)).toBe('full_name 1');
-      expect(getOrgNameById(2, orgs)).toBe('full_name 2');
+      expect(getOrgNameByUsername('username1', orgs)).toBe('full_name 1');
+      expect(getOrgNameByUsername('username2', orgs)).toBe('full_name 2');
     });
 
-    it('should return username by id', () => {
+    it('should return username by username', () => {
       const orgs = [
         {
           ...orgProps,
@@ -65,36 +74,36 @@ describe('Header', () => {
           ...orgProps,
           id: 2,
           full_name: undefined,
-          username: 'username 2',
+          username: 'username2',
         },
       ];
 
-      expect(getOrgNameById(2, orgs)).toBe('username 2');
+      expect(getOrgNameByUsername('username2', orgs)).toBe('username2');
     });
 
     it('should return undefined when no orgs are defined', () => {
-      expect(getOrgNameById(2, undefined)).toBe(undefined);
+      expect(getOrgNameByUsername('username2', undefined)).toBe(undefined);
     });
   });
 });
 
 const render = ({
   selectedContext = SelectedContextType.Self,
-}: Pick<IHeaderContext, 'selectedContext'>) => {
+}: {selectedContext: string | SelectedContextType}) => {
+  jest.spyOn(Router, 'useParams').mockReturnValue({ selectedContext })
+
   const orgProps = {
     avatar_url: 'avatar_url',
     description: 'description',
-    id: orgId,
+    id: 1,
     location: 'location',
-    username: 'username',
+    username: orgUsername,
     website: 'website',
     full_name: orgFullName,
   };
 
   const headerContextValue = {
     selectableOrgs: [{ ...orgProps }],
-    selectedContext,
-    setSelectedContext: jest.fn(),
     user: {
       full_name: 'John Smith',
       avatar_url: 'avatar_url',

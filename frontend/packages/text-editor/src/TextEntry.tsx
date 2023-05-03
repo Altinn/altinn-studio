@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { TextTableRowEntry, UpsertTextResourcesMutation } from './types';
+import { TextTableRowEntry, UpsertTextResourceMutation } from './types';
 import { TextArea } from '@digdir/design-system-react';
 import { Variables } from './Variables';
 
 export interface TextEntryProps extends TextTableRowEntry {
   textId: string;
-  upsertTextResource: (data: UpsertTextResourcesMutation) => void;
+  upsertTextResource: (data: UpsertTextResourceMutation) => void;
 }
 
 export const TextEntry = ({ textId, lang, translation, upsertTextResource }: TextEntryProps) => {

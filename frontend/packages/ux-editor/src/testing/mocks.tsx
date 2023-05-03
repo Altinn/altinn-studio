@@ -7,7 +7,7 @@ import type {
   IExternalFormLayout,
   IExternalFormLayouts,
   IFormComponent,
-  IInternalLayout
+  IInternalLayout,
 } from '../types/global';
 import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
@@ -22,21 +22,15 @@ import { ComponentType } from '../components';
 import { ILayoutSettings } from 'app-shared/types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { BrowserRouter } from 'react-router-dom';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import ruleHandlerMock from './ruleHandlerMock';
+import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
-  error: null,
-  fetched: true,
-  fetching: false,
-  language: null,
-  languages: [],
-  resources: { nb: [] },
-  saved: true,
-  saving: false,
 };
 
 export const appDataMock: IAppDataState = {
-  ruleModel: null,
   textResources: textResourcesMock,
 };
 
@@ -48,11 +42,9 @@ export const formDesignerMock: IFormDesignerState = {
     error: null,
     saving: false,
     unSavedChanges: false,
-    activeContainer: '',
-    activeList: null,
     selectedLayout: layout1NameMock,
     invalidLayouts: [],
-  }
+  },
 };
 
 export const serviceConfigurationsMock: IServiceConfigurationState = {
@@ -85,6 +77,14 @@ export const component2Mock: IFormComponent = {
   itemType: 'COMPONENT',
 };
 export const container1IdMock = 'Container-1';
+export const customRootPropertiesMock: KeyValuePairs = {
+  someCustomRootProp: 'someStringValue',
+  someOtherCustomRootProp: 5,
+};
+export const customDataPropertiesMock: KeyValuePairs = {
+  someCustomDataProp: 'aStringValue',
+  someOtherCustomDataProp: 10,
+};
 export const layoutMock: IInternalLayout = {
   components: {
     [component1IdMock]: component1Mock,
@@ -96,12 +96,14 @@ export const layoutMock: IInternalLayout = {
     },
     [container1IdMock]: {
       itemType: 'CONTAINER',
-    }
+    },
   },
   order: {
     [baseContainerIdMock]: [container1IdMock],
     [container1IdMock]: [component1IdMock, component2IdMock],
   },
+  customRootProperties: customRootPropertiesMock,
+  customDataProperties: customDataPropertiesMock,
 };
 
 export const layout1Mock: IExternalFormLayout = {
@@ -111,7 +113,7 @@ export const layout1Mock: IExternalFormLayout = {
       {
         id: container1IdMock,
         type: ComponentType.Group,
-        children: [component1IdMock, component2IdMock]
+        children: [component1IdMock, component2IdMock],
       },
       {
         id: component1IdMock,
@@ -120,15 +122,17 @@ export const layout1Mock: IExternalFormLayout = {
       {
         id: component2IdMock,
         type: component2TypeMock,
-      }
-    ]
-  }
+      },
+    ],
+    ...customDataPropertiesMock,
+  },
+  ...customRootPropertiesMock,
 };
 const layout2Mock: IExternalFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
-    layout: []
-  }
+    layout: [],
+  },
 };
 export const externalLayoutsMock: IExternalFormLayouts = {
   [layout1NameMock]: layout1Mock,
@@ -138,8 +142,10 @@ export const externalLayoutsMock: IExternalFormLayouts = {
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
     order: [layout1NameMock, layout2NameMock],
-  }
+  },
 };
+
+export const textLanguagesMock = ['nb', 'nn', 'en'];
 
 export const queriesMock: ServicesContextProps = {
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
@@ -163,8 +169,10 @@ export const queriesMock: ServicesContextProps = {
   getRepoMetadata: jest.fn(),
   getRepoPull: jest.fn(),
   getRepoStatus: jest.fn(),
-  getTextLanguages: jest.fn(),
-  getTextResources: jest.fn(),
+  getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+  getTextResources: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getUser: jest.fn(),
   pushRepoChanges: jest.fn(),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
@@ -172,7 +180,7 @@ export const queriesMock: ServicesContextProps = {
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve({})),
   updateTextId: jest.fn(),
   updateTranslationByLangCode: jest.fn(),
-  upsertTextResources: jest.fn(),
+  upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
 };
 
 export const renderWithMockStore =
@@ -181,11 +189,11 @@ export const renderWithMockStore =
       const store = configureStore()({ ...appStateMock, ...state });
       const renderResult = render(
         <ServicesContextProvider {...queriesMock} {...queries}>
-          <Provider store={store}>
-            <BrowserRouter>
-              {component}
-            </BrowserRouter>
-          </Provider>
+          <PreviewConnectionContextProvider>
+            <Provider store={store}>
+              <BrowserRouter>{component}</BrowserRouter>
+            </Provider>
+          </PreviewConnectionContextProvider>
         </ServicesContextProvider>
       );
       return { renderResult, store };
@@ -198,9 +206,11 @@ export const renderHookWithMockStore =
       const renderHookResult = renderHook(hook, {
         wrapper: ({ children }) => (
           <ServicesContextProvider {...queriesMock} {...queries}>
-            <Provider store={store}>{children}</Provider>
+            <PreviewConnectionContextProvider>
+              <Provider store={store}>{children}</Provider>
+            </PreviewConnectionContextProvider>
           </ServicesContextProvider>
-        )
+        ),
       });
       return { renderHookResult, store };
     };

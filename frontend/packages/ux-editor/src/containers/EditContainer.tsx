@@ -17,18 +17,15 @@ import { textResourcesByLanguageSelector } from '../selectors/textResourceSelect
 import { ComponentPreview } from './ComponentPreview';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
-import { useDeleteFormComponentsMutation } from '../hooks/mutations/useDeleteFormComponentsMutation';
+import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
+import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
+import { ITextResource } from 'app-shared/types/global';
+import { deepCopy } from 'app-shared/pure';
 
 export interface IEditContainerProps {
   component: IFormComponent;
   id: string;
-  firstInActiveList: boolean;
-  lastInActiveList: boolean;
-  sendItemToParent: any;
-  singleSelected: boolean;
   partOfGroup?: boolean;
   children: any;
   dragHandleRef: ConnectDragSource;
@@ -44,8 +41,8 @@ export function EditContainer(props: IEditContainerProps) {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { org, app } = useParams();
-  const updateFormComponentMutation = useUpdateFormComponentMutation(org, app);
-  const deleteFormComponentMutation = useDeleteFormComponentsMutation(org, app);
+  const { mutate: updateFormComponent } = useUpdateFormComponentMutation(org, app);
+  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app);
   const [component, setComponent] = useState<IFormComponent>({
     id: props.id,
     ...props.component,
@@ -53,16 +50,7 @@ export function EditContainer(props: IEditContainerProps) {
   const [mode, setMode] = useState<EditContainerMode>(EditContainerMode.Closed);
   const isEditMode = mode === EditContainerMode.Edit;
   const isPreviewMode = mode === EditContainerMode.Preview;
-  const [listItem, setListItem] = useState<any>({
-    id: props.id,
-    firstInActiveList: props.firstInActiveList,
-    lastInActiveList: props.lastInActiveList,
-    inEditMode: false,
-    order: null,
-  });
-  const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const { order } = useFormLayoutsSelector(selectedLayoutSelector);
-  const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useSelector(
     (state: IAppState) => state.formDesigner.layout?.selectedLayout
   );
@@ -71,8 +59,7 @@ export function EditContainer(props: IEditContainerProps) {
     ComponentType.RadioButtons,
     ComponentType.Button,
     ComponentType.NavigationButtons,
-  ];
-  // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
+  ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
   const isPreviewable = previewableComponents.includes(component.type as ComponentType);
   const handleComponentUpdate = (updatedComponent: IFormComponent): void => {
     setComponent({ ...updatedComponent });
@@ -84,32 +71,14 @@ export function EditContainer(props: IEditContainerProps) {
   };
 
   const handleComponentDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
-    const componentsToDelete = activeList.length > 1 ? activeList : [props.id];
-    deleteFormComponentMutation.mutate(componentsToDelete);
-    dispatch(FormLayoutActions.deleteActiveList());
-    event.stopPropagation();
+    deleteFormComponent(props.id);
   };
 
   const handleOpenEdit = (): void => {
     setMode(EditContainerMode.Edit);
-    const newListItem = { ...listItem, inEditMode: true };
-    setListItem(newListItem);
-    props.sendItemToParent(listItem);
-  };
-
-  const handleSetActive = (): void => {
-    if (!isEditMode) {
-      const key: any = Object.keys(order)[0];
-      const orderIndex = order[key].indexOf(listItem.id);
-      const newListItem = { ...listItem, order: orderIndex };
-      setListItem(newListItem);
-      props.sendItemToParent(newListItem);
-    }
   };
 
   const handleSave = (): void => {
-    const newListItem = { ...listItem, inEditMode: false };
-    setListItem(newListItem);
     setMode(isPreviewable ? EditContainerMode.Preview : EditContainerMode.Closed);
     if (JSON.stringify(component) !== JSON.stringify(props.component)) {
       handleSaveChange(component);
@@ -124,29 +93,19 @@ export function EditContainer(props: IEditContainerProps) {
         );
       }
     }
-    props.sendItemToParent(newListItem);
-    dispatch(FormLayoutActions.deleteActiveList());
   };
 
   const handleDiscard = (): void => {
     setComponent({ ...props.component, id: props.id });
     setMode(EditContainerMode.Closed);
-    dispatch(FormLayoutActions.deleteActiveList());
   };
 
   const handleSaveChange = (callbackComponent: FormComponentType) =>
-    updateFormComponentMutation.mutate({
+    updateFormComponent({
       id: props.id,
       updatedComponent: callbackComponent,
     });
 
-  const handleKeyPress = (e: any) => {
-    if (e.key === 'Enter') {
-      handleSetActive();
-    }
-  };
-
-  const activeListIndex = activeList.findIndex((item: any) => item.id === props.id);
   return (
     <div className={cn(classes.wrapper, isPreviewMode && classes.previewMode)} role='listitem'>
       <div className={classes.formComponentWithHandle}>
@@ -155,8 +114,6 @@ export function EditContainer(props: IEditContainerProps) {
         </div>
         <div
           className={classes.formComponent}
-          onClick={handleSetActive}
-          onKeyDown={handleKeyPress}
           tabIndex={0}
         >
           {isPreviewMode && component && (
@@ -168,7 +125,7 @@ export function EditContainer(props: IEditContainerProps) {
           )}
           {isEditMode && component && (
             <EditModalContent
-              component={JSON.parse(JSON.stringify(component))}
+              component={deepCopy(component)}
               handleComponentUpdate={handleComponentUpdate}
             />
           )}
@@ -185,25 +142,23 @@ export function EditContainer(props: IEditContainerProps) {
       </div>
       {!isEditMode && (
         <div className={classes.buttons}>
-          {(activeListIndex === 0 || activeList.length < 1) && (
-            <Button
-              data-testid='component-delete-button'
-              color={ButtonColor.Secondary}
-              icon={<TrashIcon title={t('general.delete')} />}
-              onClick={handleComponentDelete}
-              tabIndex={0}
-              variant={ButtonVariant.Quiet}
-            />
-          )}
-          {(activeList.length < 1 || (activeList.length === 1 && activeListIndex === 0)) && (
-            <Button
-              color={ButtonColor.Secondary}
-              icon={<PencilIcon title={t('general.edit')} />}
-              onClick={handleOpenEdit}
-              tabIndex={0}
-              variant={ButtonVariant.Quiet}
-            />
-          )}
+          <Button
+            data-testid='component-delete-button'
+            color={ButtonColor.Secondary}
+            icon={<TrashIcon />}
+            onClick={handleComponentDelete}
+            tabIndex={0}
+            title={t('general.delete')}
+            variant={ButtonVariant.Quiet}
+          />
+          <Button
+            color={ButtonColor.Secondary}
+            icon={<PencilIcon />}
+            onClick={handleOpenEdit}
+            tabIndex={0}
+            title={t('general.edit')}
+            variant={ButtonVariant.Quiet}
+          />
           {isPreviewable && (
             <Button
               color={ButtonColor.Secondary}

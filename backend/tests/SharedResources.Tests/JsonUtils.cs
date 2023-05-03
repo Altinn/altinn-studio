@@ -7,8 +7,8 @@ namespace SharedResources.Tests
     {
         public static bool DeepEquals(string expectedJson, string json)
         {
-            JObject actual = (JObject)JsonConvert.DeserializeObject(json);
-            JObject expected = (JObject)JsonConvert.DeserializeObject(expectedJson);
+            JToken actual = (JToken)JsonConvert.DeserializeObject(json);
+            JToken expected = (JToken)JsonConvert.DeserializeObject(expectedJson);
             return JToken.DeepEquals(expected, actual);
         }
     }

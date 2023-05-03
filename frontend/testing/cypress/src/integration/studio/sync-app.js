@@ -22,7 +22,6 @@ context('Sync app and deploy', () => {
 
     // Sync app changes
     cy.get(designer.appMenu.edit).click();
-    cy.get("button[aria-label='Legg til ny side']").click();
     cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
     cy.get(designer.dragToArea).trigger('drop');
     cy.get('#share_changes_button').click();

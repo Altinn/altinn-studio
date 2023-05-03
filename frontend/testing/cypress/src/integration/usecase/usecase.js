@@ -43,7 +43,8 @@ context(
     });
 
     it('Gitea connection - Pull changes', () => {
-      cy.deleteLocalChanges(Cypress.env('deployApp'));
+      // Disable this for now, due to https://github.com/Altinn/altinn-studio/issues/10201  - we do not actually make any changes in our tests, so should be ok
+      //cy.deleteLocalChanges(Cypress.env('deployApp'));
       cy.wait(5000);
       cy.intercept(/(P|p)ull/).as('pullChanges');
       cy.get(designer.syncApp.pull).should('be.visible').click();
@@ -54,7 +55,8 @@ context(
     it('App builds and deploys', () => {
       cy.intercept('**/deployments*').as('deploys');
       cy.get(designer.appMenu.deploy).should('be.visible').click();
-      cy.get(designer.appMenu.preview).should('be.visible').click();
+      // TODO: Add below line again after preview is enabled in prod/dev (app-development/layout/AppBar/AppBar.tsx:65)
+      // cy.get(designer.appMenu.preview).should('be.visible').click();
       cy.wait('@deploys').its('response.statusCode').should('eq', 200);
       const checkDeployOf = Cypress.env('environment') === 'prod' ? 'prod' : 'at22';
       cy.get(designer.deployHistory[checkDeployOf]).then((table) => {

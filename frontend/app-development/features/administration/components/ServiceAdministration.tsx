@@ -5,7 +5,7 @@ import { AltinnSpinner } from 'app-shared/components';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
 import { serviceConfigPath } from 'app-shared/api-paths';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { useAppDispatch, useAppSelector } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 
 export interface ServiceAdministrationProps {

@@ -3,7 +3,7 @@ export const login = {
   userName: '#user_name',
   userPwd: '#password',
   loginButton: "input[type='button']",
-  submit: 'button',
+  submit: 'button.ui.green.button',
   errorMessage: '.ui.negative.message',
   container: '.container',
   form: 'form[action="/repos/user/login"]',

@@ -7,6 +7,7 @@ import { User } from 'dashboard/services/userService';
 import { SearchRepository } from 'dashboard/services/repoService';
 import { starredRepo } from '../../data-mocks/starredRepo';
 import { searchedRepos } from '../../data-mocks/searchedRepos';
+import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 type RenderWithMockServicesProps = Services;
 const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
@@ -16,6 +17,13 @@ const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
     </MockServicesContextWrapper>
   );
 };
+
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useParams: () => ({
+    selectedContext: SelectedContextType.Self
+  }),
+}));
 
 describe('Dashboard', () => {
 

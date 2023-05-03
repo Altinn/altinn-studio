@@ -8,3 +8,12 @@ export const replaceLastItem = <T>(array: T[], replaceWith: T): T[] => {
   array[array.length - 1] = replaceWith;
   return array;
 };
+
+/**
+ * Removes item from array by value.
+ * @param array Array to delete item from.
+ * @param value Value to delete.
+ * @returns Array without the given value.
+ */
+export const removeItemByValue = <T>(array: T[], value: T): T[] =>
+  array.filter((item) => item !== value);

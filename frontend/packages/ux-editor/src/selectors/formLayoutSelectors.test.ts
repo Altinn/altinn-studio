@@ -56,7 +56,9 @@ const formLayoutsData: IFormLayouts = {
     order: {
       [container0Id]: container0Order,
       [container1Id]: container1Order,
-    }
+    },
+    customRootProperties: {},
+    customDataProperties: {},
   },
   [layout2Name]: {
     containers: {
@@ -69,7 +71,9 @@ const formLayoutsData: IFormLayouts = {
       [component2AId]: { id: component2AId, type: ComponentType.Input, itemType: 'COMPONENT' },
       [component2BId]: { id: component2BId, type: ComponentType.Input, itemType: 'COMPONENT' },
     },
-    order: { [container2Id]: container2Order }
+    order: { [container2Id]: container2Order },
+    customRootProperties: {},
+    customDataProperties: {},
   }
 };
 

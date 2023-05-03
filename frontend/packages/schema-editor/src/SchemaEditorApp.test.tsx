@@ -3,6 +3,7 @@ import { unmountComponentAtNode } from 'react-dom';
 import { render, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { dataMock } from './mockData';
+import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
 
 let container: any = null;
 
@@ -19,13 +20,15 @@ afterEach(() => {
 
 test('renders schema editor app', () => {
   render(
-    <SchemaEditorApp
-      schema={dataMock}
-      schemaState={{ saving: false }}
-      onSaveSchema={jest.fn()}
-      name='test'
-      LandingPagePanel={<div>landing page panel goes here</div>}
-    />
+    <PreviewConnectionContextProvider>
+      <SchemaEditorApp
+        schema={dataMock}
+        schemaState={{ saving: false }}
+        onSaveSchema={jest.fn()}
+        name='test'
+        LandingPagePanel={<div>landing page panel goes here</div>}
+      />
+    </PreviewConnectionContextProvider>
   );
   expect(screen.getByTestId('schema-editor')).toBeDefined();
 });

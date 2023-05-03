@@ -52,6 +52,13 @@ export const datamodelMetadataPath = (org, app) => `/designer/api/${org}/${app}/
 // Organizations
 export const orgsListPath = () => '/designer/api/orgs'; // Get
 
+
+// Preview
+export const previewPath = (org, app) => `/preview/${org}/${app}`;
+
+// Preview - SignalR Hub
+export const previewSignalRHubSubPath = () => '/previewHub';
+
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
 export const releasesPath = (org, app, sortDirection) => `/designer/api/${org}/${app}/releases?${s({ sortDirection })}`;

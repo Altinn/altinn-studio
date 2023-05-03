@@ -15,6 +15,7 @@ import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { useSetStarredRepo, useUnsetStarredRepo } from 'dashboard/hooks/useRepoQueries';
+import { DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
 import classes from './RepoList.module.css';
 import { User } from 'dashboard/services/userService';
 
@@ -32,8 +33,7 @@ export interface IRepoListProps {
   disableVirtualization?: boolean;
 }
 
-const defaultPageSize = 5;
-const defaultRowsPerPageOptions = [5];
+const defaultRowsPerPageOptions = [DATAGRID_DEFAULT_PAGE_SIZE];
 
 const isRowSelectable = () => false;
 
@@ -69,7 +69,7 @@ const TextWithTooltip = (params: GridRenderCellParams) => {
 export const RepoList = ({
   repos = defaultArray,
   isLoading,
-  pageSize = defaultPageSize,
+  pageSize = DATAGRID_DEFAULT_PAGE_SIZE,
   isServerSort = false,
   rowCount,
   onPageChange,

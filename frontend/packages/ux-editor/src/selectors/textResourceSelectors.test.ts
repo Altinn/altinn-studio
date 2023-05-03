@@ -1,7 +1,5 @@
-import { IAppState } from '../types/global';
-import { appDataMock, appStateMock, textResourcesMock } from '../testing/mocks';
-import { ITextResources } from '../features/appData/textResources/textResourcesSlice';
-import { getAllTextResourceIdsWithTextSelector } from './textResourceSelectors';
+import { ITextResources } from 'app-shared/types/global';
+import { allTextResourceIdsWithTextSelector, getAllLanguages } from './textResourceSelectors';
 
 describe('textResourceSelectors', () => {
   describe('getAllTextResourceIdsWithTextSelector', () => {
@@ -13,7 +11,7 @@ describe('textResourceSelectors', () => {
       const bothId = 'bothId';
       const bothIdTextNb = 'En tekst som finnes på begge språkene';
       const bothIdTextEn = 'A text that exists in both languages';
-      const appState = mockAppStateWithTextResources({
+      const textResources: ITextResources = {
         nb: [
           {
             id: onlyNbId,
@@ -34,8 +32,8 @@ describe('textResourceSelectors', () => {
             value: bothIdTextEn,
           },
         ],
-      });
-      expect(getAllTextResourceIdsWithTextSelector('nb')(appState)).toEqual([
+      };
+      expect(allTextResourceIdsWithTextSelector('nb')(textResources)).toEqual([
         {
           id: onlyNbId,
           value: onlyNbIdText,
@@ -51,15 +49,14 @@ describe('textResourceSelectors', () => {
       ]);
     });
   });
-});
 
-const mockAppStateWithTextResources = (resources: ITextResources): IAppState => ({
-  ...appStateMock,
-  appData: {
-    ...appDataMock,
-    textResources: {
-      ...textResourcesMock,
-      resources,
-    },
-  },
+  describe('getAllLanguages', () => {
+    it('Returns all languages present in the text resources object', () => {
+      const textResources: ITextResources = {
+        nb: [{ id: 'someId', value: 'someValue' }],
+        en: [{ id: 'someId', value: 'someValue' }],
+      };
+      expect(getAllLanguages(textResources)).toEqual(['nb', 'en']);
+    });
+  });
 });

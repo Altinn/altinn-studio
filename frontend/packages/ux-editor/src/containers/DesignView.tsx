@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { Container } from './Container';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type { IFormLayoutOrder } from '../types/global';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 
@@ -20,9 +18,12 @@ import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateForm
 import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdateFormComponentOrderMutation';
 import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
+import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
+import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { ITextResource } from 'app-shared/types/global';
 
 export interface DesignViewProps {
-  activeList: any[];
   isDragging: boolean;
   layoutOrder: IFormLayoutOrder;
   order: IFormLayoutOrder;
@@ -34,7 +35,6 @@ export interface DesignViewState {
 }
 
 export const DesignView = ({
-  activeList,
   isDragging,
   layoutOrder,
   order,
@@ -48,8 +48,8 @@ export const DesignView = ({
   );
 
   const { org, app } = useParams();
-  const datamodelQuery = useDatamodelQuery(org, app);
-  const datamodel = datamodelQuery.data;
+  const { data: datamodel } = useDatamodelQuery(org, app);
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
   const updateFormContainerMutation = useUpdateFormContainerMutation(org, app);
   const updateFormComponentOrderMutation = useUpdateFormComponentOrderMutation(org, app);
@@ -144,19 +144,12 @@ export const DesignView = ({
   const resetState = () => {
     beforeDrag && setState({ layoutOrder: beforeDrag, isDragging: false });
   };
-  const dispatch = useDispatch();
   const onDropItem = (reset?: boolean) => {
     if (reset) {
       resetState();
     } else {
       updateFormComponentOrderMutation.mutate(state.layoutOrder);
       setState({ ...state, isDragging: false });
-      dispatch(
-        FormLayoutActions.updateActiveListOrder({
-          containerList: activeList,
-          orderList: order as any,
-        })
-      );
     }
     setBeforeDrag(null);
   };
@@ -190,6 +183,7 @@ export const DesignView = ({
             updateFormContainerMutation={updateFormContainerMutation}
             updateContainerIdMutation={updateContainerIdMutation}
             deleteFormContainerMutation={deleteFormContainerMutation}
+            textResources={textResources}
           />
         )}
       />

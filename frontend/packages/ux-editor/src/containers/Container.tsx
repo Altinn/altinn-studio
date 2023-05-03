@@ -7,8 +7,7 @@ import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { EditGroupDataModelBindings } from '../components/config/group/EditGroupDataModelBindings';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
-import { idExists, validComponentId } from '../utils/formLayout';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import { idExists, validComponentId } from '../utils/formLayoutUtils';
 import type {
   IAppState,
   ICreateFormContainer,
@@ -16,7 +15,6 @@ import type {
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
-  ITextResource,
 } from '../types/global';
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
@@ -36,13 +34,12 @@ import { XMarkIcon, ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon, Check
 import { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
 import { TextResource } from '../components/TextResource';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import { withTranslation } from 'react-i18next';
 import i18next from 'i18next';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
+import { ITextResource } from 'app-shared/types/global';
 
 export interface IProvidedContainerProps {
   isBaseContainer?: boolean;
@@ -52,7 +49,6 @@ export interface IProvidedContainerProps {
   items?: string[];
   layoutOrder?: IFormLayoutOrder;
   dndEvents: EditorDndEvents;
-  sendListToParent?: (item: object) => void;
   dragHandleRef?: ConnectDragSource;
   t: typeof i18next.t;
   dataModel: IDataModelFieldElement[];
@@ -62,6 +58,7 @@ export interface IProvidedContainerProps {
   updateFormContainerMutation: ReturnType<typeof useUpdateFormContainerMutation>;
   updateContainerIdMutation: ReturnType<typeof useUpdateContainerIdMutation>;
   deleteFormContainerMutation: ReturnType<typeof useDeleteFormContainerMutation>;
+  textResources: ITextResource[];
 }
 
 export interface IContainerProps extends IProvidedContainerProps {
@@ -69,14 +66,11 @@ export interface IContainerProps extends IProvidedContainerProps {
   itemOrder: any;
   repeating: boolean;
   index?: number;
-  activeList: any[];
-  textResources: ITextResource[];
 }
 
 export interface IContainerState {
   itemOrder: any;
   currentlyDragging: boolean;
-  activeList: any[];
   editMode: boolean;
   tmpContainer: ICreateFormContainer;
   tmpId: string;
@@ -105,7 +99,6 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
     this.state = {
       itemOrder: _props.itemOrder,
       currentlyDragging: false,
-      activeList: [],
       editMode: false,
       tmpContainer: JSON.parse(
         JSON.stringify(this.props.containers[this.props.id])
@@ -153,14 +146,10 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    event.stopPropagation();
     this.props.deleteFormContainerMutation.mutate(this.props.id);
   };
 
   public handleDiscard = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    event.stopPropagation();
-    const { dispatch } = this.props;
-    dispatch(FormLayoutActions.deleteActiveList());
     this.setState({
       editMode: false,
       tmpContainer: JSON.parse(
@@ -171,8 +160,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    event.stopPropagation();
-    const { dispatch, t } = this.props;
+    const { t } = this.props;
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
       if (idExists(this.state.tmpId, this.props.components, this.props.containers)) {
         this.setState(() => ({
@@ -187,7 +175,6 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
           updatedContainer: this.state.tmpContainer,
           id: this.props.id,
         });
-        dispatch(FormLayoutActions.deleteActiveList());
         this.props.updateContainerIdMutation.mutate({
           currentId: this.props.id,
           newId: this.state.tmpId,
@@ -206,7 +193,6 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         updatedContainer: this.state.tmpContainer,
         id: this.props.id,
       });
-      dispatch(FormLayoutActions.deleteActiveList());
       this.setState({
         editMode: false,
       });
@@ -312,33 +298,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public handleEditMode = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    event.stopPropagation();
-    const { dispatch } = this.props;
-    const { org, app } = _useParamsClassCompHack();
-    this.setState((prevState: IContainerState) => {
-      const isEdit = !prevState.editMode;
-      if (isEdit) {
-        const activeObject = {
-          firstInActiveList: false,
-          id: this.props.id,
-          inEditMode: true,
-          lastInActiveList: true,
-          order: this.props.index,
-        };
-        this.props.sendListToParent([activeObject]);
-        dispatch(
-          FormLayoutActions.updateActiveList({
-            containerList: this.props.activeList,
-            listItem: activeObject,
-            org,
-            app,
-          })
-        );
-      }
-      return {
-        editMode: isEdit,
-      };
-    });
+    this.setState((prevState: IContainerState) => ({ editMode: !prevState.editMode }));
   };
 
   public render = (ref?: any): JSX.Element => {
@@ -349,7 +309,6 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
 
     return (
       <div
-        onClick={this.changeActiveFormContainer}
         ref={ref}
         className={cn(
           classes.wrapper,
@@ -517,14 +476,13 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   );
 
   public renderContainer = (id: string, index: number): JSX.Element => {
-    const canDrag = !this.state.activeList.find((element: any) => element.id === id);
     return (
       <DroppableDraggableContainer
         id={id}
         index={index}
         isBaseContainer={false}
         parentContainerId={this.props.id}
-        canDrag={canDrag}
+        canDrag={true}
         dndEvents={this.props.dndEvents}
         key={id}
         container={(dragHandleRef) => (
@@ -536,7 +494,6 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             isBaseContainer={false}
             layoutOrder={this.props.layoutOrder}
             dndEvents={this.props.dndEvents}
-            sendListToParent={this.handleActiveListChange}
             dragHandleRef={dragHandleRef}
             dataModel={this.props.dataModel}
             components={this.props.components}
@@ -545,34 +502,17 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             updateFormContainerMutation={this.props.updateFormContainerMutation}
             updateContainerIdMutation={this.props.updateContainerIdMutation}
             deleteFormContainerMutation={this.props.deleteFormContainerMutation}
+            textResources={this.props.textResources}
           />
         )}
       />
     );
   };
 
-  public handleActiveListChange = (list: any[]) => {
-    this.setState({
-      activeList: list,
-    });
-  };
-
   public renderFormComponent = (id: string, index: number): JSX.Element => {
-    const activeListIndex = this.props.activeList.findIndex((listItem: any) => listItem.id === id);
-    let canDrag = true;
-    // eslint-disable-next-line no-restricted-syntax
-    for (const activeItem of this.state.activeList) {
-      if (activeItem.id === id) {
-        canDrag = false;
-      }
-    }
-    const firstInActiveList =
-      activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true;
-    const lastInActiveList =
-      activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true;
     return (
       <DroppableDraggableComponent
-        canDrag={canDrag}
+        canDrag
         containerId={this.props.id}
         dndEvents={this.props.dndEvents}
         id={id}
@@ -580,21 +520,14 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         key={id}
         component={(dragHandleRef) => (
           <FormComponentWrapper
-            activeList={this.props.activeList}
-            firstInActiveList={firstInActiveList}
             id={id}
-            lastInActiveList={lastInActiveList}
             partOfGroup={!this.props.isBaseContainer}
-            sendListToParent={this.handleActiveListChange}
-            singleSelected={this.props.activeList.length === 1}
             dragHandleRef={dragHandleRef}
           />
         )}
       />
     );
   };
-
-  public changeActiveFormContainer = (e: any) => e.stopPropagation();
 }
 
 const makeMapStateToProps = () => {
@@ -603,11 +536,9 @@ const makeMapStateToProps = () => {
     const container = containers ? containers[props.id] : '';
     return {
       ...props,
-      activeList: state.formDesigner.layout.activeList,
       dataModelGroup: container?.dataModelGroup,
       itemOrder: !props.items ? props.itemOrder : props.items,
       repeating: container?.repeating,
-      textResources: state.appData.textResources.resources?.[DEFAULT_LANGUAGE],
     };
   };
 };

@@ -2,6 +2,7 @@
 import { login } from '../pageobjects/loginandreg';
 import { dashboard } from '../pageobjects/dashboard';
 import { designer } from '../pageobjects/designer';
+import { header } from '../pageobjects/header';
 
 /**
  * Login to studio with user name and password
@@ -14,6 +15,20 @@ Cypress.Commands.add('studiologin', (userName, userPwd) => {
     cy.get(login.userPwd).should('be.visible').type(userPwd, { log: false });
     cy.get(login.submit).should('be.visible').click();
   });
+});
+
+/**
+ * Switch selected context in dashboard
+ * @param context The context to switch to. Either 'self', 'all', or org user name.
+ */
+Cypress.Commands.add('switchSelectedContext', (context) => {
+  cy.intercept('GET', '**/repos/search**').as('fetchApps');
+  cy.get(header.profileIcon).should('be.visible').click();
+  if (['self', 'all'].includes(context)) {
+    cy.get(header.menu[context]).should('be.visible').click();
+  } else {
+    cy.get(header.menu.org(context)).should('be.visible').click();
+  }
 });
 
 /**
@@ -81,4 +96,11 @@ Cypress.Commands.add('searchAndOpenApp', (appId) => {
     .siblings(dashboard.apps.links)
     .find(dashboard.apps.edit)
     .click();
+});
+
+/**
+ * Select an element in the application list
+ */
+Cypress.Commands.add('selectElementInApplicationList', (appListHeaderText, elementSelector) => {
+  return cy.contains('h2', appListHeaderText).siblings().find(elementSelector);
 });

@@ -1,16 +1,12 @@
-import type {
-  IFormComponent,
-  IWidget,
-  IFormLayoutOrder,
-} from '../../types/global';
+import type { IFormComponent, IWidget } from '../../types/global';
+
+export interface IAddLayoutFulfilledAction {
+  layoutOrder: string[];
+  receiptLayoutName?: string;
+}
 
 export interface IFormDesignerActionRejected {
   error: Error;
-}
-
-export interface IAddActiveFormContainerAction {
-  containerId?: string;
-  callback?: (...args: any[]) => any;
 }
 
 export interface ApplicationAttachmentMetadata {
@@ -27,7 +23,7 @@ export interface IAddApplicationMetadataAction {
   minFiles: number;
   maxSize: number;
   fileType: string;
-  org :string;
+  org: string;
   app: string;
 }
 
@@ -55,22 +51,6 @@ export interface IDeleteContainerAction {
 export interface IDeleteLayoutAction {
   layout: string;
   pageOrder: string[];
-}
-
-export interface IUpdateActiveListAction {
-  listItem: any;
-  containerList: any;
-  org: string;
-  app: string;
-}
-
-export interface IUpdateActiveListActionFulfilled {
-  containerList: any;
-}
-
-export interface IUpdateActiveListOrderAction {
-  containerList: any;
-  orderList: IFormLayoutOrder;
 }
 
 export interface IUpdateFormComponentIdAction {

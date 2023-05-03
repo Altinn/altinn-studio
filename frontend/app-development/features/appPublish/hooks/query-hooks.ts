@@ -2,9 +2,10 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { IDeployment } from '../../../sharedResources/appDeployment/types';
 import { IRelease } from '../../../sharedResources/appRelease/types';
 import { useQuery } from '@tanstack/react-query';
-import { CacheKey } from 'app-shared/api-paths/cache-key';
+import { QueryKey } from '../../../types/QueryKey';
 import { useServicesContext } from '../../../common/ServiceContext';
-import { IDeployEnvironment } from "../containers/deployContainer";
+import { IDeployEnvironment } from '../containers/deployContainer';
+import { DEPLOYMENTS_REFETCH_INTERVAL } from 'app-shared/constants';
 
 interface IOrgsState {
   orgs: any;
@@ -19,29 +20,29 @@ export interface RepoStatus {
 }
 export const useRepoStatus = (owner, app): UseQueryResult<RepoStatus> => {
   const { getRepoStatus } = useServicesContext();
-  return useQuery<RepoStatus>([CacheKey.RepoStatus, owner, app], () => getRepoStatus(owner, app));
+  return useQuery<RepoStatus>([QueryKey.RepoStatus, owner, app], () => getRepoStatus(owner, app));
 };
 
 export const useOrgList = (): UseQueryResult<IOrgsState> => {
   const { getOrgList } = useServicesContext();
-  return useQuery<IOrgsState>([CacheKey.OrgList], () => getOrgList());
+  return useQuery<IOrgsState>([QueryKey.OrgList], () => getOrgList());
 };
 
 export const useEnvironments = (): UseQueryResult<IDeployEnvironment[]> => {
   const { getEnvironments } = useServicesContext();
-  return useQuery<IDeployEnvironment[]>([CacheKey.Environments], () => getEnvironments());
+  return useQuery<IDeployEnvironment[]>([QueryKey.Environments], () => getEnvironments());
 };
 
 export const useDeployPermissions = (owner, app): UseQueryResult<string[]> => {
   const { getDeployPermissions } = useServicesContext();
-  return useQuery<string[]>([CacheKey.DeployPermissions, owner, app], () =>
+  return useQuery<string[]>([QueryKey.DeployPermissions, owner, app], () =>
     getDeployPermissions(owner, app)
   );
 };
 
 export const useAppReleases = (owner, app): UseQueryResult<IRelease[]> => {
   const { getAppReleases } = useServicesContext();
-  return useQuery<IRelease[]>([CacheKey.AppReleases, owner, app], async () => {
+  return useQuery<IRelease[]>([QueryKey.AppReleases, owner, app], async () => {
     const res = await getAppReleases(owner, app);
     return res.results;
   });
@@ -49,9 +50,13 @@ export const useAppReleases = (owner, app): UseQueryResult<IRelease[]> => {
 
 export const useAppDeployments = (owner, app): UseQueryResult<IDeployment[]> => {
   const { getDeployments } = useServicesContext();
-  return useQuery<IDeployment[]>([CacheKey.AppDeployments, owner, app], async () => {
-    const res = await getDeployments(owner, app);
-    return res.results;
+  return useQuery<IDeployment[]>({
+    queryKey: [QueryKey.AppDeployments, owner, app],
+    queryFn: async () => {
+      const res = await getDeployments(owner, app);
+      return res.results;
+    },
+    refetchInterval: DEPLOYMENTS_REFETCH_INTERVAL,
   });
 };
 export interface BranchStatus {
@@ -64,7 +69,7 @@ export interface BranchStatus {
 }
 export const useBranchStatus = (owner, app, branch): UseQueryResult<BranchStatus> => {
   const { getBranchStatus } = useServicesContext();
-  return useQuery<BranchStatus>([CacheKey.BranchStatus, owner, app, branch], () =>
+  return useQuery<BranchStatus>([QueryKey.BranchStatus, owner, app, branch], () =>
     getBranchStatus(owner, app, branch)
   );
 };

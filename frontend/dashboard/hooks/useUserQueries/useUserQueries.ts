@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/servicesContext';
-import { User } from '../../services/userService';
+import { User } from 'app-shared/types/User';
 
 enum ServerStateCacheKey {
   GetCurrentUser = 'GET_CURRENT_USER',

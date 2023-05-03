@@ -5,7 +5,7 @@ import { EditModalContent } from './EditModalContent';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IAppState } from '../../types/global';
-import { appDataMock, appStateMock, queriesMock } from '../../testing/mocks';
+import { appStateMock, queriesMock } from '../../testing/mocks';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from '../../../../../app-development/common/ServiceContext';
 
@@ -158,23 +158,8 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
   const createStore = configureStore();
   const initialState: IAppState = {
     ...appStateMock,
-    appData: {
-      ...appDataMock,
-      textResources: {
-        error: null,
-        fetched: true,
-        fetching: false,
-        language: 'nb',
-        languages: ['nb'],
-        resources: { nb: [{ id: 'appName', value: 'Test' }] },
-        saved: true,
-        saving: false,
-      },
-    },
     formDesigner: {
       layout: {
-        activeContainer: null,
-        activeList: null,
         error: null,
         invalidLayouts: [],
         saving: false,

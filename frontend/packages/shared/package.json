@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "author": "Altinn",
   "dependencies": {
-    "@altinn/altinn-design-system": "0.27.6",
+    "@altinn/altinn-design-system": "0.27.7",
     "@digdir/design-system-react": "0.10.1",
     "@mui/material": "5.11.16",
     "@reduxjs/toolkit": "1.9.3",

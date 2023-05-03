@@ -32,6 +32,7 @@ module.exports = async (env) => {
     pass: env.GITEA_ADMIN_PASS,
     body: {
       name: tokenPrefix + ' ' + Date.now(),
+      scopes: ['repo', 'user', 'delete_repo'],
     },
   });
   const envFile = {

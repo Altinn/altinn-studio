@@ -5,12 +5,12 @@ export const userHasAccessToSelectedContext = ({
   selectedContext,
   orgs,
 }: {
-  selectedContext: number | SelectedContextType;
+  selectedContext: string | SelectedContextType;
   orgs: Organization[];
 }): boolean => {
   if (selectedContext == SelectedContextType.Self || selectedContext == SelectedContextType.All) {
     return true;
   }
 
-  return Boolean(orgs.find((org) => org.id === selectedContext));
+  return Boolean(orgs.find((org) => org.username === selectedContext));
 };

@@ -11,6 +11,16 @@ jest.mock('../../utils/networking', () => ({
   __esModule: true,
   ...jest.requireActual('../../utils/networking'),
 }));
+
+const mockedNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockedNavigate,
+  useLocation: () => ({
+    search: ''
+  }),
+}));
+
 describe('HeaderMenu', () => {
   beforeEach(() => {
     delete window.location;
@@ -41,7 +51,7 @@ describe('HeaderMenu', () => {
   });
 
   it('should call setSelectedContext with all keyword when clicking All item in menu', async () => {
-    const { handleSetSelectedContext } = render();
+    render();
     await openMenu();
 
     const allItem = screen.getByRole('menuitem', {
@@ -50,11 +60,11 @@ describe('HeaderMenu', () => {
 
     await act(() => userEvent.click(allItem)); // eslint-disable-line testing-library/no-unnecessary-act
 
-    expect(handleSetSelectedContext).toHaveBeenCalledWith(SelectedContextType.All);
+    expect(mockedNavigate).toHaveBeenCalledWith('/' + SelectedContextType.All);
   });
 
   it('should call setSelectedContext with self keyword when clicking Self item in menu', async () => {
-    const { handleSetSelectedContext } = render();
+    render();
     await openMenu();
 
     const selfItem = screen.getByRole('menuitem', {
@@ -63,11 +73,11 @@ describe('HeaderMenu', () => {
 
     await act(() => userEvent.click(selfItem)); // eslint-disable-line testing-library/no-unnecessary-act
 
-    expect(handleSetSelectedContext).toHaveBeenCalledWith(SelectedContextType.Self);
+    expect(mockedNavigate).toHaveBeenCalledWith('/');
   });
 
   it('should call setSelectedContext with org-id when selecting org as context', async () => {
-    const { handleSetSelectedContext } = render();
+    render();
     await openMenu();
 
     const orgItem = screen.getByRole('menuitem', {
@@ -75,7 +85,7 @@ describe('HeaderMenu', () => {
     });
 
     await act(() => userEvent.click(orgItem)); // eslint-disable-line testing-library/no-unnecessary-act
-    expect(handleSetSelectedContext).toHaveBeenCalledWith(1);
+    expect(mockedNavigate).toHaveBeenCalledWith('/username');
   });
 });
 
@@ -101,8 +111,6 @@ const render = (props: Partial<HeaderMenuProps> = {}) => {
         full_name: 'Organization 1',
       },
     ],
-    selectedContext: 'self',
-    setSelectedContext: handleSetSelectedContext,
     user: {
       full_name: 'John Smith',
       avatar_url: 'avatar_url',

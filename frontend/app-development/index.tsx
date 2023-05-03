@@ -9,6 +9,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { ServicesContextProvider } from './common/ServiceContext';
 import * as queries from './queries/queries';
 import * as mutations from './queries/mutations';
+import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
 
 const store = setupStore();
 
@@ -24,7 +25,9 @@ root.render(
   <Provider store={store}>
     <BrowserRouter basename={APP_DEVELOPMENT_BASENAME}>
       <ServicesContextProvider {...queries} {...mutations}>
-        <App />
+        <PreviewConnectionContextProvider>
+          <App />
+        </PreviewConnectionContextProvider>
       </ServicesContextProvider>
     </BrowserRouter>
   </Provider>

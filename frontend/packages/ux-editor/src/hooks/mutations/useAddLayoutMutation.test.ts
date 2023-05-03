@@ -3,6 +3,7 @@ import { AddLayoutMutationArgs, useAddLayoutMutation } from './useAddLayoutMutat
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
+import { ComponentType } from '../../components';
 
 // Test data:
 const org = 'org';
@@ -24,15 +25,15 @@ describe('useAddLayoutMutation', () => {
 
     await waitFor(() => expect(addLayoutResult.current.isSuccess).toBe(true));
 
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+    expect(queriesMock.saveFormLayout).toHaveBeenLastCalledWith(
       org,
       app,
       layoutName,
       {
-        $schema: expect.stringContaining(''),
+        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
         data: {
-          layout: [],
-          hidden: false
+          layout: [expect.objectContaining({ componentType: ComponentType.NavigationButtons })],
+          hidden: undefined,
         }
       }
     );

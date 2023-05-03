@@ -4,6 +4,8 @@ import type { IErrorState } from '../features/error/errorSlice';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import type { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 import { ComponentType } from '../components';
+import { ITextResource, ITextResources } from 'app-shared/types/global';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
   formDesigner: T1;
@@ -34,9 +36,7 @@ export interface ICreateFormContainer {
   tableHeaders?: string[];
 }
 
-export interface ITextResourceBindings {
-  [id: string]: string;
-}
+export type ITextResourceBindings = KeyValuePairs<string>;
 
 export interface ICreateFormComponent {
   component?: string;
@@ -211,33 +211,25 @@ export type FormComponentType =
   | PanelComponent
   | MapComponent;
 
-export interface IFormDesignerComponents {
-  [id: string]: IFormComponent;
-}
-
-export interface IFormDesignerContainers {
-  [id: string]: ICreateFormContainer;
-}
-
-export interface IFormLayouts {
-  [id: string]: IInternalLayout;
-}
+export type IFormDesignerComponents = KeyValuePairs<IFormComponent>;
+export type IFormDesignerContainers = KeyValuePairs<ICreateFormContainer>;
+export type IFormLayouts = KeyValuePairs<IInternalLayout>;
 
 export interface IInternalLayout {
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
   order: IFormLayoutOrder;
   hidden?: any;
+  customRootProperties: KeyValuePairs;
+  customDataProperties: KeyValuePairs;
 }
 
-export interface IExternalFormLayouts {
-  [id: string]: IExternalFormLayout;
-}
+export type IExternalFormLayouts = KeyValuePairs<IExternalFormLayout>;
 
 export interface IExternalFormLayout {
   $schema: string;
   data: IExternalData;
-  hidden?: any;
+  [key: string]: any;
 }
 
 export interface IExternalComponent {
@@ -249,11 +241,10 @@ export interface IExternalComponent {
 export interface IExternalData {
   layout: IExternalComponent[];
   hidden?: boolean;
+  [key: string]: any;
 }
 
-export interface IFormLayoutOrder {
-  [id: string]: string[];
-}
+export type IFormLayoutOrder = KeyValuePairs<string[]>;
 
 export interface IDataModelFieldElement {
   choices?: any;
@@ -280,21 +271,9 @@ export interface IDataModelFieldElement {
 }
 
 export interface IRuleModelFieldElement {
-  type: string;
+  type: 'rule' | 'condition';
   name: string;
   inputs: any;
-}
-
-export interface ITextResource {
-  id: string;
-  value: string;
-  unparsedValue?: string;
-  variables?: IVariable[];
-}
-
-export interface IVariable {
-  key: string;
-  dataSource: string;
 }
 
 export interface IWidget {
@@ -330,3 +309,5 @@ export enum LayoutItemType {
 export type AppStateSelector<T> = (state: IAppState) => T;
 
 export type FormLayoutsSelector<T> = (state: IAppState, formLayoutsData: IFormLayouts) => T;
+
+export type TextResourcesSelector<T> = (textResources: ITextResources) => T;

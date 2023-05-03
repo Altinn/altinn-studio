@@ -6,7 +6,7 @@ import { ButtonContainer } from 'app-shared/primitives';
 import { DownloadRepoModal } from '../administration/components/DownloadRepoModal';
 import { ResetRepoModal } from '../administration/components/ResetRepoModal';
 import { RepoStatusActions } from '../../sharedResources/repoStatus/repoStatusSlice';
-import { useAppDispatch } from '../../common/hooks';
+import { useAppDispatch } from '../../hooks';
 import { useTranslation } from 'react-i18next';
 
 interface MergeConflictWarningProps {

@@ -7,11 +7,11 @@ import { ComponentType } from '../../components';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
-import { deepCopy } from 'app-shared/pure';
+import { addComponent } from '../../utils/formLayoutUtils';
 
 export interface AddFormComponentMutationArgs {
   component: IFormComponent;
-  position: number;
+  position?: number;
   containerId?: string;
   callback?: (...args: any[]) => any;
 }
@@ -26,17 +26,15 @@ export const useAddFormComponentMutation = (org: string, app: string) => {
   return useMutation({
     mutationFn: ({ component, position, containerId, callback }: AddFormComponentMutationArgs) => {
       const id: string = component.id || generateComponentId(component.type, layouts);
+      component.id = id;
 
       if (!layout) return;
-      if (!containerId) containerId = Object.keys(layout.order)[0]; // If containerId is not given, set it to the base-container's id
       if (callback) callback(component, id);
 
-      const updatedLayout: IInternalLayout = deepCopy(layout);
-      updatedLayout.components[id] = component;
-      updatedLayout.order[containerId]?.splice(position, 0, id) || (updatedLayout.order[containerId] = [id]);
+      const updatedLayout: IInternalLayout = addComponent(layout, component, containerId, position);
 
       return formLayoutsMutation.mutateAsync(updatedLayout).then(() => {
-        if (component.type === ComponentType.FileUpload) {
+        if (component.type === ComponentType.FileUpload || component.type === ComponentType.FileUploadWithTag) {
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
           const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
             component as IFormFileUploaderComponent;

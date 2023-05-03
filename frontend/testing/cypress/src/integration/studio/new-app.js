@@ -7,11 +7,18 @@ import { gitea } from '../../pageobjects/gitea';
 import * as texts from '../../fixtures/texts.json';
 
 context('New App', () => {
-  beforeEach(() => {
+  before(() => {
     cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+  });
+  beforeEach(() => {
+    cy.visit('/dashboard');
+    cy.switchSelectedContext('self');
     cy.get(dashboard.searchApp).should('be.visible');
+  });
+  after(() => {
+    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
   it('is possible to start app creation and exits', () => {
@@ -25,15 +32,35 @@ context('New App', () => {
   });
 
   it('shows error on app creation with existing name', () => {
+    // Create an app
+    const appName = 'my-existing-app';
+    cy.createapp(Cypress.env('autoTestUser'), appName);
+    cy.contains(designer.aboutApp.appHeader, 'Om appen').should('be.visible');
+
+    // Return to dashboard
+    cy.visit(`/dashboard`);
+
+    // Try to create app with the same name
     cy.get(dashboard.newApp).should('be.visible').click();
     cy.get(dashboard.appOwners).should('be.visible').click();
-    const appName = Cypress.env('deployApp').split('/')[1];
-    cy.contains(dashboard.appOwnersList, 'Testdepartementet').click();
+    cy.contains(dashboard.appOwnersList, Cypress.env('autoTestUser')).click();
     cy.get(dashboard.appName).should('be.visible').type(appName);
     cy.intercept('POST', '**/designer/api/repos/create-app?**').as('postCreateApp');
     cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
     cy.wait('@postCreateApp').its('response.statusCode').should('eq', 409);
     cy.contains('div', texts.appExists).should('be.visible');
+  });
+
+  it('shows error on app creation with invalid name', () => {
+    // Create an app
+    const appName = '123-app';
+    // Try to create app with invalid name
+    cy.get(dashboard.newApp).should('be.visible').click();
+    cy.get(dashboard.appOwners).should('be.visible').click();
+    cy.contains(dashboard.appOwnersList, Cypress.env('autoTestUser')).click();
+    cy.get(dashboard.appName).should('be.visible').type(appName);
+    cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
+    cy.contains('div', texts.invalidAppName).should('be.visible');
   });
 
   it('is possible to create an app and delete it', () => {
@@ -44,8 +71,5 @@ context('New App', () => {
     cy.get(gitea.deleteRepoModal).find(gitea.repoName).should('be.visible').type('new-app');
     cy.get(gitea.deleteRepoModal).find('button').should('be.visible').click();
     cy.get(gitea.success).should('be.visible');
-  });
-  after(() => {
-    cy.deleteallapps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 });

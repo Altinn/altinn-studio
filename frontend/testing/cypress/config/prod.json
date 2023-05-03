@@ -4,10 +4,11 @@
   "env": {
     "autoTestUser": "AutoTest",
     "useCaseUser": "bruksmonster",
-    "deployApp": "ttd/auto-deploy-app-v2",
+    "deployApp": "ttd/auto-deploy-app-v3",
     "designerApp": "AutoTest/auto-designer-app",
     "withoutDataModelApp": "AutoTest/appwithout-dm",
-    "appOwner": "Testdepartementet"
+    "appOwner": "Testdepartementet",
+    "appOwnerUsername": "ttd"
   },
   "defaultCommandTimeout": 20000,
   "requestTimeout": 20000

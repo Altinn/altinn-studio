@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -120,15 +121,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             DeploymentEntity deploymentEntity = await _deploymentRepository.Get(appOwner, buildNumber);
 
-            BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
-            DeploymentEntity deployment = new() { Build = buildEntity };
+            try
+            {
+                BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
+                DeploymentEntity deployment = new() { Build = buildEntity };
 
-            deploymentEntity.Build.Status = deployment.Build.Status;
-            deploymentEntity.Build.Result = deployment.Build.Result;
-            deploymentEntity.Build.Started = deployment.Build.Started;
-            deploymentEntity.Build.Finished = deployment.Build.Finished;
+                deploymentEntity.Build.Status = deployment.Build.Status;
+                deploymentEntity.Build.Result = deployment.Build.Result;
+                deploymentEntity.Build.Started = deployment.Build.Started;
+                deploymentEntity.Build.Finished = deployment.Build.Finished;
 
-            await _deploymentRepository.Update(deploymentEntity);
+                await _deploymentRepository.Update(deploymentEntity);
+            }
+            catch (HttpRequestException)
+            {
+                _logger.LogInformation("The requested build number {buildNumber} does not exist, updating it as failed in the database", buildNumber);
+                deploymentEntity.Build.Status = BuildStatus.Completed;
+                deploymentEntity.Build.Result = BuildResult.Failed;
+                await _deploymentRepository.Update(deploymentEntity);
+            }
         }
 
         private async Task<Build> QueueDeploymentBuild(

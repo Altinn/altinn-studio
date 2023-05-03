@@ -1,26 +1,36 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { IFormButtonComponent } from '../../../types/global';
 import { ButtonPreview } from './ButtonPreview';
 import { ComponentType } from '../../../components';
-import { appDataMock, renderWithMockStore } from '../../../testing/mocks';
+import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
+import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { ITextResource } from 'app-shared/types/global';
+
+// Test data:
+const org = 'org';
+const app = 'app';
+const sendInnKey = 'sendinn';
+const sendInnText = 'Send inn';
+const sendInnTextResource: ITextResource = { id: sendInnKey, value: sendInnText };
+const nbTextResources: ITextResource[] = [sendInnTextResource];
 
 describe('ButtonPreview', () => {
-  test('should render "Send inn" button', () => {
-    renderWithMock({
+  test('should render "Send inn" button', async () => {
+    await renderWithMock({
       id: 'PreviewButtonSubmit',
       textResourceBindings: {
-        title: 'Send inn',
+        title: sendInnKey,
       },
       type: ComponentType.Button,
       onClickAction: () => {},
       itemType: 'COMPONENT'
     });
-    expect(screen.getByRole('button', { name: 'Send inn' }));
+    expect(screen.getByRole('button', { name: sendInnText }));
   });
 
-  test('should render next navigation button', () => {
-    renderWithMock({
+  test('should render next navigation button', async () => {
+    await renderWithMock({
       id: 'PreviewNavigationButton',
       textResourceBindings: {
         next: 'next',
@@ -34,8 +44,8 @@ describe('ButtonPreview', () => {
     expect(screen.getByRole('button', { name: 'next' }));
   });
 
-  test('should render back navigation button', () => {
-    renderWithMock({
+  test('should render back navigation button', async () => {
+    await renderWithMock({
       id: 'PreviewNavigationButton',
       textResourceBindings: {
         next: 'next',
@@ -49,8 +59,8 @@ describe('ButtonPreview', () => {
     expect(screen.getByRole('button', { name: 'back' }));
   });
 
-  test('Should render back and next buttons', () => {
-    renderWithMock({
+  test('Should render back and next buttons', async () => {
+    await renderWithMock({
       id: 'PreviewNavigationButton',
       textResourceBindings: {
         next: 'next',
@@ -66,9 +76,12 @@ describe('ButtonPreview', () => {
   });
 });
 
-const renderWithMock = (component: IFormButtonComponent) => {
-  const appData = {
-    ...appDataMock,
-  };
-  return renderWithMockStore({ appData })(<ButtonPreview component={component} />);
+const renderWithMock = async (component: IFormButtonComponent) => {
+
+  const { result: texts } = renderHookWithMockStore({}, {
+    getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources })
+  })(() => useTextResourcesQuery(org, app)).renderHookResult;
+  await waitFor(() => expect(texts.current.isSuccess).toBe(true));
+
+  return renderWithMockStore()(<ButtonPreview component={component} />);
 };

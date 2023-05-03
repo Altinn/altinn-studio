@@ -428,7 +428,6 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
 
 const mapStateToProps = (state: IAppState, props: any): any => {
   return {
-    ruleModelElements: state.appData.ruleModel.model.filter((key: any) => key.type === 'condition'),
     conditionalRendering: state.serviceConfigurations.conditionalRendering,
     selectedFunction: props.selectedFunction,
   };
