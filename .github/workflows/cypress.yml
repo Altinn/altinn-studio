@@ -39,6 +39,10 @@ jobs:
           YARN_NM_MODE: 'hardlinks-local'
           HUSKY: '0'
 
+      - name: Wait for deploy to environment
+        run: sleep 8m
+        shell: bash
+
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
