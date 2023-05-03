@@ -14,6 +14,7 @@ export const dashboard = {
     links: "div[data-field='links']",
     favourite: "button[id*='fav-repo']",
     edit: "[data-testid='edit-repo-link']",
+    repo: "button[data-testid='gitea-repo-link']",
     previousPage: '[data-testid=KeyboardArrowLeftIcon]',
     nextPage: '[data-testid=KeyboardArrowRightIcon]',
     sortUp: '[data-testid=ArrowUpwardIcon]',

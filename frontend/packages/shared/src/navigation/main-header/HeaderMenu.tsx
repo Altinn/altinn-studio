@@ -43,7 +43,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
   };
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
-    navigate("/" + context + location.search);
+    navigate('/' + context + location.search);
     setMenuAnchorEl(null);
   };
 
@@ -94,7 +94,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
         {selectableOrgs?.map((selectableOrg) => {
           return (
             <MenuItem
-              id={`menu-org-${selectableOrg.id}`}
+              id={`menu-org-${selectableOrg.username}`}
               selected={selectedContext === selectableOrg.username}
               key={selectableOrg.id}
               onClick={() => handleSetSelectedContext(selectableOrg.username)}
@@ -106,7 +106,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
         <MenuItem
           id='menu-self'
           selected={selectedContext === SelectedContextType.Self}
-          onClick={() => handleSetSelectedContext("")}
+          onClick={() => handleSetSelectedContext('')}
         >
           {user.full_name || user.login}
         </MenuItem>
