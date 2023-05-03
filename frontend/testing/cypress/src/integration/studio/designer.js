@@ -8,7 +8,7 @@ context('Designer', () => {
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.getrepo(Cypress.env('designerApp'), Cypress.env('accessToken')).then((response) => {
-      if (response.status !== 200) {
+      if (response.status === 404) {
         const [_, appName] = Cypress.env('designerApp').split('/');
         cy.createapp('Testdepartementet', appName);
       }
