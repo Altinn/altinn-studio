@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -12,6 +11,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
 using LibGit2Sharp;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
@@ -29,6 +29,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string OPTIONS_FOLDER_PATH = "App/options/";
         private const string LAYOUTS_FOLDER_NAME = "App/ui/";
         private const string LAYOUTS_IN_SET_FOLDER_NAME = "layouts/";
+        private const string INITIAL_LAYOUTSET_NAME = "initial-layout-set";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
@@ -384,6 +385,40 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Configure the initial layoutset by moving layoutsfolder to new dest: App/ui/initial-layoutset/layouts
+        /// </summary>
+        public void MoveLayoutsToInitialLayoutSet()
+        {
+            string destRelativePath = GetPathToLayoutSet(INITIAL_LAYOUTSET_NAME);
+            if (DirectoryExistsByRelativePath(destRelativePath))
+            {
+                throw new BadHttpRequestException("Layout sets are already configured");
+            }
+            string destAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(destRelativePath);
+
+            string sourceRelativePath = GetPathToLayoutSet(null);
+            if (!DirectoryExistsByRelativePath(sourceRelativePath))
+            {
+                throw new NotFoundException("Layouts folder doesn't exist");
+            }
+
+            string sourceAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativePath);
+            string layoutSetToCreatePath = destAbsolutePath.Remove(destAbsolutePath.IndexOf(LAYOUTS_IN_SET_FOLDER_NAME, StringComparison.Ordinal));
+            Directory.CreateDirectory(layoutSetToCreatePath);
+            Directory.Move(sourceAbsolutePath, destAbsolutePath);
+        }
+
+        public void MoveOtherUiFilesToLayoutSet()
+        {
+            string sourceLayoutSettingsPath = GetPathToLayoutSettings(null);
+            string destLayoutSettingsPath = GetPathToLayoutSettings(INITIAL_LAYOUTSET_NAME);
+            MoveFileByRelativePath(sourceLayoutSettingsPath, destLayoutSettingsPath, LAYOUT_SETTINGS_FILENAME);
+            string sourceRuleHandlerPath = GetPathToRuleHandler(null);
+            string destRuleHandlerPath = GetPathToRuleHandler(INITIAL_LAYOUTSET_NAME);
+            MoveFileByRelativePath(sourceRuleHandlerPath, destRuleHandlerPath, RULE_HANDLER_FILENAME);
+        }
+
+        /// <summary>
         /// Check if app uses layoutsets or not based on whether
         /// the list of layoutset names actually are layoutset names
         /// or only the default folder for layouts
@@ -508,7 +543,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 throw new ArgumentException("New layout name must be unique.");
             }
-            File.Move(GetAbsoluteFilePathSanitized(currentFilePath), GetAbsoluteFilePathSanitized(newFilePath));
+            File.Move(GetAbsoluteFileOrDirectoryPathSanitized(currentFilePath), GetAbsoluteFileOrDirectoryPathSanitized(newFilePath));
         }
 
         public async Task<LayoutSets> GetLayoutSetsFile()
@@ -591,6 +626,26 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 return ruleConfiguration;
             }
             throw new NotFoundException("Rule configuration not found.");
+        }
+
+        public async Task<LayoutSets> CreateLayoutSetFile()
+        {
+            LayoutSets layoutSets = new()
+            {
+                Sets = new List<LayoutSetConfig>
+                {
+                    new()
+                    {
+                        Id = INITIAL_LAYOUTSET_NAME,
+                        DataTypes = "Task_1", // Name of datamodel - but what if it does not exist?
+                        Tasks = new List<string> { "Task_1" }
+                    }
+                }
+            };
+            string layoutSetsString = JsonSerializer.Serialize(layoutSets, _jsonOptions);
+            string pathToLayOutSets = Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETS_FILENAME);
+            await WriteTextByRelativePathAsync(pathToLayOutSets, layoutSetsString);
+            return layoutSets;
         }
 
         /// <summary>

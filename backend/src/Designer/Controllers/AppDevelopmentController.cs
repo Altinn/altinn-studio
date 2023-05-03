@@ -9,6 +9,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -62,7 +63,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("form-layouts")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, string layoutSetName)
+        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app,[FromQuery] string layoutSetName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -179,7 +180,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutSetName">Name of the layoutset the specific layputsettings belong to</param>
+        /// <param name="layoutSetName">Name of the layoutset the specific layoutsettings belong to</param>
         /// <returns>The content of the settings file</returns>
         [HttpGet]
         [UseSystemTextJson]
@@ -196,6 +197,10 @@ namespace Altinn.Studio.Designer.Controllers
             catch (FileNotFoundException exception)
             {
                 return NotFound(exception.Message);
+            }
+            catch (BadHttpRequestException exception)
+            {
+                return BadRequest(exception);
             }
         }
 
@@ -214,11 +219,38 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 LayoutSets layoutSets = await _appDevelopmentService.GetLayoutSets(org, app, developer);
+                if (layoutSets is null)
+                {
+                    return Ok("App is not configured to use layout sets");
+                }
                 return Ok(layoutSets);
             }
             catch (FileNotFoundException)
             {
                 return NotFound("Layout-sets.json not found");
+            }
+        }
+
+        /// <summary>
+        /// Create a layout-set.json file
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The layout-sets.json</returns>
+        [HttpPost]
+        [UseSystemTextJson]
+        [Route("layout-sets")]
+        public async Task<ActionResult<LayoutSets>> ConfigureLayoutSet(string org, string app)
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                await _appDevelopmentService.ConfigureLayoutSet(org, app, developer);
+                return Ok("Layout set created");
+            }
+            catch (Exception exception)
+            {
+                return NotFound($"Layout sets could not be configured: {exception}");
             }
         }
 
@@ -230,7 +262,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="layoutSet">The config needed for the layoutset to be added to layout-sets.json</param>
         [HttpPut]
         [UseSystemTextJson]
-        [Route("layout-set")]
+        [Route("layout-sets")]
         public async Task<ActionResult> AddLayoutSet(string org, string app, [FromQuery] LayoutSetConfig layoutSet)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -254,12 +286,22 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of the layoutset the specific rule handler belong to</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [Route("rule-handler")]
-        public IActionResult GetRuleHandler(string org, string app)
+        public async Task<IActionResult> GetRuleHandler(string org, string app, [FromQuery] string layoutSetName)
         {
-            return Content(_repository.GetRuleHandler(org, app), "application/javascript", Encoding.UTF8);
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                string ruleHandler = await _appDevelopmentService.GetRuleHandler(org, app, developer, layoutSetName);
+                return Content(ruleHandler);
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Could not get rule handler: {e}");
+            }
         }
 
         /// <summary>

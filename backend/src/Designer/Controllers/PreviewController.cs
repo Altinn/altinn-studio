@@ -128,7 +128,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                JsonNode layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
                 return Ok(layoutSets);
             }
             catch (NotFoundException)

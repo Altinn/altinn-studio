@@ -84,6 +84,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<LayoutSets> GetLayoutSets(string org, string app, string developer);
 
         /// <summary>
+        /// Creates a layout-sets.json file
+        /// </summary>
+        /// <param name="org">Identifier for organisation</param>
+        /// <param name="app">Identifier for application</param>
+        /// <param name="developer">Identifier for app-developer</param>
+        public Task<LayoutSets> ConfigureLayoutSet(string org, string app, string developer);
+
+        /// <summary>
         /// Adds a config for an additional layoutset to the layout-set.json
         /// </summary>
         /// <param name="org">Identifier for organisation</param>
@@ -91,6 +99,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Identifier for app-developer</param>
         /// <param name="layoutSet">Config for the new layoutset</param>
         public Task AddLayoutSet(string org, string app, string developer, LayoutSetConfig layoutSet);
+
+        public Task<string> GetRuleHandler(string org, string app, string developer, string layoutSetName);
+
+        public Task SaveRuleHandler(string org, string app, string developer, string ruleHandler, string layoutSetName);
 
     }
 }

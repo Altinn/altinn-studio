@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
+using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -30,13 +32,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
+            if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                Dictionary<string, JsonNode> formLayoutsForLayoutSet = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
-                return formLayoutsForLayoutSet;
+                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(null);
+            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
             return formLayouts;
         }
 
@@ -46,12 +47,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
+            if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutFileName, formLayout);
+                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            await altinnAppGitRepository.SaveLayout(null, layoutFileName, formLayout);
+            await altinnAppGitRepository.SaveLayout(layoutSetName, layoutFileName, formLayout);
         }
 
         /// <inheritdoc />
@@ -86,13 +87,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
+            if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                var layoutSettingsForLayoutSet = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetName);
-                return layoutSettingsForLayoutSet;
+                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            var layoutSettings = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(null);
+            var layoutSettings = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetName);
             return layoutSettings;
         }
 
@@ -115,11 +115,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                LayoutSets layoutsets = await altinnAppGitRepository.GetLayoutSetsFile();
-                return layoutsets;
+                // introduce better check to evaluate if app uses layout sets
+                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+                return layoutSets;
             }
 
-            throw new NotFoundException("No layoutset was found for this app");
+            return null;
+        }
+
+        public async Task<LayoutSets> ConfigureLayoutSet(string org, string app, string developer)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                throw new BadHttpRequestException("Layoutsets are already configured for this app");
+            }
+
+            altinnAppGitRepository.MoveLayoutsToInitialLayoutSet();
+            altinnAppGitRepository.MoveOtherUiFilesToLayoutSet();
+            LayoutSets layoutSets = await altinnAppGitRepository.CreateLayoutSetFile();
+            return layoutSets;
         }
 
         public async Task AddLayoutSet(string org, string app, string developer, LayoutSetConfig layoutSet)
@@ -133,7 +149,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
             }
 
-            throw new NotFoundException("No layoutset was found for this app");
+            throw new NotFoundException("No layout set found for this app");
         }
 
         /// <inheritdoc />
@@ -141,13 +157,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
+            if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                string ruleHandlerForLayoutSet = await altinnAppGitRepository.GetRuleHandler(layoutSetName);
-                return ruleHandlerForLayoutSet;
+                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            string ruleHandler = await altinnAppGitRepository.GetRuleHandler(null);
+            string ruleHandler = await altinnAppGitRepository.GetRuleHandler(layoutSetName);
             return ruleHandler;
         }
 
@@ -156,12 +171,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
+            if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                await altinnAppGitRepository.SaveRuleHandler(layoutSetName, ruleHandler);
-                return;
+                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
-            await altinnAppGitRepository.SaveRuleHandler(null, ruleHandler);
+            await altinnAppGitRepository.SaveRuleHandler(layoutSetName, ruleHandler);
         }
     }
 }
