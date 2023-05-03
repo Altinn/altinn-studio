@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { EditModalContent } from './config/EditModalContent';
 import '../styles/index.css';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
 import { componentIcons, ComponentType } from './';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import type { FormComponentType, IAppState, IFormComponent } from '../types/global';
+import type { FormComponentType, IFormComponent } from '../types/global';
 import classes from './EditFormComponent.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { XMarkIcon, TrashIcon, PencilIcon, MonitorIcon, CheckmarkIcon } from '@navikt/aksel-icons';
@@ -22,6 +20,11 @@ import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteForm
 import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
 import { ITextResource } from 'app-shared/types/global';
 import { deepCopy } from 'app-shared/pure';
+import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
+import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
+import { useRuleConfigMutation } from '../hooks/mutations/useRuleConfigMutation';
+import { switchSelectedFieldId } from '../utils/ruleConfigUtils';
 
 export interface IEditFormComponentProps {
   component: IFormComponent;
@@ -38,11 +41,12 @@ enum EditFormComponentMode {
 }
 
 export function EditFormComponent(props: IEditFormComponentProps) {
-  const dispatch = useDispatch();
   const { t } = useTranslation();
   const { org, app } = useParams();
+  const { data: ruleConfig } = useRuleConfigQuery(org, app);
   const { mutate: updateFormComponent } = useUpdateFormComponentMutation(org, app);
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app);
+  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app);
   const [component, setComponent] = useState<IFormComponent>({
     id: props.id,
     ...props.component,
@@ -51,9 +55,7 @@ export function EditFormComponent(props: IEditFormComponentProps) {
   const isEditMode = mode === EditFormComponentMode.Edit;
   const isPreviewMode = mode === EditFormComponentMode.Preview;
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
-  const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner.layout?.selectedLayout
-  );
+  const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
   const previewableComponents = [
     ComponentType.Checkboxes,
     ComponentType.RadioButtons,
@@ -84,14 +86,7 @@ export function EditFormComponent(props: IEditFormComponentProps) {
     if (JSON.stringify(component) !== JSON.stringify(props.component)) {
       handleSaveChange(component);
       if (props.id !== component.id) {
-        dispatch(
-          FormLayoutActions.updateFormComponentId({
-            newId: component.id,
-            currentId: props.id,
-            org,
-            app,
-          })
-        );
+        switchSelectedFieldId(ruleConfig, props.id, component.id, saveRuleConfig);
       }
     }
   };

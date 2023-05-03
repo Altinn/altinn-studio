@@ -85,15 +85,6 @@ const render = async (props: Partial<IEditFormComponentProps> = {}) => {
         unSavedChanges: false
       }
     },
-    serviceConfigurations: {
-      manageServiceConfiguration: null,
-      conditionalRendering: null,
-      ruleConnection: null,
-      APIs: {
-        availableCodeLists: null as any,
-        connections: null as any
-      }
-    },
     errors: null,
     widgets: null
   };

@@ -1,10 +1,11 @@
 import React from 'react';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Container, IProvidedContainerProps } from './Container';
+import { Container, IContainerProps } from './Container';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { queriesMock, container1IdMock, baseContainerIdMock, layoutMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { queriesMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { container1IdMock, baseContainerIdMock, layoutMock } from '../testing/layoutMock';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { createMockedDndEvents } from './helpers/dnd-helpers.test';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -63,8 +64,8 @@ const waitForData = async () => {
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<IProvidedContainerProps> = {}) => {
-  const allProps: IProvidedContainerProps = {
+const render = async (props: Partial<IContainerProps> = {}) => {
+  const allProps: IContainerProps = {
     isBaseContainer: true,
     canDrag: false,
     id: baseContainerIdMock,

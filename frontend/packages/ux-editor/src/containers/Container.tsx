@@ -19,7 +19,7 @@ import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteForm
 import { ITextResource } from 'app-shared/types/global';
 import { useText } from '../hooks/useText';
 import { useParams } from 'react-router-dom';
-import { EditFormGroup } from '../components/EditFormGroup';
+import { EditContainer } from './EditContainer';
 import { EmptyContainerPlaceholder } from './EmptyContainerPlaceholder';
 
 export interface IContainerProps {
@@ -123,7 +123,7 @@ export const Container = (props: IContainerProps) => {
       key={props.id}
       container={(dragHandleRef) =>
         editMode ? (
-          <EditFormGroup
+          <EditContainer
             id={props.id}
             layoutOrder={props.layoutOrder}
             dataModel={props.dataModel}

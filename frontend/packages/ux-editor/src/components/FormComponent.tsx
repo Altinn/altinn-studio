@@ -1,5 +1,5 @@
 import React from 'react';
-import { EditContainer } from '../containers/EditContainer';
+import { EditFormComponent } from './EditFormComponent';
 import type { FormComponentType } from '../types/global';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -64,7 +64,7 @@ export const FormComponent = (props: IFormElementProps) => {
 
   return (
     <div>
-      <EditContainer
+      <EditFormComponent
         component={component}
         id={props.id}
         partOfGroup={props.partOfGroup}
@@ -73,7 +73,7 @@ export const FormComponent = (props: IFormElementProps) => {
         <button className={'divider'}>
           {renderLabel()}
         </button>
-      </EditContainer>
+      </EditFormComponent>
     </div>
   );
 };
