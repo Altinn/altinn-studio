@@ -19,7 +19,6 @@ namespace Altinn.Studio.Designer.Infrastructure
         public static IServiceCollection ConfigureNonMarkedSettings(this IServiceCollection services, IConfiguration configuration)
         {
             services.RegisterSettings<KeyVaultSettings>(configuration, "kvSetting");
-            services.RegisterSettings<CertificateSettings>(configuration);
             services.RegisterSettings<AzureDevOpsSettings>(configuration, "Integrations:AzureDevOpsSettings");
             return services;
         }
