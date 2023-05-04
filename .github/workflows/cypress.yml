@@ -39,10 +39,21 @@ jobs:
           YARN_NM_MODE: 'hardlinks-local'
           HUSKY: '0'
 
+      - name: Wait for deploy to environment
+        run: sleep 6m
+        shell: bash
+
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
           install: false
           working-directory: frontend/testing/cypress
-          env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }}
+          env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }},accessToken=${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
           spec: src/integration/studio/*.js
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: frontend/testing/cypress/screenshots

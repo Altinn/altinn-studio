@@ -8,16 +8,16 @@ context('Designer', () => {
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.getrepo(Cypress.env('designerApp'), Cypress.env('accessToken')).then((response) => {
-      if (response.status !== 200) {
+      if (response.status === 404) {
         const [_, appName] = Cypress.env('designerApp').split('/');
-        cy.createapp('Testdepartementet', appName);
+        cy.createapp(Cypress.env('autoTestUser'), appName);
       }
     });
     cy.visit('/');
     cy.getrepo(Cypress.env('withoutDataModelApp'), Cypress.env('accessToken')).then((response) => {
       if (response.status !== 200) {
         const [_, appName] = Cypress.env('withoutDataModelApp').split('/');
-        cy.createapp('Testdepartementet', appName);
+        cy.createapp(Cypress.env('autoTestUser'), appName);
       }
     });
     cy.clearCookies();
@@ -49,14 +49,15 @@ context('Designer', () => {
     cy.deletecomponents();
   });
 
-  it('is possible to delete local changes of an app ', () => {
-    cy.searchAndOpenApp(Cypress.env('designerApp'));
-    cy.intercept('GET', '**/layout-settings').as('getLayoutSettings');
-    cy.get(designer.appMenu['edit']).click();
-    cy.wait('@getLayoutSettings');
-    cy.get("button[aria-label='Legg til ny side']").click();
-    cy.get(designer.formComponents.longAnswer).parents(designer.draggable).trigger('dragstart');
-    cy.get(designer.dragToArea).trigger('drop');
-    cy.deleteLocalChanges(Cypress.env('designerApp'));
-  });
+  // Disabled for now, as this generates too many copies of the same app
+  // it('is possible to delete local changes of an app ', () => {
+  //   cy.searchAndOpenApp(Cypress.env('designerApp'));
+  //   cy.intercept('GET', '**/layout-settings').as('getLayoutSettings');
+  //   cy.get(designer.appMenu['edit']).click();
+  //   cy.wait('@getLayoutSettings');
+  //   cy.get("button[aria-label='Legg til ny side']").click();
+  //   cy.get(designer.formComponents.longAnswer).parents(designer.draggable).trigger('dragstart');
+  //   cy.get(designer.dragToArea).trigger('drop');
+  //   cy.deleteLocalChanges(Cypress.env('designerApp'));
+  // });
 });
