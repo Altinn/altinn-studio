@@ -168,7 +168,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
       header: t('sync_header.sharing_changes'),
       isLoading: true,
     });
-    !ShowLoading;
+
     await repoPushMutation.mutateAsync();
     setModalState({
       ...initialModalState,
