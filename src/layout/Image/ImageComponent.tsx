@@ -15,7 +15,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function ImageComponent({ node, language, getTextResourceAsString }: IImageProps) {
+export function ImageComponent({ node, language, getTextResourceAsString, getTextResource }: IImageProps) {
   const { id, image, textResourceBindings } = node.item;
   const classes = useStyles();
   const languageKey = useAppSelector((state) => state.profile.profile?.profileSettingPreference.language || 'nb');
@@ -74,7 +74,7 @@ export function ImageComponent({ node, language, getTextResourceAsString }: IIma
         >
           <HelpTextContainer
             language={language}
-            helpText={getTextResourceAsString(textResourceBindings.help)}
+            helpText={getTextResource(textResourceBindings.help)}
             title={altText}
           />
         </Grid>

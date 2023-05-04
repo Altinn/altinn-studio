@@ -45,7 +45,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function ParagraphComponent({ node, getTextResourceAsString, language }: IParagraphProps) {
+export function ParagraphComponent({ node, getTextResourceAsString, getTextResource, language }: IParagraphProps) {
   const { id, textResourceBindings } = node.item;
   const classes = useStyles();
 
@@ -74,7 +74,7 @@ export function ParagraphComponent({ node, getTextResourceAsString, language }: 
         >
           <HelpTextContainer
             language={language}
-            helpText={getTextResourceAsString(textResourceBindings.help)}
+            helpText={getTextResource(textResourceBindings.help)}
             title={getPlainTextFromNode(text)}
           />
         </Grid>
