@@ -71,10 +71,6 @@ const render = async (props: Partial<IContainerProps> = {}) => {
     id: baseContainerIdMock,
     layoutOrder: layoutMock.order,
     dndEvents: createMockedDndEvents(),
-    dataModel: [],
-    components: layoutMock.components,
-    containers: layoutMock.containers,
-    textResources: null,
     ...props
   };
 

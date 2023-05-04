@@ -59,7 +59,6 @@ const render = async (props: Partial<IEditContainerProps> = {}) => {
   const allProps: IEditContainerProps = {
     id: baseContainerIdMock,
     layoutOrder: layoutMock.order,
-    dataModel: [],
     dragHandleRef: null,
     cancelEditMode: cancelEditModeMock,
     ...props
