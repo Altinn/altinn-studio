@@ -10,14 +10,7 @@ import {
   swapArrayElements,
 } from 'app-shared/pure/array-functions';
 import { useParams } from 'react-router-dom';
-import { useDatamodelQuery } from '../hooks/queries/useDatamodelQuery';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdateFormComponentOrderMutation';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
-import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { ITextResource } from 'app-shared/types/global';
 
 export interface DesignViewProps {
   isDragging: boolean;
@@ -44,9 +37,6 @@ export const DesignView = ({
   );
 
   const { org, app } = useParams();
-  const { data: datamodel } = useDatamodelQuery(org, app);
-  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
-  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
   const updateFormComponentOrderMutation = useUpdateFormComponentOrderMutation(org, app);
 
   const setContainerLayoutOrder = (containerId: string, newLayoutOrder: string[]) => {
@@ -164,10 +154,6 @@ export const DesignView = ({
         id={baseContainerId}
         layoutOrder={state.layoutOrder}
         dndEvents={dndEvents}
-        dataModel={datamodel}
-        components={components}
-        containers={containers}
-        textResources={textResources}
       />
     )
   );

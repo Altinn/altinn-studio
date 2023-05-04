@@ -1,17 +1,21 @@
 import React from 'react';
+import { ConnectDragSource } from 'react-dnd';
+import { useParams } from 'react-router-dom';
+import type { EditorDndEvents } from '../containers/helpers/dnd-types';
 import { EditFormComponent } from './EditFormComponent';
 import type { FormComponentType } from '../types/global';
-import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useParams } from 'react-router-dom';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { ComponentType } from './index';
 import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { DroppableDraggableComponent } from '../containers/DroppableDraggableComponent';
 
 export interface IFormElementProps {
   id: string;
+  index: number;
   partOfGroup?: boolean;
+  dndEvents: EditorDndEvents;
   dragHandleRef: ConnectDragSource;
 }
 
@@ -63,17 +67,24 @@ export const FormComponent = (props: IFormElementProps) => {
   };
 
   return (
-    <div>
-      <EditFormComponent
-        component={component}
-        id={props.id}
-        partOfGroup={props.partOfGroup}
-        dragHandleRef={props.dragHandleRef}
-      >
-        <button className={'divider'}>
-          {renderLabel()}
-        </button>
-      </EditFormComponent>
-    </div>
+    <DroppableDraggableComponent
+      canDrag
+      containerId={props.id}
+      dndEvents={props.dndEvents}
+      id={props.id}
+      index={props.index}
+      component={(dragHandleRef) => (
+        <EditFormComponent
+          component={component}
+          id={props.id}
+          partOfGroup={props.partOfGroup}
+          dragHandleRef={props.dragHandleRef}
+        >
+          <button className={'divider'}>
+            {renderLabel()}
+          </button>
+        </EditFormComponent>
+      )}
+    />
   );
 };

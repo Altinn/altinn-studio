@@ -14,7 +14,7 @@ const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
 
-const setEditModeMock = jest.fn();
+const cancelEditModeMock = jest.fn();
 
 describe('EditContainer', () => {
   afterEach(jest.clearAllMocks);
@@ -33,7 +33,7 @@ describe('EditContainer', () => {
     expect(cancelButton).toBeInTheDocument();
     await act(() => user.click(cancelButton));
 
-    expect(setEditModeMock).toHaveBeenCalledWith(false);
+    expect(cancelEditModeMock).toHaveBeenCalledTimes(1);
   });
 
   it('should save form when clicking the Save button', async () => {
@@ -44,7 +44,7 @@ describe('EditContainer', () => {
     await act(() => user.click(saveButton));
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(setEditModeMock).toHaveBeenCalledWith(false);
+    expect(cancelEditModeMock).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -60,11 +60,8 @@ const render = async (props: Partial<IEditContainerProps> = {}) => {
     id: baseContainerIdMock,
     layoutOrder: layoutMock.order,
     dataModel: [],
-    components: layoutMock.components,
-    containers: layoutMock.containers,
-    textResources: null,
     dragHandleRef: null,
-    setEditMode: setEditModeMock,
+    cancelEditMode: cancelEditModeMock,
     ...props
   };
 

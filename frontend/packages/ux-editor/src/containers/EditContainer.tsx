@@ -7,8 +7,6 @@ import { idExists, validComponentId } from '../utils/formLayoutUtils';
 import type {
   ICreateFormContainer,
   IDataModelFieldElement,
-  IFormDesignerComponents,
-  IFormDesignerContainers,
   IFormLayoutOrder,
 } from '../types/global';
 import {
@@ -26,19 +24,21 @@ import { DragHandle } from '../components/DragHandle';
 import { TextResource } from '../components/TextResource';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
-import { ITextResource } from 'app-shared/types/global';
+import { useDatamodelQuery } from '../hooks/queries/useDatamodelQuery';
 import { useText } from '../hooks/useText';
 import { useParams } from 'react-router-dom';
+import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
+import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
+import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { ITextResource } from 'app-shared/types/global';
 
 export interface IEditContainerProps {
   id: string;
   layoutOrder?: IFormLayoutOrder;
-  dataModel: IDataModelFieldElement[];
-  components: IFormDesignerComponents;
-  containers: IFormDesignerContainers;
-  textResources: ITextResource[];
   dragHandleRef: ConnectDragSource;
-  setEditMode: (editMode: boolean) => void;
+  cancelEditMode: () => void;
 }
 
 export const EditContainer = (props: IEditContainerProps) => {
@@ -46,10 +46,14 @@ export const EditContainer = (props: IEditContainerProps) => {
 
   const { org, app } = useParams();
 
-  const updateFormContainerMutation = useUpdateFormContainerMutation(org, app);
-  const updateContainerIdMutation = useUpdateContainerIdMutation(org, app);
+  const { data: dataModel } = useDatamodelQuery(org, app);
+  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
 
-  const [tmpContainer, setTmpContainer] = useState<ICreateFormContainer>(props.containers[props.id]);
+  const { mutate: updateFormContainer } = useUpdateFormContainerMutation(org, app);
+  const { mutate: updateContainerId } = useUpdateContainerIdMutation(org, app);
+
+  const [tmpContainer, setTmpContainer] = useState<ICreateFormContainer>(containers[props.id]);
   const [tmpId, setTmpId] = useState<string>(props.id);
   const [groupIdError, setGroupIdError] = useState<string>(null);
   const groupIdPopoverRef = useRef<HTMLDivElement>();
@@ -87,44 +91,44 @@ export const EditContainer = (props: IEditContainerProps) => {
 
   const handleDiscard = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
-    props.setEditMode(false);
-    setTmpContainer(props.containers[props.id])
+    props.cancelEditMode();
+    setTmpContainer(containers[props.id])
     setTmpId(props.id)
   };
 
   const handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     if (tmpId && tmpId !== props.id) {
-      if (idExists(tmpId, props.components, props.containers)) {
+      if (idExists(tmpId, components, containers)) {
         setGroupIdError(t('ux_editor.modal_properties_group_id_not_unique_error'));
       } else if (!validComponentId.test(tmpId)) {
         setGroupIdError(t('ux_editor.modal_properties_group_id_not_valid'));
       } else {
-        updateFormContainerMutation.mutate({
+        updateFormContainer({
           updatedContainer: tmpContainer,
           id: props.id,
         });
-        updateContainerIdMutation.mutate({
+        updateContainerId({
           currentId: props.id,
           newId: tmpId,
         });
-        props.setEditMode(false);
+        props.cancelEditMode();
       }
     } else if (tmpContainer.tableHeaders?.length === 0) {
       setTableHeadersError(t('ux_editor.modal_properties_group_table_headers_error'));
     } else {
       // No validations, save.
-      updateFormContainerMutation.mutate({
+      updateFormContainer({
         updatedContainer: tmpContainer,
         id: props.id,
       });
-      props.setEditMode(false)
+      props.cancelEditMode()
     }
   };
 
   const handleNewId = (event: ChangeEvent<HTMLInputElement>) => {
     if (
-      idExists(event.target.value, props.components, props.containers) &&
+      idExists(event.target.value, components, containers) &&
       event.target.value !== props.id
     ) {
       setGroupIdError(t('ux_editor.modal_properties_group_id_not_unique_error'));
@@ -167,13 +171,13 @@ export const EditContainer = (props: IEditContainerProps) => {
   };
 
   const getMaxOccursForGroupFromDataModel = useCallback((dataBindingName: string): number => {
-    const element: IDataModelFieldElement = props.dataModel.find(
+    const element: IDataModelFieldElement = dataModel.find(
       (e: IDataModelFieldElement) => {
         return e.dataBindingName === dataBindingName;
       }
     );
     return element?.maxOccurs;
-  }, [props.dataModel]);
+  }, [dataModel]);
 
   const handleDataModelGroupChange = useCallback((dataBindingName: string, key: string) => {
     const maxOccurs = getMaxOccursForGroupFromDataModel(dataBindingName);
@@ -239,7 +243,7 @@ export const EditContainer = (props: IEditContainerProps) => {
               <CheckboxGroup
                 error={tableHeadersError}
                 items={items.map((id) => ({
-                  label: getTextResource(props.components[id].textResourceBindings?.title, props.textResources),
+                  label: getTextResource(components[id].textResourceBindings?.title, textResources),
                   name: id,
                   checked:
                     tmpContainer.tableHeaders === undefined ||

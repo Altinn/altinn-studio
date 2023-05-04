@@ -1,24 +1,20 @@
 import React, { useState } from 'react';
+import { ConnectDragSource } from 'react-dnd';
+import { useParams } from 'react-router-dom';
+import cn from 'classnames';
 import '../styles/index.css';
 import { FormComponent } from '../components/FormComponent';
-import type {
-  IDataModelFieldElement,
-  IFormDesignerComponents,
-  IFormDesignerContainers,
-  IFormLayoutOrder,
-} from '../types/global';
-import { DroppableDraggableComponent } from './DroppableDraggableComponent';
+import type { IFormLayoutOrder } from '../types/global';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 import type { EditorDndEvents } from './helpers/dnd-types';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import classes from './Container.module.css';
-import cn from 'classnames';
 import { ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/DragHandle';
+import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
-import { ITextResource } from 'app-shared/types/global';
 import { useText } from '../hooks/useText';
-import { useParams } from 'react-router-dom';
 import { EditContainer } from './EditContainer';
 import { EmptyContainerPlaceholder } from './EmptyContainerPlaceholder';
 
@@ -29,10 +25,6 @@ export interface IContainerProps {
   layoutOrder?: IFormLayoutOrder;
   dndEvents: EditorDndEvents;
   canDrag: boolean;
-  dataModel: IDataModelFieldElement[];
-  components: IFormDesignerComponents;
-  containers: IFormDesignerContainers;
-  textResources: ITextResource[];
 }
 
 export const Container = (props: IContainerProps) => {
@@ -40,77 +32,46 @@ export const Container = (props: IContainerProps) => {
 
   const { org, app } = useParams();
 
-  const deleteFormContainerMutation = useDeleteFormContainerMutation(org, app);
+  const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app);
+  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
 
   const [editMode, setEditMode] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean>(true);
 
   const items = props.layoutOrder[props.id];
 
-  const handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    deleteFormContainerMutation.mutate(props.id);
-  };
-
-  const handleExpand = () => {
-    setExpanded((prevState: boolean) => !prevState);
-  };
-
-  const handleEditMode = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    setEditMode((prevState) => !prevState);
-  };
-
-  const renderHoverIcons = (): JSX.Element => (
+  const HoverIcons = (): JSX.Element => (
     <>
       <Button
         icon={<TrashIcon title={t('general.delete')} />}
-        onClick={handleContainerDelete}
+        onClick={() => deleteFormContainer(props.id)}
         variant={ButtonVariant.Quiet}
       />
       <Button
         icon={<PencilIcon title={t('general.edit')} />}
-        onClick={handleEditMode}
+        onClick={() => setEditMode(true)}
         variant={ButtonVariant.Quiet}
       />
     </>
   );
 
-  const renderContainer = (id: string, index: number): JSX.Element => {
-    return (
-      <Container
-        id={id}
-        key={id}
-        index={index}
-        isBaseContainer={false}
-        layoutOrder={props.layoutOrder}
-        dndEvents={props.dndEvents}
-        canDrag={true}
-        dataModel={props.dataModel}
-        components={props.components}
-        containers={props.containers}
-        textResources={props.textResources}
-      />
-    );
-  };
-
-  const renderFormComponent = (id: string, index: number): JSX.Element => {
-    return (
-      <DroppableDraggableComponent
-        canDrag
-        containerId={props.id}
-        dndEvents={props.dndEvents}
-        id={id}
-        index={index}
-        key={id}
-        component={(dragHandleRef) => (
-          <FormComponent
-            id={id}
-            partOfGroup={!props.isBaseContainer}
-            dragHandleRef={dragHandleRef}
-          />
-        )}
-      />
-    );
-  };
+  const FormGroupHeader = ({ dragHandleRef } : {dragHandleRef: ConnectDragSource}): JSX.Element => (
+    <div className={classes.formGroup} data-testid='form-group'>
+      <div ref={dragHandleRef} className={classes.dragHandle}>
+        <DragHandle />
+      </div>
+      <div className={classes.formGroupBar}>
+        <Button
+          color={ButtonColor.Secondary}
+          icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+          onClick={() => setExpanded(!expanded)}
+          variant={ButtonVariant.Quiet}
+        />
+        Gruppe - ${props.id}
+      </div>
+      <div className={classes.formGroupButtons}><HoverIcons /></div>
+    </div>
+  );
 
   return (
     <DroppableDraggableContainer
@@ -120,18 +81,13 @@ export const Container = (props: IContainerProps) => {
       parentContainerId={props.id}
       canDrag={props.canDrag}
       dndEvents={props.dndEvents}
-      key={props.id}
       container={(dragHandleRef) =>
         editMode ? (
           <EditContainer
             id={props.id}
             layoutOrder={props.layoutOrder}
-            dataModel={props.dataModel}
-            components={props.components}
-            containers={props.containers}
-            textResources={props.textResources}
             dragHandleRef={dragHandleRef}
-            setEditMode={setEditMode}
+            cancelEditMode={() => setEditMode(false)}
           />
         ) : (
           <div
@@ -141,31 +97,34 @@ export const Container = (props: IContainerProps) => {
               expanded && classes.expanded
             )}
           >
-            {!props.isBaseContainer && (
-              <div className={classes.formGroup} data-testid='form-group'>
-                <div ref={dragHandleRef} className={classes.dragHandle}>
-                  <DragHandle />
-                </div>
-                <div className={classes.formGroupBar}>
-                  <Button
-                    color={ButtonColor.Secondary}
-                    icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                    onClick={handleExpand}
-                    variant={ButtonVariant.Quiet}
-                  />
-                  Gruppe - ${props.id}
-                </div>
-                <div className={classes.formGroupButtons}>{renderHoverIcons()}</div>
-              </div>
-            )}
-            {expanded && props.components &&
+            {!props.isBaseContainer && (<FormGroupHeader dragHandleRef={dragHandleRef} />)}
+            {expanded && components &&
               (items.length ? (
                 items.map((itemId: string, index: number) => {
-                  const component = props.components[itemId];
+                  const component = components[itemId];
                   if (component) {
-                    return renderFormComponent(itemId, index);
+                    return (
+                      <FormComponent
+                        key={itemId}
+                        id={itemId}
+                        index={index}
+                        dndEvents={props.dndEvents}
+                        partOfGroup={!props.isBaseContainer}
+                        dragHandleRef={dragHandleRef}
+                      />
+                    );
                   }
-                  return props.containers[itemId] && renderContainer(itemId, index);
+                  return containers[itemId] && (
+                    <Container
+                      id={itemId}
+                      key={itemId}
+                      index={index}
+                      isBaseContainer={false}
+                      layoutOrder={props.layoutOrder}
+                      dndEvents={props.dndEvents}
+                      canDrag={true}
+                    />
+                  );
                 })
               ) : (
                 <EmptyContainerPlaceholder id={props.id} dndEvents={props.dndEvents} />

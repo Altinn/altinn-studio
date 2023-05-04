@@ -33,17 +33,6 @@ describe('Container', () => {
     expect(within(formGroup).getByText(textMock('general.edit'))).toBeInTheDocument();
   });
 
-  it('should delete container when clicking the Delete button', async () => {
-    await render();
-
-    const formGroup = screen.getByTestId('form-group');
-
-    const deleteButton = within(formGroup).getByText(textMock('general.delete'));
-    await act(() => user.click(deleteButton));
-
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-  });
-
   it('should be in edit mode when clicking the Edit button', async () => {
     await render();
 
@@ -54,6 +43,17 @@ describe('Container', () => {
 
     expect(screen.getByText(textMock('general.cancel'))).toBeInTheDocument();
     expect(screen.getByText(textMock('general.save'))).toBeInTheDocument();
+  });
+
+  it('should delete container when clicking the Delete button', async () => {
+    await render();
+
+    const formGroup = screen.getByTestId('form-group');
+
+    const deleteButton = within(formGroup).getByText(textMock('general.delete'));
+    await act(() => user.click(deleteButton));
+
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 });
 
