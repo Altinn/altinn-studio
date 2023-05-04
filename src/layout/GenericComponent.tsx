@@ -13,6 +13,7 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import { FormComponentContext } from 'src/layout/index';
+import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { makeGetFocus } from 'src/selectors/getLayoutData';
 import { Triggers } from 'src/types';
 import { getTextResource, gridBreakpoints, pageBreakStyles, selectComponentTexts } from 'src/utils/formComponentUtils';
@@ -267,6 +268,21 @@ export function GenericComponent<Type extends ComponentTypes = ComponentTypes>({
   };
 
   const showValidationMessages = hasValidationMessages && layoutComponent.renderDefaultValidations();
+
+  if (node.item.renderAsSummary) {
+    const RenderSummary = 'renderSummary' in node.def ? node.def.renderSummary.bind(node.def) : null;
+
+    if (!RenderSummary) {
+      return null;
+    }
+
+    return (
+      <SummaryComponent
+        summaryNode={node as LayoutNodeFromType<'Summary'>}
+        overrides={{ display: { hideChangeButton: true } }}
+      />
+    );
+  }
 
   if (layoutComponent.directRender(componentProps) || overrideDisplay?.directRender) {
     return (

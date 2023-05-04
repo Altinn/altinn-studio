@@ -56,6 +56,12 @@
           "default": false,
           "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
+        "renderAsSummary": {
+          "title": "Render as summary",
+          "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+          "default": false,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
         "hidden": {
           "title": "Hidden",
           "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",

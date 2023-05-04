@@ -46,7 +46,7 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
   );
 
   const summaryItem = summaryNode.item;
-  const targetNode = useResolvedNode(overrides?.targetNode || summaryNode.item.componentRef);
+  const targetNode = useResolvedNode(overrides?.targetNode || summaryNode.item.componentRef || summaryNode.item.id);
   const targetItem = targetNode?.item;
 
   const goToCorrectPageLinkText = useAppSelector(

@@ -158,6 +158,26 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.reasons).findByText('Dette er en hjelpetekst.').should('be.visible');
   });
 
+  it('should render components as summary', () => {
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
+
+    cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
+    cy.get(appFrontend.changeOfName.newLastName).blur();
+
+    cy.get(appFrontend.changeOfName.newMiddleName).type('Larsen');
+    cy.get(appFrontend.changeOfName.newMiddleName).blur();
+
+    cy.get(appFrontend.changeOfName.address.street_name).type('Testveien 1');
+    cy.get(appFrontend.changeOfName.address.street_name).blur();
+
+    cy.get(appFrontend.changeOfName.componentSummary).contains('Per');
+    cy.get(appFrontend.changeOfName.componentSummary).contains('Larsen');
+    cy.get(appFrontend.changeOfName.componentSummary).contains('Hansen');
+    cy.get(appFrontend.changeOfName.componentSummary).contains('Testveien 1');
+  });
+
   it('button group with navigation, printbutton and go-to-task', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
