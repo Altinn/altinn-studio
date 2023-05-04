@@ -94,7 +94,7 @@ export const LayoutInspector = () => {
             value={componentProperties ?? ''}
             onChange={handleChange}
             onKeyDown={(event) => {
-              if (event.ctrlKey && event.key.toLowerCase() === 's') {
+              if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
                 // Save when pressing ctrl + s
                 !error && handleSave();
                 event.preventDefault();
