@@ -110,11 +110,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [Produces("application/json")]
         [Route("convert")]
-        public ActionResult Convert(string org, string repo)
+        public async Task<ActionResult> Convert(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            _textsService.ConvertV1TextsToV2(org, repo, developer);
+            await _textsService.ConvertV1TextsToV2(org, repo, developer);
 
             return NoContent();
         }
