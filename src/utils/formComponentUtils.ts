@@ -168,6 +168,9 @@ export function getFieldName(
  * Un-uppercase the first letter of a string
  */
 export function lowerCaseFirst(text: string, firstLetterIndex = 0): string {
+  if (text.length <= firstLetterIndex) {
+    return text;
+  }
   if (firstLetterIndex > 0) {
     return (
       text.substring(0, firstLetterIndex) + text[firstLetterIndex].toLowerCase() + text.substring(firstLetterIndex + 1)
@@ -183,6 +186,10 @@ export function lowerCaseFirst(text: string, firstLetterIndex = 0): string {
 export function smartLowerCaseFirst(text: string | undefined): string | undefined {
   if (text === undefined) {
     return undefined;
+  }
+
+  if (text.length === 0) {
+    return text;
   }
 
   const uc = text.toUpperCase();

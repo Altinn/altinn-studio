@@ -256,6 +256,8 @@ describe('formComponentUtils', () => {
       { input: 'SaaB', expected: 'SaaB' },
       { input: 'S.a.a.B', expected: 'S.a.a.B' },
       { input: '¿Cómo te llamas?', expected: '¿cómo te llamas?' },
+      { input: undefined, expected: undefined },
+      { input: '', expected: '' },
     ])('Should convert $input to $expected', ({ input, expected }) => {
       expect(smartLowerCaseFirst(input)).toEqual(expected);
     });
