@@ -271,22 +271,6 @@ namespace Designer.Tests.Utils
             }
         }
 
-        public static async Task CleanUpReplacedRepositories(string org, string repository, string developer)
-        {
-            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
-
-            foreach (string subDir in Directory.GetDirectories(dir))
-            {
-                if (subDir.Contains($"{repository}_REPLACED_BY_NEW_CLONE_"))
-                {
-                    // move data and delete copied folder
-                    string originalPath = GetTestDataRepositoryDirectory(org, repository, developer);
-                    await CopyDirectory(subDir, originalPath, true);
-                    Directory.Delete(subDir, true);
-                }
-            }
-        }
-
         public static void CleanUpLocalBranches(string org, string repository, string developer)
         {
             string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
