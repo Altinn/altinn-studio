@@ -5,7 +5,6 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Mvc;
-using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
