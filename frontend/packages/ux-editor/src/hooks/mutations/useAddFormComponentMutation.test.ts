@@ -9,6 +9,7 @@ import type { FormComponent } from '../../types/FormComponent';
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 const component: FormComponent = {
   id: 'test',
   itemType: 'COMPONENT',
@@ -70,7 +71,7 @@ describe('useAddFormComponentMutation', () => {
 });
 
 const renderAddFormComponentMutation = async () => {
-  const { result } = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult;
+  const { result } = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useAddFormComponentMutation(org, app)).renderHookResult;
+  return renderHookWithMockStore()(() => useAddFormComponentMutation(org, app, selectedLayoutSet)).renderHookResult;
 }

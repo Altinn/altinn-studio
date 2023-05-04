@@ -10,6 +10,7 @@ const org = 'org';
 const app = 'app';
 const newName = 'newName';
 const oldName = layout1NameMock;
+const selectedLayoutSet = 'test-layout-set';
 const args: UpdateLayoutNameMutationArgs = { newName, oldName };
 
 describe('useUpdateLayoutNameMutation', () => {
@@ -18,7 +19,7 @@ describe('useUpdateLayoutNameMutation', () => {
   it('Updates layout name', async () => {
     await renderAndWaitForData();
 
-    const updateLayoutNameResult = renderHookWithMockStore()(() => useUpdateLayoutNameMutation(org, app))
+    const updateLayoutNameResult = renderHookWithMockStore()(() => useUpdateLayoutNameMutation(org, app, selectedLayoutSet))
       .renderHookResult
       .result;
 
@@ -30,8 +31,8 @@ describe('useUpdateLayoutNameMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 }

@@ -3,7 +3,7 @@ import { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
-import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
+import {selectedLayoutWithNameSelector} from '../../selectors/formLayoutSelectors';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { FormContainer } from '../../types/FormContainer';
@@ -16,10 +16,10 @@ export interface AddFormContainerMutationArgs {
   destinationIndex?: number;
 }
 
-export const useAddFormContainerMutation = (org: string, app: string) => {
-  const formLayoutsQuery = useFormLayoutsQuery(org, app);
+export const useAddFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
+  const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName);
+  const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
 
   return useMutation({
     mutationFn: ({ container, positionAfterId, addToId, callback, destinationIndex }: AddFormContainerMutationArgs) => {

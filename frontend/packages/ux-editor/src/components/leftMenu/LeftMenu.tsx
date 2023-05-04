@@ -1,30 +1,36 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { ConfPageToolbar } from './ConfPageToolbar';
-import { DefaultToolbar } from './DefaultToolbar';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { PlusIcon } from '@navikt/aksel-icons';
-import { PagesContainer } from './PagesContainer';
-import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-import { ReceiptPageElement } from './ReceiptPageElement';
-import { deepCopy } from 'app-shared/pure';
-import { useParams, useSearchParams } from 'react-router-dom';
+import {useSelector} from 'react-redux';
+import {ConfPageToolbar} from './ConfPageToolbar';
+import {DefaultToolbar} from './DefaultToolbar';
+import {Button, ButtonColor, ButtonVariant} from '@digdir/design-system-react';
+import {PlusIcon} from '@navikt/aksel-icons';
+import {PagesContainer} from './PagesContainer';
+import {_useIsProdHack} from 'app-shared/utils/_useIsProdHack';
+import {ReceiptPageElement} from './ReceiptPageElement';
+import {deepCopy} from 'app-shared/pure';
+import {useParams, useSearchParams} from 'react-router-dom';
 import classes from './LeftMenu.module.css';
-import { useText } from '../../hooks';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
-import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
-import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
+import {useText} from '../../hooks';
+import {selectedLayoutNameSelector, selectedLayoutSetSelector} from '../../selectors/formLayoutSelectors';
+import {useAddLayoutMutation} from '../../hooks/mutations/useAddLayoutMutation';
+import {useCreateLayoutSetMutation} from '../../hooks/mutations/useCreateLayoutSetMutation';
+import {useFormLayoutSettingsQuery} from '../../hooks/queries/useFormLayoutSettingsQuery';
+import {useLayoutSetsQuery} from "../../hooks/queries/useLayoutSetsQuery";
+import {LayoutSetsContainer} from "./LayoutSetsContainer";
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 
 export const LeftMenu = () => {
-  const { org, app } = useParams();
+  const {org, app} = useParams();
   const dispatch = useDispatch();
-  const addLayoutMutation = useAddLayoutMutation(org, app);
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
-  const { pages, receiptLayoutName } = formLayoutSettingsQuery.data;
+  const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
+  const createLayoutSetMutation = useCreateLayoutSetMutation(org, app);
+  const layoutSetsQuery = useLayoutSetsQuery(org, app);
+  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const {pages, receiptLayoutName} = formLayoutSettingsQuery.data;
   const layoutOrder = pages.order;
 
   const t = useText();
@@ -36,31 +42,55 @@ export const LeftMenu = () => {
       count += 1;
       name = t('left_menu.page') + (layoutOrder.length + count);
     }
+
     addLayoutMutation.mutate({ layoutName: name, isReceiptPage: false });
-    setSearchParams({ ...deepCopy(searchParams), layout: name });
+    setSearchParams({...deepCopy(searchParams), layout: name});
     dispatch(FormLayoutActions.updateSelectedLayout(name));
+  }
+
+  function handleAddLayoutSet() {
+    if (!layoutSetsQuery?.data?.sets) {
+      createLayoutSetMutation.mutate();
+    }
+    // Add layout set with set-name as user-input
+    // auto-connect data model and process in backend?
   }
 
   return (
     <div className={classes.leftMenu} data-testid={'ux-editor.left-menu'}>
-      <div className={classes.pagesHeader}>
-        <span>{t('left_menu.pages')}</span>
-        <Button
-          aria-label={t('left_menu.pages_add_alt')}
-          icon={<PlusIcon />}
-          onClick={handleAddPage}
-          variant={ButtonVariant.Quiet}
-          color={ButtonColor.Secondary}
-        />
-      </div>
-      <div className={classes.pagesList}>
-        <PagesContainer />
-      </div>
-        <div className={classes.receipt}>
-          <ReceiptPageElement />
+      <div className={classes.layoutSets}>
+        <div className={classes.pagesHeader}>
+          <span>{t('left_menu.layout_sets')}</span>
+          <Button
+            aria-label={t('left_menu.pages_add_alt')}
+            icon={<PlusIcon/>}
+            onClick={handleAddLayoutSet}
+            variant={ButtonVariant.Quiet}
+            color={ButtonColor.Secondary}
+          />
         </div>
-      <div className={classes.toolbar}>
-        {receiptLayoutName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
+        <div className={classes.pagesList}>
+          <LayoutSetsContainer/>
+        </div>
+        <div className={classes.pagesHeader}>
+          <span>{t('left_menu.pages')}</span>
+          <Button
+            aria-label={t('left_menu.pages_add_alt')}
+            icon={<PlusIcon/>}
+            onClick={handleAddPage}
+            variant={ButtonVariant.Quiet}
+            color={ButtonColor.Secondary}
+          />
+        </div>
+        <div className={classes.pagesList}>
+          <PagesContainer/>
+        </div>
+          <div className={classes.receipt}>
+            <ReceiptPageElement/>
+          </div>
+        <div className={classes.toolbar}>
+          {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
+        </div>
       </div>
     </div>
   );

@@ -5,10 +5,10 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { ILayoutSettings } from 'app-shared/types/global';
 
 export const useFormLayoutSettingsQuery =
-  (org: string, app: string): UseQueryResult<ILayoutSettings> => {
+  (org: string, app: string, layoutSetName: string): UseQueryResult<ILayoutSettings> => {
     const { getFormLayoutSettings } = useServicesContext();
     return useQuery<ILayoutSettings>(
-      [QueryKey.FormLayoutSettings, org, app],
-      () => getFormLayoutSettings(org, app),
+      [QueryKey.FormLayoutSettings, org, app, layoutSetName],
+      () => getFormLayoutSettings(org, app, layoutSetName),
     );
   };

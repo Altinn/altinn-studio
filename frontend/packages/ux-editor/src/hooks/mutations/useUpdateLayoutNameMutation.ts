@@ -14,14 +14,14 @@ export interface UpdateLayoutNameMutationArgs {
   newName: string;
 }
 
-export const useUpdateLayoutNameMutation = (org: string, app: string) => {
+export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetName: string) => {
   const { updateFormLayoutName } = useServicesContext();
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
-  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app);
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
+  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const dispatch = useDispatch();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>
-      updateFormLayoutName(org, app, oldName, newName).then(() => ({ oldName, newName })),
+      updateFormLayoutName(org, app, oldName, newName, layoutSetName).then(() => ({ oldName, newName })),
     onSuccess: ({ oldName, newName }) => {
       dispatch(FormLayoutActions.updateSelectedLayout(newName));
       queryClient.setQueryData(

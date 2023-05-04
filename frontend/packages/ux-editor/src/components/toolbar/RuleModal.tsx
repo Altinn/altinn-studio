@@ -10,6 +10,7 @@ import { RuleConnection } from 'app-shared/types/RuleConfig';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
+import {selectedLayoutSetSelector} from "../../selectors/formLayoutSelectors";
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -20,8 +21,9 @@ export interface IRuleModalProps {
 export function RuleModal(props: IRuleModalProps) {
   const { org, app } = useParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
+  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { data: ruleConfig } = useRuleConfigQuery(org, app);
-  const { data: ruleModelElements } = useRuleModelQuery(org, app);
+  const { data: ruleModelElements } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app);
   const { t } = useTranslation();
 

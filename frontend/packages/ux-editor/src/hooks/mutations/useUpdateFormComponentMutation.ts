@@ -5,7 +5,7 @@ import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetada
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
-import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
+import {selectedLayoutWithNameSelector} from '../../selectors/formLayoutSelectors';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
@@ -15,9 +15,9 @@ export interface UpdateFormComponentArgs {
   id: string;
 }
 
-export const useUpdateFormComponentMutation = (org: string, app: string) => {
+export const useUpdateFormComponentMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutMutation = useFormLayoutMutation(org, app, layoutName);
+  const formLayoutMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);

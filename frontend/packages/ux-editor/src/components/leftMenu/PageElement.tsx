@@ -8,7 +8,7 @@ import { Divider } from 'app-shared/primitives';
 import { MenuElipsisVerticalIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy, removeKey } from 'app-shared/pure';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,7 @@ import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSet
 import { useUpdateLayoutOrderMutation } from '../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useDeleteLayoutMutation } from '../../hooks/mutations/useDeleteLayoutMutation';
 import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayoutNameMutation';
+import {selectedLayoutSetSelector} from "../../selectors/formLayoutSelectors";
 
 export interface IPageElementProps {
   name: string;
@@ -26,12 +27,13 @@ export function PageElement({ name, invalid }: IPageElementProps) {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout = searchParams.get('layout');
+  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { t } = useTranslation();
   const { org, app } = useParams();
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
-  const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app);
-  const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app);
-  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app, selectedLayoutSet);
+  const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, selectedLayoutSet);
+  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app, selectedLayoutSet);
   const layoutOrder = formLayoutSettings?.pages.order;
   const [editMode, setEditMode] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');

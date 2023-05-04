@@ -10,7 +10,7 @@ import { PageSpinner } from 'app-shared/components/PageSpinner';
 import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelQuery } from './hooks/queries/useDatamodelQuery';
 import { useFormLayoutsQuery } from './hooks/queries/useFormLayoutsQuery';
-import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from './selectors/formLayoutSelectors';
 import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/';
 import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
@@ -19,6 +19,8 @@ import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from './hooks/queries/useRuleConfigQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries/useInstanceIdQuery';
+import { useAddLayoutMutation } from './hooks/mutations/useAddLayoutMutation';
+import { useLayoutSetsQuery } from "./hooks/queries/useLayoutSetsQuery";
 
 /**
  * This is the main React component responsible for controlling
@@ -32,17 +34,21 @@ export function App() {
   const { org, app } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
-  const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
-  const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
-  const { isSuccess: isRuleModelFetched } = useRuleModelQuery(org, app);
-  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
+  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
+  const { data: formLayouts, isError: layoutFetchedError  } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
+  const { isSuccess: isRuleModelFetched } = useRuleModelQuery(org, app, selectedLayoutSet);
+  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app);
+  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
+  const layoutSetNames = layoutSets?.sets?.map(set => set?.id);
 
   const componentIsReady =
     formLayouts &&
@@ -76,6 +82,13 @@ export function App() {
 
     return createErrorMessage(t('general.unknown_error'));
   };
+
+  useEffect(() => {
+    //console.log("sel layout set: ", selectedLayoutSet)
+    if (selectedLayoutSet === null && layoutSetNames){
+      dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSetNames[0]));
+    }
+  }, [layoutSetNames]);
 
   /**
    * Set the correct selected layout based on url parameters
@@ -114,7 +127,10 @@ export function App() {
     return (
       <>
         <ErrorMessageComponent />
-        <FormDesigner selectedLayout={selectedLayout} />
+        <FormDesigner
+          selectedLayout={selectedLayout}
+          layoutSetNames={layoutSetNames}
+          />
       </>
     );
   }

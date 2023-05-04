@@ -16,16 +16,16 @@ import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { convertInternalToLayoutFormat } from '../../utils/formLayoutUtils';
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 
-export const useDeleteLayoutMutation = (org: string, app: string) => {
+export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
-  const { data: formLayouts } = useFormLayoutsQuery(org, app);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
-  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app);
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
+  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const dispatch = useDispatch();
 
   const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
-    return await saveFormLayout(org, app, updatedLayoutName, convertedLayout);
+    return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, convertedLayout);
   };
 
   return useMutation({
@@ -38,7 +38,7 @@ export const useDeleteLayoutMutation = (org: string, app: string) => {
         undefined,
         formLayoutSettings.receiptLayoutName
       );
-      await deleteFormLayout(org, app, layoutName);
+      await deleteFormLayout(org, app, layoutName, layoutSetName);
       return { layoutName, layouts };
     },
     onSuccess: ({ layoutName, layouts }) => {

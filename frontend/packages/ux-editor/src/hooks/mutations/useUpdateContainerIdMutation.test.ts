@@ -9,10 +9,12 @@ import { container1IdMock, layout1Mock, layout1NameMock } from '../../testing/la
 const org = 'org';
 const app = 'app';
 const newId = 'newId';
+const selectedLayoutSet = 'test-layout-set';
 const mutationArgs: UpdateContainerIdMutationArgs = {
   currentId: container1IdMock,
   newId,
 };
+
 
 describe('useUpdateContainerIdMutation', () => {
   afterEach(jest.clearAllMocks);
@@ -41,9 +43,9 @@ describe('useUpdateContainerIdMutation', () => {
 });
 
 const render = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   const ruleConfigResult = renderHookWithMockStore()(() => useRuleConfigQuery(org, app)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(ruleConfigResult.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useUpdateContainerIdMutation(org, app)).renderHookResult;
+  return renderHookWithMockStore()(() => useUpdateContainerIdMutation(org, app, selectedLayoutSet)).renderHookResult;
 }

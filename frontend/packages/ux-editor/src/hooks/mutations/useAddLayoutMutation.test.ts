@@ -9,6 +9,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 const org = 'org';
 const app = 'app';
 const layoutName = 'layoutName';
+const selectedLayoutSet = 'test-layout-set';
 const defaultArgs: AddLayoutMutationArgs = { layoutName }
 
 describe('useAddLayoutMutation', () => {
@@ -17,7 +18,7 @@ describe('useAddLayoutMutation', () => {
   it('Calls saveFormLayout with new layout', async () => {
     await renderAndWaitForData();
 
-    const addLayoutResult = renderHookWithMockStore()(() => useAddLayoutMutation(org, app))
+    const addLayoutResult = renderHookWithMockStore()(() => useAddLayoutMutation(org, app, selectedLayoutSet))
       .renderHookResult
       .result;
 
@@ -43,8 +44,8 @@ describe('useAddLayoutMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 }

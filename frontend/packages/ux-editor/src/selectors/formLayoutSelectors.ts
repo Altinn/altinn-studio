@@ -9,6 +9,9 @@ import { createEmptyLayout } from '../utils/formLayoutUtils';
 export const selectedLayoutNameSelector: AppStateSelector<string> =
   (state) => state.formDesigner.layout.selectedLayout;
 
+export const selectedLayoutSetSelector: AppStateSelector<string> =
+  (state) => state.formDesigner.layout.selectedLayoutSet;
+
 export const selectedLayoutSelector: FormLayoutsSelector<IInternalLayout> =
   (state, formLayoutsData) =>
     formLayoutsData?.[selectedLayoutNameSelector(state)] || createEmptyLayout();

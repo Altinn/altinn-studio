@@ -10,6 +10,7 @@ export enum QueryKey {
   FormLayoutSettings = 'FormLayoutSettings',
   FormLayouts = 'FormLayouts',
   InstanceId = 'InstanceId',
+  LayoutSets = 'LayoutSets',
   OrgList = 'OrgList',
   Organizations = 'Organizations',
   RepoMetaData = 'RepoMetaData',
@@ -21,5 +22,4 @@ export enum QueryKey {
   StarredRepos = 'StarredRepos',
   TextLanguages = 'TextLanguages',
   TextResources = 'TextResources',
-  Widgets = 'Widgets',
 }
