@@ -5,7 +5,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -63,6 +62,14 @@ namespace Altinn.Studio.Designer.Controllers
                 List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
                 return repositoryResourceList != null ? repositoryResourceList.First() : StatusCode(204);
             }
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/repository/validate/{repository}")]
+        [Route("designer/api/{org}/resources/repository/validate/{repository}/{id}")]
+        public ActionResult<string> GetValidateResource(string org, string repository, string id = "")
+        {
+            return _repository.ValidateServiceResource(org, repository, id);
         }
 
         [HttpPut]

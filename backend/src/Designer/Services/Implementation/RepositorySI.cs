@@ -859,6 +859,32 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return serviceResourceList;
         }
 
+        public ActionResult<string> ValidateServiceResource(string org, string repository, string id, bool strictMode = false)
+        {
+            if (id != "")
+            {
+                ServiceResource resourceToValidate = GetServiceResourceById(org, repository, id);
+                if (resourceToValidate != null)
+                {
+                    return ResourceAdminHelper.ValidateServiceResource(resourceToValidate);
+                }
+
+                return new StatusCodeResult(400);
+            }
+            else
+            {
+                List<ServiceResource> repositoryResourceList = GetServiceResources(org, repository);
+                if (repositoryResourceList.Count > 0)
+                {
+                    return ResourceAdminHelper.ValidateServiceResource(repositoryResourceList.FirstOrDefault());
+                }
+                else
+                {
+                    return new StatusCodeResult(400);
+                }
+            }
+        }
+
         public ActionResult UpdateServiceResource(string org, string id, ServiceResource updatedResource)
         {
             if (updatedResource != null && id == updatedResource.Identifier)
