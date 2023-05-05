@@ -44,6 +44,28 @@ describe('EditFormComponent', () => {
     expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: textMock('general.save') })).toBeInTheDocument();
   });
+
+  test('should show close button in preview mode', async () => {
+    await render({
+      component: {
+        id,
+        dataModelBindings: {},
+        readOnly: false,
+        required: false,
+        textResourceBindings: {
+          title: 'Input'
+        },
+        type: ComponentType.Button,
+        itemType: 'COMPONENT'
+      }
+    });
+
+    const previewButton = screen.getByRole('button', { name: textMock('general.preview') });
+    expect(previewButton).toBeInTheDocument();
+
+    await act(() => user.click(previewButton));
+    expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();
+  });
 });
 
 const render = async (props: Partial<IEditFormComponentProps> = {}) => {
