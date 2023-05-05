@@ -1,18 +1,15 @@
 import React from 'react';
 import Modal from 'react-modal';
 import { Typography } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
 import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
-import {
-  addRuleConnection,
-  deleteRuleConnnection,
-} from '../../features/serviceConfigurations/serviceConfigurationSlice';
-import type { IAppState } from '../../types/global';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
+import { RuleConnection } from '../../types/RuleConfig';
+import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
+import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
+import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -21,14 +18,13 @@ export interface IRuleModalProps {
 
 export function RuleModal(props: IRuleModalProps) {
   const { org, app } = useParams();
-  const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const ruleConnection = useSelector(
-    (state: IAppState) => state.serviceConfigurations.ruleConnection
-  );
+  const { data: ruleConfig } = useRuleConfigQuery(org, app);
   const { data: ruleModelElements } = useRuleModelQuery(org, app);
+  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app);
   const { t } = useTranslation();
-  const datamodelQuery = useDatamodelQuery(org, app);
+
+  const { ruleConnection } = ruleConfig ?? {};
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -40,14 +36,14 @@ export function RuleModal(props: IRuleModalProps) {
     props.handleClose();
   }
 
-  function handleSaveChange(newConnection: string) {
-    dispatch(addRuleConnection({ newConnection, org, app }));
+  function handleSaveChange(id: string, connection: RuleConnection) {
+    saveRuleConfig(addRuleConnection(ruleConfig, id, connection));
     setSelectedConnectionId(null);
     props.handleClose();
   }
 
   function handleDeleteConnection(connectionId: string) {
-    dispatch(deleteRuleConnnection({ connectionId, org, app }));
+    saveRuleConfig(deleteRuleConnection(ruleConfig, connectionId));
     setSelectedConnectionId(null);
     props.handleClose();
   }
@@ -73,8 +69,6 @@ export function RuleModal(props: IRuleModalProps) {
     );
   }
 
-  const datamodelElements = datamodelQuery?.data ?? [];
-
   return (
     <>
       <Modal
@@ -90,7 +84,7 @@ export function RuleModal(props: IRuleModalProps) {
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={handleDeleteConnection}
-            datamodelElements={datamodelElements}
+            ruleConnection={ruleConnection}
             ruleModelElements={ruleModelElements}
           />
         ) : (
@@ -98,7 +92,7 @@ export function RuleModal(props: IRuleModalProps) {
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
-            datamodelElements={datamodelElements}
+            ruleConnection={ruleConnection}
             ruleModelElements={ruleModelElements}
           />
         )}

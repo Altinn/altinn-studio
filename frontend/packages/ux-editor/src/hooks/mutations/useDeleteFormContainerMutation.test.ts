@@ -1,12 +1,8 @@
-import {
-  container1IdMock,
-  layout1NameMock,
-  queriesMock,
-  renderHookWithMockStore
-} from '../../testing/mocks';
+import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
+import { container1IdMock, layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:
 const org = 'org';

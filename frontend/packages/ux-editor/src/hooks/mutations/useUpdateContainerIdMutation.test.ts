@@ -1,35 +1,25 @@
-import {
-  container1IdMock,
-  layout1Mock,
-  layout1NameMock,
-  queriesMock,
-  renderHookWithMockStore
-} from '../../testing/mocks';
+import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { UpdateContainerIdMutationArgs, useUpdateContainerIdMutation } from './useUpdateContainerIdMutation';
+import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
+import { container1IdMock, layout1Mock, layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:
 const org = 'org';
 const app = 'app';
+const newId = 'newId';
+const mutationArgs: UpdateContainerIdMutationArgs = {
+  currentId: container1IdMock,
+  newId,
+};
 
 describe('useUpdateContainerIdMutation', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Saves container with new ID', async () => {
-    await renderAndWaitForData();
-
-    const updateContainerIdResult = renderHookWithMockStore()(() => useUpdateContainerIdMutation(org, app))
-      .renderHookResult
-      .result;
-
-    const newId = 'newId';
-    const mutationArgs: UpdateContainerIdMutationArgs = {
-      currentId: container1IdMock,
-      newId,
-    }
-    await updateContainerIdResult.current.mutateAsync(mutationArgs);
-
+  it('Saves container with new ID and updates rule config', async () => {
+    const { result } = await render();
+    await result.current.mutateAsync(mutationArgs);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
       org,
@@ -46,10 +36,14 @@ describe('useUpdateContainerIdMutation', () => {
         })
       })
     );
+    expect(queriesMock.saveRuleConfig).toHaveBeenCalledTimes(1);
   });
 });
 
-const renderAndWaitForData = async () => {
+const render = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
+  const ruleConfigResult = renderHookWithMockStore()(() => useRuleConfigQuery(org, app)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
+  await waitFor(() => expect(ruleConfigResult.current.isSuccess).toBe(true));
+  return renderHookWithMockStore()(() => useUpdateContainerIdMutation(org, app)).renderHookResult;
 }

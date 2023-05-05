@@ -12,6 +12,7 @@ import {
   repoMetaPath,
   repoPullPath,
   repoStatusPath,
+  ruleConfigPath,
   ruleHandlerPath,
   textLanguagesPath,
   textResourcesPath,
@@ -33,6 +34,7 @@ export const getOrgList = () => get(orgsListUrl());
 export const getRepoMetadata = (owner: string, app: string) => get(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get(repoStatusPath(owner, app));
+export const getRuleConfig = (owner: string, app: string) => get(ruleConfigPath(owner, app));
 export const getRuleModel = (owner: string, app: string) => get(ruleHandlerPath(owner, app));
 export const getTextLanguages = (owner: string, app: string): Promise<string[]> => get(textLanguagesPath(owner, app));
 export const getTextResources = (owner: string, app: string, lang: string): Promise<ITextResourcesWithLanguage> => get(textResourcesPath(owner, app, lang));

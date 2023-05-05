@@ -53,19 +53,7 @@ export interface IDeleteLayoutAction {
   pageOrder: string[];
 }
 
-export interface IUpdateFormComponentIdAction {
-  currentId: string;
-  newId: string;
-  org: string;
-  app: string;
-}
-
 export interface IUpdateLayoutNameAction {
   oldName: string;
   newName: string;
-}
-
-export interface IUpdateContainerIdAction {
-  currentId: string;
-  newId: string;
 }

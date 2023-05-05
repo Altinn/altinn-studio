@@ -2,21 +2,18 @@ import type { IWidgetState } from '../features/widgets/widgetsSlice';
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IErrorState } from '../features/error/errorSlice';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
-import type { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 import { ComponentType } from '../components';
 import { ITextResource, ITextResources } from 'app-shared/types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
+export interface IFormDesignerNameSpace<T1, T2, T3, T4> {
   formDesigner: T1;
-  serviceConfigurations: T2;
-  appData: T3;
-  errors: T4;
-  widgets: T5;
+  appData: T2;
+  errors: T3;
+  widgets: T4;
 }
 export type IAppState = IFormDesignerNameSpace<
   IFormDesignerState,
-  IServiceConfigurationState,
   IAppDataState,
   IErrorState,
   IWidgetState
