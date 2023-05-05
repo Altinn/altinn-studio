@@ -15,7 +15,6 @@ import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdat
 export interface DesignViewProps {
   isDragging: boolean;
   layoutOrder: IFormLayoutOrder;
-  order: IFormLayoutOrder;
 }
 
 export interface DesignViewState {
@@ -26,7 +25,6 @@ export interface DesignViewState {
 export const DesignView = ({
   isDragging,
   layoutOrder,
-  order,
 }: DesignViewProps) => {
   const [beforeDrag, setBeforeDrag] = useState(null);
 

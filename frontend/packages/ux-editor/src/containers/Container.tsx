@@ -21,6 +21,7 @@ import { EmptyContainerPlaceholder } from './EmptyContainerPlaceholder';
 export interface IContainerProps {
   isBaseContainer?: boolean;
   id: string;
+  parentContainerId?: string;
   index?: number;
   layoutOrder?: IFormLayoutOrder;
   dndEvents: EditorDndEvents;
@@ -78,7 +79,7 @@ export const Container = (props: IContainerProps) => {
       id={props.id}
       index={props.index}
       isBaseContainer={props.isBaseContainer}
-      parentContainerId={props.id}
+      parentContainerId={props.parentContainerId}
       canDrag={props.canDrag}
       dndEvents={props.dndEvents}
       container={(dragHandleRef) =>
@@ -107,16 +108,17 @@ export const Container = (props: IContainerProps) => {
                       <FormComponent
                         key={itemId}
                         id={itemId}
+                        containerId={props.id}
                         index={index}
                         dndEvents={props.dndEvents}
                         partOfGroup={!props.isBaseContainer}
-                        dragHandleRef={dragHandleRef}
                       />
                     );
                   }
                   return containers[itemId] && (
                     <Container
                       id={itemId}
+                      parentContainerId={props.id}
                       key={itemId}
                       index={index}
                       isBaseContainer={false}
@@ -127,7 +129,7 @@ export const Container = (props: IContainerProps) => {
                   );
                 })
               ) : (
-                <EmptyContainerPlaceholder id={props.id} dndEvents={props.dndEvents} />
+                <EmptyContainerPlaceholder containerId={props.id} dndEvents={props.dndEvents} />
               ))}
           </div>
         )

@@ -1,5 +1,4 @@
 import React from 'react';
-import { ConnectDragSource } from 'react-dnd';
 import { useParams } from 'react-router-dom';
 import type { EditorDndEvents } from '../containers/helpers/dnd-types';
 import { EditFormComponent } from './EditFormComponent';
@@ -13,10 +12,10 @@ import { DroppableDraggableComponent } from '../containers/DroppableDraggableCom
 
 export interface IFormElementProps {
   id: string;
+  containerId: string;
   index: number;
   partOfGroup?: boolean;
   dndEvents: EditorDndEvents;
-  dragHandleRef: ConnectDragSource;
 }
 
 export const FormComponent = (props: IFormElementProps) => {
@@ -69,7 +68,7 @@ export const FormComponent = (props: IFormElementProps) => {
   return (
     <DroppableDraggableComponent
       canDrag
-      containerId={props.id}
+      containerId={props.containerId}
       dndEvents={props.dndEvents}
       id={props.id}
       index={props.index}
@@ -78,7 +77,7 @@ export const FormComponent = (props: IFormElementProps) => {
           component={component}
           id={props.id}
           partOfGroup={props.partOfGroup}
-          dragHandleRef={props.dragHandleRef}
+          dragHandleRef={dragHandleRef}
         >
           <button className={'divider'}>
             {renderLabel()}

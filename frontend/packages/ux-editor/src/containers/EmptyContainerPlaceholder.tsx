@@ -6,7 +6,7 @@ import classes from './EmptyContainerPlaceholder.module.css';
 import { useText } from '../hooks/useText';
 
 export interface IEmptyContainerPlaceholderProps {
-  id: string;
+  containerId: string;
   dndEvents: EditorDndEvents;
 }
 
@@ -19,7 +19,7 @@ export const EmptyContainerPlaceholder = (props: IEmptyContainerPlaceholderProps
       canDrag={false}
       id='placeholder'
       index={0}
-      containerId={props.id}
+      containerId={props.containerId}
       component={() => (
         <p className={classes.emptyContainerText}>{t('ux_editor.container_empty')}</p>
       )}
