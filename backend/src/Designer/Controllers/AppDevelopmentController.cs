@@ -69,12 +69,17 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, layoutSetName);
+                Dictionary<string, JsonNode> formLayouts =
+                    await _appDevelopmentService.GetFormLayouts(org, app, developer, layoutSetName);
                 return Ok(formLayouts);
             }
             catch (FileNotFoundException exception)
             {
                 return NotFound(exception.Message);
+            }
+            catch (BadHttpRequestException exception)
+            {
+                return BadRequest(exception.Message);
             }
         }
 

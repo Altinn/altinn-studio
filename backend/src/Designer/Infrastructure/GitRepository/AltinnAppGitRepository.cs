@@ -556,7 +556,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 return layoutSetsFile;
             }
 
-            throw new NotFoundException("No layoutset was found for this app");
+            throw new NotFoundException("No layout set was found for this app");
         }
 
         public async Task SaveLayoutSetsFile(LayoutSets layoutSets)
@@ -568,7 +568,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 await WriteTextByRelativePathAsync(layoutSetsFilePath, layoutSetsString);
             }
 
-            throw new NotFoundException("No layoutset was found for this app");
+            throw new NotFoundException("No layout set was found for this app");
         }
 
         /// <summary>

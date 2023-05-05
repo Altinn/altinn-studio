@@ -4,7 +4,7 @@ import { queryClient, useServicesContext } from '../../../../../app-development/
 import { QueryKey } from '../../types/QueryKey';
 import {FormLayoutActions} from "../../features/formDesigner/formLayout/formLayoutSlice";
 
-export const useCreateLayoutSetMutation = (org: string, app: string) => {
+export const useConfigureLayoutSetMutation = (org: string, app: string) => {
   const { createLayoutSet } = useServicesContext();
   const dispatch = useDispatch();
 
