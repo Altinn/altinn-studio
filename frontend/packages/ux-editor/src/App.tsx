@@ -19,7 +19,6 @@ import { useTextResourcesQuery } from '../../../app-development/hooks/queries/us
 import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
 import { firstAvailableLayout } from './utils/formLayoutsUtils';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import { useRuleConfigQuery } from './hooks/queries/useRuleConfigQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -38,7 +37,6 @@ export function App() {
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
   const { isSuccess: isRuleModelFetched } = useRuleModelQuery(org, app);
-  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
@@ -48,7 +46,7 @@ export function App() {
   const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
 
   const componentIsReady =
-    formLayouts && isWidgetFetched && formLayoutSettings && isDatamodelFetched && areTextResourcesFetched && isRuleModelFetched && isRuleConfigFetched;
+    formLayouts && isWidgetFetched && formLayoutSettings && isDatamodelFetched && areTextResourcesFetched && isRuleModelFetched;
 
   const componentHasError = dataModelFetchedError || layoutFetchedError || widgetFetchedError;
 
