@@ -102,6 +102,20 @@ export function EditFormComponent(props: IEditFormComponentProps) {
       updatedComponent: callbackComponent,
     });
 
+  const handlePreview = () => {
+    setMode(EditFormComponentMode.Preview);
+  }
+
+  const DiscardButton = () => (
+    <Button
+      color={ButtonColor.Secondary}
+      icon={<XMarkIcon title={t('general.cancel')} />}
+      onClick={handleDiscard}
+      tabIndex={0}
+      variant={ButtonVariant.Quiet}
+    />
+  );
+
   return (
     <div className={cn(classes.wrapper, isPreviewMode && classes.previewMode)} role='listitem'>
       <div className={classes.formComponentWithHandle}>
@@ -136,63 +150,53 @@ export function EditFormComponent(props: IEditFormComponentProps) {
           )}
         </div>
       </div>
-      {!isEditMode && (
-        <div className={classes.buttons}>
-          <Button
-            data-testid='component-delete-button'
-            color={ButtonColor.Secondary}
-            icon={<TrashIcon />}
-            onClick={handleComponentDelete}
-            tabIndex={0}
-            title={t('general.delete')}
-            variant={ButtonVariant.Quiet}
-          />
-          <Button
-            color={ButtonColor.Secondary}
-            icon={<PencilIcon />}
-            onClick={handleOpenEdit}
-            tabIndex={0}
-            title={t('general.edit')}
-            variant={ButtonVariant.Quiet}
-          />
-          {isPreviewable && (
+      <div className={classes.buttons}>
+        {!isEditMode ? (
+          <>
+            <Button
+              data-testid='component-delete-button'
+              color={ButtonColor.Secondary}
+              icon={<TrashIcon />}
+              onClick={handleComponentDelete}
+              tabIndex={0}
+              title={t('general.delete')}
+              variant={ButtonVariant.Quiet}
+            />
+            <Button
+              color={ButtonColor.Secondary}
+              icon={<PencilIcon />}
+              onClick={handleOpenEdit}
+              tabIndex={0}
+              title={t('general.edit')}
+              variant={ButtonVariant.Quiet}
+            />
+          </>
+        ) : (
+          <>
+            <DiscardButton />
+            <Button
+              color={ButtonColor.Secondary}
+              icon={<CheckmarkIcon title={t('general.save')} />}
+              onClick={handleSave}
+              tabIndex={0}
+              variant={ButtonVariant.Quiet}
+            />
+          </>
+        )}
+        {isPreviewable && (
+          isPreviewMode ? (
+            <DiscardButton />
+          ) : (
             <Button
               color={ButtonColor.Secondary}
               icon={<MonitorIcon title={t('general.preview')} />}
-              onClick={() => setMode(EditFormComponentMode.Preview)}
+              onClick={handlePreview}
               title='Forhåndsvisning (under utvikling)'
               variant={ButtonVariant.Quiet}
             />
-          )}
-        </div>
-      )}
-      {isEditMode && (
-        <div className={classes.buttons}>
-          <Button
-            color={ButtonColor.Secondary}
-            icon={<XMarkIcon title={t('general.cancel')} />}
-            onClick={handleDiscard}
-            tabIndex={0}
-            variant={ButtonVariant.Quiet}
-          />
-          <Button
-            color={ButtonColor.Secondary}
-            icon={<CheckmarkIcon title={t('general.save')} />}
-            onClick={handleSave}
-            tabIndex={0}
-            variant={ButtonVariant.Quiet}
-          />
-          {isPreviewable && (
-            <Button
-              color={ButtonColor.Secondary}
-              icon={<MonitorIcon title={t('general.preview')} />}
-              onClick={() => setMode(EditFormComponentMode.Preview)}
-              title='Forhåndsvisning (under utvikling)'
-              variant={ButtonVariant.Quiet}
-            />
-          )}
-        </div>
-      )}
+          )
+        )}
+      </div>
     </div>
   );
 }
