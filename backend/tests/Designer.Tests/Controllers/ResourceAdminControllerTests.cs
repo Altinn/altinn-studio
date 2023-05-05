@@ -284,7 +284,7 @@ namespace Designer.Tests.Controllers
         public async Task UpdateServiceResource_StatusCreated()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/updateresource/resource1";
+            string uri = $"{_versionPrefix}/ttd/resources/repository/ttd-resources/updateresource/resource1";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri);
 
             ServiceResource serviceResource = new ServiceResource
@@ -311,7 +311,7 @@ namespace Designer.Tests.Controllers
                 MainLanguage = "en-US",
             };
 
-            _repositoryMock.Setup(r => r.UpdateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
+            _repositoryMock.Setup(r => r.UpdateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(serviceResource), System.Text.Encoding.UTF8, "application/json");
 
             //Act
@@ -326,7 +326,7 @@ namespace Designer.Tests.Controllers
         public async Task AddServiceResource_StatusCreated()
         {
             //Arrange
-            string uri = $"{_versionPrefix}/ttd/resources/repository/addresource";
+            string uri = $"{_versionPrefix}/ttd/resources/repository/ttd-resources/addresource";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             ServiceResource serviceResource = new ServiceResource
@@ -353,7 +353,7 @@ namespace Designer.Tests.Controllers
                 MainLanguage = "en-US",
             };
 
-            _repositoryMock.Setup(r => r.AddServiceResource(It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
+            _repositoryMock.Setup(r => r.AddServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(serviceResource), System.Text.Encoding.UTF8, "application/json");
 
             //Act

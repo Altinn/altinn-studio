@@ -65,17 +65,17 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut]
-        [Route("designer/api/{org}/resources/repository/updateresource/{id}")]
-        public ActionResult UpdateResource(string org, string id, [FromBody] ServiceResource resource)
+        [Route("designer/api/{org}/resources/repository/{repository}/updateresource/{id}")]
+        public ActionResult UpdateResource(string org, string repository, string id, [FromBody] ServiceResource resource)
         {
-            return _repository.UpdateServiceResource(org, id, resource);
+            return _repository.UpdateServiceResource(org, repository, id, resource);
         }
 
         [HttpPost]
-        [Route("designer/api/{org}/resources/repository/addresource")]
-        public ActionResult<ServiceResource> AddResource(string org, [FromBody] ServiceResource resource)
+        [Route("designer/api/{org}/resources/repository/{repository}/addresource")]
+        public ActionResult<ServiceResource> AddResource(string org, string repository, [FromBody] ServiceResource resource)
         {
-            return _repository.AddServiceResource(org, resource);
+            return _repository.AddServiceResource(org, repository, resource);
         }
     }
 }
