@@ -16,7 +16,9 @@ export function LayoutSetsContainer() {
   const onLayoutSetClick=(set: string) => {
       dispatch(FormLayoutActions.updateSelectedLayoutSet(set));
       dispatch(FormLayoutActions.updateSelectedLayout(set)); // to edit configs for particular set
-    // invalidate layouts, so new layouts can be fetched with the new selected layout set name
+    // invalidate layouts, so new layouts can be fetched with the new selected layout set name - or is it already working?
+    // add field in state saying if selectedEditorLevel is 'layout' or 'layoutset'
+    // check above state in ux-editor and render layoutset-config if level === 'layoutset'
   };
 
   return (

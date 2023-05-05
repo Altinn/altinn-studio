@@ -13,7 +13,7 @@ import classes from './LeftMenu.module.css';
 import {useText} from '../../hooks';
 import {selectedLayoutNameSelector, selectedLayoutSetSelector} from '../../selectors/formLayoutSelectors';
 import {useAddLayoutMutation} from '../../hooks/mutations/useAddLayoutMutation';
-import {useCreateLayoutSetMutation} from '../../hooks/mutations/useCreateLayoutSetMutation';
+import {useConfigureLayoutSetMutation} from '../../hooks/mutations/useConfigureLayoutSetMutation';
 import {useFormLayoutSettingsQuery} from '../../hooks/queries/useFormLayoutSettingsQuery';
 import {useLayoutSetsQuery} from "../../hooks/queries/useLayoutSetsQuery";
 import {LayoutSetsContainer} from "./LayoutSetsContainer";
@@ -26,12 +26,13 @@ export const LeftMenu = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
-  const createLayoutSetMutation = useCreateLayoutSetMutation(org, app);
+  const configureLayoutSetMutation = useConfigureLayoutSetMutation(org, app);
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const {pages, receiptLayoutName} = formLayoutSettingsQuery.data;
   const layoutOrder = pages.order;
+  const layoutSetNames = layoutSetsQuery?.data?.sets;
 
   const t = useText();
 
@@ -49,29 +50,39 @@ export const LeftMenu = () => {
   }
 
   function handleAddLayoutSet() {
-    if (!layoutSetsQuery?.data?.sets) {
-      createLayoutSetMutation.mutate();
-    }
     // Add layout set with set-name as user-input
     // auto-connect data model and process in backend?
   }
 
+  function handleConfigureLayoutSet() {
+    configureLayoutSetMutation.mutate();
+  }
+
   return (
     <div className={classes.leftMenu} data-testid={'ux-editor.left-menu'}>
-      <div className={classes.layoutSets}>
-        <div className={classes.pagesHeader}>
-          <span>{t('left_menu.layout_sets')}</span>
+      <>
+        {layoutSetNames ? (<>
+          <div className={classes.pagesHeader}>
+            <span>{t('left_menu.layout_sets')}</span>
+              <Button
+                aria-label={t('left_menu.pages_add_alt')}
+                icon={<PlusIcon/>}
+                onClick={handleAddLayoutSet}
+                variant={ButtonVariant.Quiet}
+                color={ButtonColor.Secondary}
+              />
+          </div>
+          <div className={classes.layoutSetList}>
+            <LayoutSetsContainer/>
+          </div>
+        </>) : (
           <Button
-            aria-label={t('left_menu.pages_add_alt')}
-            icon={<PlusIcon/>}
-            onClick={handleAddLayoutSet}
             variant={ButtonVariant.Quiet}
-            color={ButtonColor.Secondary}
-          />
-        </div>
-        <div className={classes.pagesList}>
-          <LayoutSetsContainer/>
-        </div>
+            onClick={handleConfigureLayoutSet}>
+            {t('left_menu.configure_layout_sets')}
+          </Button>
+        )
+        }
         <div className={classes.pagesHeader}>
           <span>{t('left_menu.pages')}</span>
           <Button
@@ -91,7 +102,7 @@ export const LeftMenu = () => {
         <div className={classes.toolbar}>
           {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
         </div>
-      </div>
+      </>
     </div>
   );
 };

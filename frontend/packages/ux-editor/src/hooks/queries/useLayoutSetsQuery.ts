@@ -9,6 +9,9 @@ export const useLayoutSetsQuery =
       const { getLayoutSets } = useServicesContext();
       return useQuery<ILayoutSets>(
         [QueryKey.LayoutSets, org, app],
-        () => getLayoutSets(org, app),
+        () => getLayoutSets(org, app).then(layoutSets => {
+            return layoutSets?.sets ? layoutSets : undefined;
+          }
+        ),
       );
     };

@@ -50,6 +50,7 @@ export function App() {
   const layoutPagesOrder = formLayoutSettings?.pages.order;
   const layoutSetNames = layoutSets?.sets?.map(set => set?.id);
 
+
   const componentIsReady =
     formLayouts &&
     areWidgetsFetched &&
@@ -84,11 +85,10 @@ export function App() {
   };
 
   useEffect(() => {
-    //console.log("sel layout set: ", selectedLayoutSet)
-    if (selectedLayoutSet === null && layoutSetNames){
-      dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSetNames[0]));
+    if (selectedLayoutSet === null && layoutSets){
+      dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSets.sets[0].id));
     }
-  }, [layoutSetNames]);
+  }, [layoutSets]);
 
   /**
    * Set the correct selected layout based on url parameters
