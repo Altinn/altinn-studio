@@ -104,7 +104,7 @@ export function EditFormComponent(props: IEditFormComponentProps) {
 
   const handlePreview = () => {
     setMode(EditFormComponentMode.Preview);
-  }
+  };
 
   const DiscardButton = () => (
     <Button
