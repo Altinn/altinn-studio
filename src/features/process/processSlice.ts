@@ -24,6 +24,7 @@ const initialState: IProcessState = {
   read: null,
   write: null,
   actions: null,
+  completingId: null,
 };
 
 const genericFulfilledReducer = (
@@ -73,14 +74,21 @@ export const processSlice = () => {
       }),
       complete: mkAction<ICompleteProcess | undefined>({
         takeLatest: completeProcessSaga,
+        reducer: (state, action) => {
+          state.completingId = action.payload?.componentId ?? null;
+        },
       }),
       completeFulfilled: mkAction<ICompleteProcessFulfilled>({
         takeLatest: getTasksSaga,
-        reducer: genericFulfilledReducer,
+        reducer: (state, action) => {
+          genericFulfilledReducer(state, action);
+          state.completingId = null;
+        },
       }),
       completeRejected: mkAction<ICompleteProcessRejected>({
         reducer: (state, action) => {
           state.error = action.payload.error;
+          state.completingId = null;
         },
       }),
       checkIfUpdated: mkAction<void>({

@@ -27,6 +27,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   const autoSave = useAppSelector((state) => state.formLayout.uiConfig.autoSave);
   const submittingId = useAppSelector((state) => state.formData.submittingId);
   const savingId = useAppSelector((state) => state.formData.savingId);
+  const confirmingId = useAppSelector((state) => state.process.completingId);
   const currentTaskType = useAppSelector((state) => state.instanceData.instance?.process.currentTask?.altinnTaskType);
   const processActionsFeature = useAppSelector(
     (state) => state.applicationMetadata.applicationMetadata?.features?.processActions,
@@ -71,13 +72,13 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
           }),
         );
       } else if (currentTaskType === 'confirmation' && processActionsFeature) {
-        dispatch(ProcessActions.complete({ action: 'confirm' }));
+        dispatch(ProcessActions.complete({ componentId, action: 'confirm' }));
       } else {
-        dispatch(ProcessActions.complete());
+        dispatch(ProcessActions.complete({ componentId }));
       }
     }
   };
-  const busyWithId = savingId || submittingId || '';
+  const busyWithId = savingId || submittingId || confirmingId || '';
   return (
     <div
       className={classes.container}

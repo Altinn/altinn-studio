@@ -6,6 +6,7 @@ export type IProcessState = {
   taskType: ProcessTaskType | null;
   error: Error | null;
   taskId: string | null | undefined;
+  completingId: string | null;
 } & IProcessPermissions;
 
 export type IProcessPermissions = {
@@ -27,6 +28,7 @@ export interface IGetTasksFulfilled {
 export type ICompleteProcess = {
   taskId?: string | null;
   action?: IActionType;
+  componentId?: string;
 };
 
 export type ICompleteProcessFulfilled = {

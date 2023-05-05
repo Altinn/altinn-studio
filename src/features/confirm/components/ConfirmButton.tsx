@@ -15,6 +15,8 @@ import type { ILanguage } from 'src/types/shared';
 
 export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: string; language: ILanguage }) => {
   const textResources = useAppSelector((state) => state.textResources.resources);
+  const confirmingId = useAppSelector((state) => state.process.completingId);
+  const [validateId, setValidateId] = useState<string | null>(null);
   const processActionsFeature = useAppSelector(
     (state) => state.applicationMetadata.applicationMetadata?.features?.processActions,
   );
@@ -23,11 +25,10 @@ export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: st
 
   const dispatch = useAppDispatch();
   const { instanceId } = window as Window as IAltinnWindow;
-  const [busyWithId, setBusyWithId] = useState('');
 
   const handleConfirmClick = () => {
     if (!disabled) {
-      setBusyWithId(props.id);
+      setValidateId(props.id);
       httpGet(getValidationUrl(instanceId))
         .then((data: any) => {
           const mappedValidations = mapDataElementValidationToRedux(data, {}, textResources);
@@ -38,17 +39,19 @@ export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: st
           );
           if (data.length === 0) {
             if (processActionsFeature) {
-              dispatch(ProcessActions.complete({ action: 'confirm' }));
+              dispatch(ProcessActions.complete({ componentId: props.id, action: 'confirm' }));
             } else {
-              dispatch(ProcessActions.complete());
+              dispatch(ProcessActions.complete({ componentId: props.id }));
             }
           }
         })
         .finally(() => {
-          setBusyWithId('');
+          setValidateId(null);
         });
     }
   };
+
+  const busyWithId = confirmingId || validateId || null;
 
   return (
     <div style={{ marginTop: 'var(--button-margin-top)' }}>

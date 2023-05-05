@@ -8,6 +8,7 @@ import type { PropsFromGenericComponent } from '..';
 import { ProcessActions } from 'src/features/process/processSlice';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
+import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ActionButtonStyle } from 'src/layout/ActionButton/types';
 
@@ -20,6 +21,7 @@ export type IActionButton = PropsFromGenericComponent<'ActionButton'>;
 
 export function ActionButtonComponent({ node }: IActionButton) {
   const dispatch = useDispatch();
+  const busyWithId = useAppSelector((state) => state.process.completingId);
   const actionPermissions = useAppSelector((state) => state.process.actions);
   const textResources = useAppSelector((state) => state.textResources.resources);
   const language = useAppSelector((state) => state.language.language);
@@ -28,14 +30,16 @@ export function ActionButtonComponent({ node }: IActionButton) {
   const disabled = !actionPermissions?.[action];
 
   function handleClick() {
-    if (!disabled) {
+    if (!disabled && !busyWithId) {
       dispatch(
         ProcessActions.complete({
+          componentId: id,
           action,
         }),
       );
     }
   }
+  const isLoading = busyWithId === id;
 
   const parentIsPage = node.parent instanceof LayoutPage;
 
@@ -48,13 +52,14 @@ export function ActionButtonComponent({ node }: IActionButton) {
   return (
     <Button
       id={`action-button-${id}`}
-      style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
+      style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined, opacity: isLoading ? 0.8 : undefined }}
       variant={variant}
       color={color}
       disabled={disabled}
       onClick={handleClick}
     >
       {buttonText}
+      {isLoading && <ButtonLoader language={language || {}} />}
     </Button>
   );
 }

@@ -10,6 +10,7 @@ export function getProcessStateMock(
     read: true,
     write: true,
     error: null,
+    completingId: null,
     ...processState,
     actions: {
       instantiate: true,
