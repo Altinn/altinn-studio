@@ -87,12 +87,12 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
             {user && (
               <>
                 <span className={classes.userOrgNames}>
-                  {user.login === org
-                    ? user.login
-                    : t('shared.header_user_for_org', {
+                  {user.login !== org
+                    ? t('shared.header_user_for_org', {
                         user: user.login,
-                        org: repository.owner.full_name,
-                      })}
+                        org: repository.owner.full_name || repository.owner.login,
+                      })
+                    : user.login}
                 </span>
 
                 <ProfileMenu showlogout user={user} />

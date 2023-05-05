@@ -1,0 +1,80 @@
+.root {
+}
+
+.altinnHeaderBar {
+  background-color: #022f51;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  height: var(--toolbar-height);
+  padding: 0 2rem;
+}
+
+.altinnHeaderBar .leftContent {
+  align-items: center;
+  border-right: 1px solid #fff2;
+  display: flex;
+  flex: 1;
+  line-height: 1;
+  overflow: hidden;
+  padding-right: 2rem;
+}
+
+.appName {
+  font-size: 1.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bigSlash {
+  font-size: 2rem;
+  padding: 0 0.5rem;
+}
+
+.altinnHeaderBar .rightContent {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.profileMenuWrapper {
+  flex: 2;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.userOrgNames {
+  text-align: right;
+  white-space: pre-line;
+  line-height: 25px;
+  font-size: 1rem;
+  margin-right: 15px;
+}
+
+.subToolbar {
+  align-items: center;
+  background-color: #284e6a;
+  display: flex;
+  height: var(--subtoolbar-height);
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.branchIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.subToolbar .leftContent svg {
+  color: #fff;
+}
+
+.subToolbar .rightContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
