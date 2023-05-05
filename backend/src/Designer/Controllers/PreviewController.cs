@@ -348,6 +348,18 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Action for mocking a end to the process in order to get receipt after "send inn" is pressed
+        /// </summary>
+        /// <returns>Process object where ended is set</returns>
+        [HttpPut]
+        [Route("instances/undefined/process/next")]
+        public ActionResult ProcessNext([FromQuery] string lang)
+        {
+            string process = @"{""ended"": ""ended""}";
+            return Ok(process);
+        }
+
+        /// <summary>
         /// Action for mocking a response to getting all text resources
         /// </summary>
         /// <remarks>Hardcoded to only serve norwegian bokmal resource file</remarks>
