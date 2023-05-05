@@ -43,7 +43,7 @@
     },
     {
       "id": "Confirm.Paragraph-confirm.title",
-      "value": "<br><br><br>**Jeg bekrefter at opplysningene er korrekt.**"
+      "value": "#### **Jeg bekrefter at opplysningene er korrekt.**"
     },
     {
       "id": "Form.Input-income.description",

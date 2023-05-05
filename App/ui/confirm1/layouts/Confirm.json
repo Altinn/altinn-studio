@@ -23,7 +23,7 @@
         "dataModelBindings": {
           "simpleBinding": "form.name"
         },
-        "readOnly": true,
+        "renderAsSummary": true,
         "autocomplete": "organization",
         "grid": {
           "xs": 12,
@@ -40,7 +40,7 @@
         "dataModelBindings": {
           "simpleBinding": "form.orgNumber"
         },
-        "readOnly": true,
+        "renderAsSummary": true,
         "autocomplete": "off",
         "grid": {
           "xs": 12,
@@ -57,7 +57,7 @@
         "dataModelBindings": {
           "simpleBinding": "form.year"
         },
-        "readOnly": true,
+        "renderAsSummary": true,
         "autocomplete": "off",
         "formatting": {
           "align": "right",
@@ -82,7 +82,7 @@
         "dataModelBindings": {
           "simpleBinding": "form.income"
         },
-        "readOnly": true,
+        "renderAsSummary": true,
         "autocomplete": "off",
         "formatting": {
           "align": "right",
@@ -96,6 +96,15 @@
         "grid": {
           "xs": 12,
           "sm": 6
+        }
+      },
+      {
+        "id": "PanelGroupConfirm",
+        "type": "Group",
+        "children": ["Paragraph-confirm", "ButtonGroup"],
+        "panel": {
+          "variant": "success",
+          "showIcon": false
         }
       },
       {
