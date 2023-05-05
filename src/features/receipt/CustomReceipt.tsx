@@ -4,6 +4,7 @@ import Grid from '@material-ui/core/Grid';
 
 import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import classes from 'src/features/receipt/CustomReceipt.module.css';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { extractBottomButtons } from 'src/utils/formLayout';
@@ -45,6 +46,7 @@ export function CustomReceipt() {
           item={true}
           xs={12}
           aria-live='polite'
+          className={classes.errorReport}
         >
           <ErrorReport nodes={errorReportNodes} />
         </Grid>

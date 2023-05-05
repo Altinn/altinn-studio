@@ -2,6 +2,7 @@ import React from 'react';
 
 import Grid from '@material-ui/core/Grid';
 
+import classes from 'src/components/form/Form.module.css';
 import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
@@ -62,6 +63,7 @@ export function Form() {
           item={true}
           xs={12}
           aria-live='polite'
+          className={classes.errorReport}
         >
           <ErrorReport nodes={errorReportNodes} />
         </Grid>

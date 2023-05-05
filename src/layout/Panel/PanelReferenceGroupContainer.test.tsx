@@ -4,7 +4,7 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
+import { PanelReferenceGroupContainer } from 'src/layout/Panel/PanelReferenceGroupContainer';
 import { renderWithProviders } from 'src/testUtils';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
@@ -168,5 +168,5 @@ const render = ({ container, components, customState }: TestProps) => {
     children: [],
   });
 
-  renderWithProviders(<PanelGroupContainer id={'group'} />, { preloadedState });
+  renderWithProviders(<PanelReferenceGroupContainer id={'group'} />, { preloadedState });
 };

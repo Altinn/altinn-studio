@@ -7,3 +7,7 @@
 .consumeBottomPadding {
   margin-bottom: calc(var(--modal-padding-y) * -1);
 }
+
+.consumeTopPadding {
+  margin-top: calc(var(--modal-padding-y) * -1);
+}

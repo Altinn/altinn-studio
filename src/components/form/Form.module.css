@@ -1,0 +1,3 @@
+.errorReport:empty {
+  padding: 0 !important; /* There are specificity issues making !important necessary */
+}
