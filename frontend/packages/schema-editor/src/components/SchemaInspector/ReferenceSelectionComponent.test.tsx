@@ -43,19 +43,19 @@ const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionPr
   renderWithRedux(<ReferenceSelectionComponent {...defaultProps} {...props} />, { uiSchema });
 
 describe('ReferenceSelectionComponent', () => {
-  test('Select box appears', () => {
+  test('Select box appears', async () => {
     renderReferenceSelectionComponent();
-    expect(screen.getByRole('combobox')).toBeDefined();
+    expect(await screen.findByRole('combobox')).toBeDefined();
   });
 
-  test('Label text appears', () => {
+  test('Label text appears', async () => {
     renderReferenceSelectionComponent();
-    expect(screen.getByText(label)).toBeDefined();
+    expect(await screen.findByText(label)).toBeDefined();
   });
 
-  test('"Go to type" button appears with given text', () => {
+  test('"Go to type" button appears with given text', async () => {
     renderReferenceSelectionComponent();
-    expect(screen.getByRole('button')).toHaveTextContent(buttonText);
+    expect(await screen.findByRole('button', { name: buttonText })).toBeInTheDocument();
   });
 
   test('All types should appear as options', async () => {
@@ -77,16 +77,16 @@ describe('ReferenceSelectionComponent', () => {
     expect(screen.getByRole('option', { name: emptyOptionLabel })).toBeDefined();
   });
 
-  test('Empty option is selected by default', () => {
+  test('Empty option is selected by default', async () => {
     renderReferenceSelectionComponent();
-    expect(screen.getByRole('combobox')).toHaveValue('');
+    expect(await screen.findByRole('combobox')).toHaveValue(emptyOptionLabel);
   });
 
-  test('Referenced type is selected if given', () => {
+  test('Referenced type is selected if given', async () => {
     renderReferenceSelectionComponent({
       selectedNode: { ...selectedNode, reference: type1.pointer },
     });
-    expect(screen.getByRole('combobox')).toHaveValue(type1.pointer);
+    expect(await screen.findByRole('combobox')).toHaveValue(type1Name);
   });
 
   test('onChange handler is called with correct parameters when value changes', async () => {

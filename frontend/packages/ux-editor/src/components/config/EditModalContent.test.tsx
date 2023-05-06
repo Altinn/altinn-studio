@@ -4,10 +4,11 @@ import configureStore from 'redux-mock-store';
 import { EditModalContent } from './EditModalContent';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { IAppState } from '../../types/global';
+import { FormComponentType, IAppState } from '../../types/global';
 import { appStateMock, queriesMock } from '../../testing/mocks';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from '../../../../../app-development/common/ServiceContext';
+import { ComponentType } from '../index';
 
 const user = userEvent.setup();
 
@@ -27,12 +28,20 @@ const texts = {
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
+const buttonSpecificContentId = 'button-specific-content';
+jest.mock('./componentSpecificContent/Button/ButtonComponent', () => ({
+  ButtonComponent: () => <div data-testid={buttonSpecificContentId} />,
+}));
+const imageSpecificContentId = 'image-specific-content';
+jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
+  ImageComponent: () => <div data-testid={imageSpecificContentId} />,
+}));
 
 describe('EditModalContent', () => {
   test('should return input specific content when type input', () => {
     render({
       componentProps: {
-        type: 'Input',
+        type: ComponentType.Input,
       },
     });
 
@@ -50,7 +59,7 @@ describe('EditModalContent', () => {
   test('should return header specific content when type header', () => {
     render({
       componentProps: {
-        type: 'Header',
+        type: ComponentType.Header,
       },
     });
 
@@ -64,7 +73,7 @@ describe('EditModalContent', () => {
   test('should return file uploader specific content when type file uploader', () => {
     render({
       componentProps: {
-        type: 'FileUpload',
+        type: ComponentType.FileUpload,
       },
     });
 
@@ -87,7 +96,7 @@ describe('EditModalContent', () => {
     const { allComponentProps } = render({
       componentProps: {
         maxNumberOfAttachments: 3,
-        type: 'FileUpload',
+        type: ComponentType.FileUpload,
       },
       handleComponentUpdate: handleUpdate,
     });
@@ -107,7 +116,7 @@ describe('EditModalContent', () => {
       componentProps: {
         required: true,
         minNumberOfAttachments: 1,
-        type: 'FileUpload',
+        type: ComponentType.FileUpload,
       },
       handleComponentUpdate: handleUpdate,
     });
@@ -122,39 +131,38 @@ describe('EditModalContent', () => {
     });
   });
 
-  test('should return button spesific content when type button', () => {
+  test('should return button specific content when type button', async () => {
     render({
       componentProps: {
-        type: 'Button',
+        type: ComponentType.Button,
       },
     });
-
-    expect(screen.getByTestId('component-id-inputundefined-default')).toBeInTheDocument();
-    expect(screen.queryAllByRole('combobox').length).toBe(1);
+    expect(await screen.findByTestId(buttonSpecificContentId)).toBeInTheDocument();
   });
 
-  test('should render Image component when component type is Image', () => {
+  test('should render Image component when component type is Image', async () => {
     render({
       componentProps: {
-        type: 'Image',
+        type: ComponentType.Image,
       },
     });
-
-    expect(screen.getByLabelText(srcValueLabel)).toBeInTheDocument();
+    expect(await screen.findByTestId(imageSpecificContentId)).toBeInTheDocument();
   });
 
-  it('should not render Image component when component type is not Image', () => {
+  it('should not render Image component when component type is not Image', async () => {
     render({
       componentProps: {
-        type: 'Button',
+        type: ComponentType.Button,
       },
     });
-
     expect(screen.queryByLabelText(srcValueLabel)).not.toBeInTheDocument();
   });
 });
 
-const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } = {}) => {
+const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
+  componentProps?: Partial<FormComponentType>;
+  handleComponentUpdate?: (component: FormComponentType) => void;
+}) => {
   const createStore = configureStore();
   const initialState: IAppState = {
     ...appStateMock,
@@ -171,14 +179,16 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
 
   const store = createStore(initialState);
 
-  const allComponentProps = {
+  const allComponentProps: FormComponentType = {
     dataModelBindings: {},
     readOnly: false,
     required: false,
     textResourceBindings: {
       title: 'title',
     },
-    type: 'Input',
+    type: ComponentType.Input,
+    id: 'test',
+    itemType: 'COMPONENT',
     ...componentProps,
   };
 
