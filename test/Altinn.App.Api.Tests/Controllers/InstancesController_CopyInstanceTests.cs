@@ -2,6 +2,7 @@ using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -191,6 +192,83 @@ public class InstancesController_CopyInstanceTests
         Assert.IsType<BadRequestObjectResult>(actual);
         BadRequestObjectResult badRequest = (BadRequestObjectResult)actual;
         Assert.Contains("instance being copied must be archived", badRequest!.Value!.ToString());
+
+        _appMetadata.VerifyAll();
+        _pdp.VerifyAll();
+        _instanceClient.VerifyAll();
+        VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task CopyInstance_InstanceDoesNotExists_ReturnsBadRequest()
+    {
+        // Arrange
+        const string Org = "ttd";
+        const string AppName = "copy-instance";
+        int instanceOwnerPartyId = 343234;
+        Guid instanceGuid = Guid.NewGuid();
+
+        // Storage returns Forbidden if the given instance id is wrong.
+        PlatformHttpException platformHttpException = 
+            await PlatformHttpException.CreateAsync(new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden));
+
+        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337));
+        _appMetadata.Setup(a => a.GetApplicationMetadata())
+            .ReturnsAsync(CreateApplicationMetadata($"{Org}/{AppName}", true));
+        _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(CreateXacmlResponse("Permit"));
+        _instanceClient.Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+            .ThrowsAsync(platformHttpException);
+
+        // Act
+        ActionResult actual = await SUT.CopyInstance("ttd", "copy-instance", instanceOwnerPartyId, instanceGuid);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(actual);
+        BadRequestObjectResult badRequest = (BadRequestObjectResult)actual;
+        Assert.Contains("instance being copied must be archived", badRequest!.Value!.ToString());
+
+        _appMetadata.VerifyAll();
+        _pdp.VerifyAll();
+        _instanceClient.VerifyAll();
+        VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task CopyInstance_PlatformReturnsError_ThrowsException()
+    {
+        // Arrange
+        const string Org = "ttd";
+        const string AppName = "copy-instance";
+        int instanceOwnerPartyId = 343234;
+        Guid instanceGuid = Guid.NewGuid();
+
+        // Simulate a BadGateway respons from Platform
+        PlatformHttpException platformHttpException =
+            await PlatformHttpException.CreateAsync(new HttpResponseMessage(System.Net.HttpStatusCode.BadGateway));
+
+        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337));
+        _appMetadata.Setup(a => a.GetApplicationMetadata())
+            .ReturnsAsync(CreateApplicationMetadata($"{Org}/{AppName}", true));
+        _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(CreateXacmlResponse("Permit"));
+        _instanceClient.Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+            .ThrowsAsync(platformHttpException);
+
+        PlatformHttpException? actual = null;
+
+        // Act
+        try
+        {
+            await SUT.CopyInstance("ttd", "copy-instance", instanceOwnerPartyId, instanceGuid);
+        }
+        catch (PlatformHttpException phe)
+        {
+            actual = phe;
+        }
+
+        // Assert
+        Assert.NotNull(actual);
 
         _appMetadata.VerifyAll();
         _pdp.VerifyAll();

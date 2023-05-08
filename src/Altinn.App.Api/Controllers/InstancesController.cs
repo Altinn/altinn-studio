@@ -508,7 +508,7 @@ namespace Altinn.App.Api.Controllers
                 return Forbidden(readAccess);
             }
 
-            Instance sourceInstance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            Instance? sourceInstance = await GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
 
             if (sourceInstance?.Status?.IsArchived is null or false)
             {
@@ -722,6 +722,25 @@ namespace Altinn.App.Api.Controllers
             }
 
             return Ok(SimpleInstanceMapper.MapInstanceListToSimpleInstanceList(activeInstances, userAndOrgLookup));
+        }
+
+        private async Task<Instance?> GetInstance(string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
+        {
+            try
+            {
+                return await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            }
+            catch (PlatformHttpException platformHttpException)
+            {
+                switch (platformHttpException.Response.StatusCode)
+                {
+                    case HttpStatusCode.Forbidden: // Storage returns 403 for non-existing instances
+                    case HttpStatusCode.NotFound:
+                        return null;
+                    default:
+                        throw;
+                }
+            }
         }
 
         private void ConditionallySetReadStatus(Instance instance)
