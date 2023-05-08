@@ -1,4 +1,4 @@
-import React from 'react';
+/* import React from 'react';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import { getTopBarMenu, TopBarMenu } from './appBarConfig';
@@ -47,6 +47,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
           <span className={classes.bigSlash}>/</span>
           <span className={classes.appName}>{(org && app) || ''}</span>
         </div>
+
         <ul className={classes.menu}>
           {menu.map((item) => (
             <li
@@ -63,9 +64,12 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
           ))}
         </ul>
         <div className={classes.rightContent}>
-          <div className={classes.rightContentButtons}>
-            {/* TODO: Enable cypress usecase test when below button is enabled in prod/dev (testing/cypress/src/integration/usecase/usecase.js:57) */}
-            {!_useIsProdHack() && (
+          <div className={classes.rightContentButtons}> */
+{
+  /* TODO: Enable cypress usecase test when below button is enabled in prod/dev (testing/cypress/src/integration/usecase/usecase.js:57) */
+}
+{
+  /*      {!_useIsProdHack() && (
               <Button
                 className={classes.previewButton}
                 onClick={handlePreviewClick}
@@ -83,21 +87,24 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
               {t('top_menu.deploy')}
             </Button>
           </div>
-          <div className={classes.profileMenuWrapper}>
-            {user && (
-              <>
-                <span className={classes.userOrgNames}>
-                  {user.login !== org
-                    ? t('shared.header_user_for_org', {
-                        user: user.login,
-                        org: repository.owner.full_name || repository.owner.login,
-                      })
-                    : user.login}
-                </span>
 
-                <ProfileMenu showlogout user={user} />
-              </>
-            )}
+          <div className={classes.rightContent}>
+            <div className={classes.profileMenuWrapper}>
+              {user && (
+                <>
+                  <span className={classes.userOrgNames}>
+                    {user.login !== org
+                      ? t('shared.header_user_for_org', {
+                          user: user.login,
+                          org: repository.owner.full_name || repository.owner.login,
+                        })
+                      : user.login}
+                  </span>
+
+                  <ProfileMenu showlogout user={user} />
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -116,3 +123,5 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
     </div>
   );
 };
+ */
+}

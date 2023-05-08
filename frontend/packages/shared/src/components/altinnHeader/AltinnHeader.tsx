@@ -1,14 +1,14 @@
-import { BranchingIcon } from '@navikt/aksel-icons';
 import { useAppSelector } from 'app-development/hooks';
 import { useUserQuery } from 'app-development/hooks/queries/useUserQuery';
-import { ThreeDotsMenu } from 'app-development/layout/AppBar/ThreeDotsMenu';
-import { VersionControlHeader } from 'app-development/layout/version-control/VersionControlHeader';
 import AltinnStudioLogo from 'app-shared/navigation/main-header/AltinnStudioLogo';
 import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import classes from './AltinnHeader.module.css';
+import { AltinnSubMenu } from '../altinnSubHeader';
+import { AltinnHeaderMenu } from '../altinnHeaderMenu';
+import { AltinnHeaderButtons } from '../altinnHeaderButtons';
 
 export interface IAltinnHeader {
   showSubMenu: boolean;
@@ -21,7 +21,7 @@ export const AltinnHeader = ({ showSubMenu }: IAltinnHeader) => {
   const { data: user } = useUserQuery();
 
   return (
-    <div className={classes.root}>
+    <div>
       <div className={classes.altinnHeaderBar}>
         <div className={classes.leftContent}>
           <a href='/'>
@@ -30,6 +30,8 @@ export const AltinnHeader = ({ showSubMenu }: IAltinnHeader) => {
           <span className={classes.bigSlash}>/</span>
           <span className={classes.appName}>{app || ''}</span>
         </div>
+        <AltinnHeaderMenu />
+        <AltinnHeaderButtons />
         <div className={classes.rightContent}>
           <div className={classes.profileMenuWrapper}>
             {user && (
@@ -42,24 +44,13 @@ export const AltinnHeader = ({ showSubMenu }: IAltinnHeader) => {
                       })
                     : user.login}
                 </span>
-
                 <ProfileMenu showlogout user={user} />
               </>
             )}
           </div>
         </div>
       </div>
-      {showSubMenu && (
-        <div className={classes.subToolbar}>
-          <div className={classes.leftContent}>
-            <BranchingIcon className={classes.branchIcon} />
-          </div>
-          <div className={classes.rightContent}>
-            <VersionControlHeader />
-            <ThreeDotsMenu />
-          </div>
-        </div>
-      )}
+      {showSubMenu && <AltinnSubMenu />}
     </div>
   );
 };

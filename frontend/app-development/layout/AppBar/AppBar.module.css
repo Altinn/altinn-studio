@@ -1,4 +1,4 @@
-.root {
+/* .root {
 }
 
 .appBar {
@@ -60,7 +60,6 @@
 .appBar .rightContent {
   align-items: center;
   display: flex;
-  flex: 1;
   gap: 1rem;
   justify-content: flex-end;
 }
@@ -69,7 +68,6 @@
   align-items: center;
   display: flex;
   gap: 1rem;
-  flex: 3;
 }
 
 .rightContentButtons > * {
@@ -116,3 +114,4 @@
   align-items: center;
   gap: 1rem;
 }
+ */

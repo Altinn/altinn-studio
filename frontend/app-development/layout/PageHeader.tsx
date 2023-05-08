@@ -1,5 +1,4 @@
 import React from 'react';
-// import { AppBar } from './AppBar';
 import { Route, Routes } from 'react-router-dom';
 import { routes } from '../config/routes';
 import { AltinnHeader } from 'app-shared/components/altinnHeader/AltinnHeader';
@@ -15,14 +14,7 @@ export const PageHeader = ({ showSubMenu }: PageHeaderProps) => {
         <Route
           key={route.path}
           path={route.path}
-          element={
-            <AltinnHeader showSubMenu={showSubMenu} />
-            /*   <AppBar
-              activeLeftMenuSelection={route.activeLeftMenuSelection}
-              activeSubHeaderSelection={route.activeSubHeaderSelection}
-              showSubMenu={showSubMenu}
-            /> */
-          }
+          element={<AltinnHeader showSubMenu={showSubMenu} />}
         />
       ))}
     </Routes>
