@@ -180,22 +180,13 @@ export function EditFormComponent(props: IEditFormComponentProps) {
           </>
         )}
         {isPreviewable && (
-          isPreviewMode ? (
-            <Button
-              color={ButtonColor.Secondary}
-              icon={<XMarkIcon title={t('general.cancel')} />}
-              onClick={handlePreview}
-              variant={ButtonVariant.Quiet}
-            />
-          ) : (
-            <Button
-              color={ButtonColor.Secondary}
-              icon={<MonitorIcon title={t('general.preview')} />}
-              onClick={handlePreview}
-              title='Forhåndsvisning (under utvikling)'
-              variant={ButtonVariant.Quiet}
-            />
-          )
+          <Button
+            color={ButtonColor.Secondary}
+            icon={<MonitorIcon title={t('general.preview')} />}
+            onClick={handlePreview}
+            title='Forhåndsvisning (under utvikling)'
+            variant={ButtonVariant.Quiet}
+          />
         )}
       </div>
     </div>
