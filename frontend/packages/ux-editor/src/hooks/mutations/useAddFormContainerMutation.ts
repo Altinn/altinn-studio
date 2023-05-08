@@ -3,7 +3,7 @@ import { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
-import {selectedLayoutWithNameSelector} from '../../selectors/formLayoutSelectors';
+import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { FormContainer } from '../../types/FormContainer';

@@ -25,7 +25,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
     onSuccess: ({ oldName, newName }) => {
       dispatch(FormLayoutActions.updateSelectedLayout(newName));
       queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app],
+        [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
           const newLayouts = deepCopy(oldLayouts);
           newLayouts[newName] = newLayouts[oldName];

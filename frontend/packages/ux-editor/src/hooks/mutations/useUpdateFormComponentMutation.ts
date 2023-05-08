@@ -5,7 +5,7 @@ import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetada
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
-import {selectedLayoutWithNameSelector} from '../../selectors/formLayoutSelectors';
+import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';

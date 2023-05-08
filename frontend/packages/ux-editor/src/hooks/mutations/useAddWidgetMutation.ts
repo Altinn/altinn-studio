@@ -1,7 +1,7 @@
 import { IFormDesignerComponents, IFormLayouts, IInternalLayout, IWidget } from '../../types/global';
 import { convertFromLayoutToInternalFormat } from '../../utils/formLayoutUtils';
 import { useMutation } from '@tanstack/react-query';
-import {selectedLayoutWithNameSelector} from '../../selectors/formLayoutSelectors';
+import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { deepCopy } from 'app-shared/pure';
 import { v4 as uuidv4 } from 'uuid';

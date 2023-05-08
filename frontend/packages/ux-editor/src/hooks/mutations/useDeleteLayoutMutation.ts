@@ -1,9 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import {
-  queryClient,
-  useServicesContext,
-} from 'app-shared/contexts/ServicesContext';
-import { useDispatch } from 'react-redux';
+import { queryClient, useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { useDispatch, useSelector } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { IInternalLayout } from '../../types/global';
@@ -15,13 +12,19 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { convertInternalToLayoutFormat } from '../../utils/formLayoutUtils';
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import { useAddLayoutMutation } from './useAddLayoutMutation';
+import { useText } from '../useText';
+import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
+  const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);
+  const selectedLayout = useSelector(selectedLayoutNameSelector);
   const dispatch = useDispatch();
+  const t = useText();
 
   const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
@@ -54,7 +57,15 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       }
       formLayoutSettingsMutation.mutate(layoutSettings);
 
-      queryClient.setQueryData([QueryKey.FormLayouts, org, app], () => layouts);
+      const layoutPagesOrder = formLayoutSettings?.pages.order;
+
+      // Make sure to create a new page when the last one is deleted!
+      if (!selectedLayout && layoutPagesOrder.length === 0) {
+        const layoutName = t('general.page') + (layoutPagesOrder.length + 1);
+        addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
+      }
+
+      queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
       dispatch(FormLayoutActions.deleteLayoutFulfilled({ layout: layoutName, pageOrder: order }));
     },
   });

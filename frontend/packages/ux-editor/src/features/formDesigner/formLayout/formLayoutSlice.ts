@@ -57,6 +57,7 @@ const formLayoutSlice = createSlice({
       if (state.selectedLayout === layout) {
         state.selectedLayout = pageOrder[0];
       }
+      debugger;
     },
     deleteLayoutRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;

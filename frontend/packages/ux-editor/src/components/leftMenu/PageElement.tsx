@@ -16,7 +16,7 @@ import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSet
 import { useUpdateLayoutOrderMutation } from '../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useDeleteLayoutMutation } from '../../hooks/mutations/useDeleteLayoutMutation';
 import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayoutNameMutation';
-import {selectedLayoutSetSelector} from "../../selectors/formLayoutSelectors";
+import { selectedLayoutSetSelector } from "../../selectors/formLayoutSelectors";
 
 export interface IPageElementProps {
   name: string;

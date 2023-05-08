@@ -7,7 +7,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { useText } from '../../hooks';
-import {selectedLayoutSetSelector} from "../../selectors/formLayoutSelectors";
+import { selectedLayoutSetSelector } from "../../selectors/formLayoutSelectors";
 
 export function PagesContainer() {
   const { org, app } = useParams();

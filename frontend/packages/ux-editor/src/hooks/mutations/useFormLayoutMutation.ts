@@ -24,7 +24,7 @@ export const useFormLayoutMutation = (org: string, app: string, layoutName: stri
       }
 
       queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app],
+        [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout })
       );
     }

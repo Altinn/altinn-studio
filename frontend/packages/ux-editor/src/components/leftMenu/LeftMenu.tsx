@@ -1,27 +1,27 @@
 import React from 'react';
-import {useSelector} from 'react-redux';
-import {ConfPageToolbar} from './ConfPageToolbar';
-import {DefaultToolbar} from './DefaultToolbar';
-import {Button, ButtonColor, ButtonVariant} from '@digdir/design-system-react';
-import {PlusIcon} from '@navikt/aksel-icons';
-import {PagesContainer} from './PagesContainer';
-import {_useIsProdHack} from 'app-shared/utils/_useIsProdHack';
-import {ReceiptPageElement} from './ReceiptPageElement';
-import {deepCopy} from 'app-shared/pure';
-import {useParams, useSearchParams} from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { ConfPageToolbar } from './ConfPageToolbar';
+import { DefaultToolbar } from './DefaultToolbar';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { PlusIcon } from '@navikt/aksel-icons';
+import { PagesContainer } from './PagesContainer';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
+import { ReceiptPageElement } from './ReceiptPageElement';
+import { deepCopy } from 'app-shared/pure';
+import { useParams, useSearchParams } from 'react-router-dom';
 import classes from './LeftMenu.module.css';
-import {useText} from '../../hooks';
-import {selectedLayoutNameSelector, selectedLayoutSetSelector} from '../../selectors/formLayoutSelectors';
-import {useAddLayoutMutation} from '../../hooks/mutations/useAddLayoutMutation';
-import {useConfigureLayoutSetMutation} from '../../hooks/mutations/useConfigureLayoutSetMutation';
-import {useFormLayoutSettingsQuery} from '../../hooks/queries/useFormLayoutSettingsQuery';
-import {useLayoutSetsQuery} from "../../hooks/queries/useLayoutSetsQuery";
-import {LayoutSetsContainer} from "./LayoutSetsContainer";
+import { useText } from '../../hooks';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
+import { useConfigureLayoutSetMutation } from '../../hooks/mutations/useConfigureLayoutSetMutation';
+import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
+import { useLayoutSetsQuery } from "../../hooks/queries/useLayoutSetsQuery";
+import { LayoutSetsContainer } from "./LayoutSetsContainer";
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 
 export const LeftMenu = () => {
-  const {org, app} = useParams();
+  const { org, app } = useParams();
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
@@ -30,7 +30,7 @@ export const LeftMenu = () => {
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const {pages, receiptLayoutName} = formLayoutSettingsQuery.data;
+  const { pages, receiptLayoutName } = formLayoutSettingsQuery.data;
   const layoutOrder = pages.order;
   const layoutSetNames = layoutSetsQuery?.data?.sets;
 
@@ -43,9 +43,8 @@ export const LeftMenu = () => {
       count += 1;
       name = t('left_menu.page') + (layoutOrder.length + count);
     }
-
     addLayoutMutation.mutate({ layoutName: name, isReceiptPage: false });
-    setSearchParams({...deepCopy(searchParams), layout: name});
+    setSearchParams({ ...deepCopy(searchParams), layout: name });
     dispatch(FormLayoutActions.updateSelectedLayout(name));
   }
 
@@ -60,8 +59,7 @@ export const LeftMenu = () => {
 
   return (
     <div className={classes.leftMenu} data-testid={'ux-editor.left-menu'}>
-      <>
-        {layoutSetNames ? (<>
+      {layoutSetNames ? (<>
           <div className={classes.pagesHeader}>
             <span>{t('left_menu.layout_sets')}</span>
               <Button
@@ -102,7 +100,6 @@ export const LeftMenu = () => {
         <div className={classes.toolbar}>
           {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
         </div>
-      </>
     </div>
   );
 };

@@ -66,7 +66,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
         })
       );
 
-      queryClient.setQueryData([QueryKey.FormLayouts, org, app], () => newLayouts);
+      queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => newLayouts);
     },
   });
 };

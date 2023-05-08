@@ -20,7 +20,7 @@ import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import {selectedLayoutSetSelector} from '../selectors/formLayoutSelectors';
+import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 
 export const DesignView = () => {
   const { org, app } = useParams();

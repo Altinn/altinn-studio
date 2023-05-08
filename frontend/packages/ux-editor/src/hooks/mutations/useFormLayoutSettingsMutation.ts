@@ -17,7 +17,7 @@ export const useFormLayoutSettingsMutation = (org: string, app: string, layoutSe
       }
 
       queryClient.setQueryData(
-        [QueryKey.FormLayoutSettings, org, app],
+        [QueryKey.FormLayoutSettings, org, app, layoutSetName],
         savedSettings
       );
     }

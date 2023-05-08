@@ -1,9 +1,9 @@
 import React from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useParams} from 'react-router-dom';
-import {useLayoutSetsQuery} from "../../hooks/queries/useLayoutSetsQuery";
-import {selectedLayoutSetSelector} from "../../selectors/formLayoutSelectors";
-import {FormLayoutActions} from "../../features/formDesigner/formLayout/formLayoutSlice";
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import { useLayoutSetsQuery } from "../../hooks/queries/useLayoutSetsQuery";
+import { selectedLayoutSetSelector } from "../../selectors/formLayoutSelectors";
+import { FormLayoutActions } from "../../features/formDesigner/formLayout/formLayoutSlice";
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 
 export function LayoutSetsContainer() {
@@ -24,7 +24,7 @@ export function LayoutSetsContainer() {
   return (
     <>
       {layoutSetNames && (layoutSetNames.map((set: string) => {
-        return <Button variant={selectedLayoutSet === set ? ButtonVariant.Filled : ButtonVariant.Quiet} onClick={() => onLayoutSetClick(set)}>
+        return <Button variant={selectedLayoutSet === set ? ButtonVariant.Filled : ButtonVariant.Quiet} key={set} onClick={() => onLayoutSetClick(set)}>
           {set}
         </Button>;
       }))}
