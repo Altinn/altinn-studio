@@ -103,18 +103,8 @@ export function EditFormComponent(props: IEditFormComponentProps) {
     });
 
   const handlePreview = () => {
-    setMode(EditFormComponentMode.Preview);
+    setMode(isPreviewMode ? EditFormComponentMode.Closed : EditFormComponentMode.Preview);
   };
-
-  const DiscardButton = () => (
-    <Button
-      color={ButtonColor.Secondary}
-      icon={<XMarkIcon title={t('general.cancel')} />}
-      onClick={handleDiscard}
-      tabIndex={0}
-      variant={ButtonVariant.Quiet}
-    />
-  );
 
   return (
     <div className={cn(classes.wrapper, isPreviewMode && classes.previewMode)} role='listitem'>
@@ -173,7 +163,13 @@ export function EditFormComponent(props: IEditFormComponentProps) {
           </>
         ) : (
           <>
-            <DiscardButton />
+          <Button
+            color={ButtonColor.Secondary}
+            icon={<XMarkIcon title={t('general.cancel')} />}
+            onClick={handleDiscard}
+            tabIndex={0}
+            variant={ButtonVariant.Quiet}
+          />
             <Button
               color={ButtonColor.Secondary}
               icon={<CheckmarkIcon title={t('general.save')} />}
@@ -185,7 +181,12 @@ export function EditFormComponent(props: IEditFormComponentProps) {
         )}
         {isPreviewable && (
           isPreviewMode ? (
-            <DiscardButton />
+            <Button
+              color={ButtonColor.Secondary}
+              icon={<XMarkIcon title={t('general.cancel')} />}
+              onClick={handlePreview}
+              variant={ButtonVariant.Quiet}
+            />
           ) : (
             <Button
               color={ButtonColor.Secondary}
