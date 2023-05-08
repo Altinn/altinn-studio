@@ -1,19 +1,20 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
 import { ComponentType } from '../index';
-import type { FormComponentType, IAppState, IThirdPartyComponent } from '../../types/global';
+import type { IAppState } from '../../types/global';
 import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@digdir/design-system-react';
 import classes from './EditModalContent.module.css';
 import { useSelector } from 'react-redux';
+import type { FormComponent, FormThirdPartyComponent } from '../../types/FormComponent';
 
 export interface IEditModalContentProps {
   cancelEdit?: () => void;
-  component: FormComponentType;
-  handleComponentUpdate?: (updatedComponent: FormComponentType) => void;
-  saveEdit?: (updatedComponent: FormComponentType) => void;
+  component: FormComponent;
+  handleComponentUpdate?: (updatedComponent: FormComponent) => void;
+  saveEdit?: (updatedComponent: FormComponent) => void;
   thirdPartyComponentConfig?: EditSettings[];
 }
 
@@ -41,7 +42,7 @@ export const EditModalContent = ({
 
   const getConfigDefinitionForComponent = (): EditSettings[] => {
     if (component.type === ComponentType.ThirdParty) {
-      return thirdPartyComponentConfig[(component as IThirdPartyComponent).tagName];
+      return thirdPartyComponentConfig[(component as FormThirdPartyComponent).tagName];
     }
 
     return componentSpecificEditConfig[component.type];

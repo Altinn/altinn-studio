@@ -1,15 +1,11 @@
 import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { ComponentPreview, ComponentPreviewProps } from './ComponentPreview';
-import {
-  FormComponentType,
-  IFormCheckboxComponent,
-  IFormRadioButtonComponent,
-} from '../../types/global';
 import { ComponentType } from '../../components';
+import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
 
 // Test data:
-const component: FormComponentType = { id: '1', type: ComponentType.Input, itemType: 'COMPONENT' };
+const component: FormComponent = { id: '1', type: ComponentType.Input, itemType: 'COMPONENT' };
 const handleComponentChange = jest.fn();
 const defaultProps: ComponentPreviewProps = {
   component,
@@ -30,7 +26,7 @@ describe('ComponentPreview', () => {
   afterEach(jest.resetAllMocks);
 
   it('Renders CheckboxGroupPreview when component type is Checkboxes', () => {
-    const checkboxesComponent: IFormCheckboxComponent = {
+    const checkboxesComponent: FormCheckboxesComponent = {
       ...component,
       options: [],
       optionsId: '1',
@@ -41,7 +37,7 @@ describe('ComponentPreview', () => {
   });
 
   it('Renders RadioGroupPreview when component type is RadioButtons', () => {
-    const radiosComponent: IFormRadioButtonComponent = {
+    const radiosComponent: FormRadioButtonsComponent = {
       ...component,
       options: [],
       optionsId: '1',
@@ -69,7 +65,7 @@ describe('ComponentPreview', () => {
     ComponentType.TextArea,
     ComponentType.ThirdParty,
   ])('Renders error text when component type is %s', (type: ComponentType) => {
-    render({ component: { ...component, type } });
+    render({ component: { ...component, type } as FormComponent });
     expect(
       screen.getByText('Forhåndsvisning er ikke implementert for denne komponenten.')
     ).toBeInTheDocument();

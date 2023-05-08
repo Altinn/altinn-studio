@@ -1,7 +1,6 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { CheckboxGroup } from '@digdir/design-system-react';
-import { IFormCheckboxComponent } from '../../../types/global';
+import { CheckboxGroup, ErrorMessage } from '@digdir/design-system-react';
 import classes from './CheckboxGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
 import { useText } from '../../../hooks';
@@ -12,9 +11,11 @@ import {
 } from '../../../utils/component';
 import { AddOption } from '../../../components/AddOption';
 import { TranslationKey } from 'language/type';
+import type { FormCheckboxesComponent } from '../../../types/FormComponent';
+import { validateComponent } from '../../../utils/validationUtils/validateComponent';
 
 export interface CheckboxGroupPreviewProps extends IGenericEditComponent {
-  component: IFormCheckboxComponent;
+  component: FormCheckboxesComponent;
 }
 
 export const CheckboxGroupPreview = ({
@@ -24,6 +25,12 @@ export const CheckboxGroupPreview = ({
 }: CheckboxGroupPreviewProps) => {
   const t = useText();
   const tCheckboxes = (key: string) => t(`ux_editor.checkboxes_${key}` as TranslationKey);
+
+  const { isValid, error } = validateComponent(component);
+
+  if (!isValid) {
+    return <ErrorMessage>{tCheckboxes(`error_${error}`)}</ErrorMessage>;
+  }
 
   const changeOptionLabel = (value: string, label: string) =>
     handleComponentChange(changeComponentOptionLabel(component, value, label));
@@ -79,7 +86,7 @@ export const CheckboxGroupPreview = ({
         presentation
       />
       {!component.optionsId && (
-        <AddOption<IFormCheckboxComponent>
+        <AddOption<FormCheckboxesComponent>
           addButtonClass={classes.addCheckbox}
           component={component}
           duplicateErrorText={tCheckboxes('option_value_error_duplicate')}

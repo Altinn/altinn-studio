@@ -2,14 +2,14 @@ import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddFormComponentMutationArgs, useAddFormComponentMutation } from './useAddFormComponentMutation';
-import { IFormComponent } from '../../types/global';
 import { ComponentType } from '../../components';
 import { layout1NameMock } from '../../testing/layoutMock';
+import type { FormComponent } from '../../types/FormComponent';
 
 // Test data:
 const org = 'org';
 const app = 'app';
-const component: IFormComponent = {
+const component: FormComponent = {
   id: 'test',
   itemType: 'COMPONENT',
   type: ComponentType.Paragraph,

@@ -1,6 +1,3 @@
-import type { IThirdPartyComponent, IWidgetTexts } from '../types/global';
-import type { EditSettings } from './config/componentConfig';
-
 export interface IComponentIcon {
   [key: string]: string;
 }
@@ -9,19 +6,6 @@ export interface IComponent {
   name: string;
   customProperties?: any;
   Icon: string;
-}
-
-export interface IThirdPartyComponentDefinition {
-  displayName: string;
-  componentDefinition: IThirdPartyComponent;
-  editSettings: EditSettings[];
-  texts: IWidgetTexts[];
-}
-
-export interface IThirdPartyComponentCustomProps {
-  tagName: string;
-  framework: 'WebComponent' | string;
-  [id: string]: any;
 }
 
 // The order here should be the same as

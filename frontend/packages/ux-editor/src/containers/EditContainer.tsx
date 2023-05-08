@@ -3,7 +3,6 @@ import { EditModalContent } from '../components/config/EditModalContent';
 import '../styles/index.css';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
 import { componentIcons, ComponentType } from '../components';
-import type { FormComponentType, IFormComponent } from '../types/global';
 import classes from './EditContainer.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { XMarkIcon, TrashIcon, PencilIcon, MonitorIcon, CheckmarkIcon } from '@navikt/aksel-icons';
@@ -25,9 +24,10 @@ import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { useRuleConfigMutation } from '../hooks/mutations/useRuleConfigMutation';
 import { switchSelectedFieldId } from '../utils/ruleConfigUtils';
+import type { FormComponent } from '../types/FormComponent';
 
 export interface IEditContainerProps {
-  component: IFormComponent;
+  component: FormComponent;
   id: string;
   partOfGroup?: boolean;
   children: any;
@@ -47,7 +47,7 @@ export function EditContainer(props: IEditContainerProps) {
   const { mutate: updateFormComponent } = useUpdateFormComponentMutation(org, app);
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app);
-  const [component, setComponent] = useState<IFormComponent>({
+  const [component, setComponent] = useState<FormComponent>({
     id: props.id,
     ...props.component,
   });
@@ -64,11 +64,11 @@ export function EditContainer(props: IEditContainerProps) {
     ComponentType.NavigationButtons,
   ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
   const isPreviewable = previewableComponents.includes(component.type as ComponentType);
-  const handleComponentUpdate = (updatedComponent: IFormComponent): void => {
+  const handleComponentUpdate = (updatedComponent: FormComponent): void => {
     setComponent({ ...updatedComponent });
   };
 
-  const handleComponentChangeAndSave = (updatedComponent: IFormComponent): void => {
+  const handleComponentChangeAndSave = (updatedComponent: FormComponent): void => {
     handleComponentUpdate(updatedComponent);
     handleSaveChange(updatedComponent);
   };
@@ -96,7 +96,7 @@ export function EditContainer(props: IEditContainerProps) {
     setMode(EditContainerMode.Closed);
   };
 
-  const handleSaveChange = (callbackComponent: FormComponentType) =>
+  const handleSaveChange = (callbackComponent: FormComponent) =>
     updateFormComponent({
       id: props.id,
       updatedComponent: callbackComponent,

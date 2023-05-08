@@ -15,8 +15,10 @@ import { EditCodeList } from './EditCodeList';
 import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { TextResource } from '../../TextResource';
 import { useText } from '../../../hooks';
+import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
+import type { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
 
-export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent {
+export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
   renderOptions?: {
     onlyCodeListOptions?: boolean;
   };
@@ -100,14 +102,8 @@ export function EditOptions({
     });
   };
 
-  const handleAddOption = () => {
-    const options = [...(component.options || [])];
-    options.push({ label: '', value: '' });
-    handleComponentChange({
-      ...component,
-      options,
-    });
-  };
+  const handleAddOption = () =>
+    handleComponentChange(addOptionToComponent(component, generateRandomOption()));
 
   return (
     <>

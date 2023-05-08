@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { RadioGroup } from '@digdir/design-system-react';
-import { IFormRadioButtonComponent } from '../../../types/global';
+import { ErrorMessage, RadioGroup } from '@digdir/design-system-react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import classes from './RadioGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
@@ -13,9 +12,11 @@ import {
 } from '../../../utils/component';
 import { AddOption } from '../../../components/AddOption';
 import { TranslationKey } from 'language/type';
+import type { FormRadioButtonsComponent } from '../../../types/FormComponent';
+import { validateComponent } from '../../../utils/validationUtils/validateComponent';
 
 export interface RadioGroupPreviewProps extends IGenericEditComponent {
-  component: IFormRadioButtonComponent;
+  component: FormRadioButtonsComponent;
 }
 
 export const RadioGroupPreview = ({
@@ -25,8 +26,13 @@ export const RadioGroupPreview = ({
 }: RadioGroupPreviewProps) => {
   const t = useText();
   const tRadios = (key: string) => t(`ux_editor.radios_${key}` as TranslationKey);
-
   const radioGroupName = useRef(generateRandomId(12));
+
+  const { isValid, error } = validateComponent(component);
+
+  if (!isValid) {
+    return <ErrorMessage>{tRadios(`error_${error}`)}</ErrorMessage>;
+  }
 
   const changeOptionLabel = (value: string, label: string) =>
     handleComponentChange(changeComponentOptionLabel(component, value, label));
@@ -83,7 +89,7 @@ export const RadioGroupPreview = ({
         presentation
       />
       {!component.optionsId && (
-        <AddOption<IFormRadioButtonComponent>
+        <AddOption<FormRadioButtonsComponent>
           addButtonClass={classes.addRadioButton}
           component={component}
           duplicateErrorText={tRadios('option_value_error_duplicate')}

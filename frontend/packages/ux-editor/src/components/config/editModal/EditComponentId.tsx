@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { TextField } from '@digdir/design-system-react';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
-import type { FormComponentType } from '../../../types/global';
 import { idExists, validComponentId } from '../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { useFormLayoutsSelector } from '../../../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../../../selectors/formLayoutSelectors';
+import type { FormComponent } from '../../../types/FormComponent';
 
 export interface IEditComponentId {
-  handleComponentUpdate: (component: FormComponentType) => void;
-  component: FormComponentType;
+  handleComponentUpdate: (component: FormComponent) => void;
+  component: FormComponent;
 }
 export const EditComponentId = ({ component, handleComponentUpdate }: IEditComponentId) => {
   const [error, setError] = useState<string | null>(null);

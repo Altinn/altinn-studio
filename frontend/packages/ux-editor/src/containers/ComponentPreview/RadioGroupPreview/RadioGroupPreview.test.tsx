@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
-import { IFormRadioButtonComponent, IOption } from '../../../types/global';
+import { IOption } from '../../../types/global';
 import type { ITextResource } from 'app-shared/types/global';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -9,6 +9,7 @@ import { ComponentType } from '../../../components';
 import { RadioGroupPreview, RadioGroupPreviewProps } from './RadioGroupPreview';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import type { FormRadioButtonsComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();
 
@@ -29,7 +30,7 @@ const options: IOption[] = [
   { label: option1TextKey, value: option1Value },
   { label: option2TextKey, value: option2Value },
 ];
-const component: IFormRadioButtonComponent = {
+const component: FormRadioButtonsComponent = {
   id: '1',
   options,
   optionsId: '',
@@ -148,6 +149,11 @@ describe('RadioGroupPreview', () => {
     await act(() => user.clear(valueInput));
     await act(() => user.type(valueInput, option1Value));
     expect(screen.getByRole('alertdialog')).toHaveTextContent(duplicateErrorText);
+  });
+
+  it('Displays error message when the configuration is invalid', async () => {
+    await render({ component: { ...component, options: [] } });
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
 });
 

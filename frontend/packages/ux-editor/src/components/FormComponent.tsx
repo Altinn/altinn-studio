@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { EditContainer } from '../containers/EditContainer';
-import type { FormComponentType, IAppState } from '../types/global';
+import type { IAppState } from '../types/global';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useParams } from 'react-router-dom';
@@ -9,6 +9,7 @@ import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { ComponentType } from './index';
 import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
+import type { FormComponent as IFormComponent } from '../types/FormComponent';
 
 /**
  * Properties defined for input for wrapper
@@ -31,7 +32,7 @@ const FormComponent = (props: IFormElementProps) => {
   const { data: textResources } = useTextResourcesQuery(org, app);
 
   const { components } = useFormLayoutsSelector(selectedLayoutSelector);
-  const component: FormComponentType = components[props.id];
+  const component: IFormComponent = components[props.id];
 
   /**
    * Return a given textresource from all textresources avaiable

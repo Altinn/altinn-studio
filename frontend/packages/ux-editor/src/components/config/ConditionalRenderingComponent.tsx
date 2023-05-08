@@ -4,7 +4,6 @@ import Modal from 'react-modal';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type {
-  IFormComponent,
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
@@ -16,6 +15,7 @@ import { ComponentType } from '../index';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ConditionalRenderingConnection, ConditionalRenderingConnections } from '../../types/RuleConfig';
 import i18next from 'i18next';
+import type { FormComponent } from '../../types/FormComponent';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: string;
@@ -200,7 +200,7 @@ class ConditionalRendering extends React.Component<
   };
 
   public renderConditionalRenderingTargetComponentOption = (id: string): JSX.Element => {
-    const component: IFormComponent = this.props.formLayoutComponents[id];
+    const component: FormComponent = this.props.formLayoutComponents[id];
     const labelText = getComponentTitleByComponentType(component.type, this.props.t);
     return (
       <option key={id} value={id}>
