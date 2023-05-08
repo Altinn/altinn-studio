@@ -27,7 +27,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   const { org, app } = useParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const { data: ruleModel } = useRuleModelQuery(org, app);
-  const useRuleConfig = useRuleConfigQuery(org, app);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app);
   const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app);
   const layoutContainers = useFormLayoutsSelector(allLayoutContainersSelector);
   const layoutComponents = useFormLayoutsSelector(allLayoutComponentsSelector);
@@ -35,7 +35,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   const { t } = useTranslation();
 
   const conditionRules = ruleModel?.filter(({ type }: IRuleModelFieldElement) => type === 'condition');
-  const ruleConfig = useRuleConfig.data;
+  const { conditionalRendering } = ruleConfig;
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -60,26 +60,26 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   }
 
   function renderConditionRuleConnections(): JSX.Element {
-    if (!{ ruleConfig } || Object.getOwnPropertyNames({ ruleConfig }).length === 0) {
+    if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
       return (
         <Typography variant='caption'>
           {t('right_menu.rules_empty')}
         </Typography>
       );
     }
-    return (ruleConfig &&
+    return (
       <>
-        {Object.keys({ ruleConfig } || {}).map((key: string) => (
+        {Object.keys(conditionalRendering || {}).map((key: string) => (
           <RuleButton
             key={key}
-            text={ruleConfig.conditionalRendering[key]?.selectedFunction}
+            text={conditionalRendering[key]?.selectedFunction}
             onClick={() => selectConnection(key)}
           />
         ))}
       </>
     );
   }
-  return (ruleConfig && (
+  return (
     <>
       <Modal
         isOpen={props.modalOpen}
@@ -93,7 +93,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
             connectionId={selectedConnectionId}
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
-            conditionalRendering={ruleConfig.conditionalRendering}
+            conditionalRendering={conditionalRendering}
             deleteConnection={handleDeleteConnection}
             formLayoutContainers={layoutContainers}
             formLayoutComponents={layoutComponents}
@@ -104,7 +104,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
           <ConditionalRenderingComponent
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
-            conditionalRendering={ruleConfig.conditionalRendering}
+            conditionalRendering={conditionalRendering}
             deleteConnection={handleDeleteConnection}
             formLayoutContainers={layoutContainers}
             formLayoutComponents={layoutComponents}
@@ -115,6 +115,5 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
       </Modal>
       {renderConditionRuleConnections()}
     </>
-  )
   );
 }

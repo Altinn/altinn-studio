@@ -45,7 +45,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
 
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
 
         private async Task<string> AddRuleConfigToRepo(string createdFolderPath, string expectedLayoutPath)

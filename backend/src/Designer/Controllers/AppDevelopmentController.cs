@@ -264,9 +264,9 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return Content(_repository.GetRuleConfig(org, app), MediaTypeNames.Application.Json, Encoding.UTF8);
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
-                return NotFound();
+                return NoContent();
             }
 
         }
