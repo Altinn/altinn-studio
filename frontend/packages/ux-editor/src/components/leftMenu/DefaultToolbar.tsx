@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import type { ComponentType } from '..';
-import type { IAppState, IToolbarElement, IWidget } from '../../types/global';
+import type { IToolbarElement } from '../../types/global';
 import { CollapsableMenus } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarGroup } from './ToolbarGroup';
 import { advancedComponents, schemaComponents, textComponents } from '..';
 import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../../utils/formLayoutUtils';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import './DefaultToolbar.css';
 import { useParams } from 'react-router-dom';
@@ -15,6 +15,7 @@ import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../../selectors/formLayoutSelectors';
 import { useAddFormComponentMutation } from '../../hooks/mutations/useAddFormComponentMutation';
 import { useAddFormContainerMutation } from '../../hooks/mutations/useAddFormContainerMutation';
+import { useWidgetsQuery } from '../../hooks/queries/useWidgetsQuery';
 
 export function DefaultToolbar() {
   const dispatch = useDispatch();
@@ -30,8 +31,8 @@ export function DefaultToolbar() {
 
   const { t } = useTranslation();
   const { order } = useFormLayoutsSelector(selectedLayoutSelector);
-  const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);
   const { org, app } = useParams();
+  const { data: widgetsList } = useWidgetsQuery(org, app);
   const addFormComponentMutation = useAddFormComponentMutation(org, app);
   const addFormContainerMutation = useAddFormContainerMutation(org, app);
   const componentList: IToolbarElement[] = schemaComponents.map(

@@ -1,4 +1,3 @@
-import type { IWidgetState } from '../features/widgets/widgetsSlice';
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IErrorState } from '../features/error/errorSlice';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
@@ -6,17 +5,15 @@ import { ComponentType } from '../components';
 import { ITextResource, ITextResources } from 'app-shared/types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-export interface IFormDesignerNameSpace<T1, T2, T3, T4> {
+export interface IFormDesignerNameSpace<T1, T2, T3> {
   formDesigner: T1;
   appData: T2;
   errors: T3;
-  widgets: T4;
 }
 export type IAppState = IFormDesignerNameSpace<
   IFormDesignerState,
   IAppDataState,
-  IErrorState,
-  IWidgetState
+  IErrorState
 >;
 
 export interface IOption {

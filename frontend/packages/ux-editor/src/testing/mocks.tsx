@@ -40,7 +40,6 @@ export const appStateMock: IAppState = {
   appData: appDataMock,
   errors: null,
   formDesigner: formDesignerMock,
-  widgets: null,
 };
 
 export const formLayoutSettingsMock: ILayoutSettings = {
@@ -78,6 +77,7 @@ export const queriesMock: ServicesContextProps = {
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
   getTextResources: jest.fn().mockImplementation(() => Promise.resolve([])),
   getUser: jest.fn(),
+  getWidgetSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
   pushRepoChanges: jest.fn(),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),

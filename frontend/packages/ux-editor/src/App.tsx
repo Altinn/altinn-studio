@@ -1,12 +1,9 @@
 import React, { useEffect } from 'react';
-import postMessages from 'app-shared/utils/postMessages';
 import { useDispatch, useSelector } from 'react-redux';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
-import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
 import { useParams, useSearchParams } from 'react-router-dom';
-import type { IAppState } from './types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useText } from './hooks';
 import { PageSpinner } from 'app-shared/components/PageSpinner';
@@ -20,6 +17,7 @@ import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
 import { firstAvailableLayout } from './utils/formLayoutsUtils';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from './hooks/queries/useRuleConfigQuery';
+import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -39,16 +37,20 @@ export function App() {
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
   const { isSuccess: isRuleModelFetched } = useRuleModelQuery(org, app);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app);
+  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
   const layoutOrder = formLayouts?.[selectedLayout]?.order || {};
 
-  const isWidgetFetched = useSelector((state: IAppState) => state.widgets.fetched);
-  const widgetFetchedError = useSelector((state: IAppState) => state.widgets.error);
-
   const componentIsReady =
-    formLayouts && isWidgetFetched && formLayoutSettings && isDatamodelFetched && areTextResourcesFetched && isRuleModelFetched && isRuleConfigFetched;
+    formLayouts &&
+    areWidgetsFetched &&
+    formLayoutSettings &&
+    isDatamodelFetched &&
+    areTextResourcesFetched &&
+    isRuleModelFetched &&
+    isRuleConfigFetched;
 
   const componentHasError = dataModelFetchedError || layoutFetchedError || widgetFetchedError;
 
@@ -95,25 +97,6 @@ export function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, layoutPagesOrder, selectedLayout, org, app]);
-
-  useEffect(() => {
-    const fetchFiles = () => {
-      dispatch(fetchWidgetSettings({ org, app }));
-      dispatch(fetchWidgets({ org, app }));
-    };
-
-    const shouldRefetchFiles = (event: any) => {
-      if (event.data === postMessages.refetchFiles) {
-        fetchFiles();
-      }
-    };
-
-    window.addEventListener('message', shouldRefetchFiles);
-    fetchFiles();
-    return () => {
-      window.removeEventListener('message', shouldRefetchFiles);
-    };
-  }, [dispatch, org, app]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();

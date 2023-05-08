@@ -1,23 +1,23 @@
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
-export async function get(url: string, options?: AxiosRequestConfig): Promise<any> {
-  const response: AxiosResponse = await axios.get(url, options || undefined);
+export async function get<T = any>(url: string, options?: AxiosRequestConfig): Promise<T> {
+  const response: AxiosResponse = await axios.get<T>(url, options || undefined);
   return response.data ? response.data : null;
 }
 
-export async function post(url: string, data?: any, options?: AxiosRequestConfig): Promise<void> {
-  const response: AxiosResponse = await axios.post(url, data || null, options || undefined);
+export async function post<T = void>(url: string, data?: any, options?: AxiosRequestConfig): Promise<T> {
+  const response: AxiosResponse = await axios.post<T>(url, data || null, options || undefined);
   return response.data ? response.data : null;
 }
 
-export async function put(url: string, data: any, config?: AxiosRequestConfig): Promise<void> {
-  const response = await axios.put(url, data, config || undefined);
+export async function put<T = void>(url: string, data: any, config?: AxiosRequestConfig): Promise<T> {
+  const response = await axios.put<T>(url, data, config || undefined);
   return response.data;
 }
 
-export async function del(url: string, config?: AxiosRequestConfig): Promise<void> {
-  const response = await axios.delete(url, config || undefined);
+export async function del<T = void>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  const response = await axios.delete<T>(url, config || undefined);
   return response.data;
 }
 

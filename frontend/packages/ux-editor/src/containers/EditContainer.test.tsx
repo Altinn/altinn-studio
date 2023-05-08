@@ -86,7 +86,6 @@ const render = async (props: Partial<IEditContainerProps> = {}) => {
       }
     },
     errors: null,
-    widgets: null
   };
 
   const allProps: IEditContainerProps = {
