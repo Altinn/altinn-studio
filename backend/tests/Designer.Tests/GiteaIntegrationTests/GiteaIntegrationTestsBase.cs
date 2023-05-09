@@ -1,8 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
+using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
@@ -50,14 +52,22 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         private Stream GenerateGiteaOverrideConfigStream()
         {
+            string reposLocation = new Uri(TestRepositoriesLocation).AbsolutePath;
+            string tepmlateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet");
+            string templateLocation = new Uri(tepmlateLocationPath).AbsolutePath;
             string configOverride = $@"
               {{
                     ""ServiceRepositorySettings"": {{
-                        ""RepositoryLocation"": ""{SymbolDisplay.FormatLiteral(TestRepositoriesLocation, false)}"",
+                        ""RepositoryLocation"": ""{reposLocation}"",
                         ""ApiEndPointHost"": ""localhost"",
                         ""GiteaLoginUrl"": ""{GiteaFixture.GiteaUrl + "user/login"}"",
                         ""ApiEndPoint"": ""{GiteaFixture.GiteaUrl + "api/v1/"}"",
                         ""RepositoryBaseURL"": ""{GiteaFixture.GiteaUrl[..^1]}""
+                    }},
+                    ""GeneralSettings"": {{
+                        ""TemplateLocation"": ""{templateLocation}"",
+                        ""DeploymentLocation"": ""{templateLocation}/deployment"",
+                        ""AppLocation"": ""{templateLocation}/App""
                     }}
               }}
             ";

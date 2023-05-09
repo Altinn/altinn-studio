@@ -23,14 +23,14 @@ namespace Designer.Tests.GiteaIntegrationTests
         public async Task GetCurrentUser_ShouldReturnOk(string expectedUserName, string expectedEmail)
         {
             string requestUrl = "designer/api/user/current";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Satisfy(e => e.Contains("XSRF-TOKEN"));
             string content = await response.Content.ReadAsStringAsync();
-            var user = JsonSerializer.Deserialize<User>(content, new JsonSerializerOptions()
+            var user = JsonSerializer.Deserialize<User>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });

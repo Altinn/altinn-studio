@@ -559,8 +559,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The path to the remote repo</returns>
         private string FindRemoteRepoLocation(string org, string repository)
         {
-            string reposBaseUrl = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") ?? _settings.RepositoryBaseURL, org, $"{repository}.git");
-            return new Uri(reposBaseUrl).ToString();
+            return new Uri(new Uri(_settings.RepositoryBaseURL), $"{org}/{repository}.git").ToString();
         }
 
         /// <summary>
