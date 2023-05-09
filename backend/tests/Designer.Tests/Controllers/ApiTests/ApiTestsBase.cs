@@ -47,11 +47,11 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     protected static string TestRepositoriesLocation =>
         Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Repositories");
 
-    private readonly WebApplicationFactory<TController> _factory;
+    protected readonly WebApplicationFactory<TController> Factory;
 
     protected ApiTestsBase(WebApplicationFactory<TController> factory)
     {
-        _factory = factory;
+        Factory = factory;
         HttpClient = new Lazy<HttpClient>(GetTestClient);
         SetupDirtyHackIfLinux();
     }
@@ -65,7 +65,7 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     {
         var configPath = GetConfigPath();
 
-        var client = _factory.WithWebHostBuilder(builder =>
+        var client = Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
 
