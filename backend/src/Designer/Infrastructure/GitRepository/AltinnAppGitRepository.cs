@@ -25,6 +25,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     {
         private const string MODEL_FOLDER_PATH = "App/models/";
         private const string CONFIG_FOLDER_PATH = "App/config/";
+        private const string OPTIONS_FOLDER_PATH = "App/options/";
         private const string LAYOUTS_FOLDER_NAME = "App/ui/";
         private const string LAYOUTS_IN_SET_FOLDER_NAME = "layouts/";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
@@ -577,6 +578,45 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 return ruleConfiguration;
             }
             throw new NotFoundException("Rule configuration not found.");
+        }
+
+        /// <summary>
+        /// Gets the options list with the provided id.
+        /// <param name="optionsListId">The id of the options list to fetch.</param>
+        /// <returns>The options list as a string.</returns>
+        /// </summary>
+        public async Task<string> GetOptions(string optionsListId)
+        {
+            string optionsFilePath = Path.Combine(OPTIONS_FOLDER_PATH, $"{optionsListId}.json");
+            if (!FileExistsByRelativePath(optionsFilePath))
+            {
+                throw new NotFoundException("Options file not found.");
+            }
+            string fileContent = await ReadTextByRelativePathAsync(optionsFilePath);
+
+            return fileContent;
+        }
+
+        /// <summary>
+        /// Gets a list of file names from the Options folder representing the available options lists.
+        /// <returns>A list of option list names.</returns>
+        /// </summary>
+        public string GetOptionListIds()
+        {
+            string optionsFolder = Path.Combine(OPTIONS_FOLDER_PATH);
+            if (!DirectoryExistsByRelativePath(optionsFolder))
+            {
+                throw new NotFoundException("Options folder not found.");
+            }
+            string[] fileNames = GetFilesByRelativeDirectory(optionsFolder);
+            List<string> optionListIds = new();
+            foreach (string fileName in fileNames)
+            {
+                string optionListId = Path.GetFileNameWithoutExtension(fileName);
+                optionListIds.Add(optionListId);
+            }
+
+            return JsonSerializer.Serialize(optionListIds);
         }
 
         /// <summary>

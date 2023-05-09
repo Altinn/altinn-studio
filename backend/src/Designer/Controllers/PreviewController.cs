@@ -474,5 +474,30 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
         }
+
+        /// <summary>
+        /// Action for getting options list for a given options list id
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="optionListId">The id of the options list</param>
+        /// <returns>The options list if it exists, otherwise nothing</returns>
+        [HttpGet]
+        [Route("api/options/{optionListId}")]
+        public async Task<ActionResult<string>> GetOptions(string org, string app, string optionListId)
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                string options = await altinnAppGitRepository.GetOptions(optionListId);
+                return Ok(options);
+            }
+            catch (NotFoundException)
+            {
+                return NoContent();
+            }
+
+        }
     }
 }
