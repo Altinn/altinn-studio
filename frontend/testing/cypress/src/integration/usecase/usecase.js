@@ -43,8 +43,7 @@ context(
     });
 
     it('Gitea connection - Pull changes', () => {
-      // Disable this for now, due to https://github.com/Altinn/altinn-studio/issues/10201  - we do not actually make any changes in our tests, so should be ok
-      //cy.deleteLocalChanges(Cypress.env('deployApp'));
+      cy.deleteLocalChanges(Cypress.env('deployApp'));
       cy.wait(5000);
       cy.intercept(/(P|p)ull/).as('pullChanges');
       cy.get(designer.syncApp.pull).should('be.visible').click();
