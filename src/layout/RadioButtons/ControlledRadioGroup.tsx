@@ -36,7 +36,7 @@ export const ControlledRadioGroup = ({
   const { id, layout, readOnly, textResourceBindings, required, labelSettings } = node.item;
 
   const labelText = (
-    <span style={{ wordBreak: 'break-word' }}>
+    <span style={{ fontSize: '1rem', wordBreak: 'break-word' }}>
       {text}
       <RequiredIndicator
         required={required}

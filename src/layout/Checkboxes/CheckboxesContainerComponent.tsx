@@ -91,7 +91,7 @@ export const CheckboxContainerComponent = ({
   };
 
   const labelText = (
-    <span>
+    <span style={{ fontSize: '1rem' }}>
       {text}
       <RequiredIndicator
         required={required}
