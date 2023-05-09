@@ -241,16 +241,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of initial layout set</param>
         /// <returns>The layout-sets.json</returns>
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-sets")]
-        public async Task<ActionResult<LayoutSets>> ConfigureLayoutSet(string org, string app)
+        public async Task<ActionResult<LayoutSets>> ConfigureLayoutSet(string org, string app, [FromQuery] string layoutSetName)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                await _appDevelopmentService.ConfigureLayoutSet(org, app, developer);
+                await _appDevelopmentService.ConfigureLayoutSet(org, app, developer, layoutSetName);
                 return Ok("Layout set created");
             }
             catch (Exception exception)
@@ -282,9 +283,6 @@ namespace Altinn.Studio.Designer.Controllers
                 return NotFound($"Layout-sets.json not found: {exception}");
             }
         }
-
-        // How should we handle first creation of layoutsets/layout-sets.json and potentially deletion/regretting introducing this?
-        // Need POST and DELETE
 
         /// <summary>
         /// Get rule handler in JSON structure

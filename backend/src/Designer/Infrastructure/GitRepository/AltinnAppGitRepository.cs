@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -29,7 +30,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string OPTIONS_FOLDER_PATH = "App/options/";
         private const string LAYOUTS_FOLDER_NAME = "App/ui/";
         private const string LAYOUTS_IN_SET_FOLDER_NAME = "layouts/";
-        private const string INITIAL_LAYOUTSET_NAME = "initial-layout-set";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
@@ -384,12 +384,32 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return layoutSetNames;
         }
 
+        public bool EnsureValidFolderNameOfLayoutSetName(string layoutSetName, out string validFolderName)
+        {
+            validFolderName = String.Empty;
+            bool status = false;
+            try
+            {
+                if (String.IsNullOrWhiteSpace(layoutSetName))
+                {
+                    validFolderName = layoutSetName.Replace(" ", "-");
+                }
+                validFolderName = Path.GetFullPath(layoutSetName);
+                status = true;
+            }
+            catch (ArgumentException) { }
+            catch (NotSupportedException) { }
+            catch (PathTooLongException) { }
+
+            return status;
+        }
+
         /// <summary>
         /// Configure the initial layoutset by moving layoutsfolder to new dest: App/ui/initial-layoutset/layouts
         /// </summary>
-        public void MoveLayoutsToInitialLayoutSet()
+        public void MoveLayoutsToInitialLayoutSet(string layoutSetName)
         {
-            string destRelativePath = GetPathToLayoutSet(INITIAL_LAYOUTSET_NAME);
+            string destRelativePath = GetPathToLayoutSet(layoutSetName);
             if (DirectoryExistsByRelativePath(destRelativePath))
             {
                 throw new BadHttpRequestException("Layout sets are already configured");
@@ -408,13 +428,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             Directory.Move(sourceAbsolutePath, destAbsolutePath);
         }
 
-        public void MoveOtherUiFilesToLayoutSet()
+        public void MoveOtherUiFilesToLayoutSet(string layoutSetName)
         {
             string sourceLayoutSettingsPath = GetPathToLayoutSettings(null);
-            string destLayoutSettingsPath = GetPathToLayoutSettings(INITIAL_LAYOUTSET_NAME);
+            string destLayoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             MoveFileByRelativePath(sourceLayoutSettingsPath, destLayoutSettingsPath, LAYOUT_SETTINGS_FILENAME);
             string sourceRuleHandlerPath = GetPathToRuleHandler(null);
-            string destRuleHandlerPath = GetPathToRuleHandler(INITIAL_LAYOUTSET_NAME);
+            string destRuleHandlerPath = GetPathToRuleHandler(layoutSetName);
             MoveFileByRelativePath(sourceRuleHandlerPath, destRuleHandlerPath, RULE_HANDLER_FILENAME);
         }
 
@@ -628,7 +648,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             throw new NotFoundException("Rule configuration not found.");
         }
 
-        public async Task<LayoutSets> CreateLayoutSetFile()
+        public async Task<LayoutSets> CreateLayoutSetFile(string layoutSetName)
         {
             LayoutSets layoutSets = new()
             {
@@ -636,7 +656,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 {
                     new()
                     {
-                        Id = INITIAL_LAYOUTSET_NAME,
+                        Id = layoutSetName,
                         DataTypes = "Task_1", // Name of datamodel - but what if it does not exist?
                         Tasks = new List<string> { "Task_1" }
                     }

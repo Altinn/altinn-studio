@@ -4,18 +4,21 @@ import { queryClient, useServicesContext } from '../../../../../app-development/
 import { QueryKey } from '../../types/QueryKey';
 import { FormLayoutActions } from "../../features/formDesigner/formLayout/formLayoutSlice";
 
+export interface ConfigureLayoutSetMutationArgs {
+  layoutSetName: string;
+}
+
 export const useConfigureLayoutSetMutation = (org: string, app: string) => {
-  const { createLayoutSet } = useServicesContext();
+  const { configureLayoutSet } = useServicesContext();
   const dispatch = useDispatch();
 
   return useMutation({
 
-    mutationFn: () => createLayoutSet(org, app),
+    mutationFn: ({ layoutSetName }: ConfigureLayoutSetMutationArgs) => configureLayoutSet(org, app, layoutSetName),
 
     onSuccess: (layoutSets) => {
 
-      const selectedLayoutSet = layoutSets?.sets[0].id;
-      dispatch(FormLayoutActions.updateSelectedLayoutSet(selectedLayoutSet));
+      dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSetName));
 
       queryClient.setQueryData(
         [QueryKey.LayoutSets, org, app],

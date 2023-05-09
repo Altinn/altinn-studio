@@ -13,12 +13,12 @@ import classes from './LeftMenu.module.css';
 import { useText } from '../../hooks';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
-import { useConfigureLayoutSetMutation } from '../../hooks/mutations/useConfigureLayoutSetMutation';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useLayoutSetsQuery } from "../../hooks/queries/useLayoutSetsQuery";
 import { LayoutSetsContainer } from "./LayoutSetsContainer";
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
+import { ConfigureLayoutSetPanel } from "./ConfigureLayoutSetPanel";
 
 export const LeftMenu = () => {
   const { org, app } = useParams();
@@ -26,7 +26,6 @@ export const LeftMenu = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
-  const configureLayoutSetMutation = useConfigureLayoutSetMutation(org, app);
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
@@ -53,53 +52,44 @@ export const LeftMenu = () => {
     // auto-connect data model and process in backend?
   }
 
-  function handleConfigureLayoutSet() {
-    configureLayoutSetMutation.mutate();
-  }
-
   return (
     <div className={classes.leftMenu} data-testid={'ux-editor.left-menu'}>
-      {layoutSetNames ? (<>
-          <div className={classes.pagesHeader}>
-            <span>{t('left_menu.layout_sets')}</span>
-              <Button
-                aria-label={t('left_menu.pages_add_alt')}
-                icon={<PlusIcon/>}
-                onClick={handleAddLayoutSet}
-                variant={ButtonVariant.Quiet}
-                color={ButtonColor.Secondary}
-              />
-          </div>
-          <div className={classes.layoutSetList}>
-            <LayoutSetsContainer/>
-          </div>
-        </>) : (
-          <Button
-            variant={ButtonVariant.Quiet}
-            onClick={handleConfigureLayoutSet}>
-            {t('left_menu.configure_layout_sets')}
-          </Button>
-        )
-        }
+      {!_useIsProdHack() && (layoutSetNames ? (<>
         <div className={classes.pagesHeader}>
-          <span>{t('left_menu.pages')}</span>
+          <span>{t('left_menu.layout_sets')}</span>
           <Button
             aria-label={t('left_menu.pages_add_alt')}
             icon={<PlusIcon/>}
-            onClick={handleAddPage}
+            onClick={handleAddLayoutSet}
             variant={ButtonVariant.Quiet}
             color={ButtonColor.Secondary}
           />
         </div>
-        <div className={classes.pagesList}>
-          <PagesContainer/>
+        <div className={classes.layoutSetList}>
+          <LayoutSetsContainer/>
         </div>
-          <div className={classes.receipt}>
-            <ReceiptPageElement/>
-          </div>
-        <div className={classes.toolbar}>
-          {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
+      </>) :
+        <ConfigureLayoutSetPanel />
+      )}
+      <div className={classes.pagesHeader}>
+        <span>{t('left_menu.pages')}</span>
+        <Button
+          aria-label={t('left_menu.pages_add_alt')}
+          icon={<PlusIcon/>}
+          onClick={handleAddPage}
+          variant={ButtonVariant.Quiet}
+          color={ButtonColor.Secondary}
+        />
+      </div>
+      <div className={classes.pagesList}>
+        <PagesContainer/>
+      </div>
+        <div className={classes.receipt}>
+          <ReceiptPageElement/>
         </div>
+      <div className={classes.toolbar}>
+        {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
+      </div>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Nodes;
@@ -6,7 +5,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -123,18 +121,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        public async Task<LayoutSets> ConfigureLayoutSet(string org, string app, string developer)
+        public async Task<LayoutSets> ConfigureLayoutSet(string org, string app, string developer, string layoutSetName)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
-                throw new BadHttpRequestException("Layoutsets are already configured for this app");
+                throw new BadHttpRequestException("Layout sets are already configured for this app");
             }
 
-            altinnAppGitRepository.MoveLayoutsToInitialLayoutSet();
-            altinnAppGitRepository.MoveOtherUiFilesToLayoutSet();
-            LayoutSets layoutSets = await altinnAppGitRepository.CreateLayoutSetFile();
+            altinnAppGitRepository.EnsureValidFolderNameOfLayoutSetName(layoutSetName, out string validFolderName);
+            altinnAppGitRepository.MoveLayoutsToInitialLayoutSet(validFolderName);
+            altinnAppGitRepository.MoveOtherUiFilesToLayoutSet(validFolderName);
+            LayoutSets layoutSets = await altinnAppGitRepository.CreateLayoutSetFile(validFolderName);
             return layoutSets;
         }
 
@@ -149,7 +148,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
             }
 
-            throw new NotFoundException("No layout set found for this app");
+            throw new FileNotFoundException("No layout set found for this app");
         }
 
         /// <inheritdoc />

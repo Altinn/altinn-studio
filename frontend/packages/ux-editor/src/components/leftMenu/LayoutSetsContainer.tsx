@@ -24,7 +24,10 @@ export function LayoutSetsContainer() {
   return (
     <>
       {layoutSetNames && (layoutSetNames.map((set: string) => {
-        return <Button variant={selectedLayoutSet === set ? ButtonVariant.Filled : ButtonVariant.Quiet} key={set} onClick={() => onLayoutSetClick(set)}>
+        return <Button
+          variant={selectedLayoutSet === set ? ButtonVariant.Filled : ButtonVariant.Quiet}
+          key={set}
+          onClick={() => onLayoutSetClick(set)}>
           {set}
         </Button>;
       }))}

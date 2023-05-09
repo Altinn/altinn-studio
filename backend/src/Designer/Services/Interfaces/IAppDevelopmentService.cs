@@ -89,7 +89,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Identifier for organisation</param>
         /// <param name="app">Identifier for application</param>
         /// <param name="developer">Identifier for app-developer</param>
-        public Task<LayoutSets> ConfigureLayoutSet(string org, string app, string developer);
+        public Task<LayoutSets> ConfigureLayoutSet(string org, string app, string developer, string layoutSetName);
 
         /// <summary>
         /// Adds a config for an additional layoutset to the layout-set.json
