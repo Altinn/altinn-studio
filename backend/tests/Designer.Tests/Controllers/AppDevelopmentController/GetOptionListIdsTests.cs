@@ -1,10 +1,11 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
@@ -22,7 +23,11 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            var expectedOptionsListIds = @"[""test-options"",""other-options""]";
+            var expectedOptionsListIds = new List<string>()
+            {
+                { "other-options" },
+                { "test-options" },
+            };
 
             string url = $"{VersionPrefix(org, targetRepository)}/option-list-ids";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -31,7 +36,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedOptionsListIds, responseContent).Should().BeTrue();
+            List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseContent);
+            Assert.Equal(responseList.Count, 2);
+            foreach( string id in expectedOptionsListIds)
+            {
+                Assert.Contains(id, responseList);
+            }
         }
 
         [Theory]
