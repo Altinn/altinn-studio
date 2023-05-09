@@ -285,7 +285,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "app-with-layoutsets";
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
-            Assert.Throws(typeof(LibGit2Sharp.NotFoundException), altinnAppGitRepository.GetOptionListIds);
+            Assert.Throws<LibGit2Sharp.NotFoundException>(altinnAppGitRepository.GetOptionListIds);
             return Task.CompletedTask;
         }
 
