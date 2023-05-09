@@ -54,6 +54,46 @@ namespace Designer.Tests.Helpers
         }
 
         [Fact]
+        public void ValidateServiceResource_StrictMode_IsValid()
+        {
+            //Arrange
+            string expectedResult = "Validation of resource completed. Resource is valid";
+            List<Keyword> keywords = new List<Keyword>();
+            Keyword keyword = new Keyword { Language = "No", Word = "test" };
+            keywords.Add(keyword);
+
+            ServiceResource resource = new ServiceResource
+            {
+                Identifier = "testresource",
+                Title = new Dictionary<string, string> { { "en", "test" }, { "nb", "test" }, { "nn", "test" } },
+                Description = new Dictionary<string, string> { { "en", "test" }, { "nb", "test" }, { "nn", "test" } },
+                RightDescription = new Dictionary<string, string> { { "en", "test" }, { "nb", "test" }, { "nn", "test" } },
+                Homepage = "test.no",
+                Status = string.Empty,
+                ValidFrom = new DateTime(),
+                ValidTo = new DateTime(),
+                IsPartOf = string.Empty,
+                IsPublicService = true,
+                ThematicArea = "Gardermoen",
+                ResourceReferences = new List<ResourceReference> { new ResourceReference { Reference = string.Empty, ReferenceSource = ReferenceSource.Default, ReferenceType = ReferenceType.Default } },
+                IsComplete = true,
+                Delegable = true,
+                Visible = true,
+                HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
+                Keywords = keywords,
+                Sector = new List<string>(),
+                ResourceType = ResourceType.Default,
+                MainLanguage = "en-US",
+            };
+
+            //Act
+            string result = ResourceAdminHelper.ValidateServiceResource(resource, true);
+
+            //Assert
+            Assert.Equal(result, expectedResult);
+        }
+
+        [Fact]
         public void ValidateServiceResource_IsInvalid()
         {
             //Arrange
@@ -66,7 +106,7 @@ namespace Designer.Tests.Helpers
             ServiceResource resource = new ServiceResource
             {
                 Identifier = "testresource",
-                Title = new Dictionary<string, string> { { "en", "test" }, { "nb", "test" }, { "nn", "test" } },
+                Title = new Dictionary<string, string>(),
                 Description = new Dictionary<string, string>(),
                 RightDescription = new Dictionary<string, string>(),
                 Homepage = "test.no",
@@ -83,12 +123,53 @@ namespace Designer.Tests.Helpers
                 HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                 Keywords = keywords,
                 Sector = new List<string>(),
-                ResourceType = ResourceType.Default,
+                ResourceType = null,
                 MainLanguage = "en-US",
             };
 
             //Act
             string result = ResourceAdminHelper.ValidateServiceResource(resource, false);
+
+            //Assert
+            Assert.Equal(result, expectedResult);
+        }
+
+        [Fact]
+        public void ValidateServiceResource_StrictMode_IsInvalid()
+        {
+            //Arrange
+            string expectedResult = "Validation of resource failed because of missing attribute(s)";
+
+            List<Keyword> keywords = new List<Keyword>();
+            Keyword keyword = new Keyword { Language = "No", Word = "test" };
+            keywords.Add(keyword);
+
+            ServiceResource resource = new ServiceResource
+            {
+                Identifier = "testresource",
+                Title = new Dictionary<string, string>(),
+                Description = new Dictionary<string, string>(),
+                RightDescription = new Dictionary<string, string>(),
+                Homepage = "test.no",
+                Status = string.Empty,
+                ValidFrom = new DateTime(),
+                ValidTo = new DateTime(),
+                IsPartOf = string.Empty,
+                IsPublicService = true,
+                ThematicArea = string.Empty,
+                ResourceReferences = new List<ResourceReference> { new ResourceReference { Reference = string.Empty, ReferenceSource = ReferenceSource.Default, ReferenceType = ReferenceType.Default } },
+                IsComplete = true,
+                Delegable = true,
+                Visible = true,
+                HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
+                Keywords = keywords,
+                Sector = new List<string>(),
+                ResourceType = null,
+                MainLanguage = "en-US",
+            };
+
+            //Act
+            string result = ResourceAdminHelper.ValidateServiceResource(resource, true);
 
             //Assert
             Assert.Equal(result, expectedResult);
