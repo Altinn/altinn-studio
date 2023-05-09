@@ -37,7 +37,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             string responseContent = await response.Content.ReadAsStringAsync();
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseContent);
-            Assert.Equal(responseList.Count, 2);
+            Assert.Equal(2, responseList.Count);
             foreach( string id in expectedOptionsListIds)
             {
                 Assert.Contains(id, responseList);
