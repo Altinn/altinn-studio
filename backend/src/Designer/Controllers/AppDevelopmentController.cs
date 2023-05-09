@@ -297,7 +297,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string optionListIds = altinnAppGitRepository.GetOptionListIds();
+                string[] optionListIds = altinnAppGitRepository.GetOptionListIds();
                 return Ok(optionListIds);
             }
             catch (LibGit2Sharp.NotFoundException)

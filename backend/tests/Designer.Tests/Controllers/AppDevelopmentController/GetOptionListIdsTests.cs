@@ -37,10 +37,10 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             string responseContent = await response.Content.ReadAsStringAsync();
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseContent);
-            Assert.Equal(2, responseList.Count);
+            responseList.Count.Should().Be(2);
             foreach (string id in expectedOptionsListIds)
             {
-                Assert.Contains(id, responseList);
+                responseList.Should().Contain(id);
             }
         }
 

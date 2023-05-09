@@ -602,7 +602,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Gets a list of file names from the Options folder representing the available options lists.
         /// <returns>A list of option list names.</returns>
         /// </summary>
-        public string GetOptionListIds()
+        public string[] GetOptionListIds()
         {
             string optionsFolder = Path.Combine(OPTIONS_FOLDER_PATH);
             if (!DirectoryExistsByRelativePath(optionsFolder))
@@ -616,7 +616,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 optionListIds.Add(fileName);
             }
 
-            return JsonSerializer.Serialize(optionListIds);
+            return optionListIds.ToArray();
         }
 
         /// <summary>
