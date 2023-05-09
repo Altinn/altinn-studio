@@ -7,8 +7,6 @@ import type { IFormLayoutOrder } from '../types/global';
 import { deepCopy } from 'app-shared/pure';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 
 type FormDesignerProps = {
   selectedLayout: string;
@@ -18,7 +16,6 @@ export const FormDesigner = ({
   layoutOrder,
   selectedLayout,
 }: FormDesignerProps): JSX.Element => {
-  const { order } = useFormLayoutsSelector(selectedLayoutSelector);
   const layoutOrderCopy = deepCopy(layoutOrder || {});
 
   return (
@@ -31,7 +28,6 @@ export const FormDesigner = ({
           <div className={classes.mainContent + ' ' + classes.item}>
             <h1 className={classes.pageHeader}>{selectedLayout}</h1>
             <DesignView
-              order={order}
               isDragging={false}
               layoutOrder={layoutOrderCopy}
             />
