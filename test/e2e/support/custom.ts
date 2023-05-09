@@ -5,6 +5,11 @@ import JQueryWithSelector = Cypress.JQueryWithSelector;
 
 const appFrontend = new AppFrontend();
 
+Cypress.Commands.add('assertTextWithoutWhiteSpaces', { prevSubject: true }, (subject, expectedText) => {
+  const normalWhiteSpace = (subject[0].value || ' ').replace(/\u00a0/g, ' ');
+  expect(normalWhiteSpace).to.equal(expectedText || ' ');
+});
+
 Cypress.Commands.add('isVisible', { prevSubject: true }, (subject) => {
   const isVisible = (elem) => !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
   expect(isVisible(subject[0])).to.be.true;

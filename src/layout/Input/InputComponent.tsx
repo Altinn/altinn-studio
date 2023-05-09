@@ -4,6 +4,7 @@ import { SearchField } from '@altinn/altinn-design-system';
 import { TextField } from '@digdir/design-system-react';
 
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
+import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IInputFormatting } from 'src/layout/layout';
 
@@ -24,6 +25,7 @@ export function InputComponent({
     formData?.simpleBinding ?? '',
     saveWhileTyping,
   );
+  const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IInputFormatting, value);
   const handleChange = (e) => setValue(e.target.value);
 
   const ariaLabel =
@@ -54,7 +56,7 @@ export function InputComponent({
           value={value}
           aria-label={ariaLabel}
           aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
-          formatting={formatting as IInputFormatting}
+          formatting={reactNumberFormatConfig}
           autoComplete={autocomplete}
         />
       )}

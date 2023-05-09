@@ -163,6 +163,10 @@ declare global {
       clickAndGone(): Chainable<null>;
 
       /**
+       * Replace all non-breaking spaces with normal spaces in the subject
+       */
+      assertTextWithoutWhiteSpaces(expectedText: string): Chainable<null>;
+      /**
        * Input fields with number formatting have a problem with cypress, as the .clear() command does not always
        * work. This command will forcibly clear the value of the input field, and should be used instead of .clear()
        * for number formatted input fields. Changes can be reverted after this problem is fixed in react-number-format.

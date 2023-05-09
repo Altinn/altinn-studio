@@ -3,11 +3,12 @@ import React from 'react';
 import { formatNumericText } from '@digdir/design-system-react';
 
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { NumberFormatProps } from 'src/layout/layout';
+import type { IInputFormatting } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 
@@ -23,9 +24,11 @@ export class Input extends FormComponent<'Input'> {
     }
 
     const text = formData[node.item.dataModelBindings.simpleBinding] || '';
-    const numberFormatting = node.item.formatting?.number as NumberFormatProps | undefined;
-    if (numberFormatting) {
-      return formatNumericText(text, numberFormatting);
+
+    const numberFormatting = useMapToReactNumberConfig(node.item.formatting as IInputFormatting, text);
+
+    if (numberFormatting?.number) {
+      return formatNumericText(text, numberFormatting.number);
     }
 
     return text;
