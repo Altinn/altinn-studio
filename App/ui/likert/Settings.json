@@ -3,6 +3,7 @@
   "pages": {
     "order": [
       "formLayout"
-    ]
+    ],
+    "showLanguageSelector": true
   }
 }

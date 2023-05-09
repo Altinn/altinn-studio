@@ -8,7 +8,8 @@
         ],
         "excludeFromPdf": [
             "summary"
-        ]
+        ],
+        "showLanguageSelector": true
     },
     "components": {
         "excludeFromPdf": [
