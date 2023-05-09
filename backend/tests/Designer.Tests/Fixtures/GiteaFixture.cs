@@ -100,8 +100,8 @@ namespace Designer.Tests.Fixtures
 
             _giteaContainer = new ContainerBuilder().WithImage("repositories:latest")
                 .WithNetwork(_giteaNetwork)
-                .WithPortBinding(3000)
-                .WithPortBinding(222, 22)
+                .WithPortBinding(3000, true)
+                .WithPortBinding( 22, true)
                 .WithEnvironment(new Dictionary<string, string>
                 {
                     {"GITEA____RUN_MODE", "prod"},
