@@ -1,6 +1,7 @@
 .root {
   position: relative;
   height: 4rem;
+  margin-bottom: 45px;
 }
 
 .menu {
@@ -66,6 +67,7 @@
   border-top: 1px solid #c9c9c9;
   padding-top: 4px;
   padding-left: 0;
+  margin-top: 444px;
 }
 
 .list:not(:last-child) {
