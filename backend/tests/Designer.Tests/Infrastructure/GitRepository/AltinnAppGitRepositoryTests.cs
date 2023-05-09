@@ -259,7 +259,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string optionsId = "test-options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            Assert.ThrowsAsync(typeof(LibGit2Sharp.NotFoundException), async () => await altinnAppGitRepository.GetOptions(optionsId));
+            Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptions(optionsId));
             return Task.CompletedTask;
         }
 
