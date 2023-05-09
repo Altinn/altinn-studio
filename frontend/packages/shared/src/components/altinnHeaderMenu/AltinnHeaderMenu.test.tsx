@@ -3,18 +3,19 @@ import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { IAppBarProps } from './AppBar';
-import { AppBar } from './AppBar';
-import { menu, TopBarMenu } from './appBarConfig';
-import { ServicesContextProps, ServicesContextProvider } from '../../common/ServiceContext';
+import { menu, TopBarMenu } from '../../../../../app-development/layout/AppBar/appBarConfig';
+import {
+  ServicesContextProvider,
+  ServicesContextProps,
+} from '../../../../../app-development/common/ServiceContext';
+import { AltinnHeaderMenu, IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
 
-describe('AppBar', () => {
-  describe('When using AppBarConfig menu entries', () => {
+describe('AltinnHeaderMenu', () => {
+  describe('Should render menu items', () => {
     menu.forEach((entry) => {
       it(`should render ${entry.key} as current item when activeSubHeaderSelection is set to ${entry.key}`, () => {
         render({
           activeSubHeaderSelection: entry.key,
-          showSubMenu: true,
         });
         expect(screen.getByTestId(entry.key)).toBeInTheDocument();
       });
@@ -22,14 +23,13 @@ describe('AppBar', () => {
   });
 });
 
-const render = (props: Partial<IAppBarProps> = {}) => {
+const render = (props: Partial<IAltinnHeaderMenuProps> = {}) => {
   const allProps = {
     org: 'jest-test-org',
     app: 'jest-test-app',
-    showSubMenu: true,
     activeSubHeaderSelection: TopBarMenu.Create,
     ...props,
-  } as IAppBarProps;
+  } as IAltinnHeaderMenuProps;
 
   const createStore = configureStore();
   const initialState = {
@@ -37,11 +37,11 @@ const render = (props: Partial<IAppBarProps> = {}) => {
       repositoryInfo: {
         repository: {
           owner: {
-            full_name: "Jest Test Org"
-          }
-        }
-      }
-    }
+            full_name: 'Jest Test Org',
+          },
+        },
+      },
+    },
   };
   const store = createStore(initialState);
   const queries: Partial<ServicesContextProps> = {
@@ -51,11 +51,12 @@ const render = (props: Partial<IAppBarProps> = {}) => {
       },
     }),
   };
+
   return rtlRender(
     <MemoryRouter>
       <Provider store={store}>
         <ServicesContextProvider {...queries}>
-          <AppBar {...allProps} />
+          <AltinnHeaderMenu {...allProps} />
         </ServicesContextProvider>
       </Provider>
     </MemoryRouter>

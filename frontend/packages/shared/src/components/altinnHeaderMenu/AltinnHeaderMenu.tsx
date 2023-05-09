@@ -17,7 +17,7 @@ export const AltinnHeaderMenu = ({ activeSubHeaderSelection }: IAltinnHeaderMenu
   const menu = getTopBarMenu(repositoryType);
 
   return (
-    <ul className={classes.menu}>
+    <ul className={classes.menu} data-testid='altinn-header-menu'>
       {menu.map((item) => (
         <li
           key={item.key}

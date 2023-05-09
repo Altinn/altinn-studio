@@ -19,7 +19,7 @@ export const AltinnHeaderButtons = () => {
   };
 
   return (
-    <div className={classes.rightContent}>
+    <div className={classes.rightContent} data-testid='altinn-header-buttons'>
       <div className={classes.rightContentButtons}>
         <Button
           className={classes.previewButton}

@@ -6,14 +6,14 @@ import React from 'react';
 
 export const AltinnSubMenu = () => {
   return (
-    <div>
+    <div data-testid='altinn-sub-menu'>
       <div className={classes.subToolbar}>
-        <div className={classes.leftContent}>
+        <div className={classes.leftContent} data-testid='branching-icon'>
           <BranchingIcon className={classes.branchIcon} />
         </div>
         <div className={classes.rightContent}>
-          <VersionControlHeader />
-          <ThreeDotsMenu />
+          <VersionControlHeader data-testid='version-control-header' />
+          <ThreeDotsMenu data-testid='three-dots-menu' />
         </div>
       </div>
     </div>
