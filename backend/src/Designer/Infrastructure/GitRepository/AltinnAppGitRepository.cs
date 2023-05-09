@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -610,10 +611,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
             string[] fileNames = GetFilesByRelativeDirectory(optionsFolder);
             List<string> optionListIds = new();
-            foreach (string fileName in fileNames)
+            foreach (string fileName in fileNames.Select(f => Path.GetFileNameWithoutExtension(f)))
             {
-                string optionListId = Path.GetFileNameWithoutExtension(fileName);
-                optionListIds.Add(optionListId);
+                optionListIds.Add(fileName);
             }
 
             return JsonSerializer.Serialize(optionListIds);
