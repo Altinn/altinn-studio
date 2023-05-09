@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -239,11 +240,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var file = await _giteaApiWrapper.GetFileAsync(org, app, "App/config/applicationmetadata.json", referenceId);
             if (string.IsNullOrEmpty(file.Content))
             {
-                throw new NotFoundHttpRequestException($"There is no ApplicationMetadata file in repo.");
+                throw new NotFoundHttpRequestException("There is no ApplicationMetadata file in repo.");
             }
 
-            string appMetadataContent = Encoding.UTF8.GetString(Convert.FromBase64String(file.Content));
-            return JsonSerializer.Deserialize<Application>(appMetadataContent, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            // It's used to avoid sensibility to BOM
+            using var fileStream = new MemoryStream(Convert.FromBase64String(file.Content));
+            using StreamReader utf8Reader = new StreamReader(fileStream, Encoding.UTF8);
+            return JsonSerializer.Deserialize<Application>(await utf8Reader.ReadToEndAsync(), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
         }
 
         public bool ApplicationMetadataExistsInRepository(string org, string app)
