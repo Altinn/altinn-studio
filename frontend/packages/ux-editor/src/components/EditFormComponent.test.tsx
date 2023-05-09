@@ -8,7 +8,7 @@ import { IAppState, IFormLayouts } from '../types/global';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from '../../../../app-development/common/ServiceContext';
 import { renderWithMockStore } from '../testing/mocks';
-import { ComponentType } from '../components';
+import { ComponentType } from './';
 
 const user = userEvent.setup();
 
@@ -86,7 +86,6 @@ const render = async (props: Partial<IEditFormComponentProps> = {}) => {
       }
     },
     errors: null,
-    widgets: null
   };
 
   const allProps: IEditFormComponentProps = {
