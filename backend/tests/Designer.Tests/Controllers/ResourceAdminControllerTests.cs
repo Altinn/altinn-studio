@@ -364,6 +364,23 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.Created, res.StatusCode);
         }
 
+        [Fact]
+        public async Task ValidateServiceResource_IsValid()
+        {
+            //Arrange
+            string uri = $"{_versionPrefix}/ttd/resources/repository/validate/ttd-resources";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            _repositoryMock.Setup(r => r.ValidateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(new StatusCodeResult(200));
+
+            //Act
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+
+            //Assert
+            _repositoryMock.VerifyAll();
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
+
         private static List<ResourceReference> GetTestResourceReferences()
         {
             List<ResourceReference> resourceReferences = new List<ResourceReference>
