@@ -18,8 +18,7 @@ namespace Designer.Tests.Helpers
         {
             //Arrange
             string expectedResult = "Validation of resource completed. Resource is valid";
-
-            List <Keyword> keywords = new List<Keyword>();
+            List<Keyword> keywords = new List<Keyword>();
             Keyword keyword = new Keyword { Language = "No", Word = "test" };
             keywords.Add(keyword);
 
