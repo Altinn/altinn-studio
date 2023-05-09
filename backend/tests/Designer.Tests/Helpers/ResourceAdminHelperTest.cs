@@ -14,7 +14,7 @@ namespace Designer.Tests.Helpers
     public class ResourceAdminHelperTest
     {
         [Fact]
-        public async Task ValidateServiceResource_IsValid()
+        public void ValidateServiceResource_IsValid()
         {
             //Arrange
             string expectedResult = "Validation of resource completed. Resource is valid";
@@ -54,7 +54,7 @@ namespace Designer.Tests.Helpers
         }
 
         [Fact]
-        public async Task ValidateServiceResource_IsInvalid()
+        public void ValidateServiceResource_IsInvalid()
         {
             //Arrange
             string expectedResult = "Validation of resource failed because of missing attribute(s)";

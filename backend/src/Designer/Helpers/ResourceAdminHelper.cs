@@ -27,12 +27,9 @@ namespace Altinn.Studio.Designer.Helpers
                 missingResourceAttributes.Add("ResourceType");
             }
 
-            if (strictMode)
+            if (strictMode && (resourceToValidate.ThematicArea == null || string.IsNullOrEmpty(resourceToValidate.ThematicArea)))
             {
-                if (resourceToValidate.ThematicArea == null || string.IsNullOrEmpty(resourceToValidate.ThematicArea))
-                {
-                    missingResourceAttributes.Add("ThematicArea");
-                }
+                missingResourceAttributes.Add("ThematicArea");
             }
 
             if (missingResourceAttributes.Count > 0)
@@ -53,7 +50,7 @@ namespace Altinn.Studio.Designer.Helpers
                 string nbTitle = titleToValidate.ContainsKey("nb") ? titleToValidate["nb"] : string.Empty;
                 string nnTitle = titleToValidate.ContainsKey("nn") ? titleToValidate["nn"] : string.Empty;
 
-                return !string.IsNullOrWhiteSpace(enTitle) && !string.IsNullOrWhiteSpace(nbTitle) && !string.IsNullOrWhiteSpace(nnTitle) ? true : false;
+                return !string.IsNullOrWhiteSpace(enTitle) && !string.IsNullOrWhiteSpace(nbTitle) && !string.IsNullOrWhiteSpace(nnTitle);
             }
             else
             {
