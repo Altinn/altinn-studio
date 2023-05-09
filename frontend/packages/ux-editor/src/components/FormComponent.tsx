@@ -2,13 +2,13 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import type { EditorDndEvents } from '../containers/helpers/dnd-types';
 import { EditFormComponent } from './EditFormComponent';
-import type { FormComponentType } from '../types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { ComponentType } from './index';
 import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
 import { DroppableDraggableComponent } from '../containers/DroppableDraggableComponent';
+import type { FormComponent as IFormComponent } from '../types/FormComponent';
 
 export interface IFormElementProps {
   id: string;
@@ -23,7 +23,7 @@ export const FormComponent = (props: IFormElementProps) => {
   const { data: textResources } = useTextResourcesQuery(org, app);
 
   const { components } = useFormLayoutsSelector(selectedLayoutSelector);
-  const component: FormComponentType = components[props.id];
+  const component: IFormComponent = components[props.id];
 
   /**
    * Return a given textresource from all textresources avaiable

@@ -25,7 +25,7 @@ import { TextResource } from '../components/TextResource';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
 import { useDatamodelQuery } from '../hooks/queries/useDatamodelQuery';
-import { useText } from '../hooks/useText';
+import { useText } from '../hooks';
 import { useParams } from 'react-router-dom';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
