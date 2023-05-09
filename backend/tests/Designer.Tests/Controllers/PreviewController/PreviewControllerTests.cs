@@ -340,7 +340,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            string responseStringWithoutWhitespaces = Regex.Replace( responseBody, @"\s", "");
+            string responseStringWithoutWhitespaces = Regex.Replace(responseBody, @"\s", "");
             Assert.Equal(@"[{""label"":""label1"",""value"":""value1""},{""label"":""label2"",""value"":""value2""}]", responseStringWithoutWhitespaces);
         }
 
