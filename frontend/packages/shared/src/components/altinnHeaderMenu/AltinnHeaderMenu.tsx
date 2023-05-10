@@ -26,7 +26,9 @@ export const AltinnHeaderMenu = ({ activeSubHeaderSelection }: IAltinnHeaderMenu
             activeSubHeaderSelection === item.key && classes.active
           )}
         >
-          <Link to={item.link.replace(':org', org).replace(':app', app)}>{t(item.key)}</Link>
+          <Link to={item.link.replace(':org', org).replace(':app', app)} data-testid={item.key}>
+            {t(item.key)}{' '}
+          </Link>
         </li>
       ))}
     </ul>
