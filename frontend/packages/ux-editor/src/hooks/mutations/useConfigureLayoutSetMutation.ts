@@ -14,9 +14,9 @@ export const useConfigureLayoutSetMutation = (org: string, app: string) => {
 
   return useMutation({
 
-    mutationFn: ({ layoutSetName }: ConfigureLayoutSetMutationArgs) => configureLayoutSet(org, app, layoutSetName),
+    mutationFn: ({ layoutSetName }: ConfigureLayoutSetMutationArgs) => configureLayoutSet(org, app, layoutSetName).then((layoutSets) => ({ layoutSetName, layoutSets })),
 
-    onSuccess: (layoutSets) => {
+    onSuccess: ({ layoutSetName, layoutSets }) => {
 
       dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSetName));
 

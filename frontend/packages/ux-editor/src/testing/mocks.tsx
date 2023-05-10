@@ -55,6 +55,8 @@ export const textLanguagesMock = ['nb', 'nn', 'en'];
 export const queriesMock: ServicesContextProps = {
   ...allQueriesMock,
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
+  addLayoutSet: jest.fn(),
+  configureLayoutSet: jest.fn(),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),

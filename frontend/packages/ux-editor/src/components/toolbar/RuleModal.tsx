@@ -4,6 +4,7 @@ import { Typography } from '@mui/material';
 import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
 import { RuleConnection } from 'app-shared/types/RuleConfig';

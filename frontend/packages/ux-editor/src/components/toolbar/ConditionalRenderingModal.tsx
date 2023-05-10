@@ -5,6 +5,7 @@ import { ConditionalRenderingComponent } from '../config/ConditionalRenderingCom
 import RuleButton from './RuleButton';
 import type { IRuleModelFieldElement } from '../../types/global';
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useFormLayoutsSelector } from '../../hooks';
 import {

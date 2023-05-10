@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -251,8 +253,8 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                await _appDevelopmentService.ConfigureLayoutSet(org, app, developer, layoutSetName);
-                return Ok("Layout set created");
+                LayoutSets layoutSets = await _appDevelopmentService.ConfigureLayoutSet(org, app, developer, layoutSetName);
+                return Ok(layoutSets);
             }
             catch (Exception exception)
             {

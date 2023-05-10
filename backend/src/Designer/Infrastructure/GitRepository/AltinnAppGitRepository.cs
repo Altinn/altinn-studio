@@ -394,7 +394,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 {
                     validFolderName = layoutSetName.Replace(" ", "-");
                 }
+                // Test if name is a valid foldername by getting a full path
                 validFolderName = Path.GetFullPath(layoutSetName);
+                validFolderName = layoutSetName;
                 status = true;
             }
             catch (ArgumentException) { }

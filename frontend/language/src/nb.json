@@ -495,6 +495,7 @@
   "language.zh": "Kinesisk",
   "language.zu": "Zulu",
   "left_menu.configure_layout_sets_info": "Obs, denne handlingen vil gi skjemaet ditt en ikke-reverserbar struktur som benytter grupperte sider. Les mer på ... for mer detaljer om konverteringen.",
+  "left_menu.configure_layout_sets_name": "Navn på første side gruppe:",
   "left_menu.configure_layout_sets": "Konverter skjema til å håndtere side grupper",
   "left_menu.layout_sets": "Side grupper",
   "left_menu.page": "Side",

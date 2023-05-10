@@ -470,6 +470,7 @@
   "language.zh": "Chinese",
   "language.zu": "Zulu",
   "left_menu.configure_layout_sets_info": "NB, this action will turn your form into a non-reversible structure that uses groups of pages. Read more at ... for more details concerning this conversion.",
+  "left_menu.configure_layout_sets_name": "Name of first group of pages:",
   "left_menu.configure_layout_sets": "Convert form to handle multiple form sets",
   "left_menu.layout_sets": "Form sets",
   "left_menu.page": "Page",
