@@ -11,6 +11,7 @@ import {
   replaceIndexIndicatorsWithIndexes,
 } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/formData';
+import type { IOptionResources } from 'src/hooks/useGetOptions';
 import type { ILayout } from 'src/layout/layout';
 import type {
   IMapping,
@@ -104,7 +105,7 @@ export function getRelevantFormDataForOptionSource(formData: IFormData, source: 
 
 interface ISetupSourceOptionsParams {
   source: IOptionSource;
-  relevantTextResource: ITextResource;
+  relevantTextResources: IOptionResources;
   relevantFormData: IFormData;
   repeatingGroups: IRepeatingGroups | null;
   dataSources: IDataSources;
@@ -115,12 +116,20 @@ interface ISetupSourceOptionsParams {
  */
 export function setupSourceOptions({
   source,
-  relevantTextResource,
+  relevantTextResources,
   relevantFormData,
   repeatingGroups,
   dataSources,
 }: ISetupSourceOptionsParams) {
-  const replacedOptionLabels = replaceTextResourceParams([relevantTextResource], dataSources, repeatingGroups);
+  const replacedOptionLabels = relevantTextResources.label
+    ? replaceTextResourceParams([relevantTextResources.label], dataSources, repeatingGroups)
+    : [];
+  const replacedOptionDescriptions = relevantTextResources.description
+    ? replaceTextResourceParams([relevantTextResources.description], dataSources, repeatingGroups)
+    : [];
+  const replacedOptionLabelsHelpTexts = relevantTextResources.helpText
+    ? replaceTextResourceParams([relevantTextResources.helpText], dataSources, repeatingGroups)
+    : [];
 
   const repGroup = Object.values(repeatingGroups || {}).find((group) => group.dataModelBinding === source.group);
 
@@ -132,8 +141,10 @@ export function setupSourceOptions({
   for (let i = 0; i <= repGroup.index; i++) {
     if (typeof replacedOptionLabels[i + 1]?.value !== 'undefined') {
       const option: IOption = {
-        label: replacedOptionLabels[i + 1].value,
         value: replaceOptionDataField(relevantFormData, source.value, i),
+        label: replacedOptionLabels[i + 1].value,
+        description: replacedOptionDescriptions[i + 1]?.value,
+        helpText: replacedOptionLabelsHelpTexts[i + 1]?.value,
       };
       options.push(option);
     }

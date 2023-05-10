@@ -112,6 +112,28 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
           ],
         },
         {
+          id: 'option.from.rep.group.description',
+          value: 'Description: The value from the group is: {0}',
+          unparsedValue: 'Description: The value from the group is: {0}',
+          variables: [
+            {
+              dataSource: 'dataModel.skjema',
+              key: 'someGroup[{0}].labelField',
+            },
+          ],
+        },
+        {
+          id: 'option.from.rep.group.helpText',
+          value: 'Help Text: The value from the group is: {0}',
+          unparsedValue: 'Help Text: The value from the group is: {0}',
+          variables: [
+            {
+              dataSource: 'dataModel.skjema',
+              key: 'someGroup[{0}].labelField',
+            },
+          ],
+        },
+        {
           id: 'group.input.title',
           value: 'The value from group is: {0}',
           unparsedValue: 'The value from group is: {0}',

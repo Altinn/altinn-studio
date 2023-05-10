@@ -874,6 +874,19 @@
               "title": "Label",
               "description": "Field in the group that should be used as value",
               "examples": ["model.some.group[{0}].someField"]
+            },
+            "description": {
+              "type": "string",
+              "title": "Description",
+              "description": "A description of the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
+              "examples": ["some.text.key", "My Description"]
+            },
+            "helpText": {
+              "type": "string",
+              "title": "Help Text",
+              "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
+              "examples": ["some.text.key", "My Help Text"]
+
             }
           },
           "required": ["group", "label", "value"]

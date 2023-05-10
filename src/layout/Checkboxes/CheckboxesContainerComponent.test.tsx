@@ -349,6 +349,8 @@ describe('CheckboxContainerComponent', () => {
         source: {
           group: 'someGroup',
           label: 'option.from.rep.group.label',
+          description: 'option.from.rep.group.description',
+          helpText: 'option.from.rep.group.helpText',
           value: 'someGroup[{0}].valueField',
         },
       },
@@ -356,6 +358,18 @@ describe('CheckboxContainerComponent', () => {
 
     expect(getCheckbox({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
+    expect(screen.getByText('Description: The value from the group is: Label for first')).toBeInTheDocument();
+    expect(screen.getByText('Description: The value from the group is: Label for second')).toBeInTheDocument();
+
+    await act(() =>
+      user.click(screen.getByRole('button', { name: 'Help text for The value from the group is: Label for first' })),
+    );
+    expect(screen.getByText('Help Text: The value from the group is: Label for first')).toBeInTheDocument();
+
+    await act(() =>
+      user.click(screen.getByRole('button', { name: 'Help text for The value from the group is: Label for second' })),
+    );
+    expect(screen.getByText('Help Text: The value from the group is: Label for second')).toBeInTheDocument();
 
     await act(() => user.click(getCheckbox({ name: 'The value from the group is: Label for second' })));
 

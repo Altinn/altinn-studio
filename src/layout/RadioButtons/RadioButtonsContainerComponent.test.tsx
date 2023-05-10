@@ -283,7 +283,7 @@ describe('RadioButtonsContainerComponent', () => {
     expect(screen.queryByRole('radiogroup')).toHaveStyle('flex-direction: column;');
   });
 
-  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
+  it('should present replaced label, description and help text if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
     const handleDataChange = jest.fn();
 
     render({
@@ -291,6 +291,8 @@ describe('RadioButtonsContainerComponent', () => {
         source: {
           group: 'someGroup',
           label: 'option.from.rep.group.label',
+          description: 'option.from.rep.group.description',
+          helpText: 'option.from.rep.group.helpText',
           value: 'someGroup[{0}].valueField',
         },
       },
@@ -301,6 +303,17 @@ describe('RadioButtonsContainerComponent', () => {
 
     expect(getRadio({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
     expect(getRadio({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
+    expect(screen.getByText('Description: The value from the group is: Label for first')).toBeInTheDocument();
+    expect(screen.getByText('Description: The value from the group is: Label for second')).toBeInTheDocument();
+
+    await act(() =>
+      user.click(screen.getByRole('button', { name: 'Help text for The value from the group is: Label for first' })),
+    );
+    expect(screen.getByText('Help Text: The value from the group is: Label for first')).toBeInTheDocument();
+    await act(() =>
+      user.click(screen.getByRole('button', { name: 'Help text for The value from the group is: Label for second' })),
+    );
+    expect(screen.getByText('Help Text: The value from the group is: Label for second')).toBeInTheDocument();
 
     await act(() => user.click(getRadio({ name: 'The value from the group is: Label for first' })));
 
