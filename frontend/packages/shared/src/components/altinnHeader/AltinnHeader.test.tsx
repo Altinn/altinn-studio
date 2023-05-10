@@ -27,7 +27,7 @@ describe('AltinnHeader', () => {
 
   it('should not render AltinnSubMenu when showSubMenu is false', () => {
     render({ showSubMenu: false });
-    expect(screen.queryByAltText('altinn-sub-menu')).not.toBeInTheDocument();
+    expect(screen.getByTestId('altinn-sub-menu')).toBeInTheDocument();
   });
 });
 
