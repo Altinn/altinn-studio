@@ -1,7 +1,6 @@
 .root {
   position: relative;
   height: 4rem;
-  margin-bottom: 45px;
 }
 
 .menu {
@@ -10,7 +9,6 @@
   border-radius: 3px;
   box-sizing: border-box;
   left: 0;
-  position: absolute;
   top: 0;
   width: 150px;
   z-index: 1;
@@ -33,7 +31,7 @@
   height: 2.5rem;
   padding: 4px 0;
   text-transform: none;
-  width: 100%;
+  width: 150px;
   font-size: 16px;
   align-items: center;
 }
