@@ -19,6 +19,7 @@ namespace Designer.Tests.GiteaIntegrationTests
         }
 
         [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestUser, GiteaConstants.TestUserEmail)]
         public async Task GetCurrentUser_ShouldReturnOk(string expectedUserName, string expectedEmail)
         {

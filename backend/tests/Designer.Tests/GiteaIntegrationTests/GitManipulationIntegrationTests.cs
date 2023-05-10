@@ -22,6 +22,7 @@ namespace Designer.Tests.GiteaIntegrationTests
         }
 
         [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task GiteaManipulation_ShouldBeAsExpected(string org)
         {
