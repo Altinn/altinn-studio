@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -17,11 +16,28 @@ using Xunit;
 namespace Designer.Tests.GiteaIntegrationTests
 {
     [Collection(nameof(GiteaCollection))]
-    public abstract class GiteaIntegrationTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>
+    public abstract class GiteaIntegrationTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>, IDisposable
         where TController : ControllerBase
         where TControllerTest : class
     {
         protected readonly GiteaFixture GiteaFixture;
+
+        protected string CreatedFolderPath { get; set; }
+
+        public void Dispose()
+        {
+            if (!string.IsNullOrWhiteSpace(CreatedFolderPath) && Directory.Exists(CreatedFolderPath))
+            {
+                var directory = new DirectoryInfo(CreatedFolderPath) { Attributes = FileAttributes.Normal };
+
+                foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+                {
+                    info.Attributes = FileAttributes.Normal;
+                }
+
+                directory.Delete(true);
+            }
+        }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
@@ -39,7 +55,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             var client = Factory.WithWebHostBuilder(builder =>
             {
-                builder.ConfigureAppConfiguration((context, conf) =>
+                builder.ConfigureAppConfiguration((_, conf) =>
                 {
                     conf.AddJsonFile(configPath);
                     conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
@@ -53,8 +69,8 @@ namespace Designer.Tests.GiteaIntegrationTests
         private Stream GenerateGiteaOverrideConfigStream()
         {
             string reposLocation = new Uri(TestRepositoriesLocation).AbsolutePath;
-            string tepmlateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet");
-            string templateLocation = new Uri(tepmlateLocationPath).AbsolutePath;
+            string templateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet");
+            string templateLocation = new Uri(templateLocationPath).AbsolutePath;
             string configOverride = $@"
               {{
                     ""ServiceRepositorySettings"": {{
