@@ -129,7 +129,16 @@ namespace Designer.Tests.Utils
         /// </summary>
         /// <param name="suffix">If provided appends suffix to test repo.</param>
         /// <returns>Test repository name.</returns>
-        public static string GenerateTestRepoName(string suffix = null) => $"test-repo-{Guid.NewGuid()}{suffix}".Substring(0, 28);
+        public static string GenerateTestRepoName(string suffix = null)
+        {
+            if (suffix?.Length > 15)
+            {
+                throw new ArgumentException("Suffix is too long");
+            }
+            string nonSuffixName = $"test-repo-{Guid.NewGuid()}"[..28];
+
+            return suffix == null ? nonSuffixName : $"{nonSuffixName[..^suffix.Length]}{suffix}";
+        }
 
         public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
