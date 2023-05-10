@@ -1,4 +1,4 @@
-name: Run gitea integration tests
+name: Build and Test on windows, linux and macos
 on:
   push:
     branches: [ master ]
