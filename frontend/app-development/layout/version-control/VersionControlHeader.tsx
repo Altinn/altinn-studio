@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import classes from './VersionControlHeader.module.css';
-import postMessages from 'app-shared/utils/postMessages';
 import { FetchChangesButton } from './FetchChangesButton';
 import { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { ShareChangesButton } from './ShareChangesButton';
@@ -10,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useRepoStatus } from '../../features/appPublish/hooks/query-hooks';
 import { useRepoMetadataQuery, useRepoPullQuery } from '../../hooks/queries';
 import { useRepoPushMutation, useCreateRepoCommitMutation } from '../../hooks/mutations';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface IVersionControlHeaderProps {
   hasPushRight?: boolean;
@@ -43,6 +43,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const { data: currentRepo } = useRepoMetadataQuery(org, app);
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatus(org, app);
   const { refetch: fetchPullData } = useRepoPullQuery(org, app);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (hasPushRight === undefined && currentRepo) {
@@ -81,7 +82,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
         shouldShowDoneIcon: true,
       });
       // force refetch  files
-      window.postMessage(postMessages.refetchFiles, window.location.href);
+      await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
       forceRepoStatusCheck();
     } else if (result.repositoryStatus === 'CheckoutConflict') {
       // if pull gives merge conflict, show user needs to commit message
