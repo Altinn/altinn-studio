@@ -1,4 +1,4 @@
-name: Run gitea integration tests
+name: Build and Test on windows, linux and macos
 on:
   push:
     branches: [ master ]
@@ -13,12 +13,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  analyze:
-    strategy:
-      matrix:
-        os: [windows-latest,ubuntu-latest] # macos-latest excluded temporarly
-    name: Run dotnet build and test
-    runs-on: ${{ matrix.os}}
+  gitea-integration-tests:
+    name: Run integration tests against actual gitea
+    runs-on: ubuntu-latest
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
@@ -33,9 +30,6 @@ jobs:
       - name: Build
         run: |
            dotnet build backend/Designer.sln -v m
-      - name: Test
+      - name: Test gitea tests
         run: |
-           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m
-      - name: FormatCheck
-        run: |
-           dotnet format backend/Designer.sln --verify-no-changes
+           dotnet test backend/Designer.sln --filter Category=GiteaIntegrationTest -v m
