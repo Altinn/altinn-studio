@@ -10,11 +10,11 @@ import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButtons } from '../altinnHeaderButtons';
 
-export interface IAltinnHeader {
+export interface AltinnHeaderProps {
   showSubMenu: boolean;
 }
 
-export const AltinnHeader = ({ showSubMenu }: IAltinnHeader) => {
+export const AltinnHeader = ({ showSubMenu }: AltinnHeaderProps) => {
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const { t } = useTranslation();
   const { org, app } = useParams();

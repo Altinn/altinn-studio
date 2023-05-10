@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { AltinnHeader, IAltinnHeader } from './AltinnHeader';
+import { AltinnHeader, AltinnHeaderProps } from './AltinnHeader';
 import {
   ServicesContextProps,
   ServicesContextProvider,
@@ -20,18 +20,23 @@ describe('AltinnHeader', () => {
     expect(screen.getByTestId('altinn-header-buttons')).toBeInTheDocument();
   });
 
-  it('should render AltinnSubMenu', () => {
+  it('should render AltinnSubMenu when showSubMenu is true', () => {
     render();
     expect(screen.getByTestId('altinn-sub-menu')).toBeInTheDocument();
   });
+
+  it('should not render AltinnSubMenu when showSubMenu is false', () => {
+    render({ showSubMenu: false });
+    expect(screen.queryByAltText('altinn-sub-menu')).not.toBeInTheDocument();
+  });
 });
 
-const render = (props: Partial<IAltinnHeader> = {}) => {
+const render = (props: Partial<AltinnHeaderProps> = {}) => {
   const allProps = {
     org: 'jest-test-org',
     app: 'jest-test-app',
     showSubMenu: true,
-  } as IAltinnHeader;
+  } as AltinnHeaderProps;
 
   const createStore = configureStore();
   const initialState = {
