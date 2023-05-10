@@ -27,6 +27,8 @@ namespace Designer.Tests.GiteaIntegrationTests
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
+
+            // Create repo with designer
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
                 $"designer/api/repos/create-app?org={org}&repository={targetRepo}");
@@ -34,7 +36,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.Created);
 
-            // check if repo is created in gitea
+            // Check if repo is created in gitea
             var giteaResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}");
             giteaResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -46,7 +48,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage commitAndPushResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            // check if file is pushed to gitea
+            // Check if file is pushed to gitea
             var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test.txt");
             giteaFileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -62,7 +64,6 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             // Check if file exists locally
             File.Exists($"{CreatedFolderPath}/test2.txt").Should().BeTrue();
-
         }
 
         private static string GetCommitInfoJson(string text, string org, string repository) =>
