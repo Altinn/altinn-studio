@@ -3,11 +3,18 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 11px 11px 10px;
+  padding: 5px;
   height: 40px;
-  box-sizing: border-box;
+  box-sizing: content-box;
   background: #ffffff;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+
+  width: 320px;
+  text-align: justify;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
 }
 
 .item:hover {
@@ -21,6 +28,13 @@
 }
 
 .typeIcon {
-  padding-right: 12px;
+  padding-right: 2px;
+
   font-size: 24px !important;
+}
+
+.cogIcon {
+  padding-left: 1px;
+  padding-right: 0px;
+  justify-content: end;
 }
