@@ -10,6 +10,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'backend/**'
+      - 'testdata/**'
   workflow_dispatch:
 
 jobs:
