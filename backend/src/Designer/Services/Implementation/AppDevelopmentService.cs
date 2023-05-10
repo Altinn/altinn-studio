@@ -59,12 +59,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string layoutFileName = $"{layoutName}.json";
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
+            if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                altinnAppGitRepository.DeleteLayout(layoutSetName, layoutFileName);
+                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            altinnAppGitRepository.DeleteLayout(null, layoutFileName);
+            altinnAppGitRepository.DeleteLayout(layoutSetName, layoutFileName);
         }
 
         /// <inheritdoc />

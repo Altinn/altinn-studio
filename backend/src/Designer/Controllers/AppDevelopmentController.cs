@@ -71,8 +71,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                Dictionary<string, JsonNode> formLayouts =
-                    await _appDevelopmentService.GetFormLayouts(org, app, developer, layoutSetName);
+                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, layoutSetName);
                 return Ok(formLayouts);
             }
             catch (FileNotFoundException exception)
