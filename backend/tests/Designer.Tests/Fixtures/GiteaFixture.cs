@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
 using Polly;
 using Polly.Retry;
@@ -61,6 +62,7 @@ namespace Designer.Tests.Fixtures
         {
             _postgreSqlContainer = new PostgreSqlBuilder()
                 .WithNetwork(_giteaNetwork)
+                .WithImagePullPolicy(PullPolicy.Missing)
                 .WithNetworkAliases("db")
                 .WithUsername("gitea")
                 .WithPassword("gitea")
