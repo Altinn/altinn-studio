@@ -65,6 +65,21 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             // Check if file exists locally
             File.Exists($"{CreatedFolderPath}/test2.txt").Should().BeTrue();
+
+            // Try combination of commit and push endpoints separately
+            InvalidateAllCookies();
+            await File.WriteAllTextAsync($"{CreatedFolderPath}/test3.txt", "I am a new file");
+            using var commitContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using HttpResponseMessage commitResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit", commitContent);
+            commitResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            InvalidateAllCookies();
+            using HttpResponseMessage pushResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/push", null);
+            pushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            // Check if file is pushed to gitea
+            var giteaFileResponse2 = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test3.txt");
+            giteaFileResponse2.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         private static string GetCommitInfoJson(string text, string org, string repository) =>
