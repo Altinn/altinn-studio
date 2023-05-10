@@ -40,7 +40,7 @@ to be able to iterate over changes and verifying them without needing to deploy 
 
 3. Start your app
    ```shell
-   cd /path/to/your/App
+   cd /path/to/your/appliaction/App
    dotnet run
    ```
 
