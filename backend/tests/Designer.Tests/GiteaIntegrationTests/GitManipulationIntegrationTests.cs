@@ -23,7 +23,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         [Theory]
         [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task CreateApp_ShouldCreateRepo(string org)
+        public async Task GiteaManipulation_ShouldBeAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
@@ -50,13 +50,45 @@ namespace Designer.Tests.GiteaIntegrationTests
             var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test.txt");
             giteaFileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
+            // Create a file in gitea
+            var createFileContent = new StringContent(CreateFileJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/test2.txt", createFileContent);
+            createFileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+            // Try pull file with designer endpoint
+            InvalidateAllCookies();
+            using HttpResponseMessage pullResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/pull");
+            pullResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            // Check if file exists locally
+            File.Exists($"{CreatedFolderPath}/test2.txt").Should().BeTrue();
+
         }
 
         private static string GetCommitInfoJson(string text, string org, string repository) =>
-                @$"{{
-                    ""message"": ""{text}"",
-                    ""org"": ""{org}"",
-                    ""repository"": ""{repository}""
-                }}";
+            @$"{{
+                ""message"": ""{text}"",
+                ""org"": ""{org}"",
+                ""repository"": ""{repository}""
+            }}";
+
+        private static string CreateFileJsonPayload(string text, string message) =>
+            @$"{{
+                 ""author"": {{
+                     ""email"": ""{GiteaConstants.AdminEmail}"",
+                     ""name"": ""{GiteaConstants.AdminUser}""
+                 }},
+                 ""committer"": {{
+                     ""email"": ""{GiteaConstants.AdminEmail}"",
+                     ""name"": ""{GiteaConstants.AdminUser}""
+                 }},
+                 ""content"": ""{Convert.ToBase64String(Encoding.UTF8.GetBytes(text))}"",
+                 ""dates"": {{
+                     ""author"": ""{DateTime.Now:O}"",
+                     ""committer"": ""{DateTime.Now:O}""
+                 }},
+                 ""message"": ""{message}"",
+                 ""signoff"": true
+            }}";
     }
 }
