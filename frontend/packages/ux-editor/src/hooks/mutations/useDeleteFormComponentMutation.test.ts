@@ -32,5 +32,5 @@ describe('useDeleteFormComponentMutation', () => {
 const renderDeleteFormComponentsMutation = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useDeleteFormComponentMutation(org, app)).renderHookResult;
+  return renderHookWithMockStore()(() => useDeleteFormComponentMutation(org, app, selectedLayoutSet)).renderHookResult;
 }
