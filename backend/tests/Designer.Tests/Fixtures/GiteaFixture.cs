@@ -99,7 +99,7 @@ namespace Designer.Tests.Fixtures
 
             await altinnGiteaImage.CreateAsync();
 
-            _giteaContainer = new ContainerBuilder().WithImage("repositories:latest")
+            _giteaContainer = new ContainerBuilder().WithImage(altinnGiteaImage.FullName)
                 .WithImagePullPolicy(PullPolicy.Never)
                 .WithNetwork(_giteaNetwork)
                 .WithPortBinding(3000, true)
