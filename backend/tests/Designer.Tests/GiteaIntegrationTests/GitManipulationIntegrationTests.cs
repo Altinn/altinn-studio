@@ -45,7 +45,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             await File.WriteAllTextAsync($"{CreatedFolderPath}/test.txt", "I am a new file");
 
             InvalidateAllCookies();
-            var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
             using HttpResponseMessage commitAndPushResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -54,7 +54,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             giteaFileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Create a file in gitea
-            var createFileContent = new StringContent(CreateFileJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var createFileContent = new StringContent(CreateFileJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
             using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/test2.txt", createFileContent);
             createFileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
