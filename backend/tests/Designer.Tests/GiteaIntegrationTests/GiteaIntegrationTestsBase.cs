@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using Designer.Tests.Controllers.ApiTests;
@@ -23,6 +24,19 @@ namespace Designer.Tests.GiteaIntegrationTests
         protected readonly GiteaFixture GiteaFixture;
 
         protected string CreatedFolderPath { get; set; }
+
+        private CookieContainer CookieContainer { get; } = new CookieContainer();
+
+        /// <summary>
+        /// Used when performing chained calls to designer api
+        /// </summary>
+        protected void InvalidateAllCookies()
+        {
+            foreach (Cookie cookie in CookieContainer.GetAllCookies())
+            {
+                cookie.Expires = DateTime.Now - TimeSpan.FromHours(1);
+            }
+        }
 
         public void Dispose()
         {
@@ -62,7 +76,7 @@ namespace Designer.Tests.GiteaIntegrationTests
                 });
 
                 builder.ConfigureTestServices(ConfigureTestServices);
-            }).CreateDefaultClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl), new CookieContainerHandler());
+            }).CreateDefaultClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl), new CookieContainerHandler(CookieContainer));
             return client;
         }
 

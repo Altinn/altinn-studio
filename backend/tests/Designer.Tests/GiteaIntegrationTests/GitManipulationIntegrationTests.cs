@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -40,6 +41,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             // Add a file to local repo and try to push with designer
             await File.WriteAllTextAsync($"{CreatedFolderPath}/test.txt", "I am a new file");
 
+            InvalidateAllCookies();
             var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
             using HttpResponseMessage commitAndPushResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
