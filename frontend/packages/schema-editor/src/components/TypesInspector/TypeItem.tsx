@@ -27,7 +27,7 @@ export const TypeItem = ({ uiSchemaNode, selected, handleItemClick }: TypeItemPr
         <i className={`fa fa-datamodel-object ${classes.typeIcon}`} />
         {getNameFromPointer({ pointer: uiSchemaNode.pointer })}
       </span>
-      <CogIcon />
+      <CogIcon className={classes.cogIcon} />
     </div>
   );
 };
