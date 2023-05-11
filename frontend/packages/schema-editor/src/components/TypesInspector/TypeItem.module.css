@@ -1,20 +1,15 @@
 .item {
   display: flex;
   flex-direction: row;
-  align-items: center;
   justify-content: space-between;
-  padding: 5px;
-  height: 40px;
+  padding: 10px;
   box-sizing: content-box;
   background: #ffffff;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
-
-  width: 320px;
-  text-align: justify;
-
+  width: 285px;
+  word-break: break-all;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
 }
 
 .item:hover {
