@@ -27,15 +27,14 @@ describe('AltinnHeader', () => {
 
   it('should not render AltinnSubMenu when showSubMenu is false', () => {
     render({ showSubMenu: false });
-    expect(screen.getByTestId('altinn-sub-menu')).toBeInTheDocument();
+    expect(screen.queryByTestId('altinn-sub-menu')).not.toBeInTheDocument();
   });
 });
 
 const render = (props: Partial<AltinnHeaderProps> = {}) => {
   const allProps = {
-    org: 'jest-test-org',
-    app: 'jest-test-app',
     showSubMenu: true,
+    ...props,
   } as AltinnHeaderProps;
 
   const createStore = configureStore();
