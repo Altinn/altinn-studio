@@ -32,10 +32,10 @@ describe('AltinnHeader', () => {
 });
 
 const render = (props: Partial<AltinnHeaderProps> = {}) => {
-  const allProps = {
+  const allProps: AltinnHeaderProps = {
     showSubMenu: true,
     ...props,
-  } as AltinnHeaderProps;
+  };
 
   const createStore = configureStore();
   const initialState = {
