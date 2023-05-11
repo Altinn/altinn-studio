@@ -17,6 +17,7 @@ import {
   textLanguagesPath,
   textResourcesPath,
   userCurrentPath,
+  widgetSettingsPath,
 } from 'app-shared/api-paths';
 import { orgsListUrl } from 'app-shared/cdn-paths';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
@@ -40,4 +41,4 @@ export const getRuleModel = (owner: string, app: string) => get(ruleHandlerPath(
 export const getTextLanguages = (owner: string, app: string): Promise<string[]> => get(textLanguagesPath(owner, app));
 export const getTextResources = (owner: string, app: string, lang: string): Promise<ITextResourcesWithLanguage> => get(textResourcesPath(owner, app, lang));
 export const getUser = () => get(userCurrentPath());
-export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(layoutSettingsPath(owner, app));
+export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));
