@@ -20,6 +20,7 @@ import {
 } from 'app-shared/api-paths';
 import { orgsListUrl } from 'app-shared/cdn-paths';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 
 export const getAppReleases = (owner: string, app: string) => get(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get(branchStatusPath(owner, app, branch));
@@ -39,3 +40,4 @@ export const getRuleModel = (owner: string, app: string) => get(ruleHandlerPath(
 export const getTextLanguages = (owner: string, app: string): Promise<string[]> => get(textLanguagesPath(owner, app));
 export const getTextResources = (owner: string, app: string, lang: string): Promise<ITextResourcesWithLanguage> => get(textResourcesPath(owner, app, lang));
 export const getUser = () => get(userCurrentPath());
+export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(layoutSettingsPath(owner, app));

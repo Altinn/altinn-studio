@@ -3,9 +3,7 @@ import { combineReducers } from 'redux';
 import appDataReducer from './features/appData/appDataReducers';
 import errorReducer from './features/error/errorSlice';
 import formDesignerReducer from './features/formDesigner/formDesignerReducer';
-import widgetsReducer from './features/widgets/widgetsSlice';
 
-import type { IWidgetState } from './features/widgets/widgetsSlice';
 import type { IFormDesignerNameSpace } from './types/global';
 import type { IAppDataState } from './features/appData/appDataReducers';
 import type { IErrorState } from './features/error/errorSlice';
@@ -15,8 +13,7 @@ export interface IReducers
   extends IFormDesignerNameSpace<
       Reducer<IFormDesignerState>,
       Reducer<IAppDataState>,
-      Reducer<IErrorState>,
-      Reducer<IWidgetState>
+      Reducer<IErrorState>
     >,
     ReducersMapObject {}
 
@@ -24,7 +21,6 @@ const reducers: IReducers = {
   formDesigner: formDesignerReducer,
   appData: appDataReducer,
   errors: errorReducer,
-  widgets: widgetsReducer,
 };
 
 export default combineReducers(reducers);

@@ -4,4 +4,5 @@ export enum QueryKey {
   FormLayouts = 'FormLayouts',
   RuleConfig = 'RuleConfig',
   RuleHandler = 'RuleHandler',
+  Widgets = 'Widgets',
 }
