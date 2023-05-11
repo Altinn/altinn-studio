@@ -44,7 +44,7 @@ describe('useUpdateContainerIdMutation', () => {
 
 const render = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const ruleConfigResult = renderHookWithMockStore()(() => useRuleConfigQuery(org, app)).renderHookResult.result;
+  const ruleConfigResult = renderHookWithMockStore()(() => useRuleConfigQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(ruleConfigResult.current.isSuccess).toBe(true));
   return renderHookWithMockStore()(() => useUpdateContainerIdMutation(org, app, selectedLayoutSet)).renderHookResult;

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -628,10 +627,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <param name="ruleConfiguration">The layoutsettings to be saved</param>
         /// <returns>The content of Settings.json</returns>
-        public async Task SaveRuleConfiguration(string layoutSetName, string ruleConfiguration)
+        public async Task SaveRuleConfiguration(string layoutSetName, JsonNode ruleConfiguration)
         {
             string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);
-            await WriteTextByRelativePathAsync(ruleConfigurationPath, ruleConfiguration);
+            string serializedRuleConfiguration = ruleConfiguration.ToJsonString(_jsonOptions);
+            await WriteTextByRelativePathAsync(ruleConfigurationPath, serializedRuleConfiguration);
         }
 
         /// <summary>
@@ -647,7 +647,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 string ruleConfiguration = await ReadTextByRelativePathAsync(ruleConfigurationPath);
                 return ruleConfiguration;
             }
-            throw new NotFoundException("Rule configuration not found.");
+            throw new FileNotFoundException("Rule configuration not found.");
         }
 
         public async Task<LayoutSets> CreateLayoutSetFile(string layoutSetName)

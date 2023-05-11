@@ -5,6 +5,7 @@ import { RuleConfig } from 'app-shared/types/RuleConfig';
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 const newRuleConfig: RuleConfig = {
   ruleConnection: {
     ruleConnection1: {
@@ -27,4 +28,4 @@ describe('useRuleConfigMutation', () => {
   });
 });
 
-const render = async () => renderHookWithMockStore()(() => useRuleConfigMutation(org, app)).renderHookResult;
+const render = async () => renderHookWithMockStore()(() => useRuleConfigMutation(org, app, selectedLayoutSet)).renderHookResult;

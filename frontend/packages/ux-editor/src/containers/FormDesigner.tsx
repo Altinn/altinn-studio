@@ -20,6 +20,7 @@ import { FormLayoutActions } from "../features/formDesigner/formLayout/formLayou
 import { ErrorPage } from "../components/ErrorPage";
 import { PageSpinner } from "app-shared/components";
 import { DEFAULT_SELECTED_LAYOUT_NAME } from "app-shared/constants";
+import { useRuleConfigQuery } from "../hooks/queries/useRuleConfigQuery";
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -34,6 +35,7 @@ export const FormDesigner = ({ selectedLayoutSet }: FormDesignerProps): JSX.Elem
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
+  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
   const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const layoutOrder = useMemo(() => formLayouts?.[selectedLayout]?.order || {}, [formLayouts, selectedLayout]);
   const t = useText();
@@ -43,7 +45,8 @@ export const FormDesigner = ({ selectedLayoutSet }: FormDesignerProps): JSX.Elem
   const formLayoutIsReady =
     formLayouts &&
     formLayoutSettings &&
-    ruleModel;
+    ruleModel &&
+    isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');

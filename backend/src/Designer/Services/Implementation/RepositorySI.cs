@@ -236,59 +236,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return resourceTexts;
         }
 
-        /// <summary>
-        /// Get the Json form model from disk for Dynamics
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        public string GetRuleHandler(string org, string app)
-        {
-            string filePath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string fileData = null;
-
-            if (File.Exists(filePath))
-            {
-                fileData = File.ReadAllText(filePath, Encoding.UTF8);
-            }
-
-            return fileData;
-        }
-
-        /// <summary>
-        /// Get the Json file from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        public string GetRuleConfig(string org, string app)
-        {
-            string filePath = _settings.GetRuleConfigPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            if (File.Exists(filePath))
-            {
-                string fileData = File.ReadAllText(filePath, Encoding.UTF8);
-                return fileData;
-            }
-            throw new FileNotFoundException("Rule configuration not found.");
-        }
-
-        /// <summary>
-        /// Save rule handler file to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="content">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveRuleHandler(string org, string app, string content)
-        {
-            string filePath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, content, Encoding.UTF8);
-
-            return true;
-        }
-
         /// <inheritdoc/>
         public string GetWidgetSettings(string org, string app)
         {
@@ -300,40 +247,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return fileData;
-        }
-
-        /// <summary>
-        /// Save the Rules configuration JSON file to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveRuleConfig(string org, string app, string resource)
-        {
-            string filePath = _settings.GetRuleConfigPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, resource, Encoding.UTF8);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Method that stores configuration to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name on config</param>
-        /// <param name="config">The content</param>
-        /// <returns>A boolean indicating if everything went ok</returns>
-        public bool SaveConfiguration(string org, string app, string name, string config)
-        {
-            string filePath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, config, Encoding.UTF8);
-
-            return true;
         }
 
         /// <summary>

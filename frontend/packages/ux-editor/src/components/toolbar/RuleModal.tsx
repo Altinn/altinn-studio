@@ -23,9 +23,9 @@ export function RuleModal(props: IRuleModalProps) {
   const { org, app } = useParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
-  const { data: ruleConfig } = useRuleConfigQuery(org, app);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);
   const { data: ruleModelElements } = useRuleModelQuery(org, app, selectedLayoutSet);
-  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app);
+  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSet);
   const { t } = useTranslation();
 
   const { ruleConnection } = ruleConfig ?? {};
@@ -41,6 +41,7 @@ export function RuleModal(props: IRuleModalProps) {
   }
 
   function handleSaveChange(id: string, connection: RuleConnection) {
+    console.log('save rule config',addRuleConnection(ruleConfig, id, connection) );
     saveRuleConfig(addRuleConnection(ruleConfig, id, connection));
     setSelectedConnectionId(null);
     props.handleClose();

@@ -31,8 +31,8 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
-  const { data: ruleConfig } = useRuleConfigQuery(org, app);
-  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);
+  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSet);
   const layoutContainers = useFormLayoutsSelector(allLayoutContainersSelector);
   const layoutComponents = useFormLayoutsSelector(allLayoutComponentsSelector);
   const layoutOrder = useFormLayoutsSelector(fullLayoutOrderSelector);

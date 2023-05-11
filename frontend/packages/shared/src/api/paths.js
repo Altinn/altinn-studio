@@ -25,7 +25,7 @@ export const ruleHandlerPath = (org, app, layoutSetName) => `/designer/api/${org
 export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Post
 export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/widget-settings`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
-export const layoutSetsPath = (org, app) => `/designer/api/${org}/${app}/app-development/layout-sets`; // Get, Put, Post
+export const layoutSetsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-sets?${s({ layoutSetName })}`; // Get, Put, Post
 export const layoutSettingsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layouts?layoutSetName=${layoutSetName}`; // Get
 export const formLayoutPath = (org, app, layout, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
@@ -112,5 +112,8 @@ export const userReposPath = () => '/designer/api/user/repos'; // Get
 export const userStarredListPath = () => '/designer/api/user/starred'; // Get
 export const userStarredRepoPath = (org, app) => `/designer/api/user/starred/${org}/${app}`; // Put, Delete
 
+<<<<<<< HEAD:frontend/packages/shared/src/api/paths.js
 // Docs
 export const altinnDocsPath = () => 'https://docs.altinn.studio/';
+=======
+>>>>>>> df3e203a2 (Add layoutsetName as query param for rule config):frontend/packages/shared/src/api-paths/index.js

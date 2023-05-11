@@ -11,7 +11,6 @@ import { useDatamodelQuery } from './hooks/queries/useDatamodelQuery';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from './selectors/formLayoutSelectors';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { useRuleConfigQuery } from './hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries/useInstanceIdQuery';
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 
@@ -26,21 +25,18 @@ export function App() {
   const t = useText();
   const { org, app } = useParams();
 
-  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
-  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app);
-  const layoutSetNames = layoutSets?.sets?.map(set => set?.id);
 
   const componentIsReady =
     areWidgetsFetched &&
     isDatamodelFetched &&
-    areTextResourcesFetched &&
-    isRuleConfigFetched;
+    areTextResourcesFetched;
 
   const componentHasError = dataModelFetchedError || widgetFetchedError;
 

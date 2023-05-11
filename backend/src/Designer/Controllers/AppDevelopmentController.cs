@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Mime;
-using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
@@ -65,12 +63,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("form-layouts")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app,[FromQuery] string layoutSetName)
+        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayouts(string org, string app, [FromQuery] string layoutSetName)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
             try
             {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, layoutSetName);
                 return Ok(formLayouts);
             }
@@ -96,12 +93,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("form-layout/{layoutName}")]
-        public async Task<ActionResult> SaveFormLayout(string org, string app,[FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] JsonNode formLayout)
+        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] JsonNode formLayout)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
             try
             {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 await _appDevelopmentService.SaveFormLayout(org, app, developer, layoutSetName, layoutName, formLayout);
                 return Ok("Layout successfully saved.");
             }
@@ -123,10 +119,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("form-layout/{layoutName}")]
         public ActionResult DeleteFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
             try
             {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 _appDevelopmentService.DeleteFormLayout(org, app, developer, layoutSetName, layoutName);
                 return Ok("Layout successfully deleted.");
             }
@@ -149,10 +144,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("form-layout-name/{layoutName}")]
         public ActionResult UpdateFormLayoutName(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] string newName)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
             try
             {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 _appDevelopmentService.UpdateFormLayoutName(org, app, developer, layoutSetName, layoutName, newName);
                 return Ok("Layout name successfully changed.");
             }
@@ -175,10 +169,16 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("layout-settings")]
         public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromQuery] string layoutSetName, [FromBody] JsonNode layoutSettings)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, layoutSetName);
-            return Ok("Layout settings successfully saved.");
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, layoutSetName);
+                return Ok("Layout settings successfully saved.");
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
         }
 
         /// <summary>
@@ -193,10 +193,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("layout-settings")]
         public async Task<ActionResult<JsonNode>> GetLayoutSettings(string org, string app, [FromQuery] string layoutSetName)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
             try
             {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, layoutSetName);
                 return Ok(layoutSettings);
             }
@@ -266,16 +265,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutSet">The config needed for the layoutset to be added to layout-sets.json</param>
+        /// <param name="layoutSet">The config needed for the layout set to be added to layout-sets.json</param>
         [HttpPut]
         [UseSystemTextJson]
         [Route("layout-sets")]
         public async Task<ActionResult> AddLayoutSet(string org, string app, [FromQuery] LayoutSetConfig layoutSet)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
             try
             {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 await _appDevelopmentService.AddLayoutSet(org, app, developer, layoutSet);
                 return Ok("Layout set added");
             }
@@ -290,7 +288,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutSetName">Name of the layoutset the specific rule handler belong to</param>
+        /// <param name="layoutSetName">Name of the layout set the specific rule handler belong to</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [Route("rule-handler")]
@@ -314,18 +312,20 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="stageFile"></param>
+        /// <param name="layoutSetName">Name of the layout set the specific rule handler belong to</param>
         /// <returns>The model representation as JSON</returns>
         [HttpPost]
         [Route("rule-handler")]
-        public async Task<IActionResult> SaveRuleHandler(string org, string app, bool stageFile)
+        public async Task<IActionResult> SaveRuleHandler(string org, string app, bool stageFile, [FromQuery] string layoutSetName)
         {
             string content = string.Empty;
             try
             {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 using (StreamReader reader = new(Request.Body))
                 {
                     content = await reader.ReadToEndAsync();
-                    _repository.SaveRuleHandler(org, app, content);
+                    await _appDevelopmentService.SaveRuleHandler(org, app, developer, content, layoutSetName);
                 }
 
                 if (stageFile)
@@ -344,16 +344,26 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Save rule configuration
         /// </summary>
-        /// <param name="jsonData">The code list data to save</param>
+        /// <param name="ruleConfig">The code list data to save</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of layout set</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
+        [UseSystemTextJson]
         [Route("rule-config")]
-        public IActionResult SaveRuleConfig([FromBody] dynamic jsonData, string org, string app)
+        public async Task<IActionResult> SaveRuleConfig(string org, string app, [FromBody] JsonNode ruleConfig, [FromQuery] string layoutSetName)
         {
-            _repository.SaveRuleConfig(org, app, jsonData.ToString());
-            return Ok("Rule configuration saved");
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                await _appDevelopmentService.SaveRuleConfig(org, app, developer, ruleConfig, layoutSetName);
+                return Ok("Rule configuration successfully saved.");
+            }
+            catch (Exception exception)
+            {
+                return NotFound($"Rule configuration could not be saved: {exception}");
+            }
         }
 
         /// <summary>
@@ -361,20 +371,26 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of layout set</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [Route("rule-config")]
-        public IActionResult GetRuleConfig(string org, string app)
+        public async Task<IActionResult> GetRuleConfig(string org, string app, [FromQuery] string layoutSetName)
         {
             try
             {
-                return Content(_repository.GetRuleConfig(org, app), MediaTypeNames.Application.Json, Encoding.UTF8);
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                string ruleConfig = await _appDevelopmentService.GetRuleConfig(org, app, developer, layoutSetName);
+                return Content(ruleConfig);
             }
             catch (FileNotFoundException)
             {
                 return NoContent();
             }
-
+            catch (Exception e)
+            {
+                return BadRequest($"Could not get rule configuration: {e}");
+            }
         }
 
         /// <summary>
