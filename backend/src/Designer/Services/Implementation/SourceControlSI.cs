@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
@@ -559,7 +560,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The path to the remote repo</returns>
         private string FindRemoteRepoLocation(string org, string repository)
         {
-            return new Uri(new Uri(_settings.RepositoryBaseURL), $"{org}/{repository}.git").ToString();
+            return new Uri(_settings.RepositoryBaseURL).Append($"{org}/{repository}.git").ToString();
         }
 
         /// <summary>
