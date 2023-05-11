@@ -602,7 +602,7 @@ namespace Altinn.Studio.Designer.Controllers
                 string ruleConfig = await altinnAppGitRepository.GetRuleConfiguration(null);
                 return Ok(ruleConfig);
             }
-            catch (NotFoundException)
+            catch (FileNotFoundException)
             {
                 return NoContent();
             }

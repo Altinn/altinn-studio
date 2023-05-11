@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -625,8 +626,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Saves the RuleConfiguration.json for a specific layoutset
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
-        /// <param name="ruleConfiguration">The layoutsettings to be saved</param>
-        /// <returns>The content of Settings.json</returns>
+        /// <param name="ruleConfiguration">The ruleConfiguration to be saved</param>
         public async Task SaveRuleConfiguration(string layoutSetName, JsonNode ruleConfiguration)
         {
             string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);

@@ -8,9 +8,11 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -267,7 +269,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSet">The config needed for the layout set to be added to layout-sets.json</param>
         [HttpPut]
-        [UseSystemTextJson]
         [Route("layout-sets")]
         public async Task<ActionResult> AddLayoutSet(string org, string app, [FromQuery] LayoutSetConfig layoutSet)
         {
@@ -300,6 +301,10 @@ namespace Altinn.Studio.Designer.Controllers
                 string ruleHandler = await _appDevelopmentService.GetRuleHandler(org, app, developer, layoutSetName);
                 return Content(ruleHandler);
             }
+            catch (FileNotFoundException)
+            {
+                return NotFound("Could not find rule handler in app.");
+            }
             catch (Exception e)
             {
                 return BadRequest($"Could not get rule handler: {e}");
@@ -311,12 +316,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="stageFile"></param>
         /// <param name="layoutSetName">Name of the layout set the specific rule handler belong to</param>
         /// <returns>The model representation as JSON</returns>
         [HttpPost]
         [Route("rule-handler")]
-        public async Task<IActionResult> SaveRuleHandler(string org, string app, bool stageFile, [FromQuery] string layoutSetName)
+        public async Task<IActionResult> SaveRuleHandler(string org, string app, [FromQuery] string layoutSetName)
         {
             string content = string.Empty;
             try
@@ -326,11 +330,6 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     content = await reader.ReadToEndAsync();
                     await _appDevelopmentService.SaveRuleHandler(org, app, developer, content, layoutSetName);
-                }
-
-                if (stageFile)
-                {
-                    _sourceControl.StageChange(org, app, "RuleHandler.js");
                 }
 
                 return NoContent();
@@ -362,7 +361,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (Exception exception)
             {
-                return NotFound($"Rule configuration could not be saved: {exception}");
+                return BadRequest($"Rule configuration could not be saved: {exception}");
             }
         }
 

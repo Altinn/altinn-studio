@@ -72,12 +72,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
+            if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, $"{layoutName}.json", $"{newName}.json");
+                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            altinnAppGitRepository.UpdateFormLayoutName(null, $"{layoutName}.json", $"{newName}.json");
+            altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, $"{layoutName}.json", $"{newName}.json");
         }
 
         /// <inheritdoc />
