@@ -9,6 +9,7 @@
   border-radius: 3px;
   box-sizing: border-box;
   left: 0;
+  position: absolute;
   top: 0;
   width: 150px;
   z-index: 1;
@@ -31,7 +32,7 @@
   height: 2.5rem;
   padding: 4px 0;
   text-transform: none;
-  width: 150px;
+  width: 100%;
   font-size: 16px;
   align-items: center;
 }
@@ -65,7 +66,6 @@
   border-top: 1px solid #c9c9c9;
   padding-top: 4px;
   padding-left: 0;
-  margin-top: 444px;
 }
 
 .list:not(:last-child) {
