@@ -13,6 +13,20 @@
         ]
       },
       {
+        "id": "options-with-source",
+        "type": "RadioButtons",
+        "source": {
+          "group": "some.data",
+          "label": "some.text.key",
+          "value": "some.data[{0}].binding"
+        }
+      },
+      {
+        "id": "options-with-id",
+        "type": "RadioButtons",
+        "optionsId": "ASF_Land"
+      },
+      {
         "id": "gruppe1",
         "type": "Group",
         "children": ["comp","comp1", "comp2"],
@@ -29,6 +43,7 @@
           "simpleBinding": "some.data.binding"
         }
       },
+      
       {
         "id": "comp1",
         "type": "Input",
