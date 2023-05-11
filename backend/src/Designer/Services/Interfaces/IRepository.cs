@@ -244,6 +244,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         ServiceResource GetServiceResourceById(string org, string repository, string identifier);
 
         /// <summary>
+        /// Publishes a specific resource to the ResourceRegistry
+        /// </summary>
+        /// <param name="org">The organisation that owns the repository</param>
+        /// <param name="repository">The repository where the resource resides</param>
+        /// <param name="id">The id of the resource that should be published</param>
+        /// <returns></returns>
+        public Task<ActionResult> PublishResource(string org, string repository, string id);
+
+        /// <summary>
         /// Validates that required attributes has value in a given ServiceResource.
         /// </summary>
         /// <param name="org">The organisation which owns the repositor</param>

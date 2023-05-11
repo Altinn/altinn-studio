@@ -36,6 +36,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IApplicationMetadataService _applicationMetadataService;
         private readonly ITextsService _textsService;
+        private readonly IResourceRegistry _resourceRegistryService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -49,6 +50,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
         /// <param name="textsService">The service for handling texts</param>
+        /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
         public RepositorySI(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
@@ -58,7 +60,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ILogger<RepositorySI> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IApplicationMetadataService applicationMetadataService,
-            ITextsService textsService)
+            ITextsService textsService,
+            IResourceRegistry resourceRegistryService)
         {
             _settings = repositorySettings;
             _generalSettings = generalSettings;
@@ -69,6 +72,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
             _textsService = textsService;
+            _resourceRegistryService = resourceRegistryService;
         }
 
         /// <summary>
@@ -956,6 +960,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             List<ServiceResource> resourcesInRepo = GetServiceResources(org, repository);
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
+        }
+
+        public async Task<ActionResult> PublishResource(string org, string repository, string id)
+        {
+            ServiceResource resource = GetServiceResourceById(org, repository, id);
+            return await _resourceRegistryService.PublishServiceResource(resource);
         }
 
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")

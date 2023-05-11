@@ -333,6 +333,8 @@ namespace Designer.Tests.Services
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService);
 
+            ResourceRegistryService resourceRegistryService = new ResourceRegistryService(new HttpClient());
+
             RepositorySI service = new(
                 repoSettings,
                 generalSettings,
@@ -342,7 +344,8 @@ namespace Designer.Tests.Services
                 new Mock<ILogger<RepositorySI>>().Object,
                 altinnGitRepositoryFactory,
                 applicationInformationService,
-                textsService);
+                textsService,
+                resourceRegistryService);
 
             return service;
         }
