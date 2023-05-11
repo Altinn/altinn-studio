@@ -1,7 +1,7 @@
 .root {
   box-sizing: content-box;
   padding: 24px 24px;
-  width: 330px;
+  width: 300px;
   min-height: 100%;
   background: rgba(224, 224, 224, 0.3);
 }
