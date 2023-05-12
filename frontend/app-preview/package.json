@@ -24,7 +24,7 @@
     "jest": "29.5.0",
     "typescript": "5.0.4",
     "webpack": "5.82.0",
-    "webpack-dev-server": "4.13.3"
+    "webpack-dev-server": "4.15.0"
   },
   "license": "3-Clause BSD",
   "private": true,
