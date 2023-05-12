@@ -14,14 +14,20 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using FluentAssertions;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Polly;
+using Polly.Retry;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
     public class GitManipulationIntegrationTests : GiteaIntegrationTestsBase<RepositoryController, GitManipulationIntegrationTests>
     {
+
+        // Gitea needs some time to process changes to the repo, so we need to retry a few times
+        private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
+            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
 
         public GitManipulationIntegrationTests(WebApplicationFactory<RepositoryController> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
         {
@@ -30,22 +36,23 @@ namespace Designer.Tests.GiteaIntegrationTests
         [Theory]
         [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task BasicGiteaManipulation_ShouldBeAsExpected(string org)
+        public async Task CreateRepo_ShouldBeAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
-            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
-
-            // Create repo with designer
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
-                HttpMethod.Post,
-                $"designer/api/repos/create-app?org={org}&repository={targetRepo}");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.Created);
+            await CreateAppUsingDesigner(org, targetRepo);
 
             // Check if repo is created in gitea
             var giteaResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}");
             giteaResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Commit_AndPush_AndContents_ShouldBeAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
 
             // Add a file to local repo and try to push with designer
             await File.WriteAllTextAsync($"{CreatedFolderPath}/test.txt", "I am a new file");
@@ -55,27 +62,23 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage commitAndPushResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            // Check contents with designer endpoint
-            InvalidateAllCookies();
-            using HttpResponseMessage contentsResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/contents?path=test.txt");
-            contentsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
             // Check if file is pushed to gitea
             var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test.txt");
             giteaFileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            // Create a file in gitea
-            using var createFileContent = new StringContent(CreateFileJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/test2.txt", createFileContent);
-            createFileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-
-            // Try pull file with designer endpoint
+            // Check contents with designer endpoint
             InvalidateAllCookies();
-            using HttpResponseMessage pullResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/pull");
-            pullResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            using HttpResponseMessage contentsResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/contents?path=test.txt");
+            contentsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
 
-            // Check if file exists locally
-            File.Exists($"{CreatedFolderPath}/test2.txt").Should().BeTrue();
+        [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Commit_AndPush_Separate_ShouldBeAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
 
             // Try combination of commit and push endpoints separately
             InvalidateAllCookies();
@@ -91,6 +94,37 @@ namespace Designer.Tests.GiteaIntegrationTests
             // Check if file is pushed to gitea
             var giteaFileResponse2 = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test3.txt");
             giteaFileResponse2.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Pull_ShouldBeAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            // Create a file in gitea
+            using var createFileContent = new StringContent(CreateFileJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/test2.txt", createFileContent);
+            createFileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+            // Try pull file with designer endpoint
+            InvalidateAllCookies();
+            using HttpResponseMessage pullResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/pull");
+            pullResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            // Check if file exists locally
+            File.Exists($"{CreatedFolderPath}/test2.txt").Should().BeTrue();
+        }
+
+        [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
+        [InlineData(GiteaConstants.TestOrgUsername)] [CanBeNull]
+        public async Task Initial_Commit_ShouldBeAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
 
             // Check initial-commit endpoint
             InvalidateAllCookies();
@@ -106,14 +140,7 @@ namespace Designer.Tests.GiteaIntegrationTests
         public async Task MetadataAndStatus_ShouldBehaveAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
-            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
-
-            // Create repo with designer
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
-                HttpMethod.Post,
-                $"designer/api/repos/create-app?org={org}&repository={targetRepo}");
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.Created);
+            await CreateAppUsingDesigner(org, targetRepo);
 
             // Call metadata endpoint
             InvalidateAllCookies();
@@ -136,15 +163,7 @@ namespace Designer.Tests.GiteaIntegrationTests
         public async Task GetOrgRepos_ShouldBehaveAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
-            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
-
-            // Create repo with designer
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
-                HttpMethod.Post,
-                $"designer/api/repos/create-app?org={org}&repository={targetRepo}");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.Created);
+            await CreateAppUsingDesigner(org, targetRepo);
 
             // Call getOrgRepos endpoint
             InvalidateAllCookies();
@@ -162,22 +181,10 @@ namespace Designer.Tests.GiteaIntegrationTests
         public async Task GetBranches_And_Branch_ShouldBehaveAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
-            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
-
-            // Create repo with designer
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
-                HttpMethod.Post,
-                $"designer/api/repos/create-app?org={org}&repository={targetRepo}");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.Created);
-
-            // Gitea needs some time to be ready for branch endpoint so doing retry.
-            var policy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
-                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
+            await CreateAppUsingDesigner(org, targetRepo);
 
             // Call branches endpoint
-            using HttpResponseMessage branchesResponse = await policy.ExecuteAsync(async () =>
+            using HttpResponseMessage branchesResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
             {
                 InvalidateAllCookies();
                 return await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches");
@@ -188,7 +195,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             deserializedBranchesModel.First().Name.Should().Be("master");
 
             // Call branch endpoint
-            using HttpResponseMessage branchResponse = await policy.ExecuteAsync(async () =>
+            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
             {
                 InvalidateAllCookies();
                 return await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master");
@@ -196,12 +203,20 @@ namespace Designer.Tests.GiteaIntegrationTests
             branchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
+        private async Task CreateAppUsingDesigner(string org, string repoName)
+        {
+            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{repoName}";
+            // Create repo with designer
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                $"designer/api/repos/create-app?org={org}&repository={repoName}");
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+        }
 
 
-
-
-
-private static string GetCommitInfoJson(string text, string org, string repository) =>
+        private static string GetCommitInfoJson(string text, string org, string repository) =>
             @$"{{
                 ""message"": ""{text}"",
                 ""org"": ""{org}"",
