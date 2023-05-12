@@ -1,3 +1,7 @@
 .panelPadding > div {
   --panel-x-padding: var(--modal-padding-x) !important;
 }
+
+.panelBodyText {
+  padding: 12px;
+}
