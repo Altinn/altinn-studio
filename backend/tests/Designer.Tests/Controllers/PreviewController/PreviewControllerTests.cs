@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
@@ -327,6 +328,33 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
             Assert.Equal(@"[{""language"":""en""},{""language"":""nb""}]", responseBody);
+        }
+
+        [Fact]
+        public async Task GetOptions_when_options_exists_Ok()
+        {
+            string dataPathWithData = $"{Org}/{App}/api/options/test-options";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            string responseStringWithoutWhitespaces = Regex.Replace(responseBody, @"\s", "");
+            Assert.Equal(@"[{""label"":""label1"",""value"":""value1""},{""label"":""label2"",""value"":""value2""}]", responseStringWithoutWhitespaces);
+        }
+
+        [Fact]
+        public async Task GetOptions_when_no_options_exist_returns_NoContent()
+        {
+            string dataPathWithData = $"{Org}/{App}/api/options/non-existing-options";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal("", responseBody);
         }
     }
 }
