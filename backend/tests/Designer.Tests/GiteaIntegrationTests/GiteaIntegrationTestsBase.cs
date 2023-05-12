@@ -43,7 +43,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             DeleteDirectoryIfExists(CreatedFolderPath);
         }
 
-        private void DeleteDirectoryIfExists(string directoryPath)
+        private static void DeleteDirectoryIfExists(string directoryPath)
         {
             if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
             {
