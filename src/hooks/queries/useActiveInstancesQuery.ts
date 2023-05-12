@@ -17,6 +17,9 @@ export const useActiveInstancesQuery = (partyId?: string, enabled?: boolean): Us
   return useQuery([ServerStateCacheKey.GetActiveInstances], () => fetchActiveInstances(partyId || ''), {
     enabled,
     onSuccess: (instanceData) => {
+      // Sort array by last changed date
+      instanceData.sort((a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime());
+
       dispatch(InstanceDataActions.getFulfilled({ instanceData }));
     },
     onError: (error: HttpClientError) => {
