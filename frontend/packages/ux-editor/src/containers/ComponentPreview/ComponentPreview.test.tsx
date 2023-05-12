@@ -2,13 +2,13 @@ import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { ComponentPreview, ComponentPreviewProps } from './ComponentPreview';
 import { ComponentType } from '../../components';
-import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
+import { FormComponent } from '../../types/FormComponent';
+import { componentMocks } from '../../testing/componentMocks';
 
 // Test data:
-const component: FormComponent = { id: '1', type: ComponentType.Input, itemType: 'COMPONENT' };
 const handleComponentChange = jest.fn();
 const defaultProps: ComponentPreviewProps = {
-  component,
+  component: componentMocks[ComponentType.Checkboxes],
   handleComponentChange,
 };
 
@@ -26,25 +26,34 @@ describe('ComponentPreview', () => {
   afterEach(jest.resetAllMocks);
 
   it('Renders CheckboxGroupPreview when component type is Checkboxes', () => {
-    const checkboxesComponent: FormCheckboxesComponent = {
-      ...component,
-      options: [],
-      optionsId: '1',
-      type: ComponentType.Checkboxes,
-    };
-    render({ component: checkboxesComponent });
+    render({ component: componentMocks[ComponentType.Checkboxes] });
     expect(screen.getByTestId(checkboxGroupPreviewId)).toBeInTheDocument();
   });
 
   it('Renders RadioGroupPreview when component type is RadioButtons', () => {
-    const radiosComponent: FormRadioButtonsComponent = {
-      ...component,
-      options: [],
-      optionsId: '1',
-      type: ComponentType.RadioButtons,
-    };
-    render({ component: radiosComponent });
+    render({ component: componentMocks[ComponentType.RadioButtons] });
     expect(screen.getByTestId(radioGroupPreviewId)).toBeInTheDocument();
+  });
+
+  it('Does not display error message when component is valid', () => {
+    render({ component: componentMocks[ComponentType.Checkboxes] });
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('Displays error message when component is invalid', () => {
+    const invalidComponent: FormComponent = {
+      type: ComponentType.Checkboxes,
+      options: [
+        { label: 'Option 1', value: 'option1' },
+        { label: 'Option 2', value: 'option2' },
+        { label: 'Option 3', value: 'option1' },
+      ],
+      id: 'test',
+      optionsId: 'test',
+      itemType: 'COMPONENT',
+    };
+    render({ component: invalidComponent });
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
 
   it.each([
@@ -65,7 +74,7 @@ describe('ComponentPreview', () => {
     ComponentType.TextArea,
     ComponentType.ThirdParty,
   ])('Renders error text when component type is %s', (type: ComponentType) => {
-    render({ component: { ...component, type } as FormComponent });
+    render({ component: componentMocks[type] });
     expect(
       screen.getByText('Forhåndsvisning er ikke implementert for denne komponenten.')
     ).toBeInTheDocument();

@@ -900,7 +900,7 @@
   "ux_editor.no_text": "No text",
   "ux_editor.radios_description_add": "Add descrption",
   "ux_editor.radios_description_placeholder": "No description",
-  "ux_editor.radios_error_DuplicateValues": "All values smust be unique.",
+  "ux_editor.radios_error_DuplicateValues": "All values must be unique.",
   "ux_editor.radios_error_NoOptions": "There must be at least one radio button.",
   "ux_editor.radios_legend_add": "Add title",
   "ux_editor.radios_legend_placeholder": "Title is missing",

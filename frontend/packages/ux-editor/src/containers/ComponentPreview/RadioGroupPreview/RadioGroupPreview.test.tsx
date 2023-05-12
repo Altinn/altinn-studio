@@ -150,11 +150,6 @@ describe('RadioGroupPreview', () => {
     await act(() => user.type(valueInput, option1Value));
     expect(screen.getByRole('alertdialog')).toHaveTextContent(duplicateErrorText);
   });
-
-  it('Displays error message when the configuration is invalid', async () => {
-    await render({ component: { ...component, options: [] } });
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
-  });
 });
 
 const render = async (props: Partial<RadioGroupPreviewProps> = {}) => {

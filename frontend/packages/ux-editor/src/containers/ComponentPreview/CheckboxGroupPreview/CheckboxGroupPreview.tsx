@@ -1,6 +1,6 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../../components/config/componentConfig';
-import { CheckboxGroup, ErrorMessage } from '@digdir/design-system-react';
+import { CheckboxGroup } from '@digdir/design-system-react';
 import classes from './CheckboxGroupPreview.module.css';
 import { TextResource } from '../../../components/TextResource';
 import { useText } from '../../../hooks';
@@ -12,7 +12,6 @@ import {
 import { AddOption } from '../../../components/AddOption';
 import { TranslationKey } from 'language/type';
 import type { FormCheckboxesComponent } from '../../../types/FormComponent';
-import { validateComponent } from '../../../utils/validationUtils/validateComponent';
 
 export interface CheckboxGroupPreviewProps extends IGenericEditComponent {
   component: FormCheckboxesComponent;
@@ -25,12 +24,6 @@ export const CheckboxGroupPreview = ({
 }: CheckboxGroupPreviewProps) => {
   const t = useText();
   const tCheckboxes = (key: string) => t(`ux_editor.checkboxes_${key}` as TranslationKey);
-
-  const { isValid, error } = validateComponent(component);
-
-  if (!isValid) {
-    return <ErrorMessage>{tCheckboxes(`error_${error}`)}</ErrorMessage>;
-  }
 
   const changeOptionLabel = (value: string, label: string) =>
     handleComponentChange(changeComponentOptionLabel(component, value, label));

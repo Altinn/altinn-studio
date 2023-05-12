@@ -4,6 +4,8 @@ import { ComponentType } from '../../components';
 import { CheckboxGroupPreview } from './CheckboxGroupPreview';
 import { RadioGroupPreview } from './RadioGroupPreview';
 import { ButtonPreview } from './ButtonPreview';
+import { useComponentErrorMessage } from '../../hooks/useComponentErrorMessage';
+import { ErrorMessage } from '@digdir/design-system-react';
 
 export interface ComponentPreviewProps extends IGenericEditComponent {}
 
@@ -12,6 +14,12 @@ export const ComponentPreview = ({
   handleComponentChange,
   layoutName,
 }: ComponentPreviewProps) => {
+  const errorMessage = useComponentErrorMessage(component);
+
+  if (errorMessage) {
+    return <ErrorMessage>{errorMessage}</ErrorMessage>;
+  }
+
   switch (component.type) {
     case ComponentType.Checkboxes:
       return (

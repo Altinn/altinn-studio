@@ -1,7 +1,7 @@
 import { ComponentType } from '../components';
 import { ICreateFormComponent, IOption } from './global';
 
-interface FormComponentBase<T extends ComponentType = ComponentType> extends ICreateFormComponent {
+export interface FormComponentBase<T extends ComponentType = ComponentType> extends ICreateFormComponent {
   id: string;
   itemType: 'COMPONENT';
   type: T;
