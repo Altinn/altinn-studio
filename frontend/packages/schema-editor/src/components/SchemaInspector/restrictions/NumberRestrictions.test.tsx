@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { NumberRestrictions } from './NumberRestrictions';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -101,7 +101,7 @@ describe('NumberRestrictions component', () => {
     const textBoxMinimum = screen.getByRole('textbox', {
       name: textMock('schema_editor.minimum_inclusive'),
     });
-    await act(() => userEvent.type(textBoxMinimum, '1'));
+    userEvent.type(textBoxMinimum, '1');
     const expectedRestrictions = {
       [IntRestrictionKeys.minimum]: 1,
       [IntRestrictionKeys.exclusiveMinimum]: undefined,
@@ -111,7 +111,9 @@ describe('NumberRestrictions component', () => {
       [IntRestrictionKeys.integer]: undefined,
     };
 
-    expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions);
+    await waitFor(() =>
+      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions)
+    );
   });
 
   it('Should call onChangeRestrictions with correct values when value is changed to 0', async () => {
@@ -127,7 +129,7 @@ describe('NumberRestrictions component', () => {
     const textBoxMinimum = screen.getByRole('textbox', {
       name: textMock('schema_editor.minimum_inclusive'),
     });
-    await act(() => userEvent.type(textBoxMinimum, '0'));
+    userEvent.type(textBoxMinimum, '0');
     const expectedRestrictions = {
       [IntRestrictionKeys.minimum]: 0,
       [IntRestrictionKeys.exclusiveMinimum]: undefined,
@@ -137,6 +139,8 @@ describe('NumberRestrictions component', () => {
       [IntRestrictionKeys.integer]: undefined,
     };
 
-    expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions);
+    await waitFor(() =>
+      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions)
+    );
   });
 });
