@@ -34,7 +34,7 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
   const { data: user } = useUserQuery();
 
   const handlePreviewClick = () => {
-    window.location.href = previewPath(org, app);
+    window.open(previewPath(org, app), '_blank');
   };
 
   return (
