@@ -6,12 +6,15 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import classes from './AltinnHeader.module.css';
+import headerButtonsClasses from '../altinnHeaderButtons/AltinnHeaderbuttons.module.css';
 import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButtons } from '../altinnHeaderButtons';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { getTopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
-
+import { previewPath, publiserPath } from 'app-shared/api-paths';
+import { TopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
+import { ButtonVariant } from '@digdir/design-system-react';
 export interface AltinnHeaderProps {
   showSubMenu: boolean;
 }
@@ -23,6 +26,22 @@ export const AltinnHeader = ({ showSubMenu }: AltinnHeaderProps) => {
   const { data: user } = useUserQuery();
   const repositoryType = getRepositoryType(org, app);
   const menu = getTopBarMenu(repositoryType);
+  const actions = [
+    {
+      title: 'top_menu.preview',
+      path: previewPath,
+      menuKey: TopBarMenu.Preview,
+      buttonVariant: ButtonVariant.Outline,
+      headerButtonsClasses: headerButtonsClasses.previewButton,
+    },
+    {
+      title: 'top_menu.deploy',
+      path: publiserPath,
+      menuKey: TopBarMenu.Deploy,
+      buttonVariant: ButtonVariant.Outline,
+      headerButtonsClasses: undefined,
+    },
+  ];
 
   return (
     <div>
@@ -35,7 +54,7 @@ export const AltinnHeader = ({ showSubMenu }: AltinnHeaderProps) => {
           <span className={classes.appName}>{app || ''}</span>
         </div>
         <AltinnHeaderMenu menu={menu} />
-        <AltinnHeaderButtons />
+        <AltinnHeaderButtons actions={actions} />
         <div className={classes.rightContent}>
           <div className={classes.profileMenuWrapper}>
             {user && (

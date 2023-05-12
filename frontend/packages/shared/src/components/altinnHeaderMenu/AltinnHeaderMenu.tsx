@@ -1,5 +1,3 @@
-import { getTopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
-import { getRepositoryType } from 'app-shared/utils/repository';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
@@ -17,8 +15,6 @@ export interface IAltinnHeaderMenuProps {
 export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHeaderMenuProps) => {
   const { t } = useTranslation();
   const { org, app } = useParams();
-  /*  const repositoryType = getRepositoryType(org, app);
-  const menu = getTopBarMenu(repositoryType); */
 
   return (
     <ul className={classes.menu} data-testid='altinn-header-menu'>
