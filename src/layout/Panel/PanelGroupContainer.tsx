@@ -66,7 +66,7 @@ export const PanelGroupContainer = ({ node }: PanelGroupConatinerProps) => {
             spacing={3}
             data-testid='panel-group-container'
           >
-            {texts.body && <span className={classes.panelBodyText}>{texts.body}</span>}
+            {texts.body && <div className={classes.panelBodyText}>{texts.body}</div>}
             {node.children().map((child) => (
               <GenericComponent
                 key={node.item.id}
