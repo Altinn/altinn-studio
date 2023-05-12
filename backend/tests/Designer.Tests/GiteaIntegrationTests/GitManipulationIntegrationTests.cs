@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Polly;
 using Polly.Retry;

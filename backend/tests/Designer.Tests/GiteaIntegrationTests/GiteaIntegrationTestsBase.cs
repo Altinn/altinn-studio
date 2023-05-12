@@ -24,7 +24,6 @@ namespace Designer.Tests.GiteaIntegrationTests
         protected readonly GiteaFixture GiteaFixture;
 
         protected string CreatedFolderPath { get; set; }
-        protected string SecondaryCreatedFolderPath { get; set; }
 
         private CookieContainer CookieContainer { get; } = new CookieContainer();
 
@@ -42,7 +41,6 @@ namespace Designer.Tests.GiteaIntegrationTests
         public void Dispose()
         {
             DeleteDirectoryIfExists(CreatedFolderPath);
-            DeleteDirectoryIfExists(SecondaryCreatedFolderPath);
         }
 
         private void DeleteDirectoryIfExists(string directoryPath)
