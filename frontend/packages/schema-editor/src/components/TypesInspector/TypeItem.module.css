@@ -1,19 +1,20 @@
 .item {
   display: flex;
   flex-direction: row;
+  align-items: center;
   justify-content: space-between;
-  padding: 10px;
+  padding: 11px 11px 10px;
   height: 40px;
-  box-sizing: content-box;
+  box-sizing: border-box;
   background: #ffffff;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
-  width: 285px;
 }
 
 .typeName {
-  word-break: break-all;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .item:hover {
@@ -27,11 +28,6 @@
 }
 
 .typeIcon {
-  padding-right: 5px;
+  padding-right: 12px;
   font-size: 24px !important;
-}
-
-.cogIcon {
-  padding-left: 5px;
-  padding-right: 5px;
 }

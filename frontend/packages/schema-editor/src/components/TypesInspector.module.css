@@ -1,7 +1,7 @@
 .root {
-  box-sizing: content-box;
+  box-sizing: border-box;
   padding: 24px 24px;
-  width: 300px;
+  width: 280px;
   min-height: 100%;
   background: rgba(224, 224, 224, 0.3);
 }
@@ -10,7 +10,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 10px;
+  gap: 8px;
 }
 
 .addRow {

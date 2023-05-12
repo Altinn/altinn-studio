@@ -28,7 +28,7 @@ export const TypeItem = ({ uiSchemaNode, selected, handleItemClick }: TypeItemPr
       <span className={classes.typeName}>
         {getNameFromPointer({ pointer: uiSchemaNode.pointer })}
       </span>
-      <CogIcon className={classes.cogIcon} />
+      <CogIcon />
     </div>
   );
 };
