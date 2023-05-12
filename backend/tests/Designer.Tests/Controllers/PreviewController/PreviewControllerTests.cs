@@ -77,7 +77,7 @@ namespace Designer.Tests.Controllers.PreviewController
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
         [Fact]
