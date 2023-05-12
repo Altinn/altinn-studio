@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
+using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -24,7 +29,7 @@ namespace Designer.Tests.GiteaIntegrationTests
         [Theory]
         [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task GiteaManipulation_ShouldBeAsExpected(string org)
+        public async Task BasicGiteaManipulation_ShouldBeAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
@@ -81,6 +86,64 @@ namespace Designer.Tests.GiteaIntegrationTests
             var giteaFileResponse2 = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test3.txt");
             giteaFileResponse2.StatusCode.Should().Be(HttpStatusCode.OK);
         }
+
+        [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task MetadataAndStatus_ShouldBehaveAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
+
+            // Create repo with designer
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                $"designer/api/repos/create-app?org={org}&repository={targetRepo}");
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+            // Call metadata endpoint
+            InvalidateAllCookies();
+            using HttpResponseMessage metadataResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/metadata");
+            metadataResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var deserializedRepositoryModel = await metadataResponse.Content.ReadAsAsync<Repository>();
+            deserializedRepositoryModel.Name.Should().Be(targetRepo);
+
+            // Call status endpoint
+            InvalidateAllCookies();
+            using HttpResponseMessage statusResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/status");
+            statusResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var deserializedRepoStatusModel = await statusResponse.Content.ReadAsAsync<RepoStatus>();
+            deserializedRepoStatusModel.RepositoryStatus.Should().Be(RepositoryStatus.Ok);
+        }
+
+        [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task GetOrgRepos_ShouldBehaveAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
+
+            // Create repo with designer
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                $"designer/api/repos/create-app?org={org}&repository={targetRepo}");
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+            // Call getOrgRepos endpoint
+            InvalidateAllCookies();
+            using HttpResponseMessage getOrgReposResponse = await HttpClient.Value.GetAsync($"designer/api/repos/org/{org}");
+            getOrgReposResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var deserializedRepositoryModel = await getOrgReposResponse.Content.ReadAsAsync<List<Repository>>();
+            deserializedRepositoryModel.Count.Should().Be(1);
+            deserializedRepositoryModel.First().Name.Should().Be(targetRepo);
+        }
+
+
+
 
         private static string GetCommitInfoJson(string text, string org, string repository) =>
             @$"{{
