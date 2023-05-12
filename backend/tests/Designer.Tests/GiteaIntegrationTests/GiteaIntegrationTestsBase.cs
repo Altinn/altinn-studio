@@ -40,17 +40,24 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         public void Dispose()
         {
-            if (!string.IsNullOrWhiteSpace(CreatedFolderPath) && Directory.Exists(CreatedFolderPath))
+            DeleteDirectoryIfExists(CreatedFolderPath);
+        }
+
+        private static void DeleteDirectoryIfExists(string directoryPath)
+        {
+            if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
             {
-                var directory = new DirectoryInfo(CreatedFolderPath) { Attributes = FileAttributes.Normal };
-
-                foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
-                {
-                    info.Attributes = FileAttributes.Normal;
-                }
-
-                directory.Delete(true);
+                return;
             }
+
+            var directory = new DirectoryInfo(directoryPath) { Attributes = FileAttributes.Normal };
+
+            foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+            {
+                info.Attributes = FileAttributes.Normal;
+            }
+
+            directory.Delete(true);
         }
 
         protected override void ConfigureTestServices(IServiceCollection services)
