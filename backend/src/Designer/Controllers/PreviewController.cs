@@ -131,7 +131,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (NotFoundException)
             {
-                return NotFound();
+                return Ok();
             }
 
         }
