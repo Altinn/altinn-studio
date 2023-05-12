@@ -23,7 +23,7 @@ public interface IPreviewService
     /// <param name="app">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="instanceOwnerPartyId"></param>
-    public Task<Instance> CreateMockInstance(string org, string app, string developer, int? instanceOwnerPartyId);
+    public Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId);
 
     /// <summary>
     /// Gets the datatype from application metadata that corresponds to the process Task_1

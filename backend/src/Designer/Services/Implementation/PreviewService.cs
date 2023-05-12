@@ -30,8 +30,10 @@ public class PreviewService : IPreviewService
     }
 
     /// <inherit />
-    public async Task<Instance> CreateMockInstance(string org, string app, string developer, int? instanceOwnerPartyId)
+    public async Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId)
     {
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         DataType dataType = await GetDataTypeForTask1(org, app, developer);
         Instance instance = new()
         {
@@ -43,6 +45,7 @@ public class PreviewService : IPreviewService
                     DataType = dataType?.Id,
                     Id = "test-datatask-id"
                 } },
+            Org = applicationMetadata.Org,
             Process = new()
             {
                 CurrentTask = new()

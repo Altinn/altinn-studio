@@ -32,7 +32,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISchemaModelService _schemaModelService;
         private readonly IPreviewService _previewService;
         private readonly ITextsService _textsService;
-        private Instance MockInstance { get; set; } = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PreviewController"/> class.
@@ -58,10 +57,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>default view for the app preview.</returns>
         [HttpGet]
         [Route("/preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/{*AllValues}")]
-        public async Task<IActionResult> Index(string org, string app)
+        public IActionResult Index(string org, string app)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            MockInstance = await _previewService.CreateMockInstance(org, app, developer, 1);
             return View();
         }
 
@@ -232,7 +229,7 @@ namespace Altinn.Studio.Designer.Controllers
                 OrgNumber = "1",
                 SSN = null,
                 UnitType = "AS",
-                Name = "Preview AS",
+                Name = "Test Testesen",
                 IsDeleted = false,
                 OnlyHierarchyElementWithNoAccess = false,
                 Person = null,
@@ -250,7 +247,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>bool</returns>
         [HttpPost]
         [Route("api/v1/parties/validateInstantiation")]
-        public IActionResult ValidateInstantiation(string org, string app)
+        public IActionResult ValidateInstantiation([FromQuery] string partyId)
         {
             return Content(@"{""valid"": true}");
         }
@@ -281,29 +278,29 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The mocked instance object</returns>
         [HttpPost]
         [Route("instances")]
-        public async Task<ActionResult> Instances(string org, string app, [FromQuery] int? instanceOwnerPartyId)
+        public async Task<ActionResult<Instance>> Instances(string org, string app, [FromQuery] int? instanceOwnerPartyId)
         {
             // TODO: consider generating a test id
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Instance mockInstance = await _previewService.CreateMockInstance(org, app, developer, instanceOwnerPartyId);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, instanceOwnerPartyId);
             return Ok(mockInstance);
         }
 
         /// <summary>
-        /// Action for getting the json schema for the datamodel for the default datatask test-datatask-id
+        /// Action for getting the json schema for the datamodel for the default data task test-datatask-id
         /// </summary>
-        /// <remarks>/1/test-id/ is the instanceId which is a combination of partyId + / + hash id of the instance</remarks>
-        /// <remarks>Only for apps that does not use layoutsets. Must be adapted</remarks>
-        /// <returns>Json schema for datamodel for datatask test-datatask-id</returns>
+        /// <remarks>Only for apps that does not use layout sets. Must be adapted</remarks>
+        /// <returns>Json schema for datamodel for data task test-datatask-id</returns>
         [HttpGet]
-        [Route("instances/1/test-id/data/test-datatask-id")]
-        public async Task<ActionResult> GetFormData(string org, string app)
+        [Route("instances/{instanceOwnerId}/{instanceGuid}/data/test-datatask-id")]
+        public async Task<ActionResult> GetFormData(string org, string app, [FromRoute] string instanceOwnerId, [FromRoute] string instanceGuid)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             DataType dataType = await _previewService.GetDataTypeForTask1(org, app, developer);
             if (dataType == null)
             {
-                return Ok("undefined");
+                Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, 1);
+                return Ok(mockInstance.Id);
             }
             string modelPath = $"/App/models/{dataType.Id}.schema.json";
             string decodedPath = Uri.UnescapeDataString(modelPath);
@@ -317,7 +314,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>Only for apps that does not use layoutsets. Must be adapted</remarks>
         /// <returns>Json schema for datamodel for datatask test-datatask-id</returns>
         [HttpPut]
-        [Route("instances/undefined/data/test-datatask-id")]
+        [Route("instances/{instanceOwnerPartyId}/data/test-datatask-id")]
         public ActionResult UpdateFormData(string org, string app)
         {
             return Ok();
@@ -328,7 +325,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>The processState object on the global mockInstance object</returns>
         [HttpGet]
-        [Route("instances/undefined/process")]
+        [Route("instances/{instanceId}/process")]
         public ActionResult Process()
         {
             ProcessState processState = new() { CurrentTask = new() { AltinnTaskType = "data", ElementId = "Task_1" } };
@@ -336,11 +333,38 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        ///
+        /// </summary>
+        /// <returns>The processState object on the global mockInstance object</returns>
+        [HttpGet]
+        [Route("instances/{instanceOwnerPartyId}")]
+        public async Task<ActionResult<Instance>> Instances(string org, string app, [FromRoute] int instanceOwnerPartyId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, instanceOwnerPartyId);
+            return Ok(mockInstance);
+        }
+
+        /// <summary>
+        /// Endpoint to get instance in receipt step
+        /// </summary>
+        /// <remarks>Uses undefined because app-frontend reads instanceId from urlParam</remarks>
+        /// <returns>The processState object on the global mockInstance object</returns>
+        [HttpGet]
+        [Route("instances/undefined")]
+        public async Task<ActionResult<Instance>> Instances(string org, string app)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, 1);
+            return Ok(mockInstance);
+        }
+
+        /// <summary>
         /// Action for getting a mocked response for the next task connected to the instance
         /// </summary>
         /// <returns>The processState object on the global mockInstance object</returns>
         [HttpGet]
-        [Route("instances/undefined/process/next")]
+        [Route("instances/{instanceOwnerPartyId}/process/next")]
         public ActionResult ProcessNext()
         {
             ProcessState processState = new() { CurrentTask = new() { AltinnTaskType = "data", ElementId = "Task_1" } };
@@ -352,7 +376,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>Process object where ended is set</returns>
         [HttpPut]
-        [Route("instances/undefined/process/next")]
+        [Route("instances/{instanceOwnerPartyId}/process/next")]
         public ActionResult ProcessNext([FromQuery] string lang)
         {
             string process = @"{""ended"": ""ended""}";
