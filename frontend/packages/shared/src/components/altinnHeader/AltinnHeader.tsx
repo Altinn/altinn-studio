@@ -9,6 +9,8 @@ import classes from './AltinnHeader.module.css';
 import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButtons } from '../altinnHeaderButtons';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import { getTopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
 
 export interface AltinnHeaderProps {
   showSubMenu: boolean;
@@ -19,6 +21,8 @@ export const AltinnHeader = ({ showSubMenu }: AltinnHeaderProps) => {
   const { t } = useTranslation();
   const { org, app } = useParams();
   const { data: user } = useUserQuery();
+  const repositoryType = getRepositoryType(org, app);
+  const menu = getTopBarMenu(repositoryType);
 
   return (
     <div>
@@ -30,7 +34,7 @@ export const AltinnHeader = ({ showSubMenu }: AltinnHeaderProps) => {
           <span className={classes.bigSlash}>/</span>
           <span className={classes.appName}>{app || ''}</span>
         </div>
-        <AltinnHeaderMenu />
+        <AltinnHeaderMenu menu={menu} />
         <AltinnHeaderButtons />
         <div className={classes.rightContent}>
           <div className={classes.profileMenuWrapper}>

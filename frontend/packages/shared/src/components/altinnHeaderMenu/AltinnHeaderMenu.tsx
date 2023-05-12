@@ -8,13 +8,17 @@ import classNames from 'classnames';
 
 export interface IAltinnHeaderMenuProps {
   activeSubHeaderSelection?: string;
+  menu: Array<{
+    key: string;
+    link: string;
+  }>;
 }
 
-export const AltinnHeaderMenu = ({ activeSubHeaderSelection }: IAltinnHeaderMenuProps) => {
+export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHeaderMenuProps) => {
   const { t } = useTranslation();
   const { org, app } = useParams();
-  const repositoryType = getRepositoryType(org, app);
-  const menu = getTopBarMenu(repositoryType);
+  /*  const repositoryType = getRepositoryType(org, app);
+  const menu = getTopBarMenu(repositoryType); */
 
   return (
     <ul className={classes.menu} data-testid='altinn-header-menu'>
