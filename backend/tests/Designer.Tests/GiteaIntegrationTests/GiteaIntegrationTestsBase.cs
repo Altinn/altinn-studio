@@ -24,6 +24,7 @@ namespace Designer.Tests.GiteaIntegrationTests
         protected readonly GiteaFixture GiteaFixture;
 
         protected string CreatedFolderPath { get; set; }
+        protected string SecondaryCreatedFolderPath { get; set; }
 
         private CookieContainer CookieContainer { get; } = new CookieContainer();
 
@@ -40,17 +41,25 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         public void Dispose()
         {
-            if (!string.IsNullOrWhiteSpace(CreatedFolderPath) && Directory.Exists(CreatedFolderPath))
+            DeleteDirectoryIfExists(CreatedFolderPath);
+            DeleteDirectoryIfExists(SecondaryCreatedFolderPath);
+        }
+
+        private void DeleteDirectoryIfExists(string directoryPath)
+        {
+            if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
             {
-                var directory = new DirectoryInfo(CreatedFolderPath) { Attributes = FileAttributes.Normal };
-
-                foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
-                {
-                    info.Attributes = FileAttributes.Normal;
-                }
-
-                directory.Delete(true);
+                return;
             }
+
+            var directory = new DirectoryInfo(directoryPath) { Attributes = FileAttributes.Normal };
+
+            foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+            {
+                info.Attributes = FileAttributes.Normal;
+            }
+
+            directory.Delete(true);
         }
 
         protected override void ConfigureTestServices(IServiceCollection services)

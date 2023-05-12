@@ -15,6 +15,7 @@ using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Polly;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
@@ -54,6 +55,11 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage commitAndPushResponse = await HttpClient.Value.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
+            // Check contents with designer endpoint
+            InvalidateAllCookies();
+            using HttpResponseMessage contentsResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/contents?path=test.txt");
+            contentsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
             // Check if file is pushed to gitea
             var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test.txt");
             giteaFileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -85,6 +91,13 @@ namespace Designer.Tests.GiteaIntegrationTests
             // Check if file is pushed to gitea
             var giteaFileResponse2 = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test3.txt");
             giteaFileResponse2.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            // Check initial-commit endpoint
+            InvalidateAllCookies();
+            using HttpResponseMessage initialCommitResponse = await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/initial-commit");
+            initialCommitResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var commit = await initialCommitResponse.Content.ReadAsAsync<Commit>();
+            commit.Message.Should().Contain("App created");
         }
 
         [Theory]
@@ -142,10 +155,53 @@ namespace Designer.Tests.GiteaIntegrationTests
             deserializedRepositoryModel.First().Name.Should().Be(targetRepo);
         }
 
+        // Get branch endpoint test
+        [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task GetBranches_And_Branch_ShouldBehaveAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{targetRepo}";
+
+            // Create repo with designer
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                $"designer/api/repos/create-app?org={org}&repository={targetRepo}");
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+            // Gitea needs some time to be ready for branch endpoint so doing retry.
+            var policy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
+
+            // Call branches endpoint
+            using HttpResponseMessage branchesResponse = await policy.ExecuteAsync(async () =>
+            {
+                InvalidateAllCookies();
+                return await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches");
+            });
+            branchesResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var deserializedBranchesModel = await branchesResponse.Content.ReadAsAsync<List<Branch>>();
+            deserializedBranchesModel.Count.Should().Be(1);
+            deserializedBranchesModel.First().Name.Should().Be("master");
+
+            // Call branch endpoint
+            using HttpResponseMessage branchResponse = await policy.ExecuteAsync(async () =>
+            {
+                InvalidateAllCookies();
+                return await HttpClient.Value.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master");
+            });
+            branchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
 
 
 
-        private static string GetCommitInfoJson(string text, string org, string repository) =>
+
+
+
+private static string GetCommitInfoJson(string text, string org, string repository) =>
             @$"{{
                 ""message"": ""{text}"",
                 ""org"": ""{org}"",
