@@ -120,7 +120,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         [Theory]
         [Trait("Category", "GiteaIntegrationTest")]
-        [InlineData(GiteaConstants.TestOrgUsername)] [CanBeNull]
+        [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Initial_Commit_ShouldBeAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
