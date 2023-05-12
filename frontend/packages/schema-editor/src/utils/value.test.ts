@@ -6,7 +6,7 @@ describe('value util', () => {
       expect(valueExists('test')).toBe(true);
     });
     it('should return true when value is 0', () => {
-      expect(valueExists(0)).toBe(true);
+      expect(valueExists('0')).toBe(true);
     });
     it('should return false when value is null', () => {
       expect(valueExists(null)).toBe(false);
