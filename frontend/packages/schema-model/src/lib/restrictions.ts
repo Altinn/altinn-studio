@@ -1,7 +1,8 @@
+import { valueExists } from '@altinn/schema-editor/utils/value';
 import type { Dict } from './types';
 
 export enum IntRestrictionKeys {
-  integer = "integer",
+  integer = 'integer',
   exclusiveMaximum = 'exclusiveMaximum',
   exclusiveMinimum = 'exclusiveMinimum',
   maximum = 'maximum',
@@ -20,7 +21,7 @@ export enum StrRestrictionKeys {
   pattern = 'pattern',
 }
 
-export enum ObjRestrictionKeys { }
+export enum ObjRestrictionKeys {}
 
 export enum ArrRestrictionKeys {
   maxItems = 'maxItems',
@@ -46,7 +47,7 @@ export const findRestrictionsOnNode = (schemaNode: Dict): Dict => {
 };
 
 export const castRestrictionType = (key: string, value?: string) => {
-  if (!value) {
+  if (!valueExists(value)) {
     return undefined;
   } else if (
     [
