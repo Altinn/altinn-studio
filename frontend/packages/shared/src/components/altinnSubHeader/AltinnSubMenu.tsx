@@ -4,16 +4,28 @@ import { VersionControlHeader } from 'app-development/layout/version-control/Ver
 import classes from './AltinnSubMenu.module.css';
 import React from 'react';
 
-export const AltinnSubMenu = () => {
+export interface AltinnSubMenuProps {
+  showVersionControlHeader: boolean;
+  showThreeDotsMenu: boolean;
+  showBranchingIcon: boolean;
+}
+
+export const AltinnSubMenu = ({
+  showVersionControlHeader,
+  showThreeDotsMenu,
+  showBranchingIcon,
+}: AltinnSubMenuProps) => {
   return (
     <div data-testid='altinn-sub-menu'>
       <div className={classes.subToolbar}>
         <div className={classes.leftContent} data-testid='branching-icon'>
-          <BranchingIcon className={classes.branchIcon} />
+          {showBranchingIcon && <BranchingIcon className={classes.branchIcon} />}
         </div>
         <div className={classes.rightContent}>
-          <VersionControlHeader data-testid='version-control-header' />
-          <ThreeDotsMenu data-testid='three-dots-menu' />
+          {showVersionControlHeader && (
+            <VersionControlHeader data-testid='version-control-header' />
+          )}
+          {showThreeDotsMenu && <ThreeDotsMenu data-testid='three-dots-menu' />}
         </div>
       </div>
     </div>

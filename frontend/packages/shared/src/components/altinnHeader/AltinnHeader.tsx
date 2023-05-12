@@ -73,7 +73,13 @@ export const AltinnHeader = ({ showSubMenu }: AltinnHeaderProps) => {
           </div>
         </div>
       </div>
-      {showSubMenu && <AltinnSubMenu />}
+      {showSubMenu && (
+        <AltinnSubMenu
+          showBranchingIcon={true}
+          showVersionControlHeader={true}
+          showThreeDotsMenu={true}
+        />
+      )}
     </div>
   );
 };
