@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Container } from './Container';
 import type { IFormLayoutOrder } from '../types/global';
 
-import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
-import { ItemType } from './helpers/dnd-types';
+import type { EditorDndEvents, EditorDndItem } from '../types/dndTypes';
+import { ItemType } from '../types/dndTypes';
 import { insertArrayElementAtPos, swapArrayElements } from 'app-shared/utils/arrayUtils';
 import { useParams } from 'react-router-dom';
 import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdateFormComponentOrderMutation';

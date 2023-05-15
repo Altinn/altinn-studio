@@ -7,7 +7,7 @@ import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettin
 import { queriesMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
 import { container1IdMock, baseContainerIdMock, layoutMock } from '../testing/layoutMock';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { createMockedDndEvents } from './helpers/dnd-helpers.test';
+import { createMockedDndEvents } from '../testing/dndMocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { DndProvider } from 'react-dnd';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/index.css';
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
-import type { EditorDndEvents } from './helpers/dnd-types';
+import type { EditorDndEvents } from '../types/dndTypes';
 import classes from './EmptyContainerPlaceholder.module.css';
 import { useText } from '../hooks/useText';
 

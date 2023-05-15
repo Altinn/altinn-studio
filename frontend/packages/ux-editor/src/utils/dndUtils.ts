@@ -1,6 +1,6 @@
 import type { DragSourceHookSpec, DragSourceMonitor, DropTargetMonitor, XYCoord } from 'react-dnd';
-import type { EditorDndItem } from './dnd-types';
-import { ContainerPos, ItemType } from './dnd-types';
+import type { EditorDndItem } from '../types/dndTypes';
+import { ContainerPos, ItemType } from '../types/dndTypes';
 
 // @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
 export const hoverIndexHelper = (

@@ -1,9 +1,9 @@
 import React from 'react';
 import type { DropTargetHookSpec, DropTargetMonitor } from 'react-dnd';
 import { useDrop } from 'react-dnd';
-import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
-import { ItemType } from './helpers/dnd-types';
-import { handleDrop, hoverShouldBeIgnored } from './helpers/dnd-helpers';
+import type { EditorDndEvents, EditorDndItem } from '../types/dndTypes';
+import { ItemType } from '../types/dndTypes';
+import { handleDrop, hoverShouldBeIgnored } from '../utils/dndUtils';
 
 export const dropTargetSpec = (
   containerId: string,

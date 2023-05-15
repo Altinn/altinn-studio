@@ -1,5 +1,5 @@
 import React, { createRef } from 'react';
-import { createMockedDndEvents, createMockMonitor } from './helpers/dnd-helpers.test';
+import { createMockedDndEvents, createMockMonitor } from '../testing/dndMocks';
 import { render, screen } from '@testing-library/react';
 import type { DropTargetMonitor } from 'react-dnd';
 import { DndProvider } from 'react-dnd';
@@ -9,7 +9,7 @@ import {
   DroppableDraggableContainer,
   dropTargetSpec as createDropTargetSpec,
 } from './DroppableDraggableContainer';
-import { ItemType } from './helpers/dnd-types';
+import { ItemType } from '../types/dndTypes';
 
 test.each([[true], [false]])(
   'that DroppableDraggableContainer gets rendered isBaseContainer %p',

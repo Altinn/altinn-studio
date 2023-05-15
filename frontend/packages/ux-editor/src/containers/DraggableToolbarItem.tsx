@@ -1,8 +1,8 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
 import type { DragSourceHookSpec } from 'react-dnd/src/hooks/types';
-import type { EditorDndItem } from './helpers/dnd-types';
-import { ItemType } from './helpers/dnd-types';
+import type { EditorDndItem } from '../types/dndTypes';
+import { ItemType } from '../types/dndTypes';
 
 export interface IDraggableProps {
   id: string;

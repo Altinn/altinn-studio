@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import type { EditorDndEvents } from '../containers/helpers/dnd-types';
+import type { EditorDndEvents } from '../types/dndTypes';
 import { EditFormComponent } from './EditFormComponent';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';

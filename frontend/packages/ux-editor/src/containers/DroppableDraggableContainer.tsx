@@ -7,9 +7,9 @@ import {
   getContainerPosition,
   handleDrop,
   hoverShouldBeIgnored,
-} from './helpers/dnd-helpers';
-import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
-import { ContainerPos, ItemType } from './helpers/dnd-types';
+} from '../utils/dndUtils';
+import type { EditorDndEvents, EditorDndItem } from '../types/dndTypes';
+import { ContainerPos, ItemType } from '../types/dndTypes';
 import { DummyDropTarget } from './DummyDropTarget';
 import classes from './DroppableDraggableContainer.module.css';
 import cn from 'classnames';

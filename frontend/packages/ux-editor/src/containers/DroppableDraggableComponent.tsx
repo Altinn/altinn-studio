@@ -7,9 +7,9 @@ import {
   handleDrop,
   hoverIndexHelper,
   hoverShouldBeIgnored,
-} from './helpers/dnd-helpers';
-import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
-import { ItemType } from './helpers/dnd-types';
+} from '../utils/dndUtils';
+import type { EditorDndEvents, EditorDndItem } from '../types/dndTypes';
+import { ItemType } from '../types/dndTypes';
 
 export const dropTargetSpec = (
   targetItem: EditorDndItem,

@@ -6,7 +6,7 @@ import '../styles/index.css';
 import { FormComponent } from '../components/FormComponent';
 import type { IFormLayoutOrder } from '../types/global';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
-import type { EditorDndEvents } from './helpers/dnd-types';
+import type { EditorDndEvents } from '../types/dndTypes';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import classes from './Container.module.css';
 import { ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon } from '@navikt/aksel-icons';
