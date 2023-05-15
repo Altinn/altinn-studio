@@ -1,6 +1,5 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
-import { ComponentType } from '../index';
 import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
@@ -12,17 +11,13 @@ import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors'
 import { useComponentErrorMessage } from '../../hooks/useComponentErrorMessage';
 
 export interface IEditModalContentProps {
-  cancelEdit?: () => void;
   component: FormComponent;
-  handleComponentUpdate?: (updatedComponent: FormComponent) => void;
-  saveEdit?: (updatedComponent: FormComponent) => void;
-  thirdPartyComponentConfig?: EditSettings[];
+  handleComponentUpdate: React.Dispatch<React.SetStateAction<FormComponent>>;
 }
 
 export const EditModalContent = ({
   component,
   handleComponentUpdate,
-  thirdPartyComponentConfig,
 }: IEditModalContentProps) => {
   const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
   const errorMessage = useComponentErrorMessage(component);
@@ -41,10 +36,6 @@ export const EditModalContent = ({
   };
 
   const getConfigDefinitionForComponent = (): EditSettings[] => {
-    if (component.type === ComponentType.ThirdParty) {
-      return thirdPartyComponentConfig[component.tagName];
-    }
-
     return componentSpecificEditConfig[component.type];
   };
 

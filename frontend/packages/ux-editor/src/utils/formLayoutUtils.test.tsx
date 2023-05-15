@@ -11,7 +11,7 @@ import {
 } from './formLayoutUtils';
 import { ComponentType } from '../components';
 import {
-  ICreateFormContainer,
+  IFormContainer,
   IExternalComponent,
   IExternalFormLayout,
   IInternalLayout
@@ -25,7 +25,7 @@ import type {
 } from '../types/FormComponent';
 
 // Test data:
-const baseContainer: ICreateFormContainer = {
+const baseContainer: IFormContainer = {
   index: 0,
   itemType: 'CONTAINER',
 };
@@ -53,7 +53,7 @@ const paragraphComponent: FormParagraphComponent = {
   customProperty,
 };
 const groupId = 'group-container';
-const groupContainer: ICreateFormContainer = {
+const groupContainer: IFormContainer = {
   dataModelBindings: {},
   itemType: 'CONTAINER',
 };
@@ -68,7 +68,7 @@ const paragraphInGroupComponent: FormParagraphComponent = {
   dataModelBindings: {},
 };
 const groupInGroupId = 'group-child-container';
-const groupInGroupContainer: ICreateFormContainer = {
+const groupInGroupContainer: IFormContainer = {
   dataModelBindings: {},
   itemType: 'CONTAINER',
 };

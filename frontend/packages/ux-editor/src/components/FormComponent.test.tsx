@@ -3,28 +3,27 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
-import type { IContainerProps } from './Container';
-import { Container } from './Container';
+import type { IFormComponentProps } from './FormComponent';
+import { FormComponent } from './FormComponent';
 import { queriesMock, renderWithMockStore } from '../testing/mocks';
-import { container1IdMock, layoutMock } from '../testing/layoutMock';
-import { createMockedDndEvents } from './helpers/dnd-helpers.test';
+import { container1IdMock, component1IdMock, component1Mock } from '../testing/layoutMock';
+import { createMockedDndEvents } from '../containers/helpers/dnd-helpers.test';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
-const handleDiscardMock = jest.fn();
+// Test data:
+const id = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88'
 const handleEditMock = jest.fn();
 const handleSaveMock = jest.fn().mockImplementation(() => Promise.resolve());
+const handleDiscardMock = jest.fn();
 
-describe('Container', () => {
+describe('FormComponent', () => {
   afterEach(jest.clearAllMocks);
 
   describe('when not in edit mode', () => {
     it('should render the component', async () => {
       await render();
-
-      expect(screen.getByText('Gruppe - $' + container1IdMock)).toBeInTheDocument();
-      expect(screen.getByText(textMock('ux_editor.container_empty'))).toBeInTheDocument();
 
       expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: textMock('general.edit') })).toBeInTheDocument();
@@ -53,9 +52,6 @@ describe('Container', () => {
     it('should render the component', async () => {
       await render({ isEditMode: true });
 
-      expect(screen.getByText('Gruppe - $' + container1IdMock)).toBeInTheDocument();
-      expect(screen.getByText(textMock('ux_editor.container_empty'))).toBeInTheDocument();
-
       expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: textMock('general.save') })).toBeInTheDocument();
     });
@@ -80,24 +76,23 @@ describe('Container', () => {
   });
 });
 
-const render = async (props: Partial<IContainerProps> = {}) => {
-  const allProps: IContainerProps = {
-    isBaseContainer: false,
-    canDrag: true,
-    id: container1IdMock,
+const render = async (props: Partial<IFormComponentProps> = {}) => {
+  const allProps: IFormComponentProps = {
+    id: component1IdMock,
+    containerId: container1IdMock,
+    index: 0,
     dndEvents: createMockedDndEvents(),
-    container: layoutMock.containers[container1IdMock],
+    isEditMode: false,
+    component: component1Mock,
     handleEdit: handleEditMock,
     handleSave: handleSaveMock,
     handleDiscard: handleDiscardMock,
-    children: [],
-    isEditMode: false,
     ...props
   };
 
   return renderWithMockStore()(
     <DndProvider backend={HTML5Backend}>
-      <Container {...allProps} />
+      <FormComponent {...allProps} />
     </DndProvider>
   );
 };

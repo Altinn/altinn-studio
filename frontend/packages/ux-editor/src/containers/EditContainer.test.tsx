@@ -5,7 +5,7 @@ import { EditContainer, IEditContainerProps } from './EditContainer';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { queriesMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
-import { baseContainerIdMock, layoutMock } from '../testing/layoutMock';
+import { baseContainerIdMock, container1IdMock, layoutMock } from '../testing/layoutMock';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
@@ -14,7 +14,7 @@ const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
 
-const cancelEditModeMock = jest.fn();
+const handleContainerUpdateMock = jest.fn();
 
 describe('EditContainer', () => {
   afterEach(jest.clearAllMocks);
@@ -22,29 +22,26 @@ describe('EditContainer', () => {
   it('should render the component', async () => {
     await render();
 
-    expect(screen.getByText(textMock('general.cancel'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('general.save'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.modal_properties_group_change_id') + ' *')).toBeInTheDocument();
   });
 
-  it('should cancel form when clicking the Cancel button', async () => {
+  it('should update form when editing field', async () => {
     await render();
 
-    const cancelButton = screen.getByText(textMock('general.cancel'))
-    expect(cancelButton).toBeInTheDocument();
-    await act(() => user.click(cancelButton));
-
-    expect(cancelEditModeMock).toHaveBeenCalledTimes(1);
+    const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id') + ' *');
+    await act(() => user.type(containerIdInput, "new-test"));
+    await act(() => user.click(document.body));
+    expect(handleContainerUpdateMock).toHaveBeenCalledTimes(1);
   });
 
-  it('should save form when clicking the Save button', async () => {
+  it('should display an error when containerId is invalid', async () => {
     await render();
 
-    const saveButton = screen.getByText(textMock('general.save'))
-    expect(saveButton).toBeInTheDocument();
-    await act(() => user.click(saveButton));
-
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(cancelEditModeMock).toHaveBeenCalledTimes(1);
+    const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id') + ' *');
+    await act(() => user.type(containerIdInput, "new test"));
+    await act(() => user.click(document.body));
+    expect(screen.getByText(textMock('ux_editor.modal_properties_group_id_not_valid'))).toBeInTheDocument();
+    expect(handleContainerUpdateMock).toHaveBeenCalledTimes(0);
   });
 });
 
@@ -57,10 +54,9 @@ const waitForData = async () => {
 
 const render = async (props: Partial<IEditContainerProps> = {}) => {
   const allProps: IEditContainerProps = {
-    id: baseContainerIdMock,
-    layoutOrder: layoutMock.order,
-    dragHandleRef: null,
-    cancelEditMode: cancelEditModeMock,
+    editFormId: container1IdMock,
+    container: { ...layoutMock.containers[container1IdMock], id: 'test' },
+    handleContainerUpdate: handleContainerUpdateMock,
     ...props
   };
 

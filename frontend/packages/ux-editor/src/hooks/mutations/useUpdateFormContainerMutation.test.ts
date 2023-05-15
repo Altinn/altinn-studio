@@ -2,14 +2,14 @@ import { waitFor } from '@testing-library/react';
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { UpdateFormContainerMutationArgs, useUpdateFormContainerMutation } from './useUpdateFormContainerMutation';
-import { ICreateFormContainer } from '../../types/global';
+import { IFormContainer } from '../../types/global';
 import { container1IdMock, layout1Mock, layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const maxCount = 2;
-const updatedContainer: ICreateFormContainer = {
+const updatedContainer: IFormContainer = {
   itemType: 'CONTAINER',
   maxCount,
 };

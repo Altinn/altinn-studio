@@ -7,6 +7,7 @@ import type { IFormLayoutOrder } from '../types/global';
 import { deepCopy } from 'app-shared/pure';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
+import { FormContextProvider } from './FormContext';
 
 type FormDesignerProps = {
   selectedLayout: string;
@@ -25,16 +26,18 @@ export const FormDesigner = ({
           <div className={classes.leftContent + ' ' + classes.item}>
             <LeftMenu />
           </div>
-          <div className={classes.mainContent + ' ' + classes.item}>
-            <h1 className={classes.pageHeader}>{selectedLayout}</h1>
-            <DesignView
-              isDragging={false}
-              layoutOrder={layoutOrderCopy}
-            />
-          </div>
-          <div className={classes.rightContent + ' ' + classes.item}>
-            <RightMenu />
-          </div>
+          <FormContextProvider>
+            <div className={classes.mainContent + ' ' + classes.item}>
+              <h1 className={classes.pageHeader}>{selectedLayout}</h1>
+              <DesignView
+                isDragging={false}
+                layoutOrder={layoutOrderCopy}
+              />
+            </div>
+            <div className={classes.rightContent + ' ' + classes.item}>
+              <RightMenu />
+            </div>
+          </FormContextProvider>
         </div>
       </div>
     </DndProvider>

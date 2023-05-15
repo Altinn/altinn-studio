@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import '../styles/index.css';
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
 import type { EditorDndEvents } from './helpers/dnd-types';
@@ -10,19 +10,22 @@ export interface IEmptyContainerPlaceholderProps {
   dndEvents: EditorDndEvents;
 }
 
-export const EmptyContainerPlaceholder = (props: IEmptyContainerPlaceholderProps) => {
+export const EmptyContainerPlaceholder = memo(function EmptyContainerPlaceholder({
+  containerId,
+  dndEvents,
+}: IEmptyContainerPlaceholderProps) {
   const t = useText();
 
   return (
     <DroppableDraggableComponent
-      dndEvents={props.dndEvents}
+      dndEvents={dndEvents}
       canDrag={false}
       id='placeholder'
       index={0}
-      containerId={props.containerId}
+      containerId={containerId}
       component={() => (
         <p className={classes.emptyContainerText}>{t('ux_editor.container_empty')}</p>
       )}
     />
   );
-};
+});

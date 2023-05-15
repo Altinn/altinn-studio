@@ -8,8 +8,7 @@ import { IAppState } from '../../types/global';
 import { appStateMock, queriesMock } from '../../testing/mocks';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from '../../../../../app-development/common/ServiceContext';
-import { ComponentType } from '../index';
-import type { FormComponent } from '../../types/FormComponent';
+import { ComponentType } from '../';
 
 const user = userEvent.setup();
 
@@ -47,7 +46,7 @@ describe('EditModalContent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id',
+      'ux_editor.modal_properties_component_change_id *',
       'ux_editor.modal_properties_data_model_helper',
       'ux_editor.modal_configure_read_only',
     ];
@@ -65,7 +64,7 @@ describe('EditModalContent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id',
+      'ux_editor.modal_properties_component_change_id *',
       'ux_editor.modal_header_type_helper',
     ];
     labels.map((label) => expect(screen.getByLabelText(label)));
@@ -79,7 +78,7 @@ describe('EditModalContent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id',
+      'ux_editor.modal_properties_component_change_id *',
       'ux_editor.modal_properties_file_upload_simple',
       'ux_editor.modal_properties_file_upload_list',
       'ux_editor.modal_properties_valid_file_endings_all',
