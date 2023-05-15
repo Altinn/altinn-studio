@@ -1,6 +1,7 @@
 import Ajv from 'ajv';
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
+import addAdditionalFormats from 'ajv-formats-draft2019';
 import dot from 'dot-object';
 import JsonPointer from 'jsonpointer';
 import moment from 'moment';
@@ -92,6 +93,7 @@ export function createValidator(schema: any): ISchemaValidator {
     ajv = new Ajv(ajvOptions);
   }
   addFormats(ajv);
+  addAdditionalFormats(ajv);
   ajv.addFormat('year', /^\d{4}$/);
   ajv.addFormat('year-month', /^\d{4}-(0[1-9]|1[0-2])$/);
   ajv.addSchema(schema, 'schema');
