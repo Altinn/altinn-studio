@@ -4,13 +4,10 @@ import type { IFormLayoutOrder } from '../types/global';
 
 import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
 import { ItemType } from './helpers/dnd-types';
-import {
-  insertArrayElementAtPos,
-  removeArrayElement,
-  swapArrayElements,
-} from 'app-shared/pure/array-functions';
+import { insertArrayElementAtPos, swapArrayElements } from 'app-shared/utils/arrayUtils';
 import { useParams } from 'react-router-dom';
 import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdateFormComponentOrderMutation';
+import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 
 export interface DesignViewProps {
   isDragging: boolean;
@@ -48,7 +45,7 @@ export const DesignView = ({
   };
 
   const removeItemFromContainer = (item: EditorDndItem): void => {
-    const updatedLayoutOrder = removeArrayElement(state.layoutOrder[item.containerId], item.id);
+    const updatedLayoutOrder = removeItemByValue(state.layoutOrder[item.containerId], item.id);
     setContainerLayoutOrder(item.containerId, updatedLayoutOrder);
     item.index = undefined;
     item.containerId = undefined;

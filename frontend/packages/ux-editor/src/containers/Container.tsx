@@ -14,7 +14,7 @@ import { DragHandle } from '../components/DragHandle';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
-import { useText } from '../hooks/useText';
+import { useText } from '../hooks';
 import { EditContainer } from './EditContainer';
 import { EmptyContainerPlaceholder } from './EmptyContainerPlaceholder';
 

@@ -7,7 +7,7 @@ import {
   ObjRestrictionKeys,
   StrRestrictionKeys,
 } from '../restrictions';
-import { arrayIntersection, arrayUnique } from 'app-shared/pure';
+import { removeDuplicates, arrayIntersection } from 'app-shared/utils/arrayUtils';
 
 export const isCompundFieldType = (schemaNodeType: string | string[]) =>
   Array.isArray(schemaNodeType) && schemaNodeType.length === 2;
@@ -40,7 +40,7 @@ export const findUiFieldType = (schemaNode: Dict) => {
   }
 };
 export const findEnumFieldType = (nodeEnum: any[]) => {
-  const checks = arrayUnique(nodeEnum.map((x: any) => typeof x));
+  const checks = removeDuplicates(nodeEnum.map((x: any) => typeof x));
   if (checks.length === 1 && checks[0] === 'string') {
     return FieldType.String;
   }
