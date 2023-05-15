@@ -3,8 +3,8 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
-import type { IContainerProps } from './Container';
-import { Container } from './Container';
+import type { IFormContainerProps } from './FormContainer';
+import { FormContainer } from './FormContainer';
 import { queriesMock, renderWithMockStore } from '../testing/mocks';
 import { container1IdMock, layoutMock } from '../testing/layoutMock';
 import { createMockedDndEvents } from './helpers/dnd-helpers.test';
@@ -16,7 +16,7 @@ const handleDiscardMock = jest.fn();
 const handleEditMock = jest.fn();
 const handleSaveMock = jest.fn().mockImplementation(() => Promise.resolve());
 
-describe('Container', () => {
+describe('FormContainer', () => {
   afterEach(jest.clearAllMocks);
 
   describe('when not in edit mode', () => {
@@ -80,8 +80,8 @@ describe('Container', () => {
   });
 });
 
-const render = async (props: Partial<IContainerProps> = {}) => {
-  const allProps: IContainerProps = {
+const render = async (props: Partial<IFormContainerProps> = {}) => {
+  const allProps: IFormContainerProps = {
     isBaseContainer: false,
     canDrag: true,
     id: container1IdMock,
@@ -97,7 +97,7 @@ const render = async (props: Partial<IContainerProps> = {}) => {
 
   return renderWithMockStore()(
     <DndProvider backend={HTML5Backend}>
-      <Container {...allProps} />
+      <FormContainer {...allProps} />
     </DndProvider>
   );
 };

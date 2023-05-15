@@ -4,21 +4,21 @@ import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@digdir/design-system-react';
-import classes from './EditModalContent.module.css';
+import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentErrorMessage } from '../../hooks/useComponentErrorMessage';
 
-export interface IEditModalContentProps {
+export interface IEditFormComponentProps {
   component: FormComponent;
   handleComponentUpdate: React.Dispatch<React.SetStateAction<FormComponent>>;
 }
 
-export const EditModalContent = ({
+export const EditFormComponent = ({
   component,
   handleComponentUpdate,
-}: IEditModalContentProps) => {
+}: IEditFormComponentProps) => {
   const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
   const errorMessage = useComponentErrorMessage(component);
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {

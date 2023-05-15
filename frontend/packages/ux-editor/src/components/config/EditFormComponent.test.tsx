@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { EditModalContent } from './EditModalContent';
+import { EditFormComponent } from './EditFormComponent';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IAppState } from '../../types/global';
@@ -37,7 +37,7 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
 }));
 
-describe('EditModalContent', () => {
+describe('FormComponentEdit', () => {
   test('should return input specific content when type input', () => {
     render({
       componentProps: {
@@ -196,7 +196,7 @@ const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
     rendered: rtlRender(
       <Provider store={store}>
         <ServicesContextProvider {...queriesMock}>
-          <EditModalContent
+          <EditFormComponent
             component={allComponentProps}
             handleComponentUpdate={handleComponentUpdate}
           />

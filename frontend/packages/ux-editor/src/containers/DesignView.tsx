@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Container } from './Container';
+import { FormContainer } from './FormContainer';
 import type { IFormContainer, IFormLayoutOrder } from '../types/global';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
 
@@ -166,7 +166,7 @@ export const DesignView = ({
     const items = state.layoutOrder[id];
 
     return (
-      <Container
+      <FormContainer
           key={id}
           id={id}
           parentContainerId={parentContainerId}
@@ -202,7 +202,7 @@ export const DesignView = ({
               return containers[itemId] && renderContainer(itemId, id, itemIndex, false, true)
             })
           }
-        </Container>
+        </FormContainer>
     )
   };
 

@@ -2,18 +2,18 @@ import React, { memo } from 'react';
 import '../styles/index.css';
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
 import type { EditorDndEvents } from './helpers/dnd-types';
-import classes from './EmptyContainerPlaceholder.module.css';
+import classes from './FormContainerEmptyPlaceholder.module.css';
 import { useText } from '../hooks/useText';
 
-export interface IEmptyContainerPlaceholderProps {
+export interface IFormContainerEmptyPlaceholderProps {
   containerId: string;
   dndEvents: EditorDndEvents;
 }
 
-export const EmptyContainerPlaceholder = memo(function EmptyContainerPlaceholder({
+export const FormContainerEmptyPlaceholder = memo(function FormContainerEmptyPlaceholder({
   containerId,
   dndEvents,
-}: IEmptyContainerPlaceholderProps) {
+}: IFormContainerEmptyPlaceholderProps) {
   const t = useText();
 
   return (

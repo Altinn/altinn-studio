@@ -6,15 +6,15 @@ import '../styles/index.css';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 import type { EditorDndEvents } from './helpers/dnd-types';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import classes from './Container.module.css';
+import classes from './FormContainer.module.css';
 import { ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon, XMarkIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/DragHandle';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
 import { useText } from '../hooks/useText';
-import { EmptyContainerPlaceholder } from './EmptyContainerPlaceholder';
+import { FormContainerEmptyPlaceholder } from './FormContainerEmptyPlaceholder';
 import type { IFormContainer } from '../types/global';
 
-export interface IContainerProps {
+export interface IFormContainerProps {
   isBaseContainer?: boolean;
   id: string;
   parentContainerId?: string;
@@ -29,7 +29,7 @@ export interface IContainerProps {
   children: React.ReactNode[];
 }
 
-export const Container = ({
+export const FormContainer = ({
   isBaseContainer,
   id,
   parentContainerId,
@@ -42,7 +42,7 @@ export const Container = ({
   handleSave,
   handleDiscard,
   children,
-} : IContainerProps) => {
+} : IFormContainerProps) => {
   const t = useText();
   const { org, app } = useParams();
 
@@ -124,7 +124,7 @@ export const Container = ({
           {!isBaseContainer && <FormGroupHeader dragHandleRef={dragHandleRef} />}
           {expanded && (
             children.length ? children : (
-              <EmptyContainerPlaceholder containerId={id} dndEvents={dndEvents} />
+              <FormContainerEmptyPlaceholder containerId={id} dndEvents={dndEvents} />
             )
           )}
         </div>

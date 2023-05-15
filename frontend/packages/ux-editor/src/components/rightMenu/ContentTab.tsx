@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { TextResourceEdit } from '../TextResourceEdit';
-import { EditModalContent } from '../config/EditModalContent';
-import { EditContainer } from '../../containers/EditContainer';
+import { EditFormComponent } from '../config/EditFormComponent';
+import { EditFormContainer } from '../config/EditFormContainer';
 import { getCurrentEditId } from '../../selectors/textResourceSelectors';
 import { useSelector } from 'react-redux';
 import { LayoutItemType } from '../../types/global';
@@ -26,9 +26,9 @@ export const ContentTab = () => {
   <>
     {
       isContainer ? (
-        <EditContainer editFormId={formId} container={form} handleContainerUpdate={handleUpdate} />
+        <EditFormContainer editFormId={formId} container={form} handleContainerUpdate={handleUpdate} />
       ) : (
-        <EditModalContent component={form} handleComponentUpdate={handleUpdate} />
+        <EditFormComponent component={form} handleComponentUpdate={handleUpdate} />
       )
     }
     <div className={classes.buttonsContainer}>

@@ -1,12 +1,13 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { EditContainer, IEditContainerProps } from './EditContainer';
-import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
-import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
-import { container1IdMock, layoutMock } from '../testing/layoutMock';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import type { IEditFormContainerProps } from './EditFormContainer';
+import { EditFormContainer } from './EditFormContainer';
+import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
+import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
+import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import { container1IdMock, layoutMock } from '../../testing/layoutMock';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -16,7 +17,7 @@ const app = 'app';
 
 const handleContainerUpdateMock = jest.fn();
 
-describe('EditContainer', () => {
+describe('FormContainerEdit', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render the component', async () => {
@@ -52,8 +53,8 @@ const waitForData = async () => {
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<IEditContainerProps> = {}) => {
-  const allProps: IEditContainerProps = {
+const render = async (props: Partial<IEditFormContainerProps> = {}) => {
+  const allProps: IEditFormContainerProps = {
     editFormId: container1IdMock,
     container: { ...layoutMock.containers[container1IdMock], id: 'test' },
     handleContainerUpdate: handleContainerUpdateMock,
@@ -62,5 +63,5 @@ const render = async (props: Partial<IEditContainerProps> = {}) => {
 
   await waitForData();
 
-  return renderWithMockStore()(<EditContainer {...allProps} />);
+  return renderWithMockStore()(<EditFormContainer {...allProps} />);
 };

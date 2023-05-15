@@ -1,42 +1,42 @@
 import React, { ChangeEvent, useCallback, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import '../styles/index.css';
-import { EditGroupDataModelBindings } from '../components/config/group/EditGroupDataModelBindings';
-import { getTextResource } from '../utils/language';
-import { idExists, validComponentId } from '../utils/formLayoutUtils';
-import type { IDataModelFieldElement, IFormContainer } from '../types/global';
+import { EditGroupDataModelBindings } from '../config/group/EditGroupDataModelBindings';
+import { getTextResource } from '../../utils/language';
+import { idExists, validComponentId } from '../../utils/formLayoutUtils';
+import type { IDataModelFieldElement, IFormContainer } from '../../types/global';
 import {
   Checkbox,
   CheckboxGroup,
   FieldSet,
   TextField,
 } from '@digdir/design-system-react';
-import classes from './EditContainer.module.css';
-import { TextResource } from '../components/TextResource';
-import { useDatamodelQuery } from '../hooks/queries/useDatamodelQuery';
-import { useText } from '../hooks';
+import classes from './EditFormContainer.module.css';
+import { TextResource } from '../TextResource';
+import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
+import { useText } from '../../hooks/useText';
 import { useParams } from 'react-router-dom';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
-import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
+import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
+import { selectedLayoutSelector } from '../../selectors/formLayoutSelectors';
+import { useTextResourcesSelector } from '../../hooks/useTextResourcesSelector';
+import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { ITextResource } from 'app-shared/types/global';
-import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
-import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
-import { TextFieldWithValidation } from '../components/TextFieldWithValidation';
+import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
+import { TextFieldWithValidation } from '../TextFieldWithValidation';
 
-export interface IEditContainerProps {
+export interface IEditFormContainerProps {
   editFormId: string;
   container: IFormContainer;
   handleContainerUpdate: React.Dispatch<React.SetStateAction<IFormContainer>>;
 };
 
-export const EditContainer = ({
+export const EditFormContainer = ({
   editFormId,
   container,
   handleContainerUpdate,
-} : IEditContainerProps) => {
+} : IEditFormContainerProps) => {
   const t = useText();
 
   const { org, app } = useParams();
