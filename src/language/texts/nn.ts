@@ -1,4 +1,6 @@
-export function nn() {
+import type { FixedLanguageList } from 'src/language/languages';
+
+export function nn(): FixedLanguageList {
   return {
     actions: {
       sign: 'Signer',

@@ -3,6 +3,7 @@ import parseHtmlToReact from 'html-react-parser';
 import { marked } from 'marked';
 import type { HTMLReactParserOptions } from 'html-react-parser';
 
+import type { ValidLanguageKey } from 'src/hooks/useLanguage';
 import type { IAltinnOrgs, IApplication, IDataSources, ILanguage, ITextResource } from 'src/types/shared';
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
@@ -23,33 +24,49 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   }
 });
 
-export function getLanguageFromKey(key: string | undefined, language: ILanguage) {
-  if (!key) {
+/**
+ * @deprecated Use lang() from useLanguage.ts instead
+ * @see useLanguage
+ */
+export function getLanguageFromKey<T extends ValidLanguageKey | undefined>(key: T, language: ILanguage | null) {
+  if (!key || !language) {
     return key;
   }
-  const name = getNestedObject(language, key.split('.'));
-  if (!name) {
+  const path = key.split('.');
+  const value = getNestedObject(language, path);
+  if (!value || typeof value === 'object') {
     return key;
   }
-  return name;
+  return value;
 }
 
-export function getNestedObject(nestedObj: any, pathArr: string[]) {
+function getNestedObject(nestedObj: ILanguage, pathArr: string[]) {
   return pathArr.reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), nestedObj);
 }
 
+export type LangParams = (string | undefined | number)[];
+
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}
+/**
+ * @deprecated Use lang() from useLanguage.ts instead
+ * @see useLanguage
+ */
 export function getParsedLanguageFromKey(
-  key: string,
-  language: ILanguage,
-  params?: any[],
+  key: ValidLanguageKey | undefined,
+  language: ILanguage | null,
+  params?: LangParams,
   stringOutput?: false,
-): JSX.Element;
-export function getParsedLanguageFromKey(key: string, language: ILanguage, params?: any[], stringOutput?: true): string;
+): JSX.Element | null;
 export function getParsedLanguageFromKey(
-  key: string,
-  language: ILanguage,
-  params?: any[],
+  key: ValidLanguageKey | undefined,
+  language: ILanguage | null,
+  params?: LangParams,
+  stringOutput?: true,
+): string;
+export function getParsedLanguageFromKey(
+  key: ValidLanguageKey | undefined,
+  language: ILanguage | null,
+  params?: LangParams,
   stringOutput?: boolean,
 ): any {
   const name = getLanguageFromKey(key, language);
@@ -62,7 +79,7 @@ export function getParsedLanguageFromKey(
 }
 
 export const getParsedLanguageFromText = (
-  text: string,
+  text: string | undefined,
   purifyOptions?: {
     allowedTags?: string[];
     allowedAttr?: string[];
@@ -70,7 +87,7 @@ export const getParsedLanguageFromText = (
   },
   inline = true,
 ) => {
-  const dirty = marked.parse(text);
+  const dirty = marked.parse(text || '');
   const actualOptions: DOMPurify.Config = {};
   if (purifyOptions?.allowedTags) {
     actualOptions.ALLOWED_TAGS = purifyOptions.allowedTags;
@@ -103,17 +120,23 @@ const replaceRootTag = (domNode: any) => {
   }
 };
 
-const replaceParameters = (nameString: string | undefined, params: string[]) => {
+const replaceParameters = (nameString: string | undefined, params: LangParams) => {
   if (nameString === undefined) {
     return nameString;
   }
   let mutatingString = nameString;
-  params.forEach((param: string, index: number) => {
-    mutatingString = mutatingString.replaceAll(`{${index}}`, param);
+  params.forEach((param, index: number) => {
+    if (param !== undefined) {
+      mutatingString = mutatingString.replaceAll(`{${index}}`, `${param}`);
+    }
   });
   return mutatingString;
 };
 
+/**
+ * @deprecated Use lang() from useLanguage.ts instead
+ * @see useLanguage
+ */
 export function getTextResourceByKey<T extends string | undefined>(
   key: T,
   textResources: ITextResource[] | null,

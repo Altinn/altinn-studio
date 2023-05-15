@@ -189,6 +189,7 @@ export function RepeatingGroupTable({
             <GridRowRenderer
               key={`gridBefore-${index}`}
               row={{ ...row, cells: [...row.cells, ...extraCells] }}
+              isNested={isNested}
               mutableColumnSettings={columnSettings}
             />
           ))}
@@ -295,6 +296,7 @@ export function RepeatingGroupTable({
             <GridRowRenderer
               key={`gridAfter-${index}`}
               row={{ ...row, cells: [...row.cells, ...extraCells] }}
+              isNested={isNested}
               mutableColumnSettings={columnSettings}
             />
           ))}

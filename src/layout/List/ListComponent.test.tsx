@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
+import { nb } from 'src/language/texts/nb';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { renderGenericComponentTest } from 'src/testUtils';
 import type { RenderGenericComponentTestProps } from 'src/testUtils';
@@ -30,6 +31,7 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
     genericProps: {
       getTextResourceAsString: (value) => value,
       legend: () => <span>legend</span>,
+      language: nb(),
       ...genericProps,
     },
     manipulateState: (state) => {

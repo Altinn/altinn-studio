@@ -3,11 +3,12 @@ import React from 'react';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import type { ValidLanguageKey } from 'src/hooks/useLanguage';
 import type { ILabelSettings } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
 interface IAddressLabel {
-  labelKey: string;
+  labelKey: ValidLanguageKey;
   id: string;
   language: ILanguage;
   required?: boolean;

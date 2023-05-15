@@ -1,4 +1,5 @@
 import type { IProcessPermissions } from 'src/features/process';
+import type { FixedLanguageList } from 'src/language/languages';
 
 export interface IAltinnWindow extends Window {
   org: string;
@@ -121,9 +122,11 @@ export interface IInstanceState {
   isArchived: boolean;
 }
 // Language translations for altinn
-export interface ILanguage {
-  [key: string]: string | ILanguage;
-}
+export type ILanguage =
+  | FixedLanguageList
+  | {
+      [key: string]: string | ILanguage;
+    };
 // Language for the rendered alltinn app
 export interface IAppLanguage {
   language: string; // Language code

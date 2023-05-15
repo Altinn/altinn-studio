@@ -48,6 +48,18 @@ describe('Grid component', () => {
     cy.get(appFrontend.errorReport).should('contain.text', 'Må summeres opp til 100%');
     cy.get(appFrontend.grid.totalPercent).parents('td').should('contain.text', 'Må summeres opp til 100%');
 
+    // Make sure markdown works in text cells
+    cy.get(appFrontend.grid.grid).find('tr').eq(1).find('td').eq(0).should('contain.text', 'Boliglån');
+    cy.changeLayout((component) => {
+      if (component.type === 'Grid') {
+        const cell = component.rows[1].cells[0];
+        if (cell && 'text' in cell) {
+          cell.text = 'Mitt **bolig**lån';
+        }
+      }
+    });
+    cy.get(appFrontend.grid.grid).find('tr').eq(1).find('td').eq(0).should('contain.text', 'Mitt boliglån');
+
     // Verify that the summary is correct
     cy.navPage('summary').click();
     cy.get(appFrontend.grid.summary).should('be.visible');

@@ -20,6 +20,7 @@ import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import type { IAttachment, IAttachments } from 'src/features/attachments';
 import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
+import type { ValidLanguageKey } from 'src/hooks/useLanguage';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type {
@@ -555,7 +556,7 @@ export function validateComponentFormData(
           errorMessage = getTextResourceByKey(fieldSchema.errorMessage, textResources);
         } else {
           errorMessage = getParsedLanguageFromKey(
-            `validation_errors.${errorMessageKeys[error.keyword]?.textKey || error.keyword}`,
+            `validation_errors.${errorMessageKeys[error.keyword]?.textKey || error.keyword}` as ValidLanguageKey,
             language,
             [errorParams],
             true,
@@ -723,7 +724,7 @@ function validateFormDataForLayout(
       errorMessage = getTextResourceByKey(fieldSchema.errorMessage, textResources);
     } else {
       errorMessage = getParsedLanguageFromKey(
-        `validation_errors.${errorMessageKeys[error.keyword]?.textKey || error.keyword}`,
+        `validation_errors.${errorMessageKeys[error.keyword]?.textKey || error.keyword}` as ValidLanguageKey,
         language,
         [errorParams],
         true,

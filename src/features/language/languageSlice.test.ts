@@ -17,7 +17,7 @@ describe('languageSlice', () => {
         },
       }),
     );
-    expect(nextState.language?.testKey).toEqual('test');
+    expect((nextState.language as any)?.testKey).toEqual('test');
     expect(nextState.error).toBeNull();
   });
 

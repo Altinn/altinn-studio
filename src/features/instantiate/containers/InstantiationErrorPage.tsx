@@ -7,7 +7,7 @@ import { AltinnError } from 'src/components/altinnError';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 
 export type IInstantiationErrorPageProps = {
-  title: string | JSX.Element | JSX.Element[];
+  title: string | JSX.Element | JSX.Element[] | null;
   content: React.ReactNode;
   statusCode: string;
 } & RouteProps;

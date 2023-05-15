@@ -2,6 +2,8 @@ import { en } from 'src/language/texts/en';
 import { nb } from 'src/language/texts/nb';
 import { nn } from 'src/language/texts/nn';
 
+export type FixedLanguageList = ReturnType<typeof en>;
+
 export function getLanguageFromCode(languageCode: string) {
   switch (languageCode) {
     case 'en':
