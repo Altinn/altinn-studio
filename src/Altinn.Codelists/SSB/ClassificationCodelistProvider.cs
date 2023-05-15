@@ -60,38 +60,16 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
 
     private AppOptions GetAppOptions(Clients.ClassificationCodes classificationCode, string parentCode)
     {
-        AppOptions appOptions;
-        // From Altinn.App.Core version 7.8.0 we can add description to AppOptions.
-        // This is not supported in older versions, and we need to check if the property exists.
-        if (AppOptionsSupportsDescription())
+        AppOptions appOptions = new AppOptions
         {
-            appOptions = new AppOptions
-            {
-                // The api we use doesn't support filtering on partentCode,
-                // hence we need to filter afterwards.
-                Options = string.IsNullOrEmpty(parentCode)
-            ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description =  _options.GetDescription(x), HelpText = _options.GetHelpText(x)}).ToList()
-            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description = _options.GetDescription(x), HelpText = _options.GetHelpText(x) }).ToList()
-            };
-        }
-        else
-        {
-            appOptions = new AppOptions
-            {
-                // The api we use doesn't support filtering on partentCode,
-                // hence we need to filter afterwards.
-                Options = string.IsNullOrEmpty(parentCode)
-            ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
-            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name }).ToList()
-            };
-        }
-
+            // The api we use doesn't support filtering on partentCode,
+            // hence we need to filter afterwards.
+            Options = string.IsNullOrEmpty(parentCode)
+                ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description =  _options.GetDescription(x), HelpText = _options.GetHelpText(x)}).ToList()
+                : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description = _options.GetDescription(x), HelpText = _options.GetHelpText(x) }).ToList()
+        };
+       
         return appOptions;
-    }
-
-    private static bool AppOptionsSupportsDescription()
-    {
-        return typeof(AppOption).GetProperties().Any(x => x.Name == "Description");
     }
 
     private static Dictionary<string, string> MergeDictionaries(Dictionary<string, string> defaultValues, Dictionary<string, string> overridingValues)
