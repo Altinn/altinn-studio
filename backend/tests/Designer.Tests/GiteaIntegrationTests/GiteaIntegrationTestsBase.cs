@@ -124,6 +124,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.Created);
+            InvalidateAllCookies();
         }
     }
 }
