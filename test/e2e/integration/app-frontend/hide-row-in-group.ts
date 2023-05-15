@@ -94,3 +94,25 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   cy.get('@lastRow').eq(0).should('contain.text', 'NOK 150');
   cy.get('@lastRow').eq(1).should('contain.text', 'NOK 987 554');
 });
+
+it('"save and next"-button should open row 3 when row 2 is hidden', () => {
+  cy.goto('group');
+  cy.get(appFrontend.nextButton).click();
+  cy.changeLayout((component) => {
+    if (component.type === 'Group' && component.id === 'mainGroup' && component.edit) {
+      component.edit.saveAndNextButton = true;
+    }
+  });
+  cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+  ['1', '6', '2'].forEach((value) => {
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.currentValue).type(value);
+    cy.get(appFrontend.group.saveMainGroup).click();
+  });
+  cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
+  cy.get(appFrontend.group.hideRepeatingGroupRow).type('5');
+  cy.get(appFrontend.group.row(0).editBtn).click();
+  cy.get(appFrontend.group.saveAndNextMainGroup).click();
+  cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 2');
+  cy.get(appFrontend.group.saveAndNextMainGroup).should('not.exist');
+});

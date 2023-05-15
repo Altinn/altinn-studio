@@ -201,6 +201,7 @@ export class AppFrontend {
     comments: 'input[id^="comments"]',
     saveSubGroup: 'button[id*="add-button-grp-subGroup"]',
     saveMainGroup: '#add-button-grp-mainGroup',
+    saveAndNextMainGroup: '#next-button-grp-mainGroup',
     editContainer: '[data-testid=group-edit-container]',
     sendersName: '#sendersName',
     summaryText: '#send-in-text',

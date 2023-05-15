@@ -214,7 +214,6 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
             <RepeatingGroupsEditContainer
               editIndex={editIndex}
               setEditIndex={setEditIndex}
-              repeatingGroupIndex={repeatingGroupIndex}
               id={id}
               multiPageIndex={multiPageIndex}
               setMultiPageIndex={setMultiPageIndex}
@@ -237,7 +236,6 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
                   >
                     <RepeatingGroupsEditContainer
                       editIndex={index}
-                      repeatingGroupIndex={repeatingGroupIndex}
                       id={id}
                       deleting={deletingIndexes.includes(index)}
                       setEditIndex={setEditIndex}

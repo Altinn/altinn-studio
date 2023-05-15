@@ -156,7 +156,6 @@ export function RepeatingGroupTable({
       <RepeatingGroupsEditContainer
         editIndex={editIndex}
         setEditIndex={setEditIndex}
-        repeatingGroupIndex={repeatingGroupIndex}
         id={id}
         multiPageIndex={multiPageIndex}
         setMultiPageIndex={setMultiPageIndex}

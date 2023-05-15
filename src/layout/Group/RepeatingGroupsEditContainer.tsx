@@ -22,7 +22,6 @@ export interface IRepeatingGroupsEditContainer {
   deleting?: boolean;
   editIndex: number;
   setEditIndex: (index: number, forceValidation?: boolean) => void;
-  repeatingGroupIndex: number;
   onClickRemove?: (groupIndex: number) => void;
   forceHideSaveButton?: boolean;
   multiPageIndex?: number;
@@ -72,7 +71,6 @@ function RepeatingGroupsEditContainerInternal({
   deleting,
   editIndex,
   setEditIndex,
-  repeatingGroupIndex,
   onClickRemove,
   forceHideSaveButton,
   multiPageIndex,
@@ -96,10 +94,16 @@ function RepeatingGroupsEditContainerInternal({
   } as ExprResolved<IGroupEditProperties>;
   const rowItems = row.items;
   const { refSetter } = useRepeatingGroupsFocusContext();
-
   const texts = {
     ...group.textResourceBindings,
     ...textsForRow,
+  };
+
+  const nextDisplayedGroup = () => {
+    const nextDisplayedIndex = group.rows.findIndex(
+      (group, idx) => idx > editIndex && group && !group.groupExpressions?.hiddenRow,
+    );
+    return nextDisplayedIndex > -1 ? nextDisplayedIndex : null;
   };
 
   let nextIndex: number | null = null;
@@ -107,7 +111,7 @@ function RepeatingGroupsEditContainerInternal({
     const filteredIndex = filteredIndexes.indexOf(editIndex);
     nextIndex = filteredIndexes.slice(filteredIndex).length > 1 ? filteredIndexes[filteredIndex + 1] : null;
   } else {
-    nextIndex = editIndex < repeatingGroupIndex ? editIndex + 1 : null;
+    nextIndex = nextDisplayedGroup();
   }
 
   const saveClicked = () => {
