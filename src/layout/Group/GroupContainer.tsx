@@ -74,8 +74,8 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
   const AddButton = (): JSX.Element => (
     <Button
       id={`add-button-${id}`}
-      onClick={onClickAdd}
-      onKeyUp={onKeypressAdd}
+      onClick={handleOnAddButtonClick}
+      onKeyUp={handleOnAddKeypress}
       variant={ButtonVariant.Outline}
       size={ButtonSize.Medium}
       icon={<AddIcon aria-hidden='true' />}
@@ -97,10 +97,11 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
     </Button>
   );
 
-  const onClickAdd = useCallback(() => {
+  const addNewRowToGroup = useCallback((): void => {
     if (!edit?.alwaysShowAddButton || edit?.mode === 'showAll') {
       dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
     }
+
     if (edit?.mode !== 'showAll' && edit?.mode !== 'onlyTable') {
       dispatch(
         FormLayoutActions.updateRepeatingGroupsEditIndex({
@@ -112,30 +113,35 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
       );
       setMultiPageIndex(0);
     }
+  }, [dispatch, edit?.alwaysShowAddButton, edit?.mode, id, node, repeatingGroupIndex, setMultiPageIndex]);
 
+  const handleOnAddButtonClick = (): void => {
+    addNewRowToGroup();
     triggerFocus(repeatingGroupIndex + 1);
-  }, [dispatch, id, edit?.mode, edit?.alwaysShowAddButton, node, repeatingGroupIndex, setMultiPageIndex, triggerFocus]);
+  };
 
-  useEffect(() => {
+  // Add new row if openByDefault is true and no rows exist
+  useEffect((): void => {
     if (edit?.openByDefault && repeatingGroupIndex === -1) {
-      onClickAdd();
+      addNewRowToGroup();
     }
-  }, [edit?.openByDefault, onClickAdd, repeatingGroupIndex]);
+  }, [addNewRowToGroup, edit?.openByDefault, repeatingGroupIndex]);
 
-  useEffect(() => {
+  useEffect((): void => {
     if (edit?.multiPage && multiPageIndex < 0) {
       setMultiPageIndex(0);
     }
   }, [edit?.multiPage, multiPageIndex, setMultiPageIndex]);
 
-  const onKeypressAdd = (event: React.KeyboardEvent<HTMLButtonElement>): void => {
+  const handleOnAddKeypress = (event: React.KeyboardEvent<HTMLButtonElement>): void => {
     const allowedKeys = ['enter', ' ', 'spacebar'];
     if (allowedKeys.includes(event.key.toLowerCase())) {
-      onClickAdd();
+      addNewRowToGroup();
+      triggerFocus(repeatingGroupIndex + 1);
     }
   };
 
-  const onClickRemove = (groupIndex: number): void => {
+  const handleOnRemoveClick = (groupIndex: number): void => {
     dispatch(
       FormLayoutActions.updateRepeatingGroups({
         layoutElementId: id,
@@ -190,7 +196,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
           repeatingGroupIndex={repeatingGroupIndex}
           deleting={deletingIndexes.includes(repeatingGroupIndex)}
           setEditIndex={setEditIndex}
-          onClickRemove={onClickRemove}
+          onClickRemove={handleOnRemoveClick}
           setMultiPageIndex={setMultiPageIndex}
           multiPageIndex={multiPageIndex}
           filteredIndexes={filteredIndexList}
@@ -235,7 +241,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
                       id={id}
                       deleting={deletingIndexes.includes(index)}
                       setEditIndex={setEditIndex}
-                      onClickRemove={onClickRemove}
+                      onClickRemove={handleOnRemoveClick}
                       forceHideSaveButton={true}
                     />
                   </div>
