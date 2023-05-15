@@ -5,7 +5,7 @@ const value = '12000.20';
 let language = 'en';
 const currencyOptions: CurrencyFormattingOptions = { style: 'currency', currency: 'NOK' };
 const unitOptions: UnitFormattingOptions = { style: 'unit', unit: 'kilogram' };
-let position: string | undefined = 'prefix';
+let position: 'prefix' | 'suffix' | undefined = 'prefix';
 
 describe('dynamic number formatting', () => {
   it('returns with correct number config', () => {

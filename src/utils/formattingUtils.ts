@@ -19,7 +19,7 @@ export const formatNumber = (
   number: string,
   locale: string | null,
   options: CurrencyFormattingOptions | UnitFormattingOptions | undefined,
-  position: string | undefined,
+  position: 'prefix' | 'suffix' | undefined,
 ): FormattingResult => {
   const defaultFormat: FormattingResult = {
     thousandSeparator: undefined,

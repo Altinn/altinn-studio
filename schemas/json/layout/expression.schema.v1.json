@@ -1,6 +1,6 @@
 {
   "$id": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json",
-  "$schema": "https://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Expression",
   "description": "Multi-purpose expression mini-language used to declare dynamic behaviour in Altinn 3 apps",
   "examples": [

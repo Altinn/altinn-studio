@@ -1098,43 +1098,39 @@
       ]
     },
     "inputFormatting": {
+      "type": "object",
+      "properties": {
         "currency": {
+          "type": "string",
           "title": "Language-sensitive number formatting based on currency",
-          "type": "object",
           "description": "Enables currency along with thousand and decimal separators to be language sensitive based on selected app language. They are configured in number property. Note: parts that already exist in number property are not overridden by this prop.",
-          "properties": {
-            "valuta": {
-              "type": "string",
-              "title": "Type of currency",
-              "description": "Type of currency that is set to be language-sensitive",
-              "enum": ["AED","AFN","ALL","AMD","ANG","AOA","ARS","AUD","AWG","AZN","BAM","BBD","BDT","BGN","BHD","BIF","BMD","BND","BOB","BOV","BRL","BSD","BTN","BWP","BYN","BZD","CAD","CDF","CHE","CHF","CHW","CLF","CLP","CNY","COP","COU","CRC","CUC","CUP","CVE","CZK","DJF","DKK","DOP","DZD","EGP","ERN","ETB","EUR","FJD","FKP","GBP","GEL","GHS","GIP","GMD","GNF","GTQ","GYD","HKD","HNL","HTG","HUF","IDR","ILS","INR","IQD","IRR","ISK","JMD","JOD","JPY","KES","KGS","KHR","KMF","KPW","KRW","KWD","KYD","KZT","LAK","LBP","LKR","LRD","LSL","LYD","MAD","MDL","MGA","MKD","MMK","MNT","MOP","MRU","MUR","MVR","MWK","MXN","MXV","MYR","MZN","NAD","NGN","NIO","NOK","NPR","NZD","OMR","PAB","PEN","PGK","PHP","PKR","PLN","PYG","QAR","RON","RSD","RUB","RWF","SAR","SBD","SCR","SDG","SEK","SGD","SHP","SLE","SLL","SOS","SRD","SSP","STN","SVC","SYP","SZL","THB","TJS","TMT","TND","TOP","TRY","TTD","TWD","TZS","UAH","UGX","USD","USN","UYI","UYU","UYW","UZS","VED","VES","VND","VUV","WST","XAF","XCD","XDR","XOF","XPF","XSU","XUA","YER","ZAR","ZMW","ZWL"]
-            },
-            "position": {
-              "type": "string",
-              "title": "Position of the unit",
-              "description": "Display the unit as prefix or suffix. Default is prefix",
-              "enum": ["prefix", "suffix"]
-            }
-          }
+          "enum": ["AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AUD", "AWG", "AZN", "BAM", "BBD", "BDT", "BGN",
+            "BHD", "BIF", "BMD", "BND", "BOB", "BOV", "BRL", "BSD", "BTN", "BWP", "BYN", "BZD", "CAD", "CDF", "CHE",
+            "CHF", "CHW", "CLF", "CLP", "CNY", "COP", "COU", "CRC", "CUC", "CUP", "CVE", "CZK", "DJF", "DKK", "DOP",
+            "DZD", "EGP", "ERN", "ETB", "EUR", "FJD", "FKP", "GBP", "GEL", "GHS", "GIP", "GMD", "GNF", "GTQ", "GYD",
+            "HKD", "HNL", "HTG", "HUF", "IDR", "ILS", "INR", "IQD", "IRR", "ISK", "JMD", "JOD", "JPY", "KES", "KGS",
+            "KHR", "KMF", "KPW", "KRW", "KWD", "KYD", "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LYD", "MAD", "MDL",
+            "MGA", "MKD", "MMK", "MNT", "MOP", "MRU", "MUR", "MVR", "MWK", "MXN", "MXV", "MYR", "MZN", "NAD", "NGN",
+            "NIO", "NOK", "NPR", "NZD", "OMR", "PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PYG", "QAR", "RON", "RSD",
+            "RUB", "RWF", "SAR", "SBD", "SCR", "SDG", "SEK", "SGD", "SHP", "SLE", "SLL", "SOS", "SRD", "SSP", "STN",
+            "SVC", "SYP", "SZL", "THB", "TJS", "TMT", "TND", "TOP", "TRY", "TTD", "TWD", "TZS", "UAH", "UGX", "USD",
+            "USN", "UYI", "UYU", "UYW", "UZS", "VED", "VES", "VND", "VUV", "WST", "XAF", "XCD", "XDR", "XOF", "XPF",
+            "XSU", "XUA", "YER", "ZAR", "ZMW", "ZWL"
+          ]
         },
         "unit": {
           "title": "Language-sensitive number formatting based on unit",
-          "type": "object",
+          "type": "string",
           "description": "Enables unit along with thousand and decimal separators to be language sensitive based on selected app language. They are configured in number property. Note: parts that already exist in number property are not overridden by this prop.",
-          "properties": {
-            "unitType": {
-              "type": "string",
-              "title": "Type of unit",
-              "description": "Type of unit that is set to be language-sensitive",
-              "enum": ["celsius","centimeter","day","degree","foot","gram","hectare","hour","inch","kilogram","kilometer","liter","meter","milliliter","millimeter","millisecond","minute","month","percent","second","week","year"]
-            },
-            "position": {
-              "type": "string",
-              "title": "Position of the unit",
-              "description": "Display the unit as prefix or suffix. Default is suffix",
-              "enum": ["prefix", "suffix"]
-            }
-          }
+          "enum": ["celsius", "centimeter", "day", "degree", "foot", "gram", "hectare", "hour", "inch", "kilogram",
+            "kilometer", "liter", "meter", "milliliter", "millimeter", "millisecond", "minute", "month", "percent",
+            "second", "week", "year"]
+        },
+        "position": {
+          "type": "string",
+          "title": "Position of the currency/unit symbol (only when using currency or unit options)",
+          "description": "Display the unit as prefix or suffix. Default is prefix",
+          "enum": ["prefix", "suffix"]
         },
         "number": {
           "$ref": "https://altinncdn.no/schemas/json/component/number-format.schema.v1.json"
@@ -1319,4 +1315,4 @@
       ]
     }
   }
-
+}

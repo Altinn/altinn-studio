@@ -8,6 +8,7 @@ interface AppLayoutSet {
   appName: string;
   setName: string;
   layouts: ILayouts;
+  entireFiles: { [key: string]: unknown };
 }
 
 /**
@@ -47,6 +48,7 @@ export function getAllLayoutSets(dir: string): AppLayoutSet[] {
       }
 
       const layouts: ILayouts = {};
+      const entireFiles: { [key: string]: unknown } = {};
       for (const layoutFile of layoutFiles.filter((s) => !s.startsWith('.') && s.endsWith('.json'))) {
         const fileContent = fs.readFileSync(path.join(...setPath, layoutFile));
         let layoutContent;
@@ -57,12 +59,14 @@ export function getAllLayoutSets(dir: string): AppLayoutSet[] {
           continue;
         }
         layouts[layoutFile.replace('.json', '')] = layoutContent.data.layout;
+        entireFiles[layoutFile.replace('.json', '')] = layoutContent;
       }
 
       out.push({
         appName: app,
         setName: set.set,
         layouts,
+        entireFiles,
       });
     }
   }

@@ -88,19 +88,17 @@ export interface IComponentRadioOrCheckbox<T extends Extract<ComponentTypes, 'Ra
 
 export type NumberFormatProps = Exclude<Parameters<typeof TextField>[0]['formatting'], undefined>['number'];
 
-export type CurrencyProps = {
-  valuta: string;
-  position?: string;
-};
-
-export type UnitProps = {
-  unitType: string;
-  position?: string;
-};
-
+/**
+ * Number formatting options. Will be reduced to react-number-format options:
+ * @see useMapToReactNumberConfig
+ */
 export interface IInputFormatting {
-  currency?: CurrencyProps;
-  unit?: UnitProps;
+  // Newer Intl.NumberFormat options
+  currency?: string;
+  unit?: string;
+  position?: 'prefix' | 'suffix';
+
+  // Older options based on react-number-format
   number?: NumberFormatProps;
   align?: 'right' | 'center' | 'left';
 }

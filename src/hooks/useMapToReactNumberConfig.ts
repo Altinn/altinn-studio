@@ -13,15 +13,15 @@ export const useMapToReactNumberConfig = (formatting: IInputFormatting, value = 
 
   const createOptions = (config: IInputFormatting) => {
     if (config.currency) {
-      return { style: 'currency', currency: config.currency.valuta } as CurrencyFormattingOptions;
+      return { style: 'currency', currency: config.currency } as CurrencyFormattingOptions;
     }
     if (config.unit) {
-      return { style: 'unit', unit: config.unit.unitType } as UnitFormattingOptions;
+      return { style: 'unit', unit: config.unit } as UnitFormattingOptions;
     }
     return undefined;
   };
-  // Check if position has been configured in dynamic formatting. Either prefix or suffix of currency/unit
-  const position: string | undefined = formatting?.currency?.position || formatting?.unit?.position || undefined;
+  // Check if position has been configured in dynamic formatting. Either prefix or suffix
+  const position = formatting?.position || undefined;
 
   const numberFormatResult = {
     ...formatNumber(value, appLanguage, createOptions(formatting), position),

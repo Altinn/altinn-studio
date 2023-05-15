@@ -22,7 +22,8 @@
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "src/*": ["src/*"],
-      "test/*": ["test/*"]
+      "test/*": ["test/*"],
+      "schemas/*": ["schemas/*"]
     },
     "allowSyntheticDefaultImports": true,
     "exactOptionalPropertyTypes": false,

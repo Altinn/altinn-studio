@@ -187,6 +187,7 @@
       "\\.(css|less|scss)$": "identity-obj-proxy",
       "\\./applicationMetadataMock.json": "<rootDir>/src/__mocks__/applicationMetadataMock.json",
       "^src/(.*)$": "<rootDir>/src/$1",
+      "^schemas/(.*)$": "<rootDir>/schemas/$1",
       "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js"
     },
     "testRegex": "\\.test\\.(ts|tsx|js|jsx)$",
