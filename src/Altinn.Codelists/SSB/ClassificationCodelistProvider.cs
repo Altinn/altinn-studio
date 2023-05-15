@@ -11,6 +11,7 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
 {
     private readonly IClassificationsClient _classificationsClient;
     private readonly int _classificationId;
+    private readonly ClassificationOptions _options;
     private readonly Dictionary<string, string> _defaultKeyValuePairs;
 
     /// <summary>
@@ -26,11 +27,12 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
     /// For valid id's please consult the SSB classificaionts api by calling
     /// <see href="http://data.ssb.no/api/klass/v1/classifications?size=150&language=en">the classifications index.</see>
     /// </summary>
-    public ClassificationCodelistProvider(string id, int classificationId, IClassificationsClient classificationsClient, Dictionary<string, string>? defaultKeyValuePairs = null)
+    public ClassificationCodelistProvider(string id, int classificationId, IClassificationsClient classificationsClient, Dictionary<string, string>? defaultKeyValuePairs = null, ClassificationOptions? options = null)
     {
         Id = id;
         _classificationId = classificationId;
         _classificationsClient = classificationsClient;
+        _options = options ?? new ClassificationOptions();
         _defaultKeyValuePairs = defaultKeyValuePairs == null ? new Dictionary<string, string>() : defaultKeyValuePairs;
     }
 
@@ -56,7 +58,7 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
         return appOptions;
     }
 
-    private static AppOptions GetAppOptions(Clients.ClassificationCodes classificationCode, string parentCode)
+    private AppOptions GetAppOptions(Clients.ClassificationCodes classificationCode, string parentCode)
     {
         AppOptions appOptions;
         // From Altinn.App.Core version 7.8.0 we can add description to AppOptions.
@@ -68,8 +70,8 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
                 // The api we use doesn't support filtering on partentCode,
                 // hence we need to filter afterwards.
                 Options = string.IsNullOrEmpty(parentCode)
-            ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description = x.Notes }).ToList()
-            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description = x.Notes }).ToList()
+            ? classificationCode.Codes.Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description =  _options.GetDescription(x), HelpText = _options.GetHelpText(x)}).ToList()
+            : classificationCode.Codes.Where(c => c.ParentCode == parentCode).Select(x => new AppOption() { Value = x.Code, Label = x.Name, Description = _options.GetDescription(x), HelpText = _options.GetHelpText(x) }).ToList()
             };
         }
         else
