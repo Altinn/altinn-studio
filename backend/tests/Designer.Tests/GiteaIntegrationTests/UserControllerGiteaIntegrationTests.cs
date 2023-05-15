@@ -71,7 +71,6 @@ namespace Designer.Tests.GiteaIntegrationTests
             putStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
             await GetAndVerifyStarredRepos(targetRepo);
 
-            InvalidateAllCookies();
             using var deleteStarredResponse = await HttpClient.Value.DeleteAsync($"designer/api/user/starred/{org}/{targetRepo}");
             deleteStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
@@ -89,6 +88,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             {
                 content.Should().Contain(r => r.Name == expectedStarredRepo);
             }
+            InvalidateAllCookies();
         }
 
     }
