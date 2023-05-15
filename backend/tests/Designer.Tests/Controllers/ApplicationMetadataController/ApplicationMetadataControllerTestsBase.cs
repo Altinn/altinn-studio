@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
@@ -15,6 +17,13 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
     {
         protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
         protected string CreatedFolderPath { get; set; }
+
+        protected readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
 
         protected readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
         {

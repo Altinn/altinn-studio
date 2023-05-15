@@ -152,7 +152,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async void ConvertV1TextsToV2(string org, string repo, string developer)
+        public async Task ConvertV1TextsToV2(string org, string repo, string developer)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 

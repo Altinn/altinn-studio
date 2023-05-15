@@ -4,8 +4,6 @@ import type {
   IAddFormComponentsAction,
   IAddWidgetAction,
   IDeleteContainerAction,
-  IUpdateContainerIdAction,
-  IUpdateFormComponentIdAction,
   IUpdateLayoutNameAction,
 } from '../formDesignerTypes';
 
@@ -18,9 +16,5 @@ export const actions = {
   addFormComponents: createAction<IAddFormComponentsAction>(`${moduleName}/addFormComponents`),
   addWidget: createAction<IAddWidgetAction>('formLayout/addWidget'),
   deleteFormContainer: createAction<IDeleteContainerAction>(`${moduleName}/deleteFormContainer`),
-  updateFormComponentId: createAction<IUpdateFormComponentIdAction>(
-    `${moduleName}/updateFormComponentId`
-  ),
-  updateContainerId: createAction<IUpdateContainerIdAction>(`${moduleName}/updateContainerId`),
   updateLayoutName: createAction<IUpdateLayoutNameAction>(`${moduleName}/updateLayoutName`),
 };

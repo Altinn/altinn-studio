@@ -51,35 +51,35 @@ const renderPropertyItem = (props?: Partial<IPropertyItemProps>) =>
   renderWithRedux(<PropertyItem {...defaultProps} {...props} />);
 
 describe('PropertyItem', () => {
-  test('Text input field appears', () => {
+  test('Text input field appears', async () => {
     renderPropertyItem();
-    expect(screen.getByLabelText(textFieldName)).toBeDefined();
+    expect(await screen.findByLabelText(textFieldName)).toBeDefined();
   });
 
-  test('Text input field has the value given in the "value" prop', () => {
+  test('Text input field has the value given in the "value" prop', async () => {
     const inputValue = 'Lorem ipsum';
     renderPropertyItem({ value: inputValue });
-    expect(screen.getByLabelText(textFieldName)).toHaveValue(inputValue);
+    expect(await screen.findByLabelText(textFieldName)).toHaveValue(inputValue);
   });
 
-  test('Text input field is not disabled by default', () => {
+  test('Text input field is not disabled by default', async () => {
     renderPropertyItem();
-    expect(screen.getByLabelText(textFieldName)).not.toBeDisabled();
+    expect(await screen.findByLabelText(textFieldName)).not.toBeDisabled();
   });
 
-  test('Text input field is disabled when the "readOnly" prop is true', () => {
+  test('Text input field is disabled when the "readOnly" prop is true', async () => {
     renderPropertyItem({ readOnly: true });
-    expect(screen.getByLabelText(textFieldName)).toBeDisabled();
+    expect(await screen.findByLabelText(textFieldName)).toBeDisabled();
   });
 
-  test('Text input field is not disabled when the "readOnly" prop is false', () => {
+  test('Text input field is not disabled when the "readOnly" prop is false', async () => {
     renderPropertyItem({ readOnly: false });
-    expect(screen.getByLabelText(textFieldName)).not.toBeDisabled();
+    expect(await screen.findByLabelText(textFieldName)).not.toBeDisabled();
   });
 
-  test('Text input field is correctly labelled', () => {
+  test('Text input field is correctly labelled', async () => {
     renderPropertyItem();
-    expect(screen.getByLabelText(textFieldName)).toHaveAccessibleName(textFieldName);
+    expect(await screen.findByLabelText(textFieldName)).toHaveAccessibleName(textFieldName);
   });
 
   test('onChangeValue is called on blur when text changes', async () => {
@@ -117,13 +117,13 @@ describe('PropertyItem', () => {
   });
 
   test('Name input field has given id', async () => {
-    renderPropertyItem().renderResult;
-    expect(screen.getByLabelText('Navn på felt')).toHaveAttribute('id', inputId);
+    renderPropertyItem();
+    expect(await screen.findByLabelText(textFieldName)).toHaveAttribute('id', inputId);
   });
 
   test('Given type is selected', async () => {
     renderPropertyItem();
-    expect(screen.getByRole('combobox')).toHaveValue(type);
+    expect(await screen.findByRole('combobox')).toHaveValue(fieldTypeNames[type]);
   });
 
   test('onChangeType is called with correct parameters when type changes', async () => {
@@ -138,64 +138,59 @@ describe('PropertyItem', () => {
 
   test('"Type" select box is correctly labelled', async () => {
     renderPropertyItem();
-    expect(screen.getByRole('combobox')).toHaveAccessibleName(textType);
+    expect(await screen.findByRole('combobox')).toHaveAccessibleName(textType);
   });
 
-  test('"Required" checkbox appears', () => {
+  test('"Required" checkbox appears', async () => {
     renderPropertyItem();
-    expect(screen.getByRole('checkbox')).toBeDefined();
+    expect(await screen.findByRole('checkbox')).toBeDefined();
   });
 
-  test('"Required" checkbox is not checked by default', () => {
+  test('"Required" checkbox is not checked by default', async () => {
     renderPropertyItem();
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
+    expect(await screen.findByRole('checkbox')).not.toBeChecked();
   });
 
-  test('"Required" checkbox is checked when "required" prop is true', () => {
+  test('"Required" checkbox is checked when "required" prop is true', async () => {
     renderPropertyItem({ required: true });
-    expect(screen.getByRole('checkbox')).toBeChecked();
+    expect(await screen.findByRole('checkbox')).toBeChecked();
   });
 
-  test('"Required" checkbox is not checked when "required" prop is false', () => {
+  test('"Required" checkbox is not checked when "required" prop is false', async () => {
     renderPropertyItem({ required: false });
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
+    expect(await screen.findByRole('checkbox')).not.toBeChecked();
   });
 
-  test('"Required" checkbox is enabled by default', () => {
+  test('"Required" checkbox is enabled by default', async () => {
     renderPropertyItem();
-    expect(screen.getByRole('checkbox')).toBeEnabled();
+    expect(await screen.findByRole('checkbox')).toBeEnabled();
   });
 
-  test('"Required" checkbox is disabled if the "readOnly" prop is true', () => {
+  test('"Required" checkbox is disabled if the "readOnly" prop is true', async () => {
     renderPropertyItem({ readOnly: true });
-    expect(screen.getByRole('checkbox')).toBeDisabled();
+    expect(await screen.findByRole('checkbox')).toBeDisabled();
   });
 
-  test('"Required" checkbox is enabled if the "readOnly" prop is false', () => {
+  test('"Required" checkbox is enabled if the "readOnly" prop is false', async () => {
     renderPropertyItem({ readOnly: false });
-    expect(screen.getByRole('checkbox')).toBeEnabled();
+    expect(await screen.findByRole('checkbox')).toBeEnabled();
   });
 
   test('"Required" checkbox is correctly labelled', async () => {
     renderPropertyItem();
-    expect(screen.queryByText(textRequired)).toBeFalsy();
-    expect(screen.getByRole('checkbox')).toHaveAccessibleName(textRequired);
+    expect(await screen.findByRole('checkbox')).toHaveAccessibleName(textRequired);
   });
 
-  test('Delete button appears', () => {
+  test('Delete button appears', async () => {
     renderPropertyItem();
-    expect(screen.getByRole('button')).toBeDefined();
+    expect(await screen.findByRole('button', { name: textDeleteField })).toBeDefined();
   });
 
   test('onDeleteField is called when the delete button is clicked', async () => {
     const onDeleteField = jest.fn();
     const { user } = renderPropertyItem({ onDeleteField });
-    await act(() => user.click(screen.getByRole('button')));
+    const deleteButton = await screen.findByRole('button', { name: textDeleteField });
+    await act(() => user.click(deleteButton));
     expect(onDeleteField).toHaveBeenCalledTimes(1);
-  });
-
-  test('Delete button is labelled with the delete text', async () => {
-    renderPropertyItem();
-    expect(screen.getByRole('button')).toHaveAccessibleName(textDeleteField);
   });
 });

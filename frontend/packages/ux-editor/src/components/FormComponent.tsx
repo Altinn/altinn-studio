@@ -1,32 +1,24 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { EditContainer } from '../containers/EditContainer';
-import type { FormComponentType, IAppState } from '../types/global';
-import { ConnectDragSource } from 'react-dnd';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useParams } from 'react-router-dom';
+import type { EditorDndEvents } from '../containers/helpers/dnd-types';
+import { EditFormComponent } from './EditFormComponent';
+import type { FormComponentType } from '../types/global';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { ComponentType } from './index';
 import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { DroppableDraggableComponent } from '../containers/DroppableDraggableComponent';
 
-/**
- * Properties defined for input for wrapper
- */
-export interface IProvidedProps {
+export interface IFormElementProps {
   id: string;
+  containerId: string;
+  index: number;
   partOfGroup?: boolean;
-  dragHandleRef: ConnectDragSource;
+  dndEvents: EditorDndEvents;
 }
 
-/**
- * Properties for the component itself. mapStateToProps convert to this from
- */
-export interface IFormElementProps extends IProvidedProps {
-  validationErrors: any[];
-}
-
-const FormComponent = (props: IFormElementProps) => {
+export const FormComponent = (props: IFormElementProps) => {
   const { org, app } = useParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
 
@@ -74,30 +66,24 @@ const FormComponent = (props: IFormElementProps) => {
   };
 
   return (
-    <div>
-      <EditContainer
-        component={component}
-        id={props.id}
-        partOfGroup={props.partOfGroup}
-        dragHandleRef={props.dragHandleRef}
-      >
-        <button className={'divider'}>
-          {renderLabel()}
-        </button>
-      </EditContainer>
-    </div>
+    <DroppableDraggableComponent
+      canDrag
+      containerId={props.containerId}
+      dndEvents={props.dndEvents}
+      id={props.id}
+      index={props.index}
+      component={(dragHandleRef) => (
+        <EditFormComponent
+          component={component}
+          id={props.id}
+          partOfGroup={props.partOfGroup}
+          dragHandleRef={dragHandleRef}
+        >
+          <button className={'divider'}>
+            {renderLabel()}
+          </button>
+        </EditFormComponent>
+      )}
+    />
   );
 };
-
-const makeMapStateToProps = () => {
-  return (state: IAppState, props: IProvidedProps): IFormElementProps => ({
-    id: props.id,
-    validationErrors: null,
-    dragHandleRef: props.dragHandleRef,
-  });
-};
-
-/**
- * Wrapper made available for other compoments
- */
-export const FormComponentWrapper = connect(makeMapStateToProps)(FormComponent);

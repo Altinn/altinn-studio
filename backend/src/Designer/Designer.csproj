@@ -73,9 +73,6 @@
     <Watch Remove="Services\Implementation\ResourceService.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
     <Watch Remove="Services\Interfaces\IResourceService.cs" />
-    <Content Include="jwtselfsignedcert.pfx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>

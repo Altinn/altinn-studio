@@ -1,10 +1,11 @@
-// Test data:
-import { layout2NameMock, queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { useDeleteLayoutMutation } from './useDeleteLayoutMutation';
+import { layout2NameMock } from '../../testing/layoutMock';
 
+// Test data:
 const org = 'org';
 const app = 'app';
 const layoutName = layout2NameMock;

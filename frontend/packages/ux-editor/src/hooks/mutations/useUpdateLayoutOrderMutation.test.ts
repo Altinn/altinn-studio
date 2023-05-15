@@ -1,7 +1,8 @@
-import { layout1NameMock, layout2NameMock, queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
 import { UpdateLayoutOrderMutationArgs, useUpdateLayoutOrderMutation } from './useUpdateLayoutOrderMutation';
+import { layout1NameMock, layout2NameMock } from '../../testing/layoutMock';
 
 // Test data:
 const org = 'org';

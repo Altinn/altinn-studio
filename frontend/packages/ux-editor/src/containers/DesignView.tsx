@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Container } from './Container';
 import type { IFormLayoutOrder } from '../types/global';
-import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 
 import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
 import { ItemType } from './helpers/dnd-types';
@@ -11,22 +10,11 @@ import {
   swapArrayElements,
 } from 'app-shared/pure/array-functions';
 import { useParams } from 'react-router-dom';
-import { useDatamodelQuery } from '../hooks/queries/useDatamodelQuery';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
-import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateFormComponentOrderMutation } from '../hooks/mutations/useUpdateFormComponentOrderMutation';
-import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
-import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
-import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { ITextResource } from 'app-shared/types/global';
 
 export interface DesignViewProps {
   isDragging: boolean;
   layoutOrder: IFormLayoutOrder;
-  order: IFormLayoutOrder;
 }
 
 export interface DesignViewState {
@@ -37,7 +25,6 @@ export interface DesignViewState {
 export const DesignView = ({
   isDragging,
   layoutOrder,
-  order,
 }: DesignViewProps) => {
   const [beforeDrag, setBeforeDrag] = useState(null);
 
@@ -48,13 +35,7 @@ export const DesignView = ({
   );
 
   const { org, app } = useParams();
-  const { data: datamodel } = useDatamodelQuery(org, app);
-  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
-  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
-  const updateFormContainerMutation = useUpdateFormContainerMutation(org, app);
   const updateFormComponentOrderMutation = useUpdateFormComponentOrderMutation(org, app);
-  const updateContainerIdMutation = useUpdateContainerIdMutation(org, app);
-  const deleteFormContainerMutation = useDeleteFormContainerMutation(org, app);
 
   const setContainerLayoutOrder = (containerId: string, newLayoutOrder: string[]) => {
     if (newLayoutOrder.includes(containerId)) {
@@ -162,30 +143,15 @@ export const DesignView = ({
     moveItemToTop,
     onDropItem,
   };
+
   return (
     baseContainerId && (
-      <DroppableDraggableContainer
-        id={baseContainerId}
+      <Container
         isBaseContainer={true}
         canDrag={false}
+        id={baseContainerId}
+        layoutOrder={state.layoutOrder}
         dndEvents={dndEvents}
-        container={() => (
-          <Container
-            isBaseContainer={true}
-            id={baseContainerId}
-            items={state.layoutOrder[baseContainerId]}
-            layoutOrder={state.layoutOrder}
-            dndEvents={dndEvents}
-            dataModel={datamodel}
-            components={components}
-            containers={containers}
-            itemOrder={order}
-            updateFormContainerMutation={updateFormContainerMutation}
-            updateContainerIdMutation={updateContainerIdMutation}
-            deleteFormContainerMutation={deleteFormContainerMutation}
-            textResources={textResources}
-          />
-        )}
       />
     )
   );
