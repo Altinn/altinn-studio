@@ -16,7 +16,7 @@ describe('Message', () => {
   });
 
   it('Attachments List displays correct number of attachments', () => {
-    cy.get(appFrontend.message['header']).should('exist');
+    cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
     cy.wait('@createdInstance').then((xhr) => {
       const instanceMetadata = xhr.response?.body;
       const instanceGuid = instanceMetadata.id.split('/')[1];

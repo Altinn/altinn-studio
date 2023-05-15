@@ -1,10 +1,13 @@
 import DOMPurify from 'dompurify';
 import parseHtmlToReact from 'html-react-parser';
 import { marked } from 'marked';
+import { mangle } from 'marked-mangle';
 import type { HTMLReactParserOptions } from 'html-react-parser';
 
 import type { ValidLanguageKey } from 'src/hooks/useLanguage';
 import type { IAltinnOrgs, IApplication, IDataSources, ILanguage, ITextResource } from 'src/types/shared';
+
+marked.use(mangle());
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node.tagName === 'A') {
@@ -87,7 +90,7 @@ export const getParsedLanguageFromText = (
   },
   inline = true,
 ) => {
-  const dirty = marked.parse(text || '');
+  const dirty = marked.parse(text || '', { headerIds: false });
   const actualOptions: DOMPurify.Config = {};
   if (purifyOptions?.allowedTags) {
     actualOptions.ALLOWED_TAGS = purifyOptions.allowedTags;

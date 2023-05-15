@@ -7,7 +7,7 @@ describe('Print button', () => {
     cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
-    cy.get(appFrontend.message['header']).should('exist');
+    cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
     cy.get(appFrontend.sendinButton).click();
 
     cy.window().then((win) => {

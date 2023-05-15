@@ -5451,7 +5451,8 @@ __metadata:
     jsdom: 22.0.0
     jsonpointer: 5.0.1
     lint-staged: 13.2.2
-    marked: 4.3.0
+    marked: 5.0.2
+    marked-mangle: ^1.0.1
     mime: 3.0.0
     mini-css-extract-plugin: 2.7.5
     moment: 2.29.4
@@ -11626,12 +11627,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:4.3.0":
-  version: 4.3.0
-  resolution: "marked@npm:4.3.0"
+"marked-mangle@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "marked-mangle@npm:1.0.1"
+  peerDependencies:
+    marked: ^4 || ^5
+  checksum: 7ebdd69eb41907a865141e7cce1cd8c5c24dd6955c63aaf5299710aba2935abdfbca1b1ea0ff30cf527ff20a940c3b5a9311fca9abb84f4d294767b0435213fe
+  languageName: node
+  linkType: hard
+
+"marked@npm:5.0.2":
+  version: 5.0.2
+  resolution: "marked@npm:5.0.2"
   bin:
     marked: bin/marked.js
-  checksum: 0db6817893952c3ec710eb9ceafb8468bf5ae38cb0f92b7b083baa13d70b19774674be04db5b817681fa7c5c6a088f61300815e4dd75a59696f4716ad69f6260
+  checksum: 9d66c998a91d33c422f6242fe08c3b451e4e7863a37e990617179f96786f613e49176859dacc9557d3f6944b2afe44feaaa6a1187550a68746f070c250462213
   languageName: node
   linkType: hard
 
