@@ -23,7 +23,7 @@ export interface IOption {
 }
 
 export interface IFormContainer {
-  id: string;
+  id?: string;
   index?: number;
   itemType: 'CONTAINER';
   dataModelBindings?: IDataModelBindings;

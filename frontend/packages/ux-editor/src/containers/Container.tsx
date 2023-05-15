@@ -26,7 +26,7 @@ export interface IContainerProps {
   handleEdit: (component: IFormContainer) => void;
   handleSave: (id: string, updatedContainer: IFormContainer) => Promise<void>;
   handleDiscard: () => void;
-  children: React.ReactNode;
+  children: React.ReactNode[];
 }
 
 export const Container = ({

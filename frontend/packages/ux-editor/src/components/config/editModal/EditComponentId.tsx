@@ -7,7 +7,7 @@ import type { FormComponent } from '../../../types/FormComponent';
 import { TextFieldWithValidation } from '../../TextFieldWithValidation';
 
 export interface IEditComponentId {
-  handleComponentUpdate: (component: FormComponent) => void;
+  handleComponentUpdate: React.Dispatch<React.SetStateAction<FormComponent>>;
   component: FormComponent;
 }
 export const EditComponentId = ({ component, handleComponentUpdate }: IEditComponentId) => {

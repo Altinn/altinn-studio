@@ -12,7 +12,6 @@ import {
   renderWithMockStore,
   textResourcesMock,
 } from '../../testing/mocks';
-import type { FormComponent } from '../../types/FormComponent';
 
 const user = userEvent.setup();
 
@@ -20,6 +19,8 @@ const user = userEvent.setup();
 const textResourceEditTestId = 'text-resource-edit';
 
 const FormContextProviderMock = {
+  formId: null,
+  form: null,
   handleDiscard: jest.fn(),
   handleEdit: jest.fn(),
   handleUpdate: jest.fn(),
@@ -78,7 +79,7 @@ describe('ContentTab', () => {
   describe('when editing a component', () => {
     const props = {
       formId: component1IdMock,
-      form: { ...component1Mock, dataModelBindings: [] } as FormComponent
+      form: { ...component1Mock, dataModelBindings: {} }
     };
 
     it('should render the component', async () => {
