@@ -36,6 +36,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
+using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
+using IProcessReader = Altinn.App.Core.Internal.Process.IProcessReader;
+using ProcessEngine = Altinn.App.Core.Internal.Process.ProcessEngine;
+using ProcessReader = Altinn.App.Core.Internal.Process.ProcessReader;
 
 namespace Altinn.App.Core.Extensions
 {
@@ -218,10 +222,10 @@ namespace Altinn.App.Core.Extensions
         private static void AddProcessServices(IServiceCollection services)
         {
             services.TryAddTransient<IProcessEngine, ProcessEngine>();
-            services.TryAddTransient<IProcessChangeHandler, ProcessChangeHandler>();
+            services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
             services.TryAddSingleton<IProcessReader, ProcessReader>();
+            services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
             services.TryAddTransient<ExclusiveGatewayFactory>();
-            services.TryAddTransient<IFlowHydration, FlowHydration>();
         }
     }
 }

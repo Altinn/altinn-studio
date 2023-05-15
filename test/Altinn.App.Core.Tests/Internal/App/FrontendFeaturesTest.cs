@@ -11,7 +11,8 @@ namespace Altinn.App.Core.Tests.Internal.App
         {
             Dictionary<string, bool> expected = new Dictionary<string, bool>()
             {
-                { "footer", true }
+                { "footer", true },
+                { "processActions", true },
             };
             IFrontendFeatures frontendFeatures = new FrontendFeatures();
             var actual = await frontendFeatures.GetFrontendFeatures();

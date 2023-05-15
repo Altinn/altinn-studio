@@ -1,7 +1,7 @@
 name: Code test and analysis (fork)
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ main, v8 ]
     types: [opened, synchronize, reopened, ready_for_review]
 jobs:
   test:

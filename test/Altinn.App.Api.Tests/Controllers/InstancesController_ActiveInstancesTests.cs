@@ -16,6 +16,7 @@ using Altinn.App.Api.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
+using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 
 namespace Altinn.App.Api.Tests.Controllers;
 

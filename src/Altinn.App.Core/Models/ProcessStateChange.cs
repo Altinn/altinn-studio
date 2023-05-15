@@ -12,16 +12,16 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// Gets or sets the old process state
         /// </summary>
-        public ProcessState OldProcessState { get; set; }
+        public ProcessState? OldProcessState { get; set; }
 
         /// <summary>
         /// Gets or sets the new process state
         /// </summary>
-        public ProcessState NewProcessState { get; set; }
+        public ProcessState? NewProcessState { get; set; }
 
         /// <summary>
         /// Gets or sets a list of events to be registered.
         /// </summary>
-        public List<InstanceEvent> Events { get; set; }
+        public List<InstanceEvent>? Events { get; set; }
     }
 }

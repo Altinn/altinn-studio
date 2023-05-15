@@ -58,7 +58,8 @@ namespace Altinn.App.Core.Tests.Internal.App
                 },
                 Features = new Dictionary<string, bool>()
                 {
-                    { "footer", true }
+                    { "footer", true },
+                    { "processActions", true }
                 }
             };
             var actual = await appMetadata.GetApplicationMetadata();
@@ -127,7 +128,8 @@ namespace Altinn.App.Core.Tests.Internal.App
                 },
                 Features = new Dictionary<string, bool>()
                 {
-                    { "footer", true }
+                    { "footer", true },
+                    { "processActions", true }
                 }
             };
             var actual = await appMetadata.GetApplicationMetadata();

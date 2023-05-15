@@ -13,6 +13,12 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// </summary>
         [XmlAttribute("tasktype", Namespace = "http://altinn.no")]
         public string? TaskType { get; set; }
+        
+        /// <summary>
+        /// Defines the extension elements
+        /// </summary>
+        [XmlElement("extensionElements")]
+        public ExtensionElements? ExtensionElements { get; set; }
 
         /// <summary>
         /// String representation of process element type

@@ -11,9 +11,17 @@ targetNamespace="http://bpmn.io/schema/bpmn" >
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:task id="Task_1" name="Utfylling" altinn:tasktype="data">
+    <bpmn:task id="Task_1" name="Utfylling">
       <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:properties>
+          <altinn:actions>
+            <altinn:action id="submit" name="Send inn"/>
+          </altinn:actions>
+          <altinn:tasktype id="data"/>
+        </altinn:properties>
+      </bpmn:extensionElements>
     </bpmn:task>
     <bpmn:endEvent id="EndEvent_1">
       <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>

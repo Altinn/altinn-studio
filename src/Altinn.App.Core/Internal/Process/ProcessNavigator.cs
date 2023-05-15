@@ -6,33 +6,44 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Class used to get next elements in the process based on the Process and custom implementations of <see cref="IProcessExclusiveGateway" /> to make gateway decisions.
+/// Default implementation of <see cref="IProcessNavigator"/>
 /// </summary>
-public class FlowHydration: IFlowHydration
+public class ProcessNavigator : IProcessNavigator
 {
     private readonly IProcessReader _processReader;
     private readonly ExclusiveGatewayFactory _gatewayFactory;
 
     /// <summary>
-    /// Initialize a new instance of FlowHydration
+    /// Initialize a new instance of <see cref="ProcessNavigator"/>
     /// </summary>
-    /// <param name="processReader">IProcessReader implementation used to read the process</param>
-    /// <param name="gatewayFactory">ExclusiveGatewayFactory used to fetch gateway code to be executed</param>
-    public FlowHydration(IProcessReader processReader, ExclusiveGatewayFactory gatewayFactory)
+    /// <param name="processReader">The process reader</param>
+    /// <param name="gatewayFactory">Service to fetch wanted gateway filter implementation</param>
+    public ProcessNavigator(IProcessReader processReader, ExclusiveGatewayFactory gatewayFactory)
     {
         _processReader = processReader;
         _gatewayFactory = gatewayFactory;
     }
-    
-    /// <inheritdoc />
-    public async Task<List<ProcessElement>> NextFollowAndFilterGateways(Instance instance, string? currentElement, bool followDefaults = true)
+
+
+    /// <inheritdoc/>
+    public async Task<ProcessElement?> GetNextTask(Instance instance, string currentElement, string? action)
     {
         List<ProcessElement> directFlowTargets = _processReader.GetNextElements(currentElement);
-        return await NextFollowAndFilterGateways(instance, directFlowTargets!, followDefaults);
+        List<ProcessElement> filteredNext = await NextFollowAndFilterGateways(instance, directFlowTargets, action);
+        if (filteredNext.Count == 0)
+        {
+            return null;
+        }
+
+        if (filteredNext.Count == 1)
+        {
+            return filteredNext[0];
+        }
+
+        throw new ProcessException($"Multiple next elements found from {currentElement}. Please supply action and filters or define a default flow.");
     }
 
-    /// <inheritdoc />
-    public async Task<List<ProcessElement>> NextFollowAndFilterGateways(Instance instance, List<ProcessElement?> originNextElements, bool followDefaults = true)
+    private async Task<List<ProcessElement>> NextFollowAndFilterGateways(Instance instance, List<ProcessElement?> originNextElements, string? action)
     {
         List<ProcessElement> filteredNext = new List<ProcessElement>();
         foreach (var directFlowTarget in originNextElements)
@@ -41,6 +52,7 @@ public class FlowHydration: IFlowHydration
             {
                 continue;
             }
+
             if (!IsGateway(directFlowTarget))
             {
                 filteredNext.Add(directFlowTarget);
@@ -57,24 +69,25 @@ public class FlowHydration: IFlowHydration
             }
             else
             {
-                filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance);
+                filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance, action);
             }
 
             var defaultSequenceFlow = filteredList.Find(s => s.Id == gateway.Default);
-            if (followDefaults && defaultSequenceFlow != null)
+            if (defaultSequenceFlow != null)
             {
                 var defaultTarget = _processReader.GetFlowElement(defaultSequenceFlow.TargetRef);
-                filteredNext.AddRange(await NextFollowAndFilterGateways(instance, new List<ProcessElement?> { defaultTarget }));
+                filteredNext.AddRange(await NextFollowAndFilterGateways(instance, new List<ProcessElement?> { defaultTarget }, action));
             }
             else
             {
-                var filteredTargets= filteredList.Select(e => _processReader.GetFlowElement(e.TargetRef)).ToList();
-                filteredNext.AddRange(await NextFollowAndFilterGateways(instance, filteredTargets));
+                var filteredTargets = filteredList.Select(e => _processReader.GetFlowElement(e.TargetRef)).ToList();
+                filteredNext.AddRange(await NextFollowAndFilterGateways(instance, filteredTargets, action));
             }
         }
 
         return filteredNext;
     }
+
 
     private static bool IsGateway(ProcessElement processElement)
     {

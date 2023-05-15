@@ -18,17 +18,29 @@ xmlns:altinn="http://altinn.no">
       <bpmn:extensionElements>
         <altinn:properties>
           <altinn:taskType>data</altinn:taskType>
+          <altinn:actions>
+            <altinn:action id="submit" />
+          </altinn:actions>
         </altinn:properties>
       </bpmn:extensionElements>
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow2" sourceRef="Task1" targetRef="Task2" />
     <bpmn:task id="Task2" name="Bekreft skjemadata">
       <bpmn:incoming>Flow2</bpmn:incoming>
+      <bpmn:outgoing>Flow3</bpmn:outgoing>
       <bpmn:extensionElements>
         <altinn:properties>
+          <altinn:actions>
+            <altinn:action id="confirm" />
+            <altinn:action id="reject" />
+          </altinn:actions>
           <altinn:taskType>confirmation</altinn:taskType>
         </altinn:properties>
       </bpmn:extensionElements>
     </bpmn:task>
+    <bpmn:sequenceFlow id="Flow3" sourceRef="Task2" targetRef="EndEvent" />
+    <bpmn:endEvent id="EndEvent">
+      <bpmn:incoming>Flow3</bpmn:incoming>
+    </bpmn:endEvent>
   </bpmn:process>
 </bpmn:definitions>

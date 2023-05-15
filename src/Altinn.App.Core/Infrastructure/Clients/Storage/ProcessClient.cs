@@ -20,7 +20,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     {
         private readonly AppSettings _appSettings;
         private readonly ILogger<ProcessClient> _logger;
-        private readonly IInstanceEvent _instanceEventClient;
         private readonly HttpClient _client;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -30,13 +29,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public ProcessClient(
             IOptions<PlatformSettings> platformSettings,
             IOptions<AppSettings> appSettings,
-            IInstanceEvent instanceEventClient,
             ILogger<ProcessClient> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient)
         {
             _appSettings = appSettings.Value;
-            _instanceEventClient = instanceEventClient;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
@@ -81,19 +78,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             }
 
             throw await PlatformHttpException.CreateAsync(response);
-        }
-
-        /// <inheritdoc />
-        public async Task DispatchProcessEventsToStorage(Instance instance, List<InstanceEvent> events)
-        {
-            string org = instance.Org;
-            string app = instance.AppId.Split("/")[1];
-
-            foreach (InstanceEvent instanceEvent in events)
-            {
-                instanceEvent.InstanceId = instance.Id;
-                await _instanceEventClient.SaveInstanceEvent(instanceEvent, org, app);
-            }
         }
     }
 }

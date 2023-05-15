@@ -12,11 +12,19 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Altinn.App.PlatformServices.Tests.Infrastructure.Clients
 {
     public class EventsSubscriptionClientTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public EventsSubscriptionClientTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public async Task AddSubscription_ShouldReturnOk()
         {

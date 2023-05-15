@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.Elements;
 
@@ -8,19 +9,19 @@ namespace Altinn.App.Core.Internal.Process.Elements;
 public class NullTask: ITask
 {
     /// <inheritdoc/>
-    public async Task HandleTaskStart(ProcessChangeContext processChangeContext)
+    public async Task HandleTaskStart(string elementId, Instance instance, Dictionary<string, string> prefill)
     {
         await Task.CompletedTask;
     }
 
     /// <inheritdoc/>
-    public async Task HandleTaskComplete(ProcessChangeContext processChangeContext)
+    public async Task HandleTaskComplete(string elementId, Instance instance)
     {
         await Task.CompletedTask;
     }
 
     /// <inheritdoc/>
-    public async Task HandleTaskAbandon(ProcessChangeContext processChangeContext)
+    public async Task HandleTaskAbandon(string elementId, Instance instance)
     {
         await Task.CompletedTask;
     }

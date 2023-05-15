@@ -1,14 +1,13 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
-using Altinn.App.PlatformServices.Tests.Internal.Process.TestUtils;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Tests.Internal.Process.TestUtils;
 using FluentAssertions;
 using Xunit;
 
-namespace Altinn.App.PlatformServices.Tests.Internal.Process;
+namespace Altinn.App.Core.Tests.Internal.Process;
 
 public class ProcessReaderTests
 {
@@ -40,7 +39,7 @@ public class ProcessReaderTests
         pr.IsStartEvent("Foobar").Should().BeFalse();
         pr.IsStartEvent(null).Should().BeFalse();
     }
-    
+
     [Fact]
     public void IsProcessTask_returns_true_when_element_is_ProcessTask()
     {
@@ -58,7 +57,7 @@ public class ProcessReaderTests
         pr.IsProcessTask("Foobar").Should().BeFalse();
         pr.IsProcessTask(null).Should().BeFalse();
     }
-    
+
     [Fact]
     public void IsEndEvent_returns_true_when_element_is_EndEvent()
     {
@@ -76,14 +75,14 @@ public class ProcessReaderTests
         pr.IsEndEvent("Foobar").Should().BeFalse();
         pr.IsEndEvent(null).Should().BeFalse();
     }
-    
+
     [Fact]
     public void GetNextElement_returns_gateway()
     {
         var currentElement = "Task1";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader("simple-gateway.bpmn");
-        List<string> nextElements = pr.GetNextElementIds(currentElement);
-        nextElements.Should().Equal("Gateway1");
+        List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
+        nextElements.Should().BeEquivalentTo(new List<ProcessElement>() { new ExclusiveGateway() { Id = "Gateway1", Incoming = new List<string>() { "Flow2" }, Outgoing = new List<string>() { "Flow3", "Flow4" } } });
     }
 
     [Fact]
@@ -92,8 +91,19 @@ public class ProcessReaderTests
         var bpmnfile = "simple-linear.bpmn";
         var currentElement = "Task1";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        List<string> nextElements = pr.GetNextElementIds(currentElement);
-        nextElements.Should().Equal("Task2");
+        List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
+        nextElements.Should().BeEquivalentTo(
+            new List<ProcessElement>
+            {
+                new ProcessTask()
+                {
+                    Id = "Task2",
+                    Incoming = new List<string> { "Flow2" },
+                    Outgoing = new List<string> { "Flow3" },
+                    Name = "Bekreft skjemadata",
+                    TaskType = "confirmation"
+                }
+            });
     }
 
     [Fact]
@@ -102,131 +112,109 @@ public class ProcessReaderTests
         var bpmnfile = "simple-gateway.bpmn";
         var currentElement = "Gateway1";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        List<string> nextElements = pr.GetNextElementIds(currentElement);
-        nextElements.Should().Equal("Task2", "EndEvent");
+        List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
+        nextElements.Should().BeEquivalentTo(
+            new List<ProcessElement>
+            {
+                new ProcessTask()
+                {
+                    Id = "Task2",
+                    Incoming = new List<string>() { "Flow3" },
+                    Outgoing = new List<string>() { "Flow5" },
+                },
+                new EndEvent()
+                {
+                    Id = "EndEvent",
+                    Incoming = new List<string>() { "Flow4", "Flow5" },
+                    Outgoing = new List<string>()
+                }
+            });
     }
-    
+
     [Fact]
     public void GetNextElement_returns_task1_in_simple_process()
     {
         var bpmnfile = "simple-linear.bpmn";
         var currentElement = "StartEvent";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        List<string> nextElements = pr.GetNextElementIds(currentElement);
-        nextElements.Should().Equal("Task1");
+        List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
+        nextElements.Should().BeEquivalentTo(
+            new List<ProcessElement>()
+            {
+                new ProcessTask()
+                {
+                    Id = "Task1",
+                    Name = "Utfylling",
+                    Incoming = new List<string>() { "Flow1" },
+                    Outgoing = new List<string>() { "Flow2" },
+                }
+            });
     }
-    
+
     [Fact]
     public void GetNextElement_returns_task2_in_simple_process()
     {
         var bpmnfile = "simple-linear.bpmn";
         var currentElement = "Task1";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        List<string> nextElements = pr.GetNextElementIds(currentElement);
-        nextElements.Should().Equal("Task2");
+        List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
+        nextElements.Should().BeEquivalentTo(
+            new List<ProcessElement>()
+            {
+                new ProcessTask()
+                {
+                    Id = "Task2",
+                    Name = "Bekreft skjemadata",
+                    Incoming = new List<string>() { "Flow2" },
+                    Outgoing = new List<string>() { "Flow3" },
+                }
+            });
     }
-    
+
     [Fact]
     public void GetNextElement_returns_endevent_in_simple_process()
     {
         var bpmnfile = "simple-linear.bpmn";
         var currentElement = "Task2";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        List<string> nextElements = pr.GetNextElementIds(currentElement);
-        nextElements.Should().Equal("EndEvent");
+        List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
+        nextElements.Should().BeEquivalentTo(
+            new List<ProcessElement>()
+            {
+                new EndEvent()
+                {
+                    Id = "EndEvent",
+                    Incoming = new List<string>() { "Flow3" },
+                    Outgoing = new List<string>()
+                }
+            });
     }
-    
+
     [Fact]
     public void GetNextElement_returns_emptylist_if_task_without_output()
     {
         var bpmnfile = "simple-no-end.bpmn";
         var currentElement = "Task2";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        List<string> nextElements = pr.GetNextElementIds(currentElement);
+        List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
         nextElements.Should().HaveCount(0);
     }
-    
+
     [Fact]
     public void GetNextElement_currentElement_null()
     {
         var bpmnfile = "simple-linear.bpmn";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        pr.Invoking(p => p.GetNextElementIds(null!)).Should().Throw<ArgumentNullException>();
+        pr.Invoking(p => p.GetNextElements(null!)).Should().Throw<ArgumentNullException>();
     }
-    
+
     [Fact]
     public void GetNextElement_throws_exception_if_step_not_found()
     {
         var bpmnfile = "simple-linear.bpmn";
         var currentElement = "NoStep";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        pr.Invoking(p => p.GetNextElementIds(currentElement)).Should().Throw<ProcessException>();
-    }
-
-    [Fact]
-    public void GetElementInfo_returns_correct_info_for_ProcessTask()
-    {
-        var bpmnfile = "simple-linear.bpmn";
-        var currentElement = "Task1";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetElementInfo(currentElement);
-        actual.Should().BeEquivalentTo(new ElementInfo()
-        {
-            Id = "Task1",
-            Name = "Utfylling",
-            AltinnTaskType = "data",
-            ElementType = "Task"
-        });
-    }
-    
-    [Fact]
-    public void GetElementInfo_returns_correct_info_for_StartEvent()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        var currentElement = "StartEvent";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetElementInfo(currentElement);
-        actual.Should().BeEquivalentTo(new ElementInfo()
-        {
-            Id = "StartEvent",
-            Name = null!,
-            AltinnTaskType = null!,
-            ElementType = "StartEvent"
-        });
-    }
-    
-    [Fact]
-    public void GetElementInfo_returns_correct_info_for_EndEvent()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        var currentElement = "EndEvent";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetElementInfo(currentElement);
-        actual.Should().BeEquivalentTo(new ElementInfo()
-        {
-            Id = "EndEvent",
-            Name = null!,
-            AltinnTaskType = null!,
-            ElementType = "EndEvent"
-        });
-    }
-    
-    [Fact]
-    public void GetElementInfo_returns_null_for_ExclusiveGateway()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        var currentElement = "Gateway1";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetElementInfo(currentElement);
-        actual.Should().BeNull();
-    }
-    
-    [Fact]
-    public void GetElementInfo_throws_argument_null_expcetion_when_elementName_is_null()
-    {
-        var bpmnfile = "simple-linear.bpmn";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        pr.Invoking(p => p.GetElementInfo(null!)).Should().Throw<ArgumentNullException>();
+        pr.Invoking(p => p.GetNextElements(currentElement)).Should().Throw<ProcessException>();
     }
 
     [Fact]
@@ -254,7 +242,7 @@ public class ProcessReaderTests
             }
         });
     }
-    
+
     [Fact]
     public void GetOutgoingSequenceFlows_returns_SequenceFlow_objects_for_outgoing_flows_from_Gateway()
     {
@@ -279,7 +267,7 @@ public class ProcessReaderTests
             }
         });
     }
-    
+
     [Fact]
     public void GetOutgoingSequenceFlows_returns_empty_list_when_no_outgoing()
     {
@@ -287,102 +275,6 @@ public class ProcessReaderTests
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         List<SequenceFlow> outgoingFLows = pr.GetOutgoingSequenceFlows(pr.GetFlowElement("EndEvent"));
         outgoingFLows.Should().BeEmpty();
-    }
-    
-    [Fact]
-    public void GetSequenceFlowsBetween_returns_all_sequenceflows_between_StartEvent_and_Task1()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        var currentElement = "StartEvent";
-        var nextElementId = "Task1";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetSequenceFlowsBetween(currentElement, nextElementId);
-        var returnedIds = actual.Select(s => s.Id).ToList();
-        returnedIds.Should().BeEquivalentTo("Flow1");
-    }
-    
-    [Fact]
-    public void GetSequenceFlowsBetween_returns_all_sequenceflows_between_Task1_and_Task2()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        var currentElement = "Task1";
-        var nextElementId = "Task2";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetSequenceFlowsBetween(currentElement, nextElementId);
-        var returnedIds = actual.Select(s => s.Id).ToList();
-        returnedIds.Should().BeEquivalentTo("Flow2", "Flow3");
-    }
-    
-    [Fact]
-    public void GetSequenceFlowsBetween_returns_all_sequenceflows_between_Task1_and_EndEvent()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        var currentElement = "Task1";
-        var nextElementId = "EndEvent";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetSequenceFlowsBetween(currentElement, nextElementId);
-        var returnedIds = actual.Select(s => s.Id).ToList();
-        returnedIds.Should().BeEquivalentTo("Flow2", "Flow4");
-    }
-    
-    [Fact]
-    public void GetSequenceFlowsBetween_returns_all_sequenceflows_between_Task1_and_EndEvent_complex()
-    {
-        var bpmnfile = "simple-gateway-with-join-gateway.bpmn";
-        var currentElement = "Task1";
-        var nextElementId = "EndEvent";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetSequenceFlowsBetween(currentElement, nextElementId);
-        var returnedIds = actual.Select(s => s.Id).ToList();
-        returnedIds.Should().BeEquivalentTo("Flow2", "Flow4", "Flow6");
-    }
-    
-    [Fact]
-    public void GetSequenceFlowsBetween_returns_empty_list_when_unknown_target()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        var currentElement = "Task1";
-        var nextElementId = "Foobar";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetSequenceFlowsBetween(currentElement, nextElementId);
-        var returnedIds = actual.Select(s => s.Id).ToList();
-        returnedIds.Should().BeEmpty();
-    }
-    
-    [Fact]
-    public void GetSequenceFlowsBetween_returns_empty_list_when_current_is_null()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        string? currentElement = null;
-        var nextElementId = "Foobar";
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetSequenceFlowsBetween(currentElement, nextElementId);
-        var returnedIds = actual.Select(s => s.Id).ToList();
-        returnedIds.Should().BeEmpty();
-    }
-    
-    [Fact]
-    public void GetSequenceFlowsBetween_returns_empty_list_when_next_is_null()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        string currentElement = "Task1";
-        string? nextElementId = null;
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetSequenceFlowsBetween(currentElement, nextElementId);
-        var returnedIds = actual.Select(s => s.Id).ToList();
-        returnedIds.Should().BeEmpty();
-    }
-    
-    [Fact]
-    public void GetSequenceFlowsBetween_returns_empty_list_when_current_and_next_is_null()
-    {
-        var bpmnfile = "simple-gateway-default.bpmn";
-        string? currentElement = null;
-        string? nextElementId = null;
-        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        var actual = pr.GetSequenceFlowsBetween(currentElement, nextElementId);
-        var returnedIds = actual.Select(s => s.Id).ToList();
-        returnedIds.Should().BeEmpty();
     }
 
     [Fact]
@@ -404,7 +296,7 @@ public class ProcessReaderTests
             Outgoing = new List<string> { "Flow1" }
         });
     }
-    
+
     [Fact]
     public void GetFlowElement_returns_ProcessTask_with_id()
     {
@@ -415,10 +307,24 @@ public class ProcessReaderTests
             Id = "Task1",
             Name = null!,
             Incoming = new List<string> { "Flow1" },
-            Outgoing = new List<string> { "Flow2" }
+            Outgoing = new List<string> { "Flow2" },
+            ExtensionElements = new ExtensionElements()
+            {
+                AltinnProperties = new AltinnProperties()
+                {
+                    AltinnActions = new List<AltinnAction>()
+                    {
+                        new()
+                        {
+                            Id = "submit",
+                        }
+                    },
+                    TaskType = "data"
+                }
+            }
         });
     }
-    
+
     [Fact]
     public void GetFlowElement_returns_EndEvent_with_id()
     {
@@ -432,7 +338,7 @@ public class ProcessReaderTests
             Outgoing = new List<string>()
         });
     }
-    
+
     [Fact]
     public void GetFlowElement_returns_null_when_id_not_found()
     {
@@ -440,7 +346,7 @@ public class ProcessReaderTests
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         pr.GetFlowElement("Foobar").Should().BeNull();
     }
-    
+
     [Fact]
     public void GetFlowElement_returns_Gateway_with_id()
     {

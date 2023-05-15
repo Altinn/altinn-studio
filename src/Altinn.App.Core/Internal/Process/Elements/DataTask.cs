@@ -1,5 +1,6 @@
 using Altinn.App.Core.Interface;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.Elements
 {
@@ -19,22 +20,22 @@ namespace Altinn.App.Core.Internal.Process.Elements
         }
 
         /// <inheritdoc/>
-        public override async Task HandleTaskAbandon(ProcessChangeContext processChangeContext)
+        public override async Task HandleTaskAbandon(string elementId, Instance instance)
         {
-            await _taskEvents.OnAbandonProcessTask(processChangeContext.ElementToBeProcessed, processChangeContext.Instance);
+            await _taskEvents.OnAbandonProcessTask(elementId, instance);
         }
 
         /// <inheritdoc/>
-        public override async Task HandleTaskComplete(ProcessChangeContext processChangeContext)
+        public override async Task HandleTaskComplete(string elementId, Instance instance)
         {
-            await _taskEvents.OnEndProcessTask(processChangeContext.ElementToBeProcessed, processChangeContext.Instance);
+            await _taskEvents.OnEndProcessTask(elementId, instance);
         }
 
         /// <inheritdoc/>
-        public override async Task HandleTaskStart(ProcessChangeContext processChangeContext)
+        public override async Task HandleTaskStart(string elementId, Instance instance, Dictionary<string, string> prefill)
         {
-            await _taskEvents.OnStartProcessTask(processChangeContext.ElementToBeProcessed,
-                processChangeContext.Instance, processChangeContext.Prefill);
+            await _taskEvents.OnStartProcessTask(elementId,
+                instance, prefill);
         }
     }
 }

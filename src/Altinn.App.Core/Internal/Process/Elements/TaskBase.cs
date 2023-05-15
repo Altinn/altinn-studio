@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.Elements
 {
@@ -10,16 +11,16 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// <summary>
         /// hallooo asdf
         /// </summary>
-        public abstract Task HandleTaskComplete(ProcessChangeContext processChangeContext);
+        public abstract Task HandleTaskComplete(string elementId, Instance instance);
 
         /// <summary>
         /// Handle task start
         /// </summary>
-        public abstract Task HandleTaskStart(ProcessChangeContext processChangeContext);
+        public abstract Task HandleTaskStart(string elementId, Instance instance, Dictionary<string, string> prefill);
 
         /// <summary>
         /// Handle task abandon
         /// </summary>
-        public abstract Task HandleTaskAbandon(ProcessChangeContext processChangeContext);
+        public abstract Task HandleTaskAbandon(string elementId, Instance instance);
     }
 }

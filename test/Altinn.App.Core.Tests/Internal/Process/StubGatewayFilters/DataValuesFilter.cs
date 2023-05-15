@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
@@ -18,7 +19,7 @@ public class DataValuesFilter: IProcessExclusiveGateway
         _filterOnDataValue = filterOnDataValue;
     }
     
-    public async Task<List<SequenceFlow>> FilterAsync(List<SequenceFlow> outgoingFlows, Instance instance)
+    public async Task<List<SequenceFlow>> FilterAsync(List<SequenceFlow> outgoingFlows, Instance instance, string? action)
     {
         var targetFlow = instance.DataValues[_filterOnDataValue];
         return await Task.FromResult(outgoingFlows.FindAll(e => e.Id == targetFlow));

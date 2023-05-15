@@ -2,7 +2,6 @@
 
 using System.Net;
 using System.Text;
-
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Mappers;
@@ -16,6 +15,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -25,12 +25,10 @@ using Altinn.Common.PEP.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -60,8 +58,8 @@ namespace Altinn.App.Api.Controllers
         private readonly IInstantiationValidator _instantiationValidator;
         private readonly IPDP _pdp;
         private readonly IPrefill _prefillService;
-        private readonly IProcessEngine _processEngine;
         private readonly AppSettings _appSettings;
+        private readonly IProcessEngine _processEngine;
 
         private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
@@ -81,7 +79,7 @@ namespace Altinn.App.Api.Controllers
             IEvents eventsService,
             IOptions<AppSettings> appSettings,
             IPrefill prefillService,
-            IProfile profileClient,
+            IProfile profileClient, 
             IProcessEngine processEngine)
         {
             _logger = logger;
@@ -208,6 +206,7 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
+                // create minimum instance template
                 instanceTemplate = new Instance
                 {
                     InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() }
@@ -267,12 +266,24 @@ namespace Altinn.App.Api.Controllers
 
             Instance instance;
             instanceTemplate.Process = null;
-            ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
+            ProcessStateChange? change = null;
+            
             try
             {
-                // start process
-                processChangeContext.DontUpdateProcessAndDispatchEvents = true;
-                processChangeContext = await _processEngine.StartProcess(processChangeContext);
+                // start process and goto next task
+                ProcessStartRequest processStartRequest = new ProcessStartRequest
+                {
+                    Instance = instanceTemplate,
+                    User = User,
+                    Dryrun = true
+                };
+                var result = await _processEngine.StartProcess(processStartRequest);
+                if (!result.Success)
+                {
+                    return Conflict(result.ErrorMessage);
+                }
+                
+                change = result.ProcessStateChange;
 
                 // create the instance
                 instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
@@ -290,9 +301,14 @@ namespace Altinn.App.Api.Controllers
                 instance = await _instanceClient.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
 
                 // notify app and store events
-                processChangeContext.Instance = instance;
-                processChangeContext.DontUpdateProcessAndDispatchEvents = false;
-                await _processEngine.StartTask(processChangeContext);
+                var request = new ProcessStartRequest()
+                {
+                    Instance = instance,
+                    User = User,
+                    Dryrun = false,
+                };
+                _logger.LogInformation("Events sent to process engine: {Events}", change?.Events);
+                await _processEngine.UpdateInstanceAndRerunEvents(request, change?.Events);
             }
             catch (Exception exception)
             {
@@ -404,15 +420,21 @@ namespace Altinn.App.Api.Controllers
             }
 
             Instance instance;
+            ProcessChangeResult processResult;
             try
             {
+                // start process and goto next task
                 instanceTemplate.Process = null;
 
-                // start process
-                ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
-                processChangeContext.Prefill = instansiationInstance.Prefill;
-                processChangeContext.DontUpdateProcessAndDispatchEvents = true;
-                processChangeContext = await _processEngine.StartProcess(processChangeContext);
+                var request = new ProcessStartRequest()
+                {
+                    Instance = instanceTemplate,
+                    User = User,
+                    Dryrun = true,
+                    Prefill = instansiationInstance.Prefill
+                };
+                
+                processResult = await _processEngine.StartProcess(request);
 
                 Instance? source = null;
 
@@ -445,9 +467,14 @@ namespace Altinn.App.Api.Controllers
 
                 instance = await _instanceClient.GetInstance(instance);
 
-                processChangeContext.Instance = instance;
-                processChangeContext.DontUpdateProcessAndDispatchEvents = false;
-                await _processEngine.StartTask(processChangeContext);
+                var updateRequest = new ProcessStartRequest()
+                {
+                    Instance = instance,
+                    User = User,
+                    Dryrun = false,
+                    Prefill = instansiationInstance.Prefill
+                };
+                await _processEngine.UpdateInstanceAndRerunEvents(updateRequest, processResult.ProcessStateChange?.Events);
             }
             catch (Exception exception)
             {
@@ -535,12 +562,14 @@ namespace Altinn.App.Api.Controllers
             {
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
             }
-
-            ProcessChangeContext processChangeContext = new(targetInstance, User)
+            
+            ProcessStartRequest processStartRequest = new()
             {
-                DontUpdateProcessAndDispatchEvents = true
+                Instance = targetInstance,
+                User = User,
+                Dryrun = true
             };
-            processChangeContext = await _processEngine.StartProcess(processChangeContext);
+            var startResult = await _processEngine.StartProcess(processStartRequest);
 
             targetInstance = await _instanceClient.CreateInstance(org, app, targetInstance);
 
@@ -548,9 +577,13 @@ namespace Altinn.App.Api.Controllers
 
             targetInstance = await _instanceClient.GetInstance(targetInstance);
 
-            processChangeContext.Instance = targetInstance;
-            processChangeContext.DontUpdateProcessAndDispatchEvents = false;
-            await _processEngine.StartTask(processChangeContext);
+            ProcessStartRequest rerunRequest = new()
+            {
+                Instance = targetInstance,
+                Dryrun = false,
+                User = User
+            };
+            await _processEngine.UpdateInstanceAndRerunEvents(rerunRequest, startResult.ProcessStateChange?.Events);
 
             await RegisterEvent("app.instance.created", targetInstance);
 
