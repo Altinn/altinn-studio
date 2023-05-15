@@ -1,20 +1,19 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router-dom';
 import classes from './AltinnHeaderMenu.module.css';
 import classNames from 'classnames';
 
 export interface IAltinnHeaderMenuProps {
   activeSubHeaderSelection?: string;
-  menu: Array<{
-    key: string;
-    link: string;
-  }>;
+  menu: AltinnHeaderMenuItem[];
+}
+
+export interface AltinnHeaderMenuItem {
+  key: string;
+  link: JSX.Element;
 }
 
 export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHeaderMenuProps) => {
-  const { t } = useTranslation();
-  const { org, app } = useParams();
+  if (!menu?.length) return null;
 
   return (
     <ul className={classes.menu} data-testid='altinn-header-menu'>
@@ -26,9 +25,7 @@ export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHead
             activeSubHeaderSelection === item.key && classes.active
           )}
         >
-          <Link to={item.link.replace(':org', org).replace(':app', app)} data-testid={item.key}>
-            {t(item.key)}{' '}
-          </Link>
+          {item.link}
         </li>
       ))}
     </ul>

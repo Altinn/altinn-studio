@@ -1,51 +1,44 @@
-import { useAppSelector } from 'app-development/hooks';
-import { useUserQuery } from 'app-development/hooks/queries/useUserQuery';
 import AltinnStudioLogo from 'app-shared/navigation/main-header/AltinnStudioLogo';
-import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 import classes from './AltinnHeader.module.css';
-import headerButtonsClasses from '../altinnHeaderButtons/AltinnHeaderbuttons.module.css';
 import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButtons } from '../altinnHeaderButtons';
-import { getRepositoryType } from 'app-shared/utils/repository';
-import { getTopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
-import { previewPath, publiserPath } from 'app-shared/api-paths';
-import { TopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
-import { ButtonVariant } from '@digdir/design-system-react';
+import { AltinnHeaderProfile } from '../AltinnHeaderProfile/AltinnHeaderProfile';
+import { IRepository } from 'app-shared/types/global';
+import { User } from 'app-shared/types/User';
+import classnames from 'classnames';
+import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
+import { AltinnHeaderMenuItem } from '../altinnHeaderMenu/AltinnHeaderMenu';
+
 export interface AltinnHeaderProps {
+  menu: AltinnHeaderMenuItem[];
+  activeMenuSelection?: string;
   showSubMenu: boolean;
+  subMenuContent?: JSX.Element;
+  repository: IRepository;
+  user: User;
+  org: string;
+  app: string;
+  variant?: AltinnHeaderVariant;
+  buttonActions: AltinnButtonActionItem[];
 }
 
-export const AltinnHeader = ({ showSubMenu }: AltinnHeaderProps) => {
-  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
-  const { t } = useTranslation();
-  const { org, app } = useParams();
-  const { data: user } = useUserQuery();
-  const repositoryType = getRepositoryType(org, app);
-  const menu = getTopBarMenu(repositoryType);
-  const actions = [
-    {
-      title: 'top_menu.preview',
-      path: previewPath,
-      menuKey: TopBarMenu.Preview,
-      buttonVariant: ButtonVariant.Outline,
-      headerButtonsClasses: headerButtonsClasses.previewButton,
-    },
-    {
-      title: 'top_menu.deploy',
-      path: publiserPath,
-      menuKey: TopBarMenu.Deploy,
-      buttonVariant: ButtonVariant.Outline,
-      headerButtonsClasses: undefined,
-    },
-  ];
-
+export const AltinnHeader = ({
+  menu,
+  showSubMenu,
+  activeMenuSelection,
+  repository,
+  org,
+  app,
+  user,
+  subMenuContent,
+  buttonActions,
+  variant = 'regular',
+}: AltinnHeaderProps) => {
   return (
-    <div>
-      <div className={classes.altinnHeaderBar}>
+    <div id='altinn-header-container'>
+      <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
         <div className={classes.leftContent}>
           <a href='/'>
             <AltinnStudioLogo />
@@ -53,33 +46,13 @@ export const AltinnHeader = ({ showSubMenu }: AltinnHeaderProps) => {
           <span className={classes.bigSlash}>/</span>
           <span className={classes.appName}>{app || ''}</span>
         </div>
-        <AltinnHeaderMenu menu={menu} />
-        <AltinnHeaderButtons actions={actions} />
+        <AltinnHeaderMenu activeSubHeaderSelection={activeMenuSelection} menu={menu} />
+        <AltinnHeaderButtons actions={buttonActions} />
         <div className={classes.rightContent}>
-          <div className={classes.profileMenuWrapper}>
-            {user && (
-              <>
-                <span className={classes.userOrgNames}>
-                  {user.login !== org
-                    ? t('shared.header_user_for_org', {
-                        user: user.login,
-                        org: repository.owner.full_name || repository.owner.login,
-                      })
-                    : user.login}
-                </span>
-                <ProfileMenu showlogout user={user} />
-              </>
-            )}
-          </div>
+          <AltinnHeaderProfile org={org} repository={repository} user={user} />
         </div>
       </div>
-      {showSubMenu && (
-        <AltinnSubMenu
-          showBranchingIcon={true}
-          showVersionControlHeader={true}
-          showThreeDotsMenu={true}
-        />
-      )}
+      {showSubMenu && <AltinnSubMenu variant={variant}>{subMenuContent}</AltinnSubMenu>}
     </div>
   );
 };

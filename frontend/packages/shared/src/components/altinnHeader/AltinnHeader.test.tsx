@@ -1,23 +1,40 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { AltinnHeader, AltinnHeaderProps } from './AltinnHeader';
-import {
-  ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-development/common/ServiceContext';
+import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 describe('AltinnHeader', () => {
   it('should render AltinnHeaderMenu', () => {
-    render();
-    expect(screen.getByTestId('altinn-header-menu')).toBeInTheDocument();
+    render({
+      menu: [
+        {
+          key: 'test-key',
+          link: <a href='somewhere'>test-key</a>,
+        },
+      ],
+    });
+    expect(screen.getByTitle('Altin Logo')).toBeInTheDocument();
   });
 
-  it('should render AltinnHeaderButtons', () => {
+  it('should render AltinnHeaderButtons when buttonActions are provided', () => {
+    render({
+      buttonActions: [
+        {
+          buttonVariant: ButtonVariant.Quiet,
+          headerButtonsClasses: undefined,
+          menuKey: 'test-button',
+          path: (org, app) => `${org}-${app}-path`,
+          title: 'TestButton',
+        },
+      ],
+    });
+    expect(screen.getByRole('button', { name: textMock('TestButton') })).toBeInTheDocument();
+  });
+
+  it('should not render AltinnHeaderButtons when buttonActions are provided', () => {
     render();
-    expect(screen.getByTestId('altinn-header-buttons')).toBeInTheDocument();
+    expect(screen.queryByTestId('altinn-header-buttons')).not.toBeInTheDocument();
   });
 
   it('should render AltinnSubMenu when showSubMenu is true', () => {
@@ -29,41 +46,49 @@ describe('AltinnHeader', () => {
     render({ showSubMenu: false });
     expect(screen.queryByTestId('altinn-sub-menu')).not.toBeInTheDocument();
   });
+
+  it('should render subMenu with provided subMenuContent when showSubMenu is true', () => {
+    render({
+      showSubMenu: true,
+      subMenuContent: <Button>{textMock('subMenuButton')}</Button>,
+    });
+    expect(screen.getByRole('button', { name: textMock('subMenuButton') })).toBeInTheDocument();
+  });
 });
 
 const render = (props: Partial<AltinnHeaderProps> = {}) => {
-  const allProps: AltinnHeaderProps = {
+  const defaultProps: AltinnHeaderProps = {
+    menu: [],
     showSubMenu: true,
-    ...props,
+    subMenuContent: null,
+    activeMenuSelection: null,
+    app: 'test-app',
+    org: 'test-org',
+    user: {
+      avatar_url: '',
+      email: 'test@email.com',
+      full_name: 'Test Testesen',
+      id: 1,
+      login: 'username',
+    },
+    repository: {
+      clone_url: 'clone_url',
+      description: 'description',
+      full_name: 'Test App',
+      html_url: 'html_url',
+      id: 1,
+      is_cloned_to_local: false,
+      name: 'test-app',
+      owner: {
+        avatar_url: 'avatar_url',
+        full_name: 'Test Org',
+        login: 'test-org',
+      },
+      updated_at: 'never',
+      user_has_starred: false,
+    },
+    buttonActions: [],
   };
 
-  const createStore = configureStore();
-  const initialState = {
-    serviceInformation: {
-      repositoryInfo: {
-        repository: {
-          owner: {
-            full_name: 'Jest Test Org',
-          },
-        },
-      },
-    },
-  };
-  const store = createStore(initialState);
-  const queries: Partial<ServicesContextProps> = {
-    getRepoMetadata: async () => ({
-      permissions: {
-        push: true,
-      },
-    }),
-  };
-  return rtlRender(
-    <MemoryRouter>
-      <Provider store={store}>
-        <ServicesContextProvider {...queries}>
-          <AltinnHeader {...allProps} />
-        </ServicesContextProvider>
-      </Provider>
-    </MemoryRouter>
-  );
+  return rtlRender(<AltinnHeader {...defaultProps} {...props} />);
 };

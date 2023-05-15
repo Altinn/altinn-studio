@@ -1,10 +1,18 @@
 .altinnHeaderBar {
-  background-color: #022f51;
-  color: #fff;
   display: flex;
   align-items: center;
   height: var(--toolbar-height);
   padding: 0 2rem;
+}
+
+.regular {
+  background-color: #022f51;
+  color: #fff;
+}
+
+.preview {
+  background-color: #118849;
+  color: #fff;
 }
 
 .altinnHeaderBar .leftContent {

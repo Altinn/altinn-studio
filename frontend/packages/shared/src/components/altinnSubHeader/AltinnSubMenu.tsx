@@ -1,33 +1,17 @@
-import { BranchingIcon } from '@navikt/aksel-icons';
-import { ThreeDotsMenu } from 'app-development/layout/AppBar/ThreeDotsMenu';
-import { VersionControlHeader } from 'app-development/layout/version-control/VersionControlHeader';
 import classes from './AltinnSubMenu.module.css';
 import React from 'react';
+import { AltinnHeaderVariant } from '../altinnHeader/types';
+import classnames from 'classnames';
 
 export interface AltinnSubMenuProps {
-  showVersionControlHeader: boolean;
-  showThreeDotsMenu: boolean;
-  showBranchingIcon: boolean;
+  variant: AltinnHeaderVariant;
+  children?: JSX.Element;
 }
 
-export const AltinnSubMenu = ({
-  showVersionControlHeader,
-  showThreeDotsMenu,
-  showBranchingIcon,
-}: AltinnSubMenuProps) => {
+export const AltinnSubMenu = ({ variant, children }: AltinnSubMenuProps) => {
   return (
     <div data-testid='altinn-sub-menu'>
-      <div className={classes.subToolbar}>
-        <div className={classes.leftContent} data-testid='branching-icon'>
-          {showBranchingIcon && <BranchingIcon className={classes.branchIcon} />}
-        </div>
-        <div className={classes.rightContent}>
-          {showVersionControlHeader && (
-            <VersionControlHeader data-testid='version-control-header' />
-          )}
-          {showThreeDotsMenu && <ThreeDotsMenu data-testid='three-dots-menu' />}
-        </div>
-      </div>
+      <div className={classnames(classes.subToolbar, classes[variant])}>{children}</div>
     </div>
   );
 };

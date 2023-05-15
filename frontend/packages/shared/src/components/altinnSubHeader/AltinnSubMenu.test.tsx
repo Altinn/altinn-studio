@@ -1,13 +1,6 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
 import { render as rtlRender, screen } from '@testing-library/react';
-import {
-  ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-development/common/ServiceContext';
-import { AltinnSubMenu } from './AltinnSubMenu';
+import { AltinnSubMenu, AltinnSubMenuProps } from './AltinnSubMenu';
 
 describe('AltinnSubMenu', () => {
   it('should render component', () => {
@@ -15,45 +8,18 @@ describe('AltinnSubMenu', () => {
     expect(screen.getByTestId('altinn-sub-menu')).toBeInTheDocument();
   });
 
-  it('should render BranchingIcon', () => {
-    render();
-    expect(screen.getByTestId('branching-icon')).toBeInTheDocument();
-  });
-
-  it('should render VersionControlHeader', () => {
-    render();
-    expect(screen.getByTestId('version-control-header')).toBeInTheDocument();
+  it('should render provided child components', () => {
+    render({
+      children: <button>test-button</button>,
+    });
+    expect(screen.getByRole('button', { name: 'test-button' })).toBeInTheDocument();
   });
 });
 
-const render = () => {
-  const createStore = configureStore();
-  const initialState = {
-    serviceInformation: {
-      repositoryInfo: {
-        repository: {
-          owner: {
-            full_name: 'Jest Test Org',
-          },
-        },
-      },
-    },
+const render = (props?: Partial<AltinnSubMenuProps>) => {
+  const defaultProps: AltinnSubMenuProps = {
+    variant: 'regular',
+    children: null,
   };
-  const store = createStore(initialState);
-  const queries: Partial<ServicesContextProps> = {
-    getRepoMetadata: async () => ({
-      permissions: {
-        push: true,
-      },
-    }),
-  };
-  return rtlRender(
-    <MemoryRouter>
-      <Provider store={store}>
-        <ServicesContextProvider {...queries}>
-          <AltinnSubMenu />
-        </ServicesContextProvider>
-      </Provider>
-    </MemoryRouter>
-  );
+  return rtlRender(<AltinnSubMenu {...defaultProps} {...props} />);
 };

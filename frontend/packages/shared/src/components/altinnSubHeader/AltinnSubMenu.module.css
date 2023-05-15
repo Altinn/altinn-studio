@@ -1,23 +1,15 @@
 .subToolbar {
   align-items: center;
-  background-color: #284e6a;
   display: flex;
   height: var(--subtoolbar-height);
   justify-content: space-between;
   padding: 0 2rem;
 }
 
-.branchIcon {
-  width: 24px;
-  height: 24px;
+.regular {
+  background-color: #284e6a;
 }
 
-.subToolbar .leftContent svg {
-  color: #fff;
-}
-
-.subToolbar .rightContent {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.preview {
+  background-color: #0c6536;
 }

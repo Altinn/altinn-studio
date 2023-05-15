@@ -1,64 +1,46 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { menu, TopBarMenu } from '../../../../../app-development/layout/AppBar/appBarConfig';
-import {
-  ServicesContextProvider,
-  ServicesContextProps,
-} from '../../../../../app-development/common/ServiceContext';
-import { AltinnHeaderMenu, IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
+import { AltinnHeaderMenu, AltinnHeaderMenuItem, IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
+import { TopBarMenu } from 'app-shared/types/header';
+import { MemoryRouter } from 'react-router-dom';
 
 describe('AltinnHeaderMenu', () => {
-  describe('Should render menu items', () => {
-    menu.forEach((entry) => {
-      it(`should render ${entry.key} as current item when activeSubHeaderSelection is set to ${entry.key}`, () => {
-        render({
-          activeSubHeaderSelection: entry.key,
-        });
-        expect(screen.getByTestId(entry.key)).toBeInTheDocument();
-      });
-    });
+  const mockMenu: AltinnHeaderMenuItem[] = [
+    {
+      key: 'key1',
+      link: <a href='link1'>Link1</a>,
+    },
+    {
+      key: 'key2',
+      link: <a href='link1'>Link2</a>,
+    },
+    {
+      key: 'key3',
+      link: <a href='link1'>Link3</a>,
+    },
+  ];
+  it('Should render nothing if there are no provided meny items', () => {
+    render();
+    expect(screen.queryByTestId('altinn-header-menu')).not.toBeInTheDocument();
+  });
+
+  it('should render all provided menu items', () => {
+    render({ menu: mockMenu });
+    expect(screen.queryAllByRole('link')).toHaveLength(3);
   });
 });
 
 const render = (props: Partial<IAltinnHeaderMenuProps> = {}) => {
-  const allProps = {
+  const defaultProps = {
     org: 'jest-test-org',
     app: 'jest-test-app',
     activeSubHeaderSelection: TopBarMenu.Create,
-    ...props,
+    menu: [],
   } as IAltinnHeaderMenuProps;
-
-  const createStore = configureStore();
-  const initialState = {
-    serviceInformation: {
-      repositoryInfo: {
-        repository: {
-          owner: {
-            full_name: 'Jest Test Org',
-          },
-        },
-      },
-    },
-  };
-  const store = createStore(initialState);
-  const queries: Partial<ServicesContextProps> = {
-    getRepoMetadata: async () => ({
-      permissions: {
-        push: true,
-      },
-    }),
-  };
 
   return rtlRender(
     <MemoryRouter>
-      <Provider store={store}>
-        <ServicesContextProvider {...queries}>
-          <AltinnHeaderMenu {...allProps} />
-        </ServicesContextProvider>
-      </Provider>
+      <AltinnHeaderMenu {...defaultProps} {...props} />
     </MemoryRouter>
   );
 };

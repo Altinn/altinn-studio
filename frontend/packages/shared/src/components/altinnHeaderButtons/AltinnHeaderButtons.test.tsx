@@ -1,20 +1,47 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { AltinnHeaderButtons } from './AltinnHeaderButtons';
+import { render as rtlRender, screen } from '@testing-library/react';
+import { AltinnHeaderButtons, AltinnHeaderButtonsProps } from './AltinnHeaderButtons';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { ButtonVariant } from '@digdir/design-system-react';
 
 describe('AltinnHeaderbuttons', () => {
-  test('should render deploy  button', async () => {
-    await renderWithMock();
-    expect(screen.getByRole('button', { name: textMock('top_menu.deploy') }));
+  it('should render no buttons if empty list of actions is passed', () => {
+    render();
+    expect(screen.queryByRole('button')).toBeNull();
   });
 
-  test('should render preview button', async () => {
-    await renderWithMock();
-    expect(screen.getByRole('button', { name: textMock('top_menu.preview') }));
+  it('should render no buttons if no actions object is passed', () => {
+    render({ actions: undefined });
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('should render buttons for the provided actions', () => {
+    const pathFunc = (org: string, app: string) => `${org}-${app}-path`;
+    render({
+      actions: [
+        {
+          buttonVariant: ButtonVariant.Filled,
+          headerButtonsClasses: undefined,
+          menuKey: 'menu-1',
+          path: pathFunc,
+          title: textMock('Button1'),
+        },
+        {
+          buttonVariant: ButtonVariant.Filled,
+          headerButtonsClasses: undefined,
+          menuKey: 'menu-2',
+          path: pathFunc,
+          title: textMock('Button2'),
+        },
+      ],
+    });
+    expect(screen.queryAllByRole('button')).toHaveLength(2);
   });
 });
 
-const renderWithMock = async () => {
-  render(<AltinnHeaderButtons />, { wrapper: undefined });
+const render = (props?: Partial<AltinnHeaderButtonsProps>) => {
+  const defaultProps: AltinnHeaderButtonsProps = {
+    actions: [],
+  };
+  rtlRender(<AltinnHeaderButtons {...defaultProps} {...props} />, { wrapper: undefined });
 };
