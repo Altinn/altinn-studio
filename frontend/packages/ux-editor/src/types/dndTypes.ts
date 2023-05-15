@@ -1,28 +1,35 @@
-export interface EditorDndItem {
-  id: string;
-  containerId?: string;
-  onDrop?: (containerId: string, position: number) => void;
-  index?: number;
-  type: ItemType;
+import { ComponentType } from '../components';
+
+export interface NewDndItem {
+  isNew: true;
+  type: ComponentType;
 }
 
-export enum ItemType {
+export interface ExistingDndItem {
+  isNew: false;
+  id: string;
+  position: ItemPosition;
+}
+
+export type DndItem = NewDndItem | ExistingDndItem;
+
+export enum DraggableEditorItemType {
   ToolbarItem = 'TOOLBAR_ITEM',
-  Item = 'ITEM',
+  Component = 'COMPONENT',
   Container = 'CONTAINER',
 }
 
-export enum ContainerPos {
-  Top = 'TOP',
-  Bottom = 'BOTTOM',
+export enum DragCursorPosition {
+  UpperHalf = 'UpperHalf', // Component is dragged over the upper half of the target component
+  LowerHalf = 'LowerHalf', // Component is dragged over the lower half of the target component
+  Outside = 'Outside', // Component is dragged outside of the target component
+  Self = 'Self', // The dragged component is the same as the target component
+  Idle = 'Idle', // Nothing relevant is being dragged
 }
 
-/**
- * @see DesignView
- */
-export interface EditorDndEvents {
-  moveItem: (movedItem: EditorDndItem, targetItem: EditorDndItem, toIndex?: number) => void;
-  moveItemToBottom: (item: EditorDndItem) => void;
-  moveItemToTop: (item: EditorDndItem) => void;
-  onDropItem: (reset?: boolean) => void;
+export type HandleDrop = (draggedItem: DndItem, droppedPosition: ItemPosition) => void;
+
+export interface ItemPosition {
+  parentId: string;
+  index: number;
 }

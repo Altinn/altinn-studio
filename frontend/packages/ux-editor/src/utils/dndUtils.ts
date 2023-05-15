@@ -1,131 +1,93 @@
-import type { DragSourceHookSpec, DragSourceMonitor, DropTargetMonitor, XYCoord } from 'react-dnd';
-import type { EditorDndItem } from '../types/dndTypes';
-import { ContainerPos, ItemType } from '../types/dndTypes';
-
-// @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
-export const hoverIndexHelper = (
-  draggedItem: EditorDndItem,
-  hoveredItem: EditorDndItem,
-  hoverBoundingRect?: DOMRect,
-  clientOffset?: XYCoord
-): boolean => {
-  const dragIndex = draggedItem.index;
-  const hoverIndex = hoveredItem.index;
-
-  if (!hoverBoundingRect || dragIndex === hoverIndex) {
-    return false;
-  }
-  if (!clientOffset) {
-    return false;
-  }
-
-  // Get vertical middle
-  const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-
-  // Get pixels to the top
-  const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top;
-
-  // Only perform the move when the mouse has crossed half of the items height
-  // When dragging downwards, only move when the cursor is below 50%
-  // When dragging upwards, only move when the cursor is above 50%
-
-  // Dragging downwards
-  if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-    return false;
-  }
-
-  // Dragging upwards
-  return !(dragIndex > hoverIndex && hoverClientY > hoverMiddleY);
-};
-
-export const dragSourceSpec = (
-  item: EditorDndItem,
-  canDrag: boolean,
-  onDropItem: (reset: boolean) => void
-): DragSourceHookSpec<any, any, any> => ({
-  type: item.type,
-  item,
-  collect: (monitor: DragSourceMonitor) => {
-    return {
-      isDragging: monitor.isDragging(),
-    };
-  },
-  canDrag() {
-    return canDrag;
-  },
-  isDragging(monitor) {
-    return item.id === monitor.getItem()?.id;
-  },
-  end(draggedItem: EditorDndItem, monitor: DragSourceMonitor) {
-    if (!monitor.didDrop() && draggedItem) {
-      onDropItem(true);
-    }
-  },
-});
+import type { DropTargetMonitor } from 'react-dnd';
+import type { DndItem, ExistingDndItem, ItemPosition } from '../types/dndTypes';
+import { DragCursorPosition } from '../types/dndTypes';
+import { RefObject } from 'react';
+import { objectsEqual } from 'app-shared/utils/objectUtils';
 
 /**
- *
- *
- *
- * @param boundingClientRect
- * @param clientOffset
+ * Calculates the position of the dragged item relative to the drop target.
+ * @param monitor DropTargetMonitor object provided by React DND
+ * @param dragItem The item being dragged
+ * @param dropItem The target item (the one which the dragged item is being dropped on)
+ * @param dropRef Reference to the drop target element
+ * @param disabledDrop Whether the drop target is disabled
+ * @returns DragCursorPosition
+ *  - UpperHalf: If the item is dragged over the upper half of the target element
+ *  - LowerHalf: If the item is dragged over the lower half of the target element
+ *  - Outside: If the item is dragged outside of the droppable area of the target element (nested targets are not a part of the droppable area) or if disabledDrop is true
+ *  - Self: If the dragged item is the same as the target item
+ *  - Idle: If nothing relevant is being dragged
  */
-export const getContainerPosition = (
-  boundingClientRect: DOMRect,
-  clientOffset: XYCoord
-): ContainerPos | undefined => {
-  if (!clientOffset) {
-    return undefined;
-  }
-  if (!boundingClientRect) {
-    return undefined;
-  }
-  // need to support smaller boxes so that they don't jump around.
-  const boundaryHeight = Math.min(50, boundingClientRect.height / 4);
-  const toptop = boundingClientRect.top;
-  const topbottom = boundingClientRect.top + boundaryHeight;
-  const bottomtop = boundingClientRect.bottom - boundaryHeight;
-  const bottombottom = boundingClientRect.bottom;
-  const { y } = clientOffset;
-  if (y > toptop && y < topbottom) {
-    return ContainerPos.Top;
-  }
-  if (y > bottomtop && y < bottombottom) {
-    return ContainerPos.Bottom;
-  }
-  return undefined;
-};
+export const getDragCursorPosition = (
+  monitor: DropTargetMonitor,
+  dragItem: DndItem,
+  dropItem: ExistingDndItem,
+  dropRef: RefObject<HTMLDivElement>,
+  disabledDrop?: boolean,
+): DragCursorPosition => {
+  if (!monitor) return DragCursorPosition.Idle;
 
-export const handleDrop = (
-  droppedItem: EditorDndItem,
-  monitor: Partial<DropTargetMonitor>,
-  onDropItem: () => void,
-  containerId: string,
-  index: number
-) => {
-  if (!droppedItem) {
-    return;
-  }
-  if (!monitor.isOver({ shallow: true })) {
-    return;
-  }
-  if (monitor.getItemType() === ItemType.ToolbarItem) {
-    if (!droppedItem.onDrop) {
-      console.warn("Draggable Item doesn't have an onDrop-event");
-      return;
-    }
-    droppedItem.onDrop(containerId, index);
+  if (dragItem.isNew === false && objectsEqual(dragItem.position, dropItem.position)) return DragCursorPosition.Self;
+
+  const clientOffset = monitor.getClientOffset();
+  if (disabledDrop || !clientOffset || !monitor.isOver({ shallow: true })) return DragCursorPosition.Outside;
+
+  const boundingClientRect = dropRef.current?.getBoundingClientRect();
+
+  const hoverClientY = clientOffset.y - boundingClientRect.top; // Find distance from top of element
+  if (hoverClientY < boundingClientRect.height / 2) {
+    // Upper half
+    return dragItem.isNew === false && isFirstItemRightAboveSecondItem(dragItem, dropItem)
+      ? DragCursorPosition.Self // Return Self if the target element is the one right below the dragged element
+      : DragCursorPosition.UpperHalf; // Return UpperHalf otherwise
   } else {
-    onDropItem();
+    // Lower half
+    return dragItem.isNew === false && isFirstItemRightAboveSecondItem(dropItem, dragItem)
+      ? DragCursorPosition.Self // Return Self if the target element is the one right above the dragged element
+      : DragCursorPosition.LowerHalf; // Return LowerHalf otherwise
   }
 };
 
-export const hoverShouldBeIgnored = (monitor: DropTargetMonitor, draggedItem?: EditorDndItem) => {
-  if (!draggedItem) {
-    return true;
-  }
-  if (!monitor.isOver({ shallow: true })) {
-    return true;
-  }
-  return !draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem;
-};
+/**
+ * Calculates the dragged item's new index and parent ID when it is dropped.
+ * @param dragItem The item being dragged
+ * @param dropItem The target item (the one which the dragged item is being dropped on)
+ * @param dragCursorPosition The current DragCursorPosition (given by getDragCursorPosition)
+ * @returns ItemPosition New parent ID and index
+ */
+export const calculateNewPosition = (
+  dragItem: DndItem,
+  dropItem: ExistingDndItem,
+  dragCursorPosition: DragCursorPosition
+): ItemPosition | undefined => {
+  const { position: { index: dropItemIndex, parentId: dropItemParent } } = dropItem;
+  if ([
+    DragCursorPosition.Self,
+    DragCursorPosition.Outside,
+    DragCursorPosition.Idle
+  ].includes(dragCursorPosition)) return undefined;
+  const moveAfter = dragCursorPosition === DragCursorPosition.LowerHalf;
+  const movingDownInSameParent = dragItem.isNew === false &&
+    dragItem.position.parentId === dropItemParent &&
+    dragItem.position.index < dropItemIndex;
+  const index = dropItemIndex
+    + +moveAfter // Add 1 to new index if the desired position is after the target item
+    - +movingDownInSameParent; // Subtract 1 from new index if the item is moving down, because the indexes will be offset when the item is removed above
+  const parentId = dropItemParent;
+  return { index, parentId };
+}
+
+/**
+ * Checks that two items have the same parent and that thi first one comes right before the second one.
+ * @param firstItem
+ * @param secondItem
+ * @returns boolean True if the first item comes right before the second one, false otherwise.
+ */
+const isFirstItemRightAboveSecondItem = (
+  firstItem: ExistingDndItem,
+  secondItem: ExistingDndItem
+): boolean => {
+  const { position: { index: firstItemIndex, parentId: firstItemParent } } = firstItem;
+  const { position: { index: secondItemIndex, parentId: secondItemParent } } = secondItem;
+  return firstItemParent === secondItemParent && firstItemIndex === secondItemIndex - 1;
+}

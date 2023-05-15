@@ -117,23 +117,25 @@ export interface FormMapComponent extends FormComponentBase<ComponentType.Map> {
   }[];
 }
 
-export type FormComponent =
-  | FormHeaderComponent
-  | FormParagraphComponent
-  | FormInputComponent
-  | FormImageComponent
-  | FormDatepickerComponent
-  | FormDropdownComponent
-  | FormCheckboxesComponent
-  | FormRadioButtonsComponent
-  | FormTextareaComponent
-  | FormFileUploaderComponent
-  | FormFileUploaderWithTagComponent
-  | FormButtonComponent
-  | FormAddressComponent
-  | FormGroupComponent
-  | FormNavigationBarComponent
-  | FormAttachmentListComponent
-  | FormThirdPartyComponent
-  | FormPanelComponent
-  | FormMapComponent;
+export type FormComponent<T extends ComponentType = ComponentType> = {
+  [ComponentType.AddressComponent]: FormAddressComponent;
+  [ComponentType.AttachmentList]: FormAttachmentListComponent;
+  [ComponentType.Button]: FormButtonComponent;
+  [ComponentType.Checkboxes]: FormCheckboxesComponent;
+  [ComponentType.Datepicker]: FormDatepickerComponent;
+  [ComponentType.Dropdown]: FormDropdownComponent;
+  [ComponentType.FileUploadWithTag]: FormFileUploaderWithTagComponent;
+  [ComponentType.FileUpload]: FormFileUploaderComponent;
+  [ComponentType.Group]: FormGroupComponent;
+  [ComponentType.Header]: FormHeaderComponent;
+  [ComponentType.Image]: FormImageComponent;
+  [ComponentType.Input]: FormInputComponent;
+  [ComponentType.Map]: FormMapComponent;
+  [ComponentType.NavigationBar]: FormNavigationBarComponent;
+  [ComponentType.NavigationButtons]: FormButtonComponent;
+  [ComponentType.Panel]: FormPanelComponent;
+  [ComponentType.Paragraph]: FormParagraphComponent;
+  [ComponentType.RadioButtons]: FormRadioButtonsComponent;
+  [ComponentType.TextArea]: FormTextareaComponent;
+  [ComponentType.ThirdParty]: FormThirdPartyComponent;
+}[T];

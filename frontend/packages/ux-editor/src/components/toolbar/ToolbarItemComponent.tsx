@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { MouseEvent } from 'react';
 import classes from './ToolbarItemComponent.module.css';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { InformationIcon } from '@navikt/aksel-icons';
@@ -8,7 +8,7 @@ import { ComponentType } from '../index';
 
 export interface IToolbarItemProvidedProps {
   componentType: ComponentType;
-  onClick: any;
+  onClick: (type: ComponentType, event: MouseEvent) => void
   thirdPartyLabel?: string;
   icon: string;
 }
@@ -27,7 +27,7 @@ export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
       </div>
       <div className={classes.componentHelpIcon}>
         <Button
-          onClick={(e: any) => props.onClick(props.componentType, e)}
+          onClick={(e) => props.onClick(props.componentType, e)}
           icon={<InformationIcon />}
           variant={ButtonVariant.Quiet}
         />

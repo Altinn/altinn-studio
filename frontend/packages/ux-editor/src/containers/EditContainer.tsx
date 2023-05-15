@@ -4,11 +4,7 @@ import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { EditGroupDataModelBindings } from '../components/config/group/EditGroupDataModelBindings';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayoutUtils';
-import type {
-  ICreateFormContainer,
-  IDataModelFieldElement,
-  IFormLayoutOrder,
-} from '../types/global';
+import type { IDataModelFieldElement, IFormLayoutOrder } from '../types/global';
 import {
   Button,
   ButtonVariant,
@@ -20,7 +16,7 @@ import {
 import classes from './EditContainer.module.css';
 import { XMarkIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { ConnectDragSource } from 'react-dnd';
-import { DragHandle } from '../components/DragHandle';
+import { DragHandle } from '../components/dragAndDrop/DragHandle';
 import { TextResource } from '../components/TextResource';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
@@ -33,6 +29,7 @@ import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { ITextResource } from 'app-shared/types/global';
+import { FormContainer } from '../types/FormContainer';
 
 export interface IEditContainerProps {
   id: string;
@@ -53,7 +50,7 @@ export const EditContainer = (props: IEditContainerProps) => {
   const { mutate: updateFormContainer } = useUpdateFormContainerMutation(org, app);
   const { mutate: updateContainerId } = useUpdateContainerIdMutation(org, app);
 
-  const [tmpContainer, setTmpContainer] = useState<ICreateFormContainer>(containers[props.id]);
+  const [tmpContainer, setTmpContainer] = useState<FormContainer>(containers[props.id]);
   const [tmpId, setTmpId] = useState<string>(props.id);
   const [groupIdError, setGroupIdError] = useState<string>(null);
   const groupIdPopoverRef = useRef<HTMLDivElement>();

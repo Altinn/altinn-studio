@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { EditModalContent } from './config/EditModalContent';
 import '../styles/index.css';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
-import { componentIcons, ComponentType } from './';
+import { ComponentType } from './';
 import classes from './EditFormComponent.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { XMarkIcon, TrashIcon, PencilIcon, MonitorIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { ConnectDragSource } from 'react-dnd';
-import { DragHandle } from './DragHandle';
+import { DragHandle } from './dragAndDrop/DragHandle';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { ComponentPreview } from '../containers/ComponentPreview';
@@ -25,6 +25,7 @@ import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { useRuleConfigMutation } from '../hooks/mutations/useRuleConfigMutation';
 import { switchSelectedFieldId } from '../utils/ruleConfigUtils';
 import type { FormComponent } from '../types/FormComponent';
+import { formItemConfigs } from '../data/formItemConfig';
 
 export interface IEditFormComponentProps {
   component: FormComponent;
@@ -131,7 +132,7 @@ export function EditFormComponent(props: IEditFormComponentProps) {
           )}
           {(mode === EditFormComponentMode.Closed || !component) && (
             <div className={classes.formComponentTitle}>
-              <i className={componentIcons[component.type] || 'fa fa-help-circle'} />
+              <i className={formItemConfigs?.[component.type]?.icon || 'fa fa-help-circle'} />
               {component.textResourceBindings?.title
                 ? truncate(getTextResource(component.textResourceBindings.title, textResources), 80)
                 : getComponentTitleByComponentType(component.type, t) ||

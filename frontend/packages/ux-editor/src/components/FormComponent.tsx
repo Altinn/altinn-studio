@@ -1,29 +1,31 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import type { EditorDndEvents } from '../types/dndTypes';
+import type { HandleDrop } from '../types/dndTypes';
 import { EditFormComponent } from './EditFormComponent';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
+import { selectedLayoutWithNameSelector } from '../selectors/formLayoutSelectors';
 import { ComponentType } from './index';
 import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
-import { DroppableDraggableComponent } from '../containers/DroppableDraggableComponent';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
+import { ConnectDragSource } from 'react-dnd';
 
 export interface IFormElementProps {
   id: string;
-  containerId: string;
-  index: number;
   partOfGroup?: boolean;
-  dndEvents: EditorDndEvents;
+  handleDrop?: HandleDrop;
+  dragHandleRef?: ConnectDragSource;
 }
 
-export const FormComponent = (props: IFormElementProps) => {
+export const FormComponent = ({
+  id,
+  partOfGroup,
+  dragHandleRef,
+}: IFormElementProps) => {
   const { org, app } = useParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
-
-  const { components } = useFormLayoutsSelector(selectedLayoutSelector);
-  const component: IFormComponent = components[props.id];
+  const { layout } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
+  const component: IFormComponent = layout.components[id];
 
   /**
    * Return a given textresource from all textresources avaiable
@@ -52,7 +54,7 @@ export const FormComponent = (props: IFormElementProps) => {
     if (component.textResourceBindings.title) {
       const label: string = getTextResource(component.textResourceBindings.title);
       return (
-        <label className='a-form-label title-label' htmlFor={props.id}>
+        <label className='a-form-label title-label' htmlFor={id}>
           {label}
           {component.required ? null : (
             // TODO: Get text key from common texts for all services.
@@ -66,24 +68,15 @@ export const FormComponent = (props: IFormElementProps) => {
   };
 
   return (
-    <DroppableDraggableComponent
-      canDrag
-      containerId={props.containerId}
-      dndEvents={props.dndEvents}
-      id={props.id}
-      index={props.index}
-      component={(dragHandleRef) => (
-        <EditFormComponent
-          component={component}
-          id={props.id}
-          partOfGroup={props.partOfGroup}
-          dragHandleRef={dragHandleRef}
-        >
-          <button className={'divider'}>
-            {renderLabel()}
-          </button>
-        </EditFormComponent>
-      )}
-    />
+    <EditFormComponent
+      component={component}
+      id={id}
+      partOfGroup={partOfGroup}
+      dragHandleRef={dragHandleRef}
+    >
+      <button className={'divider'}>
+        {renderLabel()}
+      </button>
+    </EditFormComponent>
   );
 };

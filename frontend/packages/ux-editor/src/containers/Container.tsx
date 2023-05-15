@@ -4,48 +4,52 @@ import { useParams } from 'react-router-dom';
 import cn from 'classnames';
 import '../styles/index.css';
 import { FormComponent } from '../components/FormComponent';
-import type { IFormLayoutOrder } from '../types/global';
-import { DroppableDraggableContainer } from './DroppableDraggableContainer';
-import type { EditorDndEvents } from '../types/dndTypes';
+import type { HandleDrop } from '../types/dndTypes';
+import { DraggableEditorItemType } from '../types/dndTypes';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import classes from './Container.module.css';
-import { ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon } from '@navikt/aksel-icons';
-import { DragHandle } from '../components/DragHandle';
+import { ChevronDownIcon, ChevronUpIcon, PencilIcon, TrashIcon } from '@navikt/aksel-icons';
+import { DragHandle } from '../components/dragAndDrop/DragHandle';
 import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
 import { useText } from '../hooks';
 import { EditContainer } from './EditContainer';
-import { EmptyContainerPlaceholder } from './EmptyContainerPlaceholder';
+import { DragDropListItem } from '../components/dragAndDrop/DragDropListItem';
+import { DroppableList } from '../components/dragAndDrop/DroppableList';
 
 export interface IContainerProps {
   isBaseContainer?: boolean;
   id: string;
-  parentContainerId?: string;
-  index?: number;
-  layoutOrder?: IFormLayoutOrder;
-  dndEvents: EditorDndEvents;
-  canDrag: boolean;
+  handleDrop: HandleDrop;
+  dragHandleRef?: ConnectDragSource;
+  disabledDrop?: boolean;
 }
 
-export const Container = (props: IContainerProps) => {
+export const Container = ({
+  isBaseContainer,
+  id,
+  handleDrop,
+  dragHandleRef,
+  disabledDrop,
+}: IContainerProps) => {
   const t = useText();
 
   const { org, app } = useParams();
 
   const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app);
-  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
+  const { components, containers, order } = useFormLayoutsSelector(selectedLayoutSelector);
 
   const [editMode, setEditMode] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean>(true);
 
-  const items = props.layoutOrder[props.id];
+  const items = order[id];
 
   const HoverIcons = (): JSX.Element => (
     <>
       <Button
         icon={<TrashIcon title={t('general.delete')} />}
-        onClick={() => deleteFormContainer(props.id)}
+        onClick={() => deleteFormContainer(id)}
         variant={ButtonVariant.Quiet}
       />
       <Button
@@ -56,7 +60,7 @@ export const Container = (props: IContainerProps) => {
     </>
   );
 
-  const FormGroupHeader = ({ dragHandleRef } : {dragHandleRef: ConnectDragSource}): JSX.Element => (
+  const FormGroupHeader = (): JSX.Element => (
     <div className={classes.formGroup} data-testid='form-group'>
       <div ref={dragHandleRef} className={classes.dragHandle}>
         <DragHandle />
@@ -68,72 +72,74 @@ export const Container = (props: IContainerProps) => {
           onClick={() => setExpanded(!expanded)}
           variant={ButtonVariant.Quiet}
         />
-        Gruppe - ${props.id}
+        Gruppe - ${id}
       </div>
       <div className={classes.formGroupButtons}><HoverIcons /></div>
     </div>
   );
 
-  return (
-    <DroppableDraggableContainer
-      id={props.id}
-      index={props.index}
-      isBaseContainer={props.isBaseContainer}
-      parentContainerId={props.parentContainerId}
-      canDrag={props.canDrag}
-      dndEvents={props.dndEvents}
-      container={(dragHandleRef) =>
-        editMode ? (
-          <EditContainer
-            id={props.id}
-            layoutOrder={props.layoutOrder}
-            dragHandleRef={dragHandleRef}
-            cancelEditMode={() => setEditMode(false)}
-          />
-        ) : (
-          <div
-            className={cn(
-              classes.wrapper,
-              !props.isBaseContainer && classes.formGroupWrapper,
-              expanded && classes.expanded
-            )}
-          >
-            {!props.isBaseContainer && (<FormGroupHeader dragHandleRef={dragHandleRef} />)}
-            {expanded && components &&
-              (items.length ? (
-                items.map((itemId: string, index: number) => {
-                  const component = components[itemId];
-                  if (component) {
-                    return (
-                      <FormComponent
-                        key={itemId}
-                        id={itemId}
-                        containerId={props.id}
-                        index={index}
-                        dndEvents={props.dndEvents}
-                        partOfGroup={!props.isBaseContainer}
-                      />
-                    );
-                  }
-                  return containers[itemId] && (
-                    <Container
-                      id={itemId}
-                      parentContainerId={props.id}
-                      key={itemId}
-                      index={index}
-                      isBaseContainer={false}
-                      layoutOrder={props.layoutOrder}
-                      dndEvents={props.dndEvents}
-                      canDrag={true}
-                    />
-                  );
-                })
-              ) : (
-                <EmptyContainerPlaceholder containerId={props.id} dndEvents={props.dndEvents} />
-              ))}
-          </div>
-        )
-      }
+  return editMode ? (
+    <EditContainer
+      id={id}
+      layoutOrder={order}
+      dragHandleRef={dragHandleRef}
+      cancelEditMode={() => setEditMode(false)}
     />
+  ) : (
+    <div
+      className={cn(
+        classes.wrapper,
+        !isBaseContainer && classes.formGroupWrapper,
+      )}
+    >
+      {!isBaseContainer && (<FormGroupHeader />)}
+      <DroppableList containerId={id} handleDrop={handleDrop} disabledDrop={disabledDrop}>
+        {expanded && components &&
+          (items?.length ? ( // Todo: items should always be defined, but when deleting a container, the deleted container component is rerendered before the parent container, so all the data will be undefined for a short time. This is not visible for the user, but it's not ideal.
+            items.map((itemId: string, index: number) => {
+              const component = components[itemId];
+              if (component) {
+                return (
+                  <DragDropListItem
+                    key={itemId}
+                    type={DraggableEditorItemType.Component}
+                    item={{ isNew: false, id: itemId, position: { index, parentId: id } }}
+                    onDrop={handleDrop}
+                    disabledDrop={disabledDrop}
+                    renderItem={(itemDragHandleRef) => (
+                      <FormComponent
+                        id={itemId}
+                        handleDrop={handleDrop}
+                        partOfGroup={!isBaseContainer}
+                        dragHandleRef={itemDragHandleRef}
+                      />
+                    )}
+                  />
+                );
+              }
+              return containers[itemId] && (
+                <DragDropListItem
+                  key={itemId}
+                  type={DraggableEditorItemType.Container}
+                  item={{ isNew: false, id: itemId, position: { index, parentId: id } }}
+                  onDrop={handleDrop}
+                  disabledDrop={disabledDrop}
+                  renderItem={(itemDragHandleRef, isDragging) => (
+                    <Container
+                      disabledDrop={isDragging || disabledDrop}
+                      dragHandleRef={itemDragHandleRef}
+                      handleDrop={handleDrop}
+                      id={itemId}
+                      isBaseContainer={false}
+                    />
+                  )}
+                />
+              );
+            })
+          ) : (
+            <p className={classes.emptyContainerText}>{t('ux_editor.container_empty')}</p>
+          ))}
+      </DroppableList>
+    </div>
   );
 };

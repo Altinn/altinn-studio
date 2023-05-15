@@ -1,128 +1,228 @@
-import {
-  getContainerPosition,
-  handleDrop,
-  hoverIndexHelper,
-  hoverShouldBeIgnored,
-} from './dndUtils';
-import type { DropTargetMonitor, XYCoord } from 'react-dnd';
-import type { EditorDndItem } from '../types/dndTypes';
-import { ContainerPos, ItemType } from '../types/dndTypes';
-import { createMockMonitor } from '../testing/dndMocks';
+import { calculateNewPosition, getDragCursorPosition, } from './dndUtils';
+import type { ExistingDndItem, NewDndItem } from '../types/dndTypes';
+import { DragCursorPosition } from '../types/dndTypes';
+import { ComponentType } from '../components';
+import { DropTargetMonitor, XYCoord } from 'react-dnd';
+import { RefObject } from 'react';
 
 // Test data
-const boundingBox: DOMRect = {
-  bottom: 406.6875,
-  height: 111.921875,
-  left: 353,
-  right: 1085,
-  top: 294.765625,
-  width: 732,
-  x: 353,
-  y: 294.765625,
-  toJSON: () => '',
+const targetElementTop = 100;
+const targetElementLeft = 100;
+const targetElementWidth = 100;
+const targetElementHeight = 100;
+const targetElementRect: DOMRect = {
+  x: targetElementTop,
+  y: targetElementLeft,
+  width: targetElementWidth,
+  height: targetElementHeight,
+  top: targetElementTop,
+  left: targetElementLeft,
+  right: targetElementTop + targetElementWidth,
+  bottom: targetElementLeft + targetElementHeight,
+  toJSON: jest.fn(),
 };
-const createDummyData = (
-  itemType: ItemType,
-  isOver: boolean,
-  id: string
-): [EditorDndItem, Partial<DropTargetMonitor>, () => void, () => void] => {
-  const onDrop = jest.fn();
-  const droppedItem: EditorDndItem = {
-    id,
-    type: itemType,
-    onDrop,
-  };
-  const monitor = createMockMonitor(isOver, droppedItem.type);
-  const onDropItem = jest.fn();
-  return [droppedItem, monitor, onDrop, onDropItem];
+const dropRef: RefObject<HTMLDivElement> = {
+  current: {
+    ...document.createElement('div'),
+    getBoundingClientRect: () => targetElementRect,
+  },
+};
+const xyCoord: XYCoord = {
+  x: targetElementLeft + targetElementWidth / 2,
+  y: targetElementTop + targetElementHeight / 2
+};
+const isOver = () => true;
+const dropTargetMonitor: DropTargetMonitor = {
+  canDrop: jest.fn(),
+  didDrop: jest.fn(),
+  getClientOffset: () => xyCoord,
+  getDifferenceFromInitialOffset: jest.fn(),
+  getDropResult: jest.fn(),
+  getHandlerId: jest.fn(),
+  getInitialClientOffset: jest.fn(),
+  getInitialSourceClientOffset: jest.fn(),
+  getItem: jest.fn(),
+  getItemType: jest.fn(),
+  getSourceClientOffset: jest.fn(),
+  isOver,
+  receiveHandlerId: jest.fn(),
+  subscribeToStateChange: jest.fn(),
+};
+const parent1Id = 'parent1';
+const parent2Id = 'parent2';
+const dropItemIndex = 3;
+const dropItem: ExistingDndItem = {
+  isNew: false,
+  id: 'id1',
+  position: {
+    index: dropItemIndex,
+    parentId: parent1Id,
+  }
+};
+const newDragItem: NewDndItem = {
+  isNew: true,
+  type: ComponentType.Paragraph,
+};
+const dragItemFromBelow: ExistingDndItem = {
+  isNew: false,
+  id: 'id2',
+  position: {
+    index: dropItemIndex + 2,
+    parentId: parent1Id,
+  }
+};
+const dragItemFromAbove: ExistingDndItem = {
+  isNew: false,
+  id: 'id3',
+  position: {
+    index: dropItemIndex - 2,
+    parentId: parent1Id,
+  }
+};
+const dragItemFromAnotherParent: ExistingDndItem = {
+  isNew: false,
+  id: 'id4',
+  position: {
+    index: 1,
+    parentId: parent2Id,
+  }
 };
 
 describe('dndUtils', () => {
+  describe('getDragCursorPosition', () => {
+    it('Returns Self if item is being dragged over itself', () => {
+      expect(getDragCursorPosition(dropTargetMonitor, dropItem, dropItem, dropRef)).toEqual(DragCursorPosition.Self);
+    });
 
-  describe('getContainerPosition', () => {
-    it('returns correct positions', () => {
-      const scenarios: [number, string][] = [
-        [300, ContainerPos.Top],
-        [290, undefined],
-        [400, ContainerPos.Bottom],
-        [500, undefined],
-      ];
-      scenarios.forEach((scenario) => {
-        const [y, expected] = scenario;
-        const xyCord: XYCoord = { x: 500, y };
-        const result = getContainerPosition(boundingBox, xyCord);
-        expect(result).toBe(expected);
-      });
+    it('Returns Outside if item is being dragged outside of the drop target', () => {
+      const monitor = {
+        ...dropTargetMonitor,
+        isOver: () => false,
+      };
+      expect(getDragCursorPosition(monitor, newDragItem, dropItem, dropRef)).toEqual(DragCursorPosition.Outside);
+      expect(getDragCursorPosition(monitor, dragItemFromBelow, dropItem, dropRef)).toEqual(DragCursorPosition.Outside);
+      expect(getDragCursorPosition(monitor, dragItemFromAbove, dropItem, dropRef)).toEqual(DragCursorPosition.Outside);
+      expect(getDragCursorPosition(monitor, dragItemFromAnotherParent, dropItem, dropRef)).toEqual(DragCursorPosition.Outside);
+    });
+
+    it('Returns UpperHalf if item is being dragged over the upper half of the drop target', () => {
+      const monitor = {
+        ...dropTargetMonitor,
+        getClientOffset: () => ({ x: xyCoord.x, y: xyCoord.y - 1 }),
+      };
+      expect(getDragCursorPosition(monitor, newDragItem, dropItem, dropRef)).toEqual(DragCursorPosition.UpperHalf);
+      expect(getDragCursorPosition(monitor, dragItemFromBelow, dropItem, dropRef)).toEqual(DragCursorPosition.UpperHalf);
+      expect(getDragCursorPosition(monitor, dragItemFromAbove, dropItem, dropRef)).toEqual(DragCursorPosition.UpperHalf);
+      expect(getDragCursorPosition(monitor, dragItemFromAnotherParent, dropItem, dropRef)).toEqual(DragCursorPosition.UpperHalf);
+    });
+
+    it('Returns LowerHalf if item is being dragged over the lower half of the drop target', () => {
+      const monitor = {
+        ...dropTargetMonitor,
+        getClientOffset: () => ({ x: xyCoord.x, y: xyCoord.y + 1 }),
+      };
+      expect(getDragCursorPosition(monitor, newDragItem, dropItem, dropRef)).toEqual(DragCursorPosition.LowerHalf);
+      expect(getDragCursorPosition(monitor, dragItemFromBelow, dropItem, dropRef)).toEqual(DragCursorPosition.LowerHalf);
+      expect(getDragCursorPosition(monitor, dragItemFromAbove, dropItem, dropRef)).toEqual(DragCursorPosition.LowerHalf);
+      expect(getDragCursorPosition(monitor, dragItemFromAnotherParent, dropItem, dropRef)).toEqual(DragCursorPosition.LowerHalf);
+    });
+
+    it('Returns Self if item is being dragged over the lower half of the item above', () => {
+      const monitor = {
+        ...dropTargetMonitor,
+        getClientOffset: () => ({ x: xyCoord.x, y: xyCoord.y + 1 }),
+      };
+      const dragItemFromRightBelow: ExistingDndItem = {
+        isNew: false,
+        id: 'id5',
+        position: {
+          index: dropItemIndex + 1,
+          parentId: dropItem.position.parentId,
+        }
+      };
+      expect(getDragCursorPosition(monitor, dragItemFromRightBelow, dropItem, dropRef)).toEqual(DragCursorPosition.Self);
+    });
+
+    it('Returns Self if item is being dragged over the upper half of the item below', () => {
+      const monitor = {
+        ...dropTargetMonitor,
+        getClientOffset: () => ({ x: xyCoord.x, y: xyCoord.y - 1 }),
+      };
+      const dragItemFromRightAbove: ExistingDndItem = {
+        isNew: false,
+        id: 'id5',
+        position: {
+          index: dropItemIndex - 1,
+          parentId: dropItem.position.parentId,
+        }
+      };
+      expect(getDragCursorPosition(monitor, dragItemFromRightAbove, dropItem, dropRef)).toEqual(DragCursorPosition.Self);
+    });
+
+    it('Returns Outside if disabledDrop is true', () => {
+      expect(getDragCursorPosition(dropTargetMonitor, newDragItem, dropItem, dropRef, true)).toEqual(DragCursorPosition.Outside);
+      expect(getDragCursorPosition(dropTargetMonitor, dragItemFromBelow, dropItem, dropRef, true)).toEqual(DragCursorPosition.Outside);
+      expect(getDragCursorPosition(dropTargetMonitor, dragItemFromAbove, dropItem, dropRef, true)).toEqual(DragCursorPosition.Outside);
+      expect(getDragCursorPosition(dropTargetMonitor, dragItemFromAnotherParent, dropItem, dropRef, true)).toEqual(DragCursorPosition.Outside);
+    });
+
+    it('Returns Idle if monitor is null', () => {
+      expect(getDragCursorPosition(null, newDragItem, dropItem, dropRef)).toEqual(DragCursorPosition.Idle);
     });
   });
 
-  describe('handleDrop', () => {
-
-    it('should handle that we are not over drop target', () => {
-      const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(ItemType.Item, false, '390fa74c-6318-47bd-b609-1bf59a83fb95');
-      handleDrop(droppedItem, monitor, onDropItem, '0a7949d6-138f-479f-b529-10ddb0b13536', 3);
-      expect(onDrop).not.toBeCalled();
-      expect(onDropItem).not.toBeCalled();
+  describe('calculateNewPosition', () => {
+    it.each([
+      DragCursorPosition.Self,
+      DragCursorPosition.Outside,
+      DragCursorPosition.Idle
+    ])('Returns undefined if dragCursorPosition is %s', (dragCursorPosition) => {
+      expect(calculateNewPosition(newDragItem, dropItem, dragCursorPosition)).toBeUndefined();
+      expect(calculateNewPosition(dragItemFromAbove, dropItem, dragCursorPosition)).toBeUndefined();
+      expect(calculateNewPosition(dragItemFromBelow, dropItem, dragCursorPosition)).toBeUndefined();
+      expect(calculateNewPosition(dragItemFromAnotherParent, dropItem, dragCursorPosition)).toBeUndefined();
     });
 
-    it('should handle that dropped item is undefined', () => {
-      const [, monitor, onDrop, onDropItem] = createDummyData(ItemType.Item, true, '268b60ad-7b15-4869-9c77-260165e7830c');
-      handleDrop(undefined, monitor, onDropItem, '1659c65b-7232-4632-853c-62792281948d', 3);
-      expect(onDrop).not.toBeCalled();
-      expect(onDropItem).not.toBeCalled();
+    it('Returns index of drop item if dragCursorPosition is UpperHalf and the dragged item is new', () => {
+      expect(calculateNewPosition(newDragItem, dropItem, DragCursorPosition.UpperHalf).index).toEqual(dropItemIndex);
+    });
+
+    it('Returns index of drop item + 1 if dragCursorPosition is LowerHalf and the dragged item is new', () => {
+      expect(calculateNewPosition(newDragItem, dropItem, DragCursorPosition.LowerHalf).index).toEqual(dropItemIndex + 1);
+    });
+
+    it('Returns index of drop item if dragCursorPosition is UpperHalf and the dragged item comes from below', () => {
+      expect(calculateNewPosition(dragItemFromBelow, dropItem, DragCursorPosition.UpperHalf).index).toEqual(dropItemIndex);
+    });
+
+    it('Returns index of drop item + 1 if dragCursorPosition is LowerHalf and the dragged item comes from below', () => {
+      expect(calculateNewPosition(dragItemFromBelow, dropItem, DragCursorPosition.LowerHalf).index).toEqual(dropItemIndex + 1);
+    });
+
+    it('Returns index of drop item - 1 if dragCursorPosition is UpperHalf and the dragged item comes from above', () => {
+      expect(calculateNewPosition(dragItemFromAbove, dropItem, DragCursorPosition.UpperHalf).index).toEqual(dropItemIndex - 1);
+    });
+
+    it('Returns index of drop item if dragCursorPosition is LowerHalf and the dragged item comes from above', () => {
+      expect(calculateNewPosition(dragItemFromAbove, dropItem, DragCursorPosition.LowerHalf).index).toEqual(dropItemIndex);
+    });
+
+    it('Returns index of drop item if dragCursorPosition is UpperHalf and the dragged item comes from another parent', () => {
+      expect(calculateNewPosition(dragItemFromAnotherParent, dropItem, DragCursorPosition.UpperHalf).index).toEqual(dropItemIndex);
+    });
+
+    it('Returns index of drop item + 1 if dragCursorPosition is LowerHalf and the dragged item comes from another parent', () => {
+      expect(calculateNewPosition(dragItemFromAnotherParent, dropItem, DragCursorPosition.LowerHalf).index).toEqual(dropItemIndex + 1);
     });
 
     it.each([
-      ItemType.Item,
-      ItemType.Container,
-    ])(`Handles that %s gets dropped`, (itemType) => {
-      const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(itemType, true, '0c5a8d3d-4cf2-49bb-97f0-b5db753478d4');
-      handleDrop(droppedItem, monitor, onDropItem, 'c32fecd7-8641-4577-9765-bf14e3f45281', 3);
-      expect(onDrop).not.toBeCalled();
-      expect(onDropItem).toBeCalled();
+      DragCursorPosition.UpperHalf,
+      DragCursorPosition.LowerHalf
+    ])('Returns parent ID of drop item when dragCursorPosition is %s', (dragCursorPosition) => {
+      expect(calculateNewPosition(newDragItem, dropItem, dragCursorPosition).parentId).toEqual(parent1Id);
+      expect(calculateNewPosition(dragItemFromBelow, dropItem, dragCursorPosition).parentId).toEqual(parent1Id);
+      expect(calculateNewPosition(dragItemFromAbove, dropItem, dragCursorPosition).parentId).toEqual(parent1Id);
+      expect(calculateNewPosition(dragItemFromAnotherParent, dropItem, dragCursorPosition).parentId).toEqual(parent1Id);
     });
-  });
-
-  it(`should handle that ${ItemType.ToolbarItem} gets dropped`, () => {
-    const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(ItemType.ToolbarItem, true, '0c5a8d3d-4cf2-49bb-97f0-b5db753478d4');
-    handleDrop(droppedItem, monitor, onDropItem, 'c32fecd7-8641-4577-9765-bf14e3f45281', 3);
-    expect(onDrop).toBeCalled();
-    expect(onDropItem).not.toBeCalled();
-  });
-
-  describe('hoverIndexHelper', () => {
-    it('Can be initiated', () => {
-      const draggedItem = {
-        id: '7dbf1a30-eae7-45af-8803-96f2b6481f59',
-        type: ItemType.Item,
-        index: 0,
-      };
-      const hoveredItem = {
-        id: '3216e44c-414c-426a-ad44-5da7f655fe16',
-        type: ItemType.Item,
-        index: 1,
-      };
-      const clientOffset: XYCoord = { x: 500, y: 290 };
-      expect(hoverIndexHelper(draggedItem, hoveredItem, boundingBox, clientOffset)).toBeFalsy();
-      expect(hoverIndexHelper(draggedItem, hoveredItem, undefined, clientOffset)).toBeFalsy();
-      expect(hoverIndexHelper(draggedItem, hoveredItem, boundingBox, undefined)).toBeFalsy();
-      expect(hoverIndexHelper(draggedItem, draggedItem, boundingBox, clientOffset)).toBeFalsy();
-    });
-  });
-
-  describe('hoverShouldBeIgnored', () => {
-    const id = '9405c611-c19a-4a6b-b4c9-f5462bf51338';
-    test.each([
-      [true, undefined, true],
-      [false, undefined, true],
-      [true, { id, type: ItemType.Item }, true],
-      [true, { id, containerId: '0942c4d3-9e4d-4de5-ab7a-2e4f3a0792ad', type: ItemType.Item }, false],
-    ])(
-      'When isOver is %p and item is %p, it returns %s',
-      (isOver: boolean, item: EditorDndItem, expectedResult: boolean) => {
-        const monitor = createMockMonitor(isOver, item?.type);
-        expect(hoverShouldBeIgnored(monitor, item)).toBe(expectedResult);
-      }
-    );
   });
 });

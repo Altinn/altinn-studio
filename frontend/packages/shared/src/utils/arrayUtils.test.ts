@@ -95,8 +95,8 @@ describe('arrayUtils', () => {
       expect(insertArrayElementAtPos(arr, 'M', 9)).toEqual(['a', 'b', 'c', 'M']);
     });
 
-    it('Throws an error if the position number is negative', () => {
-      expect(() => insertArrayElementAtPos(arr, 'M', -1)).toThrowError();
+    it('Inserts element at the end if the position number is negative', () => {
+      expect(insertArrayElementAtPos(arr, 'M', -1)).toEqual(['a', 'b', 'c', 'M']);
     });
   });
 

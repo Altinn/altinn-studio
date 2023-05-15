@@ -5,9 +5,8 @@ import { Container, IContainerProps } from './Container';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { queriesMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
-import { container1IdMock, baseContainerIdMock, layoutMock } from '../testing/layoutMock';
+import { container1IdMock, baseContainerIdMock } from '../testing/layoutMock';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { createMockedDndEvents } from '../testing/dndMocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { DndProvider } from 'react-dnd';
 
@@ -67,10 +66,8 @@ const waitForData = async () => {
 const render = async (props: Partial<IContainerProps> = {}) => {
   const allProps: IContainerProps = {
     isBaseContainer: true,
-    canDrag: false,
     id: baseContainerIdMock,
-    layoutOrder: layoutMock.order,
-    dndEvents: createMockedDndEvents(),
+    handleDrop: jest.fn(),
     ...props
   };
 

@@ -43,7 +43,6 @@ export function App() {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
-  const layoutOrder = formLayouts?.[selectedLayout]?.order || {};
 
   const componentIsReady =
     formLayouts &&
@@ -113,10 +112,7 @@ export function App() {
     return (
       <>
         <ErrorMessageComponent />
-        <FormDesigner
-          layoutOrder={layoutOrder}
-          selectedLayout={selectedLayout}
-        />
+        <FormDesigner selectedLayout={selectedLayout} />
       </>
     );
   }

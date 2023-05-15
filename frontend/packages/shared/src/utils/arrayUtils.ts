@@ -69,12 +69,10 @@ export const swapArrayElements = <T>(array: T[], itemA: T, itemB: T): T[] => {
  * @param item Item to remove.
  * @param targetPos Position to remove item from.
  * @returns Array with item inserted at given position.
- * @throws Error if targetPos is negative.
  */
 export const insertArrayElementAtPos = <T>(array: T[], item: T, targetPos: number): T[] => {
-  if (targetPos < 0) throw Error(`Cannot insert element at array position ${targetPos}`);
   const out = [...array];
-  if (targetPos >= array.length) out.push(item)
+  if (targetPos >= array.length || targetPos < 0) out.push(item)
   else out.splice(targetPos, 0, item);
   return out;
 };
