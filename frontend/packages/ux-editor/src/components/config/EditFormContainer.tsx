@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useCallback, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import '../styles/index.css';
+import '../../styles/index.css';
 import { EditGroupDataModelBindings } from '../config/group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists, validComponentId } from '../../utils/formLayoutUtils';
