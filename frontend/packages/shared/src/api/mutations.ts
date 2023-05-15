@@ -24,9 +24,8 @@ import { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPa
 import { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import {
-  ILayoutSetConfig,
-  ILayoutSets,
   ILayoutSettings,
   IRepository,
   ITextResourcesObjectFormat
@@ -42,11 +41,11 @@ const headers = {
 
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
-export const addLayoutSet = (org: string, app: string, payload: ILayoutSetConfig) => put(layoutSetsPath(org, app), payload);
+export const addLayoutSet = (org: string, app: string, payload: LayoutSetConfig) => put(layoutSetsPath(org, app), payload);
 export const addRepo = (repoToAdd: AddRepoParams) => post<IRepository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
 export const copyApp = (org: string, app: string, repoName: string) => post(copyAppPath(org, app, repoName));
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<void, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
-export const createLayoutSet = (org: string, app: string) => post<ILayoutSets>(layoutSetsPath(org, app));
+export const configureLayoutSet = (org: string, app: string, layoutSetName: string) => post<LayoutSets>(layoutSetsPath(org, app, layoutSetName));
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
 export const createRepoCommit = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPath(org, app), payload, { headers });
 export const deleteAppAttachmentMetadata = (org: string, app: string, id: string) => del(appMetadataAttachmentPath(org, app), { headers, data: id });

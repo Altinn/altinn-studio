@@ -1,6 +1,6 @@
 import { firstAvailableLayout } from "../utils/formLayoutsUtils";
 import React, { useEffect, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { RightMenu } from '../components/rightMenu/RightMenu';
@@ -11,7 +11,6 @@ import { FormContextProvider } from './FormContext';
 import { deepCopy } from 'app-shared/pure';
 import { useText } from '../hooks';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { useAddLayoutMutation } from '../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutsQuery } from "../hooks/queries/useFormLayoutsQuery";
 import { useFormLayoutSettingsQuery } from "../hooks/queries/useFormLayoutSettingsQuery";
@@ -27,11 +26,10 @@ export interface FormDesignerProps {
   selectedLayoutSet: string | undefined;
 }
 
-export const FormDesigner = ({ selectedLayoutSet }: FormDesignerProps): JSX.Element => {
+export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
@@ -118,7 +116,8 @@ export const FormDesigner = ({ selectedLayoutSet }: FormDesignerProps): JSX.Elem
               </div>
               <div className={classes.rightContent + ' ' + classes.item}>
                 <RightMenu />
-              </div></FormContextProvider>
+              </div>
+            </FormContextProvider>
           </div>
         </div>
       </DndProvider>

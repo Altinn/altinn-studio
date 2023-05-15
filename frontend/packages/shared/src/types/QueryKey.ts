@@ -22,4 +22,5 @@ export enum QueryKey {
   StarredRepos = 'StarredRepos',
   TextLanguages = 'TextLanguages',
   TextResources = 'TextResources',
+  Widgets = 'Widgets',
 }

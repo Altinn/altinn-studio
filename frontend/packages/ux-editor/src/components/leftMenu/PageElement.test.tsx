@@ -29,7 +29,7 @@ describe('PageElement', () => {
     await act(() => user.type(textbox, newName));
     await act(() => user.tab());
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(org, app, name, newName);
+    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(org, app, name, newName, selectedLayoutSet);
   });
 });
 

@@ -29,16 +29,6 @@ export interface ILayoutSettings {
   receiptLayoutName?: string;
 }
 
-export interface ILayoutSets {
-  sets: ILayoutSetConfig[];
-}
-
-export interface ILayoutSetConfig {
-  id: string;
-  dataTypes: string;
-  tasks: string[];
-}
-
 export interface IPagesSettings {
   order?: string[];
   excludeFromPdf?: string[];

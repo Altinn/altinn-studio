@@ -16,7 +16,7 @@ describe('useDeleteLayoutMutation', () => {
     const { result } = await renderDeleteLayoutMutation();
     await result.current.mutateAsync(layoutName);
     expect(queriesMock.deleteFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(org, app, layoutName);
+    expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(org, app, layoutName, selectedLayoutSet);
   });
 });
 

@@ -35,7 +35,8 @@ import { BranchStatus } from 'app-shared/types/BranchStatus';
 import { DatamodelsXsd } from 'app-shared/types/DatamodelsXsd';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
-import { ILayoutSets, ILayoutSettings, IRepository, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { ILayoutSettings, IRepository, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { Organization } from 'app-shared/types/Organization';
 import { OrgsState } from 'app-shared/types/OrgsState';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -55,7 +56,7 @@ export const getDeployments = (owner: string, app: string) => get<AppDeployments
 export const getEnvironments = () => get<DeployEnvironment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
 export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
-export const getLayoutSets = (owner: string, app: string) => get<ILayoutSets>(layoutSetsPath(owner, app));
+export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getOrgList = () => get<OrgsState>(orgsListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());

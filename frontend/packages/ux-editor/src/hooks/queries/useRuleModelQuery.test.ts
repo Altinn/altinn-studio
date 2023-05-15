@@ -32,7 +32,7 @@ describe('useRuleModelQuery', () => {
   it('Calls getRuleModel with correct parameters', async () => {
     await renderAndWaitForSuccess();
     expect(queriesMock.getRuleModel).toHaveBeenCalledTimes(1);
-    expect(queriesMock.getRuleModel).toHaveBeenCalledWith(org, app);
+    expect(queriesMock.getRuleModel).toHaveBeenCalledWith(org, app, selectedLayoutSet);
   });
 
   it('Parses file correctly and returns an array of rules and conditions', async () => {

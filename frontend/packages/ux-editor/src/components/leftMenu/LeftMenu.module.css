@@ -45,20 +45,3 @@
   margin-left: 20px;
   padding: 10px;
 }
-
-.configureLayoutSetButton {
-  text-align: left;
-}
-
-.configureLayoutSet {
-  display: flex;
-  margin: 10px;
-}
-
-.configureLayoutSetInfo {
-  justify-content: left;
-  max-width: 500px;
-  border-radius: 20px;
-  padding: 10px;
-  line-height: 1.6;
-}

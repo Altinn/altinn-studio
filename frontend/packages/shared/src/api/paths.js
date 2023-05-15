@@ -111,9 +111,3 @@ export const userCurrentPath = () => '/designer/api/user/current'; // Get
 export const userReposPath = () => '/designer/api/user/repos'; // Get
 export const userStarredListPath = () => '/designer/api/user/starred'; // Get
 export const userStarredRepoPath = (org, app) => `/designer/api/user/starred/${org}/${app}`; // Put, Delete
-
-<<<<<<< HEAD:frontend/packages/shared/src/api/paths.js
-// Docs
-export const altinnDocsPath = () => 'https://docs.altinn.studio/';
-=======
->>>>>>> df3e203a2 (Add layoutsetName as query param for rule config):frontend/packages/shared/src/api-paths/index.js

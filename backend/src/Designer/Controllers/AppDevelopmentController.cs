@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
@@ -12,6 +13,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol;
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -28,6 +30,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IRepository _repository;
         private readonly ISourceControl _sourceControl;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+        private readonly string _layoutSetNameRegEx = "[a-zA-Z0-9-]{3,28}";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppDevelopmentController"/> class.
@@ -69,6 +72,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(org, app, developer, layoutSetName);
                 return Ok(formLayouts);
@@ -99,6 +107,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 await _appDevelopmentService.SaveFormLayout(org, app, developer, layoutSetName, layoutName, formLayout);
                 return Ok("Layout successfully saved.");
@@ -123,6 +136,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 _appDevelopmentService.DeleteFormLayout(org, app, developer, layoutSetName, layoutName);
                 return Ok("Layout successfully deleted.");
@@ -148,6 +166,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 _appDevelopmentService.UpdateFormLayoutName(org, app, developer, layoutSetName, layoutName, newName);
                 return Ok("Layout name successfully changed.");
@@ -173,6 +196,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, layoutSetName);
                 return Ok("Layout settings successfully saved.");
@@ -197,6 +225,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var layoutSettings = await _appDevelopmentService.GetLayoutSettings(org, app, developer, layoutSetName);
                 return Ok(layoutSettings);
@@ -252,13 +285,24 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) ||
+                                            Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
+
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 LayoutSets layoutSets = await _appDevelopmentService.ConfigureLayoutSet(org, app, developer, layoutSetName);
                 return Ok(layoutSets);
             }
-            catch (Exception exception)
+            catch (BadHttpRequestException exception)
             {
-                return NotFound($"Layout sets could not be configured: {exception}");
+                return BadRequest(exception.Message);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
             }
         }
 
@@ -297,6 +341,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 string ruleHandler = await _appDevelopmentService.GetRuleHandler(org, app, developer, layoutSetName);
                 return Content(ruleHandler);
@@ -305,9 +354,9 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NotFound("Could not find rule handler in app.");
             }
-            catch (Exception e)
+            catch (BadHttpRequestException exception)
             {
-                return BadRequest($"Could not get rule handler: {e}");
+                return BadRequest($"Could not get rule handler: {exception}");
             }
         }
 
@@ -325,6 +374,11 @@ namespace Altinn.Studio.Designer.Controllers
             string content = string.Empty;
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 using (StreamReader reader = new(Request.Body))
                 {
@@ -355,6 +409,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 await _appDevelopmentService.SaveRuleConfig(org, app, developer, ruleConfig, layoutSetName);
                 return Ok("Rule configuration successfully saved.");
@@ -378,17 +437,23 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
+                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) || Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
+                if (!isValidLayoutSetName)
+                {
+                    return BadRequest("LayoutSetName is not valid");
+                }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 string ruleConfig = await _appDevelopmentService.GetRuleConfig(org, app, developer, layoutSetName);
                 return Content(ruleConfig);
             }
             catch (FileNotFoundException)
             {
+                // Return 204 because the file is not required to exist
                 return NoContent();
             }
-            catch (Exception e)
+            catch (BadHttpRequestException exception)
             {
-                return BadRequest($"Could not get rule configuration: {e}");
+                return BadRequest($"Could not get rule configuration: {exception}");
             }
         }
 

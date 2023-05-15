@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './PageElement.module.css';
 import cn from 'classnames';
-import type { ChangeEvent, SyntheticEvent, MouseEvent } from 'react';
+import type { ChangeEvent, KeyboardEvent, SyntheticEvent, MouseEvent } from 'react';
 import { Button, ButtonVariant, TextField } from '@digdir/design-system-react';
 import { ConfirmModal } from './ConfirmModal';
 import { Divider } from 'app-shared/primitives';
@@ -16,7 +16,8 @@ import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSet
 import { useUpdateLayoutOrderMutation } from '../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useDeleteLayoutMutation } from '../../hooks/mutations/useDeleteLayoutMutation';
 import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayoutNameMutation';
-import { selectedLayoutSetSelector } from "../../selectors/formLayoutSelectors";
+import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 
 export interface IPageElementProps {
   name: string;
@@ -90,7 +91,6 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     layoutOrder.some((p: string) => p.toLowerCase() === candidateName.toLowerCase());
 
   const handleOnChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-    const nameRegex = new RegExp('^[a-zA-Z0-9_\\-\\.]*$');
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
     if (pageNameExists(newNameCandidate)) {
       setErrorMessage(t('left_menu.pages_error_unique'));
@@ -98,7 +98,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
       setErrorMessage(t('left_menu.pages_error_empty'));
     } else if (newNameCandidate.length >= 30) {
       setErrorMessage(t('left_menu.pages_error_length'));
-    } else if (!newNameCandidate.match(nameRegex)) {
+    } else if (!validateLayoutNameAndLayoutSetName(newNameCandidate)) {
       setErrorMessage(t('left_menu.pages_error_format'));
     } else {
       setErrorMessage('');
@@ -106,7 +106,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     }
   };
 
-  const handleKeyPress = async (event: any) => {
+  const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !errorMessage && name !== newName) {
       updateLayoutName({ oldName: name, newName });
       setSearchParams({ ...deepCopy(searchParams), layout: newName });

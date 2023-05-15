@@ -48,7 +48,7 @@ export const LeftMenu = () => {
   }
 
   function handleAddLayoutSet() {
-    // Add layout set with set-name as user-input
+    // TODO: Add layout set with set-name as user-input
     // auto-connect data model and process in backend?
   }
 

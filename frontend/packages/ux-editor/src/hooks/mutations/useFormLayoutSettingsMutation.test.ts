@@ -25,6 +25,7 @@ describe('useFormLayoutSettingsMutation', () => {
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
       org,
       app,
+      selectedLayoutSet,
       layoutSettings
     );
   });

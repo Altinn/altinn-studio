@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "layoutFile1")]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "layoutFile1InSet1")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "layoutFile1")]
         public async Task DeleteFormLayout_ShouldDeleteLayoutFile_AndReturnOk(string org, string app, string developer, [CanBeNull] string layoutSetName, string layoutName)
         {
@@ -31,11 +31,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            string layoutFilePath = Path.Combine(CreatedFolderPath, "App", "ui", "layouts", $"{layoutName}.json");
+            string relativePath = string.IsNullOrEmpty(layoutSetName)
+                ? $"App/ui/layouts/{layoutName}.json"
+                : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
+            string layoutFilePath = Path.Combine(CreatedFolderPath, relativePath);
             File.Exists(layoutFilePath).Should().BeFalse();
         }
 
-        [Theory(Skip = "Endpoint does not behave as is written in cotroller. Expected is return 404, but returns 200")]
+        [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "nonExistingLayoutFile")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "nonExistingLayoutFile")]
         public async Task DeleteFormLayout_NonExistingFile_Should_AndReturnNotFound(string org, string app, string developer, string layoutSetName, string layoutName)

@@ -29,6 +29,7 @@ describe('useUpdateLayoutOrderMutation', () => {
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
       org,
       app,
+      selectedLayoutSet,
       expect.objectContaining({
         pages: expect.objectContaining({
           order: [layout2NameMock, layout1NameMock]
@@ -54,6 +55,7 @@ describe('useUpdateLayoutOrderMutation', () => {
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
       org,
       app,
+      selectedLayoutSet,
       expect.objectContaining({
         pages: expect.objectContaining({
           order: [layout2NameMock, layout1NameMock]

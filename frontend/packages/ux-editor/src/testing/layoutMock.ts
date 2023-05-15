@@ -1,7 +1,7 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { IInternalLayout } from '../types/global';
-import { ILayoutSets } from 'app-shared/types/global';
+import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from '../types/FormComponent';
 import { ExternalFormLayout, FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
@@ -89,7 +89,7 @@ export const externalLayoutsMock: FormLayoutsResponse = {
   [layout2NameMock]: layout2Mock,
 };
 
-export const layoutSetsMock: ILayoutSets = {
+export const layoutSetsMock: LayoutSets = {
   sets: [{
     id: 'test-layout-set',
     dataTypes: 'datamodel',

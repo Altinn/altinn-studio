@@ -122,7 +122,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>layoutsets file, or an OK response if app does not use layoutsets</returns>
         [HttpGet]
         [Route("api/layoutsets")]
-        public async Task<ActionResult<JsonNode>> LayoutSets(string org, string app)
+        public async Task<ActionResult<LayoutSets>> LayoutSets(string org, string app)
         {
             try
             {
@@ -626,7 +626,7 @@ namespace Altinn.Studio.Designer.Controllers
                 string ruleConfig = await altinnAppGitRepository.GetRuleConfiguration(layoutSetName);
                 return Ok(ruleConfig);
             }
-            catch (NotFoundException)
+            catch (FileNotFoundException)
             {
                 return NoContent();
             }

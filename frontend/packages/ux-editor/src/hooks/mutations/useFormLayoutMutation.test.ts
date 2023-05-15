@@ -42,6 +42,7 @@ describe('useFormLayoutMutation', () => {
       org,
       app,
       layoutName,
+      selectedLayoutSet,
       expect.objectContaining({
         data: {
           layout: [

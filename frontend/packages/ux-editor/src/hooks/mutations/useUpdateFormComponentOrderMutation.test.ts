@@ -37,6 +37,7 @@ describe('useUpdateFormComponentOrderMutation', () => {
       org,
       app,
       layout1NameMock,
+      selectedLayoutSet,
       expect.objectContaining({
         data: expect.objectContaining({
           layout: [

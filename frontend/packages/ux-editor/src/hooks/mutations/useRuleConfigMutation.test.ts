@@ -24,7 +24,7 @@ describe('useRuleConfigMutation', () => {
     const { result } = await render();
     await result.current.mutateAsync(newRuleConfig);
     expect(queriesMock.saveRuleConfig).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveRuleConfig).toHaveBeenCalledWith(org, app, newRuleConfig);
+    expect(queriesMock.saveRuleConfig).toHaveBeenCalledWith(org, app, selectedLayoutSet, newRuleConfig);
   });
 });
 

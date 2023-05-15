@@ -368,6 +368,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public void DeleteLayout(string layoutSetName, string layoutName)
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+            if (!FileExistsByRelativePath(layoutFilePath))
+            {
+                throw new FileNotFoundException("Layout was not found or has already been deleted");
+            }
             DeleteFileByRelativePath(layoutFilePath);
         }
 
@@ -384,30 +388,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return layoutSetNames;
         }
 
-        public bool EnsureValidFolderNameOfLayoutSetName(string layoutSetName, out string validFolderName)
-        {
-            validFolderName = String.Empty;
-            bool status = false;
-            try
-            {
-                if (String.IsNullOrWhiteSpace(layoutSetName))
-                {
-                    validFolderName = layoutSetName.Replace(" ", "-");
-                }
-                // Test if name is a valid foldername by getting a full path
-                validFolderName = Path.GetFullPath(layoutSetName);
-                validFolderName = layoutSetName;
-                status = true;
-            }
-            catch (ArgumentException) { }
-            catch (NotSupportedException) { }
-            catch (PathTooLongException) { }
-
-            return status;
-        }
-
         /// <summary>
-        /// Configure the initial layoutset by moving layoutsfolder to new dest: App/ui/initial-layoutset/layouts
+        /// Configure the initial layout set by moving layoutsfolder to new dest: App/ui/{layoutSetName}/layouts
         /// </summary>
         public void MoveLayoutsToInitialLayoutSet(string layoutSetName)
         {
@@ -438,6 +420,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string sourceRuleHandlerPath = GetPathToRuleHandler(null);
             string destRuleHandlerPath = GetPathToRuleHandler(layoutSetName);
             MoveFileByRelativePath(sourceRuleHandlerPath, destRuleHandlerPath, RULE_HANDLER_FILENAME);
+            string sourceRuleConfigPath = GetPathToRuleConfiguration(null);
+            string destRuleConfigPath = GetPathToRuleConfiguration(layoutSetName);
+            MoveFileByRelativePath(sourceRuleConfigPath, destRuleConfigPath, RULE_CONFIGURATION_FILENAME);
         }
 
         /// <summary>
@@ -659,7 +644,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                     new()
                     {
                         Id = layoutSetName,
-                        DataTypes = "Task_1", // Name of datamodel - but what if it does not exist?
+                        DataType = null, // TODO: Add name of datamodel - but what if it does not exist?
                         Tasks = new List<string> { "Task_1" }
                     }
                 }

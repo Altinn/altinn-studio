@@ -30,6 +30,7 @@ describe('useAddLayoutMutation', () => {
       org,
       app,
       layoutName,
+      selectedLayoutSet,
       {
         $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
         data: {

@@ -51,7 +51,7 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
     },
     onSuccess: (updatedLayout: IInternalLayout) => {
       queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app],
+        [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
           const newLayouts: IFormLayouts = deepCopy(oldLayouts);
           newLayouts[layoutName] = updatedLayout;

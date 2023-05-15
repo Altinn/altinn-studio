@@ -225,18 +225,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="sourceRelativeFilePath">Relative path to file to be moved.</param>
         /// <param name="destRelativeFilePath">Relative path to destination of moved file.</param>
-        public void MoveFileByRelativePath(string sourceRelativeFilePath, string destRelativeFilePath, string destinationFileName)
+        /// <param name="destinationFileName">FileName for the destination file</param>
+        protected void MoveFileByRelativePath(string sourceRelativeFilePath, string destRelativeFilePath, string destinationFileName)
         {
-            Guard.AssertNotNullOrEmpty(sourceRelativeFilePath, nameof(sourceRelativeFilePath));
+            if (FileExistsByRelativePath(sourceRelativeFilePath))
+            {
+                Guard.AssertNotNullOrEmpty(sourceRelativeFilePath, nameof(sourceRelativeFilePath));
 
-            string sourceAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativeFilePath);
-            string destAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(destRelativeFilePath);
-            string destAbsoluteParentDirPath = destAbsoluteFilePath.Remove(destAbsoluteFilePath.IndexOf(destinationFileName, StringComparison.Ordinal));
-            Directory.CreateDirectory(destAbsoluteParentDirPath);
-            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, sourceAbsoluteFilePath);
-            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, destAbsoluteFilePath);
+                string sourceAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativeFilePath);
+                string destAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(destRelativeFilePath);
+                string destAbsoluteParentDirPath = destAbsoluteFilePath.Remove(destAbsoluteFilePath.IndexOf(destinationFileName, StringComparison.Ordinal));
+                Directory.CreateDirectory(destAbsoluteParentDirPath);
+                Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, sourceAbsoluteFilePath);
+                Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, destAbsoluteFilePath);
 
-            File.Move(sourceAbsoluteFilePath, destAbsoluteFilePath);
+                File.Move(sourceAbsoluteFilePath, destAbsoluteFilePath);
+            }
         }
 
         /// <summary>

@@ -1,0 +1,33 @@
+.configureLayoutSetButton {
+  text-align: left;
+}
+
+.configureLayoutSet {
+  display: flex;
+  margin: 10px;
+}
+
+.configureLayoutSetName > *:not(:last-child) {
+  margin: 10px;
+}
+
+.errorMessage {
+  font-size: 13px;
+  font-weight: 400;
+  padding-top: 6px;
+  margin-left: 10px;
+}
+
+.configureLayoutSetInfo {
+  justify-content: left;
+  max-width: 500px;
+  border-radius: 20px;
+  padding: 10px;
+  line-height: 1.6;
+}
+
+.informationButton {
+  width: 25px;
+  height: 25px;
+  margin-top: 5px;
+}

@@ -41,7 +41,6 @@ export function RuleModal(props: IRuleModalProps) {
   }
 
   function handleSaveChange(id: string, connection: RuleConnection) {
-    console.log('save rule config',addRuleConnection(ruleConfig, id, connection) );
     saveRuleConfig(addRuleConnection(ruleConfig, id, connection));
     setSelectedConnectionId(null);
     props.handleClose();

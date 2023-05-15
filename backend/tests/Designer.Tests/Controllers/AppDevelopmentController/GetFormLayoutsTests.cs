@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Designer.Tests.TestDataClasses;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -20,30 +21,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "empty-app", "testUser", "empty-layout-set",
-            "TestData/App/ui/layoutWithUnknownProperties.json",
-            "TestData/App/ui/changename/layouts/form.json",
-            "TestData/App/ui/changename/layouts/summary.json",
-            "TestData/App/ui/datalist/layouts/formLayout.json",
-            "TestData/App/ui/datalist/layouts/summary.json",
-            "TestData/App/ui/group/layouts/hide.json",
-            "TestData/App/ui/group/layouts/prefill.json",
-            "TestData/App/ui/group/layouts/repeating.json",
-            "TestData/App/ui/group/layouts/summary.json",
-            "TestData/App/ui/likert/layouts/formLayout.json",
-            "TestData/App/ui/message/layouts/formLayout.json")]
-        [InlineData("ttd", "empty-app", "testUser", null,
-            "TestData/App/ui/layoutWithUnknownProperties.json",
-            "TestData/App/ui/changename/layouts/form.json",
-            "TestData/App/ui/changename/layouts/summary.json",
-            "TestData/App/ui/datalist/layouts/formLayout.json",
-            "TestData/App/ui/datalist/layouts/summary.json",
-            "TestData/App/ui/group/layouts/hide.json",
-            "TestData/App/ui/group/layouts/prefill.json",
-            "TestData/App/ui/group/layouts/repeating.json",
-            "TestData/App/ui/group/layouts/summary.json",
-            "TestData/App/ui/likert/layouts/formLayout.json",
-            "TestData/App/ui/message/layouts/formLayout.json")]
+        [ClassData(typeof(FormLayoutsTestData))]
         public async Task GetAppDevelopment_ShouldReturnLayouts(string org, string app, string developer, string layoutSetName, params string[] expectedLayoutPaths)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
