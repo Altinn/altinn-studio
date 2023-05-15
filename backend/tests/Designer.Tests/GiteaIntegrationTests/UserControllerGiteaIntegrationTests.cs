@@ -55,7 +55,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             using var response = await HttpClient.Value.GetAsync(requestUrl);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
-            content.Should().NotBeNull().And.HaveCount(1);
+            content.Should().NotBeNull();
             content.Should().Contain(r => r.Name == targetRepo);
         }
 

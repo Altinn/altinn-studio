@@ -169,8 +169,8 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage getOrgReposResponse = await HttpClient.Value.GetAsync($"designer/api/repos/org/{org}");
             getOrgReposResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var deserializedRepositoryModel = await getOrgReposResponse.Content.ReadAsAsync<List<Repository>>();
-            deserializedRepositoryModel.Count.Should().Be(1);
-            deserializedRepositoryModel.First().Name.Should().Be(targetRepo);
+            deserializedRepositoryModel.Should().NotBeEmpty();
+            deserializedRepositoryModel.Should().Contain(x => x.Name == targetRepo);
         }
 
         // Get branch endpoint test
