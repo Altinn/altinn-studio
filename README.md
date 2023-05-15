@@ -31,7 +31,7 @@ cd app-frontend-react
 docker compose up
 ```
 
-This solution works, but will be slow to start and rebuild. If you just want to run the solution locally, contribute
+This solution works, but will be slow to start and does not rebuild when files change. If you just want to run the solution locally, contribute
 by testing a bug fix or new feature before the official release, the Docker method will work fine. We recommend
 installing `node` locally if you are considering contributing code.
 
