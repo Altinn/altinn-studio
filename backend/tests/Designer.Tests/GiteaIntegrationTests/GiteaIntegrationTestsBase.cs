@@ -3,9 +3,11 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
@@ -87,7 +89,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             return client;
         }
 
-        private Stream GenerateGiteaOverrideConfigStream()
+        protected Stream GenerateGiteaOverrideConfigStream()
         {
             string reposLocation = new Uri(TestRepositoriesLocation).AbsolutePath;
             string templateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet");
@@ -111,6 +113,17 @@ namespace Designer.Tests.GiteaIntegrationTests
             var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configOverride));
             configStream.Seek(0, SeekOrigin.Begin);
             return configStream;
+        }
+        protected async Task CreateAppUsingDesigner(string org, string repoName)
+        {
+            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{repoName}";
+            // Create repo with designer
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+                HttpMethod.Post,
+                $"designer/api/repos/create-app?org={org}&repository={repoName}");
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
         }
     }
 }
