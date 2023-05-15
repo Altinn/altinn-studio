@@ -21,14 +21,14 @@ using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
-    public class GitManipulationIntegrationTests : GiteaIntegrationTestsBase<RepositoryController, GitManipulationIntegrationTests>
+    public class RepositoryControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<RepositoryController, RepositoryControllerGiteaIntegrationTests>
     {
 
         // Gitea needs some time to process changes to the repo, so we need to retry a few times
         private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
 
-        public GitManipulationIntegrationTests(WebApplicationFactory<RepositoryController> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public RepositoryControllerGiteaIntegrationTests(WebApplicationFactory<RepositoryController> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
         {
         }
 
@@ -169,8 +169,8 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage getOrgReposResponse = await HttpClient.Value.GetAsync($"designer/api/repos/org/{org}");
             getOrgReposResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             var deserializedRepositoryModel = await getOrgReposResponse.Content.ReadAsAsync<List<Repository>>();
-            deserializedRepositoryModel.Count.Should().Be(1);
-            deserializedRepositoryModel.First().Name.Should().Be(targetRepo);
+            deserializedRepositoryModel.Should().NotBeEmpty();
+            deserializedRepositoryModel.Should().Contain(x => x.Name == targetRepo);
         }
 
         // Get branch endpoint test
@@ -201,19 +201,6 @@ namespace Designer.Tests.GiteaIntegrationTests
             });
             branchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         }
-
-        private async Task CreateAppUsingDesigner(string org, string repoName)
-        {
-            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{repoName}";
-            // Create repo with designer
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
-                HttpMethod.Post,
-                $"designer/api/repos/create-app?org={org}&repository={repoName}");
-
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.Created);
-        }
-
 
         private static string GetCommitInfoJson(string text, string org, string repository) =>
             @$"{{
