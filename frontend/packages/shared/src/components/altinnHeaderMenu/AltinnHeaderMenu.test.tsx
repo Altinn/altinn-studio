@@ -1,7 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { AltinnHeaderMenu, AltinnHeaderMenuItem, IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
-import { TopBarMenu } from 'app-shared/types/header';
 import { MemoryRouter } from 'react-router-dom';
 
 describe('AltinnHeaderMenu', () => {
@@ -34,7 +33,7 @@ const render = (props: Partial<IAltinnHeaderMenuProps> = {}) => {
   const defaultProps = {
     org: 'jest-test-org',
     app: 'jest-test-app',
-    activeSubHeaderSelection: TopBarMenu.Create,
+    activeSubHeaderSelection: 'create',
     menu: [],
   } as IAltinnHeaderMenuProps;
 

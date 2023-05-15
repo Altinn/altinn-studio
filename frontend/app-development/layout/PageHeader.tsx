@@ -14,6 +14,7 @@ import { previewPath, publiserPath } from 'app-shared/api-paths';
 import { TopBarMenu } from './AppBar/appBarConfig';
 import { ButtonVariant } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 
 interface PageHeaderProps {
   showSubMenu: boolean;
@@ -35,22 +36,27 @@ const subMenuContent = () => {
   );
 };
 
-const buttonActions = [
-  {
-    title: 'top_menu.preview',
-    path: previewPath,
-    menuKey: TopBarMenu.Preview,
-    buttonVariant: ButtonVariant.Outline,
-    headerButtonsClasses: classes.previewButton,
-  },
-  {
-    title: 'top_menu.deploy',
-    path: publiserPath,
-    menuKey: TopBarMenu.Deploy,
-    buttonVariant: ButtonVariant.Outline,
-    headerButtonsClasses: undefined,
-  },
-];
+const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
+  const actions = [
+    {
+      title: 'top_menu.preview',
+      path: previewPath,
+      menuKey: TopBarMenu.Preview,
+      buttonVariant: ButtonVariant.Outline,
+      headerButtonsClasses: classes.previewButton,
+      handleClick: () => window.open(previewPath(org, app), '_blank'),
+    },
+    {
+      title: 'top_menu.deploy',
+      path: publiserPath,
+      menuKey: TopBarMenu.Deploy,
+      buttonVariant: ButtonVariant.Outline,
+      headerButtonsClasses: undefined,
+      handleClick: () => (window.location.href = publiserPath(org, app)),
+    },
+  ];
+  return actions;
+};
 
 export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {
   const repoType = getRepositoryType(org, app);
@@ -74,7 +80,7 @@ export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {
               app={app}
               user={user}
               repository={{ ...repository, user_has_starred: false }}
-              buttonActions={buttonActions}
+              buttonActions={buttonActions(org, app)}
             />
           }
         />

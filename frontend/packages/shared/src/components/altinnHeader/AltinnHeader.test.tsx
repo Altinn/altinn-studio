@@ -24,8 +24,8 @@ describe('AltinnHeader', () => {
           buttonVariant: ButtonVariant.Quiet,
           headerButtonsClasses: undefined,
           menuKey: 'test-button',
-          path: (org, app) => `${org}-${app}-path`,
           title: 'TestButton',
+          handleClick: jest.fn(),
         },
       ],
     });
