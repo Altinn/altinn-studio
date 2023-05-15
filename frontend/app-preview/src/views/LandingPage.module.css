@@ -14,8 +14,20 @@
 .header {
   font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: white;
-  padding: 10px;
-  height: auto;
   border-bottom: 1px solid gray;
   background-color: #15a859;
+  display: flex;
+  align-items: center;
+  height: 80px;
+  padding: 0 2rem;
+}
+
+.betaTag {
+  border: 2px solid white;
+  border-radius: 4px;
+  width: fit-content;
+  height: fit-content;
+  margin-left: 30px;
+  padding: 0 5px;
+  font-weight: bold;
 }

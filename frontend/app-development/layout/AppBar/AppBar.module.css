@@ -116,3 +116,15 @@
   align-items: center;
   gap: 1rem;
 }
+
+.infoPreviewIsBetaMessage {
+  padding: 20px;
+  display: inline-block;
+}
+
+.infoIcon {
+  border: white 1px solid;
+  border-radius: 50%;
+  font-size: larger;
+  margin-top: 3px
+}

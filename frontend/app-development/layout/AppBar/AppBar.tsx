@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, MouseEvent } from 'react';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import { getTopBarMenu, TopBarMenu } from './appBarConfig';
@@ -11,8 +11,9 @@ import AltinnStudioLogo from 'app-shared/navigation/main-header/AltinnStudioLogo
 import { ThreeDotsMenu } from './ThreeDotsMenu';
 import { BranchingIcon } from '@navikt/aksel-icons';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { Popover } from '@mui/material';
+import { InformationIcon } from '@navikt/aksel-icons';
 import { previewPath, publiserPath } from 'app-shared/api-paths';
-import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { useUserQuery } from 'app-development/hooks/queries/useUserQuery';
 import { useAppSelector } from '../../hooks';
 
@@ -32,9 +33,18 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
     window.location.href = publiserPath(org, app);
   };
   const { data: user } = useUserQuery();
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const handlePreviewClick = () => {
     window.open(previewPath(org, app), '_blank');
+  };
+
+  const handlePopoverOpen = (event: MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
   };
 
   return (
@@ -64,17 +74,36 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
         </ul>
         <div className={classes.rightContent}>
           <div className={classes.rightContentButtons}>
-            {/* TODO: Enable cypress usecase test when below button is enabled in prod/dev (testing/cypress/src/integration/usecase/usecase.js:57) */}
-            {!_useIsProdHack() && (
-              <Button
-                className={classes.previewButton}
-                onClick={handlePreviewClick}
-                variant={ButtonVariant.Outline}
-                data-testid={TopBarMenu.Preview}
+            <Button
+              className={classes.previewButton}
+              onClick={handlePreviewClick}
+              variant={ButtonVariant.Outline}
+              data-testid={TopBarMenu.Preview}
+            >
+              {t('top_menu.preview')}
+              <span
+                aria-haspopup="true"
+                onMouseEnter={handlePopoverOpen}
+                onMouseLeave={handlePopoverClose}
               >
-                {t('top_menu.preview')}
-              </Button>
-            )}
+                <InformationIcon
+                className={classes.infoIcon}
+                />
+              </span>
+              <Popover
+                open={!!anchorEl}
+                onClose={handlePopoverClose}
+                anchorEl={anchorEl}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                disableRestoreFocus
+                sx={{ pointerEvents: 'none', }}
+              >
+                <span className={classes.infoPreviewIsBetaMessage}>
+                  {t('top_menu.preview_is_beta_message')}
+                </span>
+              </Popover>
+            </Button>
             <Button
               onClick={handlePubliserClick}
               variant={ButtonVariant.Outline}

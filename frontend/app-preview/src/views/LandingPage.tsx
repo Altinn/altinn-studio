@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from "app-shared/providers/PreviewConnectionContext";
+import AltinnStudioLogo from "app-shared/navigation/main-header/AltinnStudioLogo";
 
 export const LandingPage = () => {
   const { org, app } = useParams();
@@ -30,7 +31,12 @@ export const LandingPage = () => {
   return (
     <PreviewContext>
       <div className={classes.header}>
-        <h1>Altinn Studio - App Preview</h1>
+        <a href='/'>
+          <AltinnStudioLogo />
+        </a>
+        <div className={classes.betaTag}>
+          {'BETA'}
+        </div>
       </div>
       <iframe
         title={t('preview.iframe_title')}

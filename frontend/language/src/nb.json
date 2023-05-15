@@ -754,6 +754,7 @@
   "top_menu.datamodel": "Datamodell",
   "top_menu.deploy": "Publiser",
   "top_menu.preview": "Forhåndsvis",
+  "top_menu.preview_is_beta_message": "Denne funksjonaliteten er i beta. Vi jobber med å forbedre den.",
   "top_menu.texts": "Tekst",
   "top_menu.texts_old": "Tekst *",
   "ux_editor.add_map_layer": "Legg til kartlag",
