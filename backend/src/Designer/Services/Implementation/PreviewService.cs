@@ -35,17 +35,19 @@ public class PreviewService : IPreviewService
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         DataType dataType = await GetDataTypeForTask1(org, app, developer);
+        // RegEx for instance guid in app-frontend: [\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}
+        string instanceGuid = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
         Instance instance = new()
         {
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId == null ? "undefined" : instanceOwnerPartyId.Value.ToString() },
-            Id = $"{instanceOwnerPartyId}/test-id",
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
             Data = new()
                 { new ()
                 {
                     DataType = dataType?.Id,
                     Id = "test-datatask-id"
                 } },
-            Org = applicationMetadata.Org,
+            Org = applicationMetadata.Org == developer ? "ttd" : applicationMetadata.Org,
             Process = new()
             {
                 CurrentTask = new()

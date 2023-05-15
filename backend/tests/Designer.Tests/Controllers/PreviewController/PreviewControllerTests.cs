@@ -26,6 +26,8 @@ namespace Designer.Tests.Controllers.PreviewController
         private const string Org = "ttd";
         private const string App = "preview-app";
         private const string Developer = "testUser";
+        private const string PartyId = "51001";
+        private const string InstanceGuId = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -155,7 +157,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             Party currentParty = JsonConvert.DeserializeObject<Party>(responseDocument.RootElement.ToString());
-            Assert.Equal(1, currentParty.PartyId);
+            Assert.Equal(51001, currentParty.PartyId);
         }
 
         [Fact]
@@ -209,9 +211,8 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string expectedFormData = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/models/custom-dm-name.schema.json");
 
-            string dataPathWithData = $"{Org}/{App}/instances/1/test-id/data/test-datatask-id";
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
@@ -222,7 +223,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task UpdateFormData_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/instances/undefined/data/test-datatask-id";
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -232,7 +233,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task GetProcess_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/instances/undefined/process";
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -246,9 +247,25 @@ namespace Designer.Tests.Controllers.PreviewController
         }
 
         [Fact]
+        public async Task GetInstancesReceiptStep_Ok_OrgIsTTD()
+        {
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+            Instance instanceReceiptStep = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
+            Assert.Equal($"{PartyId}/{InstanceGuId}", instanceReceiptStep.Id);
+            Assert.Equal("ttd", instanceReceiptStep.Org);
+        }
+
+        [Fact]
         public async Task GetProcessNext_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/instances/undefined/process/next";
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -259,6 +276,19 @@ namespace Designer.Tests.Controllers.PreviewController
             ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
+        }
+
+        [Fact]
+        public async Task PutProcessNext_Ok()
+        {
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(@"{""ended"": ""ended""}", responseBody);
         }
 
         [Fact]
