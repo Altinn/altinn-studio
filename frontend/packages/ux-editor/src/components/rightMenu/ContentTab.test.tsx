@@ -1,17 +1,14 @@
 import React from 'react';
 import { ContentTab } from './ContentTab';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { FormContext } from '../../containers/FormContext';
 import { component1IdMock, component1Mock, container1IdMock, layoutMock } from '../../testing/layoutMock';
-import { useTextResourcesQuery } from 'app-development/hooks/queries/useTextResourcesQuery';
 import type { IAppDataState } from '../../features/appData/appDataReducers';
-import type { ITextResources, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { ITextResourcesState } from '../../features/appData/textResources/textResourcesSlice';
 import {
   appDataMock,
-  renderHookWithMockStore,
   renderWithMockStore,
   textResourcesMock,
 } from '../../testing/mocks';

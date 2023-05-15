@@ -4,8 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { EditContainer, IEditContainerProps } from './EditContainer';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { queriesMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
-import { baseContainerIdMock, container1IdMock, layoutMock } from '../testing/layoutMock';
+import { renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import { container1IdMock, layoutMock } from '../testing/layoutMock';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();

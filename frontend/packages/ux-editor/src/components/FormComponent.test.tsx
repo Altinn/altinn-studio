@@ -13,7 +13,6 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 const user = userEvent.setup();
 
 // Test data:
-const id = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88'
 const handleEditMock = jest.fn();
 const handleSaveMock = jest.fn().mockImplementation(() => Promise.resolve());
 const handleDiscardMock = jest.fn();

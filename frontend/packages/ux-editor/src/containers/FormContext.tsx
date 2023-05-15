@@ -52,14 +52,6 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(org, app);
   const { mutateAsync: updateContainerId } = useUpdateContainerIdMutation(org, app);
 
-  // const previewableComponents = [
-  //   ComponentType.Checkboxes,
-  //   ComponentType.RadioButtons,
-  //   ComponentType.Button,
-  //   ComponentType.NavigationButtons,
-  // ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
-  // const isPreviewable = previewableComponents.includes(component.type as ComponentType);
-
   const handleDiscard = useCallback((): void => {
     handleEdit(null);
   }, []);
@@ -96,7 +88,6 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
         await switchSelectedFieldId(ruleConfig, id, updatedComponent.id, saveRuleConfig);
       }
     }
-    // if (isPreviewable) setIsPreviewMode(true);
     handleDiscard();
   }, [components]);
 
