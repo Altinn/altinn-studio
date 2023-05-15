@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Implementation.TestData.AppDataModel;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -27,6 +28,7 @@ public class DefaultTaskEventsTests: IDisposable
     private readonly Mock<IData> _dataMock;
     private readonly Mock<IPrefill> _prefillMock;
     private readonly IAppModel _appModel;
+    private readonly Mock<IAppModel> _appModelMock;
     private readonly Mock<IInstantiationProcessor> _instantiationMock;
     private readonly Mock<IInstance> _instanceMock;
     private IEnumerable<IProcessTaskStart> _taskStarts;
@@ -44,6 +46,7 @@ public class DefaultTaskEventsTests: IDisposable
         _dataMock = new Mock<IData>();
         _prefillMock = new Mock<IPrefill>();
         _appModel = new DefaultAppModel(NullLogger<DefaultAppModel>.Instance);
+        _appModelMock = new Mock<IAppModel>();
         _instantiationMock = new Mock<IInstantiationProcessor>();
         _instanceMock = new Mock<IInstance>();
         _taskStarts = new List<IProcessTaskStart>();
@@ -139,6 +142,169 @@ public class DefaultTaskEventsTests: IDisposable
         endTwo.Verify(a => a.End("Task_1", instance));
         endOne.VerifyNoOtherCalls();
         endTwo.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async void OnEndProcessTask_removes_all_shadow_fields_and_saves_to_specified_datatype()
+    {
+        var application = GetApplicationMetadataForShadowFields();
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/shadow-fields-test",
+            Data = new List<DataElement>()
+            {
+                { 
+                    new()
+                    {
+                        DataType = "model",
+                        Id = "03ea848c-64f0-40f4-b5b4-30e1642d09b5",
+                    }
+                }
+            },
+            InstanceOwner = new InstanceOwner()
+            {
+                PartyId = "1000"
+            },
+            Org = "ttd"
+        };
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(application);
+        _appModelMock.Setup(r => r.GetModelType("Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields")).Returns(typeof(Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields));
+        var instanceGuid = Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d");
+        var dataElementId = Guid.Parse("03ea848c-64f0-40f4-b5b4-30e1642d09b5");
+        Type modelType = typeof(ModelWithShadowFields);
+        _dataMock.Setup(r => r.GetFormData(instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId))
+            .ReturnsAsync(GetDataElementForShadowFields());
+
+        DefaultTaskEvents te = new DefaultTaskEvents(
+            _logger,
+            _resMock.Object,
+            _metaMock.Object,
+            _dataMock.Object,
+            _prefillMock.Object,
+            _appModelMock.Object,
+            _instantiationMock.Object,
+            _instanceMock.Object,
+            _taskStarts,
+            _taskEnds,
+            _taskAbandons,
+            _pdfMock.Object,
+            _featureManagerMock.Object,
+            _layoutStateInitializer);
+
+        await te.OnEndProcessTask("Task_1", instance);
+        _metaMock.Verify(r => r.GetApplicationMetadata());
+        _dataMock.Verify(r => r.InsertFormData<object>(It.IsAny<ModelWithShadowFields>(), instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, "model-clean"));
+        _dataMock.Verify(r => r.GetFormData(instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId));
+        _dataMock.Verify(r => r.Update(instance, instance.Data[0]));
+    }
+
+    [Fact]
+    public async void OnEndProcessTask_removes_all_shadow_fields_and_saves_to_current_datatype_when_saveToDataType_not_specified()
+    {
+        var application = GetApplicationMetadataForShadowFields(false);
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/shadow-fields-test",
+            Data = new List<DataElement>()
+            {
+                { 
+                    new()
+                    {
+                        DataType = "model",
+                        Id = "03ea848c-64f0-40f4-b5b4-30e1642d09b5",
+                    }
+                }
+            },
+            InstanceOwner = new InstanceOwner()
+            {
+                PartyId = "1000"
+            },
+            Org = "ttd"
+        };
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(application);
+        _appModelMock.Setup(r => r.GetModelType("Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields")).Returns(typeof(Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields));
+        var instanceGuid = Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d");
+        var dataElementId = Guid.Parse("03ea848c-64f0-40f4-b5b4-30e1642d09b5");
+        Type modelType = typeof(Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields);
+        _dataMock.Setup(r => r.GetFormData(instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId))
+            .ReturnsAsync(GetDataElementForShadowFields());
+
+        DefaultTaskEvents te = new DefaultTaskEvents(
+            _logger,
+            _resMock.Object,
+            _metaMock.Object,
+            _dataMock.Object,
+            _prefillMock.Object,
+            _appModelMock.Object,
+            _instantiationMock.Object,
+            _instanceMock.Object,
+            _taskStarts,
+            _taskEnds,
+            _taskAbandons,
+            _pdfMock.Object,
+            _featureManagerMock.Object,
+            _layoutStateInitializer);
+
+        await te.OnEndProcessTask("Task_1", instance);
+        _metaMock.Verify(r => r.GetApplicationMetadata());
+        _dataMock.Verify(r => r.UpdateData<object>(It.IsAny<Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields>(), instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId));
+        _dataMock.Verify(r => r.GetFormData(instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId));
+        _dataMock.Verify(r => r.Update(instance, instance.Data[0]));
+    }
+
+    [Fact]
+    public async void OnEndProcessTask_throws_exception_when_saveToDataType_is_specified_but_does_not_exist()
+    {
+        var application = GetApplicationMetadataForShadowFields(true, saveToDataType: "does-not-exist");
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/shadow-fields-test",
+            Data = new List<DataElement>()
+            {
+                { 
+                    new()
+                    {
+                        DataType = "model",
+                        Id = "03ea848c-64f0-40f4-b5b4-30e1642d09b5",
+                    }
+                }
+            },
+            InstanceOwner = new InstanceOwner()
+            {
+                PartyId = "1000"
+            },
+            Org = "ttd"
+        };
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(application);
+        _appModelMock.Setup(r => r.GetModelType("Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields")).Returns(typeof(Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields));
+        var instanceGuid = Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d");
+        var dataElementId = Guid.Parse("03ea848c-64f0-40f4-b5b4-30e1642d09b5");
+        Type modelType = typeof(Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields);
+        _dataMock.Setup(r => r.GetFormData(instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId))
+            .ReturnsAsync(GetDataElementForShadowFields());
+
+        DefaultTaskEvents te = new DefaultTaskEvents(
+            _logger,
+            _resMock.Object,
+            _metaMock.Object,
+            _dataMock.Object,
+            _prefillMock.Object,
+            _appModelMock.Object,
+            _instantiationMock.Object,
+            _instanceMock.Object,
+            _taskStarts,
+            _taskEnds,
+            _taskAbandons,
+            _pdfMock.Object,
+            _featureManagerMock.Object,
+            _layoutStateInitializer);
+
+        await Assert.ThrowsAsync<System.Exception>(async () => await te.OnEndProcessTask("Task_1", instance));
+        _metaMock.Verify(r => r.GetApplicationMetadata());
+        _dataMock.Verify(r => r.GetFormData(instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId));
     }
     
     [Fact]
@@ -337,5 +503,106 @@ public class DefaultTaskEventsTests: IDisposable
         _instantiationMock.VerifyNoOtherCalls();
         _instanceMock.VerifyNoOtherCalls();
         _pdfMock.VerifyNoOtherCalls();
+    }
+
+    private ApplicationMetadata GetApplicationMetadataForShadowFields(bool useSaveToDataType = true, string saveToDataType = "model-clean")
+    {
+        return new ApplicationMetadata("tdd/bestilling")
+        {
+            Id = "tdd/bestilling",
+            Org = "tdd",
+            Created = DateTime.Parse("2019-09-16T22:22:22"),
+            CreatedBy = "username",
+            Title = new Dictionary<string, string>()
+            {
+                { "nb", "Bestillingseksempelapp" }
+            },
+            DataTypes = new List<DataType>()
+            {
+                new()
+                {
+                    Id = "ref-data-as-pdf",
+                    AllowedContentTypes = new List<string>() { "application/pdf" },
+                    MinCount = 1,
+                    TaskId = "Task_1"
+                },
+                new()
+                {
+                    Id = "model",
+                    AllowedContentTypes = new List<string>() { "application/xml" },
+                    MinCount = 1,
+                    MaxCount = 1,
+                    TaskId = "Task_1",
+                    EnablePdfCreation = false,
+                    AppLogic = new ApplicationLogic()
+                    {
+                        AllowAnonymousOnStateless = false,
+                        AutoCreate = true,
+                        ClassRef = "Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields",
+                        AutoDeleteOnProcessEnd = false,
+                        ShadowFields = new ShadowFields()
+                        {
+                            Prefix = "AltinnSF_",
+                            SaveToDataType = useSaveToDataType ? saveToDataType : null,
+                        }
+                    }
+                },
+                new()
+                {
+                    Id = "model-clean",
+                    AllowedContentTypes = new List<string>() { "application/xml" },
+                    MinCount = 0,
+                    MaxCount = 1,
+                    TaskId = "Task_1",
+                    AppLogic = new ApplicationLogic()
+                    {
+                        AllowAnonymousOnStateless = false,
+                        AutoCreate = false,
+                        ClassRef = "Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields",
+                        AutoDeleteOnProcessEnd = false,
+                    }
+                }
+            },
+            PartyTypesAllowed = new PartyTypesAllowed()
+            {
+                BankruptcyEstate = true,
+                Organisation = true,
+                Person = true,
+                SubUnit = true
+            },
+            OnEntry = new OnEntryConfig()
+            {
+                Show = "select-instance"
+            }
+        };
+    }
+
+    private ModelWithShadowFields GetDataElementForShadowFields()
+    {
+            return new ModelWithShadowFields()
+        {
+            AltinnSF_hello = "hello",
+            AltinnSF_test = "test",
+            Property1 = 1,
+            Property2 = 2,
+            AltinnSF_gruppeish = new AltinnSF_gruppeish()
+            {
+                F1 = "f1",
+                F2 = "f2",
+            },
+            Gruppe = new List<Gruppe>()
+            {
+                new()
+                {
+                    AltinnSF_gfhjelpefelt = "gfhjelpefelt",
+                    Gf1 = "gf1",
+                },
+                new()
+                {
+                    AltinnSF_gfhjelpefelt = "gfhjelpefelt2",
+                    Gf1 = "gf1-v2",
+                }
+            }
+        };
     }
 }

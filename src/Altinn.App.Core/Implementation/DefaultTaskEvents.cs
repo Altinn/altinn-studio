@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
@@ -144,6 +147,8 @@ public class DefaultTaskEvents : ITaskEvents
 
         await RunRemoveHiddenData(instance, instanceGuid, dataTypesToLock);
 
+        await RunRemoveShadowFields(instance, instanceGuid, dataTypesToLock);
+
         await RunAppDefinedOnTaskEnd(endEvent, instance);
 
         await RunLockDataAndGeneratePdf(endEvent, instance, dataTypesToLock);
@@ -158,6 +163,14 @@ public class DefaultTaskEvents : ITaskEvents
         if (_appSettings?.RemoveHiddenDataPreview == true)
         {
             await RemoveHiddenData(instance, instanceGuid, dataTypesToLock);
+        }
+    }
+
+    private async Task RunRemoveShadowFields(Instance instance, Guid instanceGuid, List<DataType> dataTypesToLock)
+    {
+        if (dataTypesToLock.Find(dt => dt.AppLogic?.ShadowFields?.Prefix != null) != null)
+        {
+            await RemoveShadowFields(instance, instanceGuid, dataTypesToLock);
         }
     }
 
@@ -252,6 +265,48 @@ public class DefaultTaskEvents : ITaskEvents
 
                 // save the updated data if there are changes
                 await _dataClient.UpdateData(data, instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataElementId);
+            }
+        }
+    }
+
+    private async Task RemoveShadowFields(Instance instance, Guid instanceGuid, List<DataType> dataTypesToLock)
+    {
+        foreach (var dataType in dataTypesToLock.Where(dt => dt.AppLogic?.ShadowFields != null))
+        {
+            foreach (Guid dataElementId in instance.Data.Where(de => de.DataType == dataType.Id).Select(dataElement => Guid.Parse(dataElement.Id)))
+            {
+                Type modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
+                string app = instance.AppId.Split("/")[1];
+                int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+                dynamic data = await _dataClient.GetFormData(
+                    instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataElementId);
+
+                var modifier = new IgnorePropertiesWithPrefix(dataType.AppLogic.ShadowFields.Prefix);
+                JsonSerializerOptions options = new ()
+                {
+                    TypeInfoResolver = new DefaultJsonTypeInfoResolver
+                    {
+                        Modifiers = { modifier.ModifyPrefixInfo }
+                    },
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                };
+                
+                string serializedData = JsonSerializer.Serialize(data, options);
+                if (dataType.AppLogic.ShadowFields.SaveToDataType != null) {
+                    var saveToDataType = dataTypesToLock.Find(dt => dt.Id == dataType.AppLogic.ShadowFields.SaveToDataType);
+                    if (saveToDataType == null) {
+                        throw new Exception($"SaveToDataType {dataType.AppLogic.ShadowFields.SaveToDataType} not found");
+                    }
+    
+                    Type saveToModelType = _appModel.GetModelType(saveToDataType.AppLogic.ClassRef);
+                    var updatedData = JsonSerializer.Deserialize(serializedData, saveToModelType);
+                    await _dataClient.InsertFormData(updatedData, instanceGuid, saveToModelType ?? modelType, instance.Org, app, instanceOwnerPartyId, saveToDataType.Id);
+                }
+                else
+                {
+                    var updatedData = JsonSerializer.Deserialize(serializedData, modelType);
+                    await _dataClient.UpdateData(updatedData, instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataElementId);
+                }
             }
         }
     }

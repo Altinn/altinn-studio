@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.2.1" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.16.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.17.0" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.0.0-preview" />
   </ItemGroup>
 
