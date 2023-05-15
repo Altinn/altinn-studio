@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Platform.Profile.Models;
@@ -14,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
 using SharedResources.Tests;
 using Xunit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 using TextResource = Altinn.Studio.Designer.Models.TextResource;
 
 namespace Designer.Tests.Controllers.PreviewController
@@ -23,6 +26,12 @@ namespace Designer.Tests.Controllers.PreviewController
         private const string Org = "ttd";
         private const string App = "preview-app";
         private const string Developer = "testUser";
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
 
         public PreviewControllerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
         {
@@ -50,7 +59,8 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedApplicationMetadata, responseBody).Should().BeTrue();
+            string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(expectedApplicationMetadata, _serializerOptions), _serializerOptions);
+            JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
         }
 
         [Fact]
