@@ -11,11 +11,18 @@ public class SmallGameVariantTests
     public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("småvilt", 74, httpClientMock, new Dictionary<string, string> { { "variant", "Hønsefugler, spurvefugler, skarver og due 2023-03  - variant av Klassifisering av småvilt 2017-04" } });
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
+            "småvilt", 74, httpClientMock, 
+            new Dictionary<string, string> { 
+                { "variant", "Hønsefugler, spurvefugler, skarver og due 2023-03  - variant av Klassifisering av småvilt 2017-04" }
+            },
+            new ClassificationOptions { MapDescriptionFunc = (classificationCode) =>  classificationCode.Name }
+            );
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
         appOptions.Options.Should().HaveCount(11);
         appOptions.Options.First(x => x.Value == "06").Label.Should().Be("Ravn");
+        appOptions.Options.First(x => x.Value == "06").Description.Should().Be("Ravn");
     }
 }
