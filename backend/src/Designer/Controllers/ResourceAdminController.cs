@@ -62,7 +62,20 @@ namespace Altinn.Studio.Designer.Controllers
                 List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
                 return repositoryResourceList != null ? repositoryResourceList.First() : StatusCode(204);
             }
+        }
 
+        [HttpPut]
+        [Route("designer/api/{org}/resources/repository/{repository}/updateresource/{id}")]
+        public ActionResult UpdateResource(string org, string repository, string id, [FromBody] ServiceResource resource)
+        {
+            return _repository.UpdateServiceResource(org, repository, id, resource);
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/repository/{repository}/addresource")]
+        public ActionResult<ServiceResource> AddResource(string org, string repository, [FromBody] ServiceResource resource)
+        {
+            return _repository.AddServiceResource(org, repository, resource);
         }
     }
 }
