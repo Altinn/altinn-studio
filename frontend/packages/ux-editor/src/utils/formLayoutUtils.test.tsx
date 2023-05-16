@@ -20,7 +20,7 @@ import {
   IInternalLayout
 } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/mocks';
+import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
 
 // Test data:
 const baseContainer: ICreateFormContainer = {

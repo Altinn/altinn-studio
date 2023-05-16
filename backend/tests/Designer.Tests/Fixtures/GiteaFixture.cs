@@ -13,12 +13,12 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
 using Polly;
 using Polly.Retry;
 using Testcontainers.PostgreSql;
 using Xunit;
-using static System.IO.Path;
 
 namespace Designer.Tests.Fixtures
 {
@@ -32,14 +32,14 @@ namespace Designer.Tests.Fixtures
         private IContainer _giteaContainer;
 
         private Lazy<HttpClient> _giteaClient;
-        private Lazy<HttpClient> GiteaClient
+        public Lazy<HttpClient> GiteaClient
         {
             get => _giteaClient ??= new Lazy<HttpClient>(() => new HttpClient(new EnsureSuccessHandler
             {
                 InnerHandler = new HttpClientHandler()
             })
             {
-                BaseAddress = new Uri("http://localhost:" + _giteaContainer.GetMappedPublicPort(3000) + "/"),
+                BaseAddress = new Uri("http://localhost:" + _giteaContainer.GetMappedPublicPort(3000) + "/api/v1/"),
                 DefaultRequestHeaders = { Authorization = new BasicAuthenticationHeaderValue(GiteaConstants.AdminUser, GiteaConstants.AdminPassword) }
             });
         }
@@ -62,6 +62,7 @@ namespace Designer.Tests.Fixtures
         {
             _postgreSqlContainer = new PostgreSqlBuilder()
                 .WithNetwork(_giteaNetwork)
+                .WithImagePullPolicy(PullPolicy.Missing)
                 .WithNetworkAliases("db")
                 .WithUsername("gitea")
                 .WithPassword("gitea")
@@ -89,7 +90,7 @@ namespace Designer.Tests.Fixtures
 
         private async Task BuildAndStartAltinnGiteaAsync()
         {
-            string giteaDockerFilePath = Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "gitea");
+            string giteaDockerFilePath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "gitea");
             var altinnGiteaImage = new ImageFromDockerfileBuilder()
                 .WithDockerfileDirectory(giteaDockerFilePath)
                 .WithDockerfile("Dockerfile")
@@ -98,10 +99,11 @@ namespace Designer.Tests.Fixtures
 
             await altinnGiteaImage.CreateAsync();
 
-            _giteaContainer = new ContainerBuilder().WithImage("repositories:latest")
+            _giteaContainer = new ContainerBuilder().WithImage(altinnGiteaImage.FullName)
+                .WithImagePullPolicy(PullPolicy.Never)
                 .WithNetwork(_giteaNetwork)
-                .WithPortBinding(3000)
-                .WithPortBinding(222, 22)
+                .WithPortBinding(3000, true)
+                .WithPortBinding(22, true)
                 .WithEnvironment(new Dictionary<string, string>
                 {
                     {"GITEA____RUN_MODE", "prod"},
@@ -152,31 +154,31 @@ namespace Designer.Tests.Fixtures
 
             using var content = new StringContent(body, Encoding.UTF8, MediaTypeNames.Application.Json);
 
-            await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("api/v1/orgs", content, _), CancellationToken.None);
+            await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("orgs", content, _), CancellationToken.None);
         }
 
         private async Task CreateTestOrgTeams()
         {
-            string teamsJsonFile = Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "development", "data", "gitea-teams.json");
+            string teamsJsonFile = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "development", "data", "gitea-teams.json");
             string teamsContent = await File.ReadAllTextAsync(teamsJsonFile);
             JsonNode teams = JsonNode.Parse(teamsContent);
             foreach (var team in teams as JsonArray)
             {
                 team["units"] = JsonNode.Parse(@"[""repo.code"", ""repo.issues"", ""repo.pulls"", ""repo.releases""]");
                 using var content = new StringContent(team.ToString(), Encoding.UTF8, MediaTypeNames.Application.Json);
-                await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync($"api/v1/orgs/{GiteaConstants.TestOrgUsername}/teams", content, _), CancellationToken.None);
+                await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync($"orgs/{GiteaConstants.TestOrgUsername}/teams", content, _), CancellationToken.None);
             }
         }
 
         private async Task AddUserToTeams(params string[] teams)
         {
-            var allTeams = await GiteaClient.Value.GetAsync($"api/v1/orgs/{GiteaConstants.TestOrgUsername}/teams");
+            var allTeams = await GiteaClient.Value.GetAsync($"orgs/{GiteaConstants.TestOrgUsername}/teams");
             string allTeamsContent = await allTeams.Content.ReadAsStringAsync();
             JsonArray teamsJson = JsonNode.Parse(allTeamsContent) as JsonArray;
             var teamIds = teamsJson.Where(x => teams.Contains(x["name"].GetValue<string>())).Select(x => x["id"].GetValue<long>());
             foreach (long teamId in teamIds)
             {
-                await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PutAsync($"api/v1/teams/{teamId}/members/{GiteaConstants.TestUser}", null, _), CancellationToken.None);
+                await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PutAsync($"teams/{teamId}/members/{GiteaConstants.TestUser}", null, _), CancellationToken.None);
             }
         }
     }

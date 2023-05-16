@@ -22,10 +22,6 @@ const defaultProps: IGenericEditComponent = {
 };
 
 describe('ButtonComponent', () => {
-  it('Renders without errors', () => {
-    render();
-  });
-
   it('changing button type to navigation buttons should call handleComponentChange with expected properties', async () => {
     const mockHandleComponentChange = jest.fn();
     const { user } = render({ handleComponentChange: mockHandleComponentChange });

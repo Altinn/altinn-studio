@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
@@ -13,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
 using SharedResources.Tests;
 using Xunit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 using TextResource = Altinn.Studio.Designer.Models.TextResource;
 
 namespace Designer.Tests.Controllers.PreviewController
@@ -22,6 +26,14 @@ namespace Designer.Tests.Controllers.PreviewController
         private const string Org = "ttd";
         private const string App = "preview-app";
         private const string Developer = "testUser";
+        private const string PartyId = "51001";
+        private const string InstanceGuId = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
 
         public PreviewControllerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
         {
@@ -49,7 +61,8 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedApplicationMetadata, responseBody).Should().BeTrue();
+            string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(expectedApplicationMetadata, _serializerOptions), _serializerOptions);
+            JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
         }
 
         [Fact]
@@ -76,7 +89,7 @@ namespace Designer.Tests.Controllers.PreviewController
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         }
 
         [Fact]
@@ -144,7 +157,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             Party currentParty = JsonConvert.DeserializeObject<Party>(responseDocument.RootElement.ToString());
-            Assert.Equal(1, currentParty.PartyId);
+            Assert.Equal(51001, currentParty.PartyId);
         }
 
         [Fact]
@@ -198,9 +211,8 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string expectedFormData = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/models/custom-dm-name.schema.json");
 
-            string dataPathWithData = $"{Org}/{App}/instances/1/test-id/data/test-datatask-id";
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
@@ -211,7 +223,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task UpdateFormData_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/instances/undefined/data/test-datatask-id";
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -221,7 +233,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task GetProcess_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/instances/undefined/process";
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -235,9 +247,25 @@ namespace Designer.Tests.Controllers.PreviewController
         }
 
         [Fact]
+        public async Task GetInstancesReceiptStep_Ok_OrgIsTTD()
+        {
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+            Instance instanceReceiptStep = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
+            Assert.Equal($"{PartyId}/{InstanceGuId}", instanceReceiptStep.Id);
+            Assert.Equal("ttd", instanceReceiptStep.Org);
+        }
+
+        [Fact]
         public async Task GetProcessNext_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/instances/undefined/process/next";
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -248,6 +276,19 @@ namespace Designer.Tests.Controllers.PreviewController
             ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
+        }
+
+        [Fact]
+        public async Task PutProcessNext_Ok()
+        {
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(@"{""ended"": ""ended""}", responseBody);
         }
 
         [Fact]
@@ -327,6 +368,33 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
             Assert.Equal(@"[{""language"":""en""},{""language"":""nb""}]", responseBody);
+        }
+
+        [Fact]
+        public async Task GetOptions_when_options_exists_Ok()
+        {
+            string dataPathWithData = $"{Org}/{App}/api/options/test-options";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            string responseStringWithoutWhitespaces = Regex.Replace(responseBody, @"\s", "");
+            Assert.Equal(@"[{""label"":""label1"",""value"":""value1""},{""label"":""label2"",""value"":""value2""}]", responseStringWithoutWhitespaces);
+        }
+
+        [Fact]
+        public async Task GetOptions_when_no_options_exist_returns_NoContent()
+        {
+            string dataPathWithData = $"{Org}/{App}/api/options/non-existing-options";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal("", responseBody);
         }
     }
 }

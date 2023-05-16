@@ -32,7 +32,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISchemaModelService _schemaModelService;
         private readonly IPreviewService _previewService;
         private readonly ITextsService _textsService;
-        private Instance MockInstance { get; set; } = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PreviewController"/> class.
@@ -58,10 +57,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>default view for the app preview.</returns>
         [HttpGet]
         [Route("/preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/{*AllValues}")]
-        public async Task<IActionResult> Index(string org, string app)
+        public IActionResult Index(string org, string app)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            MockInstance = await _previewService.CreateMockInstance(org, app, developer, 1);
             return View();
         }
 
@@ -117,7 +114,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>layoutsets file, or a notfound response if app does not use layoutsets</returns>
+        /// <returns>layoutsets file, or an OK response if app does not use layoutsets</returns>
         [HttpGet]
         [Route("api/layoutsets")]
         public async Task<ActionResult<LayoutSets>> LayoutSets(string org, string app)
@@ -131,7 +128,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (NotFoundException)
             {
-                return NotFound();
+                return Ok();
             }
 
         }
@@ -205,7 +202,7 @@ namespace Altinn.Studio.Designer.Controllers
                 UserName = "previewUser",
                 PhoneNumber = "12345678",
                 Email = "test@test.com",
-                PartyId = 1,
+                PartyId = 51001,
                 Party = new(),
                 UserType = 0,
                 ProfileSettingPreference = new() { Language = "nb" }
@@ -227,15 +224,15 @@ namespace Altinn.Studio.Designer.Controllers
             // TODO: return actual current party when tenor testusers are available
             Party party = new()
             {
-                PartyId = 1,
-                PartyTypeName = PartyType.Organisation,
+                PartyId = 51001,
+                PartyTypeName = PartyType.Person,
                 OrgNumber = "1",
                 SSN = null,
                 UnitType = "AS",
-                Name = "Preview AS",
+                Name = "Test Testesen",
                 IsDeleted = false,
                 OnlyHierarchyElementWithNoAccess = false,
-                Person = null,
+                Person = new Person(),
                 Organization = null,
                 ChildParties = null
             };
@@ -245,12 +242,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Action for mocking a response to validate the instance
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>bool</returns>
         [HttpPost]
         [Route("api/v1/parties/validateInstantiation")]
-        public IActionResult ValidateInstantiation(string org, string app)
+        public IActionResult ValidateInstantiation([FromQuery] string partyId)
         {
             return Content(@"{""valid"": true}");
         }
@@ -281,29 +276,28 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The mocked instance object</returns>
         [HttpPost]
         [Route("instances")]
-        public async Task<ActionResult> Instances(string org, string app, [FromQuery] int? instanceOwnerPartyId)
+        public async Task<ActionResult<Instance>> Instances(string org, string app, [FromQuery] int? instanceOwnerPartyId)
         {
-            // TODO: consider generating a test id
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Instance mockInstance = await _previewService.CreateMockInstance(org, app, developer, instanceOwnerPartyId);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, instanceOwnerPartyId);
             return Ok(mockInstance);
         }
 
         /// <summary>
-        /// Action for getting the json schema for the datamodel for the default datatask test-datatask-id
+        /// Action for getting the json schema for the datamodel for the default data task test-datatask-id
         /// </summary>
-        /// <remarks>/1/test-id/ is the instanceId which is a combination of partyId + / + hash id of the instance</remarks>
-        /// <remarks>Only for apps that does not use layoutsets. Must be adapted</remarks>
-        /// <returns>Json schema for datamodel for datatask test-datatask-id</returns>
+        /// <remarks>Only for apps that does not use layout sets. Must be adapted</remarks>
+        /// <returns>Json schema for datamodel for data task test-datatask-id</returns>
         [HttpGet]
-        [Route("instances/1/test-id/data/test-datatask-id")]
-        public async Task<ActionResult> GetFormData(string org, string app)
+        [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
+        public async Task<ActionResult> GetFormData(string org, string app, [FromRoute] string partyId, [FromRoute] string instanceGuid)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             DataType dataType = await _previewService.GetDataTypeForTask1(org, app, developer);
             if (dataType == null)
             {
-                return Ok("undefined");
+                Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, Int32.Parse(partyId));
+                return Ok(mockInstance.Id);
             }
             string modelPath = $"/App/models/{dataType.Id}.schema.json";
             string decodedPath = Uri.UnescapeDataString(modelPath);
@@ -317,7 +311,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>Only for apps that does not use layoutsets. Must be adapted</remarks>
         /// <returns>Json schema for datamodel for datatask test-datatask-id</returns>
         [HttpPut]
-        [Route("instances/undefined/data/test-datatask-id")]
+        [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
         public ActionResult UpdateFormData(string org, string app)
         {
             return Ok();
@@ -328,7 +322,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>The processState object on the global mockInstance object</returns>
         [HttpGet]
-        [Route("instances/undefined/process")]
+        [Route("instances/{partyId}/{instanceGuId}/process")]
         public ActionResult Process()
         {
             ProcessState processState = new() { CurrentTask = new() { AltinnTaskType = "data", ElementId = "Task_1" } };
@@ -336,15 +330,40 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Endpoint to get instance in receipt step
+        /// </summary>
+        /// <returns>The processState object on the global mockInstance object</returns>
+        [HttpGet]
+        [Route("instances/{partyId}/{instanceGuId}")]
+        public async Task<ActionResult<Instance>> InstancesForReceipt(string org, string app, [FromRoute] int partyId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId);
+            return Ok(mockInstance);
+        }
+
+        /// <summary>
         /// Action for getting a mocked response for the next task connected to the instance
         /// </summary>
         /// <returns>The processState object on the global mockInstance object</returns>
         [HttpGet]
-        [Route("instances/undefined/process/next")]
+        [Route("instances/{partyId}/{instanceGuId}/process/next")]
         public ActionResult ProcessNext()
         {
             ProcessState processState = new() { CurrentTask = new() { AltinnTaskType = "data", ElementId = "Task_1" } };
             return Ok(processState);
+        }
+
+        /// <summary>
+        /// Action for mocking an end to the process in order to get receipt after "send inn" is pressed
+        /// </summary>
+        /// <returns>Process object where ended is set</returns>
+        [HttpPut]
+        [Route("instances/{partyId}/{instanceGuId}/process/next")]
+        public ActionResult ProcessNext(string org, string app, [FromQuery] string lang)
+        {
+            string process = @"{""ended"": ""ended""}";
+            return Ok(process);
         }
 
         /// <summary>
@@ -467,6 +486,31 @@ namespace Altinn.Studio.Designer.Controllers
                     applicationLanguages.Add(new ApplicationLanguage() { Language = language });
                 }
                 return Ok(applicationLanguages);
+            }
+            catch (NotFoundException)
+            {
+                return NoContent();
+            }
+
+        }
+
+        /// <summary>
+        /// Action for getting options list for a given options list id
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="optionListId">The id of the options list</param>
+        /// <returns>The options list if it exists, otherwise nothing</returns>
+        [HttpGet]
+        [Route("api/options/{optionListId}")]
+        public async Task<ActionResult<string>> GetOptions(string org, string app, string optionListId)
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                string options = await altinnAppGitRepository.GetOptions(optionListId);
+                return Ok(options);
             }
             catch (NotFoundException)
             {

@@ -1,546 +1,139 @@
-import type { RefObject } from 'react';
-import React, { Component, createRef } from 'react';
-import { connect } from 'react-redux';
-import type { Dispatch } from 'redux';
+import React, { useState } from 'react';
+import { ConnectDragSource } from 'react-dnd';
+import { useParams } from 'react-router-dom';
+import cn from 'classnames';
 import '../styles/index.css';
-import ErrorPopover from 'app-shared/components/ErrorPopover';
-import { EditGroupDataModelBindings } from '../components/config/group/EditGroupDataModelBindings';
-import { FormComponentWrapper } from '../components/FormComponent';
-import { getTextResource } from '../utils/language';
-import { idExists, validComponentId } from '../utils/formLayoutUtils';
-import type {
-  IAppState,
-  ICreateFormContainer,
-  IDataModelFieldElement,
-  IFormDesignerComponents,
-  IFormDesignerContainers,
-  IFormLayoutOrder,
-} from '../types/global';
-import { DroppableDraggableComponent } from './DroppableDraggableComponent';
+import { FormComponent } from '../components/FormComponent';
+import type { IFormLayoutOrder } from '../types/global';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 import type { EditorDndEvents } from './helpers/dnd-types';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  Checkbox,
-  CheckboxGroup,
-  FieldSet,
-  TextField,
-} from '@digdir/design-system-react';
+import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import classes from './Container.module.css';
-import cn from 'classnames';
-import { XMarkIcon, ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon, CheckmarkIcon } from '@navikt/aksel-icons';
-import { ConnectDragSource } from 'react-dnd';
+import { ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/DragHandle';
-import { TextResource } from '../components/TextResource';
-import { withTranslation } from 'react-i18next';
-import i18next from 'i18next';
-import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
-import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
+import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
-import { ITextResource } from 'app-shared/types/global';
+import { useText } from '../hooks/useText';
+import { EditContainer } from './EditContainer';
+import { EmptyContainerPlaceholder } from './EmptyContainerPlaceholder';
 
-export interface IProvidedContainerProps {
+export interface IContainerProps {
   isBaseContainer?: boolean;
-  dispatch?: Dispatch;
   id: string;
+  parentContainerId?: string;
   index?: number;
-  items?: string[];
   layoutOrder?: IFormLayoutOrder;
   dndEvents: EditorDndEvents;
-  dragHandleRef?: ConnectDragSource;
-  t: typeof i18next.t;
-  dataModel: IDataModelFieldElement[];
-  components: IFormDesignerComponents;
-  containers: IFormDesignerContainers;
-  itemOrder: IFormLayoutOrder;
-  updateFormContainerMutation: ReturnType<typeof useUpdateFormContainerMutation>;
-  updateContainerIdMutation: ReturnType<typeof useUpdateContainerIdMutation>;
-  deleteFormContainerMutation: ReturnType<typeof useDeleteFormContainerMutation>;
-  textResources: ITextResource[];
+  canDrag: boolean;
 }
 
-export interface IContainerProps extends IProvidedContainerProps {
-  dataModelGroup?: string;
-  itemOrder: any;
-  repeating: boolean;
-  index?: number;
-}
+export const Container = (props: IContainerProps) => {
+  const t = useText();
 
-export interface IContainerState {
-  itemOrder: any;
-  currentlyDragging: boolean;
-  editMode: boolean;
-  tmpContainer: ICreateFormContainer;
-  tmpId: string;
-  expanded: boolean;
-  groupIdError: string;
-  groupIdPopoverRef: RefObject<HTMLDivElement>;
-  tableHeadersError: string;
-  tableHeadersPopoverRef: RefObject<HTMLDivElement>;
-}
+  const { org, app } = useParams();
 
-export class ContainerComponent extends Component<IContainerProps, IContainerState> {
-  public static getDerivedStateFromProps(nextProps: IContainerProps, prevState: IContainerState) {
-    if (prevState.currentlyDragging) {
-      return {
-        ...prevState,
-      };
-    }
-    return {
-      ...nextProps,
-    };
-  }
+  const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app);
+  const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
 
-  constructor(_props: IContainerProps) {
-    super(_props);
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [expanded, setExpanded] = useState<boolean>(true);
 
-    this.state = {
-      itemOrder: _props.itemOrder,
-      currentlyDragging: false,
-      editMode: false,
-      tmpContainer: JSON.parse(
-        JSON.stringify(this.props.containers[this.props.id])
-      ) as unknown as ICreateFormContainer,
-      tmpId: this.props.id,
-      expanded: true,
-      groupIdError: null,
-      groupIdPopoverRef: createRef<HTMLDivElement>(),
-      tableHeadersError: null,
-      tableHeadersPopoverRef: createRef<HTMLDivElement>(),
-    };
-  }
+  const items = props.layoutOrder[props.id];
 
-  public handleChangeRepeatingGroup = () => {
-    this.setState((prevState: IContainerState) => {
-      const tmpContainer = prevState.tmpContainer;
-      const isRepeating = tmpContainer.maxCount > 0;
-      if (isRepeating) {
-        // we are disabling the repeating feature, remove datamodelbinding
-        tmpContainer.dataModelBindings.group = undefined;
-        tmpContainer.maxCount = undefined;
-        tmpContainer.textResourceBindings = undefined;
-      } else {
-        tmpContainer.maxCount = 2;
-      }
-      return {
-        tmpContainer,
-      };
-    });
-  };
-
-  public handleMaxOccurChange = (event: any) => {
-    let maxOcc = event.target?.value;
-    if (maxOcc < 2) {
-      maxOcc = 2;
-    }
-    this.setState((prevState: IContainerState) => {
-      return {
-        tmpContainer: {
-          ...prevState.tmpContainer,
-          maxCount: maxOcc,
-        },
-      };
-    });
-  };
-
-  public handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    this.props.deleteFormContainerMutation.mutate(this.props.id);
-  };
-
-  public handleDiscard = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    this.setState({
-      editMode: false,
-      tmpContainer: JSON.parse(
-        JSON.stringify(this.props.containers[this.props.id])
-      ) as unknown as ICreateFormContainer,
-      tmpId: this.props.id,
-    });
-  };
-
-  public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    const { t } = this.props;
-    if (this.state.tmpId && this.state.tmpId !== this.props.id) {
-      if (idExists(this.state.tmpId, this.props.components, this.props.containers)) {
-        this.setState(() => ({
-          groupIdError: t('ux_editor.modal_properties_group_id_not_unique_error'),
-        }));
-      } else if (!validComponentId.test(this.state.tmpId)) {
-        this.setState(() => ({
-          groupIdError: t('ux_editor.modal_properties_group_id_not_valid'),
-        }));
-      } else {
-        this.props.updateFormContainerMutation.mutate({
-          updatedContainer: this.state.tmpContainer,
-          id: this.props.id,
-        });
-        this.props.updateContainerIdMutation.mutate({
-          currentId: this.props.id,
-          newId: this.state.tmpId,
-        });
-        this.setState({
-          editMode: false,
-        });
-      }
-    } else if (this.state.tmpContainer.tableHeaders?.length === 0) {
-      this.setState({
-        tableHeadersError: t('ux_editor.modal_properties_group_table_headers_error'),
-      });
-    } else {
-      // No validations, save.
-      this.props.updateFormContainerMutation.mutate({
-        updatedContainer: this.state.tmpContainer,
-        id: this.props.id,
-      });
-      this.setState({
-        editMode: false,
-      });
-    }
-  };
-
-  public handleNewId = (event: any) => {
-    const { t } = this.props;
-    if (
-      idExists(event.target.value, this.props.components, this.props.containers) &&
-      event.target.value !== this.props.id
-    ) {
-      this.setState(() => ({
-        groupIdError: t('ux_editor.modal_properties_group_id_not_unique_error'),
-      }));
-    } else if (!validComponentId.test(event.target.value)) {
-      this.setState(() => ({
-        groupIdError: t('ux_editor.modal_properties_group_id_not_valid'),
-      }));
-    } else {
-      this.setState({
-        groupIdError: null,
-      });
-    }
-  };
-
-  public handleClosePopup = () => {
-    this.setState({
-      groupIdError: null,
-      tableHeadersError: null,
-    });
-  };
-
-  public handleButtonTextChange = (id: string) => {
-    this.setState((prevState: IContainerState) => {
-      const updatedContainer = prevState.tmpContainer;
-      if (!updatedContainer.textResourceBindings) {
-        updatedContainer.textResourceBindings = {};
-      }
-      updatedContainer.textResourceBindings.add_button = id;
-      return {
-        tmpContainer: updatedContainer,
-      };
-    });
-  };
-
-  public handleTableHeadersChange = (ids: string[]) => {
-    const { t } = this.props;
-    this.setState((prevState: IContainerState) => {
-      const updatedContainer = prevState.tmpContainer;
-      updatedContainer.tableHeaders = [...ids];
-      if (updatedContainer.tableHeaders?.length === this.props.itemOrder.length) {
-        // table headers is the same as children. We ignore the table header prop
-        updatedContainer.tableHeaders = undefined;
-      }
-      let errorMessage;
-      if (updatedContainer.tableHeaders?.length === 0) {
-        errorMessage = t('ux_editor.modal_properties_group_table_headers_error');
-      }
-      return {
-        tmpContainer: updatedContainer,
-        tableHeadersError: errorMessage,
-      };
-    });
-  };
-
-  public getMaxOccursForGroupFromDataModel = (dataBindingName: string): number => {
-    const element: IDataModelFieldElement = this.props.dataModel.find(
-      (e: IDataModelFieldElement) => {
-        return e.dataBindingName === dataBindingName;
-      }
-    );
-    return element?.maxOccurs;
-  };
-
-  public handleDataModelGroupChange = (dataBindingName: string, key: string) => {
-    const maxOccurs = this.getMaxOccursForGroupFromDataModel(dataBindingName);
-    this.setState((prevState: IContainerState) => {
-      return {
-        tmpContainer: {
-          ...prevState.tmpContainer,
-          dataModelBindings: {
-            [key]: dataBindingName,
-          },
-          maxCount: maxOccurs,
-        },
-      };
-    });
-  };
-
-  public handleIdChange = (event: any) => {
-    this.setState({
-      tmpId: event.target.value,
-    });
-  };
-
-  public handleExpand = () => {
-    this.setState((prevState: IContainerState) => {
-      return {
-        expanded: !prevState.expanded,
-      };
-    });
-  };
-
-  public handleEditMode = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    this.setState((prevState: IContainerState) => ({ editMode: !prevState.editMode }));
-  };
-
-  public render = (ref?: any): JSX.Element => {
-    const { components, containers, id, isBaseContainer, itemOrder } = this.props;
-    const { editMode, expanded } = this.state;
-
-    if (editMode) return this.renderEditMode();
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          classes.wrapper,
-          !isBaseContainer && classes.formGroupWrapper,
-          expanded && classes.expanded
-        )}
-      >
-        {!isBaseContainer && (
-          <div className={classes.formGroup}>
-            <div ref={this.props.dragHandleRef} className={classes.dragHandle}>
-              <DragHandle />
-            </div>
-            <div className={classes.formGroupBar}>
-              <Button
-                color={ButtonColor.Secondary}
-                icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                onClick={this.handleExpand}
-                variant={ButtonVariant.Quiet}
-              />
-              Gruppe - ${id}
-            </div>
-            <div className={classes.formGroupButtons}>{this.renderHoverIcons()}</div>
-          </div>
-        )}
-        {expanded &&
-          components &&
-          (itemOrder?.length
-            ? itemOrder.map((itemOrderId: string, index: number) => {
-                const component = components[itemOrderId];
-                if (component) {
-                  return this.renderFormComponent(itemOrderId, index);
-                }
-                return containers[itemOrderId] && this.renderContainer(itemOrderId, index);
-              })
-            : this.renderContainerPlaceholder())}
-      </div>
-    );
-  };
-
-  public renderEditSection = (): JSX.Element => {
-    const { components, itemOrder, t, textResources } = this.props;
-    const { groupIdError, groupIdPopoverRef, tableHeadersError, tmpContainer, tmpId } = this.state;
-    return (
-      <FieldSet className={classes.fieldset}>
-        <div>
-          <TextField
-            id='group-id'
-            label={t('ux_editor.modal_properties_group_change_id')}
-            onBlur={this.handleNewId}
-            onChange={this.handleIdChange}
-            value={tmpId}
-          />
-          <div ref={groupIdPopoverRef} />
-          <ErrorPopover
-            anchorEl={groupIdError ? groupIdPopoverRef.current : null}
-            onClose={this.handleClosePopup}
-            errorMessage={groupIdError}
-          />
-        </div>
-        <Checkbox
-          checked={tmpContainer.maxCount > 1}
-          label={t('ux_editor.modal_properties_group_repeating')}
-          onChange={this.handleChangeRepeatingGroup}
-        />
-        {tmpContainer.maxCount > 1 && (
-          <>
-            <EditGroupDataModelBindings
-              dataModelBindings={tmpContainer.dataModelBindings}
-              onDataModelChange={this.handleDataModelGroupChange}
-            />
-            <div>
-              <TextField
-                disabled={!!tmpContainer.dataModelBindings.group}
-                formatting={{ number: {} }}
-                id='modal-properties-maximum-files'
-                label={t('ux_editor.modal_properties_group_max_occur')}
-                onChange={this.handleMaxOccurChange}
-                value={tmpContainer.maxCount.toString()}
-              />
-            </div>
-            <TextResource
-              description={t('ux_editor.modal_properties_group_add_button_description')}
-              handleIdChange={this.handleButtonTextChange}
-              label={t('ux_editor.modal_properties_group_add_button')}
-              textResourceId={tmpContainer.textResourceBindings?.add_button}
-            />
-            {itemOrder.length > 0 && (
-              <CheckboxGroup
-                error={tableHeadersError}
-                items={itemOrder.map((id) => ({
-                  label: getTextResource(components[id].textResourceBindings?.title, textResources),
-                  name: id,
-                  checked:
-                    tmpContainer.tableHeaders === undefined ||
-                    tmpContainer.tableHeaders.includes(id),
-                }))}
-                legend={t('ux_editor.modal_properties_group_table_headers')}
-                onChange={this.handleTableHeadersChange}
-              />
-            )}
-          </>
-        )}
-      </FieldSet>
-    );
-  };
-
-  public renderContainerPlaceholder = () => {
-    return (
-      <DroppableDraggableComponent
-        dndEvents={this.props.dndEvents}
-        canDrag={false}
-        id='placeholder'
-        index={0}
-        containerId={this.props.id}
-        component={() => (
-          <p className={classes.emptyContainerText}>
-            {this.props.t('ux_editor.container_empty')}
-          </p>
-        )}
+  const HoverIcons = (): JSX.Element => (
+    <>
+      <Button
+        icon={<TrashIcon title={t('general.delete')} />}
+        onClick={() => deleteFormContainer(props.id)}
+        variant={ButtonVariant.Quiet}
       />
-    );
-  };
+      <Button
+        icon={<PencilIcon title={t('general.edit')} />}
+        onClick={() => setEditMode(true)}
+        variant={ButtonVariant.Quiet}
+      />
+    </>
+  );
 
-  public renderEditMode = (): JSX.Element => (
-    <div className={classes.editModeWrapper} role={'listitem'}>
-      <div className={classes.editModeSectionWithHandle}>
-        <div className={classes.editModeHandle} ref={this.props.dragHandleRef}>
-          <DragHandle />
-        </div>
-        <div className={classes.editModeSection}>{this.renderEditSection()}</div>
+  const FormGroupHeader = ({ dragHandleRef } : {dragHandleRef: ConnectDragSource}): JSX.Element => (
+    <div className={classes.formGroup} data-testid='form-group'>
+      <div ref={dragHandleRef} className={classes.dragHandle}>
+        <DragHandle />
       </div>
-      <div className={classes.editModeButtons}>{this.renderEditIcons()}</div>
+      <div className={classes.formGroupBar}>
+        <Button
+          color={ButtonColor.Secondary}
+          icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+          onClick={() => setExpanded(!expanded)}
+          variant={ButtonVariant.Quiet}
+        />
+        Gruppe - ${props.id}
+      </div>
+      <div className={classes.formGroupButtons}><HoverIcons /></div>
     </div>
   );
 
-  public renderHoverIcons = (): JSX.Element => (
-    <>
-      <Button
-        data-testid='delete-component'
-        icon={<TrashIcon title={this.props.t('general.delete')} />}
-        onClick={this.handleContainerDelete}
-        variant={ButtonVariant.Quiet}
-      />
-      <Button
-        icon={<PencilIcon title={this.props.t('general.edit')} />}
-        onClick={this.handleEditMode}
-        variant={ButtonVariant.Quiet}
-      />
-    </>
-  );
-
-  public renderEditIcons = (): JSX.Element => (
-    <>
-      <Button
-        icon={<XMarkIcon title={this.props.t('general.cancel')} />}
-        onClick={this.handleDiscard}
-        variant={ButtonVariant.Quiet}
-      />
-      <Button
-        icon={<CheckmarkIcon title={this.props.t('general.save')} />}
-        onClick={this.handleSave}
-        variant={ButtonVariant.Quiet}
-      />
-    </>
-  );
-
-  public renderContainer = (id: string, index: number): JSX.Element => {
-    return (
-      <DroppableDraggableContainer
-        id={id}
-        index={index}
-        isBaseContainer={false}
-        parentContainerId={this.props.id}
-        canDrag={true}
-        dndEvents={this.props.dndEvents}
-        key={id}
-        container={(dragHandleRef) => (
-          <Container
-            id={id}
-            key={id}
-            index={index}
-            items={this.props.layoutOrder[id]}
-            isBaseContainer={false}
-            layoutOrder={this.props.layoutOrder}
-            dndEvents={this.props.dndEvents}
+  return (
+    <DroppableDraggableContainer
+      id={props.id}
+      index={props.index}
+      isBaseContainer={props.isBaseContainer}
+      parentContainerId={props.parentContainerId}
+      canDrag={props.canDrag}
+      dndEvents={props.dndEvents}
+      container={(dragHandleRef) =>
+        editMode ? (
+          <EditContainer
+            id={props.id}
+            layoutOrder={props.layoutOrder}
             dragHandleRef={dragHandleRef}
-            dataModel={this.props.dataModel}
-            components={this.props.components}
-            containers={this.props.containers}
-            itemOrder={this.props.itemOrder}
-            updateFormContainerMutation={this.props.updateFormContainerMutation}
-            updateContainerIdMutation={this.props.updateContainerIdMutation}
-            deleteFormContainerMutation={this.props.deleteFormContainerMutation}
-            textResources={this.props.textResources}
+            cancelEditMode={() => setEditMode(false)}
           />
-        )}
-      />
-    );
-  };
-
-  public renderFormComponent = (id: string, index: number): JSX.Element => {
-    return (
-      <DroppableDraggableComponent
-        canDrag
-        containerId={this.props.id}
-        dndEvents={this.props.dndEvents}
-        id={id}
-        index={index}
-        key={id}
-        component={(dragHandleRef) => (
-          <FormComponentWrapper
-            id={id}
-            partOfGroup={!this.props.isBaseContainer}
-            dragHandleRef={dragHandleRef}
-          />
-        )}
-      />
-    );
-  };
-}
-
-const makeMapStateToProps = () => {
-  return (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
-    const containers = { props };
-    const container = containers ? containers[props.id] : '';
-    return {
-      ...props,
-      dataModelGroup: container?.dataModelGroup,
-      itemOrder: !props.items ? props.itemOrder : props.items,
-      repeating: container?.repeating,
-    };
-  };
+        ) : (
+          <div
+            className={cn(
+              classes.wrapper,
+              !props.isBaseContainer && classes.formGroupWrapper,
+              expanded && classes.expanded
+            )}
+          >
+            {!props.isBaseContainer && (<FormGroupHeader dragHandleRef={dragHandleRef} />)}
+            {expanded && components &&
+              (items.length ? (
+                items.map((itemId: string, index: number) => {
+                  const component = components[itemId];
+                  if (component) {
+                    return (
+                      <FormComponent
+                        key={itemId}
+                        id={itemId}
+                        containerId={props.id}
+                        index={index}
+                        dndEvents={props.dndEvents}
+                        partOfGroup={!props.isBaseContainer}
+                      />
+                    );
+                  }
+                  return containers[itemId] && (
+                    <Container
+                      id={itemId}
+                      parentContainerId={props.id}
+                      key={itemId}
+                      index={index}
+                      isBaseContainer={false}
+                      layoutOrder={props.layoutOrder}
+                      dndEvents={props.dndEvents}
+                      canDrag={true}
+                    />
+                  );
+                })
+              ) : (
+                <EmptyContainerPlaceholder containerId={props.id} dndEvents={props.dndEvents} />
+              ))}
+          </div>
+        )
+      }
+    />
+  );
 };
-
-export const Container = withTranslation()(connect(makeMapStateToProps)(ContainerComponent));

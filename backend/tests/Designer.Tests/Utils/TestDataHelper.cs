@@ -129,7 +129,16 @@ namespace Designer.Tests.Utils
         /// </summary>
         /// <param name="suffix">If provided appends suffix to test repo.</param>
         /// <returns>Test repository name.</returns>
-        public static string GenerateTestRepoName(string suffix = null) => $"test-repo-{Guid.NewGuid()}{suffix}".Substring(0, 28);
+        public static string GenerateTestRepoName(string suffix = null)
+        {
+            if (suffix?.Length > 15)
+            {
+                throw new ArgumentException("Suffix is too long");
+            }
+            string nonSuffixName = $"test-repo-{Guid.NewGuid()}"[..28];
+
+            return suffix == null ? nonSuffixName : $"{nonSuffixName[..^suffix.Length]}{suffix}";
+        }
 
         public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
@@ -267,22 +276,6 @@ namespace Designer.Tests.Utils
                 if (subDir.Contains($"{repository}_branch") || subDir.Equals(Path.Combine(dir, repository)))
                 {
                     DeleteDirectory(subDir, true);
-                }
-            }
-        }
-
-        public static async Task CleanUpReplacedRepositories(string org, string repository, string developer)
-        {
-            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
-
-            foreach (string subDir in Directory.GetDirectories(dir))
-            {
-                if (subDir.Contains($"{repository}_REPLACED_BY_NEW_CLONE_"))
-                {
-                    // move data and delete copied folder
-                    string originalPath = GetTestDataRepositoryDirectory(org, repository, developer);
-                    await CopyDirectory(subDir, originalPath, true);
-                    Directory.Delete(subDir, true);
                 }
             }
         }

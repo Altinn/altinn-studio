@@ -1,15 +1,16 @@
 import { del, post, put } from 'app-shared/utils/networking';
 import {
-  releasesPath,
-  deploymentsPath,
-  repoPushPath,
-  repoCommitPath,
-  textResourcesPath,
-  textResourceIdsPath,
-  formLayoutPath,
   appMetadataAttachmentPath,
+  deploymentsPath,
   formLayoutNamePath,
+  formLayoutPath,
   layoutSettingsPath,
+  releasesPath,
+  repoCommitPath,
+  repoPushPath,
+  ruleConfigPath,
+  textResourceIdsPath,
+  textResourcesPath,
 } from 'app-shared/api-paths';
 import { ITextResourcesObjectFormat } from 'app-shared/types/global';
 
@@ -63,3 +64,6 @@ export const deleteFormLayout = (org, app, layoutName) =>
 
 export const saveFormLayoutSettings = (org, app, payload) =>
   post(layoutSettingsPath(org, app), payload);
+
+export const saveRuleConfig = (org, app, payload) =>
+  post(ruleConfigPath(org, app), payload);

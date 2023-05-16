@@ -1,7 +1,7 @@
 import {
   AppStateSelector,
-  FormLayoutsSelector,
-  IFormDesignerContainers,
+  FormLayoutsSelector, IFormDesignerComponents,
+  IFormDesignerContainers, IFormLayoutOrder,
   IInternalLayout
 } from '../types/global';
 import { createEmptyLayout } from '../utils/formLayoutUtils';
@@ -28,12 +28,12 @@ export const allLayoutContainersSelector: FormLayoutsSelector<IFormDesignerConta
     .values(formLayoutsData)
     .reduce((acc, layout) => ({ ...acc, ...layout.containers }), {});
 
-export const allLayoutComponentsSelector: FormLayoutsSelector<IFormDesignerContainers> =
+export const allLayoutComponentsSelector: FormLayoutsSelector<IFormDesignerComponents> =
   (state, formLayoutsData) => Object
     .values(formLayoutsData)
     .reduce((acc, layout) => ({ ...acc, ...layout.components }), {});
 
-export const fullLayoutOrderSelector: FormLayoutsSelector<IFormDesignerContainers> =
+export const fullLayoutOrderSelector: FormLayoutsSelector<IFormLayoutOrder> =
   (state, formLayoutsData) => Object
     .values(formLayoutsData)
     .reduce((acc, layout) => ({ ...acc, ...layout.order }), {});

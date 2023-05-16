@@ -2,7 +2,9 @@
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -25,17 +27,18 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string expectedMetadata = SharedResourcesHelper.LoadTestDataAsString(metadataToUpdate);
+            string metadata = SharedResourcesHelper.LoadTestDataAsString(metadataToUpdate);
+            string expectedMetadataJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(metadata, SerializerOptions), SerializerOptions);
 
             string url = VersionPrefix(org, targetRepository);
 
-            var response = await HttpClient.Value.PutAsync(url, new StringContent(expectedMetadata, Encoding.UTF8, MediaTypeNames.Application.Json));
+            var response = await HttpClient.Value.PutAsync(url, new StringContent(metadata, Encoding.UTF8, MediaTypeNames.Application.Json));
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string responseContent = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedMetadata, responseContent).Should().BeTrue();
+            JsonUtils.DeepEquals(expectedMetadataJson, responseContent).Should().BeTrue();
             string fileFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
-            JsonUtils.DeepEquals(expectedMetadata, fileFromRepo).Should().BeTrue();
+            JsonUtils.DeepEquals(expectedMetadataJson, fileFromRepo).Should().BeTrue();
         }
     }
 }

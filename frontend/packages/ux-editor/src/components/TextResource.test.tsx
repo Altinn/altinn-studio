@@ -171,7 +171,7 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange when selection in search section is changed', async () => {
     await renderAndOpenSearchSection();
-    await act(() => user.click(screen.getByLabelText(searchLabelText)));
+    await act(() => user.click(screen.getByRole('combobox', { name: searchLabelText })));
     await act(() => user.click(screen.getByRole('option', { name: textResources[1].id })));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(textResources[1].id);
@@ -179,7 +179,7 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange with undefined when "none" is selected', async () => {
     await renderAndOpenSearchSection();
-    await act(() => user.click(screen.getByLabelText(searchLabelText)));
+    await act(() => user.click(screen.getByRole('combobox', { name: searchLabelText })));
     await act(() => user.click(screen.getByRole('option', { name: noTextChosenText })));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(undefined);

@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -33,7 +35,8 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string responseContent = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(metadataFile, responseContent).Should().BeTrue();
+            string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(metadataFile, SerializerOptions), SerializerOptions);
+            JsonUtils.DeepEquals(expectedJson, responseContent).Should().BeTrue();
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly IRepository _repository;
         private readonly ISourceControl _sourceControl;
+        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppDevelopmentController"/> class.
@@ -30,11 +32,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="appDevelopmentService">The app development service</param>
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl)
+        /// <param name="altinnGitRepositoryFactory"></param>
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
             _sourceControl = sourceControl;
+            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
         /// <summary>
@@ -264,9 +268,9 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return Content(_repository.GetRuleConfig(org, app), MediaTypeNames.Application.Json, Encoding.UTF8);
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
-                return NotFound();
+                return NoContent();
             }
 
         }
@@ -283,6 +287,23 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string widgetSettings = _repository.GetWidgetSettings(org, app);
             return Ok(widgetSettings);
+        }
+
+        [HttpGet]
+        [Route("option-list-ids")]
+        public ActionResult GetOptionListIds(string org, string app)
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                string[] optionListIds = altinnAppGitRepository.GetOptionListIds();
+                return Ok(optionListIds);
+            }
+            catch (LibGit2Sharp.NotFoundException)
+            {
+                return NoContent();
+            }
         }
     }
 }

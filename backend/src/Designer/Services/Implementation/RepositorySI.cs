@@ -422,9 +422,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 if (Directory.Exists(repoPath))
                 {
-                    // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
-                    string backupPath = _settings.GetServicePath(org, $"{serviceConfig.RepositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
-                    Directory.Move(repoPath, backupPath);
+                    Directory.Delete(repoPath, true);
                 }
 
                 _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
@@ -473,9 +471,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (Directory.Exists(targetRepositoryPath))
             {
-                // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
-                string backupPath = _settings.GetServicePath(org, $"{targetRepository}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
-                Directory.Move(targetRepositoryPath, backupPath);
+                Directory.Delete(targetRepositoryPath, true);
             }
 
             _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
@@ -526,9 +522,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (Directory.Exists(repoPath))
             {
-                // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
-                string backupPath = _settings.GetServicePath(org, $"{repositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
-                Directory.Move(repoPath, backupPath);
+                Directory.Delete(repoPath, true);
                 _sourceControl.CloneRemoteRepository(org, repositoryName);
                 return true;
             }
