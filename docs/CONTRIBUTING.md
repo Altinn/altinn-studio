@@ -53,4 +53,4 @@ People *love* thorough bug reports. I'm not even kidding.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under its [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/master/LICENSE.md).
+By contributing, you agree that your contributions will be licensed under the project's [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/master/LICENSE.md).

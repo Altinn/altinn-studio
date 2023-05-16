@@ -7,7 +7,7 @@ Altinn Studio is the next generation Altinn application development solution. To
 **Altinn Platform**, this is a complete application development and hosting platform (Altinn 3).
 
 Read the [Altinn Studio documentation](https://docs.altinn.studio/) to [get started](https://docs.altinn.studio/app/getting-started/).
-We've also created a [into course for app development](https://docs.altinn.studio/app/app-dev-course/) that you can follow at your own pace.
+We've also created a [introductory course for app development](https://docs.altinn.studio/app/app-dev-course/) that you can follow at your own pace.
 
 > **Note** Developing apps?
 > If you just want to quickly perform tests of your app on your development machine you can follow the instructions on
@@ -30,7 +30,7 @@ See deployment for notes on how to deploy the project on a live system.
 6. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker
    Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
    container mode all files are automatically shared by Windows.
-7. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and
+7. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" right click and
    choose "stop"
 
 _NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/private/etc/hosts`_
@@ -45,7 +45,7 @@ cd altinn-studio
 ```
 
 The fastest way to get things running from scratch is to use our setup-script. This script will start docker and
-ensure that the setup is up todate. As we add more features this script will be updated. It can be run as follows:
+ensure that the setup is up to date. As we add more features this script will be updated. It can be run as follows:
 
 ```bash
 node ./development/setup.js
@@ -81,10 +81,10 @@ Example
 docker-compose up -d --build studio_designer
 ```
 
-If using the script, the `.env`-file is generated and put at root, otherwise you will need to blace it there yourself.
+If using the script, the `.env`-file is generated and put at root, otherwise you will need to place it there yourself.
 When starting `docker-compose` the solution should be running as it would in production. But you probably want to change
-parts of the solution. The loadbalancer is configured to route the traffic to the right place according to your
-particular usecase. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The load balancer
+parts of the solution. The load balancer is configured to route the traffic to the right place according to your
+particular use case. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The load balancer
 is configured with the following variables.
 
 ```text
@@ -104,7 +104,7 @@ get the latest packages.
   export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
   ```
 
-If you want to work on creating apps locally, [app-template-dotnet](https://github.com/Altinn/app-template-dotnet) repo
+If you want to work on creating apps locally, the [app-template-dotnet](https://github.com/Altinn/app-template-dotnet) repo
 should be cloned. If the templates repo is cloned in the same folder as altinn-studio, no changes needs to be done,
 otherwise it should be referenced in `appsettings.development.json`.
 
@@ -133,8 +133,8 @@ yarn run start-app-development
 yarn run start-dashboard
 ```
 
-If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating
-to `frontend` and then run the following build script, which will build app frontend apps.
+If you need to rebuild other React apps, for instance `dashboard` or `app-development`, this can be done by navigating
+to `frontend` and then running the following build script, which will build app frontend apps.
 
 ```bash
 yarn run build
@@ -147,8 +147,8 @@ More about developing frontend [can be found here](frontend/README.md).
 
 ## Cypress tests
 
-There is created some [integration tests](https://github.com/Altinn/altinn-studio/tree/master/frontend/testing/cypress)
-for studio with cypress. More about these tests [can be found here](frontend/testing/cypress/README.md).
+Some [integration tests](https://github.com/Altinn/altinn-studio/tree/master/frontend/testing/cypress) for studio have
+been created with Cypress. More about these tests [can be found here](frontend/testing/cypress/README.md).
 
 ## Deployment
 

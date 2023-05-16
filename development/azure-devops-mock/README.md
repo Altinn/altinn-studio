@@ -7,7 +7,7 @@ back from this service, giving us some realistic scenarios.
 ## Webhooks
 
 In the environments there will be webhooks that Azure will send directly on the altinn studio
-deployment. The endpoints which are called are theese two:
+deployment. The endpoints which are called are these two:
 
 - http://studio.localhost/designer/api/check-release-build-status
 - http://studio.localhost/designer/api/check-deployment-build-status

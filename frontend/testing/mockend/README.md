@@ -1,13 +1,13 @@
 # The mocked Backend
 
-This is written in plain javascript. This is because we want server startup to be faster. No need to a compile step.
-It also makes the setup simpler.
+This is written in plain JavaScript to ensure faster server startup.
+There is no need for a compile step, which simplifies the setup.
 
-At the moment this is just mocking out whats needed to run the datamodelling-part of the solution.
+Currently, this is merely mocking what's needed to run the data modelling part of the solution.
 
 ## The mocks
 
-### Datamodelling
+### Data modelling
 
 It should cover enough features to have this running
 
