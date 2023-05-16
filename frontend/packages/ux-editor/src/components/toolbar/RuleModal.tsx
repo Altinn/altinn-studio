@@ -14,6 +14,7 @@ import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigU
 export interface IRuleModalProps {
   modalOpen: boolean;
   handleClose: () => void;
+  handleOpen: () => void;
 }
 
 export function RuleModal(props: IRuleModalProps) {
@@ -28,7 +29,7 @@ export function RuleModal(props: IRuleModalProps) {
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
-    props.handleClose();
+    props.handleOpen();
   }
 
   function handleClose() {
@@ -83,7 +84,7 @@ export function RuleModal(props: IRuleModalProps) {
             connectionId={selectedConnectionId}
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
-            deleteConnection={handleDeleteConnection}
+            deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
             ruleConnection={ruleConnection}
             ruleModelElements={ruleModelElements}
           />
