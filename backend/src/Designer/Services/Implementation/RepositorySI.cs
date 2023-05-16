@@ -853,10 +853,37 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return serviceResourceList;
         }
 
-        public ActionResult UpdateServiceResource(string org, string repository, string id, ServiceResource updatedResource)
+        public ActionResult<string> ValidateServiceResource(string org, string repository, string id, bool strictMode = false)
+        {
+            if (id != "")
+            {
+                ServiceResource resourceToValidate = GetServiceResourceById(org, repository, id);
+                if (resourceToValidate != null)
+                {
+                    return ResourceAdminHelper.ValidateServiceResource(resourceToValidate);
+                }
+
+                return new StatusCodeResult(400);
+            }
+            else
+            {
+                List<ServiceResource> repositoryResourceList = GetServiceResources(org, repository);
+                if (repositoryResourceList.Count > 0)
+                {
+                    return ResourceAdminHelper.ValidateServiceResource(repositoryResourceList.FirstOrDefault());
+                }
+                else
+                {
+                    return new StatusCodeResult(400);
+                }
+            }
+        }
+
+        public ActionResult UpdateServiceResource(string org, string id, ServiceResource updatedResource)
         {
             if (updatedResource != null && id == updatedResource.Identifier)
             {
+                string repository = string.Format("{0}-resources", org);
                 List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
                 string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
@@ -881,10 +908,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new StatusCodeResult(403);
         }
 
-        public ActionResult AddServiceResource(string org, string repository, ServiceResource newResource)
+        public ActionResult AddServiceResource(string org, ServiceResource newResource)
         {
             try
             {
+                string repository = $"{org}-resources";
                 if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
                 {
                     string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));

@@ -67,6 +67,7 @@
     <Watch Remove="Enums\ReferenceSource.cs" />
     <Watch Remove="Enums\ReferenceType.cs" />
     <Watch Remove="Enums\ResourceType.cs" />
+    <Watch Remove="Helpers\ResourceAdminHelper.cs" />
     <Watch Remove="Models\Keyword.cs" />
     <Watch Remove="Models\ResourceReference.cs" />
     <Watch Remove="Models\ServiceResource.cs" />

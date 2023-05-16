@@ -105,7 +105,7 @@ namespace Altinn.Studio.Designer.Models
         /// ResourceType
         /// </summary>
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ResourceType ResourceType { get; set; }
+        public ResourceType? ResourceType { get; set; }
 
         /// <summary>
         /// The fallback language of the resource
