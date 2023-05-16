@@ -30,6 +30,7 @@ public class ClassificationsHttpClient : IClassificationsClient
     /// </param>
     /// <param name="atDate">The date the classification should be valid</param>
     /// <param name="level">The hierarchy level for classifications with multiple levels. Defaults to empty string, ie. all levels.</param>
+    /// <param name="variant">The name of the variant to use instead of the original code list specified.</param>
     /// <returns></returns>
     public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language="nb", DateOnly? atDate = null, string level = "", string variant = "")
     {
@@ -61,6 +62,7 @@ public class ClassificationsHttpClient : IClassificationsClient
             var classificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(responseJson);
             return classificationCodes ?? new ClassificationCodes();
         }
+        // If we get a 404 we try to get the codes in the fallback language (nb)
         else if (response.StatusCode == HttpStatusCode.NotFound && language != "nb")
         {
             string fallbackQuery = BuildQuery("language=nb", selectDate, selectLevel, selectVariant);
