@@ -221,6 +221,11 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                 {this.props.t('general.save')}
               </button>
             ) : null}
+            {this.props.connectionId ? (
+              <button type='button' className={classes.dangerButton} onClick={this.handleDeleteConnection}>
+                {this.props.t('general.delete')}
+              </button>
+            ) : null}
             <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
               {this.props.t('general.cancel')}
             </button>

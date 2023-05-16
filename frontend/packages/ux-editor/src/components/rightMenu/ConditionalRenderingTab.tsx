@@ -27,6 +27,7 @@ export const ConditionalRenderingTab = () => {
           <ConditionalRenderingModal
             modalOpen={modalOpen}
             handleClose={() => setModalOpen(false)}
+            handleOpen={() => setModalOpen(true)}
           />
         </div>
       </div>
