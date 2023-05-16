@@ -76,7 +76,7 @@ function onChange(id, value) {
 ### Context menu logic
 
 For each node type we need to establish which actions that should be
-availiable:
+available:
 
 - Field (String, Int, Boolean)
   - Convert to type ✅
