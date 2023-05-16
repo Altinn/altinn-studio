@@ -17,7 +17,7 @@ This guide assumes you have an existing Altinn 3 application. If not please see 
    Open command line to the repo of your application and navigate to the App folder where the App.csproj file is located and run the following command:
 
    ```shell
-   nuget install Altinn.Codelists
+   dotnet add package Altinn.Codelists
    ```
    This will add the latest stable version of the package to your solution.
 
