@@ -52,32 +52,42 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(org, app);
   const { mutateAsync: updateContainerId } = useUpdateContainerIdMutation(org, app);
 
-  const handleDiscard = useCallback((): void => {
-    handleEdit(null);
-  }, []);
+  const handleUpdateFormContainer = useCallback(
+    updateFormContainer,
+    [updateFormContainer]
+  );
+
+  const handleUpdateContainerId = useCallback(
+    updateContainerId,
+    [updateContainerId]
+  );
 
   const handleEdit = useCallback((component: IFormContainer | FormComponent): void => {
     dispatch(setCurrentEditId(undefined));
     setFormId(component?.id);
     setForm(component);
-  }, []);
+  }, [dispatch]);
+
+  const handleDiscard = useCallback((): void => {
+    handleEdit(null);
+  }, [handleEdit]);
 
   const handleContainerSave = useCallback(async (id: string, updatedContainer: IFormContainer): Promise<void> => {
-    await updateFormContainer({
+    await handleUpdateFormContainer({
       updatedContainer,
       id,
     });
     if (id !== updatedContainer.id) {
-      await updateContainerId({
+      await handleUpdateContainerId({
         currentId: id,
         newId: updatedContainer.id,
       });
     }
     handleDiscard();
-  }, []);
+  }, [handleDiscard, handleUpdateContainerId, handleUpdateFormContainer]);
 
   const handleComponentSave = useCallback(async (id: string, updatedComponent: FormComponent): Promise<void> => {
-    const component: FormComponent = components[formId];
+    const component: FormComponent = components[id];
 
     if (JSON.stringify(updatedComponent) !== JSON.stringify(component)) {
       await updateFormComponent({
@@ -89,7 +99,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
       }
     }
     handleDiscard();
-  }, [components]);
+  }, [components, handleDiscard, ruleConfig, saveRuleConfig, updateFormComponent]);
 
   const value = useMemo(() => ({
     formId,
@@ -99,7 +109,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
     handleEdit,
     handleContainerSave,
     handleComponentSave,
-  }), [formId, form]);
+  }), [formId, form, handleDiscard, handleEdit, handleContainerSave, handleComponentSave]);
 
   return (
     <FormContext.Provider value={value}>

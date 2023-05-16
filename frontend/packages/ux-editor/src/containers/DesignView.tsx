@@ -135,7 +135,7 @@ export const DesignView = ({
 
   const resetState = useCallback(() => {
     beforeDrag && setState({ layoutOrder: beforeDrag, isDragging: false });
-  }, []);
+  }, [beforeDrag]);
   const onDropItem = useCallback((reset?: boolean) => {
     if (reset) {
       resetState();
