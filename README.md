@@ -41,6 +41,59 @@ This guide assumes you have an existing Altinn 3 application. If not please see 
 
    Or you can configure the component by editing the optionsId property in FormLayout.json according to the [documentation](https://docs.altinn.studio/app/development/data/options/#connect-the-component-to-options-code-list) 
 
+## Custom configuration
+While the above mentioned configuration where you call `services.AddAltinnCodelists();` will add all available codelists with default values, there are cases where you might want to customize the configuration. The examples will vary a bit depending on the source of the codelist.
+
+### Add a codelist with custom codelist id
+If you don't want to use the default codelist id, or only want to register codelists relevant for you app you can register each codelist individually.
+
+Example using codelist from SSB overriding the option id:
+```csharp
+   services.AddSSBClassificationCodelistProvider("næring", Classification.IndustryGrouping);
+```
+
+### Add a codelist with default parameters
+Some of the codelists accepts parameters controlling what's returned.
+
+Example using the codelist from SSB specifiying a level filter to only get values from the first level (this particular codelist is hierarchical).
+
+```csharp
+   services.AddSSBClassificationCodelistProvider("næring", Classification.IndustryGrouping, new Dictionary<string, string>() { { "level", "1" } });
+```
+The default parameters is a name/value pair collection allowing for any parameter to be passed in and picked up by the implementation of the codelist provider.
+
+### Add a codelist that has support for description and/or help text values
+While a regular codelist is only key/value pairs, you can extend this with adding description and help text allowing for a more descriptive UI.
+
+The following example enables the notes field from SSB classification to populate the description text.
+
+```csharp
+    services.AddSSBClassificationCodelistProvider("næring", Classification.IndustryGrouping,
+        new ClassificationOptions() { MapNotesToDescription = true },
+        new Dictionary<string, string>() { { "level", "1" } });
+```
+The above example enables a predefined way of adding a description text. If you would like to customize the description text even further you can pass inn a function.
+The follwing examples passes in a function that that will be evaluated when populating the code list and will return a combination of the classification code and the notes fields separated by colon.
+
+```csharp
+services.AddSSBClassificationCodelistProvider(
+        "næring",
+        Classification.IndustryGrouping,
+        new ClassificationOptions() 
+        { 
+            MapDescriptionFunc = (classificationCode) => $"{classificationCode.Code}: {classificationCode.Notes}" 
+        },
+        new Dictionary<string, string>() { { "level", "1" } });
+```
+
+### Add a codelist from SSB not available in the `Classification` enum.
+Currently only a small subset of the available codelist from SSB is included in the `Classification` enum. The enum is really only provided as a more readable version of the underlying id provided by SSB. But in our case also serves as a way of telling what codelists we have tested explicitly against. If you find a codelist you would like to use, you can specify it's id instead of the enum.
+
+```csharp
+   services.AddSSBClassificationCodelistProvider("næring", 6);
+```
+
+
 ## Available codelists
 The list below shows currently implemented code lists with their default id.
 

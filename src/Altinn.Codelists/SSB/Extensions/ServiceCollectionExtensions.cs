@@ -1,6 +1,4 @@
 ﻿using Altinn.App.Core.Features;
-using Altinn.Codelists.Kartverket.AdministrativeUnits.Clients;
-using Altinn.Codelists.Kartverket.AdministrativeUnits;
 using Altinn.Codelists.SSB.Clients;
 using Altinn.Codelists.SSB.Models;
 using Microsoft.Extensions.DependencyInjection;
