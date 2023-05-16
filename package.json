@@ -96,6 +96,7 @@
     "frontend/app-development",
     "frontend/app-preview",
     "frontend/dashboard",
+    "frontend/resourceadm",
     "frontend/language",
     "frontend/testing/mockend",
     "frontend/testing/cypress",
