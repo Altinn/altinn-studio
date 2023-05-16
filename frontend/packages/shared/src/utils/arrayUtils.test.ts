@@ -1,4 +1,4 @@
-import { removeItemByValue, last, prepend, removeDuplicates } from './arrayUtils';
+import { removeItemByValue, last, prepend, removeDuplicates, areItemsUnique } from './arrayUtils';
 
 describe('arrayUtils', () => {
 
@@ -44,6 +44,31 @@ describe('arrayUtils', () => {
       expect(removeItemByValue(['a', 'b', 'c'], 'd')).toEqual(['a', 'b', 'c']);
       expect(removeItemByValue([], 'a')).toEqual([]);
       expect(removeItemByValue(['a', 'b', 'c', 'b', 'a'], 'b')).toEqual(['a', 'c', 'a']);
+    });
+  });
+
+  describe('areItemsUnique', () => {
+    it('Returns true if all items are unique', () => {
+      expect(areItemsUnique([1, 2, 3])).toBe(true);
+      expect(areItemsUnique(['a', 'b', 'c'])).toBe(true);
+      expect(areItemsUnique(['abc', 'bcd', 'cde'])).toBe(true);
+      expect(areItemsUnique([true, false])).toBe(true);
+      expect(areItemsUnique([1, 'b', true])).toBe(true);
+      expect(areItemsUnique([0, '', false, null, undefined])).toBe(true);
+    });
+
+    it('Returns true if array is empty', () => {
+      expect(areItemsUnique([])).toBe(true);
+    });
+
+    it('Returns false if there is at least one duplicated item', () => {
+      expect(areItemsUnique([1, 2, 1])).toBe(false);
+      expect(areItemsUnique(['a', 'a', 'c'])).toBe(false);
+      expect(areItemsUnique(['abc', 'bcd', 'bcd'])).toBe(false);
+      expect(areItemsUnique([true, false, true])).toBe(false);
+      expect(areItemsUnique([1, 'b', false, 1])).toBe(false);
+      expect(areItemsUnique([null, null])).toBe(false);
+      expect(areItemsUnique([undefined, undefined])).toBe(false);
     });
   });
 });

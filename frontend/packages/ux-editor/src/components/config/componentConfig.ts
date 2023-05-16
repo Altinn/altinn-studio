@@ -1,4 +1,3 @@
-import type { FormComponentType } from '../../types/global';
 import { ComponentType } from '../index';
 import { EditCodeList } from './editModal/EditCodeList';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
@@ -10,10 +9,11 @@ import { EditReadOnly } from './editModal/EditReadOnly';
 import { EditRequired } from './editModal/EditRequired';
 import { EditTitle } from './editModal/EditTitle';
 import { EditAutoComplete } from './editModal/EditAutoComplete';
+import type { FormComponent } from '../../types/FormComponent';
 
-export interface IGenericEditComponent {
-  component: FormComponentType;
-  handleComponentChange: (component: FormComponentType) => void;
+export interface IGenericEditComponent<T extends FormComponent = FormComponent> {
+  component: T;
+  handleComponentChange: (component: T) => void;
   layoutName?: string;
 }
 

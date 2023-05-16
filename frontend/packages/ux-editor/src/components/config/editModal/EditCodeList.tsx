@@ -1,8 +1,8 @@
 import React from 'react';
-import type { IFormGenericOptionsComponent } from '../../../types/global';
 import { TextField } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
+import type { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
 
 export enum SelectedOptionsType {
   Codelist = 'codelist',
@@ -26,7 +26,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
         id='modal-properties-code-list-id'
         label={t('ux_editor.modal_properties_code_list_id')}
         onChange={handleOptionsIdChange}
-        value={(component as IFormGenericOptionsComponent).optionsId || ''}
+        value={(component as FormCheckboxesComponent | FormRadioButtonsComponent).optionsId || ''}
       />
       <p>
         <a

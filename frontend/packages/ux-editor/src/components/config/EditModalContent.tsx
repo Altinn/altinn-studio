@@ -1,19 +1,21 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
 import { ComponentType } from '../index';
-import type { FormComponentType, IAppState, IThirdPartyComponent } from '../../types/global';
 import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@digdir/design-system-react';
 import classes from './EditModalContent.module.css';
-import { useSelector } from 'react-redux';
+import type { FormComponent } from '../../types/FormComponent';
+import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
+import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import { useComponentErrorMessage } from '../../hooks/useComponentErrorMessage';
 
 export interface IEditModalContentProps {
   cancelEdit?: () => void;
-  component: FormComponentType;
-  handleComponentUpdate?: (updatedComponent: FormComponentType) => void;
-  saveEdit?: (updatedComponent: FormComponentType) => void;
+  component: FormComponent;
+  handleComponentUpdate?: (updatedComponent: FormComponent) => void;
+  saveEdit?: (updatedComponent: FormComponent) => void;
   thirdPartyComponentConfig?: EditSettings[];
 }
 
@@ -22,9 +24,8 @@ export const EditModalContent = ({
   handleComponentUpdate,
   thirdPartyComponentConfig,
 }: IEditModalContentProps) => {
-  const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner.layout?.selectedLayout
-  );
+  const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const errorMessage = useComponentErrorMessage(component);
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {
     if (!configDef) return null;
 
@@ -41,14 +42,14 @@ export const EditModalContent = ({
 
   const getConfigDefinitionForComponent = (): EditSettings[] => {
     if (component.type === ComponentType.ThirdParty) {
-      return thirdPartyComponentConfig[(component as IThirdPartyComponent).tagName];
+      return thirdPartyComponentConfig[component.tagName];
     }
 
     return componentSpecificEditConfig[component.type];
   };
 
   return (
-    <FieldSet className={classes.root}>
+    <FieldSet className={classes.root} error={errorMessage}>
       <EditComponentId component={component} handleComponentUpdate={handleComponentUpdate} />
       {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
       <ComponentSpecificContent

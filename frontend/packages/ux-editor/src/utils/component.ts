@@ -1,8 +1,7 @@
-import {
-  IFormComponent,
-  IFormGenericOptionsComponent,
-  IOption
-} from '../types/global';
+import { IOption } from '../types/global';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import type { FormComponent } from '../types/FormComponent';
+import type { FormCheckboxesComponent, FormRadioButtonsComponent } from '../types/FormComponent';
 
 export function getTextResourceByAddressKey(key: AddressKeys, t: (key: string) => string): string {
   switch (key) {
@@ -36,10 +35,10 @@ export enum AddressKeys {
 }
 
 export const changeTextResourceBinding = (
-  component: IFormComponent,
+  component: FormComponent,
   bindingKey: string,
   resourceKey: string
-): IFormComponent => ({
+): FormComponent => ({
   ...component,
   textResourceBindings: {
     ...component.textResourceBindings,
@@ -47,13 +46,13 @@ export const changeTextResourceBinding = (
   }
 });
 
-export const changeTitleBinding = (component: IFormComponent, resourceKey: string): IFormComponent =>
+export const changeTitleBinding = (component: FormComponent, resourceKey: string): FormComponent =>
   changeTextResourceBinding(component, 'title', resourceKey);
 
-export const changeDescriptionBinding = (component: IFormComponent, resourceKey: string): IFormComponent =>
+export const changeDescriptionBinding = (component: FormComponent, resourceKey: string): FormComponent =>
   changeTextResourceBinding(component, 'description', resourceKey);
 
-export const addOptionToComponent = <T extends IFormGenericOptionsComponent>(
+export const addOptionToComponent = <T extends FormCheckboxesComponent | FormRadioButtonsComponent>(
   component: T,
   option: IOption
 ): T => ({
@@ -64,7 +63,7 @@ export const addOptionToComponent = <T extends IFormGenericOptionsComponent>(
   ],
 });
 
-export const changeComponentOptionLabel = <T extends IFormGenericOptionsComponent>(
+export const changeComponentOptionLabel = <T extends FormCheckboxesComponent | FormRadioButtonsComponent>(
   component: T,
   value: string,
   label: string
@@ -74,3 +73,6 @@ export const changeComponentOptionLabel = <T extends IFormGenericOptionsComponen
     return option.value === value ? { ...option, label } : option;
   })
 });
+
+export const generateRandomOption = (): IOption =>
+  ({ label: '', value: generateRandomId(4) });

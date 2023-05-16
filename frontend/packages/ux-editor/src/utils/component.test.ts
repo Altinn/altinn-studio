@@ -1,6 +1,7 @@
-import { IFormCheckboxComponent, IFormComponent, IFormRadioButtonComponent, IOption } from '../types/global';
+import { IOption } from '../types/global';
 import { addOptionToComponent, changeComponentOptionLabel, changeTextResourceBinding, } from './component';
 import { ComponentType } from '../components';
+import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
 
 describe('Component utils', () => {
   describe('changeTextResourceBinding', () => {
@@ -10,7 +11,7 @@ describe('Component utils', () => {
       const bindingKeyToChange = 'testKeyToChange';
       const resourceKeyToChange = 'testResourceKeyToChange';
       const newResourceKey = 'newResourceKey';
-      const component: IFormComponent = {
+      const component: FormComponent = {
         id: 'test',
         textResourceBindings: {
           [bindingKeyToKeep]: resourceKeyToKeep,
@@ -33,7 +34,7 @@ describe('Component utils', () => {
     it('Changes title binding', () => {
       const titleResourceKey = 'testResourceKey';
       const newResourceKey = 'newResourceKey';
-      const component: IFormComponent = {
+      const component: FormComponent = {
         id: 'test',
         textResourceBindings: {
           title: titleResourceKey,
@@ -53,7 +54,7 @@ describe('Component utils', () => {
     it('Changes description binding', () => {
       const descriptionResourceKey = 'testResourceKey';
       const newResourceKey = 'newResourceKey';
-      const component: IFormComponent = {
+      const component: FormComponent = {
         id: 'test',
         textResourceBindings: {
           description: descriptionResourceKey,
@@ -76,7 +77,7 @@ describe('Component utils', () => {
     ] as (ComponentType.Checkboxes | ComponentType.RadioButtons)[])(
       'Adds option to %s component',
       (componentType) => {
-        const component: IFormCheckboxComponent | IFormRadioButtonComponent = {
+        const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
           id: 'test',
           type: componentType,
           options: [
@@ -108,7 +109,7 @@ describe('Component utils', () => {
       'Changes label of option with given value on %s component',
       (componentType) => {
         const valueOfWhichLabelShouldChange = 'testValue2';
-        const component: IFormCheckboxComponent | IFormRadioButtonComponent = {
+        const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
           id: 'test',
           type: componentType,
           options: [

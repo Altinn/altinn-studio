@@ -8,7 +8,6 @@ import { CheckboxComponent } from './Checkbox';
 import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from '../..';
 import { useText } from '../../../hooks';
-import type { IFormImageComponent } from '../../../types/global';
 import { MapComponent } from './Map';
 import { EditTextResourceBinding } from '../editModal/EditTextResourceBinding';
 
@@ -52,7 +51,7 @@ export function ComponentSpecificContent({
     case ComponentType.Image: {
       return (
         <ImageComponent
-          component={component as IFormImageComponent}
+          component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
         />
@@ -77,7 +76,7 @@ export function ComponentSpecificContent({
           />
           <SelectComponent
             label={t('ux_editor.choose_variant')}
-            defaultValue={component.variant || 'info'}
+            defaultValue={component.variant.enum || 'info'}
             optionKey='variant'
             options={[
               {

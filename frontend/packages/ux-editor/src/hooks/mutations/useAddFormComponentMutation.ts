@@ -1,4 +1,4 @@
-import { IFormComponent, IFormFileUploaderComponent, IFormLayouts, IInternalLayout } from '../../types/global';
+import { IFormLayouts, IInternalLayout } from '../../types/global';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
@@ -8,9 +8,10 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { addComponent } from '../../utils/formLayoutUtils';
+import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 
 export interface AddFormComponentMutationArgs {
-  component: IFormComponent;
+  component: FormComponent;
   position?: number;
   containerId?: string;
   callback?: (...args: any[]) => any;
@@ -37,7 +38,7 @@ export const useAddFormComponentMutation = (org: string, app: string) => {
         if (component.type === ComponentType.FileUpload || component.type === ComponentType.FileUploadWithTag) {
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
           const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
-            component as IFormFileUploaderComponent;
+            component as FormFileUploaderComponent;
           appAttachmentMetadataMutation.mutate({
             id,
             maxCount: maxNumberOfAttachments,

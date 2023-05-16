@@ -4,6 +4,7 @@ import type { IFormDesignerState } from '../features/formDesigner/formDesignerRe
 import { ComponentType } from '../components';
 import { ITextResource, ITextResources } from 'app-shared/types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { FormComponent } from './FormComponent';
 
 export interface IFormDesignerNameSpace<T1, T2, T3> {
   formDesigner: T1;
@@ -44,168 +45,14 @@ export interface ICreateFormComponent {
   customType?: string;
   codeListId?: string;
   triggerValidation?: boolean;
-  handleUpdateElement?: (component: FormComponentType) => void;
+  handleUpdateElement?: (component: FormComponent) => void;
   handleDeleteElement?: () => void;
   handleUpdateFormData?: (formData: any) => void;
   handleUpdateDataModel?: (dataModelBinding: string) => void;
 }
 
-export interface IFormComponent extends ICreateFormComponent {
-  id: string;
-  itemType: 'COMPONENT';
-  type: ComponentType;
-  disabled?: boolean;
-  required?: boolean;
-  hidden?: boolean;
-  readOnly?: boolean;
-  [id: string]: any;
-}
-
-export interface IFormHeaderComponent extends IFormComponent {
-  type: ComponentType.Header;
-  size: string;
-}
-
-export interface IFormInputComponent extends IFormComponent {
-  type: ComponentType.Input;
-  disabled?: boolean;
-}
-
-export interface IFormCheckboxComponent extends IFormGenericOptionsComponent {
-  type: ComponentType.Checkboxes;
-}
-
-export interface IFormButtonComponent extends IFormComponent {
-  type: ComponentType.Button | ComponentType.NavigationButtons;
-  onClickAction: () => void;
-}
-
-export interface IFormRadioButtonComponent extends IFormGenericOptionsComponent {
-  type: ComponentType.RadioButtons;
-}
-
-export interface IFormGenericOptionsComponent extends IFormComponent {
-  options: IOption[];
-  preselectedOptionIndex?: number;
-  optionsId: string;
-}
-
-export interface IFormDropdownComponent extends IFormComponent {
-  type: ComponentType.Dropdown;
-  optionsId: string;
-}
-
-export interface IFormFileUploaderComponent extends IFormComponent {
-  type: ComponentType.FileUpload;
-  description: string;
-  hasCustomFileEndings: boolean;
-  maxFileSizeInMB: number;
-  displayMode: string;
-  maxNumberOfAttachments: number;
-  minNumberOfAttachments: number;
-  validFileEndings?: string;
-}
-
-export interface IFormFileUploaderWithTagComponent extends IFormComponent {
-  type: ComponentType.FileUploadWithTag;
-  description: string;
-  hasCustomFileEndings: boolean;
-  maxFileSizeInMB: number;
-  maxNumberOfAttachments: number;
-  minNumberOfAttachments: number;
-  validFileEndings?: string;
-  optionsId: string;
-}
-
-export interface IFormDesignerActionRejected {
-  error: Error;
-}
-
-export interface IDataModelBindings {
-  [id: string]: string;
-}
-
-export interface IProperties extends IFormComponent {
-  [key: string]: string | any;
-}
-
-export interface IFormImageComponent extends IFormComponent {
-  type: ComponentType.Image;
-  image?: {
-    src?: {
-      [lang: string]: string;
-    };
-    align?: string | null;
-    width?: string;
-  };
-}
-
-export interface IFormAddressComponent extends IFormComponent {
-  type: ComponentType.AddressComponent;
-  simplified: boolean;
-}
-
-export interface IFormDatepickerComponent extends IFormComponent {
-  type: ComponentType.Datepicker;
-  timeStamp: boolean;
-}
-
-export interface IThirdPartyComponent extends IFormComponent {
-  type: ComponentType.ThirdParty;
-  tagName: string;
-  framework: string;
-  [id: string]: any;
-}
-
-export interface PanelComponent extends IFormComponent {
-  type: ComponentType.Panel;
-  variant: {
-    title: string;
-    description: string;
-    type: string;
-    enum: 'info' | 'warning' | 'success';
-    default: 'info';
-  };
-  showIcon: {
-    title: string;
-    description: string;
-    type: boolean;
-    default: true;
-  };
-}
-
-export interface MapComponent extends IFormComponent {
-  type: ComponentType.Map;
-  centerLocation: {
-    latitude: number;
-    longitude: number;
-  };
-  zoom: number;
-  layers?: {
-    url: string;
-    attribution?: string;
-    subdomains?: string[];
-  }[];
-}
-
-export type FormComponentType =
-  | IFormComponent
-  | IFormHeaderComponent
-  | IFormInputComponent
-  | IFormCheckboxComponent
-  | IFormButtonComponent
-  | IFormRadioButtonComponent
-  | IFormDropdownComponent
-  | IFormFileUploaderComponent
-  | IFormFileUploaderWithTagComponent
-  | IFormAddressComponent
-  | IFormImageComponent
-  | IFormDatepickerComponent
-  | IThirdPartyComponent
-  | PanelComponent
-  | MapComponent;
-
-export type IFormDesignerComponents = KeyValuePairs<IFormComponent>;
+export type IDataModelBindings = KeyValuePairs<string>;
+export type IFormDesignerComponents = KeyValuePairs<FormComponent>;
 export type IFormDesignerContainers = KeyValuePairs<ICreateFormContainer>;
 export type IFormLayouts = KeyValuePairs<IInternalLayout>;
 

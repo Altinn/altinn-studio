@@ -2,13 +2,10 @@ import React from 'react';
 import { IGenericEditComponent } from '../../components/config/componentConfig';
 import { ComponentType } from '../../components';
 import { CheckboxGroupPreview } from './CheckboxGroupPreview';
-import {
-  IFormButtonComponent,
-  IFormCheckboxComponent,
-  IFormRadioButtonComponent,
-} from '../../types/global';
 import { RadioGroupPreview } from './RadioGroupPreview';
 import { ButtonPreview } from './ButtonPreview';
+import { useComponentErrorMessage } from '../../hooks/useComponentErrorMessage';
+import { ErrorMessage } from '@digdir/design-system-react';
 
 export interface ComponentPreviewProps extends IGenericEditComponent {}
 
@@ -17,11 +14,17 @@ export const ComponentPreview = ({
   handleComponentChange,
   layoutName,
 }: ComponentPreviewProps) => {
+  const errorMessage = useComponentErrorMessage(component);
+
+  if (errorMessage) {
+    return <ErrorMessage>{errorMessage}</ErrorMessage>;
+  }
+
   switch (component.type) {
     case ComponentType.Checkboxes:
       return (
         <CheckboxGroupPreview
-          component={component as IFormCheckboxComponent}
+          component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
         />
@@ -29,14 +32,14 @@ export const ComponentPreview = ({
     case ComponentType.RadioButtons:
       return (
         <RadioGroupPreview
-          component={component as IFormRadioButtonComponent}
+          component={component}
           handleComponentChange={handleComponentChange}
           layoutName={layoutName}
         />
       );
     case ComponentType.Button:
     case ComponentType.NavigationButtons:
-      return <ButtonPreview component={component as IFormButtonComponent} />;
+      return <ButtonPreview component={component} />;
     default:
       return <p>Forhåndsvisning er ikke implementert for denne komponenten.</p>;
   }
