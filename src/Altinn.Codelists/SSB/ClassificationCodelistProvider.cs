@@ -24,6 +24,14 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ClassificationCodelistProvider"/> class.
+    /// </summary>
+    public ClassificationCodelistProvider(string id, Classification classification, IClassificationsClient classificationsClient, ClassificationOptions options, Dictionary<string, string>? defaultKeyValuePairs = null) :
+        this(id, (int)classification, classificationsClient, defaultKeyValuePairs, options)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ClassificationCodelistProvider"/> class.
     /// For valid id's please consult the SSB classificaionts api by calling
     /// <see href="http://data.ssb.no/api/klass/v1/classifications?size=150&language=en">the classifications index.</see>
     /// </summary>
