@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from "app-shared/providers/PreviewConnectionContext";
 import { useInstanceIdQuery } from '../../hooks/queries/useInstanceIdQuery';
 import AltinnStudioLogo from "app-shared/navigation/main-header/AltinnStudioLogo";
+import { Button, ButtonVariant } from '@digdir/design-system-react';
 
 export const LandingPage = () => {
   const { org, app } = useParams();
@@ -31,6 +32,9 @@ export const LandingPage = () => {
     })
   }
 
+  const handleChangeViewSizeClick = () => {
+  };
+
   return (
       <PreviewContext>
         <div className={classes.header}>
@@ -40,6 +44,14 @@ export const LandingPage = () => {
           <div className={classes.betaTag}>
             {'BETA'}
           </div>
+        </div>
+        <div className={classes.subHeader}>
+          <Button className={classes.viewSizeButtons} variant={ButtonVariant.Quiet} onClick={handleChangeViewSizeClick}>
+            {t('preview.view_size_desktop')}
+          </Button>
+          <Button className={classes.viewSizeButtons} variant={ButtonVariant.Quiet} onClick={handleChangeViewSizeClick}>
+            {t('preview.view_size_mobile')}
+          </Button>
         </div>
         <iframe
           title={t('preview.iframe_title')}
