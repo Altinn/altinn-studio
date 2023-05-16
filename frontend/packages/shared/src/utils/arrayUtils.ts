@@ -17,3 +17,10 @@ export const replaceLastItem = <T>(array: T[], replaceWith: T): T[] => {
  */
 export const removeItemByValue = <T>(array: T[], value: T): T[] =>
   array.filter((item) => item !== value);
+
+/**
+ * Checks if all items in the given array are unique.
+ * @param array The array of interest.
+ * @returns True if all items in the array are unique and false otherwise.
+ */
+export const areItemsUnique = <T>(array: T[]): boolean => array.length === new Set(array).size;

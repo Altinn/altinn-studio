@@ -1,17 +1,17 @@
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
-import { IFormComponent } from '../../types/global';
 import { ComponentType } from '../../components';
 import { UpdateFormComponentArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import { component1IdMock, layout1NameMock } from '../../testing/layoutMock';
+import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const id = component1IdMock;
 const type = ComponentType.TextArea;
-const updatedComponent: IFormComponent = {
+const updatedComponent: FormComponent = {
   id,
   itemType: 'COMPONENT',
   type: ComponentType.TextArea,
@@ -64,8 +64,14 @@ describe('useUpdateFormComponentMutation', () => {
     const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app))
       .renderHookResult
       .result;
-    const newComponent: IFormComponent = {
+    const newComponent: FormFileUploaderComponent = {
       ...updatedComponent,
+      description: 'test',
+      displayMode: 'test',
+      hasCustomFileEndings: false,
+      maxFileSizeInMB: 100,
+      maxNumberOfAttachments: 2,
+      minNumberOfAttachments: 1,
       type: ComponentType.FileUpload,
     };
     const args: UpdateFormComponentArgs = {

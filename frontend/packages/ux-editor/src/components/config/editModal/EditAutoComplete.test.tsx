@@ -2,10 +2,10 @@ import React from 'react';
 import { EditAutoComplete } from './EditAutoComplete';
 import { act, render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { FormComponentType } from '../../../types/global';
 import { ComponentType } from '../../index';
+import type { FormComponent } from '../../../types/FormComponent';
 
-const componentMock: FormComponentType = {
+const componentMock: FormComponent = {
   id: 'random-id',
   autocomplete: '',
   type: ComponentType.Input,

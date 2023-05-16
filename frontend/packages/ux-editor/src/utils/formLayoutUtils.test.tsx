@@ -14,13 +14,15 @@ import {
   ICreateFormContainer,
   IExternalComponent,
   IExternalFormLayout,
-  IFormButtonComponent,
-  IFormComponent,
-  IFormHeaderComponent,
   IInternalLayout
 } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
+import type {
+  FormButtonComponent,
+  FormHeaderComponent,
+  FormParagraphComponent
+} from '../types/FormComponent';
 
 // Test data:
 const baseContainer: ICreateFormContainer = {
@@ -29,7 +31,7 @@ const baseContainer: ICreateFormContainer = {
 };
 const customProperty = 'some-custom-property';
 const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
-const headerComponent: IFormHeaderComponent = {
+const headerComponent: FormHeaderComponent = {
   id: headerId,
   type: ComponentType.Header,
   itemType: 'COMPONENT',
@@ -40,7 +42,7 @@ const headerComponent: IFormHeaderComponent = {
   size: 'L',
 };
 const paragraphId = 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729';
-const paragraphComponent: IFormComponent = {
+const paragraphComponent: FormParagraphComponent = {
   id: paragraphId,
   type: ComponentType.Paragraph,
   itemType: 'COMPONENT',
@@ -56,7 +58,7 @@ const groupContainer: ICreateFormContainer = {
   itemType: 'CONTAINER',
 };
 const paragraphInGroupId = 'group-paragraph';
-const paragraphInGroupComponent: IFormComponent = {
+const paragraphInGroupComponent: FormParagraphComponent = {
   id: paragraphInGroupId,
   type: ComponentType.Paragraph,
   itemType: 'COMPONENT',
@@ -71,7 +73,7 @@ const groupInGroupContainer: ICreateFormContainer = {
   itemType: 'CONTAINER',
 };
 const paragraphInGroupInGroupId = 'group-child-paragraph';
-const paragraphInGroupInGroupComponent: IFormComponent = {
+const paragraphInGroupInGroupComponent: FormParagraphComponent = {
   id: paragraphInGroupInGroupId,
   type: ComponentType.Paragraph,
   itemType: 'COMPONENT',
@@ -209,6 +211,7 @@ describe('formLayoutUtils', () => {
           id: 'mockChildID_2',
           type: ComponentType.Header,
           someProp: '2',
+          size: 'normal',
         },
         {
           id: 'mockChildID_4',
@@ -219,6 +222,7 @@ describe('formLayoutUtils', () => {
           id: 'mockChildID_5',
           type: ComponentType.Dropdown,
           someProp: '5',
+          optionsId: 'mockChildID_5_options',
         },
         {
           id: 'mockChildID_6',
@@ -243,6 +247,7 @@ describe('formLayoutUtils', () => {
             someProp: '2',
             type: ComponentType.Header,
             itemType: 'COMPONENT',
+            size: 'normal'
           },
           mockChildID_4: {
             id: 'mockChildID_4',
@@ -255,6 +260,7 @@ describe('formLayoutUtils', () => {
             someProp: '5',
             type: ComponentType.Dropdown,
             itemType: 'COMPONENT',
+            optionsId: 'mockChildID_5_options',
           },
           mockChildID_7: {
             id: 'mockChildID_7',
@@ -346,6 +352,7 @@ describe('formLayoutUtils', () => {
           id: 'mock-component-1',
           type: ComponentType.Header,
           someProp: '1',
+          size: 'normal'
         },
         {
           id: 'mock-component-2',
@@ -363,7 +370,7 @@ describe('formLayoutUtils', () => {
       const expectedConvertedLayoutResult: IInternalLayout = {
         containers: { 'mock-group-id': { itemType: 'CONTAINER' } },
         components: {
-          'mock-component-1': { someProp: '1', itemType: 'COMPONENT', type: ComponentType.Header, id: 'mock-component-1' },
+          'mock-component-1': { someProp: '1', itemType: 'COMPONENT', type: ComponentType.Header, id: 'mock-component-1', size: 'normal' },
           'mock-component-2': { someProp: '2', itemType: 'COMPONENT', type: ComponentType.Paragraph, id: 'mock-component-2' },
         },
         order: { 'mock-group-id': ['mock-component-1', 'mock-component-2'] },
@@ -378,7 +385,7 @@ describe('formLayoutUtils', () => {
   describe('hasNavigationButtons', () => {
     it('Returns true if navigation buttons are present', () => {
       const navigationButtonsId = 'navigationButtons';
-      const navigationButtonsComponent: IFormButtonComponent = {
+      const navigationButtonsComponent: FormButtonComponent = {
         id: navigationButtonsId,
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
@@ -422,7 +429,7 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addComponent', () => {
-    const newComponent: IFormComponent = {
+    const newComponent: FormParagraphComponent = {
       id: 'newComponent',
       type: ComponentType.Paragraph,
       itemType: 'COMPONENT',

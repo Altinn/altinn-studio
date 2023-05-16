@@ -1,12 +1,12 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../componentConfig';
-import { IFormFileUploaderComponent } from '../../../../types/global';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { FileUploadComponent } from './FileUploadComponent';
 import { ComponentType } from '../../../index';
+import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
 
 // Test data:
-const component: IFormFileUploaderComponent = {
+const component: FormFileUploaderComponent = {
   description: 'Lorem ipsum dolor sit amet',
   displayMode: 'test',
   hasCustomFileEndings: false,

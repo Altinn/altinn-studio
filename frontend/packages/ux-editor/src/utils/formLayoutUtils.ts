@@ -4,8 +4,6 @@ import { ComponentType } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type {
   IExternalFormLayout,
-  IFormButtonComponent,
-  IFormComponent,
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
@@ -22,6 +20,7 @@ import { deepCopy } from 'app-shared/pure';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { FormComponent } from '../types/FormComponent';
 
 const { addWidget } = FormLayoutActions;
 
@@ -45,7 +44,7 @@ export function convertFromLayoutToInternalFormat(formLayout: IExternalFormLayou
       convertedLayout.components[id] = {
         id,
         ...rest
-      } as IFormComponent;
+      } as FormComponent;
       convertedLayout.order[BASE_CONTAINER_ID].push(id);
     } else {
       extractChildrenFromGroup(element, layout, convertedLayout);
@@ -199,7 +198,7 @@ export function extractChildrenFromGroup(
       convertedLayout.components[componentId] = {
         ...component,
         itemType: 'COMPONENT',
-      };
+      } as FormComponent;
     }
   });
 }
@@ -319,7 +318,7 @@ export const findContainerId = (layout: IInternalLayout, componentId: string): s
  */
 export const addComponent = (
   layout: IInternalLayout,
-  component: IFormComponent,
+  component: FormComponent,
   containerId: string = BASE_CONTAINER_ID,
   position: number = -1,
 ): IInternalLayout => {
@@ -370,7 +369,7 @@ export const removeComponentsByType = (layout: IInternalLayout, componentType: C
  * @returns The new layout.
  */
 export const addNavigationButtons = (layout: IInternalLayout, id: string): IInternalLayout => {
-  const navigationButtons: IFormButtonComponent = {
+  const navigationButtons: FormComponent = {
     componentType: ComponentType.NavigationButtons,
     dataModelBindings: {},
     id,

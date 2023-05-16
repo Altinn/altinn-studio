@@ -1,4 +1,5 @@
-import type { IFormComponent, IWidget } from '../../types/global';
+import type { IWidget } from '../../types/global';
+import type { FormComponent } from '../../types/FormComponent';
 
 export interface IAddLayoutFulfilledAction {
   layoutOrder: string[];
@@ -28,7 +29,7 @@ export interface IAddApplicationMetadataAction {
 }
 
 export interface IAddFormComponentsAction {
-  components: IFormComponent[];
+  components: FormComponent[];
   position: number;
   containerId?: string;
   callback?: (...args: any[]) => any;

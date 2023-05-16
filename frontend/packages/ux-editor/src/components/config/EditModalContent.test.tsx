@@ -4,11 +4,12 @@ import configureStore from 'redux-mock-store';
 import { EditModalContent } from './EditModalContent';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FormComponentType, IAppState } from '../../types/global';
+import { IAppState } from '../../types/global';
 import { appStateMock, queriesMock } from '../../testing/mocks';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from '../../../../../app-development/common/ServiceContext';
 import { ComponentType } from '../index';
+import type { FormComponent } from '../../types/FormComponent';
 
 const user = userEvent.setup();
 
@@ -160,8 +161,8 @@ describe('EditModalContent', () => {
 });
 
 const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
-  componentProps?: Partial<FormComponentType>;
-  handleComponentUpdate?: (component: FormComponentType) => void;
+  componentProps?: Partial<FormComponent>;
+  handleComponentUpdate?: (component: FormComponent) => void;
 }) => {
   const createStore = configureStore();
   const initialState: IAppState = {
@@ -179,7 +180,7 @@ const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
 
   const store = createStore(initialState);
 
-  const allComponentProps: FormComponentType = {
+  const allComponentProps: FormComponent = {
     dataModelBindings: {},
     readOnly: false,
     required: false,
@@ -190,7 +191,7 @@ const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
     id: 'test',
     itemType: 'COMPONENT',
     ...componentProps,
-  };
+  } as FormComponent;
 
   return {
     rendered: rtlRender(

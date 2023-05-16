@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { IFormButtonComponent } from '../../../types/global';
 import { ButtonPreview } from './ButtonPreview';
 import { ComponentType } from '../../../components';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
 import { ITextResource } from 'app-shared/types/global';
+import type { FormButtonComponent } from '../../../types/FormComponent';
 
 // Test data:
 const org = 'org';
@@ -76,7 +76,7 @@ describe('ButtonPreview', () => {
   });
 });
 
-const renderWithMock = async (component: IFormButtonComponent) => {
+const renderWithMock = async (component: FormButtonComponent) => {
 
   const { result: texts } = renderHookWithMockStore({}, {
     getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources })

@@ -1,4 +1,4 @@
-import { IFormButtonComponent, IFormLayouts } from '../types/global';
+import { IFormLayouts } from '../types/global';
 import {
   addOrRemoveNavigationButtons,
   convertExternalLayoutsToInternalFormat,
@@ -8,6 +8,7 @@ import { ComponentType } from '../components';
 import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
+import { FormButtonComponent } from '../types/FormComponent';
 
 describe('formLayoutsUtils', () => {
   describe('addOrRemoveNavigationButtons', () => {
@@ -86,7 +87,7 @@ describe('formLayoutsUtils', () => {
       const layoutId = 'layout1';
       const callback = jest.fn();
       const navButtonsId = 'navButtons';
-      const navButtonsComponent: IFormButtonComponent = {
+      const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
@@ -113,7 +114,7 @@ describe('formLayoutsUtils', () => {
       const layoutReceiptId = 'receipt';
       const callback = jest.fn();
       const navButtonsId = 'navButtons';
-      const navButtonsComponent: IFormButtonComponent = {
+      const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),

@@ -1,7 +1,8 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType } from '../components';
-import { IExternalFormLayout, IExternalFormLayouts, IFormComponent, IInternalLayout } from '../types/global';
+import { IExternalFormLayout, IExternalFormLayouts, IInternalLayout } from '../types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { FormComponent } from '../types/FormComponent';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
@@ -9,14 +10,14 @@ export const layout2NameMock = 'Side2';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = 'Component-1';
 export const component1TypeMock = ComponentType.Input;
-export const component1Mock: IFormComponent = {
+export const component1Mock: FormComponent = {
   id: component1IdMock,
   type: component1TypeMock,
   itemType: 'COMPONENT',
 };
 export const component2IdMock = 'Component-2';
 export const component2TypeMock = ComponentType.Paragraph;
-export const component2Mock: IFormComponent = {
+export const component2Mock: FormComponent = {
   id: component2IdMock,
   type: component2TypeMock,
   itemType: 'COMPONENT',
