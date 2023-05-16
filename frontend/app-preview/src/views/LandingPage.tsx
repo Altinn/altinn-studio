@@ -31,7 +31,7 @@ export const LandingPage = () => {
   return (
     <PreviewContext>
       <div className={classes.header}>
-        <a href='/'>
+        <a href={`/editor/${org}/${app}/ui-editor?`}>
           <AltinnStudioLogo />
         </a>
         <div className={classes.betaTag}>
