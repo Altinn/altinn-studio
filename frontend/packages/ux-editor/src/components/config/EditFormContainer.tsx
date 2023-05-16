@@ -130,7 +130,7 @@ export const EditFormContainer = ({
       },
       maxCount: maxOccurs,
     }));
-  }, [getMaxOccursForGroupFromDataModel]);
+  }, [getMaxOccursForGroupFromDataModel, handleContainerUpdate]);
 
   const handleNewId = (_, error) => {
     if (!error) {

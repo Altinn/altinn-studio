@@ -43,12 +43,17 @@ export const FormContainer = ({
 
   const { mutate: deleteFormContainer } = useDeleteFormContainerMutation(org, app);
 
+  const handleDeleteFormContainer = useCallback(
+    deleteFormContainer,
+    [deleteFormContainer]
+  );
+
   const [expanded, setExpanded] = useState<boolean>(true);
 
   const handleComponentDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
-    deleteFormContainer(id);
+    handleDeleteFormContainer(id);
     handleDiscard();
-  }, [id]);
+  }, [handleDeleteFormContainer, handleDiscard, id]);
 
   return (
     <DroppableDraggableContainer
