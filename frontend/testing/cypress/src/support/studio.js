@@ -4,6 +4,8 @@ import { dashboard } from '../pageobjects/dashboard';
 import { designer } from '../pageobjects/designer';
 import { header } from '../pageobjects/header';
 
+import '@testing-library/cypress/add-commands';
+
 /**
  * Login to studio with user name and password
  */
