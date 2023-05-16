@@ -68,6 +68,7 @@ export const queriesMock: ServicesContextProps = {
   getEnvironments: jest.fn(),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
+  getInstanceIdForPreview: jest.fn(),
   getOrgList: jest.fn(),
   getRepoMetadata: jest.fn(),
   getRepoPull: jest.fn(),
