@@ -18,6 +18,7 @@ import { firstAvailableLayout } from './utils/formLayoutsUtils';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from './hooks/queries/useRuleConfigQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
+import { useInstanceIdQuery } from './hooks/queries/useInstanceIdQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -38,6 +39,7 @@ export function App() {
   const { isSuccess: isRuleModelFetched } = useRuleModelQuery(org, app);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
+  const { data: instanceId } = useInstanceIdQuery(org, app);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
@@ -97,6 +99,10 @@ export function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, layoutPagesOrder, selectedLayout, org, app]);
+
+  useEffect(() => {
+    localStorage.setItem(instanceId, selectedLayout);
+  }, [selectedLayout, instanceId]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
