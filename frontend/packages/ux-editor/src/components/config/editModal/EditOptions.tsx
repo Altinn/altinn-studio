@@ -69,7 +69,7 @@ export function EditOptions({
 
   useEffect(() => {
     resetPrevOptionsType();
-  }, [resetPrevOptionsType, selectedOptionsType]);
+  }, [selectedOptionsType]);
 
   const handleOptionsTypeChange = (value) => {
     setSelectedOptionsType(value);
