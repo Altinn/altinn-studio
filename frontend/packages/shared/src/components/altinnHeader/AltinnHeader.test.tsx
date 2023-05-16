@@ -14,7 +14,7 @@ describe('AltinnHeader', () => {
         },
       ],
     });
-    expect(screen.getByTitle('Altin Logo')).toBeInTheDocument();
+    expect(screen.getByTitle('Altinn logo')).toBeInTheDocument();
   });
 
   it('should render AltinnHeaderButtons when buttonActions are provided', () => {
