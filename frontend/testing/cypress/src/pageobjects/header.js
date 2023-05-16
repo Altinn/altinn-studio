@@ -2,6 +2,7 @@
 export const header = {
   profileIcon: '#profile-icon-button',
   profileIconDesigner: "img[aria-label*='profilikon']",
+  profileIconName: 'profilikon',
   menu: {
     item: '[role="menuitem"]',
     all: '#menu-all',
@@ -10,6 +11,7 @@ export const header = {
     gitea: '#menu-gitea',
     logOut: '#menu-logout',
     openRepo: 'a[href*="repos"]',
+    appRepoLinkName: 'Åpne repository',
     docs: 'a[href="https://docs.altinn.studio/"]',
   },
 };
