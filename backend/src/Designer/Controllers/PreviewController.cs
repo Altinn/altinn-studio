@@ -33,6 +33,8 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IPreviewService _previewService;
         private readonly ITextsService _textsService;
 
+        private const int PartyId = 51001;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PreviewController"/> class.
         /// </summary>
@@ -202,7 +204,7 @@ namespace Altinn.Studio.Designer.Controllers
                 UserName = "previewUser",
                 PhoneNumber = "12345678",
                 Email = "test@test.com",
-                PartyId = 51001,
+                PartyId = PartyId,
                 Party = new(),
                 UserType = 0,
                 ProfileSettingPreference = new() { Language = "nb" }
@@ -224,7 +226,7 @@ namespace Altinn.Studio.Designer.Controllers
             // TODO: return actual current party when tenor testusers are available
             Party party = new()
             {
-                PartyId = 51001,
+                PartyId = PartyId,
                 PartyTypeName = PartyType.Person,
                 OrgNumber = "1",
                 SSN = null,
@@ -281,6 +283,21 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, instanceOwnerPartyId);
             return Ok(mockInstance);
+        }
+
+        /// <summary>
+        /// Action for getting the mocked instance id
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The mocked instance object</returns>
+        [HttpGet]
+        [Route("/designer/api/{org}/{app}/mock-instance-id")]
+        public async Task<ActionResult<string>> GetInstanceId(string org, string app)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, PartyId);
+            return Ok(mockInstance.Id);
         }
 
         /// <summary>

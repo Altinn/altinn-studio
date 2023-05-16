@@ -7,6 +7,7 @@ import {
   deploymentsPath,
   envConfigPath,
   formLayoutsPath,
+  instanceIdForPreviewPath,
   layoutSettingsPath,
   releasesPath,
   repoMetaPath,
@@ -32,6 +33,7 @@ export const getDeployments = (owner: string, app: string) => get(deploymentsPat
 export const getEnvironments = () => get(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string) => get(layoutSettingsPath(owner, app));
 export const getFormLayouts = (owner: string, app: string) => get(formLayoutsPath(owner, app));
+export const getInstanceIdForPreview = (owner: string, app: string) => get(instanceIdForPreviewPath(owner, app));
 export const getOrgList = () => get(orgsListUrl());
 export const getRepoMetadata = (owner: string, app: string) => get(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get(repoPullPath(owner, app));
