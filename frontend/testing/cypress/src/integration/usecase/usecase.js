@@ -50,7 +50,10 @@ context(
       // Preview
       cy.get(designer.appMenu.preview).should('be.visible');
       cy.visit('/preview/' + Cypress.env('deployApp'));
-      cy.findByTitle('Altinn logo').click();
+      cy.findByTestId('presentation-heading').should('be.visible');
+      cy.get(`a[href^="/editor/${Cypress.env('deployApp')}"]`)
+        .should('be.visible')
+        .click();
 
       // Repos
       cy.findByRole('img', { name: header.profileIconName }).should('be.visible').click();
