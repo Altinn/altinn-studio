@@ -14,6 +14,7 @@ import {
   NumberRestrictionsReducerState,
 } from './NumberRestrictionsReducer';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
+import { valueExists } from '@altinn/schema-editor/utils/value';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
   isInteger: boolean;
@@ -70,14 +71,14 @@ export function NumberRestrictions({
     const newValue = event.target.value.trim();
     dispatchAction(
       NumberRestrictionsReducerActionType.setMin,
-      newValue ? parseInt(newValue) : undefined
+      valueExists(newValue) ? parseInt(newValue) : undefined
     );
   };
   const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
     dispatchAction(
       NumberRestrictionsReducerActionType.setMax,
-      newValue ? parseInt(newValue) : undefined
+      valueExists(newValue) ? parseInt(newValue) : undefined
     );
   };
 
