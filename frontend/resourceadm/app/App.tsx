@@ -77,12 +77,12 @@ export const App = (): JSX.Element => {
       <div className={classes.root}>
         <Routes>
 
-          <Route element={<PageLayout />}>
-            <Route path='/'  element={ <ResourceDashboard user = {user} organizations={organizations} /> } />
+        <Route element={ <TestPage /> } >
+            <Route path='/' element={ <ResourceDashboard user = {user} organizations={organizations} /> } />
           </Route>
 
-          <Route element={ <TestPage /> } >
-            <Route path='/skatt/repo1' element={ <ResourceDashboard user = {user} organizations={organizations} /> } />
+          <Route element={<PageLayout />}>
+            <Route path='/skatt/repo1'  element={ <ResourceDashboard user = {user} organizations={organizations} /> } />
           </Route>
 
           <Route path='/skatt/repo2' element={ <TestPage /> } />

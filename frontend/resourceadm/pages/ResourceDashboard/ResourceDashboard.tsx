@@ -34,9 +34,9 @@ type ResourceDashboardProps = {
 // ---> mulig at det er en BACKEND ting som ikke virker...
 // mens useGetStarredRepos() synes nå å virke --> console-log dette... nå LUNCH:
 export const ResourceDashboard = ({ user, organizations, disableDebounce }: ResourceDashboardProps) => {
-  // console.log("Er i ResourceDashboard: skriver ut user og organizations:");
-  // console.log(user); 
-  // console.log(organizations); 
+  console.log("Er i ResourceDashboard: skriver ut user og organizations:");
+  console.log(user); 
+  console.log(organizations); 
 
   // Prøver få tak i starredRepos:
   console.log("ResourceDashboard: Prøver få tak i starredRepos uten krasj:");
@@ -51,11 +51,11 @@ export const ResourceDashboard = ({ user, organizations, disableDebounce }: Reso
 
   // Mulig det mangler ting for å få tak i dette, user f.eks.
   // Jepp, gir feilmeldingen Context Provider is missing... skal da være pakket rundt App?
-  // så er det hentingen som svikter? Noe async? Eller kanskje Øvrelids <T> skit svikter?
+  // så er det hentingen som svikter? Noe async? Eller kanskje Øvrelids <T> svikter?
 
   // const isLoadingStarredRepos = false; // hack to test render kode nedunder her: OK virker
   // const starredRepos = ["abc", "def"]; // hack to test render kode: OK virker
-  // Kunne vel også sette starredRepos = []; altså tomt... for bruk i 
+  // Kunne vel også sette starredRepos = []; altså tomt... nei, må Types...
 
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');
@@ -118,9 +118,9 @@ export const ResourceDashboard = ({ user, organizations, disableDebounce }: Reso
           </Link>
         </div>
         
-          <h3> Dette er RessursDashboard side pakket inn i PageLayout banner</h3>
+          <h3> Dette er RessursDashboard side pakket inn i TestPage </h3>
 
-          <h5> bygger gradvis fra Dashboard mal</h5>
+          <h5> bygger gradvis fra Dashboard mal. PageLayout krasjet i oppdatering 16.05.23</h5>
 
           <div>
             User er nå : {user.login} 

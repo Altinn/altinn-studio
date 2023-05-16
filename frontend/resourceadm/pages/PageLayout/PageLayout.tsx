@@ -11,12 +11,13 @@ import { useUserQuery } from '../../hooks/useUserQueries';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 
 export const PageLayout = () => {
+  console.log("Er i PageLayout component før krasj"); // OK blir skrevet ut
 
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
 
   const selectedContext = useSelectedContext();
-  // console.log(selectedContext); // fikk ut "self"
+  console.log(selectedContext); // fikk ut "self" i resource6 versjon, og i res7
   
   const navigate = useNavigate();
 
@@ -39,8 +40,9 @@ export const PageLayout = () => {
     [organizations, user]
   );
 
+  console.log("Dette er headerContextValue = ");
+  console.log(headerContextValue); // får ut user og 2 orgs i resource7 OK
   
-  // console.log(headerContextValue); 
   // fikk ut avatar_url (etc) 
   // user = email:"zzz@dilldall.com",
   // full_name="", id:3, login: "studiobruker2"
