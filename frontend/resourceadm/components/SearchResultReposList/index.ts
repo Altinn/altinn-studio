@@ -1,0 +1,1 @@
+export { SearchResultReposList } from './SearchResultReposList';
