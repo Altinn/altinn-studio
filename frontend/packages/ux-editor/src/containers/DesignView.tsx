@@ -41,9 +41,14 @@ export const DesignView = ({
   );
 
   const { org, app } = useParams();
-  const updateFormComponentOrderMutation = useUpdateFormComponentOrderMutation(org, app);
+  const { mutate: updateFormComponentOrder } = useUpdateFormComponentOrderMutation(org, app);
 
-  const setContainerLayoutOrder = (containerId: string, newLayoutOrder: string[]) => {
+  const handleUpdateFormComponentOrder = useCallback(
+    updateFormComponentOrder,
+    [updateFormComponentOrder]
+  );
+
+  const setContainerLayoutOrder = useCallback((containerId: string, newLayoutOrder: string[]) => {
     if (newLayoutOrder.includes(containerId)) {
       throw Error("can't add item to itself");
     }
@@ -51,16 +56,16 @@ export const DesignView = ({
       layoutOrder: { ...state.layoutOrder, [containerId]: newLayoutOrder },
       isDragging: true,
     });
-  };
+  }, [state.layoutOrder]);
 
-  const removeItemFromContainer = (item: EditorDndItem): void => {
+  const removeItemFromContainer = useCallback((item: EditorDndItem): void => {
     const updatedLayoutOrder = removeArrayElement(state.layoutOrder[item.containerId], item.id);
     setContainerLayoutOrder(item.containerId, updatedLayoutOrder);
     item.index = undefined;
     item.containerId = undefined;
-  };
+  }, [setContainerLayoutOrder, state.layoutOrder]);
 
-  const addItemToContainer = (
+  const addItemToContainer = useCallback((
     item: EditorDndItem,
     targetContainerId: string,
     targetPos: number
@@ -73,33 +78,33 @@ export const DesignView = ({
     setContainerLayoutOrder(targetContainerId, newLayoutOrder);
     item.index = newLayoutOrder.indexOf(item.id);
     item.containerId = targetContainerId;
-  };
+  }, [setContainerLayoutOrder, state.layoutOrder]);
 
-  const moveItemBetweenContainers = (
+  const moveItemBetweenContainers = useCallback((
     item: EditorDndItem,
     targetContainerId: string,
     targetContainerPosition: number
   ) => {
     removeItemFromContainer(item);
     addItemToContainer(item, targetContainerId, targetContainerPosition);
-  };
+  }, [addItemToContainer, removeItemFromContainer]);
 
-  const moveItemToTop = useCallback((item: EditorDndItem) => {
-    const arr = state.layoutOrder[item.containerId];
-    swapItemsInsideTheSameContainer(item, arr[0]);
-  }, []);
-
-  const moveItemToBottom = useCallback((item: EditorDndItem) => {
-    const arr = state.layoutOrder[item.containerId];
-    swapItemsInsideTheSameContainer(item, arr[arr.length - 1]);
-  }, []);
-
-  const swapItemsInsideTheSameContainer = (movedItem: EditorDndItem, targetId: string): void => {
+  const swapItemsInsideTheSameContainer = useCallback((movedItem: EditorDndItem, targetId: string): void => {
     const currentLayoutOrder = state.layoutOrder[movedItem.containerId];
     const newLayoutOrder = swapArrayElements(currentLayoutOrder, movedItem.id, targetId);
     setContainerLayoutOrder(movedItem.containerId, newLayoutOrder);
     movedItem.index = newLayoutOrder.indexOf(movedItem.id);
-  };
+  }, [setContainerLayoutOrder, state.layoutOrder]);
+
+  const moveItemToTop = useCallback((item: EditorDndItem) => {
+    const arr = state.layoutOrder[item.containerId];
+    swapItemsInsideTheSameContainer(item, arr[0]);
+  }, [state.layoutOrder, swapItemsInsideTheSameContainer]);
+
+  const moveItemToBottom = useCallback((item: EditorDndItem) => {
+    const arr = state.layoutOrder[item.containerId];
+    swapItemsInsideTheSameContainer(item, arr[arr.length - 1]);
+  }, [state.layoutOrder, swapItemsInsideTheSameContainer]);
 
   const moveItem = useCallback((
     movedItem: EditorDndItem,
@@ -126,20 +131,20 @@ export const DesignView = ({
     } else {
       // There is nothing that should be moved.
     }
-  }, []);
+  }, [beforeDrag, moveItemBetweenContainers, state.layoutOrder, swapItemsInsideTheSameContainer]);
 
-  const resetState = () => {
+  const resetState = useCallback(() => {
     beforeDrag && setState({ layoutOrder: beforeDrag, isDragging: false });
-  };
+  }, []);
   const onDropItem = useCallback((reset?: boolean) => {
     if (reset) {
       resetState();
     } else {
-      updateFormComponentOrderMutation.mutate(state.layoutOrder);
+      handleUpdateFormComponentOrder(state.layoutOrder);
       setState({ ...state, isDragging: false });
     }
     setBeforeDrag(null);
-  }, []);
+  }, [resetState, state, handleUpdateFormComponentOrder]);
   const baseContainerId =
     Object.keys(state.layoutOrder).length > 0 ? Object.keys(state.layoutOrder)[0] : null;
 
@@ -150,7 +155,7 @@ export const DesignView = ({
       moveItemToTop,
       onDropItem,
     }
-  }, []);
+  }, [moveItem, moveItemToBottom, moveItemToTop, onDropItem]);
 
   const { containers, components } = useFormLayoutsSelector(selectedLayoutSelector);
 
@@ -189,7 +194,7 @@ export const DesignView = ({
                     key={itemId}
                     id={itemId}
                     containerId={id}
-                    index={index}
+                    index={itemIndex}
                     dndEvents={dndEvents}
                     isEditMode={formId === itemId}
                     component={formId === itemId ? form as IFormComponent : components[itemId]}
