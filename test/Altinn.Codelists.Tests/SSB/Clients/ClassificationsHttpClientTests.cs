@@ -21,7 +21,7 @@ public class ClassificationsHttpClientTests
         var options = Options.Create(new ClassificationSettings());
         var client = new ClassificationsHttpClient(options, new HttpClient());
 
-        var classificationCodes = await client.GetClassificationCodes(74, "nb", DateOnly.FromDateTime(new DateTime(2023, 03, 01)), "", "Hønsefugler, spurvefugler, skarver og due 2023-03  - variant av Klassifisering av småvilt 2017-04");
+        var classificationCodes = await client.GetClassificationCodes(74, "nn", DateOnly.FromDateTime(new DateTime(2023, 03, 01)), "", "Hønsefugler, spurvefugler og due 2023-03  - variant av Klassifisering av småvilt 2017-04");
 
         classificationCodes.Codes.Should().HaveCountGreaterThan(2);
     }

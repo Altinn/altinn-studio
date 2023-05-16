@@ -1,5 +1,6 @@
 ﻿using Altinn.Codelists.Extensions;
 using Microsoft.Extensions.Options;
+using System.Net;
 
 namespace Altinn.Codelists.SSB.Clients;
 
@@ -50,14 +51,33 @@ public class ClassificationsHttpClient : IClassificationsClient
         {
             url = $"{classificationId}/variantAt";
         }
-
-        string query = $"?{selectLanguage}{selectDate}{selectLevel}{selectVariant}";
+        string query = BuildQuery(selectLanguage, selectDate, selectLevel, selectVariant);
 
         var response = await _httpClient.GetAsync($"{url}{query}");
-        var responseJson = await response.Content.ReadAsStringAsync();
 
-        var classificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(responseJson);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var classificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(responseJson);
+            return classificationCodes ?? new ClassificationCodes();
+        }
+        else if (response.StatusCode == HttpStatusCode.NotFound && language != "nb")
+        {
+            string fallbackQuery = BuildQuery("language=nb", selectDate, selectLevel, selectVariant);
+            var fallbackResponse = await _httpClient.GetAsync($"{url}{fallbackQuery}");
+            if (fallbackResponse.IsSuccessStatusCode)
+            {
+                var fallbackResponseJosn = await fallbackResponse.Content.ReadAsStringAsync();
+                var fallbackClassificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(fallbackResponseJosn);
+                return fallbackClassificationCodes ?? new ClassificationCodes();
+            }
+        }
 
-        return classificationCodes ?? new ClassificationCodes();
+        return new ClassificationCodes();
+    }
+
+    private static string BuildQuery(string selectLanguage, string selectDate, string selectLevel, string selectVariant)
+    {
+        return $"?{selectLanguage}{selectDate}{selectLevel}{selectVariant}";
     }
 }
