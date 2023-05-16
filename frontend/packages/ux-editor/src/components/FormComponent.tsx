@@ -63,7 +63,7 @@ export const FormComponent = memo(function FormComponent({
 
   const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
 
-  const handleComponentDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
+  const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
     deleteFormComponent(id);
     handleDiscard();
   };
@@ -113,7 +113,7 @@ export const FormComponent = memo(function FormComponent({
                   data-testid='component-delete-button'
                   color={ButtonColor.Secondary}
                   icon={<TrashIcon />}
-                  onClick={handleComponentDelete}
+                  onClick={handleDelete}
                   tabIndex={0}
                   title={t('general.delete')}
                   variant={ButtonVariant.Quiet}
