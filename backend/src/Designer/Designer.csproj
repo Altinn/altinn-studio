@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="9.0.0" />
     <PackageReference Include="Altinn.Common.AccessToken" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" />
@@ -71,9 +72,13 @@
     <Watch Remove="Models\Keyword.cs" />
     <Watch Remove="Models\ResourceReference.cs" />
     <Watch Remove="Models\ServiceResource.cs" />
+    <Watch Remove="Services\Implementation\IMaskinportenService.cs" />
+    <Watch Remove="Services\Implementation\MaskinportenClient.cs" />
+    <Watch Remove="Services\Implementation\MaskinPortenClientDefinition.cs" />
     <Watch Remove="Services\Implementation\ResourceRegistryService.cs" />
     <Watch Remove="Services\Implementation\ResourceService.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
+    <Watch Remove="Services\Interfaces\IMaskinportenClient.cs" />
     <Watch Remove="Services\Interfaces\IResourceRegistry.cs" />
     <Watch Remove="Services\Interfaces\IResourceService.cs" />
     <Content Include="jwtselfsignedcert.pfx">

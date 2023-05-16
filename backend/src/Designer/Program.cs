@@ -2,13 +2,19 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Altinn.ApiClients.Maskinporten.Config;
+using Altinn.ApiClients.Maskinporten.Extensions;
+using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -173,6 +179,15 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     {
         options.AllowSynchronousIO = true;
     });
+
+    var maskinportenSettings = new MaskinportenSettings();
+    configuration.GetSection("MaskinportenSettings").Bind(maskinportenSettings);
+
+    //services.Configure<MaskinportenSettings>(configuration.GetSection("MaskinportenSettings"));
+    var maskinPortenClientName = "MaskinportenClient";
+    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenSettings"));
+    //services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
+    services.AddHttpClient<IMaskinportenClient, MaskinportenClient>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
 
     services.RegisterServiceImplementations(configuration);
 

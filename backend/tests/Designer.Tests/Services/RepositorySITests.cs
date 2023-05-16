@@ -333,7 +333,7 @@ namespace Designer.Tests.Services
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService);
 
-            ResourceRegistryService resourceRegistryService = new ResourceRegistryService(new HttpClient());
+            ResourceRegistryService resourceRegistryService = new ResourceRegistryService();
 
             RepositorySI service = new(
                 repoSettings,
