@@ -591,4 +591,16 @@ describe('Group', () => {
     // This should not change the maximum number of rows
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 7);
   });
+
+  it('should be able to customize the add button in repeating groups', () => {
+    cy.goto('group');
+    cy.get(appFrontend.nextButton).click();
+    cy.changeLayout((component) => {
+      if (component.type === 'Group' && component.id === 'mainGroup' && component.textResourceBindings) {
+        component.textResourceBindings.add_button_full = 'Hello World';
+      }
+    });
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.addNewItem).should('have.text', 'Hello World');
+  });
 });

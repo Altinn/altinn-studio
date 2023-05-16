@@ -10,7 +10,7 @@ import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
@@ -49,10 +49,8 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
   const deletingIndexes = groupState?.deletingIndex ?? [];
   const multiPageIndex = groupState?.multiPageIndex ?? -1;
   const repeatingGroupIndex = groupState?.index ?? -1;
-
-  const language = useAppSelector((state) => state.language.language);
   const formData = useAppSelector((state) => state.formData.formData);
-  const textResources = useAppSelector((state) => state.textResources.resources);
+  const { lang, langAsString } = useLanguage();
 
   const filteredIndexList = React.useMemo(
     () => getRepeatingGroupFilteredIndices(formData, edit?.filter),
@@ -86,14 +84,16 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
       {isLoading && (
         <AltinnLoader
           style={{ position: 'absolute' }}
-          srContent={`${getLanguageFromKey('general.add_new', language ?? {})} ${
-            resolvedTextBindings?.add_button ? getTextResourceByKey(resolvedTextBindings.add_button, textResources) : ''
-          }`}
+          srContent={
+            resolvedTextBindings?.add_button_full
+              ? langAsString(resolvedTextBindings.add_button_full)
+              : `${langAsString('general.add_new')} ${langAsString(resolvedTextBindings?.add_button) ?? ''}`
+          }
         />
       )}
-      {`${getLanguageFromKey('general.add_new', language ?? {})} ${
-        resolvedTextBindings?.add_button ? getTextResourceByKey(resolvedTextBindings.add_button, textResources) : ''
-      }`}
+      {resolvedTextBindings?.add_button_full
+        ? lang(resolvedTextBindings.add_button_full)
+        : `${langAsString('general.add_new')} ${langAsString(resolvedTextBindings?.add_button) ?? ''}`}
     </Button>
   );
 
