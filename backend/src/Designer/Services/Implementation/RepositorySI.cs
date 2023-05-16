@@ -15,6 +15,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
@@ -840,8 +841,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             foreach (FileSystemObject resourceFile in resourceFiles)
             {
-                Stream fs = File.OpenRead($"{repopath}/{resourceFile.Path}");
-                ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(fs, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+                string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
+                ServiceResource serviceResource = JsonConvert.DeserializeObject<ServiceResource>(jsonString);
 
                 if (serviceResource != null)
                 {
@@ -852,10 +853,75 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return serviceResourceList;
         }
 
+        public ActionResult UpdateServiceResource(string org, string repository, string id, ServiceResource updatedResource)
+        {
+            if (updatedResource != null && id == updatedResource.Identifier)
+            {
+                List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
+                string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+                foreach (FileSystemObject resourceFile in resourceFiles)
+                {
+                    string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
+                    ServiceResource serviceResource = JsonConvert.DeserializeObject<ServiceResource>(jsonString);
+
+                    if (serviceResource != null && serviceResource.Identifier == updatedResource.Identifier)
+                    {
+                        string updatedResourceString = JsonConvert.SerializeObject(updatedResource);
+                        File.WriteAllText($"{repopath}/{resourceFile.Path}", updatedResourceString);
+                        return new StatusCodeResult(201);
+                    }
+                }
+            }
+            else
+            {
+                return new StatusCodeResult(400);
+            }
+
+            return new StatusCodeResult(403);
+        }
+
+        public ActionResult AddServiceResource(string org, string repository, ServiceResource newResource)
+        {
+            try
+            {
+                if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
+                {
+                    string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                    string fullPathOfNewResource = $"{repopath}\\{newResource.Identifier}_resource.json";
+                    string newResourceJson = JsonConvert.SerializeObject(newResource);
+                    File.WriteAllText(fullPathOfNewResource, newResourceJson);
+
+                    return new StatusCodeResult(201);
+                }
+                else
+                {
+                    return new StatusCodeResult(409);
+                }
+            }
+            catch (Exception)
+            {
+                return new StatusCodeResult(400);
+            }
+        }
+
+        public bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository)
+        {
+            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
+            foreach (var _ in from FileSystemObject resourceFile in resourceFiles
+                              where resourceFile.Name.Contains(identifier)
+                              select new { })
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public ServiceResource GetServiceResourceById(string org, string repository, string identifier)
         {
             List<ServiceResource> resourcesInRepo = GetServiceResources(org, repository);
-            return resourcesInRepo.Where(r => r.Identifier == identifier).First();
+            return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
         }
 
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
@@ -867,7 +933,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 foreach (FileSystemObject resourceFile in contents)
                 {
-                    if (resourceFile.Name.EndsWith("resource.json"))
+                    if (resourceFile.Name.EndsWith("_resource.json"))
                     {
                         resourceFiles.Add(resourceFile);
                     }
