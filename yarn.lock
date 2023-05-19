@@ -3375,10 +3375,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:^2.7.3":
-  version: 2.9.8
-  resolution: "@navikt/aksel-icons@npm:2.9.8"
-  checksum: 75d49e382b11e79995daa622aa9405c6b7c1857a4a865aee92462f65346adbcf130cd369fb4550e31e558985d31a6f14b9d754a91d5329c9cdd3944490cb94ea
+"@navikt/aksel-icons@npm:^3.0.0":
+  version: 3.2.1
+  resolution: "@navikt/aksel-icons@npm:3.2.1"
+  checksum: 7ca5fd3ed5dfa6ea4394830a5ad6953d737727be4082b72609a5d97dcb4077097d5a8bca721a516fb467614ea05753e8994ead8ce7398ade0fc2a6859314f1ff
   languageName: node
   linkType: hard
 
@@ -5381,7 +5381,7 @@ __metadata:
     "@material-ui/core": 4.12.4
     "@material-ui/icons": 4.11.3
     "@material-ui/pickers": 3.3.10
-    "@navikt/aksel-icons": ^2.7.3
+    "@navikt/aksel-icons": ^3.0.0
     "@pmmmwh/react-refresh-webpack-plugin": 0.5.10
     "@reduxjs/toolkit": 1.9.5
     "@tanstack/react-query": ^4.29.3
