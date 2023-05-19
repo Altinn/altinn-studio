@@ -10,14 +10,14 @@ import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLan
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
-import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGroupEditProperties } from 'src/layout/Group/types';
 import type { ILanguage } from 'src/types/shared';
 import type { HRepGroup, HRepGroupRow } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IRepeatingGroupsEditContainer {
-  id: string;
+  node: LayoutNode<HRepGroup, 'Group'>;
   className?: string;
   deleting?: boolean;
   editIndex: number;
@@ -30,17 +30,12 @@ export interface IRepeatingGroupsEditContainer {
 }
 
 export function RepeatingGroupsEditContainer({
-  id,
+  node,
   editIndex,
   ...props
 }: IRepeatingGroupsEditContainer): JSX.Element | null {
   const language = useAppSelector((state) => state.language.language);
-  const node = useResolvedNode(id);
-  const group = node?.item;
-
-  if (!group || !node || group.type !== 'Group' || !('rows' in group)) {
-    return null;
-  }
+  const group = node.item;
 
   const row = group.rows[editIndex];
 
@@ -55,7 +50,7 @@ export function RepeatingGroupsEditContainer({
 
   return (
     <RepeatingGroupsEditContainerInternal
-      id={id}
+      node={node}
       editIndex={editIndex}
       group={group}
       row={row}
@@ -66,7 +61,7 @@ export function RepeatingGroupsEditContainer({
 }
 
 function RepeatingGroupsEditContainerInternal({
-  id,
+  node,
   className,
   deleting,
   editIndex,
@@ -85,8 +80,9 @@ function RepeatingGroupsEditContainerInternal({
   language: ILanguage;
 }): JSX.Element | null {
   const textResources = useAppSelector((state) => state.textResources.resources);
-  const textsForRow = row?.groupExpressions?.textResourceBindings;
-  const editForRow = row?.groupExpressions?.edit;
+  const id = node.item.id;
+  const textsForRow = row.groupExpressions?.textResourceBindings;
+  const editForRow = row.groupExpressions?.edit;
   const editForGroup = group.edit;
   const edit = {
     ...editForGroup,
@@ -135,12 +131,12 @@ function RepeatingGroupsEditContainerInternal({
   };
 
   const getGenericComponentsToRender = (): (JSX.Element | null)[] =>
-    rowItems.map((node): JSX.Element | null => {
+    rowItems.map((n): JSX.Element | null => {
       const isOnOtherMultiPage =
         edit?.multiPage &&
         typeof multiPageIndex === 'number' &&
         multiPageIndex > -1 &&
-        node.item.multiPageIndex !== multiPageIndex;
+        n.item.multiPageIndex !== multiPageIndex;
 
       if (isOnOtherMultiPage) {
         return null;
@@ -148,17 +144,17 @@ function RepeatingGroupsEditContainerInternal({
 
       if (
         group.tableColumns &&
-        node.item.baseComponentId &&
-        group.tableColumns[node.item.baseComponentId] &&
-        group.tableColumns[node.item.baseComponentId].showInExpandedEdit === false
+        n.item.baseComponentId &&
+        group.tableColumns[n.item.baseComponentId] &&
+        group.tableColumns[n.item.baseComponentId].showInExpandedEdit === false
       ) {
         return null;
       }
 
       return (
         <GenericComponent
-          node={node}
-          key={node.item.id}
+          node={n}
+          key={n.item.id}
         />
       );
     });

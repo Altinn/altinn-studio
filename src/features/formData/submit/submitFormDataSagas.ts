@@ -191,7 +191,7 @@ export function* putFormData({ field, componentId }: SaveDataParams) {
  * add new data/remove data from it. If that happens, we need to inject those changes back into our data model.
  */
 function* handleChangedFields(changedFields: IFormData | undefined, lastSavedFormData: IFormData) {
-  if (!changedFields) {
+  if (!changedFields || Object.keys(changedFields).length === 0) {
     return lastSavedFormData;
   }
 

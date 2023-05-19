@@ -8,6 +8,7 @@ import { getFormLayoutGroupMock } from 'src/__mocks__/formLayoutGroupMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
+import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { IAttachments } from 'src/features/attachments';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
@@ -18,6 +19,8 @@ import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup, ILayoutComponent } from 'src/layout/layout';
 import type { IOption, ITextResource } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
+import type { HRepGroup } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 (global as any).ResizeObserver = ResizeObserverModule;
 
@@ -228,8 +231,8 @@ describe('RepeatingGroupTable', () => {
 
   const render = (props: Partial<IRepeatingGroupTableProps> = {}, newLayout?: ILayoutState) => {
     const allProps: IRepeatingGroupTableProps = {
+      ...({} as IRepeatingGroupTableProps),
       editIndex: -1,
-      id: group.id,
       repeatingGroupIndex,
       deleting: false,
       onClickRemove: jest.fn(),
@@ -244,8 +247,25 @@ describe('RepeatingGroupTable', () => {
     preloadedState.formData.formData = data;
     preloadedState.language.language = language;
 
-    const { container } = renderWithProviders(<RepeatingGroupTable {...allProps} />, { preloadedState });
+    const { container } = renderWithProviders(
+      <RenderGroupTable
+        id={group.id}
+        {...allProps}
+      />,
+      { preloadedState },
+    );
 
     return container;
   };
 });
+
+function RenderGroupTable(props: IRepeatingGroupTableProps & { id: string }) {
+  const node = useResolvedNode(props.id) as LayoutNode<HRepGroup, 'Group'>;
+
+  return (
+    <RepeatingGroupTable
+      {...props}
+      node={node}
+    />
+  );
+}

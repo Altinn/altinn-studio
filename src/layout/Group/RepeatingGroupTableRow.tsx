@@ -12,15 +12,15 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { getColumnStylesRepeatingGroups, getTextResource } from 'src/utils/formComponentUtils';
-import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ITextResource, ITextResourceBindings } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
+import type { HRepGroup } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IRepeatingGroupTableRowProps {
-  id: string;
+  node: LayoutNode<HRepGroup, 'Group'>;
   className?: string;
   editIndex: number;
   setEditIndex: (index: number, forceValidation?: boolean) => void;
@@ -71,7 +71,7 @@ function getEditButtonText(
 }
 
 export function RepeatingGroupTableRow({
-  id,
+  node,
   className,
   editIndex,
   deleting,
@@ -92,17 +92,17 @@ export function RepeatingGroupTableRow({
   const { popoverOpen, popoverPanelIndex, onDeleteClick, setPopoverOpen, onPopoverDeleteClick, onOpenChange } =
     deleteFunctionality || {};
 
-  const node = useResolvedNode(id);
-  const group = node?.isRepGroup() ? node.item : undefined;
-  const row = group?.rows[index] ? group.rows[index] : undefined;
-  const expressionsForRow = row && row.groupExpressions;
-  const columnSettings = group?.tableColumns;
+  const id = node.item.id;
+  const group = node.item;
+  const row = group.rows[index] ? group.rows[index] : undefined;
+  const expressionsForRow = row?.groupExpressions;
+  const columnSettings = group.tableColumns;
   const edit = {
-    ...group?.edit,
+    ...group.edit,
     ...expressionsForRow?.edit,
   } as ExprResolved<ILayoutGroup['edit']>;
   const resolvedTextBindings = {
-    ...group?.textResourceBindings,
+    ...group.textResourceBindings,
     ...expressionsForRow?.textResourceBindings,
   } as ExprResolved<ILayoutGroup['textResourceBindings']>;
 
@@ -133,6 +133,7 @@ export function RepeatingGroupTableRow({
         },
         className,
       )}
+      data-row-num={index}
     >
       {!mobileView ? (
         tableNodes.map((n, idx) =>

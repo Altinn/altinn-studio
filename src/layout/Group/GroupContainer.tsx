@@ -191,8 +191,8 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
         edit?.mode === 'onlyTable' ||
         (edit?.mode === 'hideTable' && editIndex < 0)) && (
         <RepeatingGroupTable
+          node={node}
           editIndex={editIndex}
-          id={id}
           repeatingGroupIndex={repeatingGroupIndex}
           deleting={deletingIndexes.includes(repeatingGroupIndex)}
           setEditIndex={setEditIndex}
@@ -212,9 +212,9 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
         <>
           {editIndex >= 0 && edit?.mode === 'hideTable' && (
             <RepeatingGroupsEditContainer
+              node={node}
               editIndex={editIndex}
               setEditIndex={setEditIndex}
-              id={id}
               multiPageIndex={multiPageIndex}
               setMultiPageIndex={setMultiPageIndex}
               filteredIndexes={filteredIndexList}
@@ -235,8 +235,8 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
                     style={{ width: '100%', marginBottom: !isNested && index == repeatingGroupIndex ? 15 : 0 }}
                   >
                     <RepeatingGroupsEditContainer
+                      node={node}
                       editIndex={index}
-                      id={id}
                       deleting={deletingIndexes.includes(index)}
                       setEditIndex={setEditIndex}
                       onClickRemove={handleOnRemoveClick}
