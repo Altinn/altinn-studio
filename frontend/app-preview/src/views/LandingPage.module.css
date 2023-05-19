@@ -4,11 +4,33 @@
   background-color: #0a572e;
 }
 
-.iframe {
+.iframeDesktop {
   height: 100%;
   width: 100%;
-  margin: 0;
   border: none;
+}
+
+.iframeMobileViewContainer {
+  display: flex;
+  justify-content: center;
+  background-color: #efefef;
+}
+
+.iframeMobile {
+  height: 100%;
+  width: 360px;
+  border: none;
+  margin: 0;
+}
+
+/* Mobile View Overlay to cover devtools in the middle of the screen */
+.iframeMobileViewOverlay {
+  position: absolute;
+  bottom: 0;
+  height: 100px;
+  width: 100%;
+  background-color: #efefef;
+  z-index: 1;
 }
 
 .header {
@@ -31,11 +53,13 @@
   font-weight: bold;
 }
 
-.viewSizeButtons {
-  --component-button-outline-primary-color-background-default: none;
-  --component-button-outline-primary-color-border-default: none;
-  --component-button-outline-primary-color-border-hover: #004e95;
-  --component-button-outline-primary-color-text-default: #ffffff;
+.desktopViewButton {
+  border-radius: 5px 0 0 5px !important;
+}
+
+.mobileViewButton {
+  border-radius: 0 5px 5px 0 !important;
+  color: pink;
 }
 
 .subHeader {
@@ -45,6 +69,6 @@
   background-color: #0c6536;
   display: flex;
   align-items: center;
-  height: 50px;
+  height: 70px;
   padding: 0 2rem;
 }
