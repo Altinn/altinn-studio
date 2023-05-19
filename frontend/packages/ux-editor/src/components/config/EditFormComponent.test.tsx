@@ -5,6 +5,7 @@ import { EditFormComponent } from './EditFormComponent';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IAppState } from '../../types/global';
+import { FormComponent } from '../../types/FormComponent';
 import { appStateMock, queriesMock } from '../../testing/mocks';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from '../../../../../app-development/common/ServiceContext';

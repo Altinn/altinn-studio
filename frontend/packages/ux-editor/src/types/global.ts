@@ -22,7 +22,7 @@ export interface IOption {
   value: any;
 }
 
-export interface IFormContainer {
+export interface FormContainer {
   id?: string;
   index?: number;
   itemType: 'CONTAINER';
@@ -34,28 +34,9 @@ export interface IFormContainer {
 
 export type ITextResourceBindings = KeyValuePairs<string>;
 
-export interface IFormComponent {
-  id: string;
-  component?: string;
-  itemType: 'COMPONENT';
-  type: ComponentType;
-  name?: string;
-  size?: string;
-  options?: IOption[];
-  dataModelBindings?: IDataModelBindings;
-  textResourceBindings?: ITextResourceBindings;
-  customType?: string;
-  codeListId?: string;
-  triggerValidation?: boolean;
-  handleUpdateElement?: (component: FormComponent) => void;
-  handleDeleteElement?: () => void;
-  handleUpdateFormData?: (formData: any) => void;
-  handleUpdateDataModel?: (dataModelBinding: string) => void;
-}
-
 export type IDataModelBindings = KeyValuePairs<string>;
 export type IFormDesignerComponents = KeyValuePairs<FormComponent>;
-export type IFormDesignerContainers = KeyValuePairs<IFormContainer>;
+export type IFormDesignerContainers = KeyValuePairs<FormContainer>;
 export type IFormLayouts = KeyValuePairs<IInternalLayout>;
 
 export interface IInternalLayout {

@@ -4,7 +4,7 @@ import '../../styles/index.css';
 import { EditGroupDataModelBindings } from '../config/group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists, validComponentId } from '../../utils/formLayoutUtils';
-import type { IDataModelFieldElement, IFormContainer } from '../../types/global';
+import type { IDataModelFieldElement, FormContainer } from '../../types/global';
 import {
   Checkbox,
   CheckboxGroup,
@@ -28,8 +28,8 @@ import { TextFieldWithValidation } from '../TextFieldWithValidation';
 
 export interface IEditFormContainerProps {
   editFormId: string;
-  container: IFormContainer;
-  handleContainerUpdate: React.Dispatch<React.SetStateAction<IFormContainer>>;
+  container: FormContainer;
+  handleContainerUpdate: React.Dispatch<React.SetStateAction<FormContainer>>;
 };
 
 export const EditFormContainer = ({

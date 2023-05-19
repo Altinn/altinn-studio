@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormContainer } from './FormContainer';
-import type { IFormContainer, IFormLayoutOrder } from '../types/global';
+import type { FormContainer as IFormContainer, IFormLayoutOrder } from '../types/global';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
 
 import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';

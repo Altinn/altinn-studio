@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, createContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import type { IFormContainer } from '../types/global';
+import type { FormContainer } from '../types/global';
 import type { FormComponent } from '../types/FormComponent';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
@@ -15,11 +15,11 @@ import { switchSelectedFieldId } from '../utils/ruleConfigUtils';
 
 export type FormContext = {
   formId: string;
-  form:  IFormContainer | FormComponent;
+  form:  FormContainer | FormComponent;
   handleDiscard: () => void;
-  handleEdit: (component: IFormContainer | FormComponent) => void;
-  handleUpdate: React.Dispatch<React.SetStateAction<IFormContainer | FormComponent>>;
-  handleContainerSave: (id: string, updatedContainer: IFormContainer) => Promise<void>;
+  handleEdit: (component: FormContainer | FormComponent) => void;
+  handleUpdate: React.Dispatch<React.SetStateAction<FormContainer | FormComponent>>;
+  handleContainerSave: (id: string, updatedContainer: FormContainer) => Promise<void>;
   handleComponentSave: (id: string, updatedComponent: FormComponent) => Promise<void>;
 }
 
@@ -42,7 +42,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   const { org, app } = useParams();
 
   const [formId, setFormId] = useState<string>();
-  const [form, setForm] = useState<IFormContainer | FormComponent>();
+  const [form, setForm] = useState<FormContainer | FormComponent>();
 
   const { data: ruleConfig } = useRuleConfigQuery(org, app);
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app);
@@ -62,7 +62,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
     [updateContainerId]
   );
 
-  const handleEdit = useCallback((component: IFormContainer | FormComponent): void => {
+  const handleEdit = useCallback((component: FormContainer | FormComponent): void => {
     dispatch(setCurrentEditId(undefined));
     setFormId(component?.id);
     setForm(component);
@@ -72,7 +72,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
     handleEdit(null);
   }, [handleEdit]);
 
-  const handleContainerSave = useCallback(async (id: string, updatedContainer: IFormContainer): Promise<void> => {
+  const handleContainerSave = useCallback(async (id: string, updatedContainer: FormContainer): Promise<void> => {
     await handleUpdateFormContainer({
       updatedContainer,
       id,

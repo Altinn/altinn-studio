@@ -7,7 +7,7 @@ import type { EditorDndEvents } from './helpers/dnd-types';
 import classes from './FormContainer.module.css';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
 import { FormContainerEmptyPlaceholder } from './FormContainerEmptyPlaceholder';
-import type { IFormContainer } from '../types/global';
+import type { FormContainer as IFormContainer } from '../types/global';
 import { FormContainerHeader } from './FormContainerHeader';
 
 export interface IFormContainerProps {

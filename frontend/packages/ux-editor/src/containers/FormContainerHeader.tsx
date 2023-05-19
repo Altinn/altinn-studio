@@ -6,18 +6,18 @@ import classes from './FormContainerHeader.module.css';
 import { ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon, XMarkIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { DragHandle } from '../components/DragHandle';
 import { useText } from '../hooks/useText';
-import type { IFormContainer } from '../types/global';
+import type { FormContainer } from '../types/global';
 
 export interface IFormContainerHeaderProps {
   id: string;
-  container: IFormContainer;
+  container: FormContainer;
   expanded: boolean;
   handleExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   isEditMode: boolean;
   handleDelete: (event: React.MouseEvent<HTMLButtonElement>) => void;
   handleDiscard: () => void;
-  handleEdit: (component: IFormContainer) => void;
-  handleSave: (id: string, updatedContainer: IFormContainer) => Promise<void>;
+  handleEdit: (component: FormContainer) => void;
+  handleSave: (id: string, updatedContainer: FormContainer) => Promise<void>;
   dragHandleRef: ConnectDragSource
 };
 
