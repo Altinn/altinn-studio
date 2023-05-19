@@ -76,7 +76,7 @@ export function ComponentSpecificContent({
           />
           <SelectComponent
             label={t('ux_editor.choose_variant')}
-            defaultValue={component.variant.enum || 'info'}
+            defaultValue={component.variant?.enum || 'info'}
             optionKey='variant'
             options={[
               {
