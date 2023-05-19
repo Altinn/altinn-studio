@@ -38,7 +38,7 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
 }));
 
-describe('FormComponentEdit', () => {
+describe('EditFormComponent', () => {
   test('should return input specific content when type input', () => {
     render({
       componentProps: {

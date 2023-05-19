@@ -17,7 +17,7 @@ const app = 'app';
 
 const handleContainerUpdateMock = jest.fn();
 
-describe('FormContainerEdit', () => {
+describe('EditFormContainer', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render the component', async () => {
