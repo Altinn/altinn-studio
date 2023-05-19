@@ -1,4 +1,4 @@
-﻿namespace Altinn.Studio.Designer.Models.Authorization
+﻿namespace Altinn.Studio.PolicyAdmin.Models
 {
     public class AttributeMatch
     {

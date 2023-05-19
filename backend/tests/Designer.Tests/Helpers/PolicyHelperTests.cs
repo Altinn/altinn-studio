@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using Altinn.AccessManagement.Tests.Utils;
-using Altinn.Authorization.ABAC.Utils;
+﻿using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Models.Authorization;
+using Altinn.Studio.PolicyAdmin;
+using Altinn.Studio.PolicyAdmin.Models;
 using Designer.Tests.Utils;
 using Xunit;
 

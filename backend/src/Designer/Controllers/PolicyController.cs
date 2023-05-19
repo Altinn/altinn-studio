@@ -1,8 +1,7 @@
 ﻿using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Models.Authorization;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
+using Altinn.Studio.PolicyAdmin;
+using Altinn.Studio.PolicyAdmin.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers

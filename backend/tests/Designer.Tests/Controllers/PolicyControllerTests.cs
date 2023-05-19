@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Constants;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
-using Altinn.Studio.Designer.Models.Authorization;
-using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.ViewModels.Response;
+using Altinn.Studio.PolicyAdmin.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
@@ -22,7 +17,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Xunit;
 
 namespace Designer.Tests.Controllers

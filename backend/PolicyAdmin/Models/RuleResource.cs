@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace Altinn.Studio.Designer.Models.Authorization
+namespace Altinn.Studio.PolicyAdmin.Models
 {
-    public class RuleSubject
+    public class RuleResource
     {
         public List<AttributeMatch> Attributes { get; set; }
     }

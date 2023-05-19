@@ -64,14 +64,6 @@
     <None Remove="jwtselfsignedcert.pfx" />
     <Watch Remove="Constants\AltinnXacmlConstants.cs" />
     <Watch Remove="Controllers\PolicyController.cs" />
-    <Watch Remove="Helpers\PolicyConverter.cs" />
-    <Watch Remove="Models\Authorization\AttributeMatch.cs" />
-    <Watch Remove="Models\Authorization\Obligation.cs" />
-    <Watch Remove="Models\Authorization\PolicyRule.cs" />
-    <Watch Remove="Models\Authorization\ResourcePolicy.cs" />
-    <Watch Remove="Models\Authorization\RuleAction.cs" />
-    <Watch Remove="Models\Authorization\RuleResource.cs" />
-    <Watch Remove="Models\Authorization\RuleSubject.cs" />
     <Watch Remove="Controllers\CompetentAuthority.cs" />
     <Watch Remove="Controllers\ResourceAdminController.cs" />
     <Watch Remove="Enums\ReferenceSource.cs" />
@@ -89,6 +81,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\PolicyAdmin\PolicyAdmin.csproj" />
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
   </ItemGroup>
 

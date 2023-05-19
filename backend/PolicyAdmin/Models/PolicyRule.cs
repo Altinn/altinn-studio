@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Altinn.Studio.Designer.Models.Authorization
+namespace Altinn.Studio.PolicyAdmin.Models
 {
     public class PolicyRule
     {

@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Studio.Designer.Models.Authorization;
-using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
+using Altinn.Studio.PolicyAdmin.Models;
 
 namespace Designer.Tests.Utils
 {

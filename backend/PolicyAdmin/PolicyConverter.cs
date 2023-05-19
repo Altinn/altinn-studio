@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
+﻿using System.Data;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Platform.Authorization.Constants;
-using Altinn.Studio.Designer.Models.Authorization;
-using k8s.Models;
-using Microsoft.ApplicationInsights.AspNetCore;
-using NuGet.Packaging;
+using Altinn.Studio.PolicyAdmin.Constants;
+using Altinn.Studio.PolicyAdmin.Models;
 
-namespace Altinn.Studio.Designer.Helpers
+namespace Altinn.Studio.PolicyAdmin
 {
     public static class PolicyConverter
     {
