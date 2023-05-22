@@ -21,7 +21,9 @@ namespace Altinn.Codelists.Tests.SSB.Extensions
             
             IServiceProvider serviceProvider = services.BuildServiceProvider();
 
-            services.Select(x => x.ServiceType == typeof(IClassificationsClient)).Should().HaveCount(2);
+            IEnumerable<IClassificationsClient> classificationsClients = serviceProvider.GetServices<IClassificationsClient>();
+
+            classificationsClients.Should().HaveCount(1);
         }
     }
 }
