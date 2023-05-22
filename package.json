@@ -82,6 +82,7 @@
     "start-app-development": "yarn workspace app-development start",
     "start-app-preview": "yarn workspace app-preview start",
     "start-dashboard": "yarn workspace dashboard start",
+    "start-resourceadm": "yarn workspace resourceadm start",
     "stats": "node frontend/stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
