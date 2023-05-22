@@ -7,6 +7,7 @@ import { ExpressionPlayground } from 'src/features/devtools/components/Expressio
 import { LayoutInspector } from 'src/features/devtools/components/LayoutInspector/LayoutInspector';
 import { PDFPreviewButton } from 'src/features/devtools/components/PDFPreviewButton/PDFPreviewButton';
 import { PermissionsEditor } from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor';
+import { VersionSwitcher } from 'src/features/devtools/components/VersionSwitcher/VersionSwitcher';
 import classes from 'src/features/devtools/DevTools.module.css';
 
 export const DevToolsControls = () => (
@@ -19,6 +20,7 @@ export const DevToolsControls = () => (
             <div className={classes.page}>
               <PDFPreviewButton />
               <DevNavigationButtons />
+              <VersionSwitcher />
               <PermissionsEditor />
             </div>
           ),

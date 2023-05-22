@@ -167,6 +167,9 @@ export const getActiveInstancesUrl = (partyId: string) => `${appPath}/instances/
 
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}#/instance/${instanceId}`;
 
+export const appFrontendCDNPath = 'https://altinncdn.no/toolkits/altinn-app-frontend';
+export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;
+
 export interface IGetOptionsUrlParams {
   optionsId: string;
   dataMapping?: IMapping;
