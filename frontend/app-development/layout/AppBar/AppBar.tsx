@@ -117,9 +117,9 @@ export const AppBar = ({ activeSubHeaderSelection, showSubMenu }: IAppBarProps) 
               <>
                 <span className={classes.userOrgNames}>
                   {user.login === org
-                    ? user.login
+                    ? (user.full_name || user.login)
                     : t('shared.header_user_for_org', {
-                        user: user.login,
+                        user: user.full_name || user.login,
                         org: repository.owner.full_name,
                       })}
                 </span>
