@@ -34,13 +34,17 @@ export const LandingPage = () => {
     })
   }
 
-  const handleChangeViewSizeClick = () => {
+  const handleChangeViewSizeToDesktopClick = () => {
+    if (viewSize === 'mobile') {
+      localStorage.setItem('viewSize', 'desktop');
+      setViewSize('desktop');
+    }
+  };
+
+  const handleChangeViewSizeToMobileClick = () => {
     if (viewSize === 'desktop') {
       localStorage.setItem('viewSize', 'mobile');
       setViewSize('mobile');
-    } else {
-      localStorage.setItem('viewSize', 'desktop');
-      setViewSize('desktop');
     }
   };
 
@@ -55,10 +59,20 @@ export const LandingPage = () => {
           </div>
         </div>
         <div className={classes.subHeader}>
-          <Button className={classes.desktopViewButton} style={viewSize === 'desktop' ? { color: 'black' } : {}} variant={viewSize === 'desktop' ? ButtonVariant.Filled : ButtonVariant.Outline} color={ButtonColor.Inverted} onClick={handleChangeViewSizeClick}>
+          <Button
+            className={classes.desktopViewButton}
+            style={viewSize === 'desktop' ? { color: 'black' } : {}}
+            variant={viewSize === 'desktop' ? ButtonVariant.Filled : ButtonVariant.Outline}
+            color={ButtonColor.Inverted}
+            onClick={handleChangeViewSizeToDesktopClick}>
             {t('preview.view_size_desktop')}
           </Button>
-          <Button className={classes.mobileViewButton} style={viewSize === 'mobile' ? { color: 'black' } : {}} variant={viewSize === 'mobile' ? ButtonVariant.Filled : ButtonVariant.Outline} color={ButtonColor.Inverted} onClick={handleChangeViewSizeClick}>
+          <Button
+            className={classes.mobileViewButton}
+            style={viewSize === 'mobile' ? { color: 'black' } : {}}
+            variant={viewSize === 'mobile' ? ButtonVariant.Filled : ButtonVariant.Outline}
+            color={ButtonColor.Inverted}
+            onClick={handleChangeViewSizeToMobileClick}>
             {t('preview.view_size_mobile')}
           </Button>
         </div>
