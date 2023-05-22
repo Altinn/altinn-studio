@@ -36,7 +36,7 @@ export const MapComponent = ({
   };
 
   return (
-    <FieldSet className={classes.fieldset}>
+    <FieldSet contentClassName={classes.fieldSetContent}>
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.center_location')}</h2>
         <div className={classes.formGroup}>
