@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from "app-shared/providers/PreviewConnectionContext";
 import { useInstanceIdQuery } from '../../hooks/queries/useInstanceIdQuery';
 import AltinnStudioLogo from "app-shared/navigation/main-header/AltinnStudioLogo";
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { ToggleButtonGroup } from '@digdir/design-system-react';
 
 export const LandingPage = () => {
   const { org, app } = useParams();
@@ -15,8 +15,8 @@ export const LandingPage = () => {
   const previewConnection = usePreviewConnection();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const selectedLayoutInEditor = localStorage.getItem(instanceId);
-  const selectedViewSize = localStorage.getItem('viewSize');
-  const [viewSize, setViewSize] = useState<string>(selectedViewSize ?? 'desktop');
+  const localSelectedViewSize = localStorage.getItem('viewSize');
+  const [viewSize, setViewSize] = useState<string>(localSelectedViewSize ?? 'desktop');
 
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
@@ -34,18 +34,9 @@ export const LandingPage = () => {
     })
   }
 
-  const handleChangeViewSizeToDesktopClick = () => {
-    if (viewSize === 'mobile') {
-      localStorage.setItem('viewSize', 'desktop');
-      setViewSize('desktop');
-    }
-  };
-
-  const handleChangeViewSizeToMobileClick = () => {
-    if (viewSize === 'desktop') {
-      localStorage.setItem('viewSize', 'mobile');
-      setViewSize('mobile');
-    }
+  const handleChangeViewSizeClick = (selectedViewSize: string) => {
+      localStorage.setItem('viewSize', selectedViewSize);
+      setViewSize(selectedViewSize);
   };
 
   return (
@@ -59,22 +50,21 @@ export const LandingPage = () => {
           </div>
         </div>
         <div className={classes.subHeader}>
-          <Button
-            className={classes.desktopViewButton}
-            style={viewSize === 'desktop' ? { color: 'black' } : {}}
-            variant={viewSize === 'desktop' ? ButtonVariant.Filled : ButtonVariant.Outline}
-            color={ButtonColor.Inverted}
-            onClick={handleChangeViewSizeToDesktopClick}>
-            {t('preview.view_size_desktop')}
-          </Button>
-          <Button
-            className={classes.mobileViewButton}
-            style={viewSize === 'mobile' ? { color: 'black' } : {}}
-            variant={viewSize === 'mobile' ? ButtonVariant.Filled : ButtonVariant.Outline}
-            color={ButtonColor.Inverted}
-            onClick={handleChangeViewSizeToMobileClick}>
-            {t('preview.view_size_mobile')}
-          </Button>
+          <span className={classes.viewSizeButtons}>
+          <ToggleButtonGroup
+            items={[
+              {
+                label: t('preview.view_size_desktop'),
+                value: 'desktop'
+              },
+              {
+                label: t('preview.view_size_mobile'),
+                value: 'mobile'
+              }
+            ]}
+            onChange={(selectedViewSize: string) => handleChangeViewSizeClick(selectedViewSize)}
+            selectedValue={viewSize === 'Desktop' ? 'desktop' : 'mobile'}/>
+            </span>
         </div>
         <div className={classes.iframeMobileViewContainer}>
           <iframe
