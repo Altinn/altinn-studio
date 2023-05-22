@@ -1,10 +1,23 @@
 import { ComponentType } from '../components';
-import { ICreateFormComponent, IOption } from './global';
+import { IDataModelBindings, ITextResourceBindings, IOption } from './global';
 
-export interface FormComponentBase<T extends ComponentType = ComponentType> extends ICreateFormComponent {
+export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;
+  component?: string;
   itemType: 'COMPONENT';
   type: T;
+  name?: string;
+  size?: string;
+  options?: IOption[];
+  dataModelBindings?: IDataModelBindings;
+  textResourceBindings?: ITextResourceBindings;
+  customType?: string;
+  codeListId?: string;
+  triggerValidation?: boolean;
+  handleUpdateElement?: (component: FormComponent) => void;
+  handleDeleteElement?: () => void;
+  handleUpdateFormData?: (formData: any) => void;
+  handleUpdateDataModel?: (dataModelBinding: string) => void;
   disabled?: boolean;
   required?: boolean;
   hidden?: boolean;

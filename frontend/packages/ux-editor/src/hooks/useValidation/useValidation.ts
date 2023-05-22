@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Validation, validate as doValidate } from '../../utils/validationUtils';
 
 interface UseValidationResult {
   validationError: string | undefined;
   validate: (valueToValidate: string) => UseValidationResult['validationError'];
 }
-export const useValidation = (validation: Validation): UseValidationResult => {
+export const useValidation = (name: string, validation: Validation): UseValidationResult => {
   const [validationError, setValidationState] =
     useState<UseValidationResult['validationError']>(undefined);
 
@@ -14,6 +14,10 @@ export const useValidation = (validation: Validation): UseValidationResult => {
     setValidationState(error);
     return error;
   };
+
+  useEffect(() => {
+    setValidationState(undefined);
+  }, [name])
 
   return {
     validate,

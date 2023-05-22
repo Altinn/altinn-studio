@@ -36,63 +36,64 @@ export const MapComponent = ({
   };
 
   return (
-    <FieldSet>
-      <h2 className={classes.subTitle}>{t('ux_editor.center_location')}</h2>
-      <div className={classes.formGroup}>
-        <div>
-          <TextFieldWithValidation
-            label={t('ux_editor.latitude_label')}
-            name='latitude'
-            value={component.centerLocation?.latitude}
-            inputMode='numeric'
-            className={classes.textField}
-            validation={{
-              required: {
-                message: t('validation_errors.required'),
-              },
-              valueAsNumber: {
-                message: t('validation_errors.numbers_only'),
-              },
-            }}
-            onChange={handleCenterLocationChange}
-          />
-        </div>
-        <div>
-          <TextFieldWithValidation
-            label={t('ux_editor.longitude_label')}
-            name='longitude'
-            value={component.centerLocation?.longitude}
-            className={classes.textField}
-            inputMode='numeric'
-            validation={{
-              required: {
-                message: t('validation_errors.required'),
-              },
-              valueAsNumber: {
-                message: t('validation_errors.numbers_only'),
-              },
-            }}
-            onChange={handleCenterLocationChange}
-          />
+    <FieldSet contentClassName={classes.fieldSetContent}>
+      <div>
+        <h2 className={classes.subTitle}>{t('ux_editor.center_location')}</h2>
+        <div className={classes.formGroup}>
+          <div>
+            <TextFieldWithValidation
+              label={t('ux_editor.latitude_label')}
+              name='latitude'
+              value={component.centerLocation?.latitude}
+              inputMode='numeric'
+              validation={{
+                required: {
+                  message: t('validation_errors.required'),
+                },
+                valueAsNumber: {
+                  message: t('validation_errors.numbers_only'),
+                },
+              }}
+              onChange={handleCenterLocationChange}
+            />
+          </div>
+          <div>
+            <TextFieldWithValidation
+              label={t('ux_editor.longitude_label')}
+              name='longitude'
+              value={component.centerLocation?.longitude}
+              inputMode='numeric'
+              validation={{
+                required: {
+                  message: t('validation_errors.required'),
+                },
+                valueAsNumber: {
+                  message: t('validation_errors.numbers_only'),
+                },
+              }}
+              onChange={handleCenterLocationChange}
+            />
+          </div>
         </div>
       </div>
-
-      <TextFieldWithValidation
-        label={t('ux_editor.adjust_zoom')}
-        name='zoom'
-        value={component.zoom}
-        inputMode='numeric'
-        validation={{
-          valueAsNumber: {
-            message: t('validation_errors.numbers_only'),
-          },
-        }}
-        className={classes.textField}
-        onChange={handleNumberInputChange}
-      />
-
-      <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
-      <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
+      <div>
+        <TextFieldWithValidation
+          label={t('ux_editor.adjust_zoom')}
+          name='zoom'
+          value={component.zoom}
+          inputMode='numeric'
+          validation={{
+            valueAsNumber: {
+              message: t('validation_errors.numbers_only'),
+            },
+          }}
+          onChange={handleNumberInputChange}
+        />
+      </div>
+      <div>
+        <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
+        <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
+      </div>
     </FieldSet>
   );
 };
@@ -164,7 +165,6 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
             <TextFieldWithValidation
               name='url'
               label={t('ux_editor.url_label')}
-              className={classes.fullWidth}
               validation={{
                 required: { message: t('validation_errors.required') },
                 valueAsUrl: { message: t('validation_errors.value_as_url') },
@@ -195,7 +195,6 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
         )
       )}
       <Button
-        className={classes.spacing}
         icon={<PlusIcon title={t('general.add')} />}
         variant={ButtonVariant.Outline}
         onClick={handleAddLayer}

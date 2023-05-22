@@ -1,15 +1,15 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { EditModalContent } from './EditModalContent';
+import { EditFormComponent } from './EditFormComponent';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IAppState } from '../../types/global';
+import { FormComponent } from '../../types/FormComponent';
 import { appStateMock, queriesMock } from '../../testing/mocks';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from '../../../../../app-development/common/ServiceContext';
-import { ComponentType } from '../index';
-import type { FormComponent } from '../../types/FormComponent';
+import { ComponentType } from '../';
 
 const user = userEvent.setup();
 
@@ -38,7 +38,7 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
 }));
 
-describe('EditModalContent', () => {
+describe('EditFormComponent', () => {
   test('should return input specific content when type input', () => {
     render({
       componentProps: {
@@ -47,7 +47,7 @@ describe('EditModalContent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id',
+      'ux_editor.modal_properties_component_change_id *',
       'ux_editor.modal_properties_data_model_helper',
       'ux_editor.modal_configure_read_only',
     ];
@@ -65,7 +65,7 @@ describe('EditModalContent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id',
+      'ux_editor.modal_properties_component_change_id *',
       'ux_editor.modal_header_type_helper',
     ];
     labels.map((label) => expect(screen.getByLabelText(label)));
@@ -79,7 +79,7 @@ describe('EditModalContent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id',
+      'ux_editor.modal_properties_component_change_id *',
       'ux_editor.modal_properties_file_upload_simple',
       'ux_editor.modal_properties_file_upload_list',
       'ux_editor.modal_properties_valid_file_endings_all',
@@ -197,7 +197,7 @@ const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
     rendered: rtlRender(
       <Provider store={store}>
         <ServicesContextProvider {...queriesMock}>
-          <EditModalContent
+          <EditFormComponent
             component={allComponentProps}
             handleComponentUpdate={handleComponentUpdate}
           />
