@@ -349,7 +349,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Endpoint to get instance in receipt step
         /// </summary>
-        /// <returns>The processState object on the global mockInstance object</returns>
+        /// <returns>A mocked instance object</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuId}")]
         public async Task<ActionResult<Instance>> InstancesForReceipt(string org, string app, [FromRoute] int partyId)
@@ -357,6 +357,20 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId);
             return Ok(mockInstance);
+        }
+
+        /// <summary>
+        /// Endpoint to get active instances
+        /// </summary>
+        /// <returns>A list of a single mocked instance</returns>
+        [HttpGet]
+        [Route("instances/{partyId}/active")]
+        public async Task<ActionResult<List<Instance>>> InstancesForAppsWithLayoutSets(string org, string app, [FromRoute] int partyId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId);
+            List<Instance> activeInstances = new () { mockInstance };
+            return Ok(activeInstances);
         }
 
         /// <summary>
