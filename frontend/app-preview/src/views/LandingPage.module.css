@@ -53,13 +53,19 @@
   font-weight: bold;
 }
 
-.desktopViewButton {
-  border-radius: 5px 0 0 5px !important;
+.viewSizeButtons {
+  --component-toggle_button-color-border-inactive: white;
+  --component-toggle_button-color-border-active: white;
+  --component-toggle_button-color-background-active: white;
+  --component-toggle_button-color-background-inactive: transparent;
+  --component-toggle_button-color-text-active: black;
+  --component-toggle_button-color-text-inactive: white;
 }
 
-.mobileViewButton {
-  border-radius: 0 5px 5px 0 !important;
-  color: pink;
+/* Overriding this style because it is hardcoded in the design system */
+.viewSizeButtons button[aria-pressed="false"]:hover {
+  background-color: #Dbf5d5 !important;
+  color: black !important;
 }
 
 .subHeader {
