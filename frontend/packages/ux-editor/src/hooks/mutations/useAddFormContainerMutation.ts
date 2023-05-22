@@ -1,5 +1,5 @@
 import { generateComponentId } from '../../utils/generateId';
-import { ICreateFormContainer, IInternalLayout } from '../../types/global';
+import { FormContainer, IInternalLayout } from '../../types/global';
 import { ComponentType } from '../../components';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
@@ -8,7 +8,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 
 export interface AddFormContainerMutationArgs {
-  container: ICreateFormContainer;
+  container: FormContainer;
   positionAfterId?: string;
   addToId?: string;
   callback?: (...args: any[]) => any;

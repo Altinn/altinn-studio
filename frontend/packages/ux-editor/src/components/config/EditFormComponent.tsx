@@ -1,29 +1,24 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
-import { ComponentType } from '../index';
 import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@digdir/design-system-react';
-import classes from './EditModalContent.module.css';
+import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentErrorMessage } from '../../hooks/useComponentErrorMessage';
 
-export interface IEditModalContentProps {
-  cancelEdit?: () => void;
+export interface IEditFormComponentProps {
   component: FormComponent;
-  handleComponentUpdate?: (updatedComponent: FormComponent) => void;
-  saveEdit?: (updatedComponent: FormComponent) => void;
-  thirdPartyComponentConfig?: EditSettings[];
+  handleComponentUpdate: React.Dispatch<React.SetStateAction<FormComponent>>;
 }
 
-export const EditModalContent = ({
+export const EditFormComponent = ({
   component,
   handleComponentUpdate,
-  thirdPartyComponentConfig,
-}: IEditModalContentProps) => {
+}: IEditFormComponentProps) => {
   const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
   const errorMessage = useComponentErrorMessage(component);
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {
@@ -41,10 +36,6 @@ export const EditModalContent = ({
   };
 
   const getConfigDefinitionForComponent = (): EditSettings[] => {
-    if (component.type === ComponentType.ThirdParty) {
-      return thirdPartyComponentConfig[component.tagName];
-    }
-
     return componentSpecificEditConfig[component.type];
   };
 
