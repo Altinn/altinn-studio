@@ -48,10 +48,10 @@ const formLayoutsData: IFormLayouts = {
       }
     },
     components: {
-      [component0AId]: { id: component0AId, type: ComponentType.Input, itemType: 'COMPONENT' },
-      [component0BId]: { id: component0BId, type: ComponentType.Input, itemType: 'COMPONENT' },
-      [component1AId]: { id: component1AId, type: ComponentType.Input, itemType: 'COMPONENT' },
-      [component1BId]: { id: component1BId, type: ComponentType.Input, itemType: 'COMPONENT' },
+      [component0AId]: { id: component0AId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component0BId]: { id: component0BId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component1AId]: { id: component1AId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component1BId]: { id: component1BId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
     },
     order: {
       [container0Id]: container0Order,
@@ -68,8 +68,8 @@ const formLayoutsData: IFormLayouts = {
       },
     },
     components: {
-      [component2AId]: { id: component2AId, type: ComponentType.Input, itemType: 'COMPONENT' },
-      [component2BId]: { id: component2BId, type: ComponentType.Input, itemType: 'COMPONENT' },
+      [component2AId]: { id: component2AId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component2BId]: { id: component2BId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
     },
     order: { [container2Id]: container2Order },
     customRootProperties: {},

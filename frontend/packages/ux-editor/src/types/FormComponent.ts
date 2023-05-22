@@ -1,10 +1,11 @@
 import { ComponentType } from '../components';
-import { ICreateFormComponent, IOption } from './global';
+import { ICreateFormComponent, IDataModelBindings, IOption } from './global';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> extends ICreateFormComponent {
   id: string;
   itemType: 'COMPONENT';
   type: T;
+  dataModelBindings: IDataModelBindings;
   disabled?: boolean;
   required?: boolean;
   hidden?: boolean;

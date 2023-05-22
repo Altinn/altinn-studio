@@ -22,9 +22,10 @@ import {
 } from '../types/FormComponent';
 import { ComponentType } from '../components';
 
-const commonProps: Pick<FormComponentBase, 'id' | 'itemType'> = {
+const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> = {
   id: 'test',
   itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 const checkboxesComponent: FormCheckboxesComponent = {
   ...commonProps,

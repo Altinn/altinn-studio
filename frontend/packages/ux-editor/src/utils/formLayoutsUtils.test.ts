@@ -92,6 +92,7 @@ describe('formLayoutsUtils', () => {
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
+        dataModelBindings: {},
       };
       const layouts: IFormLayouts = {
         [layoutId]: {
@@ -119,6 +120,7 @@ describe('formLayoutsUtils', () => {
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
+        dataModelBindings: {},
       };
       const layouts: IFormLayouts = {
         [layoutId]: {

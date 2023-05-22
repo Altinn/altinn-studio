@@ -9,7 +9,8 @@ const componentMock: FormComponent = {
   id: 'random-id',
   autocomplete: '',
   type: ComponentType.Input,
-  itemType: 'COMPONENT'
+  itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 
 test('should render first 6 suggestions on search field focused', async () => {
@@ -80,6 +81,7 @@ test('should call handleComponentChangeMock callback ', async () => {
   await waitForElementToBeRemoved(screen.queryByRole('dialog'));
   expect(handleComponentChangeMock).toHaveBeenCalledWith({
     autocomplete: 'on',
+    dataModelBindings: {},
     id: 'random-id',
     itemType: 'COMPONENT',
     type: 'Input',

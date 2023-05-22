@@ -109,7 +109,6 @@ export const Container = ({
                     renderItem={(itemDragHandleRef) => (
                       <FormComponent
                         id={itemId}
-                        handleDrop={handleDrop}
                         partOfGroup={!isBaseContainer}
                         dragHandleRef={itemDragHandleRef}
                       />

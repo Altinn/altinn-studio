@@ -210,17 +210,20 @@ describe('formLayoutUtils', () => {
         {
           id: 'mockChildID_2',
           type: ComponentType.Header,
+          dataModelBindings: {},
           someProp: '2',
           size: 'normal',
         },
         {
           id: 'mockChildID_4',
           type: ComponentType.Paragraph,
+          dataModelBindings: {},
           someProp: '4',
         },
         {
           id: 'mockChildID_5',
           type: ComponentType.Dropdown,
+          dataModelBindings: {},
           someProp: '5',
           optionsId: 'mockChildID_5_options',
         },
@@ -232,6 +235,7 @@ describe('formLayoutUtils', () => {
         {
           id: 'mockChildID_7',
           type: ComponentType.Input,
+          dataModelBindings: {},
           someProp: '7',
         },
       ];
@@ -247,13 +251,15 @@ describe('formLayoutUtils', () => {
             someProp: '2',
             type: ComponentType.Header,
             itemType: 'COMPONENT',
-            size: 'normal'
+            size: 'normal',
+            dataModelBindings: {},
           },
           mockChildID_4: {
             id: 'mockChildID_4',
             someProp: '4',
             type: ComponentType.Paragraph,
             itemType: 'COMPONENT',
+            dataModelBindings: {},
           },
           mockChildID_5: {
             id: 'mockChildID_5',
@@ -261,12 +267,14 @@ describe('formLayoutUtils', () => {
             type: ComponentType.Dropdown,
             itemType: 'COMPONENT',
             optionsId: 'mockChildID_5_options',
+            dataModelBindings: {},
           },
           mockChildID_7: {
             id: 'mockChildID_7',
             someProp: '7',
             type: ComponentType.Input,
             itemType: 'COMPONENT',
+            dataModelBindings: {},
           },
         },
         order: {
@@ -351,12 +359,14 @@ describe('formLayoutUtils', () => {
         {
           id: 'mock-component-1',
           type: ComponentType.Header,
+          dataModelBindings: {},
           someProp: '1',
           size: 'normal'
         },
         {
           id: 'mock-component-2',
           type: ComponentType.Paragraph,
+          dataModelBindings: {},
           someProp: '2',
         },
       ];
@@ -370,8 +380,21 @@ describe('formLayoutUtils', () => {
       const expectedConvertedLayoutResult: IInternalLayout = {
         containers: { 'mock-group-id': { itemType: 'CONTAINER' } },
         components: {
-          'mock-component-1': { someProp: '1', itemType: 'COMPONENT', type: ComponentType.Header, id: 'mock-component-1', size: 'normal' },
-          'mock-component-2': { someProp: '2', itemType: 'COMPONENT', type: ComponentType.Paragraph, id: 'mock-component-2' },
+          'mock-component-1': {
+            someProp: '1',
+            itemType: 'COMPONENT',
+            type: ComponentType.Header,
+            id: 'mock-component-1',
+            size: 'normal',
+            dataModelBindings: {}
+          },
+          'mock-component-2': {
+            someProp: '2',
+            itemType: 'COMPONENT',
+            type: ComponentType.Paragraph,
+            id: 'mock-component-2',
+            dataModelBindings: {}
+          },
         },
         order: { 'mock-group-id': ['mock-component-1', 'mock-component-2'] },
         customRootProperties: {},
@@ -390,6 +413,7 @@ describe('formLayoutUtils', () => {
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
+        dataModelBindings: {},
       };
       const layout: IInternalLayout = {
         containers: mockInternal.containers,
@@ -438,6 +462,7 @@ describe('formLayoutUtils', () => {
       id: 'newComponent',
       type: ComponentType.Paragraph,
       itemType: 'COMPONENT',
+      dataModelBindings: {},
     };
 
     it('Adds component to the end of the base container by default', () => {

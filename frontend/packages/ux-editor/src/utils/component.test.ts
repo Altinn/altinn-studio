@@ -24,6 +24,7 @@ describe('Component utils', () => {
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
+        dataModelBindings: {},
       };
       expect(changeTextResourceBinding(component, bindingKeyToChange, newResourceKey)).toEqual({
         ...component,
@@ -46,6 +47,7 @@ describe('Component utils', () => {
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
+        dataModelBindings: {},
       };
       expect(
         changeTextResourceBinding(component, 'title', newResourceKey)
@@ -66,6 +68,7 @@ describe('Component utils', () => {
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
+        dataModelBindings: {},
       };
       expect(
         changeTextResourceBinding(component, 'description', newResourceKey)
@@ -93,6 +96,7 @@ describe('Component utils', () => {
           ],
           optionsId: null,
           itemType: 'COMPONENT',
+          dataModelBindings: {},
         };
         const newOption: IOption = {
           label: 'newTestLabel',
@@ -129,6 +133,7 @@ describe('Component utils', () => {
           ],
           optionsId: null,
           itemType: 'COMPONENT',
+          dataModelBindings: {},
         };
         const newLabel = 'newTestLabel';
         expect(changeComponentOptionLabel(

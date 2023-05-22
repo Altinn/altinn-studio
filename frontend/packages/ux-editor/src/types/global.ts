@@ -32,7 +32,7 @@ export interface ICreateFormComponent {
   name?: string;
   size?: string;
   options?: IOption[];
-  dataModelBindings?: IDataModelBindings;
+  dataModelBindings: IDataModelBindings;
   textResourceBindings?: ITextResourceBindings;
   customType?: string;
   codeListId?: string;

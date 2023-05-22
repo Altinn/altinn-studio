@@ -14,6 +14,7 @@ const component: FormButtonComponent = {
   onClickAction: jest.fn(),
   type: ComponentType.Button,
   itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 const handleComponentChange = jest.fn();
 const defaultProps: IGenericEditComponent = {
