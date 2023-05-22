@@ -30,12 +30,10 @@ describe('AltinnHeaderMenu', () => {
 });
 
 const render = (props: Partial<IAltinnHeaderMenuProps> = {}) => {
-  const defaultProps = {
-    org: 'jest-test-org',
-    app: 'jest-test-app',
+  const defaultProps: IAltinnHeaderMenuProps = {
     activeSubHeaderSelection: 'create',
     menu: [],
-  } as IAltinnHeaderMenuProps;
+  };
 
   return rtlRender(
     <MemoryRouter>
