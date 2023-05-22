@@ -62,7 +62,7 @@ export const LandingPage = () => {
                 value: 'mobile'
               }
             ]}
-            onChange={(selectedViewSize: string) => handleChangeViewSizeClick(selectedViewSize)}
+            onChange={handleChangeViewSizeClick}
             selectedValue={viewSize === 'Desktop' ? 'desktop' : 'mobile'}/>
             </span>
         </div>
