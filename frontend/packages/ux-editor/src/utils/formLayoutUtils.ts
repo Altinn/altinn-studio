@@ -227,7 +227,7 @@ export function idExists(
   );
 }
 
-export const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/;
+export const validComponentId = /^[0-9a-zA-Z-]+$/;
 
 /**
  * Checks if a layout has navigation buttons.

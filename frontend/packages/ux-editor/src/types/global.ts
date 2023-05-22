@@ -25,24 +25,6 @@ export interface IOption {
 
 export type ITextResourceBindings = KeyValuePairs<string>;
 
-export interface ICreateFormComponent {
-  component?: string;
-  itemType: 'COMPONENT';
-  type: ComponentType;
-  name?: string;
-  size?: string;
-  options?: IOption[];
-  dataModelBindings: IDataModelBindings;
-  textResourceBindings?: ITextResourceBindings;
-  customType?: string;
-  codeListId?: string;
-  triggerValidation?: boolean;
-  handleUpdateElement?: (component: FormComponent) => void;
-  handleDeleteElement?: () => void;
-  handleUpdateFormData?: (formData: any) => void;
-  handleUpdateDataModel?: (dataModelBinding: string) => void;
-}
-
 export type IDataModelBindings = KeyValuePairs<string>;
 export type IFormDesignerComponents = KeyValuePairs<FormComponent>;
 export type IFormDesignerContainers = KeyValuePairs<FormContainer>;

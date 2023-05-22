@@ -1,11 +1,14 @@
 import {
-  addComponent, addContainer, addItemOfType,
+  addComponent,
+  addContainer,
+  addItemOfType,
   addNavigationButtons,
   convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
   extractChildrenFromGroup,
   findParentId,
-  hasNavigationButtons, moveLayoutItem,
+  hasNavigationButtons,
+  moveLayoutItem,
   removeComponent,
   removeComponentsByType,
 } from './formLayoutUtils';

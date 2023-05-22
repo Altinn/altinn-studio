@@ -3,7 +3,7 @@ import { useValidation } from './useValidation';
 
 test('should have updated validationError after validate has been called', () => {
   const { result: validationHook } = renderHook(() =>
-    useValidation({ required: { message: 'Field is required' } })
+    useValidation('test', { required: { message: 'Field is required' } })
   );
 
   act(() => {

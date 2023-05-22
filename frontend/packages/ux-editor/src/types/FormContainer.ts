@@ -1,10 +1,11 @@
 import { IDataModelBindings, ITextResourceBindings } from './global';
 
 export interface FormContainer {
+  dataModelBindings?: IDataModelBindings;
+  id?: string;
   index?: number;
   itemType: 'CONTAINER';
-  dataModelBindings?: IDataModelBindings;
   maxCount?: number;
-  textResourceBindings?: ITextResourceBindings;
   tableHeaders?: string[];
+  textResourceBindings?: ITextResourceBindings;
 }

@@ -8,14 +8,6 @@
   visibility: visible;
 }
 
-.formGroupWrapper {
-  border-color: #1EAEF7;
-  border-style: dotted;
-  border-width: 0.15em 0;
-  padding-top: 0;
-  background-color: #0062BA08;
-}
-
 .formGroup {
   background-color: #0000000b;
   color: #0062BA !important;

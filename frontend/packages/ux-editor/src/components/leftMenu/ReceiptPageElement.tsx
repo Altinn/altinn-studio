@@ -6,10 +6,12 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import classes from './ReceiptPageElement.module.css';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
+import { useTranslation } from 'react-i18next';
 
 export function ReceiptPageElement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { org, app } = useParams();
+  const { t } = useTranslation();
   const addLayoutMutation = useAddLayoutMutation(org, app);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
   const receiptName = formLayoutSettingsQuery.data.receiptLayoutName;
@@ -24,7 +26,7 @@ export function ReceiptPageElement() {
     ) : (
       <div className={classes.buttonWrapper}>
         <Button variant={ButtonVariant.Quiet} onClick={handleAddPage}>
-          Opprett kvitteringsside
+          {t('receipt.create')}
         </Button>
       </div>
     );
