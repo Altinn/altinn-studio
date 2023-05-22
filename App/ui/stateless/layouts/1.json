@@ -9,13 +9,13 @@
           "altTextImg": "Altinn Logo",
           "help": "Altinn logo"
         },
-        "image":{
-          "src":{
+        "image": {
+          "src": {
             "nb": "wwwroot/images/altinn-logo.svg",
             "en": "https://raw.githubusercontent.com/Altinn/altinn-cdn/master/img/Altinn-logo-black.svg"
           },
           "width": "70%",
-          "align": "left"          
+          "align": "left"
         },
         "grid": {
           "xs": 3,
@@ -28,7 +28,7 @@
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "text"
-        }        
+        }
       },
       {
         "id": "name",
@@ -41,7 +41,7 @@
         },
         "required": true,
         "readOnly": false,
-        "labelSettings": {"optionalIndicator": false}
+        "labelSettings": { "optionalIndicator": false }
       },
       {
         "id": "number",
@@ -54,7 +54,7 @@
         },
         "required": false,
         "readOnly": false,
-        "labelSettings": {"optionalIndicator": false}
+        "labelSettings": { "optionalIndicator": false }
       },
       {
         "id": "idnummer",
@@ -67,7 +67,7 @@
         },
         "required": false,
         "readOnly": false,
-        "labelSettings": {"optionalIndicator": false}
+        "labelSettings": { "optionalIndicator": false }
       },
       {
         "id": "idnummer2",
@@ -80,7 +80,7 @@
         },
         "required": false,
         "readOnly": false,
-        "labelSettings": {"optionalIndicator": false}
+        "labelSettings": { "optionalIndicator": false }
       },
       {
         "id": "idnummer3",
@@ -118,6 +118,13 @@
           "title": "Velg epost"
         },
         "optionsId": "epostOptions"
+      },
+      {
+        "id": "simpleIFrame",
+        "type": "IFrame",
+        "textResourceBindings": {
+          "title": "simpleFrame"
+        }
       },
       {
         "id": "pageNext",
