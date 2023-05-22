@@ -513,6 +513,7 @@
   "popover.popover_button_helptext": "Click here for help text popover",
   "popover.popover_open": "Popover open",
   "preview.iframe_title": "Preview",
+  "receipt.create": "Create receipt page",
   "receipt.attachments": "Attachments",
   "receipt.body": "A mechanical check has been completed while filling in, but we reserve the right to detect errors during the processing of the case and that other documentation may be necessary. Please provide the reference number in case of any inquiries to the agency.",
   "receipt.date_sent": "Date sent",

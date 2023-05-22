@@ -56,11 +56,9 @@ export const LeftMenu = () => {
       <div className={classes.pagesList}>
         <PagesContainer />
       </div>
-      {!_useIsProdHack() && (
         <div className={classes.receipt}>
           <ReceiptPageElement />
         </div>
-      )}
       <div className={classes.toolbar}>
         {receiptLayoutName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
       </div>
