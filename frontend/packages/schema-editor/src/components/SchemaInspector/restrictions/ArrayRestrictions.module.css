@@ -1,0 +1,10 @@
+.items {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  justify-content: space-between;
+}
+
+.item {
+  flex: 1;
+}
