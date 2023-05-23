@@ -1,6 +1,7 @@
 import { nodesFromGrid } from 'src/layout/Grid/tools';
 import { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { GridComponent, GridRow } from 'src/layout/Grid/types';
+import type { ITextResource } from 'src/types';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type {
   ChildFactory,
@@ -76,5 +77,24 @@ export class GridHierarchyGenerator extends ComponentHierarchyGenerator<'Grid'> 
 
   childrenFromNode(node: LayoutNodeFromType<'Grid'>): LayoutNode[] {
     return nodesFromGrid(node);
+  }
+
+  rewriteTextBindingsForRows(node: LayoutNode, rows: GridRow<GridComponent>[], textResources: ITextResource[]) {
+    if (node.rowIndex === undefined) {
+      return;
+    }
+
+    for (const row of rows) {
+      for (const cell of row.cells) {
+        if (cell && 'text' in cell && this.textResourceHasRepeatingGroupVariable(cell.text, textResources)) {
+          cell.text = `${cell.text}-${node.rowIndex}`;
+        }
+      }
+    }
+  }
+
+  rewriteTextBindings(node: LayoutNodeFromType<'Grid'>, textResources: ITextResource[]) {
+    super.rewriteTextBindings(node, textResources);
+    this.rewriteTextBindingsForRows(node, node.item.rows, textResources);
   }
 }

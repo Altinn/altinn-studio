@@ -6,7 +6,6 @@ import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
-import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ILayouts } from 'src/layout/layout';
 import type { IRepeatingGroups, IRuntimeState, ITextResource } from 'src/types';
 import type { AnyItem, HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
@@ -100,31 +99,7 @@ function resolvedNodesInLayouts(
 function rewriteTextResourceBindings(collection: LayoutPages, textResources: ITextResource[]) {
   for (const layout of Object.values(collection.all())) {
     for (const node of layout.flat(true)) {
-      if (!node.item.textResourceBindings || node.rowIndex === undefined) {
-        continue;
-      }
-
-      if (node.parent instanceof LayoutPage || !(node.parent.parent instanceof LayoutPage)) {
-        // This only works in row items on the first level (not for nested repeating groups)
-        continue;
-      }
-
-      const rewrittenItems = { ...node.item.textResourceBindings };
-      if (textResources && node.item.textResourceBindings) {
-        const bindingsWithVariablesForRepeatingGroups = Object.keys(rewrittenItems).filter((key) => {
-          const textKey = rewrittenItems[key];
-          const textResource = textResources.find((text) => text.id === textKey);
-          return (
-            textResource && textResource.variables && textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1)
-          );
-        });
-
-        bindingsWithVariablesForRepeatingGroups.forEach((key) => {
-          rewrittenItems[key] = `${rewrittenItems[key]}-${node.rowIndex}`;
-        });
-      }
-
-      node.item.textResourceBindings = { ...rewrittenItems };
+      node.def.hierarchyGenerator().rewriteTextBindings(node as any, textResources);
     }
   }
 }

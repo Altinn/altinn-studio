@@ -109,4 +109,16 @@ describe('Grid component', () => {
     cy.get(appFrontend.grid.kredittkort.percentComponent).should('not.exist');
     cy.get(appFrontend.grid.kredittkort.verifiedComponent).should('not.exist');
   });
+
+  it('should resolve text resources when Grid rows are shown in nested repeating groups', () => {
+    cy.goto('group');
+    cy.get(appFrontend.group.prefill.liten).dsCheck();
+    cy.navPage('repeating').click();
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.groupContainer)
+      .find('table tr:last-child td:first-child')
+      .should('contain.text', 'Foreldreraden er prefill: true');
+  });
 });

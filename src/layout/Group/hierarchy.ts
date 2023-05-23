@@ -2,6 +2,7 @@ import { GridHierarchyGenerator } from 'src/layout/Grid/hierarchy';
 import { nodesFromGridRow } from 'src/layout/Grid/tools';
 import { getRepeatingGroupStartStopIndex } from 'src/utils/formLayout';
 import { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+import type { ITextResource } from 'src/types';
 import type { HRepGroupChild, HRepGroupRow, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type {
   ChildFactory,
@@ -105,6 +106,16 @@ export class GroupHierarchyGenerator extends ComponentHierarchyGenerator<'Group'
     }
 
     return list;
+  }
+
+  rewriteTextBindings(node: LayoutNodeFromType<'Group'>, textResources: ITextResource[]) {
+    super.rewriteTextBindings(node, textResources);
+    if (node.item?.rowsBefore) {
+      this.innerGrid.rewriteTextBindingsForRows(node, node.item.rowsBefore, textResources);
+    }
+    if (node.item?.rowsAfter) {
+      this.innerGrid.rewriteTextBindingsForRows(node, node.item.rowsAfter, textResources);
+    }
   }
 
   /**
