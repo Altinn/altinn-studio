@@ -67,8 +67,20 @@ namespace Altinn.Studio.PolicyAdmin
                 {
                     if (attributeAssignmentExpression.Category.AbsoluteUri.Equals(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel))
                     {
-                        XacmlAttributeValue astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
-                        policy.RequiredAuthenticationLevelEndUser = astr.Value;
+                        XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
+                        if (astr != null)
+                        {
+                            policy.RequiredAuthenticationLevelEndUser = astr.Value;
+                        }
+                    }
+
+                    if (attributeAssignmentExpression.Category.AbsoluteUri.Equals(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg))
+                    {
+                        XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
+                        if (astr != null)
+                        {
+                            policy.RequiredAuthenticationLevelOrg = astr.Value;
+                        }
                     }
 
                 }
@@ -138,6 +150,12 @@ namespace Altinn.Studio.PolicyAdmin
             }
 
             policyOutput.ObligationExpressions.Add(GetAuthenticationLevelObligation(policyInput.RequiredAuthenticationLevelEndUser));
+
+            if(!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelOrg))
+            {
+                policyOutput.ObligationExpressions.Add(GetAuthenticationLevelObligationOrg(policyInput.RequiredAuthenticationLevelOrg));
+
+            }
 
             return policyOutput;
         }
@@ -259,9 +277,22 @@ namespace Altinn.Studio.PolicyAdmin
             XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
             astr.Value = level;
 
-
             XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation1-assignment1"), astr);
             xacmlAttributeAssignmentExpression.Category = new Uri(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel);
+            expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
+            expression.FulfillOn = XacmlEffectType.Permit;
+            return expression;
+        }
+
+        private static XacmlObligationExpression GetAuthenticationLevelObligationOrg(string level)
+        {
+            XacmlObligationExpression expression = new XacmlObligationExpression(new Uri("urn:altinn:obligation:authenticationLevel2"), XacmlEffectType.Permit);
+
+            XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
+            astr.Value = level;
+
+            XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation2-assignment2"), astr);
+            xacmlAttributeAssignmentExpression.Category = new Uri(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg);
             expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
             expression.FulfillOn = XacmlEffectType.Permit;
             return expression;

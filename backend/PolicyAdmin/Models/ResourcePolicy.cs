@@ -9,5 +9,7 @@ namespace Altinn.Studio.PolicyAdmin.Models
         public List<PolicyObligation> Obligations { get; set; }
 
         public string RequiredAuthenticationLevelEndUser { get; set; }
+
+        public string RequiredAuthenticationLevelOrg { get; set; }
     }
 }
