@@ -242,7 +242,7 @@ namespace Altinn.Studio.PolicyAdmin
                 xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Action);
                 xacmlAttributeDesignator.MustBePresent = false;
 
-                XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqual), xacmlAttributeValue, xacmlAttributeDesignator);
+                XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase), xacmlAttributeValue, xacmlAttributeDesignator);
                 matches.Add(xacmlMatch);
                 XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
                 actionAllOfs.Add(xacmlAllOf);
