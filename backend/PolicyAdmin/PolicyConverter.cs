@@ -160,7 +160,6 @@ namespace Altinn.Studio.PolicyAdmin
             return policyOutput;
         }
 
-
         private static XacmlRule ConvertRule(PolicyRule policyRule)
         {
             XacmlRule xacmlRule = new XacmlRule(policyRule.RuleId, XacmlEffectType.Permit);
@@ -171,10 +170,12 @@ namespace Altinn.Studio.PolicyAdmin
             {
                 ruleAnyOfs.Add(GetSubjectAnyOfs(policyRule.Subject));
             }
+
             if (policyRule.Resources != null && policyRule.Resources.Count > 0)
             {
                 ruleAnyOfs.Add(GetResourceAnyOfs(policyRule.Resources));
             }
+
             if (policyRule.Actions != null && policyRule.Actions.Count > 0)
             {
                 ruleAnyOfs.Add(GetActionAnyOfs(policyRule.Actions));
@@ -183,9 +184,7 @@ namespace Altinn.Studio.PolicyAdmin
             xacmlRule.Target = new XacmlTarget(ruleAnyOfs);
 
             return xacmlRule;
-
         }
-
 
         private static XacmlAnyOf GetResourceAnyOfs(List<List<string>> resources)
         {
