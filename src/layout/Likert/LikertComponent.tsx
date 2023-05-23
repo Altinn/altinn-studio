@@ -56,7 +56,7 @@ const RadioGroupTableRow = ({
   return (
     <TableRow
       aria-labelledby={rowLabelId}
-      data-componentid={node.item.baseComponentId ?? node.item.id}
+      data-componentid={node.item.id}
     >
       <th
         scope='row'

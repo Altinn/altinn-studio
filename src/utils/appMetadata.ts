@@ -70,7 +70,7 @@ export function getCurrentDataTypeForApplication({
 export function isStatelessApp(application: IApplication | null) {
   const url = window.location.href; // This should probably be reconsidered when changing router.
   const expr = getInstanceIdRegExp({ prefix: '/instance' });
-  const match = url.match(expr);
+  const match = url?.match(expr);
   if (match) {
     // app can be setup as stateless but then go over to a statefull app
     return false;
@@ -103,7 +103,7 @@ export const getCurrentDataTypeId = (
   instance?: IInstance | null,
   layoutSets?: ILayoutSets | null,
 ) => {
-  const currentTaskId = instance?.process.currentTask?.elementId;
+  const currentTaskId = instance?.process?.currentTask?.elementId;
   if (currentTaskId === null || currentTaskId === undefined) {
     return undefined;
   }

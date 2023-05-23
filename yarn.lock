@@ -3866,6 +3866,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sagold/json-pointer@npm:^5.0.0":
+  version: 5.0.1
+  resolution: "@sagold/json-pointer@npm:5.0.1"
+  checksum: a83eaf52391d589e346877c27a092130aeec72dc2566dde05f1c0c57876d8a5478b6f89cb70572d664f4d944f9e8262abc0832c338f74c388b4e8997a209dba8
+  languageName: node
+  linkType: hard
+
+"@sagold/json-query@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@sagold/json-query@npm:6.0.0"
+  dependencies:
+    "@sagold/json-pointer": ^5.0.0
+    ebnf: ^1.9.0
+  checksum: 56bb6151e6e6b1ef26bb03133b440e90d47c013529899e26cedb4c96f8a51f0115717ebab1355a8c3e6ea0c70e5ddaefc54c44330686ae3b2f8cb7d162011d73
+  languageName: node
+  linkType: hard
+
 "@sinclair/typebox@npm:^0.24.1":
   version: 0.24.19
   resolution: "@sinclair/typebox@npm:0.24.19"
@@ -4310,7 +4327,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/json-schema@npm:*":
+"@types/json-schema@npm:*, @types/json-schema@npm:^7.0.11":
   version: 7.0.11
   resolution: "@types/json-schema@npm:7.0.11"
   checksum: 527bddfe62db9012fccd7627794bd4c71beb77601861055d87e3ee464f2217c85fca7a4b56ae677478367bbd248dbde13553312b7d4dbc702a2f2bbf60c4018d
@@ -5393,6 +5410,7 @@ __metadata:
     "@types/dompurify": 3.0.2
     "@types/dot-object": 2.1.2
     "@types/jest": 29.5.1
+    "@types/json-schema": ^7.0.11
     "@types/marked": 4.3.0
     "@types/mime": 3.0.1
     "@types/react": 18.2.6
@@ -5449,6 +5467,7 @@ __metadata:
     jest-junit: 16.0.0
     jest-mock-axios: 4.7.2
     jsdom: 22.0.0
+    json-schema-library: ^7.4.7
     jsonpointer: 5.0.1
     lint-staged: 13.2.2
     marked: 5.0.2
@@ -7610,6 +7629,15 @@ __metadata:
   version: 0.2.0
   resolution: "eastasianwidth@npm:0.2.0"
   checksum: 7d00d7cd8e49b9afa762a813faac332dee781932d6f2c848dc348939c4253f1d4564341b7af1d041853bc3f32c2ef141b58e0a4d9862c17a7f08f68df1e0f1ed
+  languageName: node
+  linkType: hard
+
+"ebnf@npm:^1.9.0":
+  version: 1.9.0
+  resolution: "ebnf@npm:1.9.0"
+  bin:
+    ebnf: dist/bin.js
+  checksum: a18e616f5f52ad28dcc7ae2749bd4bf81ebe12ad6e98b51ad20077eb066286d4efb5562bd3cd9861965203dde59c392428061e89b4b4df59e96ff92db8f5ceeb
   languageName: node
   linkType: hard
 
@@ -11043,6 +11071,19 @@ __metadata:
   version: 2.3.1
   resolution: "json-parse-even-better-errors@npm:2.3.1"
   checksum: 798ed4cf3354a2d9ccd78e86d2169515a0097a5c133337807cdf7f1fc32e1391d207ccfc276518cc1d7d8d4db93288b8a50ba4293d212ad1336e52a8ec0a941f
+  languageName: node
+  linkType: hard
+
+"json-schema-library@npm:^7.4.7":
+  version: 7.4.7
+  resolution: "json-schema-library@npm:7.4.7"
+  dependencies:
+    "@sagold/json-pointer": ^5.0.0
+    "@sagold/json-query": ^6.0.0
+    deepmerge: ^4.2.2
+    fast-deep-equal: ^3.1.3
+    valid-url: ^1.0.9
+  checksum: e738f0b149d52949d854a4de718e79576fabbae206bffdb1cf895ed0b87bbf255f80f162f1924fb89311f6ac1a8e3ed0a5940b709bc3a091ad217f64de70cf60
   languageName: node
   linkType: hard
 
@@ -15661,6 +15702,13 @@ __metadata:
     "@types/istanbul-lib-coverage": ^2.0.1
     convert-source-map: ^1.6.0
   checksum: a49c34bf0a3af0c11041a3952a2600913904a983bd1bc87148b5c033bc5c1d02d5a13620fcdbfa2c60bc582a2e2970185780f0c844b4c3a220abf405f8af6311
+  languageName: node
+  linkType: hard
+
+"valid-url@npm:^1.0.9":
+  version: 1.0.9
+  resolution: "valid-url@npm:1.0.9"
+  checksum: 3ecb030559404441c2cf104cbabab8770efb0f36d117db03d1081052ef133015a68806148ce954bb4dd0b5c42c14b709a88783c93d66b0916cb67ba771c98702
   languageName: node
   linkType: hard
 

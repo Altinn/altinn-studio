@@ -6,16 +6,14 @@ import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } fro
 import cn from 'classnames';
 
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
-import { getColumnStylesRepeatingGroups, getTextResource } from 'src/utils/formComponentUtils';
+import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ITextResource, ITextResourceBindings } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
+import type { ITextResourceBindings } from 'src/types';
 import type { HRepGroup } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -54,20 +52,17 @@ function getTableTitle(textResourceBindings: ITextResourceBindings) {
 }
 
 function getEditButtonText(
-  language: ILanguage,
   isEditing: boolean,
-  textResources: ITextResource[],
-  textResourceBindings?: ITextResourceBindings,
+  textResourceBindings: ITextResourceBindings | undefined,
+  langAsString: (key: string) => string,
 ) {
   if (isEditing && textResourceBindings?.edit_button_close) {
-    return getTextResourceByKey(textResourceBindings?.edit_button_close, textResources);
+    return langAsString(textResourceBindings?.edit_button_close);
   } else if (!isEditing && textResourceBindings?.edit_button_open) {
-    return getTextResourceByKey(textResourceBindings?.edit_button_open, textResources);
+    return langAsString(textResourceBindings?.edit_button_open);
   }
 
-  return isEditing
-    ? getLanguageFromKey('general.save_and_close', language)
-    : getLanguageFromKey('general.edit_alt', language);
+  return isEditing ? langAsString('general.save_and_close') : langAsString('general.edit_alt');
 }
 
 export function RepeatingGroupTableRow({
@@ -83,15 +78,14 @@ export function RepeatingGroupTableRow({
   deleteFunctionality,
   displayEditColumn,
   displayDeleteColumn,
-}: IRepeatingGroupTableRowProps): JSX.Element | null {
+}: IRepeatingGroupTableRowProps): JSX.Element {
   const mobileViewSmall = useMediaQuery('(max-width:768px)');
-  const textResources = useAppSelector((state) => state.textResources.resources);
-  const language = useAppSelector((state) => state.language.language);
   const { refSetter } = useRepeatingGroupsFocusContext();
 
   const { popoverOpen, popoverPanelIndex, onDeleteClick, setPopoverOpen, onPopoverDeleteClick, onOpenChange } =
     deleteFunctionality || {};
 
+  const { lang, langAsString } = useLanguage();
   const id = node.item.id;
   const group = node.item;
   const row = group.rows[index] ? group.rows[index] : undefined;
@@ -111,18 +105,13 @@ export function RepeatingGroupTableRow({
     'useDisplayData' in node.def ? node.def.useDisplayData(node as any) : '',
   );
   const firstCellData = displayData.find((c) => !!c);
-
-  if (!language) {
-    return null;
-  }
-
   const isEditingRow = index === editIndex;
 
   const editButtonText = rowHasErrors
-    ? getLanguageFromKey('general.edit_alt_error', language)
-    : getEditButtonText(language, editIndex === index, textResources, resolvedTextBindings);
+    ? langAsString('general.edit_alt_error')
+    : getEditButtonText(editIndex === index, resolvedTextBindings, langAsString);
 
-  const deleteButtonText = getLanguageFromKey('general.delete', language);
+  const deleteButtonText = langAsString('general.delete');
 
   return (
     <TableRow
@@ -194,7 +183,7 @@ export function RepeatingGroupTableRow({
                     key={n.item.id}
                   >
                     <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
-                      {getTextResource(getTableTitle(n.item.textResourceBindings || {}), textResources)}:
+                      {lang(getTableTitle(n.item.textResourceBindings || {}))}:
                     </b>
                     <span className={classes.contentFormatting}>{displayData[i]}</span>
                     {i < length - 1 && <div style={{ height: 8 }} />}
@@ -275,9 +264,8 @@ export function RepeatingGroupTableRow({
                         <DeleteWarningPopover
                           trigger={deleteButton}
                           side='left'
-                          language={language}
-                          deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
-                          messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
+                          deleteButtonText={langAsString('group.row_popover_delete_button_confirm')}
+                          messageText={langAsString('group.row_popover_delete_message')}
                           open={popoverPanelIndex == index && popoverOpen}
                           setPopoverOpen={setPopoverOpen}
                           onCancelClick={() => onOpenChange(index)}
@@ -343,9 +331,8 @@ export function RepeatingGroupTableRow({
                         <DeleteWarningPopover
                           trigger={deleteButton}
                           side='left'
-                          language={language}
-                          deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
-                          messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
+                          deleteButtonText={langAsString('group.row_popover_delete_button_confirm')}
+                          messageText={langAsString('group.row_popover_delete_message')}
                           open={popoverPanelIndex == index && popoverOpen}
                           setPopoverOpen={setPopoverOpen}
                           onCancelClick={() => onOpenChange(index)}

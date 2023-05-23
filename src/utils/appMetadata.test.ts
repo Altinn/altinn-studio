@@ -205,9 +205,10 @@ describe('appMetadata.ts', () => {
       const instanceInConfirm: IInstance = {
         ...instance,
         process: {
+          started: '',
           ...instance.process,
           currentTask: {
-            ...(instance.process.currentTask as ITask),
+            ...(instance.process?.currentTask as ITask),
             flow: 3,
             elementId: 'Task_2',
             name: 'Bekreftelse',

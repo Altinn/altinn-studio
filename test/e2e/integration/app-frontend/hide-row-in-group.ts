@@ -42,6 +42,7 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   cy.get(appFrontend.group.overflowGroup).find('tr').first().find('th').as('firstRow');
   cy.get(appFrontend.group.overflowGroup).find('tr').last().find('td').as('lastRow');
 
+  // Make sure the sum row is correct
   cy.get('@lastRow').eq(0).should('contain.text', 'SUM');
   cy.get('@lastRow').eq(1).find('input').should('have.value', 'NOK 9 045 621');
   cy.get('@lastRow').eq(2).find('input').should('have.value', 'NOK 9 045 387');
@@ -93,6 +94,30 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   cy.get(appFrontend.group.mainGroup).find('tr').last().find('td').as('lastRow');
   cy.get('@lastRow').eq(0).should('contain.text', 'NOK 150');
   cy.get('@lastRow').eq(1).should('contain.text', 'NOK 987 554');
+
+  function verifyNumCells() {
+    // Verify the number of table cells in the overflow group. This broke once, when the node.children() function
+    // returned the children including the static rows after, making a static component pop up in the group table as
+    // a column. We need to check this when tableColumns and tableHeaders are undefined to make sure they don't
+    // interfere and remove cells that would otherwise be shown in the table as children.
+    cy.get(appFrontend.group.overflowGroup)
+      .find('tr')
+      .should('have.length', 3 + headerRow + rowsAfter);
+    cy.get(appFrontend.group.overflowGroup).find('tr').eq(0).find('th').should('have.length', 3);
+    cy.get(appFrontend.group.overflowGroup).find('tr').eq(1).find('td').should('have.length', 3);
+    cy.get(appFrontend.group.overflowGroup).find('tr').last().find('td').should('have.length', 3);
+  }
+
+  cy.navPage('repeating (store endringer)').click();
+  verifyNumCells();
+  cy.interceptLayout('group', (component) => {
+    if (component.id === 'mainGroup2' && component.type === 'Group') {
+      component.tableColumns = undefined;
+      component.tableHeaders = undefined;
+    }
+  });
+  cy.reload();
+  verifyNumCells();
 });
 
 it('"save and next"-button should open row 3 when row 2 is hidden', () => {

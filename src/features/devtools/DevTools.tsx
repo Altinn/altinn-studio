@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
 import { OpenDevToolsButton } from 'src/features/devtools/components/OpenDevToolsButton/OpenDevToolsButton';
+import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { DevToolsPanel } from 'src/features/devtools/DevToolsPanel';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useAppSelector } from 'src/hooks/useAppSelector';
 
 const devHostNames = ['local.altinn.cloud', 'dev.altinn.studio', 'altinn.studio', 'studio.localhost'];
 const shouldShowButton = devHostNames.includes(window.location.hostname);
@@ -12,18 +15,34 @@ interface IDevToolsProps {
 }
 
 export const DevTools = ({ children }: IDevToolsProps) => {
-  const [panelOpen, setPanelOpen] = useState(false);
+  const panelOpen = useAppSelector((state) => state.devTools.isOpen);
+  const dispatch = useAppDispatch();
 
-  useEffect(
-    () =>
-      window.addEventListener('keydown', (event) => {
-        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key && event.key.toLowerCase() === 'k') {
-          event.preventDefault();
-          setPanelOpen((open) => !open);
-        }
-      }),
-    [],
+  const setPanelOpen = useCallback(
+    (open: boolean) => {
+      if (open) {
+        dispatch(DevToolsActions.open());
+      } else {
+        dispatch(DevToolsActions.close());
+      }
+    },
+    [dispatch],
   );
+
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setPanelOpen(!panelOpen);
+      }
+    };
+
+    window.addEventListener('keydown', listener);
+
+    return () => {
+      window.removeEventListener('keydown', listener);
+    };
+  }, [panelOpen, setPanelOpen]);
 
   return (
     <>

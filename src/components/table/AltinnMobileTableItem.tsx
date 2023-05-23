@@ -270,7 +270,6 @@ export function AltinnMobileTableItem({
                               {!mobileViewSmall && deleteButtonText}
                             </Button>
                           }
-                          language={language}
                           deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
                           messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
                           open={popoverPanelIndex == tableItemIndex && popoverOpen}

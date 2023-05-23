@@ -1,3 +1,4 @@
+import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getLayoutComponentObject } from 'src/layout';
 import { getRepeatingGroups } from 'src/utils/formLayout';
@@ -119,17 +120,13 @@ describe('Hierarchical layout tools', () => {
   const layouts = { FormLayout: layout };
 
   const dataSources: HierarchyDataSources = {
-    formData: {},
+    ...getHierarchyDataSourcesMock(),
     instanceContext: {
       instanceId: 'abc-123',
       appId: 'org/app',
       instanceOwnerPartyId: 'test',
       instanceOwnerPartyType: 'person',
     },
-    applicationSettings: {},
-    hiddenFields: new Set(),
-    authContext: null,
-    validations: {},
   };
 
   const repeatingGroups: IRepeatingGroups = {
@@ -390,6 +387,7 @@ describe('Hierarchical layout tools', () => {
 
   describe('resolvedNodesInLayout', () => {
     const dataSources: HierarchyDataSources = {
+      ...getHierarchyDataSourcesMock(),
       formData: {
         'Model.ShouldBeTrue': 'true',
         'Model.ShouldBeFalse': 'false',
@@ -400,10 +398,6 @@ describe('Hierarchical layout tools', () => {
         appId: 'test',
         instanceOwnerPartyType: 'unknown',
       },
-      applicationSettings: {},
-      hiddenFields: new Set(),
-      authContext: null,
-      validations: {},
     };
 
     const nodes = resolvedNodesInLayouts(layouts, 'FormLayout', repeatingGroups, dataSources);

@@ -1,3 +1,4 @@
+import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions/index';
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression, preProcessLayout } from 'src/features/expressions/validation';
@@ -8,7 +9,6 @@ import type { ExprResolved, ExprUnresolved } from 'src/features/expressions/type
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponentOrGroup } from 'src/layout/layout';
 import type { IRepeatingGroups } from 'src/types';
-import type { HierarchyDataSources } from 'src/utils/layout/hierarchy.types';
 
 function isRepeatingGroup(
   component?: ExprUnresolved<ILayoutComponentOrGroup> | ExprResolved<ILayoutComponentOrGroup>,
@@ -47,14 +47,7 @@ function evalAllExpressions(layouts: Layouts) {
       ...generateRepeatingGroups(page.data.layout),
     };
   }
-  const dataSources: HierarchyDataSources = {
-    formData: {},
-    applicationSettings: {} as any,
-    instanceContext: {} as any,
-    hiddenFields: new Set(),
-    authContext: null,
-    validations: {},
-  };
+  const dataSources = getHierarchyDataSourcesMock();
   const nodes = generateEntireHierarchy(
     convertLayouts(layouts),
     Object.keys(layouts)[0],

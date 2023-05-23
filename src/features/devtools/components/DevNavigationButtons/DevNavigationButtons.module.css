@@ -18,3 +18,10 @@
 .hidden {
   display: none;
 }
+
+.visiblePage {
+}
+
+.hiddenPage {
+  font-style: italic;
+}

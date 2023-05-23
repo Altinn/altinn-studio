@@ -50,7 +50,7 @@ export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayou
       spacing={3}
       alignItems='flex-start'
       data-testid='display-group-container'
-      data-componentid={container.baseComponentId ?? container.id}
+      data-componentid={container.id}
     >
       {title && (
         <Grid

@@ -30,6 +30,7 @@ export type HierarchyContext = {
   id: string;
   depth: number; // Starts at 1
   mutators: ChildMutator[];
+  generator: HierarchyGenerator;
 };
 
 export interface NewChildProps extends CommonChildFactoryProps {
@@ -234,6 +235,7 @@ export class HierarchyGenerator {
       id: childId,
       depth: ctx.depth + 1,
       mutators: [...ctx.mutators, ...recursiveMutators],
+      generator: this,
     });
 
     return factory({
@@ -291,7 +293,7 @@ export class HierarchyGenerator {
         console.warn(`No component definition found for type '${type}'`);
         return;
       }
-      this.instances[type] = def.hierarchyGenerator(this);
+      this.instances[type] = def.hierarchyGenerator();
     }
 
     return this.instances[type];
@@ -324,7 +326,7 @@ export class HierarchyGenerator {
         for (const item of layout) {
           const ro = Object.freeze(structuredClone(item));
           const instance = this.getInstance(ro.type);
-          instance?.stage1(ro);
+          instance?.stage1(this, ro);
         }
 
         this.pages[layoutKey] = this.top;
@@ -353,6 +355,7 @@ export class HierarchyGenerator {
             id: plainId,
             depth: 1,
             mutators: [],
+            generator: this,
           };
           const processor = instance.stage2(ctx) as ChildFactory<ComponentTypes>;
           processor({ item, parent: this.top });
@@ -373,10 +376,9 @@ export class HierarchyGenerator {
  * most likely suffice.
  */
 export abstract class ComponentHierarchyGenerator<Type extends ComponentTypes> {
-  constructor(protected generator: HierarchyGenerator) {}
-
-  abstract stage1(item: UnprocessedItem<Type>): void;
+  abstract stage1(generator: HierarchyGenerator, item: UnprocessedItem<Type>): void;
   abstract stage2(ctx: HierarchyContext): ChildFactory<Type>;
+  abstract childrenFromNode(node: LayoutNodeFromType<Type>, onlyInRowIndex?: number): LayoutNode[];
 }
 
 /**
@@ -387,8 +389,12 @@ export class SimpleComponentHierarchyGenerator<Type extends ComponentTypes> exte
     return undefined;
   }
 
-  stage2(): ChildFactory<Type> {
-    return (props) => this.generator.makeNode(props);
+  stage2(ctx): ChildFactory<Type> {
+    return (props) => ctx.generator.makeNode(props);
+  }
+
+  childrenFromNode(): LayoutNode[] {
+    return [];
   }
 }
 

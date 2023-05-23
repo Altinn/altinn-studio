@@ -46,6 +46,7 @@ export interface IUpdateCurrentView {
   skipPageCaching?: boolean;
   focusComponentId?: string;
   keepScrollPos?: IKeepComponentScrollPos;
+  allowNavigationToHidden?: boolean;
 }
 
 export interface IUpdateCurrentViewFulfilled {

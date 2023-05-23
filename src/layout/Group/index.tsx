@@ -6,9 +6,11 @@ import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { ContainerComponent } from 'src/layout/LayoutComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { ComponentHierarchyGenerator, HierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 
 export class Group extends ContainerComponent<'Group'> {
+  private _hierarchyGenerator = new GroupHierarchyGenerator();
+
   directRender(): boolean {
     return true;
   }
@@ -43,8 +45,8 @@ export class Group extends ContainerComponent<'Group'> {
     return '';
   }
 
-  hierarchyGenerator(generator: HierarchyGenerator): ComponentHierarchyGenerator<'Group'> {
-    return new GroupHierarchyGenerator(generator);
+  hierarchyGenerator(): ComponentHierarchyGenerator<'Group'> {
+    return this._hierarchyGenerator;
   }
 
   canRenderInTable(): boolean {

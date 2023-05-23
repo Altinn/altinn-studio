@@ -28,7 +28,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   const submittingId = useAppSelector((state) => state.formData.submittingId);
   const savingId = useAppSelector((state) => state.formData.savingId);
   const confirmingId = useAppSelector((state) => state.process.completingId);
-  const currentTaskType = useAppSelector((state) => state.instanceData.instance?.process.currentTask?.altinnTaskType);
+  const currentTaskType = useAppSelector((state) => state.instanceData.instance?.process?.currentTask?.altinnTaskType);
   const processActionsFeature = useAppSelector(
     (state) => state.applicationMetadata.applicationMetadata?.features?.processActions,
   );

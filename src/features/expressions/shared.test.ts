@@ -1,5 +1,6 @@
 import dot from 'dot-object';
 
+import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
 import { evalExpr } from 'src/features/expressions';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
@@ -62,12 +63,11 @@ describe('Expressions shared function tests', () => {
         frontendSettings,
       }) => {
         const dataSources: HierarchyDataSources = {
+          ...getHierarchyDataSourcesMock(),
           formData: dataModel ? dot.dot(dataModel) : {},
           instanceContext: buildInstanceContext(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
-          hiddenFields: new Set<string>(),
           authContext: buildAuthContext(permissions),
-          validations: {},
         };
 
         const _layouts = convertLayouts(layouts);
@@ -155,12 +155,11 @@ describe('Expressions shared context tests', () => {
       '$name',
       ({ layouts, dataModel, instance, frontendSettings, permissions, expectedContexts }) => {
         const dataSources: HierarchyDataSources = {
+          ...getHierarchyDataSourcesMock(),
           formData: dataModel ? dot.dot(dataModel) : {},
           instanceContext: buildInstanceContext(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
-          hiddenFields: new Set(),
           authContext: buildAuthContext(permissions),
-          validations: {},
         };
 
         const foundContexts: SharedTestContextList[] = [];

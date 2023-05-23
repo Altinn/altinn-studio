@@ -6,14 +6,15 @@ import classes from 'src/features/devtools/components/SplitView/SplitView.module
 interface SplitViewProps {
   direction: 'row' | 'column';
   children: React.ReactNode;
+  sizes?: number[];
 }
 
-export const SplitView = ({ direction, children }: SplitViewProps) => {
+export const SplitView = ({ direction, children, sizes: defaultSizes }: SplitViewProps) => {
   const childArray = Children.toArray(children);
   const nPanels = childArray.length;
   const isRow = direction === 'row';
   const [panelRefs, setPanelRefs] = useState<React.RefObject<HTMLDivElement>[]>([]);
-  const [sizes, setSizes] = useState<number[]>(Array(childArray.length - 1).fill(100));
+  const [sizes, setSizes] = useState<number[]>(defaultSizes ?? Array(childArray.length - 1).fill(100));
 
   useEffect(() => {
     setPanelRefs((refs) =>

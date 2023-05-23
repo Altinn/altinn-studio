@@ -137,6 +137,7 @@ export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources
     hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
     authContext: buildAuthContext(state.process),
     validations: state.formValidations.validations,
+    devTools: state.devTools,
   };
 }
 
@@ -183,6 +184,7 @@ function useResolvedExpressions() {
   const currentView = state.formLayout.uiConfig.currentView;
   const repeatingGroups = state.formLayout.uiConfig.repeatingGroups;
   const textResources = state.textResources.resources;
+  const devTools = state.devTools;
 
   const dataSources: HierarchyDataSources = useMemo(
     () => ({
@@ -192,8 +194,9 @@ function useResolvedExpressions() {
       authContext: buildAuthContext(process),
       hiddenFields: new Set(hiddenFields),
       validations,
+      devTools,
     }),
-    [formData, applicationSettings, instance, process, hiddenFields, validations],
+    [formData, applicationSettings, instance, process, hiddenFields, validations, devTools],
   );
 
   return useMemo(

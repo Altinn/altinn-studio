@@ -1,5 +1,6 @@
 import type { $Keys, DeepPartial, PickByValue } from 'utility-types';
 
+import type { IDevToolsState } from 'src/features/devtools/data/types';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { ComponentClassMapTypes } from 'src/layout';
@@ -103,6 +104,7 @@ export type TypeFromAnyItem<T extends AnyItem> = T extends AnyItem<infer Type> ?
 
 export interface HierarchyDataSources extends ContextDataSources {
   validations: IValidations;
+  devTools: IDevToolsState;
 }
 
 export type LayoutNodeFromType<Type> = Type extends 'Grid'

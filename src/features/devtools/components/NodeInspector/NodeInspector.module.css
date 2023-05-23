@@ -1,0 +1,85 @@
+.mainPropertyList {
+  display: grid;
+  grid-template-columns: max-content auto;
+  font-size: 0.8rem;
+  overflow: auto;
+}
+
+.mainPropertyList dt {
+  grid-column-start: 1;
+}
+
+.mainPropertyList dd {
+  grid-column-start: 2;
+}
+
+.mainPropertyList .propertyList {
+  display: block;
+}
+
+.mainPropertyList .propertyList,
+.mainPropertyList > dd:not(.collapsible) {
+  margin-left: 6px;
+  padding-left: 6px;
+  border-left: 2px solid #ccc;
+}
+
+.collapsible > a {
+  text-decoration: none;
+  border-bottom: none;
+}
+
+.mainPropertyList > dd > .propertyList > .collapsed,
+.mainPropertyList > dd > .propertyList > .typeBoolean,
+.mainPropertyList > dd > .propertyList > .typeString,
+.mainPropertyList > dd > .propertyList > .typeNumber,
+.mainPropertyList > dd > .propertyList > .typeNull,
+.mainPropertyList > dd > .propertyList > .typeUnknown {
+  display: inline;
+}
+
+.mainPropertyList > dd > .propertyList > dd.collapsed:after,
+.mainPropertyList > dd > .propertyList > dd.typeBoolean:after,
+.mainPropertyList > dd > .propertyList > dd.typeString:after,
+.mainPropertyList > dd > .propertyList > dd.typeNumber:after,
+.mainPropertyList > dd > .propertyList > dd.typeNull:after,
+.mainPropertyList > dd > .propertyList > dd.typeUnknown:after {
+  /* Forces a line-break after */
+  content: '\a';
+  white-space: pre;
+}
+
+.mainPropertyList > dd > .propertyList > dt.typeBoolean:after,
+.mainPropertyList > dd > .propertyList > dt.typeString:after,
+.mainPropertyList > dd > .propertyList > dt.typeNumber:after,
+.mainPropertyList > dd > .propertyList > dt.typeNull:after,
+.mainPropertyList > dd > .propertyList > dt.typeUnknown:after {
+  content: ': ';
+}
+
+dd.typeBoolean {
+  color: darkgreen;
+}
+
+dd.typeNull {
+  color: darkcyan;
+}
+
+dd.typeUnknown {
+  color: darkred;
+}
+
+.json {
+  white-space: pre;
+  font-family: monospace;
+  background-color: #efefef;
+  position: relative;
+}
+
+.json > button {
+  font-family: unset;
+  white-space: unset;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}

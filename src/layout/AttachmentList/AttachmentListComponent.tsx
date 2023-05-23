@@ -11,10 +11,10 @@ export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
 
 export function AttachmentListComponent({ node, text }: IAttachmentListProps) {
   const { dataTypeIds, includePDF } = node.item;
-  const currentTaskId = useAppSelector((state) => state.instanceData.instance?.process.currentTask?.elementId);
+  const currentTaskId = useAppSelector((state) => state.instanceData.instance?.process?.currentTask?.elementId);
   const dataForTask = useAppSelector((state) => {
     const dataTypes = state.applicationMetadata.applicationMetadata?.dataTypes.filter(
-      (type) => type.taskId === state.instanceData.instance?.process.currentTask?.elementId,
+      (type) => type.taskId === state.instanceData.instance?.process?.currentTask?.elementId,
     );
     return state.instanceData.instance?.data.filter((dataElement) => {
       if (dataTypeIds) {

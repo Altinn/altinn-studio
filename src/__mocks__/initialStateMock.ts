@@ -7,6 +7,7 @@ import { partyMock } from 'src/__mocks__/partyMock';
 import { getProcessStateMock } from 'src/__mocks__/processMock';
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { getLanguageFromCode } from 'src/language/languages';
+import type { IDevToolsState } from 'src/features/devtools/data/types';
 import type { IRuntimeState } from 'src/types';
 
 export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRuntimeState {
@@ -18,9 +19,7 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     attachments: {
       attachments: {},
     },
-    devTools: {
-      pdfPreview: false,
-    },
+    devTools: {} as unknown as IDevToolsState,
     formData: getFormDataStateMock(),
     formDataModel: {
       error: null,

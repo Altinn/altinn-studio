@@ -198,8 +198,13 @@ function validateRecursively(expr: any, ctx: ValidationContext, path: string[]):
  * Checks anything and returns true if it _could_ be an expression (but is not guaranteed to be one, and does not
  * validate the expression). This is `asExpression` light, without any error logging to console if it fails.
  */
-export function canBeExpression(expr: any): expr is [] {
-  return Array.isArray(expr) && expr.length >= 1 && typeof expr[0] === 'string';
+export function canBeExpression(expr: any, checkIfValidFunction = false): expr is [] {
+  const firstPass = Array.isArray(expr) && expr.length >= 1 && typeof expr[0] === 'string';
+  if (checkIfValidFunction && firstPass) {
+    return expr[0] in ExprFunctions;
+  }
+
+  return firstPass;
 }
 
 /**

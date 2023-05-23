@@ -14,11 +14,14 @@ export const DevNavigationButtons = () => {
   const dispatch = useDispatch();
 
   function handleChange(newView: string) {
-    dispatch(FormLayoutActions.updateCurrentView({ newView }));
+    dispatch(FormLayoutActions.updateCurrentView({ newView, allowNavigationToHidden: true }));
   }
 
-  const order = (tracks?.order ?? []).filter((page) => !tracks.hidden.includes(page));
+  function isHidden(page: string) {
+    return tracks?.hidden.includes(page);
+  }
 
+  const order = tracks?.order ?? [];
   if (!order?.length) {
     return null;
   }
@@ -37,7 +40,12 @@ export const DevNavigationButtons = () => {
               key={page}
               value={page}
             >
-              {page}
+              <span
+                className={isHidden(page) ? classes.hiddenPage : classes.visiblePage}
+                title={isHidden(page) ? 'Denne siden er skjult for brukeren' : ''}
+              >
+                {page}
+              </span>
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
@@ -45,7 +53,20 @@ export const DevNavigationButtons = () => {
       <div className={cn(classes.dropdown, { [classes.responsiveDropdown]: !compactView })}>
         <Select
           value={currentView}
-          options={order?.map((page) => ({ value: page, label: page })) ?? []}
+          options={
+            order?.map((page) => ({
+              value: page,
+              label: page,
+              formattedLabel: (
+                <span
+                  className={tracks?.hidden.includes(page) ? classes.hiddenPage : classes.visiblePage}
+                  title={isHidden(page) ? 'Denne siden er skjult for brukeren' : ''}
+                >
+                  {page}
+                </span>
+              ),
+            })) ?? []
+          }
           onChange={handleChange}
         />
       </div>

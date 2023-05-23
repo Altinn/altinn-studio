@@ -3,6 +3,7 @@ import Ajv2020 from 'ajv/dist/2020';
 import dot from 'dot-object';
 import type { ErrorObject } from 'ajv';
 
+import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import * as complexSchema from 'src/__mocks__/json-schema/complex.json';
 import * as oneOfOnRootSchema from 'src/__mocks__/json-schema/one-of-on-root.json';
@@ -38,12 +39,8 @@ function toCollection(
     Object.keys(mockLayouts)[0],
     repeatingGroups,
     {
-      instanceContext: null,
-      formData: {},
-      applicationSettings: null,
+      ...getHierarchyDataSourcesMock(),
       hiddenFields,
-      authContext: null,
-      validations: {},
     },
     getLayoutComponentObject,
   );

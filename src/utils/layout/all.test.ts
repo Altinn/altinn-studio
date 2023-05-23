@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 
+import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
 import { getLayoutComponentObject } from 'src/layout';
 import { getAllLayoutSets } from 'src/utils/layout/getAllLayoutSets';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
@@ -27,14 +28,7 @@ describe('All known layout sets', () => {
       layouts,
       firstKey,
       repeatingGroups,
-      {
-        applicationSettings: null,
-        instanceContext: null,
-        formData: {},
-        hiddenFields: new Set(),
-        authContext: null,
-        validations: {},
-      },
+      getHierarchyDataSourcesMock(),
       getLayoutComponentObject,
     );
 

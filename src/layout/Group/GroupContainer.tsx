@@ -17,9 +17,9 @@ import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
 import { RepeatingGroupsLikertContainer } from 'src/layout/Likert/RepeatingGroupsLikertContainer';
 import { Triggers } from 'src/types';
 import { getRepeatingGroupFilteredIndices } from 'src/utils/formLayout';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { HRepGroup } from 'src/utils/layout/hierarchy.types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export interface IGroupProps {
   node: LayoutNode<HRepGroup, 'Group'>;
 }
@@ -168,7 +168,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
     return null;
   }
 
-  const isNested = typeof node.item.baseComponentId === 'string';
+  const isNested = node.parent instanceof LayoutNode;
 
   if (edit?.mode === 'likert') {
     return <RepeatingGroupsLikertContainer id={id} />;
@@ -184,7 +184,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
     <Grid
       container={true}
       item={true}
-      data-componentid={node.item.baseComponentId ?? node.item.id}
+      data-componentid={node.item.id}
     >
       {(!edit?.mode ||
         edit?.mode === 'showTable' ||

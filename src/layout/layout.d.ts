@@ -47,6 +47,7 @@ export interface ILayouts {
  */
 interface NotInLayout {
   baseComponentId?: string;
+  multiPageIndex?: number;
   disabled?: boolean;
 }
 

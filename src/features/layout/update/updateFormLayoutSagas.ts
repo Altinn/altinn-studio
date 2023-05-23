@@ -280,7 +280,15 @@ export function* updateRepeatingGroupsSaga({
 }
 
 export function* updateCurrentViewSaga({
-  payload: { newView, runValidations, returnToView, skipPageCaching, keepScrollPos, focusComponentId },
+  payload: {
+    newView,
+    runValidations,
+    returnToView,
+    skipPageCaching,
+    keepScrollPos,
+    focusComponentId,
+    allowNavigationToHidden,
+  },
 }: PayloadAction<IUpdateCurrentView>): SagaIterator {
   try {
     // When triggering navigation to the next page, we need to make sure there are no unsaved changes. The action to
@@ -296,7 +304,7 @@ export function* updateCurrentViewSaga({
     }
     const currentViewCacheKey = viewCacheKey || instanceId;
 
-    if (visibleLayouts && !visibleLayouts.includes(newView)) {
+    if (visibleLayouts && !visibleLayouts.includes(newView) && allowNavigationToHidden !== true) {
       yield put(
         FormLayoutActions.updateCurrentViewRejected({
           error: null,

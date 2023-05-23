@@ -128,7 +128,7 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
       if (!allowAnonymous) {
         yield waitFor((state) => currentSelectedPartyIdSelector(state) !== undefined);
       }
-    } else if (!processState || !instance || processState.taskId !== instance.process.currentTask?.elementId) {
+    } else if (!processState || !instance || processState.taskId !== instance.process?.currentTask?.elementId) {
       yield all([take(InstanceDataActions.getFulfilled), take(DataModelActions.fetchJsonSchemaFulfilled)]);
     }
     yield call(fetchFormDataInitialSaga);

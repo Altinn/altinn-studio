@@ -74,7 +74,7 @@ export function getLayoutsetForDataElement(
   datatype: string | undefined,
   layoutsets: ILayoutSets,
 ) {
-  const currentTaskId = instance?.process.currentTask?.elementId;
+  const currentTaskId = instance?.process?.currentTask?.elementId;
   const foundLayout = layoutsets.sets.find((layoutSet: ILayoutSet) => {
     if (layoutSet.dataType !== datatype) {
       return false;

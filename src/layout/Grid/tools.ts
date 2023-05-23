@@ -9,13 +9,20 @@ export function nodesFromGrid(grid: LayoutNodeFromType<'Grid'>): LayoutNode[] {
       continue;
     }
 
-    for (const cell of row.cells) {
-      if (cell && 'text' in cell) {
-        continue;
-      }
-      const node = cell?.node as LayoutNode;
-      node && out.push(node);
+    out.push(...nodesFromGridRow(row));
+  }
+
+  return out;
+}
+
+export function nodesFromGridRow(row: GridRow<GridComponent>): LayoutNode[] {
+  const out: LayoutNode[] = [];
+  for (const cell of row.cells) {
+    if (cell && 'text' in cell) {
+      continue;
     }
+    const node = cell?.node as LayoutNode;
+    node && out.push(node);
   }
 
   return out;

@@ -24,3 +24,9 @@
 .output {
   background: transparent;
 }
+
+.rightColumn {
+  padding: 6px;
+  background-color: white;
+  height: 100%;
+}

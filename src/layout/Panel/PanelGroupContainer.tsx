@@ -31,7 +31,7 @@ export const PanelGroupContainer = ({ node }: PanelGroupConatinerProps) => {
     <Grid
       item={true}
       xs={12}
-      data-componentid={node.item.baseComponentId ?? node.item.id}
+      data-componentid={node.item.id}
     >
       <ConditionalWrapper
         condition={fullWidth}
