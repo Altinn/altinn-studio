@@ -15,6 +15,7 @@ import { FileUploadWithTag } from 'src/layout/FileUploadWithTag/index';
 import { Grid } from 'src/layout/Grid';
 import { Group } from 'src/layout/Group';
 import { Header } from 'src/layout/Header/index';
+import { IFrame } from 'src/layout/Iframe';
 import { Image } from 'src/layout/Image/index';
 import { Input } from 'src/layout/Input/index';
 import { InstanceInformation } from 'src/layout/InstanceInformation/index';
@@ -70,6 +71,7 @@ export const components = {
   List: new List(),
   Group: new Group(),
   Summary: new Summary(),
+  IFrame: new IFrame(),
 };
 
 export type ComponentClassMap = typeof components;

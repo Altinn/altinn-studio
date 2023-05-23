@@ -151,6 +151,11 @@ export function en() {
       row_popover_delete_message: 'Are you sure you want to delete this row?',
       row_popover_delete_button_confirm: 'Yes, delete the row',
     },
+    iframe_component: {
+      unsupported_browser_title: 'Your browser is unsupported',
+      unsupported_browser:
+        'Your browser does not support iframes that use srcdoc. This may result in not being able to see all the content intended to be displayed here. We recommend trying a different browser.',
+    },
     instance_selection: {
       changed_by: 'Changed by',
       continue: 'Continue here',

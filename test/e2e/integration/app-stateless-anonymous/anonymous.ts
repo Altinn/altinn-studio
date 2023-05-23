@@ -37,4 +37,18 @@ describe('Anonymous (stateless)', () => {
     cy.get('label:contains("mann")').click();
     cy.get('@console.warn').should('have.been.calledWith', 'Request aborted due to saga cancellation');
   });
+
+  it('should render iframe with srcdoc and the heading text should be "The red title is rendered within an iframe"', () => {
+    cy.get('iframe').should('exist');
+    cy.get('iframe').should('have.attr', 'srcdoc');
+
+    // access the content of the iframe
+    cy.get('iframe')
+      .its('0.contentDocument.body')
+      .should('not.be.empty')
+      .then(cy.wrap)
+      .within(() => {
+        cy.get('h1').contains('The red title is rendered within an iframe');
+      });
+  });
 });

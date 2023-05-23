@@ -42,7 +42,7 @@
           "type": "string",
           "title": "Type",
           "description": "The component type.",
-          "enum": ["ActionButton", "AddressComponent", "AttachmentList", "Button", "ButtonGroup", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Group", "Header", "Image", "Input", "InstanceInformation", "InstantiationButton", "Likert","List", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
+          "enum": ["ActionButton", "AddressComponent", "AttachmentList", "Button", "ButtonGroup", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Group", "Header", "Image", "Input", "InstanceInformation", "InstantiationButton", "IFrame", "Likert","List", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
         },
         "required": {
           "title": "Required",

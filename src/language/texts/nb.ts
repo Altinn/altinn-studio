@@ -153,6 +153,11 @@ export function nb(): FixedLanguageList {
       row_popover_delete_message: 'Er du sikker på at du vil slette denne raden?',
       row_popover_delete_button_confirm: 'Ja, slett raden',
     },
+    iframe_component: {
+      unsupported_browser_title: 'Nettleseren din støttes ikke',
+      unsupported_browser:
+        'Nettleseren du bruker støtter ikke iframes som benytter seg av srcdoc. Dette kan føre til at du ikke ser all innholdet som er ment å vises her. Vi anbefaler deg å prøve en annen nettleser.',
+    },
     instance_selection: {
       changed_by: 'Endret av',
       continue: 'Fortsett her',

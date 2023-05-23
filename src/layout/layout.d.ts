@@ -16,6 +16,7 @@ import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/
 import type { ILayoutCompGrid } from 'src/layout/Grid/types';
 import type { IDataModelBindingsForGroup, ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompHeader } from 'src/layout/Header/types';
+import type { ILayoutCompIFrame } from 'src/layout/Iframe/types';
 import type { ILayoutCompImage } from 'src/layout/Image/types';
 import type { ILayoutCompInput } from 'src/layout/Input/types';
 import type { ILayoutCompInstanceInformation } from 'src/layout/InstanceInformation/types';
@@ -136,6 +137,7 @@ interface Map {
   Grid: ILayoutCompGrid;
   Group: ILayoutGroup;
   Header: ILayoutCompHeader;
+  IFrame: ILayoutCompIFrame;
   Image: ILayoutCompImage;
   Input: ILayoutCompInput;
   InstantiationButton: ILayoutCompInstantiationButton;
