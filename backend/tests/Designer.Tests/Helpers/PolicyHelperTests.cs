@@ -95,5 +95,17 @@ namespace Designer.Tests.Helpers
             AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
         }
 
+        [Fact]
+        public void TestXacmlToJson_resource_registry_delegatableapi()
+        {
+            XacmlPolicy policy = AuthorizationUtil.ParsePolicy("resource_registry_delegatableapi.xml");
+            ResourcePolicy convertedPolicy = PolicyConverter.ConvertPolicy(policy);
+            Assert.NotNull(convertedPolicy);
+            XacmlPolicy convertedBackPolicy = PolicyConverter.ConvertPolicy(convertedPolicy);
+            AuthorizationUtil.WriteJsonPolicy("resource_registry_delegatableapi.json", convertedPolicy);
+            AuthorizationUtil.WritePolicy("resource_registry_delegatableapi_converted.xml", convertedBackPolicy);
+            AssertionUtil.AssertXacmlPolicy(policy, convertedBackPolicy);
+        }
+
     }
 }

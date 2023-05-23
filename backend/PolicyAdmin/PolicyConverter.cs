@@ -75,9 +75,9 @@ namespace Altinn.Studio.PolicyAdmin
             }
         }
 
-        private static List<string> GetRuleActions(XacmlAllOf allOf)
+        private static List<string>? GetRuleActions(XacmlAllOf allOf)
         {
-            List<string> action = null;
+            List<string>? action = null;
 
             foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Action)))
             {
@@ -92,9 +92,9 @@ namespace Altinn.Studio.PolicyAdmin
             return action;
         }
 
-        private static List<string> GetRuleResources(XacmlAllOf allOf)
+        private static List<string>? GetRuleResources(XacmlAllOf allOf)
         {
-            List<string> resource = null;
+            List<string>? resource = null;
 
             foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
             {
