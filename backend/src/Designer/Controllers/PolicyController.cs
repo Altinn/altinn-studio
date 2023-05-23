@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resourceid">The application metadata</param>
+        /// <param name="resourceid">The resource Id for the connected policy</param>
         /// <returns>The updated application metadata</returns>
         [HttpGet]
         [Route("")]
@@ -43,7 +43,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationPolicy">The application metadata</param>
-        /// <param name="resourceid">The application metadata</param>
+        /// <param name="resourceid">The resource Id for the connected policy</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
         [Route("")]

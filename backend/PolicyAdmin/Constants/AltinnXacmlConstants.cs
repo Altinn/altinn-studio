@@ -44,7 +44,7 @@ namespace Altinn.Studio.PolicyAdmin.Constants
             /// <summary>
             /// Resource registry match identifer
             /// </summary>
-            public const string ResourceRegistry = "urn:altinn:resourceregistry";
+            public const string ResourceRegistryResource = "urn:altinn:resource";
 
             /// <summary>
             /// Instance attribute match indentifier 

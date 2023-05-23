@@ -8,7 +8,6 @@ namespace Altinn.Studio.PolicyAdmin
 {
     public static class PolicyConverter
     {
-
         public static ResourcePolicy ConvertPolicy(XacmlPolicy xacmlPolicy)
         {
             ResourcePolicy policy = new ResourcePolicy();
@@ -28,15 +27,11 @@ namespace Altinn.Studio.PolicyAdmin
                 {
                     foreach (XacmlAllOf allOf in anyOf.AllOf)
                     {
-                        List<string> subject = null;
-                        List<string> action = null;
-                        List<string> resource = null;
+                        List<string>? subject = GetRuleSubjects(allOf);
 
-                        subject = GetRuleSubjects(allOf, subject);
+                        List<string>? resource = GetRuleResources(allOf);
 
-                        resource = GetRuleResources(allOf, resource);
-
-                        action = GetRuleActions(allOf, action);
+                        List<string>? action = GetRuleActions(allOf);
 
                         if (subject != null)
                         {
@@ -80,8 +75,10 @@ namespace Altinn.Studio.PolicyAdmin
             }
         }
 
-        private static List<string> GetRuleActions(XacmlAllOf allOf, List<string> action)
+        private static List<string> GetRuleActions(XacmlAllOf allOf)
         {
+            List<string> action = null;
+
             foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Action)))
             {
                 if (action == null)
@@ -95,8 +92,10 @@ namespace Altinn.Studio.PolicyAdmin
             return action;
         }
 
-        private static List<string> GetRuleResources(XacmlAllOf allOf, List<string> resource)
+        private static List<string> GetRuleResources(XacmlAllOf allOf)
         {
+            List<string> resource = null;
+
             foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
             {
                 if (resource == null)
@@ -111,8 +110,10 @@ namespace Altinn.Studio.PolicyAdmin
             return resource;
         }
 
-        private static List<string> GetRuleSubjects(XacmlAllOf allOf, List<string> subject)
+        private static List<string>? GetRuleSubjects(XacmlAllOf allOf)
         {
+            List<string>? subject = null;
+
             foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Subject)))
             {
                 if (subject == null)
