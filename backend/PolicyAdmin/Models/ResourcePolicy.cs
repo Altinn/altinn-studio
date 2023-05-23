@@ -4,12 +4,12 @@ namespace Altinn.Studio.PolicyAdmin.Models
 {
     public class ResourcePolicy
     {
-        public List<PolicyRule> Rules { get; set; }
+        public List<PolicyRule>? Rules { get; set; }
 
-        public List<PolicyObligation> Obligations { get; set; }
+        public List<PolicyObligation>? Obligations { get; set; }
 
-        public string RequiredAuthenticationLevelEndUser { get; set; }
+        public string? RequiredAuthenticationLevelEndUser { get; set; }
 
-        public string RequiredAuthenticationLevelOrg { get; set; }
+        public string? RequiredAuthenticationLevelOrg { get; set; }
     }
 }

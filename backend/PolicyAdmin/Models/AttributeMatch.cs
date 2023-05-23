@@ -2,9 +2,9 @@
 {
     public class AttributeMatch
     {
-        public string Value { get; set; }
+        public string? Value { get; set; }
 
-        public string Designator { get; set; }
+        public string? Designator { get; set; }
 
     }
 }
