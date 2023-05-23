@@ -14,17 +14,41 @@
         <bpmn:startEvent id="StartEvent_1">
             <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
         </bpmn:startEvent>
-        <bpmn:task id="Task_1" name="Form" altinn:tasktype="data">
+        <bpmn:task id="Task_1" name="Form">
             <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
             <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:properties>
+                    <altinn:taskType>data</altinn:taskType>
+                </altinn:properties>
+            </bpmn:extensionElements>
         </bpmn:task>
-        <bpmn:task id="Task_2" name="Confirm1" altinn:tasktype="confirmation">
+        <bpmn:task id="Task_2" name="Confirm1">
             <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
             <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:properties>
+                    <!-- TODO: What should the task type be? -->
+                    <altinn:taskType>confirmation</altinn:taskType>
+                    <altinn:actions>
+                        <altinn:action id="reject" />
+                        <altinn:action id="sign" />
+                    </altinn:actions>
+                </altinn:properties>
+            </bpmn:extensionElements>
         </bpmn:task>
-        <bpmn:task id="Task_3" name="Confirm2" altinn:tasktype="confirmation">
+        <bpmn:task id="Task_3" name="Confirm2">
             <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
             <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:properties>
+                    <!-- TODO: What should the task type be? -->
+                <altinn:taskType>confirmation</altinn:taskType>
+                    <altinn:actions>
+                        <altinn:action id="sign" />
+                    </altinn:actions>
+                </altinn:properties>
+            </bpmn:extensionElements>
         </bpmn:task>
         <bpmn:endEvent id="EndEvent_1">
             <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
