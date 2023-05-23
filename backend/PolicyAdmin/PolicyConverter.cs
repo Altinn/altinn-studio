@@ -151,7 +151,7 @@ namespace Altinn.Studio.PolicyAdmin
 
             policyOutput.ObligationExpressions.Add(GetAuthenticationLevelObligation(policyInput.RequiredAuthenticationLevelEndUser));
 
-            if(!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelOrg))
+            if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelOrg))
             {
                 policyOutput.ObligationExpressions.Add(GetAuthenticationLevelObligationOrg(policyInput.RequiredAuthenticationLevelOrg));
 
