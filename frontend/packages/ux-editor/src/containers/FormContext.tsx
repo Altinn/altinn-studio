@@ -7,7 +7,7 @@ import { setCurrentEditId } from '../features/appData/textResources/textResource
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector } from '../hooks';
 import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
 import { useRuleConfigMutation } from '../hooks/mutations/useRuleConfigMutation';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';

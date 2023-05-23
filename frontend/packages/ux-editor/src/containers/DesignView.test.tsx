@@ -1,9 +1,9 @@
 import React from 'react';
 import { renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
 import { DesignView } from './DesignView';
-import { ServicesContextProps } from '../../../../app-development/common/ServiceContext';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { layout1NameMock, layout2NameMock } from '../testing/layoutMock';
-import { IExternalFormLayouts } from '../types/global';
+import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
@@ -16,7 +16,7 @@ const app = 'app';
 
 describe('DesignView', () => {
   it('Renders with empty container text when there are no components or containers', async () => {
-    const emptyLayoutsResponse: IExternalFormLayouts = {
+    const emptyLayoutsResponse: FormLayoutsResponse = {
       [layout1NameMock]: { $schema: '', data: { layout: [] } },
       [layout2NameMock]: { $schema: '', data: { layout: [] } },
     };

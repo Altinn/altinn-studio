@@ -5,7 +5,7 @@ import {
   changeTextResourceBinding,
   generateFormItem,
 } from './component';
-import { ComponentType } from '../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
 
 describe('Component utils', () => {
@@ -22,7 +22,7 @@ describe('Component utils', () => {
           [bindingKeyToKeep]: resourceKeyToKeep,
           [bindingKeyToChange]: resourceKeyToChange,
         },
-        type: ComponentType.Input,
+        type: FormItemType.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       };
@@ -45,7 +45,7 @@ describe('Component utils', () => {
         textResourceBindings: {
           title: titleResourceKey,
         },
-        type: ComponentType.Input,
+        type: FormItemType.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       };
@@ -66,7 +66,7 @@ describe('Component utils', () => {
         textResourceBindings: {
           description: descriptionResourceKey,
         },
-        type: ComponentType.Input,
+        type: FormItemType.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       };
@@ -80,9 +80,9 @@ describe('Component utils', () => {
 
   describe('addOptionToComponent', () => {
     it.each([
-      ComponentType.Checkboxes,
-      ComponentType.RadioButtons
-    ] as (ComponentType.Checkboxes | ComponentType.RadioButtons)[])(
+      FormItemType.Checkboxes,
+      FormItemType.RadioButtons
+    ] as (FormItemType.Checkboxes | FormItemType.RadioButtons)[])(
       'Adds option to %s component',
       (componentType) => {
         const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
@@ -112,9 +112,9 @@ describe('Component utils', () => {
 
   describe('changeComponentOptionLabel', () => {
     it.each([
-      ComponentType.Checkboxes,
-      ComponentType.RadioButtons
-    ] as (ComponentType.Checkboxes | ComponentType.RadioButtons)[])(
+      FormItemType.Checkboxes,
+      FormItemType.RadioButtons
+    ] as (FormItemType.Checkboxes | FormItemType.RadioButtons)[])(
       'Changes label of option with given value on %s component',
       (componentType) => {
         const valueOfWhichLabelShouldChange = 'testValue2';
@@ -149,7 +149,7 @@ describe('Component utils', () => {
   });
 
   describe('generateFormItem', () => {
-    it.each(Object.values(ComponentType).filter((v) => v !== ComponentType.Group))(
+    it.each(Object.values(FormItemType).filter((v) => v !== FormItemType.Group))(
       'Generates component of type %s with given ID',
       (componentType) => {
         const id = 'testId';
@@ -163,7 +163,7 @@ describe('Component utils', () => {
     );
 
     it('Generates container when type is Group', () => {
-      const component = generateFormItem(ComponentType.Group, 'testId');
+      const component = generateFormItem(FormItemType.Group, 'testId');
       expect(component).toEqual(expect.objectContaining({
         itemType: 'CONTAINER',
       }));

@@ -5,7 +5,7 @@ import { appDataMock, renderWithMockStore, textResourcesMock } from '../../../te
 import { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from '../../index';
+import { FormItemType } from 'app-shared/types/FormItemType';
 
 const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
@@ -19,7 +19,7 @@ const render = ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = 
       handleComponentChange={handleComponentChange}
       component={{
         id: 'someComponentId',
-        type: ComponentType.Input,
+        type: FormItemType.Input,
         textResourceBindings: {
           title: 'ServiceName',
         },

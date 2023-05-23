@@ -2,12 +2,12 @@ import React from 'react';
 import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { AddressComponent } from './AddressComponent';
-import { ComponentType } from '../../../';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 
 // Test data:
 const component: FormAddressComponent = {
-  type: ComponentType.AddressComponent,
+  type: FormItemType.AddressComponent,
   dataModelBindings: {
     test: 'test'
   },

@@ -3,7 +3,7 @@ import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelect
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { generateComponentId } from '../../utils/generateId';
-import { ComponentType } from '../../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
@@ -35,7 +35,7 @@ export const useAddFormComponentMutation = (org: string, app: string) => {
       const updatedLayout: IInternalLayout = addComponent(layout, component, containerId, position);
 
       return formLayoutsMutation.mutateAsync(updatedLayout).then(() => {
-        if (component.type === ComponentType.FileUpload || component.type === ComponentType.FileUploadWithTag) {
+        if (component.type === FormItemType.FileUpload || component.type === FormItemType.FileUploadWithTag) {
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
           const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
             component as FormFileUploaderComponent;

@@ -16,7 +16,7 @@ import { CreateNewWrapper } from './components/CreateNewWrapper';
 import { DeleteWrapper } from './components/DeleteWrapper';
 import { SchemaSelect } from './components/SchemaSelect';
 import { XSDUpload } from './components/XSDUpload';
-import { datamodelPath } from '../../api-paths';
+import { datamodelPath } from '../../api/paths';
 import classes from './DataModelling.module.css';
 import { useTranslation } from 'react-i18next';
 

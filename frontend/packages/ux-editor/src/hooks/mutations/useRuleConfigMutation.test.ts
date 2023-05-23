@@ -1,6 +1,6 @@
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
-import { RuleConfig } from '../../types/RuleConfig';
+import { RuleConfig } from 'app-shared/types/RuleConfig';
 
 // Test data:
 const org = 'org';

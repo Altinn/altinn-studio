@@ -6,7 +6,7 @@ import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
 import { EditDescription } from '../../editModal/EditDescription';
 import { TextResource } from '../../../TextResource';
-import { ComponentType } from '../../../index';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import type { FormFileUploaderComponent, FormFileUploaderWithTagComponent } from '../../../../types/FormComponent';
 
 export const FileUploadComponent = ({
@@ -75,7 +75,7 @@ export const FileUploadComponent = ({
 
   return (
     <FieldSet className={classes.fieldset}>
-      {component.type === ComponentType.FileUpload ? (
+      {component.type === FormItemType.FileUpload ? (
         <>
           <RadioGroup
             items={[

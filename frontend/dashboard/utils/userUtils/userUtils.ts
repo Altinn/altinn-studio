@@ -1,5 +1,5 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { Organization } from 'dashboard/services/organizationService';
+import { Organization } from 'app-shared/types/Organization';
 
 export const userHasAccessToSelectedContext = ({
   selectedContext,

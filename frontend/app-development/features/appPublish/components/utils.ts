@@ -1,6 +1,7 @@
-import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
+import type { AppRelease } from 'app-shared/types/AppRelease';
+import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 
-export function versionNameValid(releases: IRelease[], tagName: string): boolean {
+export function versionNameValid(releases: AppRelease[], tagName: string): boolean {
   if (
     releases.find(
       (r) =>

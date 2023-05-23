@@ -2,31 +2,22 @@ import React, { useMemo } from 'react';
 import classes from './deployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { AppDeploymentComponent, ImageOption } from '../components/appDeploymentComponent';
-import { BuildResult } from '../../../sharedResources/appRelease/types';
+import { BuildResult } from 'app-shared/types/Build';
 import { useAppSelector } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 import {
-  useAppDeployments,
-  useAppReleases,
-  useDeployPermissions,
-  useEnvironments,
-  useOrgList,
-} from '../hooks/query-hooks';
+  useOrgListQuery,
+  useEnvironmentsQuery,
+  useDeployPermissionsQuery,
+  useAppReleasesQuery,
+  useAppDeploymentsQuery,
+} from '../../../hooks/queries';
 import {
   ICreateAppDeploymentEnvObject,
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
-
-export interface IDeployEnvironment {
-  appsUrl: string;
-  platformUrl: string;
-  hostname: string;
-  appPrefix: string;
-  platformPrefix: string;
-  name: string;
-  type: string;
-}
+import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 
 export const DeployContainerComponent = () => {
   const { org, app } = useParams();
@@ -34,11 +25,11 @@ export const DeployContainerComponent = () => {
     (state) => state.appDeployments.createAppDeploymentErrors
   );
 
-  const { data: appDeployments = [], isLoading: deploysAreLoading } = useAppDeployments(org, app);
-  const { data: environmentList = [], isLoading: envIsLoading } = useEnvironments();
-  const { data: releases = [], isLoading: releasesIsLoading } = useAppReleases(org, app);
-  const { data: orgs = { orgs: {} }, isLoading: orgsIsLoading } = useOrgList();
-  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissions(org, app);
+  const { data: appDeployments = [], isLoading: deploysAreLoading } = useAppDeploymentsQuery(org, app);
+  const { data: environmentList = [], isLoading: envIsLoading } = useEnvironmentsQuery();
+  const { data: releases = [], isLoading: releasesIsLoading } = useAppReleasesQuery(org, app);
+  const { data: orgs = { orgs: {} }, isLoading: orgsIsLoading } = useOrgListQuery();
+  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissionsQuery(org, app);
 
   const isLoading = () =>
     releasesIsLoading || orgsIsLoading || permissionsIsLoading || envIsLoading || deploysAreLoading;
@@ -55,7 +46,7 @@ export const DeployContainerComponent = () => {
     () =>
       orgs?.orgs[org]?.environments
         .map((envName: string) =>
-          environmentList.find((env: IDeployEnvironment) => env.name === envName)
+          environmentList.find((env: DeployEnvironment) => env.name === envName)
         )
         .filter((element: any) => element != null),
     [orgs, org, environmentList]
@@ -86,7 +77,7 @@ export const DeployContainerComponent = () => {
   }
   return (
     <div className={classes.deployContainer}>
-      {deployEnvironments.map((env: IDeployEnvironment, index: number) => {
+      {deployEnvironments.map((env: DeployEnvironment, index: number) => {
         const deploymentsInEnv: IDeployment[] = appDeployments.filter(
           (x) => x.envName === env.name
         );

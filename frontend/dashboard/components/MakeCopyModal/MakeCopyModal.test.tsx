@@ -2,8 +2,9 @@ import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MakeCopyModal } from './MakeCopyModal';
-import { MockServicesContextWrapper, Services } from 'dashboard/dashboardTestUtils';
+import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 import { textMock } from '../../../testing/mocks/i18nMock';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -12,8 +13,7 @@ const originalWindowLocation = window.location;
 // eslint-disable-next-line
 const anchor = document.querySelector('body');
 
-type RenderWithMockServicesProps = Services;
-const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
+const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
   render(
     <MockServicesContextWrapper customServices={services}>
       <MakeCopyModal anchorEl={anchor} handleClose={() => {}} serviceFullName={`${org}/${app}`} />
@@ -32,11 +32,7 @@ describe('MakeCopyModal', () => {
 
   test('should not show error message when clicking confirm and name is added', async () => {
     const copyAppMock = jest.fn(() => Promise.resolve());
-    renderWithMockServices({
-      repoService: {
-        copyApp: copyAppMock,
-      },
-    });
+    renderWithMockServices({ copyApp: copyAppMock });
 
     await act(() => user.type(screen.getByRole('textbox'), 'new-repo-name'));
     await act(() => user.click(screen.getByRole('button', {

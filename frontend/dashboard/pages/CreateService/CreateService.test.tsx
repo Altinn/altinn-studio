@@ -1,15 +1,15 @@
 import React from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MockServicesContextWrapper, Services } from '../../dashboardTestUtils';
+import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { CreateService } from './CreateService';
-import { User } from 'dashboard/services/userService';
+import { User } from 'app-shared/types/User';
 import { IGiteaOrganisation } from 'app-shared/types/global';
 import { textMock } from '../../../testing/mocks/i18nMock';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
-type RenderWithMockServicesProps = Services;
 const renderWithMockServices = (
-  services?: RenderWithMockServicesProps,
+  services?: Partial<ServicesContextProps>,
   organizations?: IGiteaOrganisation[],
   user?: User
 ) => {
@@ -25,7 +25,7 @@ const renderWithMockServices = (
             email: '',
             full_name: '',
             login: '',
-          } as User)
+          })
         }
       />
     </MockServicesContextWrapper>
@@ -33,6 +33,7 @@ const renderWithMockServices = (
 };
 
 describe('CreateService', () => {
+
   test('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
     renderWithMockServices();
@@ -101,16 +102,9 @@ describe('CreateService', () => {
       full_name: 'unit-test',
     };
 
-    const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 409 } }));
+    const addRepoMock = jest.fn().mockImplementation(() => Promise.reject({ response: { status: 409 } }));
 
-    renderWithMockServices(
-      {
-        repoService: {
-          addRepo: addRepoMock,
-        },
-      },
-      [org]
-    );
+    renderWithMockServices({ addRepo: addRepoMock }, [org]);
 
     await act(() =>
       user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') }))
@@ -140,14 +134,7 @@ describe('CreateService', () => {
     };
 
     const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 500 } }));
-    renderWithMockServices(
-      {
-        repoService: {
-          addRepo: addRepoMock,
-        },
-      },
-      [org]
-    );
+    renderWithMockServices({ addRepo: addRepoMock }, [org]);
 
     await act(() => user.click(screen.getByRole('combobox')));
     await act(() => user.click(screen.getByRole('option', { name: 'unit-test' })));

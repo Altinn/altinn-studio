@@ -2,7 +2,7 @@ import React, { useId } from 'react';
 import { ErrorMessage, TextField } from '@digdir/design-system-react';
 import classes from './TextFieldWithValidation.module.css';
 import { Validation } from '../../utils/validationUtils';
-import { useValidation } from '../../hooks/useValidation';
+import { useValidation } from '../../hooks';
 
 export interface TextFieldWithValidationProps {
   label: string;

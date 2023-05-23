@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
-import type { ICommit, IRepository } from '../../../types/global';
+import type { ICommit } from '../../../types/global';
 import { RepositoryType } from 'app-shared/types/global';
 import { ResetRepoModal } from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
@@ -10,10 +10,11 @@ import classes from './SideMenuContent.module.css';
 import { useAppDispatch } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRepoStatus } from '../../appPublish/hooks/query-hooks';
+import { useRepoStatusQuery } from '../../../hooks/queries';
+import type { Repository } from 'app-shared/types/Repository';
 
 interface ISideMenuContent {
-  service: IRepository;
+  service: Repository;
   initialCommit: ICommit;
   repoType: RepositoryType;
 }
@@ -23,7 +24,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   const { org, app } = useParams();
   const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
-  const { data: repoStatus } = useRepoStatus(org, app);
+  const { data: repoStatus } = useRepoStatusQuery(org, app);
   const toggleDownloadModal = () => setDownloadModalOpen(!downloadModalOpen);
   const onCloseModal = () => setResetRepoModalOpen(false);
   const onClickResetRepo = () => setResetRepoModalOpen(true);

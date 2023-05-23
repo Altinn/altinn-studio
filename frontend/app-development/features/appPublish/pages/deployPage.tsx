@@ -3,14 +3,14 @@ import classes from './deployPage.module.css';
 import { DeployContainerComponent } from '../containers/deployContainer';
 import { InfoCard } from '../components/InfoCard';
 import { ReleaseContainer } from '../containers/releaseContainer';
-import { useOrgList } from '../hooks/query-hooks';
+import { useOrgListQuery } from '../../../hooks/queries';
 import { useParams } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
-import { useInvalidator } from '../hooks/invalidator';
+import { useInvalidator } from '../../../hooks/useInvalidator';
 
 export function DeployPage() {
-  const { data: orgs = { orgs: {} }, isLoading: isLoadingOrgs } = useOrgList();
+  const { data: orgs = { orgs: {} }, isLoading: isLoadingOrgs } = useOrgListQuery();
   const { t } = useTranslation();
   const { org } = useParams();
   useInvalidator();

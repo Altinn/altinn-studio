@@ -1,6 +1,6 @@
 import { IFormLayouts } from '../types/global';
 import { generateComponentId, generateTextResourceId } from './generateId';
-import { ComponentType } from '../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 
 describe('generateComponentId', () => {
   const layouts: IFormLayouts = {
@@ -14,7 +14,7 @@ describe('generateComponentId', () => {
       components: {
         'Input-1bd34': {
           id: 'Input-1bd34',
-          type: ComponentType.Input,
+          type: FormItemType.Input,
           itemType: 'COMPONENT',
           dataModelBindings: {},
         },
@@ -35,7 +35,7 @@ describe('generateComponentId', () => {
       components: {
         'Input-abfr34': {
           id: 'Input-abfr34',
-          type: ComponentType.Input,
+          type: FormItemType.Input,
           itemType: 'COMPONENT',
           dataModelBindings: {},
         },
@@ -48,14 +48,14 @@ describe('generateComponentId', () => {
     },
   };
   it('should generate unique component id within provided layouts', () => {
-    const newId = generateComponentId(ComponentType.Input, layouts);
+    const newId = generateComponentId(FormItemType.Input, layouts);
     expect(newId.startsWith('Input')).toBeTruthy();
     expect(layouts.layout1.components[newId]).toBeUndefined();
     expect(layouts.layout2.components[newId]).toBeUndefined();
   });
 
   it('should generate unique component id for group component', () => {
-    const newId = generateComponentId(ComponentType.Group, layouts);
+    const newId = generateComponentId(FormItemType.Group, layouts);
     expect(newId.startsWith('Group')).toBeTruthy();
     expect(layouts.layout1.containers[newId]).toBeUndefined();
     expect(layouts.layout2.containers[newId]).toBeUndefined();

@@ -20,7 +20,7 @@ import {
   FormTextareaComponent,
   FormThirdPartyComponent
 } from '../types/FormComponent';
-import { ComponentType } from '../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 
 const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> = {
   id: 'test',
@@ -29,7 +29,7 @@ const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBinding
 };
 const checkboxesComponent: FormCheckboxesComponent = {
   ...commonProps,
-  type: ComponentType.Checkboxes,
+  type: FormItemType.Checkboxes,
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -39,7 +39,7 @@ const checkboxesComponent: FormCheckboxesComponent = {
 };
 const radiosComponent: FormRadioButtonsComponent = {
   ...commonProps,
-  type: ComponentType.RadioButtons,
+  type: FormItemType.RadioButtons,
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -49,38 +49,38 @@ const radiosComponent: FormRadioButtonsComponent = {
 };
 const inputComponent: FormInputComponent = {
   ...commonProps,
-  type: ComponentType.Input,
+  type: FormItemType.Input,
 };
 const headerComponent: FormHeaderComponent = {
   ...commonProps,
-  type: ComponentType.Header,
+  type: FormItemType.Header,
   size: 'medium',
 };
 const paragraphComponent: FormParagraphComponent = {
   ...commonProps,
-  type: ComponentType.Paragraph,
+  type: FormItemType.Paragraph,
 };
 const imageComponent: FormImageComponent = {
   ...commonProps,
-  type: ComponentType.Image,
+  type: FormItemType.Image,
 };
 const datePickerComponent: FormDatepickerComponent = {
   ...commonProps,
-  type: ComponentType.Datepicker,
+  type: FormItemType.Datepicker,
   timeStamp: true,
 };
 const dropdownComponent: FormDropdownComponent = {
   ...commonProps,
-  type: ComponentType.Dropdown,
+  type: FormItemType.Dropdown,
   optionsId: 'test',
 };
 const textareaComponent: FormTextareaComponent = {
   ...commonProps,
-  type: ComponentType.TextArea,
+  type: FormItemType.TextArea,
 };
 const fileUploaderComponent: FormFileUploaderComponent = {
   ...commonProps,
-  type: ComponentType.FileUpload,
+  type: FormItemType.FileUpload,
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
@@ -90,7 +90,7 @@ const fileUploaderComponent: FormFileUploaderComponent = {
 };
 const fileUploaderWithTagComponent: FormFileUploaderWithTagComponent = {
   ...commonProps,
-  type: ComponentType.FileUploadWithTag,
+  type: FormItemType.FileUploadWithTag,
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
@@ -101,35 +101,35 @@ const fileUploaderWithTagComponent: FormFileUploaderWithTagComponent = {
 };
 const buttonComponent: FormButtonComponent = {
   ...commonProps,
-  type: ComponentType.Button,
+  type: FormItemType.Button,
   onClickAction: jest.fn(),
 };
 const addressComponent: FormAddressComponent = {
   ...commonProps,
-  type: ComponentType.AddressComponent,
+  type: FormItemType.AddressComponent,
   simplified: true,
 };
 const groupComponent: FormGroupComponent = {
   ...commonProps,
-  type: ComponentType.Group,
+  type: FormItemType.Group,
 };
 const navigationBarComponent: FormNavigationBarComponent = {
   ...commonProps,
-  type: ComponentType.NavigationBar,
+  type: FormItemType.NavigationBar,
 };
 const attachmentListComponent: FormAttachmentListComponent = {
   ...commonProps,
-  type: ComponentType.AttachmentList,
+  type: FormItemType.AttachmentList,
 };
 const thirdPartyComponent: FormThirdPartyComponent = {
   ...commonProps,
-  type: ComponentType.ThirdParty,
+  type: FormItemType.ThirdParty,
   tagName: 'test',
   framework: 'test',
 };
 const panelComponent: FormPanelComponent = {
   ...commonProps,
-  type: ComponentType.Panel,
+  type: FormItemType.Panel,
   variant: {
     title: 'test',
     description: 'test',
@@ -146,7 +146,7 @@ const panelComponent: FormPanelComponent = {
 };
 const mapComponent: FormMapComponent = {
   ...commonProps,
-  type: ComponentType.Map,
+  type: FormItemType.Map,
   centerLocation: {
     latitude: 0,
     longitude: 0,
@@ -155,23 +155,23 @@ const mapComponent: FormMapComponent = {
 };
 
 export const componentMocks = {
-  [ComponentType.AddressComponent]: addressComponent,
-  [ComponentType.AttachmentList]: attachmentListComponent,
-  [ComponentType.Button]: buttonComponent,
-  [ComponentType.Checkboxes]: checkboxesComponent,
-  [ComponentType.Datepicker]: datePickerComponent,
-  [ComponentType.Dropdown]: dropdownComponent,
-  [ComponentType.FileUploadWithTag]: fileUploaderWithTagComponent,
-  [ComponentType.FileUpload]: fileUploaderComponent,
-  [ComponentType.Group]: groupComponent,
-  [ComponentType.Header]: headerComponent,
-  [ComponentType.Image]: imageComponent,
-  [ComponentType.Input]: inputComponent,
-  [ComponentType.Map]: mapComponent,
-  [ComponentType.NavigationBar]: navigationBarComponent,
-  [ComponentType.Panel]: panelComponent,
-  [ComponentType.Paragraph]: paragraphComponent,
-  [ComponentType.RadioButtons]: radiosComponent,
-  [ComponentType.TextArea]: textareaComponent,
-  [ComponentType.ThirdParty]: thirdPartyComponent,
+  [FormItemType.AddressComponent]: addressComponent,
+  [FormItemType.AttachmentList]: attachmentListComponent,
+  [FormItemType.Button]: buttonComponent,
+  [FormItemType.Checkboxes]: checkboxesComponent,
+  [FormItemType.Datepicker]: datePickerComponent,
+  [FormItemType.Dropdown]: dropdownComponent,
+  [FormItemType.FileUploadWithTag]: fileUploaderWithTagComponent,
+  [FormItemType.FileUpload]: fileUploaderComponent,
+  [FormItemType.Group]: groupComponent,
+  [FormItemType.Header]: headerComponent,
+  [FormItemType.Image]: imageComponent,
+  [FormItemType.Input]: inputComponent,
+  [FormItemType.Map]: mapComponent,
+  [FormItemType.NavigationBar]: navigationBarComponent,
+  [FormItemType.Panel]: panelComponent,
+  [FormItemType.Paragraph]: paragraphComponent,
+  [FormItemType.RadioButtons]: radiosComponent,
+  [FormItemType.TextArea]: textareaComponent,
+  [FormItemType.ThirdParty]: thirdPartyComponent,
 };

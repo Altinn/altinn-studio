@@ -1,6 +1,6 @@
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
-import { ApplicationAttachmentMetadata } from '../../features/formDesigner/formDesignerTypes';
+import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 
 // Test data:
 const org = 'org';

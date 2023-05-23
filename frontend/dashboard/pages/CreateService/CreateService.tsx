@@ -8,10 +8,10 @@ import classes from './CreateService.module.css';
 import { Button, ButtonColor } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
-import { Organization } from 'dashboard/services/organizationService';
-import { User } from 'dashboard/services/userService';
-import { useAddRepoMutation } from 'dashboard/hooks/useRepoQueries';
-import { DataModellingFormat } from 'dashboard/services/repoService';
+import { Organization } from 'app-shared/types/Organization';
+import { User } from 'app-shared/types/User';
+import { useAddRepoMutation } from 'dashboard/hooks/mutations/useAddRepoMutation';
+import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 
@@ -60,7 +60,7 @@ type CreateServiceProps = {
   organizations: Organization[];
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
-  const selectedFormat = DataModellingFormat.XSD;
+  const selectedFormat = DatamodelFormat.XSD;
   const selectedContext = useSelectedContext();
   const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(selectedContext === SelectedContextType.Self ? user.login : selectedContext);
   const [orgErrorMessage, setOrgErrorMessage] = useState(null);

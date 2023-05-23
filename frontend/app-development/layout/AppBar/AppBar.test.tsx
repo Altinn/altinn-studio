@@ -6,7 +6,8 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { IAppBarProps } from './AppBar';
 import { AppBar } from './AppBar';
 import { menu, TopBarMenu } from './appBarConfig';
-import { ServicesContextProps, ServicesContextProvider } from '../../common/ServiceContext';
+import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { repositoryMock } from '../../test/repositoryMock';
 
 describe('AppBar', () => {
   describe('When using AppBarConfig menu entries', () => {
@@ -23,13 +24,11 @@ describe('AppBar', () => {
 });
 
 const render = (props: Partial<IAppBarProps> = {}) => {
-  const allProps = {
-    org: 'jest-test-org',
-    app: 'jest-test-app',
+  const allProps: IAppBarProps = {
     showSubMenu: true,
     activeSubHeaderSelection: TopBarMenu.Create,
     ...props,
-  } as IAppBarProps;
+  };
 
   const createStore = configureStore();
   const initialState = {
@@ -45,11 +44,7 @@ const render = (props: Partial<IAppBarProps> = {}) => {
   };
   const store = createStore(initialState);
   const queries: Partial<ServicesContextProps> = {
-    getRepoMetadata: async () => ({
-      permissions: {
-        push: true,
-      },
-    }),
+    getRepoMetadata: async () => repositoryMock,
   };
   return rtlRender(
     <MemoryRouter>

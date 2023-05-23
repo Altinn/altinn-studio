@@ -12,12 +12,8 @@ import {
   removeComponent,
   removeComponentsByType,
 } from './formLayoutUtils';
-import { ComponentType } from '../components';
-import {
-  IExternalComponent,
-  IExternalFormLayout,
-  IInternalLayout
-} from '../types/global';
+import { FormItemType } from 'app-shared/types/FormItemType';
+import { IInternalLayout } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
 import type {
@@ -26,6 +22,7 @@ import type {
   FormParagraphComponent
 } from '../types/FormComponent';
 import { FormContainer } from '../types/FormContainer';
+import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 
 // Test data:
 const baseContainer: FormContainer = {
@@ -36,7 +33,7 @@ const customProperty = 'some-custom-property';
 const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
 const headerComponent: FormHeaderComponent = {
   id: headerId,
-  type: ComponentType.Header,
+  type: FormItemType.Header,
   itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
@@ -47,7 +44,7 @@ const headerComponent: FormHeaderComponent = {
 const paragraphId = 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729';
 const paragraphComponent: FormParagraphComponent = {
   id: paragraphId,
-  type: ComponentType.Paragraph,
+  type: FormItemType.Paragraph,
   itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
@@ -63,7 +60,7 @@ const groupContainer: FormContainer = {
 const paragraphInGroupId = 'group-paragraph';
 const paragraphInGroupComponent: FormParagraphComponent = {
   id: paragraphInGroupId,
-  type: ComponentType.Paragraph,
+  type: FormItemType.Paragraph,
   itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
@@ -78,7 +75,7 @@ const groupInGroupContainer: FormContainer = {
 const paragraphInGroupInGroupId = 'group-child-paragraph';
 const paragraphInGroupInGroupComponent: FormParagraphComponent = {
   id: paragraphInGroupInGroupId,
-  type: ComponentType.Paragraph,
+  type: FormItemType.Paragraph,
   itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
@@ -111,7 +108,7 @@ const mockInternal: IInternalLayout = {
 };
 
 describe('formLayoutUtils', () => {
-  let mockLayout: IExternalFormLayout;
+  let mockLayout: ExternalFormLayout;
 
   beforeEach(() => {
     mockLayout = {
@@ -120,7 +117,7 @@ describe('formLayoutUtils', () => {
         layout: [
           {
             id: '17314adc-f75d-4a49-b726-242e2ae32ad2',
-            type: ComponentType.Input,
+            type: FormItemType.Input,
             textResourceBindings: {
               title: 'Input',
             },
@@ -130,7 +127,7 @@ describe('formLayoutUtils', () => {
           },
           {
             id: '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a',
-            type: ComponentType.Input,
+            type: FormItemType.Input,
             textResourceBindings: {
               title: 'Input',
             },
@@ -161,7 +158,7 @@ describe('formLayoutUtils', () => {
             textResourceBindings: {
               title: 'Input',
             },
-            type: ComponentType.Input,
+            type: FormItemType.Input,
           },
           '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a': {
             dataModelBindings: {},
@@ -172,7 +169,7 @@ describe('formLayoutUtils', () => {
             textResourceBindings: {
               title: 'Input',
             },
-            type: ComponentType.Input,
+            type: FormItemType.Input,
             customProperty,
           },
         },
@@ -202,42 +199,42 @@ describe('formLayoutUtils', () => {
       mockLayout.data.layout = [
         {
           id: 'mockChildID_1',
-          type: ComponentType.Group,
+          type: FormItemType.Group,
           children: ['mockChildID_2'],
         },
         {
           id: 'mockChildID_3',
-          type: ComponentType.Group,
+          type: FormItemType.Group,
           children: ['mockChildID_4', 'mockChildID_6'],
         },
         {
           id: 'mockChildID_2',
-          type: ComponentType.Header,
+          type: FormItemType.Header,
           dataModelBindings: {},
           someProp: '2',
           size: 'normal',
         },
         {
           id: 'mockChildID_4',
-          type: ComponentType.Paragraph,
+          type: FormItemType.Paragraph,
           dataModelBindings: {},
           someProp: '4',
         },
         {
           id: 'mockChildID_5',
-          type: ComponentType.Dropdown,
+          type: FormItemType.Dropdown,
           dataModelBindings: {},
           someProp: '5',
           optionsId: 'mockChildID_5_options',
         },
         {
           id: 'mockChildID_6',
-          type: ComponentType.Group,
+          type: FormItemType.Group,
           children: ['mockChildID_7'],
         },
         {
           id: 'mockChildID_7',
-          type: ComponentType.Input,
+          type: FormItemType.Input,
           dataModelBindings: {},
           someProp: '7',
         },
@@ -252,7 +249,7 @@ describe('formLayoutUtils', () => {
           mockChildID_2: {
             id: 'mockChildID_2',
             someProp: '2',
-            type: ComponentType.Header,
+            type: FormItemType.Header,
             itemType: 'COMPONENT',
             size: 'normal',
             dataModelBindings: {},
@@ -260,14 +257,14 @@ describe('formLayoutUtils', () => {
           mockChildID_4: {
             id: 'mockChildID_4',
             someProp: '4',
-            type: ComponentType.Paragraph,
+            type: FormItemType.Paragraph,
             itemType: 'COMPONENT',
             dataModelBindings: {},
           },
           mockChildID_5: {
             id: 'mockChildID_5',
             someProp: '5',
-            type: ComponentType.Dropdown,
+            type: FormItemType.Dropdown,
             itemType: 'COMPONENT',
             optionsId: 'mockChildID_5_options',
             dataModelBindings: {},
@@ -275,7 +272,7 @@ describe('formLayoutUtils', () => {
           mockChildID_7: {
             id: 'mockChildID_7',
             someProp: '7',
-            type: ComponentType.Input,
+            type: FormItemType.Input,
             itemType: 'COMPONENT',
             dataModelBindings: {},
           },
@@ -299,45 +296,45 @@ describe('formLayoutUtils', () => {
   describe('convertInternalToLayoutFormat', () => {
     it('should convert to correct format', () => {
       const convertedLayout = convertInternalToLayoutFormat(mockInternal);
-      const expectedResult: IExternalFormLayout = {
+      const expectedResult: ExternalFormLayout = {
         $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
         data: {
           layout: [
             {
               id: headerId,
-              type: ComponentType.Header,
+              type: FormItemType.Header,
               textResourceBindings: { title: 'ServiceName' },
               dataModelBindings: {},
               size: 'L',
             },
             {
               id: paragraphId,
-              type: ComponentType.Paragraph,
+              type: FormItemType.Paragraph,
               textResourceBindings: { title: 'ServiceName' },
               dataModelBindings: {},
               customProperty,
             },
             {
               id: groupId,
-              type: ComponentType.Group,
+              type: FormItemType.Group,
               dataModelBindings: {},
               children: [paragraphInGroupId, groupInGroupId],
             },
             {
               id: paragraphInGroupId,
-              type: ComponentType.Paragraph,
+              type: FormItemType.Paragraph,
               textResourceBindings: { title: 'ServiceName' },
               dataModelBindings: {},
             },
             {
               id: groupInGroupId,
-              type: ComponentType.Group,
+              type: FormItemType.Group,
               dataModelBindings: {},
               children: [paragraphInGroupInGroupId],
             },
             {
               id: paragraphInGroupInGroupId,
-              type: ComponentType.Paragraph,
+              type: FormItemType.Paragraph,
               textResourceBindings: { title: 'ServiceName' },
               dataModelBindings: {},
             },
@@ -353,22 +350,22 @@ describe('formLayoutUtils', () => {
 
   describe('extractChildrenFromGroup', () => {
     it('should return all children from a container', () => {
-      const mockGroup: IExternalComponent = {
+      const mockGroup: ExternalComponent = {
         id: 'mock-group-id',
-        type: ComponentType.Group,
+        type: FormItemType.Group,
         children: ['mock-component-1', 'mock-component-2'],
       };
-      const mockComponents: IExternalComponent[] = [
+      const mockComponents: ExternalComponent[] = [
         {
           id: 'mock-component-1',
-          type: ComponentType.Header,
+          type: FormItemType.Header,
           dataModelBindings: {},
           someProp: '1',
           size: 'normal'
         },
         {
           id: 'mock-component-2',
-          type: ComponentType.Paragraph,
+          type: FormItemType.Paragraph,
           dataModelBindings: {},
           someProp: '2',
         },
@@ -386,7 +383,7 @@ describe('formLayoutUtils', () => {
           'mock-component-1': {
             someProp: '1',
             itemType: 'COMPONENT',
-            type: ComponentType.Header,
+            type: FormItemType.Header,
             id: 'mock-component-1',
             size: 'normal',
             dataModelBindings: {}
@@ -394,7 +391,7 @@ describe('formLayoutUtils', () => {
           'mock-component-2': {
             someProp: '2',
             itemType: 'COMPONENT',
-            type: ComponentType.Paragraph,
+            type: FormItemType.Paragraph,
             id: 'mock-component-2',
             dataModelBindings: {}
           },
@@ -415,7 +412,7 @@ describe('formLayoutUtils', () => {
         id: navigationButtonsId,
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
-        type: ComponentType.NavigationButtons,
+        type: FormItemType.NavigationButtons,
         dataModelBindings: {},
       };
       const layout: IInternalLayout = {
@@ -463,7 +460,7 @@ describe('formLayoutUtils', () => {
   describe('addComponent', () => {
     const newComponent: FormParagraphComponent = {
       id: 'newComponent',
-      type: ComponentType.Paragraph,
+      type: FormItemType.Paragraph,
       itemType: 'COMPONENT',
       dataModelBindings: {},
     };
@@ -517,7 +514,7 @@ describe('formLayoutUtils', () => {
 
   describe('removeComponentsByType', () => {
     it('Removes components of the given type from the layout', () => {
-      const layout = removeComponentsByType(mockInternal, ComponentType.Paragraph);
+      const layout = removeComponentsByType(mockInternal, FormItemType.Paragraph);
       expect(layout.components[paragraphId]).toBeUndefined();
       expect(layout.components[paragraphInGroupId]).toBeUndefined();
       expect(layout.components[paragraphInGroupInGroupId]).toBeUndefined();
@@ -532,7 +529,7 @@ describe('formLayoutUtils', () => {
       const id = 'navigationButtons';
       const layout = addNavigationButtons(mockInternal, id);
       expect(layout.components[id]).toBeDefined();
-      expect(layout.components[id].type).toEqual(ComponentType.NavigationButtons);
+      expect(layout.components[id].type).toEqual(FormItemType.NavigationButtons);
       expect(layout.components[id].textResourceBindings).toEqual({ next: 'next', back: 'back' });
       expect(layout.order[BASE_CONTAINER_ID].slice(-1)[0]).toEqual(id);
       expect(layout.order[BASE_CONTAINER_ID].length).toEqual(mockInternal.order[BASE_CONTAINER_ID].length + 1);
@@ -548,7 +545,7 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    it.each(Object.values(ComponentType).filter((v) => v !== ComponentType.Group))(
+    it.each(Object.values(FormItemType).filter((v) => v !== FormItemType.Group))(
       'Adds a new component to the layout when the given type is %s',
       (componentType) => {
         const id = 'newItemId';
@@ -560,7 +557,7 @@ describe('formLayoutUtils', () => {
 
     it('Adds a new container to the layout when the given type is Group', () => {
       const id = 'newGroupId';
-      const layout = addItemOfType(mockInternal, ComponentType.Group, id);
+      const layout = addItemOfType(mockInternal, FormItemType.Group, id);
       expect(layout.containers[id].itemType).toEqual('CONTAINER');
     });
   });

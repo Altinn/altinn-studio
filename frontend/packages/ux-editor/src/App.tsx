@@ -18,7 +18,7 @@ import { firstAvailableLayout } from './utils/formLayoutsUtils';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from './hooks/queries/useRuleConfigQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
-import { useInstanceIdQuery } from './hooks/queries/useInstanceIdQuery';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries/useInstanceIdQuery';
 
 /**
  * This is the main React component responsible for controlling

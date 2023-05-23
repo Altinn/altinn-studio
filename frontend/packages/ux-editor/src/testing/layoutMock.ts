@@ -1,15 +1,16 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ComponentType } from '../components';
-import { IExternalFormLayout, IExternalFormLayouts, IInternalLayout } from '../types/global';
+import { FormItemType } from 'app-shared/types/FormItemType';
+import { IInternalLayout } from '../types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from '../types/FormComponent';
+import { ExternalFormLayout, FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
 
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = 'Component-1';
-export const component1TypeMock = ComponentType.Input;
+export const component1TypeMock = FormItemType.Input;
 export const component1Mock: FormComponent = {
   id: component1IdMock,
   type: component1TypeMock,
@@ -17,7 +18,7 @@ export const component1Mock: FormComponent = {
   dataModelBindings: {},
 };
 export const component2IdMock = 'Component-2';
-export const component2TypeMock = ComponentType.Paragraph;
+export const component2TypeMock = FormItemType.Paragraph;
 export const component2Mock: FormComponent = {
   id: component2IdMock,
   type: component2TypeMock,
@@ -54,13 +55,13 @@ export const layoutMock: IInternalLayout = {
   customDataProperties: customDataPropertiesMock,
 };
 
-export const layout1Mock: IExternalFormLayout = {
+export const layout1Mock: ExternalFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [
       {
         id: container1IdMock,
-        type: ComponentType.Group,
+        type: FormItemType.Group,
         children: [component1IdMock, component2IdMock],
       },
       {
@@ -76,13 +77,13 @@ export const layout1Mock: IExternalFormLayout = {
   },
   ...customRootPropertiesMock,
 };
-const layout2Mock: IExternalFormLayout = {
+const layout2Mock: ExternalFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [],
   },
 };
-export const externalLayoutsMock: IExternalFormLayouts = {
+export const externalLayoutsMock: FormLayoutsResponse = {
   [layout1NameMock]: layout1Mock,
   [layout2NameMock]: layout2Mock,
 };

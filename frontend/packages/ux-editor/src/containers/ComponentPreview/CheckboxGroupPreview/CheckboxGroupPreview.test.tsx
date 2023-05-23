@@ -6,7 +6,7 @@ import type { ITextResource } from 'app-shared/types/global';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
-import { ComponentType } from '../../../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
 import type { FormCheckboxesComponent } from '../../../types/FormComponent';
@@ -34,7 +34,7 @@ const component: FormCheckboxesComponent = {
   id: '1',
   options,
   optionsId: '',
-  type: ComponentType.Checkboxes,
+  type: FormItemType.Checkboxes,
   textResourceBindings: {
     title: titleTextKey,
     description: descriptionTextKey,

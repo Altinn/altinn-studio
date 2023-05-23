@@ -9,7 +9,7 @@ import { render, renderHook } from '@testing-library/react';
 import {
   ServicesContextProps,
   ServicesContextProvider,
-} from '../../../../app-development/common/ServiceContext';
+} from 'app-shared/contexts/ServicesContext';
 import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import { ILayoutSettings } from 'app-shared/types/global';
 import { BrowserRouter } from 'react-router-dom';
@@ -17,6 +17,7 @@ import ruleHandlerMock from './ruleHandlerMock';
 import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
 import { ruleConfig as ruleConfigMock } from './ruleConfigMock';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from './layoutMock';
+import { queriesMock as allQueriesMock } from 'app-shared/mocks/queriesMock';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -51,42 +52,21 @@ export const formLayoutSettingsMock: ILayoutSettings = {
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
 export const queriesMock: ServicesContextProps = {
+  ...allQueriesMock,
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  addLanguageCode: jest.fn(),
-  createDeployment: jest.fn(),
-  createRelease: jest.fn(),
-  createRepoCommit: jest.fn(),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
-  deleteLanguageCode: jest.fn(),
-  getAppReleases: jest.fn(),
-  getBranchStatus: jest.fn(),
-  getDatamodel: jest.fn(),
-  getDatamodelsXsd: jest.fn(),
-  getDeployPermissions: jest.fn(),
-  getDeployments: jest.fn(),
-  getEnvironments: jest.fn(),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
-  getInstanceIdForPreview: jest.fn(),
-  getOrgList: jest.fn(),
-  getRepoMetadata: jest.fn(),
-  getRepoPull: jest.fn(),
-  getRepoStatus: jest.fn(),
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
   getTextResources: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getUser: jest.fn(),
   getWidgetSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  pushRepoChanges: jest.fn(),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  saveRuleConfig: jest.fn(),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateTextId: jest.fn(),
-  updateTranslationByLangCode: jest.fn(),
   upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
 };
 

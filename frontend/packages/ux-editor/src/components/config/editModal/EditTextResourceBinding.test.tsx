@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import type { ITextResource } from 'app-shared/types/global';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from '../../index';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
@@ -33,7 +33,7 @@ describe('EditTextResourceBindings component', () => {
     textResourceBindings: {
       test: 'test-text',
     },
-    type: ComponentType.Input,
+    type: FormItemType.Input,
     itemType: 'COMPONENT',
     dataModelBindings: {},
   };

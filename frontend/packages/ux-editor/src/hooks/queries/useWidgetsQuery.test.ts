@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react';
 import { useWidgetsQuery } from './useWidgetsQuery';
 import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { IWidget } from '../../types/global';
-import { ComponentType } from '../../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 
 // Test data:
 const org = 'org';
@@ -11,8 +11,8 @@ const app = 'app';
 const widgetUrl1 = 'url1';
 const widgetUrl2 = 'url2';
 const widgetUrls = [widgetUrl1, widgetUrl2];
-const widget1Name = ComponentType.Header;
-const widget2Name = ComponentType.Paragraph;
+const widget1Name = FormItemType.Header;
+const widget2Name = FormItemType.Paragraph;
 const widget1: IWidget = { displayName: widget1Name, components: [], texts: [] };
 const widget2: IWidget = { displayName: widget2Name, components: [], texts: [] };
 

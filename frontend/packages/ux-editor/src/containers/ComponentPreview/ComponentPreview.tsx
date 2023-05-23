@@ -1,10 +1,10 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../components/config/componentConfig';
-import { ComponentType } from '../../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { CheckboxGroupPreview } from './CheckboxGroupPreview';
 import { RadioGroupPreview } from './RadioGroupPreview';
 import { ButtonPreview } from './ButtonPreview';
-import { useComponentErrorMessage } from '../../hooks/useComponentErrorMessage';
+import { useComponentErrorMessage } from '../../hooks';
 import { ErrorMessage } from '@digdir/design-system-react';
 
 export interface ComponentPreviewProps extends IGenericEditComponent {}
@@ -21,7 +21,7 @@ export const ComponentPreview = ({
   }
 
   switch (component.type) {
-    case ComponentType.Checkboxes:
+    case FormItemType.Checkboxes:
       return (
         <CheckboxGroupPreview
           component={component}
@@ -29,7 +29,7 @@ export const ComponentPreview = ({
           layoutName={layoutName}
         />
       );
-    case ComponentType.RadioButtons:
+    case FormItemType.RadioButtons:
       return (
         <RadioGroupPreview
           component={component}
@@ -37,8 +37,8 @@ export const ComponentPreview = ({
           layoutName={layoutName}
         />
       );
-    case ComponentType.Button:
-    case ComponentType.NavigationButtons:
+    case FormItemType.Button:
+    case FormItemType.NavigationButtons:
       return <ButtonPreview component={component} />;
     default:
       return <p>Forhåndsvisning er ikke implementert for denne komponenten.</p>;

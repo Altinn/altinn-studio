@@ -23,7 +23,7 @@ import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
 import { useParams } from 'react-router-dom';
 import type { ITextResource } from 'app-shared/types/global';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
+import { useTextResourcesSelector } from '../hooks';
 import { useUpsertTextResourcesMutation } from '../../../../app-development/hooks/mutations/useUpsertTextResourcesMutation';
 
 export interface TextResourceProps {

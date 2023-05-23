@@ -5,7 +5,7 @@ import cn from 'classnames';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { ComponentPreview } from '../containers/ComponentPreview';
-import { ComponentType } from './index';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './dragAndDrop/DragHandle';
@@ -16,9 +16,8 @@ import { getComponentTitleByComponentType, getTextResource, truncate } from '../
 import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector, useTextResourcesSelector } from '../hooks';
 import { useParams } from 'react-router-dom';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
 import { useTranslation } from 'react-i18next';
 
 export interface IFormComponentProps {
@@ -51,13 +50,13 @@ export const FormComponent = memo(function FormComponent({
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
 
   const previewableComponents = [
-    ComponentType.Checkboxes,
-    ComponentType.RadioButtons,
-    ComponentType.Button,
-    ComponentType.NavigationButtons,
+    FormItemType.Checkboxes,
+    FormItemType.RadioButtons,
+    FormItemType.Button,
+    FormItemType.NavigationButtons,
   ]; // Todo: Remove this when all components become previewable. Until then, add components to this list when implementing preview mode.
 
-  const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
+  const isPreviewable = previewableComponents.includes(component?.type as FormItemType);
 
   const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
     deleteFormComponent(id);

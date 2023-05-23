@@ -1,7 +1,7 @@
 import { FormComponent } from '../types/FormComponent';
 import { useTranslation } from 'react-i18next';
 import { validateComponent } from '../utils/validationUtils';
-import { ComponentType } from '../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 
 /**
  * Returns an error message for the given component, or null if the component is valid.
@@ -13,9 +13,9 @@ export const useComponentErrorMessage = (component: FormComponent): string | nul
   const { isValid, error } = validateComponent(component);
   if (isValid) return null;
   switch(component.type) {
-    case ComponentType.Checkboxes:
+    case FormItemType.Checkboxes:
       return t(`ux_editor.checkboxes_error_${error}`);
-    case ComponentType.RadioButtons:
+    case FormItemType.RadioButtons:
       return t(`ux_editor.radios_error_${error}`);
     default:
       return null;

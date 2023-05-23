@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
-import { RepoList } from '../../components/RepoList';
+import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { DATAGRID_ROWS_PER_PAGE_OPTIONS } from '../../constants';

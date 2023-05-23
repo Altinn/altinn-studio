@@ -4,7 +4,7 @@ import { fireEvent, screen, within } from '@testing-library/react';
 import { EditHeaderSize } from './EditHeaderSize';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from '../../index';
+import { FormItemType } from 'app-shared/types/FormItemType';
 
 const h4Text = 'Undertittel (H4)';
 const h3Text = 'Undertittel (H3)';
@@ -24,7 +24,7 @@ const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) =>
       handleComponentChange={handleComponentChange}
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-        type: ComponentType.Header,
+        type: FormItemType.Header,
         textResourceBindings: {
           title: 'ServiceName',
         },
@@ -118,7 +118,7 @@ describe('HeaderSizeSelect', () => {
     expect(handleComponentChange).toHaveBeenCalledWith({
       id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
       itemType: 'COMPONENT',
-      type: ComponentType.Header,
+      type: FormItemType.Header,
       textResourceBindings: {
         title: 'ServiceName',
       },

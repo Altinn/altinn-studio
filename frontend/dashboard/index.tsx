@@ -9,10 +9,9 @@ import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ServicesContextProvider } from './contexts/servicesContext';
-import { userService } from './services/userService';
-import { organizationService } from './services/organizationService';
-import { repoService } from './services/repoService';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import * as queries from 'app-shared/api/queries';
+import * as mutations from 'app-shared/api/mutations';
 
 i18next.use(initReactI18next).init({
   lng: DEFAULT_LANGUAGE,
@@ -39,11 +38,7 @@ const queryClient = new QueryClient({
 root.render(
   <BrowserRouter basename={DASHBOARD_BASENAME}>
     <QueryClientProvider client={queryClient}>
-      <ServicesContextProvider
-        userService={userService}
-        organizationService={organizationService}
-        repoService={repoService}
-      >
+      <ServicesContextProvider {...queries} {...mutations}>
         <App />
       </ServicesContextProvider>
     </QueryClientProvider>

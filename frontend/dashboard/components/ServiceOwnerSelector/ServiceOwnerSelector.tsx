@@ -2,8 +2,8 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import { Select } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { Organization } from 'dashboard/services/organizationService';
-import { User } from 'dashboard/services/userService';
+import { Organization } from 'app-shared/types/Organization';
+import { User } from 'app-shared/types/User';
 
 const zIndex = {
   zIndex: 1300,

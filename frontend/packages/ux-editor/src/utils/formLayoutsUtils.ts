@@ -1,4 +1,4 @@
-import { IExternalFormLayouts, IFormLayouts, IInternalLayout } from '../types/global';
+import { IFormLayouts, IInternalLayout } from '../types/global';
 import {
   addNavigationButtons,
   convertFromLayoutToInternalFormat,
@@ -6,11 +6,12 @@ import {
   hasNavigationButtons,
   removeComponentsByType,
 } from './formLayoutUtils';
-import { ComponentType } from '../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { generateComponentId } from './generateId';
 import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 
 /**
  * Update layouts to have navigation buttons if there are multiple layouts, or remove them if this is the only one.
@@ -37,7 +38,7 @@ export const addOrRemoveNavigationButtons = async (
   if (allLayoutNames.length === 1) {
     // There is only one layout
     const name = allLayoutNames[0];
-    const layout = removeComponentsByType(layouts[name], ComponentType.NavigationButtons);
+    const layout = removeComponentsByType(layouts[name], FormItemType.NavigationButtons);
     await callback(name, layout);
     updatedLayouts[name] = layout;
   } else {
@@ -45,7 +46,7 @@ export const addOrRemoveNavigationButtons = async (
     for (const name of removeItemByValue(allLayoutNames, currentLayoutName)) {
       const layout = layouts[name];
       if (!hasNavigationButtons(layout)) {
-        const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
+        const navButtonsId = generateComponentId(FormItemType.NavigationButtons, layouts);
         const layoutWithNavigation = addNavigationButtons(layout, navButtonsId);
         updatedLayouts[name] = layoutWithNavigation;
         await callback(name, layoutWithNavigation);
@@ -55,7 +56,7 @@ export const addOrRemoveNavigationButtons = async (
       // Add navigation buttons to the current layout if they are not present, and run callback
       let currentLayout = layouts[currentLayoutName];
       if (!hasNavigationButtons(currentLayout)) {
-        const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
+        const navButtonsId = generateComponentId(FormItemType.NavigationButtons, layouts);
         currentLayout = addNavigationButtons(currentLayout, navButtonsId);
         updatedLayouts[currentLayoutName] = currentLayout;
       }
@@ -76,7 +77,7 @@ interface AllLayouts {
  * @returns A list of layouts in internal format and a list of layouts with an invalid format.
  */
 export const convertExternalLayoutsToInternalFormat = (
-  layouts: IExternalFormLayouts
+  layouts: FormLayoutsResponse
 ): AllLayouts => {
   const convertedLayouts: IFormLayouts = {};
   const invalidLayouts: string[] = [];

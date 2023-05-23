@@ -3,7 +3,7 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddFormContainerMutationArgs, useAddFormContainerMutation } from './useAddFormContainerMutation';
 import { FormContainer } from '../../types/FormContainer';
-import { ComponentType } from '../../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:
@@ -36,7 +36,7 @@ describe('useAddFormContainerMutation', () => {
           layout: expect.arrayContaining([
             {
               id,
-              type: ComponentType.Group,
+              type: FormItemType.Group,
               children: [],
             }
           ])

@@ -13,7 +13,7 @@ import {
 import { act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
-import { queryClient } from '../../../../app-development/common/ServiceContext';
+import { queryClient } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 

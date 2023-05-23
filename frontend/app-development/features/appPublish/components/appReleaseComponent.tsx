@@ -1,16 +1,16 @@
 import React from 'react';
 import classes from './appReleaseComponent.module.css';
-import type { IBuild, IRelease } from '../../../sharedResources/appRelease/types';
-import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
-import { gitCommitPath } from 'app-shared/api-paths';
+import { gitCommitPath } from 'app-shared/api/paths';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AltinnSpinner } from 'app-shared/components';
+import { Build, BuildResult, BuildStatus } from 'app-shared/types/Build';
+import { AppRelease } from 'app-shared/types/AppRelease';
 
 interface IAppReleaseComponent {
-  release: IRelease;
+  release: AppRelease;
 }
 
 export function ReleaseComponent(props: IAppReleaseComponent) {
@@ -18,7 +18,7 @@ export function ReleaseComponent(props: IAppReleaseComponent) {
 
   const { t } = useTranslation();
 
-  function renderStatusIcon(status: IBuild) {
+  function renderStatusIcon(status: Build) {
     if (status.result === BuildResult.succeeded) {
       return <i className={`${classes.buildSucceededIcon} ai ai-check-circle`} />;
     }

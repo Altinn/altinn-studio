@@ -4,7 +4,7 @@ import classes from './ButtonComponent.module.css';
 import { EditTitle } from '../../editModal/EditTitle';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
-import { ComponentType } from '../../../index';
+import { FormItemType } from 'app-shared/types/FormItemType';
 
 export const ButtonComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
@@ -14,15 +14,15 @@ export const ButtonComponent = ({ component, handleComponentChange }: IGenericEd
     if (!componentCopy.textResourceBindings) {
       componentCopy.textResourceBindings = {};
     }
-    if (selected === ComponentType.NavigationButtons) {
-      componentCopy.type = ComponentType.NavigationButtons;
+    if (selected === FormItemType.NavigationButtons) {
+      componentCopy.type = FormItemType.NavigationButtons;
       componentCopy.textResourceBindings = {
         next: 'next',
         back: 'back',
       };
       componentCopy.showBackButton = true;
-    } else if (selected === ComponentType.Button) {
-      componentCopy.type = ComponentType.Button;
+    } else if (selected === FormItemType.Button) {
+      componentCopy.type = FormItemType.Button;
       delete componentCopy.showPrev;
       delete componentCopy.showBackButton;
       componentCopy.textResourceBindings = {
@@ -34,11 +34,11 @@ export const ButtonComponent = ({ component, handleComponentChange }: IGenericEd
 
   const types = [
     {
-      value: ComponentType.Button,
+      value: FormItemType.Button,
       label: t('ux_editor.modal_properties_button_type_submit'),
     },
     {
-      value: ComponentType.NavigationButtons,
+      value: FormItemType.NavigationButtons,
       label: t('ux_editor.modal_properties_button_type_navigation'),
     },
   ];
@@ -53,7 +53,7 @@ export const ButtonComponent = ({ component, handleComponentChange }: IGenericEd
           onChange={handleButtonTypeChange}
         />
       </div>
-      {component.type === ComponentType.Button && (
+      {component.type === FormItemType.Button && (
         <EditTitle component={component} handleComponentChange={handleComponentChange} />
       )}
     </FieldSet>

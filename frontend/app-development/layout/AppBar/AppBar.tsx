@@ -13,8 +13,8 @@ import { BranchingIcon } from '@navikt/aksel-icons';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { InformationIcon } from '@navikt/aksel-icons';
-import { previewPath, publiserPath } from 'app-shared/api-paths';
-import { useUserQuery } from 'app-development/hooks/queries/useUserQuery';
+import { previewPath, publiserPath } from 'app-shared/api/paths';
+import { useUserQuery } from '../../hooks/queries';
 import { useAppSelector } from '../../hooks';
 
 export interface IAppBarProps {

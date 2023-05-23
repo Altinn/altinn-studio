@@ -1,13 +1,13 @@
 import { renderHookWithMockStore } from '../testing/mocks';
 import { useComponentErrorMessage } from './useComponentErrorMessage';
 import { FormComponent } from '../types/FormComponent';
-import { ComponentType } from '../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 describe('useComponentErrorMessage', () => {
   it('Returns an error message from the translation file if the component is invalid', () => {
     const invalidComponent: FormComponent = {
-      type: ComponentType.Checkboxes,
+      type: FormItemType.Checkboxes,
       options: [
         { label: 'Option 1', value: 'option1' },
         { label: 'Option 2', value: 'option2' },
@@ -24,7 +24,7 @@ describe('useComponentErrorMessage', () => {
 
   it('Returns null if the component is valid', () => {
     const validComponent: FormComponent = {
-      type: ComponentType.Checkboxes,
+      type: FormItemType.Checkboxes,
       options: [
         { label: 'Option 1', value: 'option1' },
         { label: 'Option 2', value: 'option2' },

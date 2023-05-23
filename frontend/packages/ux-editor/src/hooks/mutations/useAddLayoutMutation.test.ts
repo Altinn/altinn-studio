@@ -3,7 +3,7 @@ import { AddLayoutMutationArgs, useAddLayoutMutation } from './useAddLayoutMutat
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { ComponentType } from '../../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 
 // Test data:
 const org = 'org';
@@ -32,7 +32,7 @@ describe('useAddLayoutMutation', () => {
       {
         $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
         data: {
-          layout: [expect.objectContaining({ componentType: ComponentType.NavigationButtons })],
+          layout: [expect.objectContaining({ componentType: FormItemType.NavigationButtons })],
           hidden: undefined,
         }
       }

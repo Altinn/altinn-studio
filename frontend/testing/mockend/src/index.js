@@ -16,7 +16,7 @@ const {
   repoMetaPath,
   serviceConfigPath,
   serviceNamePath,
-} = require('../../../packages/shared/src/api-paths');
+} = require('../../../packages/shared/src/api/paths');
 
 module.exports = (middlewares, devServer) => {
   if (!devServer) {

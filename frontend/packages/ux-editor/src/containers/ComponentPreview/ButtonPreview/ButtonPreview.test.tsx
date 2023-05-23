@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { ButtonPreview } from './ButtonPreview';
-import { ComponentType } from '../../../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
 import { ITextResource } from 'app-shared/types/global';
@@ -22,7 +22,7 @@ describe('ButtonPreview', () => {
       textResourceBindings: {
         title: sendInnKey,
       },
-      type: ComponentType.Button,
+      type: FormItemType.Button,
       onClickAction: () => {},
       itemType: 'COMPONENT',
       dataModelBindings: {},
@@ -38,7 +38,7 @@ describe('ButtonPreview', () => {
         back: 'back',
       },
       showBackButton: false,
-      type: ComponentType.NavigationButtons,
+      type: FormItemType.NavigationButtons,
       onClickAction: () => {},
       itemType: 'COMPONENT',
       dataModelBindings: {},
@@ -54,7 +54,7 @@ describe('ButtonPreview', () => {
         back: 'back',
       },
       showBackButton: true,
-      type: ComponentType.NavigationButtons,
+      type: FormItemType.NavigationButtons,
       onClickAction: () => {},
       itemType: 'COMPONENT',
       dataModelBindings: {},
@@ -70,7 +70,7 @@ describe('ButtonPreview', () => {
         back: 'back',
       },
       showBackButton: true,
-      type: ComponentType.NavigationButtons,
+      type: FormItemType.NavigationButtons,
       onClickAction: () => {},
       itemType: 'COMPONENT',
       dataModelBindings: {},

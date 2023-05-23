@@ -1,7 +1,7 @@
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { IInternalLayout } from '../../types/global';
-import { ComponentType } from '../../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { baseContainerIdMock } from '../../testing/layoutMock';
 
 // Test data:
@@ -12,7 +12,7 @@ const layoutName = 'layoutName';
 describe('useFormLayoutMutation', () => {
   it('Calls saveFormLayout with correct arguments and payload', async () => {
     const componentId = 'component1';
-    const componentType = ComponentType.TextArea;
+    const componentType = FormItemType.TextArea;
     const baseContaierId = baseContainerIdMock;
     const containerId = 'container1';
     const newLayout: IInternalLayout = {
@@ -46,7 +46,7 @@ describe('useFormLayoutMutation', () => {
           layout: [
             {
               id: containerId,
-              type: ComponentType.Group,
+              type: FormItemType.Group,
               children: [componentId]
             },
             {

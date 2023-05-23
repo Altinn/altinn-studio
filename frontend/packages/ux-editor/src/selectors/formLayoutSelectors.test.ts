@@ -7,7 +7,7 @@ import {
   selectedLayoutNameSelector,
   selectedLayoutSelector
 } from './formLayoutSelectors';
-import { ComponentType } from '../components';
+import { FormItemType } from 'app-shared/types/FormItemType';
 
 // Test data:
 const layout1Name = 'Side1';
@@ -48,10 +48,10 @@ const formLayoutsData: IFormLayouts = {
       }
     },
     components: {
-      [component0AId]: { id: component0AId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
-      [component0BId]: { id: component0BId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
-      [component1AId]: { id: component1AId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
-      [component1BId]: { id: component1BId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component0AId]: { id: component0AId, type: FormItemType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component0BId]: { id: component0BId, type: FormItemType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component1AId]: { id: component1AId, type: FormItemType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component1BId]: { id: component1BId, type: FormItemType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
     },
     order: {
       [container0Id]: container0Order,
@@ -68,8 +68,8 @@ const formLayoutsData: IFormLayouts = {
       },
     },
     components: {
-      [component2AId]: { id: component2AId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
-      [component2BId]: { id: component2BId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component2AId]: { id: component2AId, type: FormItemType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component2BId]: { id: component2BId, type: FormItemType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
     },
     order: { [container2Id]: container2Order },
     customRootProperties: {},

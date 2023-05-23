@@ -6,8 +6,7 @@ import { ShareChangesButton } from './ShareChangesButton';
 import { SyncModal } from './SyncModal';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRepoStatus } from '../../features/appPublish/hooks/query-hooks';
-import { useRepoMetadataQuery, useRepoPullQuery } from '../../hooks/queries';
+import { useRepoMetadataQuery, useRepoPullQuery, useRepoStatusQuery } from '../../hooks/queries';
 import { useRepoPushMutation, useCreateRepoCommitMutation } from '../../hooks/mutations';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -41,7 +40,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
   const [modalState, setModalState] = useState(initialModalState);
   const [syncModalAnchorEl, setSyncModalAnchorEl] = useState(null);
   const { data: currentRepo } = useRepoMetadataQuery(org, app);
-  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatus(org, app);
+  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
   const { refetch: fetchPullData } = useRepoPullQuery(org, app);
   const queryClient = useQueryClient();
 

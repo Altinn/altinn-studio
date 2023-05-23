@@ -6,7 +6,7 @@ import { FileUploadComponent } from './FileUpload';
 import { SelectComponent } from './Select';
 import { CheckboxComponent } from './Checkbox';
 import type { IGenericEditComponent } from '../componentConfig';
-import { ComponentType } from '../..';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import { useText } from '../../../hooks';
 import { MapComponent } from './Map';
 import { EditTextResourceBinding } from '../editModal/EditTextResourceBinding';
@@ -19,8 +19,8 @@ export function ComponentSpecificContent({
   const t = useText();
 
   switch (component.type) {
-    case ComponentType.NavigationButtons:
-    case ComponentType.Button:
+    case FormItemType.NavigationButtons:
+    case FormItemType.Button:
       return (
         <ButtonComponent
           component={component}
@@ -29,7 +29,7 @@ export function ComponentSpecificContent({
         />
       );
 
-    case ComponentType.AddressComponent:
+    case FormItemType.AddressComponent:
       return (
         <AddressComponent
           component={component}
@@ -38,8 +38,8 @@ export function ComponentSpecificContent({
         />
       );
 
-    case ComponentType.FileUpload:
-    case ComponentType.FileUploadWithTag:
+    case FormItemType.FileUpload:
+    case FormItemType.FileUploadWithTag:
       return (
         <FileUploadComponent
           component={component}
@@ -48,7 +48,7 @@ export function ComponentSpecificContent({
         />
       );
 
-    case ComponentType.Image: {
+    case FormItemType.Image: {
       return (
         <ImageComponent
           component={component}
@@ -58,7 +58,7 @@ export function ComponentSpecificContent({
       );
     }
 
-    case ComponentType.Panel: {
+    case FormItemType.Panel: {
       return (
         <>
           <EditTextResourceBinding
@@ -99,7 +99,7 @@ export function ComponentSpecificContent({
       );
     }
 
-    case ComponentType.Map: {
+    case FormItemType.Map: {
       return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
     }
     default: {

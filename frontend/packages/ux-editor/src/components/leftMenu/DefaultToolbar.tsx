@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ComponentType } from '..';
+import { FormItemType } from 'app-shared/types/FormItemType';
 import type { IToolbarElement } from '../../types/global';
 import { CollapsableMenus } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
@@ -15,7 +15,7 @@ import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export function DefaultToolbar() {
   const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);
-  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentType>(null);
+  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<FormItemType>(null);
   const [anchorElement, setAnchorElement] = useState<any>(null);
   const [componentListsState, setComponentListsState] = useState<any>({
     [CollapsableMenus.Components]: { expanded: true, animationDone: false },
@@ -43,7 +43,7 @@ export function DefaultToolbar() {
     // [CollapsableMenus.ThirdParty]: thirdPartyComponentList,
   };
 
-  const handleComponentInformationOpen = (component: ComponentType, event: any) => {
+  const handleComponentInformationOpen = (component: FormItemType, event: any) => {
     setCompInfoPanelOpen(true);
     setCompSelForInfoPanel(component);
     setAnchorElement(event.currentTarget);

@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { QueryKey } from '../../types/QueryKey';
-import { useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { get } from 'app-shared/utils/networking';
 import { IWidget } from '../../types/global';
 

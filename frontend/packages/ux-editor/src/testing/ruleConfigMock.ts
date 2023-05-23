@@ -3,7 +3,7 @@ import {
   ConditionalRenderingConnections, RuleConfig,
   RuleConnection,
   RuleConnections
-} from '../types/RuleConfig';
+} from 'app-shared/types/RuleConfig';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { component1IdMock, container1IdMock } from './layoutMock';
 

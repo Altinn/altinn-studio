@@ -6,7 +6,7 @@ import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import type { ExistingDndItem, HandleDrop, ItemPosition, NewDndItem } from '../types/dndTypes';
 import { DraggableEditorItemType } from '../types/dndTypes';
 import { useParams } from 'react-router-dom';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector } from '../hooks';
 import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';

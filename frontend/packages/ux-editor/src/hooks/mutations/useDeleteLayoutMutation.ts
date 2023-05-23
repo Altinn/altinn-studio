@@ -2,11 +2,11 @@ import { useMutation } from '@tanstack/react-query';
 import {
   queryClient,
   useServicesContext,
-} from '../../../../../app-development/common/ServiceContext';
+} from 'app-shared/contexts/ServicesContext';
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { QueryKey } from '../../types/QueryKey';
-import { IExternalFormLayout, IInternalLayout } from '../../types/global';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { IInternalLayout } from '../../types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { ILayoutSettings } from 'app-shared/types/global';
@@ -14,6 +14,7 @@ import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { convertInternalToLayoutFormat } from '../../utils/formLayoutUtils';
+import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 
 export const useDeleteLayoutMutation = (org: string, app: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
@@ -23,7 +24,7 @@ export const useDeleteLayoutMutation = (org: string, app: string) => {
   const dispatch = useDispatch();
 
   const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
-    const convertedLayout: IExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
+    const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
     return await saveFormLayout(org, app, updatedLayoutName, convertedLayout);
   };
 

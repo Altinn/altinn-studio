@@ -4,17 +4,17 @@ import type { ChangeEvent } from 'react';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { TextField, TextArea, Button } from '@digdir/design-system-react';
 import { versionNameValid } from './utils';
-import { useAppReleases, useBranchStatus } from '../hooks/query-hooks';
+import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useParams } from 'react-router-dom';
-import { useCreateReleaseMutation } from '../hooks/mutation-hooks';
+import { useCreateReleaseMutation } from '../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 
 export function CreateReleaseComponent() {
   const { org, app } = useParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
-  const { data: releases = [] } = useAppReleases(org, app);
-  const { data: masterBranchStatus } = useBranchStatus(org, app, 'master');
+  const { data: releases = [] } = useAppReleasesQuery(org, app);
+  const { data: masterBranchStatus } = useBranchStatusQuery(org, app, 'master');
   const { t } = useTranslation();
   const [openErrorPopover, setOpenErrorPopover] = useState<boolean>(false);
   const ref = useRef();
