@@ -288,7 +288,16 @@
     {
       "id": "repeating2",
       "value": "repeating (large numbers)"
+    },
+    {
+      "id": "nested.isParentPrefill",
+      "value": "Parent is prefill: {0}",
+      "variables": [
+        {
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].isPrefill",
+          "dataSource": "dataModel.default"
+        }
+      ]
     }
-
   ]
 }

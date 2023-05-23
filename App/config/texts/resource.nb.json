@@ -300,6 +300,16 @@
     {
       "id": "repeating2",
       "value": "repeating (store endringer)"
+    },
+    {
+      "id": "nested.isParentPrefill",
+      "value": "Foreldreraden er prefill: {0}",
+      "variables": [
+        {
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].isPrefill",
+          "dataSource": "dataModel.default"
+        }
+      ]
     }
   ]
 }

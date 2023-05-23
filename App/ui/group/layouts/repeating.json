@@ -334,6 +334,25 @@
             "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
           ],
           ["greaterThan", ["component", "currentValue"], 100]
+        ],
+        "rowsAfter": [
+          {
+            "header": true,
+            "cells": [
+              { "text": "Annen informasjon" },
+              {},
+              {},
+              {}
+            ]
+          },
+          {
+            "cells": [
+              { "text": "nested.isParentPrefill" },
+              {},
+              {},
+              {}
+            ]
+          }
         ]
       },
       {
