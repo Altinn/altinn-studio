@@ -46,7 +46,7 @@ export const findRestrictionsOnNode = (schemaNode: Dict): Dict => {
   return restrictions;
 };
 
-export const castRestrictionType = (key: string, value?: string) => {
+export const castRestrictionType = (key: string, value?: string | boolean) => {
   if (!valueExists(value)) {
     return undefined;
   } else if (
@@ -62,9 +62,7 @@ export const castRestrictionType = (key: string, value?: string) => {
       StrRestrictionKeys.minLength,
     ].includes(key as ArrRestrictionKeys & StrRestrictionKeys & IntRestrictionKeys)
   ) {
-    return parseInt(value);
-  } else if ([ArrRestrictionKeys.uniqueItems].includes(key as ArrRestrictionKeys)) {
-    return value;
+    return parseInt(value.toString());
   } else {
     return value;
   }
