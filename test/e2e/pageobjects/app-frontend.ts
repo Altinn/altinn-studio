@@ -271,6 +271,7 @@ export class AppFrontend {
 
   public signingTest = {
     incomeField: '#Input-income',
+    incomeSummary: '[data-testid="summary-Input-income"]',
     submitButton: '#Button-submit',
     signingButton: '#action-button-SigningButton',
     managerConfirmPanel: '#form-content-Panel-confirm1',
