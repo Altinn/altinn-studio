@@ -11,14 +11,14 @@ const onChangeRestrictionValueMock = jest.fn();
 const pathMock = '#/properties/xxsfds';
 
 const render = (props: Partial<RestrictionItemProps> = {}) => {
-  const allProps = {
+  const allProps: RestrictionItemProps = {
     path: pathMock,
     readonly: false,
     restrictions: [],
     onChangeRestrictions: jest.fn(),
     onChangeRestrictionValue: onChangeRestrictionValueMock,
     ...props,
-  } as RestrictionItemProps;
+  };
   return rtlRender(<ArrayRestrictions {...allProps} />);
 };
 
