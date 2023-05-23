@@ -282,7 +282,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public Task GetOptionListIds_WithAppThatHasNoOptionLists_ShouldThrowNotFoundException()
         {
             string org = "ttd";
-            string repository = "app-with-layoutsets";
+            string repository = "empty-app";
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
             Assert.Throws<LibGit2Sharp.NotFoundException>(altinnAppGitRepository.GetOptionListIds);

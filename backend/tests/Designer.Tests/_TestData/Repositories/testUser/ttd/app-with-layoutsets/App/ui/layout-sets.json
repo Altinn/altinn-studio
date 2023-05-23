@@ -2,7 +2,7 @@
     "sets": [
         {
             "id": "layoutSet1",
-            "dataType": "data-model-1",
+            "dataType": "datamodel",
             "tasks": [
                 "Task_1"
             ]

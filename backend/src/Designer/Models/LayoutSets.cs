@@ -10,6 +10,6 @@ public class LayoutSets
 public class LayoutSetConfig
 {
     public string Id { get; set; }
-    public string DataTypes { get; set; }
+    public string DataType { get; set; }
     public List<string> Tasks { get; set; }
 }

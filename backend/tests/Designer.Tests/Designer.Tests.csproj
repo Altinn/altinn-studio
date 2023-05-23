@@ -45,6 +45,7 @@
     <Content Remove="_TestData\**\*.*" />
     <Compile Remove="_TestData\Repositories\*\*\$(TestRepoPrefix)*\**" />
     <Compile Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />
+    <Content Include="_TestData\Repositories\testUser\ttd\app-with-layoutsets\App\ui\layoutSet2\RuleHandler.js" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_TestData\**\*.*" />
