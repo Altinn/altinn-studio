@@ -82,6 +82,7 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
     <div>
       <TextArea
         rows={5}
+        resize='vertical'
         label={t(`language.${language}`)}
         onBlur={(e) => updateTextResource((e.target as HTMLTextAreaElement).value)}
         onChange={(e) => setValue((e.target as HTMLTextAreaElement).value)}
