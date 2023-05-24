@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './AltinnHeader.module.css';
 import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
-import { AltinnHeaderButtons } from '../altinnHeaderButtons';
+import { AltinnHeaderButton } from '../altinnHeaderButtons/AltinnHeaderButton';
 import { AltinnHeaderProfile } from '../AltinnHeaderProfile/AltinnHeaderProfile';
 import { IRepository } from 'app-shared/types/global';
 import { User } from 'app-shared/types/User';
@@ -47,8 +47,14 @@ export const AltinnHeader = ({
           <span className={classes.appName}>{app || ''}</span>
         </div>
         <AltinnHeaderMenu activeSubHeaderSelection={activeMenuSelection} menu={menu} />
-        <AltinnHeaderButtons actions={buttonActions} />
-        <div className={classes.rightContent}>
+        <div className={classes.rightContent} data-testid='altinn-header-buttons'>
+          {buttonActions && (
+            <div className={classes.rightContentButtons}>
+              {buttonActions.map((action) => (
+                <AltinnHeaderButton key={action.menuKey} action={action} />
+              ))}
+            </div>
+          )}
           <AltinnHeaderProfile org={org} repository={repository} user={user} />
         </div>
       </div>

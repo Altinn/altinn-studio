@@ -40,7 +40,7 @@
 .altinnHeaderBar .rightContent {
   align-items: center;
   display: flex;
-
+  flex: 1;
   gap: 1rem;
   justify-content: flex-end;
 }
@@ -58,4 +58,15 @@
   line-height: 25px;
   font-size: 1rem;
   margin-right: 15px;
+}
+
+.rightContentButtons {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  flex: 3;
+}
+
+.rightContentButtons > * {
+  flex: 1;
 }
