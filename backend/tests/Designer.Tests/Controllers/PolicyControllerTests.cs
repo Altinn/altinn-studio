@@ -101,7 +101,7 @@ namespace Designer.Tests.Controllers
             {
                 Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
                 Assert.NotNull(resourcePolicy.Rules);
-                Assert.Equal(6, resourcePolicy.Rules.Count());
+                Assert.Equal(6, resourcePolicy.Rules.Count);
             }
             finally
             {
