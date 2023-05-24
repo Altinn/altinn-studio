@@ -45,6 +45,7 @@ const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
       buttonVariant: ButtonVariant.Outline,
       headerButtonsClasses: classes.previewButton,
       handleClick: () => window.open(previewPath(org, app), '_blank'),
+      inBeta: true,
     },
     {
       title: 'top_menu.deploy',

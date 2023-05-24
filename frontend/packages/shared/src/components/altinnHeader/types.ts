@@ -8,4 +8,5 @@ export interface AltinnButtonActionItem {
   buttonVariant: ButtonVariant;
   headerButtonsClasses: any;
   handleClick: () => void;
+  inBeta?: boolean;
 }
