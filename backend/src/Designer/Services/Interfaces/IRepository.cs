@@ -200,6 +200,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="resourceId"></param>
         /// <returns></returns>
         XacmlPolicy GetPolicy(string org, string repo, string resourceId);
+
+        /// <summary>
         /// Gets the widget settings for an app
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
