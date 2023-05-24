@@ -34,7 +34,7 @@ describe('AltinnHeader', () => {
 
   it('should not render AltinnHeaderButtons when buttonActions are provided', () => {
     render();
-    expect(screen.queryByTestId('altinn-header-buttons')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('should render AltinnSubMenu when showSubMenu is true', () => {
