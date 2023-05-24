@@ -51,6 +51,7 @@ describe('ComponentPreview', () => {
       id: 'test',
       optionsId: 'test',
       itemType: 'COMPONENT',
+      dataModelBindings: {},
     };
     render({ component: invalidComponent });
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();

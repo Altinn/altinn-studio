@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, createContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import type { FormContainer } from '../types/global';
+import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';

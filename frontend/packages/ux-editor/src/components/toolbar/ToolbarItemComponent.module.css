@@ -1,4 +1,5 @@
 .toolbarItem {
+  cursor: grab;
   margin-bottom: 6px;
   background-color: #ffffff;
   display: flex;

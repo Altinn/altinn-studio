@@ -5,16 +5,19 @@ import { ComponentType } from '../../components';
 import { UpdateFormComponentArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import { component1IdMock, layout1NameMock } from '../../testing/layoutMock';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
+import { IDataModelBindings } from '../../types/global';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const id = component1IdMock;
 const type = ComponentType.TextArea;
+const dataModelBindings: IDataModelBindings = {};
 const updatedComponent: FormComponent = {
   id,
   itemType: 'COMPONENT',
   type: ComponentType.TextArea,
+  dataModelBindings,
 }
 const defaultArgs: UpdateFormComponentArgs = { id, updatedComponent };
 
@@ -41,6 +44,7 @@ describe('useUpdateFormComponentMutation', () => {
             {
               id,
               type,
+              dataModelBindings,
             }
           ])
         })

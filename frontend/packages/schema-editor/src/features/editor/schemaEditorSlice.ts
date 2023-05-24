@@ -21,8 +21,8 @@ import {
   ROOT_POINTER,
   splitPointerInBaseAndName,
 } from '@altinn/schema-model';
-import { swapArrayElements } from 'app-shared/pure';
 import type { Dict } from '../../../../schema-model/src/lib/types';
+import { swapArrayElements } from 'app-shared/utils/arrayUtils';
 
 export const initialState: ISchemaState = {
   schema: {},

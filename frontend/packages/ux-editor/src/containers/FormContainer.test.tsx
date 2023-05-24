@@ -6,8 +6,6 @@ import type { IFormContainerProps } from './FormContainer';
 import { FormContainer } from './FormContainer';
 import { renderWithMockStore } from '../testing/mocks';
 import { container1IdMock, layoutMock } from '../testing/layoutMock';
-import { createMockedDndEvents } from './helpers/dnd-helpers.test';
-import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const handleDiscardMock = jest.fn();
 const handleEditMock = jest.fn();
@@ -16,19 +14,18 @@ const handleSaveMock = jest.fn().mockImplementation(() => Promise.resolve());
 describe('FormContainer', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should render the empty placeholder when no children', async () => {
-    await render();
-
-    expect(screen.getByText(textMock('ux_editor.container_empty'))).toBeInTheDocument();
+  it('Renders children', async () => {
+    const childComponentTestid = 'childComponent';
+    const childComponent = <div data-testid={childComponentTestid}/>;
+    await render({ children: childComponent });
+    expect(screen.getByTestId(childComponentTestid)).toBeInTheDocument();
   });
 });
 
 const render = async (props: Partial<IFormContainerProps> = {}) => {
   const allProps: IFormContainerProps = {
     isBaseContainer: false,
-    canDrag: true,
     id: container1IdMock,
-    dndEvents: createMockedDndEvents(),
     container: layoutMock.containers[container1IdMock],
     handleEdit: handleEditMock,
     handleSave: handleSaveMock,

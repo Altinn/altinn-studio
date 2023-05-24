@@ -30,6 +30,7 @@ const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) =>
         },
         size,
         itemType: 'COMPONENT',
+        dataModelBindings: {},
       }}
     />,
   );
@@ -122,6 +123,7 @@ describe('HeaderSizeSelect', () => {
         title: 'ServiceName',
       },
       size: 'h2',
+      dataModelBindings: {},
     });
   });
 });

@@ -1,10 +1,10 @@
 import React, { ChangeEvent, useCallback, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import '../../styles/index.css';
-import { EditGroupDataModelBindings } from '../config/group/EditGroupDataModelBindings';
+import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists, validComponentId } from '../../utils/formLayoutUtils';
-import type { IDataModelFieldElement, FormContainer } from '../../types/global';
+import type { IDataModelFieldElement } from '../../types/global';
 import {
   Checkbox,
   CheckboxGroup,
@@ -14,7 +14,7 @@ import {
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
-import { useText } from '../../hooks/useText';
+import { useText } from '../../hooks';
 import { useParams } from 'react-router-dom';
 import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../../selectors/formLayoutSelectors';
@@ -25,6 +25,7 @@ import { ITextResource } from 'app-shared/types/global';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { TextFieldWithValidation } from '../TextFieldWithValidation';
+import { FormContainer } from '../../types/FormContainer';
 
 export interface IEditFormContainerProps {
   editFormId: string;

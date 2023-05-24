@@ -6,8 +6,7 @@ import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
 import { queriesMock, renderWithMockStore } from '../testing/mocks';
-import { container1IdMock, component1IdMock, component1Mock } from '../testing/layoutMock';
-import { createMockedDndEvents } from '../containers/helpers/dnd-helpers.test';
+import { component1IdMock, component1Mock } from '../testing/layoutMock';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
@@ -78,9 +77,6 @@ describe('FormComponent', () => {
 const render = async (props: Partial<IFormComponentProps> = {}) => {
   const allProps: IFormComponentProps = {
     id: component1IdMock,
-    containerId: container1IdMock,
-    index: 0,
-    dndEvents: createMockedDndEvents(),
     isEditMode: false,
     component: component1Mock,
     handleEdit: handleEditMock,

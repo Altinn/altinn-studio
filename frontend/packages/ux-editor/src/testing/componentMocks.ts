@@ -1,24 +1,31 @@
 import {
-  FormAddressComponent, FormAttachmentListComponent,
+  FormAddressComponent,
+  FormAttachmentListComponent,
   FormButtonComponent,
   FormCheckboxesComponent,
   FormComponentBase,
   FormDatepickerComponent,
   FormDropdownComponent,
   FormFileUploaderComponent,
-  FormFileUploaderWithTagComponent, FormGroupComponent,
+  FormFileUploaderWithTagComponent,
+  FormGroupComponent,
   FormHeaderComponent,
   FormImageComponent,
-  FormInputComponent, FormMapComponent, FormNavigationBarComponent, FormPanelComponent,
+  FormInputComponent,
+  FormMapComponent,
+  FormNavigationBarComponent,
+  FormPanelComponent,
   FormParagraphComponent,
   FormRadioButtonsComponent,
-  FormTextareaComponent, FormThirdPartyComponent
+  FormTextareaComponent,
+  FormThirdPartyComponent
 } from '../types/FormComponent';
 import { ComponentType } from '../components';
 
-const commonProps: Pick<FormComponentBase, 'id' | 'itemType'> = {
+const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> = {
   id: 'test',
   itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 const checkboxesComponent: FormCheckboxesComponent = {
   ...commonProps,

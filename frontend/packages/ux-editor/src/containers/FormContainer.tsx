@@ -1,43 +1,35 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import cn from 'classnames';
 import '../styles/index.css';
-import { DroppableDraggableContainer } from './DroppableDraggableContainer';
-import type { EditorDndEvents } from './helpers/dnd-types';
 import classes from './FormContainer.module.css';
 import { useDeleteFormContainerMutation } from '../hooks/mutations/useDeleteFormContainerMutation';
-import { FormContainerEmptyPlaceholder } from './FormContainerEmptyPlaceholder';
-import type { FormContainer as IFormContainer } from '../types/global';
+import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import { FormContainerHeader } from './FormContainerHeader';
+import { ConnectDragSource } from 'react-dnd';
 
 export interface IFormContainerProps {
-  isBaseContainer?: boolean;
-  id: string;
-  parentContainerId?: string;
-  index?: number;
-  dndEvents: EditorDndEvents;
-  canDrag: boolean;
-  isEditMode: boolean;
+  children: ReactNode;
   container: IFormContainer;
+  dragHandleRef?: ConnectDragSource;
+  handleDiscard: () => void;
   handleEdit: (component: IFormContainer) => void;
   handleSave: (id: string, updatedContainer: IFormContainer) => Promise<void>;
-  handleDiscard: () => void;
-  children: React.ReactNode[];
+  id: string;
+  isBaseContainer?: boolean;
+  isEditMode: boolean;
 }
 
 export const FormContainer = ({
-  isBaseContainer,
-  id,
-  parentContainerId,
-  index,
-  dndEvents,
-  canDrag,
-  isEditMode,
+  children,
   container,
+  dragHandleRef,
+  handleDiscard,
   handleEdit,
   handleSave,
-  handleDiscard,
-  children,
+  id,
+  isBaseContainer,
+  isEditMode,
 } : IFormContainerProps) => {
   const { org, app } = useParams();
 
@@ -50,48 +42,33 @@ export const FormContainer = ({
 
   const [expanded, setExpanded] = useState<boolean>(true);
 
-  const handleComponentDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>): void => {
+  const handleComponentDelete = useCallback((): void => {
     handleDeleteFormContainer(id);
     handleDiscard();
   }, [handleDeleteFormContainer, handleDiscard, id]);
 
   return (
-    <DroppableDraggableContainer
-      id={id}
-      index={index}
-      isBaseContainer={isBaseContainer}
-      parentContainerId={parentContainerId}
-      canDrag={canDrag}
-      dndEvents={dndEvents}
-      container={(dragHandleRef) => (
-        <div
-          className={cn(
-            classes.wrapper,
-            !isBaseContainer && classes.formGroupWrapper,
-            expanded && classes.expanded
-          )}
-        >
-          {!isBaseContainer && (
-            <FormContainerHeader
-              id={id}
-              container={container}
-              expanded={expanded}
-              handleExpanded={setExpanded}
-              isEditMode={isEditMode}
-              handleDelete={handleComponentDelete}
-              handleDiscard={handleDiscard}
-              handleEdit={handleEdit}
-              handleSave={handleSave}
-              dragHandleRef={dragHandleRef}
-            />
-          )}
-          {expanded && (
-            children.length ? children : (
-              <FormContainerEmptyPlaceholder containerId={id} dndEvents={dndEvents} />
-            )
-          )}
-        </div>
+    <div
+      className={cn(
+        classes.wrapper,
+        !isBaseContainer && classes.formGroupWrapper,
       )}
-    />
+    >
+      {!isBaseContainer && (
+        <FormContainerHeader
+          id={id}
+          container={container}
+          expanded={expanded}
+          handleExpanded={setExpanded}
+          isEditMode={isEditMode}
+          handleDelete={handleComponentDelete}
+          handleDiscard={handleDiscard}
+          handleEdit={handleEdit}
+          handleSave={handleSave}
+          dragHandleRef={dragHandleRef}
+        />
+      )}
+      {expanded && children}
+    </div>
   );
 };

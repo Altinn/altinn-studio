@@ -1,20 +1,18 @@
-import React from 'react';
+import React, { MouseEvent } from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
-import { DraggableToolbarItem } from '../../containers/DraggableToolbarItem';
+import { DraggableToolbarItem } from '../dragAndDrop/DraggableToolbarItem';
 import { ComponentType } from '../index';
 
 interface IToolbarItemProps {
   text: string;
-  onDropAction: (containerId: string, position: number) => void;
   notDraggable?: boolean;
-  onClick: (...args: any) => void;
+  onClick: (type: ComponentType, event: MouseEvent) => void;
   componentType: ComponentType;
   icon: string;
 }
 
 export const ToolbarItem = ({
   notDraggable,
-  onDropAction,
   componentType,
   onClick,
   text,
@@ -23,11 +21,11 @@ export const ToolbarItem = ({
   return (
     <div>
       <DraggableToolbarItem
-        id={null}
-        index={null}
-        containerId={null}
         notDraggable={notDraggable}
-        onDrop={onDropAction}
+        item={{
+          type: componentType,
+          isNew: true,
+        }}
       >
         <ToolbarItemComponent
           onClick={onClick}

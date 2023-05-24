@@ -12,7 +12,7 @@ import {
   FieldSet,
 } from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
-import { removeArrayElement } from 'app-shared/pure';
+import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 
 export interface RightMenuProps {
   addLanguage: (langCode: LangCode) => void;
@@ -34,7 +34,7 @@ export const RightMenu = ({
   const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) =>
     target.checked
       ? setSelectedLanguages([...selectedLanguages, target.name])
-      : setSelectedLanguages(removeArrayElement(selectedLanguages, target.name));
+      : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
 
   return (
     <aside className={classes.RightMenu__sidebar}>
