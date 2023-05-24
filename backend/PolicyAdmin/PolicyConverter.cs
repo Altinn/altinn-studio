@@ -147,9 +147,9 @@ namespace Altinn.Studio.PolicyAdmin
             {
                 return policyOutput;
             }
-           
+
             if (policyInput.Rules != null)
-            { 
+            {
                 foreach (PolicyRule rule in policyInput.Rules)
                 {
                     policyOutput.Rules.Add(ConvertRule(rule));
