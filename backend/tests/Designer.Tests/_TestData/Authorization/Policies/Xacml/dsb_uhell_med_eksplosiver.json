@@ -129,7 +129,6 @@
       ]
     }
   ],
-  "Obligations": null,
   "RequiredAuthenticationLevelEndUser": "2",
   "RequiredAuthenticationLevelOrg": null
 }

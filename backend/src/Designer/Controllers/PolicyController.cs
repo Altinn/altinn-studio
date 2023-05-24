@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
 {
-    [Route("api/[controller]")]
     [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/policy")]
     public class PolicyController : ControllerBase
     {
