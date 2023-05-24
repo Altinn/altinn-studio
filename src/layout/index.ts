@@ -21,6 +21,7 @@ import { Input } from 'src/layout/Input/index';
 import { InstanceInformation } from 'src/layout/InstanceInformation/index';
 import { InstantiationButton } from 'src/layout/InstantiationButton/index';
 import { Likert } from 'src/layout/Likert/index';
+import { Link } from 'src/layout/Link';
 import { List } from 'src/layout/List/index';
 import { Map } from 'src/layout/Map/index';
 import { MultipleSelect } from 'src/layout/MultipleSelect/index';
@@ -59,6 +60,7 @@ export const components = {
   InstanceInformation: new InstanceInformation(),
   InstantiationButton: new InstantiationButton(),
   Likert: new Likert(),
+  Link: new Link(),
   Map: new Map(),
   MultipleSelect: new MultipleSelect(),
   NavigationBar: new NavigationBar(),

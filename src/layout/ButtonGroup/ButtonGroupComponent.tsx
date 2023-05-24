@@ -14,6 +14,7 @@ export function ButtonGroupComponent({ node }: PropsFromGenericComponent<'Button
     <Grid
       item
       container
+      alignItems='center'
       className={classes.container}
       data-componentid={node.item.id}
     >

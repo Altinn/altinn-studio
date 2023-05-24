@@ -22,6 +22,7 @@ import type { ILayoutCompInput } from 'src/layout/Input/types';
 import type { ILayoutCompInstanceInformation } from 'src/layout/InstanceInformation/types';
 import type { ILayoutCompInstantiationButton } from 'src/layout/InstantiationButton/types';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
+import type { ILayoutCompLink } from 'src/layout/Link/types';
 import type { IDataModelBindingsForList, ILayoutCompList } from 'src/layout/List/types';
 import type { ILayoutCompMap } from 'src/layout/Map/types';
 import type { ILayoutCompMultipleSelect } from 'src/layout/MultipleSelect/types';
@@ -144,6 +145,7 @@ interface Map {
   InstantiationButton: ILayoutCompInstantiationButton;
   InstanceInformation: ILayoutCompInstanceInformation;
   Likert: ILayoutCompLikert;
+  Link: ILayoutCompLink;
   List: ILayoutCompList;
   Map: ILayoutCompMap;
   MultipleSelect: ILayoutCompMultipleSelect;
