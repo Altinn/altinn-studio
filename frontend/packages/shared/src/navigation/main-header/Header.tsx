@@ -32,17 +32,8 @@ export const getOrgUsernameByUsername = (username: string, orgs: IGiteaOrganisat
 };
 
 export function Header() {
-  console.log("Er i komponent Header"); // OK blir logget
-
-
   const { selectableOrgs } = React.useContext(HeaderContext);
-  console.log("Logger Header: HeaderContext");
-  console.log(HeaderContext); // Logger noe, men med undefined inni...
-
   const selectedContext = useSelectedContext();
-  console.log("Logger selectedContext");
-  console.log(selectedContext);
-
 
   return (
     <AppBar className={classes.appBar} position='static'>
