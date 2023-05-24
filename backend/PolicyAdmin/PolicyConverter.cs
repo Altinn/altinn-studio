@@ -139,17 +139,27 @@ namespace Altinn.Studio.PolicyAdmin
             return subject;
         }
 
-        public static XacmlPolicy ConvertPolicy(ResourcePolicy policyInput)
+        public static XacmlPolicy ConvertPolicy(ResourcePolicy? policyInput)
         {
-
             XacmlPolicy policyOutput = new XacmlPolicy(new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"), new Uri(XacmlConstants.CombiningAlgorithms.RuleDenyOverrides), new XacmlTarget(new List<XacmlAnyOf>()));
 
-            foreach (PolicyRule rule in policyInput.Rules)
+            if (policyInput == null)
             {
-                policyOutput.Rules.Add(ConvertRule(rule));
+                return policyOutput;
+            }
+           
+            if (policyInput.Rules != null)
+            { 
+                foreach (PolicyRule rule in policyInput.Rules)
+                {
+                    policyOutput.Rules.Add(ConvertRule(rule));
+                }
             }
 
-            policyOutput.ObligationExpressions.Add(GetAuthenticationLevelObligation(policyInput.RequiredAuthenticationLevelEndUser));
+            if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelEndUser))
+            {
+                policyOutput.ObligationExpressions.Add(GetAuthenticationLevelObligation(policyInput.RequiredAuthenticationLevelEndUser));
+            }
 
             if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelOrg))
             {
