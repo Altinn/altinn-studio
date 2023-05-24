@@ -124,22 +124,19 @@ describe('Group', () => {
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue).type('1');
     cy.get(appFrontend.group.newValue).type('0');
-    cy.get(appFrontend.fieldValidationError.replace('field', 'newValue')).should('have.text', texts.zeroIsNotValid);
+    cy.get(appFrontend.fieldValidation('newValue')).should('have.text', texts.zeroIsNotValid);
     cy.get(appFrontend.group.newValue).clear();
     cy.get(appFrontend.group.newValue).type('1');
-    cy.get(appFrontend.fieldValidationError.replace('field', 'newValue')).should('not.exist');
+    cy.get(appFrontend.fieldValidation('newValue')).should('not.exist');
     cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.addNewItem).should('not.exist');
     cy.get(appFrontend.group.comments).type('test');
     cy.get(appFrontend.group.comments).blur();
-    cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should(
-      'have.text',
-      texts.testIsNotValidValue,
-    );
+    cy.get(appFrontend.fieldValidation('comments')).should('have.text', texts.testIsNotValidValue);
     cy.get(appFrontend.group.comments).clear();
     cy.get(appFrontend.group.comments).type('automation');
-    cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should('not.exist');
+    cy.get(appFrontend.fieldValidation('comments')).should('not.exist');
     cy.get(appFrontend.group.subGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
     cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
     cy.get(appFrontend.group.saveSubGroup).clickAndGone();
@@ -303,18 +300,12 @@ describe('Group', () => {
 
     cy.get(appFrontend.group.saveMainGroup).click();
 
-    cy.get(appFrontend.fieldValidationError.replace('field', 'currentValue-0')).should(
-      'have.text',
-      texts.requiredFieldFromValue,
-    );
+    cy.get(appFrontend.fieldValidation('currentValue-0')).should('have.text', texts.requiredFieldFromValue);
 
     cy.findByLabelText(/1\. Endre fra/i).type('123');
     cy.get(appFrontend.group.saveMainGroup).click();
 
-    cy.get(appFrontend.fieldValidationError.replace('field', 'newValue-0')).should(
-      'have.text',
-      texts.requiredFieldToValue,
-    );
+    cy.get(appFrontend.fieldValidation('newValue-0')).should('have.text', texts.requiredFieldToValue);
 
     cy.get(appFrontend.group.mainGroup)
       .find(mui.tableBody)

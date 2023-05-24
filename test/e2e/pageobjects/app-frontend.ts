@@ -115,11 +115,9 @@ export class AppFrontend {
 
   public feedback = '#FeedbackContainer';
 
-  //field is a placeholder which has to be replaced with the selector value of the field
-  public fieldValidationError = '[id^="error_field"]';
-  public fieldValidationWarning = '[id^="warning_field"]';
-  public fieldValidationInfo = '[id^="info_field"]';
-  public fieldValidationSuccess = '[id^="success_field"]';
+  public fieldValidation(field: string, errorType: 'error' | 'warning' | 'info' | 'success' = 'error') {
+    return `[id^="${errorType}_${field.replace(/^#/, '')}"]`;
+  }
 
   //selectors for ttd/frontend-test app
   //message - task_1

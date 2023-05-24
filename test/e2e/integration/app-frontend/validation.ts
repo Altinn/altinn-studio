@@ -15,9 +15,10 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newFirstName).type('Some value');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
     cy.get(appFrontend.changeOfName.newFirstName).clear();
-    cy.get(
-      appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)),
-    ).should('have.text', texts.requiredFieldFromBackend);
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
+      'have.text',
+      texts.requiredFieldFromBackend,
+    );
 
     // Doing the same for any other field (without server-side required validation) should not show an error
     cy.get(appFrontend.changeOfName.newMiddleName).type('Some value');
@@ -25,9 +26,7 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newMiddleName).focus();
     cy.get(appFrontend.changeOfName.newMiddleName).clear();
     cy.get(appFrontend.changeOfName.newMiddleName).blur();
-    cy.get(
-      appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)),
-    ).should('not.exist');
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should('not.exist');
 
     cy.get(appFrontend.changeOfName.newFirstName).type('Some first name');
     cy.get(appFrontend.changeOfName.newMiddleName).type('Some middle name');
@@ -39,15 +38,9 @@ describe('Validation', () => {
 
     cy.get(appFrontend.nextButton).click();
 
-    cy.get(
-      appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)),
-    ).should('not.exist');
-
-    cy.get(
-      appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)),
-    ).should('not.exist');
-
-    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newLastName.substring(1))).should(
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should('not.exist');
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should('not.exist');
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newLastName)).should(
       'have.text',
       texts.requiredFieldLastName,
     );
@@ -58,7 +51,7 @@ describe('Validation', () => {
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
     cy.wait('@validateData');
-    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)))
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName))
       .should('have.text', texts.testIsNotValidValue)
       .then((error) => {
         cy.wrap(error).find('a[href="https://www.altinn.no/"]').should('exist');
@@ -70,9 +63,10 @@ describe('Validation', () => {
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newMiddleName).type('test');
     cy.wait('@validateData');
-    cy.get(
-      appFrontend.fieldValidationWarning.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)),
-    ).should('have.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName, 'warning')).should(
+      'have.text',
+      texts.testIsNotValidValue,
+    );
   });
 
   it('Soft validation - info', () => {
@@ -80,9 +74,10 @@ describe('Validation', () => {
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newMiddleName).type('info');
     cy.wait('@validateData');
-    cy.get(
-      appFrontend.fieldValidationInfo.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)),
-    ).should('have.text', texts.infoMessage);
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName, 'info')).should(
+      'have.text',
+      texts.infoMessage,
+    );
   });
 
   it('Soft validation - success', () => {
@@ -90,9 +85,10 @@ describe('Validation', () => {
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newMiddleName).type('success');
     cy.wait('@validateData');
-    cy.get(
-      appFrontend.fieldValidationSuccess.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)),
-    ).should('have.text', texts.successMessage);
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName, 'success')).should(
+      'have.text',
+      texts.successMessage,
+    );
   });
 
   it('Page validation on clicking next', () => {
@@ -119,10 +115,7 @@ describe('Validation', () => {
       .findAllByRole('button')
       .should('have.length', 4 + 3);
 
-    const lastNameError = appFrontend.fieldValidationError.replace(
-      'field',
-      appFrontend.changeOfName.newLastName.substring(1),
-    );
+    const lastNameError = appFrontend.fieldValidation(appFrontend.changeOfName.newLastName);
     cy.get(lastNameError).should('exist').should('not.be.inViewport');
     cy.get(appFrontend.changeOfName.newLastName).should('not.be.focused');
 
@@ -154,10 +147,7 @@ describe('Validation', () => {
   it('Validation on uploaded attachment type', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.png', { force: true });
-    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.upload.substring(1))).should(
-      'contain.text',
-      texts.attachmentError,
-    );
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.upload)).should('contain.text', texts.attachmentError);
   });
 
   it('Validation on uploaded attachment type with tag', () => {
@@ -174,11 +164,61 @@ describe('Validation', () => {
 
   it('Client side validation from json schema', () => {
     cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('a');
+
+    // Tests regex validation in schema
     cy.get(appFrontend.changeOfName.newLastName).type('client');
-    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newLastName.substring(1))).should(
-      'have.text',
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newLastName)).should('have.text', texts.clientSide);
+    cy.get(appFrontend.changeOfName.newLastName).clear();
+
+    // Tests max length validation in schema
+    cy.get(appFrontend.changeOfName.newMiddleName).type(
+      'very long middle name that is over 50 characters which is the limit',
+    );
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should(
+      'contain.text',
       texts.clientSide,
     );
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should(
+      'contain.text',
+      `The field value must be a string or array type with a maximum length of '50'`,
+    );
+
+    // Hiding the field should remove the validation
+    cy.get(appFrontend.changeOfName.newLastName).type('hideNext');
+    cy.get(appFrontend.changeOfName.newMiddleName).should('exist');
+    cy.changeLayout((component) => {
+      if (component.id === 'newMiddleName') {
+        component.hidden = ['equals', ['component', 'newLastName'], 'hideNext'];
+      }
+    });
+    cy.get(appFrontend.changeOfName.newMiddleName).should('not.exist');
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should('not.exist');
+
+    const expectedErrors = [
+      {
+        text: 'Bruk 60 eller færre tegn',
+        shouldFocus: 'changeNameTo_æøå',
+      },
+      {
+        text: 'Du må fylle ut dato for navneendring',
+        shouldFocus: 'dateOfEffect',
+      },
+      {
+        text: 'Du må fylle ut bekreftelse av navn',
+        shouldFocus: 'confirmChangeName',
+      },
+    ];
+
+    // Clicking the submit button should display all validation errors on the bottom, and clicking them
+    // should move focus to the correct elements in the form.
+    cy.get('#toNextTask').click();
+    cy.get(appFrontend.errorReport).find('li').should('have.length', expectedErrors.length);
+    for (const { text, shouldFocus } of expectedErrors) {
+      cy.get(appFrontend.errorReport).should('contain.text', text);
+      cy.get(`button:contains("${text}")`).click();
+      cy.focused().closest('[data-componentid]').should('have.attr', 'data-componentid', shouldFocus);
+    }
   });
 
   it('Task validation', () => {
@@ -208,16 +248,13 @@ describe('Validation', () => {
     // Create validation error
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.comments).type('test');
-    cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should(
-      'have.text',
-      texts.testIsNotValidValue,
-    );
+    cy.get(appFrontend.fieldValidation('comments')).should('have.text', texts.testIsNotValidValue);
     cy.get(appFrontend.errorReport).should('exist').should('be.visible');
 
     // Hide field that contains validation error and verify validation messages are gone
     cy.get(appFrontend.group.hideCommentField).find('input').dsCheck();
     cy.get(appFrontend.group.comments).should('not.exist');
-    cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should('not.exist');
+    cy.get(appFrontend.fieldValidation('comments')).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
   });
 
