@@ -31,6 +31,7 @@
         "required": true,
         "readOnly": false,
         "triggers": ["validation"],
+        "maxLength": 4,
         "grid": {
           "labelGrid": {
             "md": 6
@@ -287,7 +288,8 @@
           "simpleBinding": "Begrunnelse-grp-9317.BegrunnelseForNyttNavn-grp-9318.PersonFornavnAnnetBegrunnelse-datadef-34948.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "maxLength": 250
       },
       {
         "id": "reasonOthers",
