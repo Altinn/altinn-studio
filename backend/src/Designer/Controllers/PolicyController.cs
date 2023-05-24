@@ -72,6 +72,7 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(applicationPolicy);
         }
 
+        /// <summary>
         /// Puts the resource policy, url PUT "/designer/api/org/app/apppolicy
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
