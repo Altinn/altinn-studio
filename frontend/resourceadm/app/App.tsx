@@ -20,25 +20,13 @@ import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
 
 export const App = (): JSX.Element => {
 
-  // console.log("Er i App. Skal ha user og organizations");
-  
-  // 15.05.23: Ettersom dette er RESSURS-App så skal repo være definert om
-  // bruker og organisasjon er definert... men vi har bare en ARRAY av org så langt...
-  // ---> diskuterte med Rune: han sier dette er avhengig av knapp/link fra Dashboard
-  // men at han ville foretrukket at organisasjon blir tatt med fra Dashboard
-  // Rune sa også at det ikke finnes en BACKEND getCurrentOrg
-  // slik det er for getCurrentUser ---> noe med Gitea her også
-
   const { t } = useTranslation();
 
   const { data: user, isError: isUserError } = useUserQuery();
   const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 
-
   const componentIsReady = user && organizations;
   const componentHasError = isUserError || isOrganizationsError;
-
-
 
   const getErrorMessage = (): { title: string; message: string } => {
     const defaultTitle = 'Feil oppstod ved innlasting av';
@@ -66,12 +54,6 @@ export const App = (): JSX.Element => {
     return <ErrorMessage title={error.title} message={error.message} />;
   }
 
-
-  // 14.05.23: selve <Dashboard /> komponenten er en spagettiklump
-  // av starredRepos sammenfiltringer. Nesten umulig å gjenbruke.
-  // Muligens kan vi begynne med komponenten <RepoList /> og
-  // <OrgRepoList /> og så bygge opp fra bunn.
-
   if (componentIsReady) {
     return (
       <div className={classes.root}>
@@ -84,10 +66,6 @@ export const App = (): JSX.Element => {
           <Route element={<PageLayout />}>
             <Route path='/skatt/repo1'  element={ <ResourceDashboard user = {user} organizations={organizations} /> } />
           </Route>
-
-          <Route path='/skatt/repo2' element={ <TestPage /> } />
-
-          <Route path='/skatt/repo3' element={<PageLayout />}/>
 
           <Route path='/skatt/dummy1' element={ <RessurstilgangSide1 /> } />
 

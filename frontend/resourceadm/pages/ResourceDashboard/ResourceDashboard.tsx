@@ -20,7 +20,7 @@ import { Organization } from '../../services/organizationService';
 
 import { useGetStarredRepos } from '../../hooks/useRepoQueries'; // for tidlig
 // import { useGetStarredRepos } from 'dashboard/hooks/useRepoQueries';
-// prøver heller FavoriteRepos komponent... samme Context Provider feilmelding
+
 
 type ResourceDashboardProps = {
   user: User;
@@ -28,37 +28,12 @@ type ResourceDashboardProps = {
   disableDebounce?: boolean;
 };
 
-// Bygger her bit for bit: status er at Context Provider BUG
-// nå kan trigges av tekst inni SearchField...
-// ---> mulig at det er en BACKEND ting som ikke virker...
-// mens useGetStarredRepos() synes nå å virke --> console-log dette... nå LUNCH:
 export const ResourceDashboard = ({
   user,
   organizations,
   disableDebounce,
 }: ResourceDashboardProps) => {
-  console.log('Er i ResourceDashboard: skriver ut user og organizations:');
-  console.log(user);
-  console.log(organizations);
-
-  // Prøver få tak i starredRepos:
-  console.log('ResourceDashboard: Prøver få tak i starredRepos uten krasj:');
   const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useGetStarredRepos();
-
-  // Mulig at dette virket her: tester
-  if (isLoadingStarredRepos) {
-    console.log('Tester om isLoadingStarredRepos er true, synkront'); // er positiv på et stadium
-  } else {
-    console.log('isLoadingStarredRepos boolean er negativ');
-  }
-
-  // Mulig det mangler ting for å få tak i dette, user f.eks.
-  // Jepp, gir feilmeldingen Context Provider is missing... skal da være pakket rundt App?
-  // så er det hentingen som svikter? Noe async? Eller kanskje Øvrelids <T> svikter?
-
-  // const isLoadingStarredRepos = false; // hack to test render kode nedunder her: OK virker
-  // const starredRepos = ["abc", "def"]; // hack to test render kode: OK virker
-  // Kunne vel også sette starredRepos = []; altså tomt... nei, må Types...
 
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');

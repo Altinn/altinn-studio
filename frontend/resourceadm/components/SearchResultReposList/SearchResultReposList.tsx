@@ -11,7 +11,6 @@ type SearchResultReposList = {
   searchValue: string;
 };
 export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResultReposList) => {
-  console.log("Er i SearchResultReposList komponent");
   const { t } = useTranslation();
   const { searchResults, isLoadingSearchResults, sortModel, pageSize, setPageNumber, setSortModel, setPageSize } =
     useReposSearch({ keyword: searchValue });

@@ -5,10 +5,8 @@ import { useGetStarredRepos } from '../../hooks/useRepoQueries/useRepoQueries';
 
 export const FavoriteReposList = () => {
 
-  console.log("Er i FavoriteReposList");
-
   const { t } = useTranslation();
-  
+
   const { data: userStarredRepos, isLoading: isLoadingUserStarredRepos } = useGetStarredRepos();
 
   return (
