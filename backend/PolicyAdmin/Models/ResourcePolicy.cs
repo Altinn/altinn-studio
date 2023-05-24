@@ -6,8 +6,6 @@ namespace Altinn.Studio.PolicyAdmin.Models
     {
         public List<PolicyRule>? Rules { get; set; }
 
-        public List<PolicyObligation>? Obligations { get; set; }
-
         public string? RequiredAuthenticationLevelEndUser { get; set; }
 
         public string? RequiredAuthenticationLevelOrg { get; set; }
