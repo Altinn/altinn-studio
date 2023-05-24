@@ -93,9 +93,9 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("validate")]
-        public ActionResult ValidateAppPolicy(string org, string app, string resourceid)
+        public ActionResult ValidateAppPolicy(string org, string app)
         {
-            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
             ValidationProblemDetails vpd = ValidatePolicy(resourcePolicy);
