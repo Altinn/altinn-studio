@@ -19,6 +19,7 @@ const componentData: FormImageComponent = {
     src: {},
   },
   itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 const texts = {
   'ux_editor.modal_properties_image_src_value_label': 'Source',

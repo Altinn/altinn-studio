@@ -4,9 +4,9 @@ import '../styles/index.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import classes from './FormContainerHeader.module.css';
 import { ChevronUpIcon, TrashIcon, PencilIcon, ChevronDownIcon, XMarkIcon, CheckmarkIcon } from '@navikt/aksel-icons';
-import { DragHandle } from '../components/DragHandle';
-import { useText } from '../hooks/useText';
-import type { FormContainer } from '../types/global';
+import { DragHandle } from '../components/dragAndDrop/DragHandle';
+import { useText } from '../hooks';
+import type { FormContainer } from '../types/FormContainer';
 
 export interface IFormContainerHeaderProps {
   id: string;
@@ -19,7 +19,7 @@ export interface IFormContainerHeaderProps {
   handleEdit: (component: FormContainer) => void;
   handleSave: (id: string, updatedContainer: FormContainer) => Promise<void>;
   dragHandleRef: ConnectDragSource
-};
+}
 
 export const FormContainerHeader = memo(function FormContainerHeader({
   id,

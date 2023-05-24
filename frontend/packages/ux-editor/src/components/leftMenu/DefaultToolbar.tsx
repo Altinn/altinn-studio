@@ -4,21 +4,16 @@ import type { IToolbarElement } from '../../types/global';
 import { CollapsableMenus } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarGroup } from './ToolbarGroup';
-import { advancedComponents, schemaComponents, textComponents } from '..';
 import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../../utils/formLayoutUtils';
-import { useDispatch } from 'react-redux';
 
 import './DefaultToolbar.css';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../../selectors/formLayoutSelectors';
-import { useAddFormComponentMutation } from '../../hooks/mutations/useAddFormComponentMutation';
-import { useAddFormContainerMutation } from '../../hooks/mutations/useAddFormContainerMutation';
 import { useWidgetsQuery } from '../../hooks/queries/useWidgetsQuery';
+import { schemaComponents, textComponents, advancedItems } from '../../data/formItemConfig';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export function DefaultToolbar() {
-  const dispatch = useDispatch();
   const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);
   const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentType>(null);
   const [anchorElement, setAnchorElement] = useState<any>(null);
@@ -30,49 +25,17 @@ export function DefaultToolbar() {
   });
 
   const { t } = useTranslation();
-  const { order } = useFormLayoutsSelector(selectedLayoutSelector);
   const { org, app } = useParams();
   const { data: widgetsList } = useWidgetsQuery(org, app);
-  const addFormComponentMutation = useAddFormComponentMutation(org, app);
-  const addFormContainerMutation = useAddFormContainerMutation(org, app);
-  const componentList: IToolbarElement[] = schemaComponents.map(
-    (component) => mapComponentToToolbarElement(
-      component,
-      t,
-      order,
-      dispatch,
-      addFormComponentMutation,
-      addFormContainerMutation,
-    )
-  );
 
-  const textComponentList: IToolbarElement[] = textComponents.map(
-    (component) => mapComponentToToolbarElement(
-      component,
-      t,
-      order,
-      dispatch,
-      addFormComponentMutation,
-      addFormContainerMutation,
-    )
-  );
-
-  const advancedComponentsList: IToolbarElement[] = advancedComponents.map(
-    (component) => mapComponentToToolbarElement(
-      component,
-      t,
-      order,
-      dispatch,
-      addFormComponentMutation,
-      addFormContainerMutation,
-    )
-  );
-
+  const componentList: IToolbarElement[] = schemaComponents.map(mapComponentToToolbarElement);
+  const textComponentList: IToolbarElement[] = textComponents.map(mapComponentToToolbarElement);
+  const advancedComponentsList: IToolbarElement[] = advancedItems.map(mapComponentToToolbarElement);
   const widgetComponentsList: IToolbarElement[] = widgetsList.map(
-    (widget) => mapWidgetToToolbarElement(widget, order, t, dispatch)
+    (widget) => mapWidgetToToolbarElement(widget, t)
   );
 
-  const allComponentLists: any = {
+  const allComponentLists: KeyValuePairs<IToolbarElement[]> = {
     [CollapsableMenus.Components]: componentList,
     [CollapsableMenus.Texts]: textComponentList,
     [CollapsableMenus.AdvancedComponents]: advancedComponentsList,

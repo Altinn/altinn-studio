@@ -20,7 +20,8 @@ describe('useFormLayoutMutation', () => {
         [componentId]: {
           id: componentId,
           type: componentType,
-          itemType: 'COMPONENT'
+          itemType: 'COMPONENT',
+          dataModelBindings: {},
         }
       },
       containers: {
@@ -51,6 +52,7 @@ describe('useFormLayoutMutation', () => {
             {
               id: componentId,
               type: componentType,
+              dataModelBindings: {},
             }
           ]
         }

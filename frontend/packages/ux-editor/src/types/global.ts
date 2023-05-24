@@ -5,6 +5,7 @@ import { ComponentType } from '../components';
 import { ITextResource, ITextResources } from 'app-shared/types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from './FormComponent';
+import { FormContainer } from './FormContainer';
 
 export interface IFormDesignerNameSpace<T1, T2, T3> {
   formDesigner: T1;
@@ -20,16 +21,6 @@ export type IAppState = IFormDesignerNameSpace<
 export interface IOption {
   label: string;
   value: any;
-}
-
-export interface FormContainer {
-  id?: string;
-  index?: number;
-  itemType: 'CONTAINER';
-  dataModelBindings?: IDataModelBindings;
-  maxCount?: number;
-  textResourceBindings?: ITextResourceBindings;
-  tableHeaders?: string[];
 }
 
 export type ITextResourceBindings = KeyValuePairs<string>;
@@ -115,7 +106,6 @@ export interface IToolbarElement {
   label: string;
   icon?: string;
   type: ComponentType;
-  actionMethod: (containerId: string, position: number) => void;
 }
 
 export enum CollapsableMenus {

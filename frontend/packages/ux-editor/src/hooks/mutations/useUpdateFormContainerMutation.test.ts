@@ -2,7 +2,7 @@ import { waitFor } from '@testing-library/react';
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { UpdateFormContainerMutationArgs, useUpdateFormContainerMutation } from './useUpdateFormContainerMutation';
-import { FormContainer } from '../../types/global';
+import { FormContainer } from '../../types/FormContainer';
 import { container1IdMock, layout1Mock, layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:

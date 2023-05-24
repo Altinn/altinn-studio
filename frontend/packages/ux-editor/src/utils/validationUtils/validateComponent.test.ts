@@ -11,6 +11,7 @@ describe('validateComponent', () => {
         id: 'test',
         optionsId: 'test',
         options: [],
+        dataModelBindings: {},
       };
       expect(validateComponent(component)).toEqual({
         isValid: false,
@@ -28,6 +29,7 @@ describe('validateComponent', () => {
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
         ],
+        dataModelBindings: {},
       };
       expect(validateComponent(component)).toEqual({
         isValid: false,
@@ -45,6 +47,7 @@ describe('validateComponent', () => {
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
+        dataModelBindings: {},
       };
       expect(validateComponent(component)).toEqual({ isValid: true });
     });
@@ -58,6 +61,7 @@ describe('validateComponent', () => {
         id: 'test',
         optionsId: 'test',
         options: [],
+        dataModelBindings: {},
       };
       expect(validateComponent(component)).toEqual({
         isValid: false,
@@ -75,6 +79,7 @@ describe('validateComponent', () => {
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
         ],
+        dataModelBindings: {},
       };
       expect(validateComponent(component)).toEqual({
         isValid: false,
@@ -92,6 +97,7 @@ describe('validateComponent', () => {
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
+        dataModelBindings: {},
       };
       expect(validateComponent(component)).toEqual({ isValid: true });
     });
@@ -102,6 +108,7 @@ describe('validateComponent', () => {
       type: ComponentType.Paragraph,
       itemType: 'COMPONENT',
       id: 'test',
+      dataModelBindings: {},
     };
     expect(validateComponent(component)).toEqual({ isValid: true });
   });

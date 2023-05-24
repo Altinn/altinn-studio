@@ -13,6 +13,7 @@ const component: FormComponent = {
   id: 'test',
   itemType: 'COMPONENT',
   type: ComponentType.Paragraph,
+  dataModelBindings: {},
 };
 const defaultArgs: AddFormComponentMutationArgs = {
   component,
@@ -37,6 +38,7 @@ describe('useAddFormComponentMutation', () => {
             {
               id: component.id,
               type: component.type,
+              dataModelBindings: component.dataModelBindings,
             }
           ])
         })

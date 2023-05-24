@@ -14,6 +14,7 @@ export const component1Mock: FormComponent = {
   id: component1IdMock,
   type: component1TypeMock,
   itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 export const component2IdMock = 'Component-2';
 export const component2TypeMock = ComponentType.Paragraph;
@@ -21,6 +22,7 @@ export const component2Mock: FormComponent = {
   id: component2IdMock,
   type: component2TypeMock,
   itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 export const container1IdMock = 'Container-1';
 export const customRootPropertiesMock: KeyValuePairs = {

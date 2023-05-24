@@ -1,7 +1,13 @@
 import { IOption } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import type { FormComponent } from '../types/FormComponent';
-import type { FormCheckboxesComponent, FormRadioButtonsComponent } from '../types/FormComponent';
+import type {
+  FormCheckboxesComponent,
+  FormComponent,
+  FormRadioButtonsComponent
+} from '../types/FormComponent';
+import { ComponentType } from '../components';
+import { formItemConfigs } from '../data/formItemConfig';
+import { FormItem } from '../types/FormItem';
 
 export function getTextResourceByAddressKey(key: AddressKeys, t: (key: string) => string): string {
   switch (key) {
@@ -76,3 +82,14 @@ export const changeComponentOptionLabel = <T extends FormCheckboxesComponent | F
 
 export const generateRandomOption = (): IOption =>
   ({ label: '', value: generateRandomId(4) });
+
+/**
+ * Generates a component with the given type and id and all the required properties set to some default values.
+ * @param type The type of the component to generate.
+ * @param id The id of the component to generate.
+ * @returns A component of the given type.
+ */
+export const generateFormItem = <T extends ComponentType>(type: T, id: string): FormItem<T> => {
+  const { defaultProperties } = formItemConfigs[type];
+  return type === ComponentType.Group ? defaultProperties : { ...defaultProperties, id };
+};

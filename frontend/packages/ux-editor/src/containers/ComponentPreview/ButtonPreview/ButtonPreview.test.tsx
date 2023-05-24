@@ -24,7 +24,8 @@ describe('ButtonPreview', () => {
       },
       type: ComponentType.Button,
       onClickAction: () => {},
-      itemType: 'COMPONENT'
+      itemType: 'COMPONENT',
+      dataModelBindings: {},
     });
     expect(screen.getByRole('button', { name: sendInnText }));
   });
@@ -39,7 +40,8 @@ describe('ButtonPreview', () => {
       showBackButton: false,
       type: ComponentType.NavigationButtons,
       onClickAction: () => {},
-      itemType: 'COMPONENT'
+      itemType: 'COMPONENT',
+      dataModelBindings: {},
     });
     expect(screen.getByRole('button', { name: 'next' }));
   });
@@ -54,7 +56,8 @@ describe('ButtonPreview', () => {
       showBackButton: true,
       type: ComponentType.NavigationButtons,
       onClickAction: () => {},
-      itemType: 'COMPONENT'
+      itemType: 'COMPONENT',
+      dataModelBindings: {},
     });
     expect(screen.getByRole('button', { name: 'back' }));
   });
@@ -69,7 +72,8 @@ describe('ButtonPreview', () => {
       showBackButton: true,
       type: ComponentType.NavigationButtons,
       onClickAction: () => {},
-      itemType: 'COMPONENT'
+      itemType: 'COMPONENT',
+      dataModelBindings: {},
     });
     expect(screen.getByRole('button', { name: 'back' }));
     expect(screen.getByRole('button', { name: 'next' }));
