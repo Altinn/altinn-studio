@@ -1,26 +1,19 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useDebounce } from 'react-use';
 import { CenterContainer } from '../../components/CenterContainer';
 import { Footer } from '../../components/Footer';
-// import { FavoriteReposList } from '../../components/FavoriteReposList'; // Context BUG
-import { SearchResultReposList } from '../../components/SearchResultReposList';
 
-import classes from './ResourceDashboard.module.css'; // Styling må redigeres: fra Dashboard
+import classes from './ResourceDashboard.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { SearchField } from '@altinn/altinn-design-system'; // fra Dashboard
-import type { ChangeEvent, KeyboardEvent } from 'react'; // fra Dashboard
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react'; // fra Dashboard
-import { XMarkIcon } from '@navikt/aksel-icons'; // fra Dashboard
+import { SearchField } from '@altinn/altinn-design-system';
+import type { ChangeEvent, KeyboardEvent } from 'react';
+import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { User } from '../../services/userService';
 import { Organization } from '../../services/organizationService';
-
-import { useGetStarredRepos } from '../../hooks/useRepoQueries'; // for tidlig
-// import { useGetStarredRepos } from 'dashboard/hooks/useRepoQueries';
-
 
 type ResourceDashboardProps = {
   user: User;
@@ -33,14 +26,9 @@ export const ResourceDashboard = ({
   organizations,
   disableDebounce,
 }: ResourceDashboardProps) => {
-  const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useGetStarredRepos();
-
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
-
-  const [debouncedSearchText, setDebouncedSearchText] = useState(''); // brukt for dynamisk søk
-  useDebounce(() => setDebouncedSearchText(searchText), disableDebounce ? 1 : 500, [searchText]);
 
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);
@@ -94,43 +82,9 @@ export const ResourceDashboard = ({
         </div>
 
         <h3> Dette er RessursDashboard side pakket inn i TestPage </h3>
-
         <h5> bygger gradvis fra Dashboard mal. PageLayout krasjet i oppdatering 16.05.23</h5>
+        <h5> Vi ønsker muligens listefunksjonalitet her, som i RepoList og OrgRepoList, </h5>
 
-        <div>
-          User er nå : {user.login}
-          <br></br>
-          Orgs[0].length og .username (sikret mot null) :{' '}
-          {organizations[0] && (
-            <div>
-              {organizations.length} <br></br>
-              {organizations[0].username}
-            </div>
-          )}
-        </div>
-
-        <h5> Vi ønsker listefunksjonalitet her, som i RepoList og OrgRepoList, </h5>
-        <h5> og Repolist kan være et testsystem for å forstå repo bedre.</h5>
-        <h5> Trenger jo repo for siden generelt sett. Her kan også datastruktur bestemme.</h5>
-        <h5> Mulig at SearchResultReposList er en inngangsport også.</h5>
-
-        <div className={classes.repoList}>
-          Testtekst rød: er inni egen div .repoList og css. RepoList inn her.<br></br>
-          Prøver få inn noe starred greier her: <br></br>
-          {isLoadingStarredRepos && <h6>isLoadingStarredRepos er positiv her</h6>}
-          {!isLoadingStarredRepos && (
-            <div>
-              <h6>isLoadingStarredRepos er negativ her</h6>
-              <h6>Prøver få ut starredRepos.length:</h6>
-              {starredRepos.length}
-            </div>
-          )}
-          Prøvde også FavoriteRepoList: Context BUG blokkerte<br></br>
-          Prøver nå SearchResultReposList komponent:<br></br>
-          {debouncedSearchText && (
-            <SearchResultReposList searchValue={debouncedSearchText} starredRepos={starredRepos} />
-          )}
-        </div>
       </CenterContainer>
       <Footer />
     </>
