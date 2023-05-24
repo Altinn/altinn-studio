@@ -20,5 +20,6 @@
     }
   ],
   "Obligations": null,
-  "RequiredAuthenticationLevelEndUser": "3"
+  "RequiredAuthenticationLevelEndUser": "3",
+  "RequiredAuthenticationLevelOrg": null
 }

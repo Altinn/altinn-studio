@@ -18,16 +18,33 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Puts the application policy, url PUT "/designer/api/org/app/apppolicy
+        /// Gets the application policy, url Get "/designer/api/org/app/
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The updated application metadata</returns>
+        [HttpGet]
+        [Route("")]
+        public ActionResult GetAppPolicy(string org, string app)
+        {
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
+
+            ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
+
+            return Ok(resourcePolicy);
+        }
+
+
+        /// <summary>
+        /// Gets the resource policy, url PUT "/designer/api/org/app/{resoruceid}
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="resourceid">The resource Id for the connected policy</param>
         /// <returns>The updated application metadata</returns>
         [HttpGet]
-        [Route("")]
         [Route("{resourceid}")]
-        public ActionResult GetPolicy(string org, string app, string resourceid)
+        public ActionResult GetResourcePolicy(string org, string app, string resourceid)
         {
             XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
 
@@ -43,12 +60,28 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationPolicy">The application metadata</param>
-        /// <param name="resourceid">The resource Id for the connected policy</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
         [Route("")]
+        public ActionResult UpdateApplicationPolicy(string org, string app, [FromBody] ResourcePolicy applicationPolicy)
+        {
+            XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
+
+            _repository.SavePolicy(org, app, null, xacmlPolicy);
+
+            return Ok(applicationPolicy);
+        }
+
+        /// Puts the resource policy, url PUT "/designer/api/org/app/apppolicy
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="applicationPolicy">The application metadata</param>
+        /// <param name="resourceid">The resource Id for the connected policy</param>
+        /// <returns>The updated application metadata</returns>
+        [HttpPut]
         [Route("{resourceid}")]
-        public ActionResult UpdateApplicationPolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
+        public ActionResult UpdateResourcePolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
         {
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
@@ -58,9 +91,23 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("validate/{resourceid}")]
         [Route("validate")]
-        public ActionResult ValidatePolicy(string org, string app, string resourceid)
+        public ActionResult ValidateAppPolicy(string org, string app, string resourceid)
+        {
+            XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+
+            ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
+            ValidationProblemDetails vpd = ValidatePolicy(resourcePolicy);
+            if (vpd.Errors.Count == 0)
+            {
+                vpd.Status = 200;
+            }
+            return Ok(vpd);
+        }
+
+        [HttpGet]
+        [Route("validate/{resourceid}")]
+        public ActionResult ValidateResourcePolicy(string org, string app, string resourceid)
         {
             XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
 

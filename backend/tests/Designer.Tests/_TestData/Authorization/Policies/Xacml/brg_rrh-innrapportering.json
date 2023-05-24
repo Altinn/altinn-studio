@@ -176,5 +176,6 @@
     }
   ],
   "Obligations": null,
-  "RequiredAuthenticationLevelEndUser": "2"
+  "RequiredAuthenticationLevelEndUser": "2",
+  "RequiredAuthenticationLevelOrg": null
 }
