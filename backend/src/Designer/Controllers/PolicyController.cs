@@ -61,6 +61,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="applicationPolicy">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
+        [HttpPost]
         [Route("")]
         public ActionResult UpdateApplicationPolicy(string org, string app, [FromBody] ResourcePolicy applicationPolicy)
         {
@@ -80,6 +81,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="resourceid">The resource Id for the connected policy</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
+        [HttpPost]
         [Route("{resourceid}")]
         public ActionResult UpdateResourcePolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
         {
@@ -118,18 +120,6 @@ namespace Altinn.Studio.Designer.Controllers
                 vpd.Status = 200;
             }
             return Ok(vpd);
-        }
-
-        /// <summary>
-        /// Create an application metadata, url POST "/designer/api/org/app/metadata"
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The created application metadata</returns>
-        [HttpPost]
-        public ActionResult CreateApplicationPolicy(string org, string app)
-        {
-            return Created($"/designer/api/{org}/{app}/apppolicy", new ResourcePolicy());
         }
 
         private ValidationProblemDetails ValidatePolicy(ResourcePolicy policy)

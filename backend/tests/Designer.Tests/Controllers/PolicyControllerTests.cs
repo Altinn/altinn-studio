@@ -62,10 +62,37 @@ namespace Designer.Tests.Controllers
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
 
-            ResourcePolicy resourcePolicy = CreateTestPolicy("ttd", targetRepository);
+            ResourcePolicy resourcePolicy = CreateTestPolicy("ttd", targetRepository, null);
 
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/ttdres1";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            try
+            {
+                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
+        [Fact]
+        public async Task Create_ResourcePolicyOk()
+        {
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
+
+            ResourcePolicy resourcePolicy = CreateTestPolicy("ttd", targetRepository, "ttdres2");
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/ttdres2";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
 
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
 
@@ -272,7 +299,7 @@ namespace Designer.Tests.Controllers
 
 
 
-        private ResourcePolicy CreateTestPolicy(string org, string app)
+        private ResourcePolicy CreateTestPolicy(string org, string app, string resourceid = null)
         {
             ResourcePolicy policy = new ResourcePolicy();
 
@@ -283,8 +310,16 @@ namespace Designer.Tests.Controllers
             rule1.Resources = new List<List<string>>();
 
             List<string> resourceSet1 = new List<string>();
-            resourceSet1.Add(AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute + ":" + org);
-            resourceSet1.Add(AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute + ":" + app);
+            if (resourceid == null)
+            {
+                resourceSet1.Add(AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute + ":" + org);
+                resourceSet1.Add(AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute + ":" + app);
+            }
+            else
+            {
+                resourceSet1.Add(AltinnXacmlConstants.MatchAttributeIdentifiers.ResourceRegistryResource + ":" + resourceid);
+            }
+
             rule1.Resources.Add(resourceSet1);
 
             rule1.Actions = new List<string>();
