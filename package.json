@@ -92,7 +92,7 @@
     "eslint-plugin-testing-library": "^5.10.2",
     "eslint-plugin-unused-imports": "^2.0.0",
     "execa": "7.1.1",
-    "fork-ts-checker-notifier-webpack-plugin": "6.0.0",
+    "fork-ts-checker-notifier-webpack-plugin": "7.0.0",
     "fork-ts-checker-webpack-plugin": "8.0.0",
     "html-react-parser": "3.0.16",
     "http-server": "^14.1.1",
