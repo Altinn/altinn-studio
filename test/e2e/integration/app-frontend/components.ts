@@ -54,10 +54,7 @@ describe('UI Components', () => {
       cy.wrap(table).find(mui.tableBody).find(mui.tableElement).eq(1).should('have.text', 'Adresse');
       cy.wrap(table).find(mui.tableBody).find(mui.tableElement).last().find('button').click();
     });
-    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow)
-      .find('button:contains("Slett")')
-
-      .click();
+    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).find('button:contains("Slett")').click();
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('not.exist');
   });
 

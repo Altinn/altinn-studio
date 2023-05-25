@@ -47,7 +47,7 @@ Cypress.Commands.add('navPage', (page: string) => {
     const pageAsRegex = escapeRegex(page);
     const regex = new RegExp(`^([0-9]+. )?${pageAsRegex}$`);
 
-    if (win.innerWidth <= 768) {
+    if (win.innerWidth < 768) {
       cy.get(appFrontend.navMobileMenu).should('have.attr', 'aria-expanded', 'false').click();
     }
     cy.get(appFrontend.navMenu).findByText(regex);

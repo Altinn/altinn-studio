@@ -131,7 +131,6 @@ describe('Validation', () => {
     // Go to the summary page
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get(appFrontend.errorReport)
-
       .should('contain.text', texts.errorReport)
       .should('contain.text', texts.requiredFieldLastName)
       .should('contain.text', texts.requiredFieldDateFrom);

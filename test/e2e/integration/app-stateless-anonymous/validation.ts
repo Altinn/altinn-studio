@@ -18,7 +18,6 @@ describe('Validation in anonymous stateless app', () => {
     cy.get(appFrontend.stateless.name).should('be.visible');
     cy.get(nameError).should('have.text', texts.requiredFieldName);
     cy.get(appFrontend.errorReport)
-
       .should('be.inViewport')
       .should('contain.text', texts.errorReport)
       .should('contain.text', texts.requiredFieldName);

@@ -3,8 +3,12 @@ import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function nodesFromGrid(grid: LayoutNodeFromType<'Grid'>): LayoutNode[] {
+  return nodesFromGridRows(grid.item.rows);
+}
+
+export function nodesFromGridRows(rows: GridRow<GridComponent>[]): LayoutNode[] {
   const out: LayoutNode[] = [];
-  for (const row of grid.item.rows) {
+  for (const row of rows) {
     if (isGridRowHidden(row)) {
       continue;
     }

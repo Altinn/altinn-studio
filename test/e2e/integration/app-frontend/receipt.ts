@@ -11,7 +11,6 @@ describe('Receipt', () => {
     cy.goto('confirm', 'with-data');
     cy.get(appFrontend.confirm.sendIn).click();
     cy.get(appFrontend.receipt.container)
-
       .find(mui.tableBody)
       .then((table) => {
         cy.wrap(table).should('exist').and('be.visible');
