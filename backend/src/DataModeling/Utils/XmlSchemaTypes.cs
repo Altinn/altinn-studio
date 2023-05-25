@@ -281,4 +281,28 @@ public static class XmlSchemaTypes
         GYearMonth,
         Time
     };
+
+    public static IEnumerable<string> IntegerDataTypes => new List<string>
+    {
+        Integer,
+        NonNegativeInteger,
+        PositiveInteger,
+        NonPositiveInteger,
+        NegativeInteger,
+        Byte,
+        Int,
+        Long,
+        Short,
+        UnsignedByte,
+        UnsignedInt,
+        UnsignedLong,
+        UnsignedShort
+    };
+
+    public static IEnumerable<string> NumbericTypesWithFractions => new List<string>
+    {
+        Decimal,
+        Float,
+        Double
+    };
 }

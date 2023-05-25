@@ -1474,29 +1474,40 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private static XmlQualifiedName SetType(SchemaValueType type, Format format, string xsdType)
         {
-            if (string.IsNullOrWhiteSpace(xsdType))
+            if (string.IsNullOrWhiteSpace(xsdType) || !TypeAndXsdTypeAreCompatible(type, xsdType))
             {
-                switch (type)
-                {
-                    case SchemaValueType.Boolean:
-                        xsdType = "boolean";
-                        break;
-                    case SchemaValueType.String:
-                        xsdType = GetStringTypeFromFormat(format);
-                        break;
-                    case SchemaValueType.Number:
-                        xsdType = "double";
-                        break;
-                    case SchemaValueType.Integer:
-                        xsdType = "long";
-                        break;
-                    default:
-                        xsdType = "string"; // Fallback to open string value
-                        break;
-                }
+                xsdType = GetXsdType(type, format);
             }
 
             return new XmlQualifiedName(xsdType, KnownXmlNamespaces.XmlSchemaNamespace);
+        }
+
+        private static bool TypeAndXsdTypeAreCompatible(SchemaValueType type, string xsdType)
+        {
+            return type switch
+            {
+                SchemaValueType.Boolean => xsdType == XmlSchemaTypes.Boolean,
+                SchemaValueType.String => XmlSchemaTypes.AllKnownTypes
+                    .Except(XmlSchemaTypes.IntegerDataTypes)
+                    .Except(XmlSchemaTypes.NumbericTypesWithFractions)
+                    .Except(new List<string>{XmlSchemaTypes.Boolean})
+                    .Contains(xsdType),
+                SchemaValueType.Number => XmlSchemaTypes.NumbericTypesWithFractions.Contains(xsdType),
+                SchemaValueType.Integer => XmlSchemaTypes.IntegerDataTypes.Contains(xsdType),
+                _ => false
+            };
+        }
+
+        private static string GetXsdType(SchemaValueType type, Format format)
+        {
+            return type switch
+            {
+                SchemaValueType.Boolean => "boolean",
+                SchemaValueType.String => GetStringTypeFromFormat(format),
+                SchemaValueType.Number => "double",
+                SchemaValueType.Integer => "long",
+                _ => "string" // Fallback to open string value
+            };
         }
 
         private static string GetStringTypeFromFormat(Format format)
