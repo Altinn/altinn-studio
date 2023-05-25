@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Altinn.Studio.PolicyAdmin</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.5" />
+  </ItemGroup>
+
+</Project>

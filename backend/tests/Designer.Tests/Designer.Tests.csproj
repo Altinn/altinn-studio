@@ -56,6 +56,13 @@
     <None Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="_TestData\Authorization\Policies\Xacml\brg_rrh-innrapportering.xml" />
+    <None Remove="_TestData\Authorization\Policies\Xacml\dsb_uhell_med_eksplosiver.xml" />
+    <None Remove="_TestData\Authorization\Policies\Xacml\hmrhf_newsamhandlingsavik.xml" />
+    <None Remove="_TestData\Authorization\Policies\Xacml\krt_krt-1012a-1.xml" />
+    <None Remove="_TestData\Authorization\Policies\Xacml\skd_mva-melding-innsending-v1.xml" />
+    <None Remove="_TestData\Authorization\Policies\Xacml\skd_sirius_skattemelding_sit_tk.xml" />
+    <None Remove="_TestData\Authorization\Policies\Xacml\ssb_ra1000-01.xml" />
     <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\directoryList.json" />
     <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\resource.en.json" />
     <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\resource.nb.json" />
@@ -81,9 +88,6 @@
     <None Remove="_TestData\Model\Xsd\restriction-max-min-integer.xsd" />
     <None Remove="_TestData\Remote\ttd\apps-test\App\config\authorization\policy.xml" />
     <None Remove="_TestData\RepoCollection\Repositories.json" />
-    <None Remove="_TestData\Repositories\testUser\ttd\ttd-resources\App\appsettings.json" />
-    <None Remove="_TestData\Repositories\testUser\ttd\ttd-resources\App\config\applicationmetadata.json" />
-    <None Remove="_TestData\Repositories\testUser\ttd\ttd-resources\App\config\authorization\policy.xml" />
     <None Remove="_TestData\Repositories\testUser\ttd\empty-app\App\config\applicationmetadata.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\empty-app\README.md" />
     <None Remove="_TestData\Remote\ttd\existing-repo\content.json" />
@@ -92,6 +96,10 @@
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\35721.xsd" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\App\models\41111.xsd" />
+    <None Remove="_TestData\Repositories\testUser\ttd\ttd-resources\ttdres1\ttdres1-policy.xml" />
+    <None Remove="_TestData\Repositories\testUser\ttd\ttd-resources\ttdres1\ttdres1-resource.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\ttd-resources\ttdres2\ttdres2-policy0.xml" />
+    <None Remove="_TestData\Repositories\testUser\ttd\ttd-resources\ttdres2\ttdres2-resource.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_ExternalTypes.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_FlatNoTypes.schema.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\xyz-datamodels\Studio\HvemErHvem_InternalTypes.schema.json" />

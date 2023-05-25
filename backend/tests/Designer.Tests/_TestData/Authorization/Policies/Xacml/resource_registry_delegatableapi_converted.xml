@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xacml:Policy PolicyId="urn:altinn:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
+  <xacml:Target />
+  <xacml:Rule RuleId="urn:altinn:resource:altinn_maskinporten_scope_delegation:ruleid:1" Effect="Permit">
+    <xacml:Description>SystemResource policy for resource; altinn_maskinporten_scope_delegation for roles; APIADM, APIADMNUF and HADM to have access to actions; read and write</xacml:Description>
+    <xacml:Target>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">APIADM</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">APIADMNUF</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">HADM</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">altinn_maskinporten_scope_delegation</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:resource" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">write</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false" />
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+    </xacml:Target>
+  </xacml:Rule>
+  <xacml:ObligationExpressions>
+    <xacml:ObligationExpression ObligationId="urn:altinn:obligation:authenticationLevel1" FulfillOn="Permit">
+      <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation1-assignment1" Category="urn:altinn:minimum-authenticationlevel">
+        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">3</xacml:AttributeValue>
+      </xacml:AttributeAssignmentExpression>
+    </xacml:ObligationExpression>
+  </xacml:ObligationExpressions>
+</xacml:Policy>
