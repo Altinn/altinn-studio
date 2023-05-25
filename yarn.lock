@@ -2849,10 +2849,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:2.9.8":
-  version: 2.9.8
-  resolution: "@navikt/aksel-icons@npm:2.9.8"
-  checksum: 75d49e382b11e79995daa622aa9405c6b7c1857a4a865aee92462f65346adbcf130cd369fb4550e31e558985d31a6f14b9d754a91d5329c9cdd3944490cb94ea
+"@navikt/aksel-icons@npm:3.2.2":
+  version: 3.2.2
+  resolution: "@navikt/aksel-icons@npm:3.2.2"
+  checksum: 3ea28780da15a186ddbcaa79b9dc727c756da2cf5ef658af99cb3122c15c37df50adda46a7641ec7e1122ecca174c8905530225f07ba104bb667a7b8f0f216b8
   languageName: node
   linkType: hard
 
@@ -5026,7 +5026,7 @@ __metadata:
     "@emotion/react": 11.11.0
     "@emotion/styled": 11.11.0
     "@microsoft/signalr": 7.0.5
-    "@navikt/aksel-icons": 2.9.8
+    "@navikt/aksel-icons": 3.2.2
     "@redux-saga/is": 1.1.3
     "@redux-saga/symbols": 1.1.3
     "@svgr/webpack": 7.0.0

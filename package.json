@@ -2,7 +2,7 @@
   "name": "altinn-studio",
   "dependencies": {
     "@microsoft/signalr": "7.0.5",
-    "@navikt/aksel-icons": "2.9.8",
+    "@navikt/aksel-icons": "3.2.2",
     "@tanstack/react-query-devtools": "4.29.6",
     "react-i18next": "12.2.2",
     "react-router-dom": "6.11.1"
