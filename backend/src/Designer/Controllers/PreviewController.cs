@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Web;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
@@ -273,7 +274,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>bool</returns>
         [HttpPost]
         [Route("api/v1/parties/validateInstantiation")]
-        public IActionResult ValidateInstantiation([FromQuery] string partyId)
+        public IActionResult ValidateInstantiation()
         {
             return Content(@"{""valid"": true}");
         }
@@ -307,7 +308,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<Instance>> Instances(string org, string app, [FromQuery] int? instanceOwnerPartyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, instanceOwnerPartyId);
+            string refererHeader = Request.Headers["Referer"];
+            string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, instanceOwnerPartyId, layoutSetName);
             return Ok(mockInstance);
         }
 
@@ -322,7 +325,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<string>> GetInstanceId(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, PartyId);
+            string refererHeader = Request.Headers["Referer"];
+            string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, PartyId, layoutSetName);
             return Ok(mockInstance.Id);
         }
 
@@ -335,12 +340,13 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> GetFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string currentTask = _previewService.ConvertTaskNumberToString(partyId != 51001 ? partyId : 1);
-            DataType dataType = await _previewService.GetDataTypeForTask(org, app, developer, currentTask);
+            string refererHeader = Request.Headers["Referer"];
+            string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+            DataType dataType = await _previewService.GetDataTypeForLayoutSetName(org, app, developer, layoutSetName);
             // For apps that does not have a datamodel
             if (dataType == null)
             {
-                Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId);
+                Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
                 return Ok(mockInstance.Id);
             }
             string modelPath = $"/App/models/{dataType.Id}.schema.json";
@@ -354,11 +360,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>Json schema for datamodel for the current data task in the process</returns>
         [HttpPut]
-        [Route("instances/{partyId}/{instanceGuid}/data/{currentDataTaskId}")]
-        public ActionResult UpdateFormData(string org, string app)
+        [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
+        public async Task<ActionResult> UpdateFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid)
         {
-            // TODO: Implement with payload from app-frontend
-            return Ok();
+            return await GetFormData(org, app, partyId + 1, instanceGuid);
         }
 
         /// <summary>
@@ -370,7 +375,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> Process(string org, string app, [FromRoute] int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId);
+            string refererHeader = Request.Headers["Referer"];
+            string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
             return Ok(mockInstance.Process);
         }
 
@@ -383,12 +390,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<Instance>> InstanceForNextTask(string org, string app, [FromRoute] int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            int task = partyId;
-            if (partyId != 51001)
-            {
-                task += 1;
-            }
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, task);
+            string refererHeader = Request.Headers["Referer"];
+            string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
             return Ok(mockInstance);
         }
 
@@ -436,12 +440,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> ProcessNext(string org, string app, [FromRoute] int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            int task = partyId;
-            if (partyId != 51001)
-            {
-                task += 1;
-            }
-            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, task);
+            string refererHeader = Request.Headers["Referer"];
+            string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
             return Ok(mockInstance.Process);
         }
 
@@ -451,21 +452,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Process object where ended is set</returns>
         [HttpPut]
         [Route("instances/{partyId}/{instanceGuId}/process/next")]
-        public async Task<ActionResult> ProcessNext(string org, string app, [FromRoute] int partyId, [FromQuery] string lang)
+        public ActionResult ProcessNext(string org, string app, [FromRoute] int partyId, [FromQuery] string lang)
         {
             string endProcess = @"{""ended"": ""ended""}";
-            // Try to get new mocked instance for next task and if datatype is null, aka if task_X does not exist, return process ended
-            // TODO: Might act wierd if previewing a multi process app without datamodel
-            if (partyId != 51001)
-            {
-                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId + 1);
-                if (mockInstance.Data[0].DataType == null)
-                {
-                    return Ok(endProcess);
-                }
-                return Ok(mockInstance.Process);
-            }
             return Ok(endProcess);
         }
 
@@ -693,13 +682,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="optionListId">The id of the options list</param>
+        /// <param name="language">The language for the options list</param>
+        /// <param name="source">The source of the options list</param>
         /// <returns>The options list if it exists, otherwise nothing</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuid}/options/{optionListId}")]
-        public async Task<ActionResult<string>> GetOptionsForInstance(string org, string app, string optionListId)
+        public async Task<ActionResult<string>> GetOptionsForInstance(string org, string app, string optionListId, [FromQuery] string language, [FromQuery] string source)
         {
             try
             {
+                // TODO: Need code to get external options list based on language and source
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
                 string options = await altinnAppGitRepository.GetOptions(optionListId);
@@ -709,6 +701,18 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NoContent();
             }
+        }
+
+        private string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
+        {
+            string layoutSetName = null;
+            if (refererHeader.Contains("selectedLayoutSetInEditor"))
+            {
+                Uri refererUri = new (refererHeader);
+                layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSetInEditor"];
+            }
+
+            return layoutSetName;
         }
     }
 }

@@ -17,6 +17,8 @@ export const LandingPage = () => {
   const selectedLayoutInEditor = localStorage.getItem(instanceId);
   const localSelectedViewSize = localStorage.getItem('viewSize');
   const [viewSize, setViewSize] = useState<string>(localSelectedViewSize ?? 'desktop');
+  const selectedLayoutSetInEditor = localStorage.getItem('layoutSetName');
+
 
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
@@ -70,7 +72,7 @@ export const LandingPage = () => {
           <iframe
             title={t('preview.iframe_title')}
             id='app-frontend-react-iframe'
-            src={`/designer/html/preview.html?${stringify({ org, app })}`}
+            src={`/designer/html/preview.html?${stringify({ org, app, selectedLayoutSetInEditor })}`}
             className={viewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           ></iframe>
           {viewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}

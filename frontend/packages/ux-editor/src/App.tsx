@@ -101,6 +101,7 @@ export function App() {
 
   useEffect(() => {
     localStorage.setItem(instanceId, selectedLayout);
+    localStorage.setItem('layoutSetName', '');
   }, [selectedLayout, instanceId]);
 
   if (componentHasError) {

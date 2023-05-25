@@ -25,25 +25,12 @@ public class PreviewService : IPreviewService
     }
 
     /// <inherit />
-    public async Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId)
+    public async Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId, string layoutSetName)
     {
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
-        try
-        {
-            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
-            if (layoutSets.Sets is { Count: > 0 } && instanceOwnerPartyId == 51001)
-            {
-                // Convert partyId into task counter if app uses layout sets
-                instanceOwnerPartyId = 1;
-            }
-        }
-        catch (NotFoundException)
-        {
-        }
-
-        string currentTask = instanceOwnerPartyId == 51001 ? "Task_1" : ConvertTaskNumberToString(instanceOwnerPartyId);
-        DataType dataType = await GetDataTypeForTask(org, app, developer, currentTask);
+        DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName);
+        string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName);
         // RegEx for instance guid in app-frontend: [\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}
         string instanceGuid = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
         Instance instance = new()
@@ -55,7 +42,7 @@ public class PreviewService : IPreviewService
             { new ()
                 // All data types attached to the current task in the process model should be added here
                     {
-                        DataType = dataType?.Id,
+                        DataType = dataType.Id,
                         Id = "test-datatask-id"
                     }
                 },
@@ -65,7 +52,7 @@ public class PreviewService : IPreviewService
                 CurrentTask = new()
                 {
                     AltinnTaskType = "data",
-                    ElementId = currentTask
+                    ElementId = task
                 }
             }
         };
@@ -73,15 +60,16 @@ public class PreviewService : IPreviewService
     }
 
     /// <summary>
-    /// Gets the datatype from application metadata that corresponds to the current data task in the process
+    /// Gets the datatype from application metadata that corresponds to the current data task in the process based on the current layout set name
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="app">Repository</param>
     /// <param name="developer">Username of developer</param>
-    /// <param name="task">Current task in process</param>
-    public async Task<DataType> GetDataTypeForTask(string org, string app, string developer, string task)
+    /// <param name="layoutSetName">LayoutSetName to get dataType for</param>
+    public async Task<DataType> GetDataTypeForLayoutSetName(string org, string app, string developer, string layoutSetName)
     {
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName);
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         if (applicationMetadata.DataTypes is { Count: > 0 })
         {
@@ -91,8 +79,23 @@ public class PreviewService : IPreviewService
         return null;
     }
 
-    public string ConvertTaskNumberToString(int? currentTask)
+    /// <summary>
+    /// Gets the task connected to the current layout set name in the layout sets file
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="app">Repository</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="layoutSetName">LayoutSetName to get dataType for</param>
+    /// <returns></returns>
+    private async Task<string> GetTaskForLayoutSetName(string org, string app, string developer, string layoutSetName)
     {
-        return $"Task_{currentTask.ToString()}";
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        string task = "Task_1";
+        if (!string.IsNullOrEmpty(layoutSetName))
+        {
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+            task = layoutSets?.Sets?.Find(element => element.Id == layoutSetName).Tasks[0];
+        }
+        return task;
     }
 }
