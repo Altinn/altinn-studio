@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
         private const string LAYOUT_SETS_FILENAME = "layout-sets.json";
-        private const string RULE_HANDLER_FILENAME = "ruleHandler.js";
+        private const string RULE_HANDLER_FILENAME = "RuleHandler.js";
         private const string RULE_CONFIGURATION_FILENAME = "RuleConfiguration.json";
 
         private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
