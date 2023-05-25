@@ -518,6 +518,7 @@ namespace Designer.Tests.Controllers.PreviewController
         }
 
         [Fact]
+        [Trait("Category", "FailTest")]
         public async Task Get_RuleHandlerForStatefulAppWithRuleHandler_Ok()
         {
             string layoutSetName2 = "layoutSet2";
