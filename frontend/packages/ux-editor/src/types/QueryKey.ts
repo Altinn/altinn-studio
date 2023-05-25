@@ -6,4 +6,5 @@ export enum QueryKey {
   RuleConfig = 'RuleConfig',
   RuleHandler = 'RuleHandler',
   Widgets = 'Widgets',
+  OptionListIds = 'OptionListIds',
 }
