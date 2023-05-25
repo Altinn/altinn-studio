@@ -22,4 +22,5 @@ export enum QueryKey {
   TextLanguages = 'TextLanguages',
   TextResources = 'TextResources',
   Widgets = 'Widgets',
+  OptionListIds = 'OptionListIds',
 }
