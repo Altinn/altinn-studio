@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.Encodings.Web;
@@ -18,6 +19,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
 using SharedResources.Tests;
 using Xunit;
+using Xunit.Abstractions;
 using YamlDotNet.Core;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using TextResource = Altinn.Studio.Designer.Models.TextResource;
@@ -41,8 +43,11 @@ namespace Designer.Tests.Controllers.PreviewController
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
-        public PreviewControllerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        private ITestOutputHelper _outputHelper;
+
+        public PreviewControllerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory, ITestOutputHelper outputHelper) : base(factory)
         {
+            _outputHelper = outputHelper;
         }
 
         [Fact]
@@ -521,6 +526,13 @@ namespace Designer.Tests.Controllers.PreviewController
         [Trait("Category", "FailTest")]
         public async Task Get_RuleHandlerForStatefulAppWithRuleHandler_Ok()
         {
+            var testDir = TestRepositoriesLocation + $"/testUser/{Org}/{StatefulApp}/App/ui/layoutSet2";
+
+            var allFiles = Directory.GetFiles(testDir, "*", SearchOption.AllDirectories);
+            _outputHelper.WriteLine("All files in test dir:");
+            _outputHelper.WriteLine(string.Join("\n", allFiles));
+
+
             string layoutSetName2 = "layoutSet2";
 
             string dataPathWithData = $"{Org}/{StatefulApp}/api/rulehandler/{layoutSetName2}";
