@@ -49,8 +49,8 @@ public class PostTests : DatamodelsControllerTestsBase<PostTests>
         // Try to read back the created schema to verify it's stored
         // at the location provided in the post response
         var location = postResponse.Headers.Location;
-        var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
-        var getResponse = await HttpClient.Value.SendAsync(getRequestMessage);
+        using var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
+        using var getResponse = await HttpClient.Value.SendAsync(getRequestMessage);
         string getContent = await getResponse.Content.ReadAsStringAsync();
         var getJsonSchema = JsonSchema.FromText(getContent);
         Assert.NotNull(getJsonSchema);
