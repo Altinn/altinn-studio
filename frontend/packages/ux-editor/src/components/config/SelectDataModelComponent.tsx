@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Select from 'react-select';
 import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
 import { useParams } from 'react-router-dom';
@@ -30,13 +30,11 @@ export const SelectDataModelComponent = ({
   noOptionsMessage,
   selectGroup,
 }: ISelectDataModelProps) => {
-  const [selectedBinding, setSelectedBinding] = useState(selectedElement);
   const { org, app } = useParams();
   const datamodelQuery = useDatamodelQuery(org, app);
   const dataModelElements = datamodelQuery?.data ?? [];
 
   const onChangeSelectedBinding = (e: any) => {
-    setSelectedBinding(e.value);
     onDataModelChange(e.value);
   };
 
@@ -56,7 +54,7 @@ export const SelectDataModelComponent = ({
         inputId={inputId}
         styles={selectStyles}
         options={dataModelElementNames}
-        defaultValue={{ value: selectedBinding, label: selectedBinding }}
+        value={{ value: selectedElement, label: selectedElement }}
         onChange={onChangeSelectedBinding}
         noOptionsMessage={(): string => noOptionsMessage}
       />

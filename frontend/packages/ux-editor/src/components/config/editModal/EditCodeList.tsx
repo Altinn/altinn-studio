@@ -4,12 +4,6 @@ import { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import type { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
 
-export enum SelectedOptionsType {
-  Codelist = 'codelist',
-  Manual = 'manual',
-  Unknown = '',
-}
-
 export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
   const t = useText();
 

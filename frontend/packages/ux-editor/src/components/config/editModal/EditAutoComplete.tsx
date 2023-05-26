@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import {
   TextField,
@@ -71,7 +71,12 @@ const stdAutocompleteOpts = [
 
 export const EditAutoComplete = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const [searchFieldFocused, setSearchFieldFocused] = useState<boolean>(false);
-  const [autocompleteText, setAutocompleteText] = useState<string>(component?.autocomplete || '');
+  const initialAutocompleteText = component?.autocomplete || '';
+  const [autocompleteText, setAutocompleteText] = useState<string>(initialAutocompleteText);
+
+  useEffect(() => {
+    setAutocompleteText(initialAutocompleteText);
+  }, [initialAutocompleteText]);
 
   const autoCompleteOptions = useMemo((): string[] => {
     const lastWord = getLastWord(autocompleteText);
