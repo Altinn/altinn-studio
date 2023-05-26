@@ -60,7 +60,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 return await _httpClient.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
             });
 
-            return JsonSerializer.Deserialize<Application>(content, JSON_OPTIONS);
+            return JsonSerializer.Deserialize<Application>(content!, JSON_OPTIONS);
         }
 
         public async Task<TextResource?> GetTextResource(string org, string app, string language)
@@ -71,7 +71,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 return await _httpClient.GetStringAsync($"{org}/{app}/api/v1/texts/{language}");
             });
 
-            var textResource = JsonSerializer.Deserialize<TextResource>(content, JSON_OPTIONS);
+            var textResource = JsonSerializer.Deserialize<TextResource>(content!, JSON_OPTIONS);
             if (textResource != null)
             {
                 textResource.Id = $"{org}-{app}-{language}";

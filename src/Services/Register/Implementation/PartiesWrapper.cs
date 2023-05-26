@@ -53,10 +53,10 @@ namespace LocalTest.Services.Register.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<Party>> GetPartyList(List<int> partyIds)
+        public async Task<List<Party?>> GetPartyList(List<int> partyIds)
         {
             var data = await _testDataService.GetTestData();
-            List<Party> filteredList = new List<Party>();
+            List<Party?> filteredList = new List<Party?>();
             foreach (int partyId in partyIds.Distinct())
             {
                 Party? party = data.Register.Party.TryGetValue(partyId.ToString()!, out var value) ? value : null;

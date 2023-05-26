@@ -456,7 +456,7 @@ namespace LocalTest.Controllers
                 SecurePolicy = CookieSecurePolicy.None,
                 IsEssential = true,
                 Domain = _generalSettings.Hostname,
-                Expiration = new TimeSpan(0, 1337, 0)
+                MaxAge = TimeSpan.FromDays(365),
             };
             CookieOptions partyCookieOptions = partyCookieBuilder.Build(HttpContext);
             cookieManager.AppendResponseCookie(
@@ -474,7 +474,7 @@ namespace LocalTest.Controllers
                 SecurePolicy = CookieSecurePolicy.None,
                 IsEssential = true,
                 Domain = _generalSettings.Hostname,
-                Expiration = TimeSpan.MaxValue,
+                MaxAge = TimeSpan.FromDays(365),
             };
             CookieOptions userSelectCookieOptions = cookieBuilder.Build(HttpContext);
             cookieManager.AppendResponseCookie(

@@ -1,10 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
-
-COPY ./src ./src
-
 WORKDIR /src
+
+COPY ./src/LocalTest.csproj .
 RUN dotnet restore LocalTest.csproj
-RUN dotnet build LocalTest.csproj -c Release -o /app_output
+
+COPY ./src .
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final

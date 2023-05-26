@@ -22,7 +22,7 @@ public class TestDataService
 
     public async Task<TestDataModel> GetTestData()
     {
-        return await _cache.GetOrCreateAsync("TEST_DATA",
+        return (await _cache.GetOrCreateAsync("TEST_DATA",
             async (entry) =>
             {
                 entry.SlidingExpiration = TimeSpan.FromSeconds(5);
@@ -43,6 +43,6 @@ public class TestDataService
                 }
 
                 return await TestDataDiskReader.ReadFromDisk(_settings.LocalTestingStaticTestDataPath);
-            });
+            }))!;
     }
 }
