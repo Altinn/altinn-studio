@@ -53,9 +53,10 @@ export function PanelReferenceGroupContainer({ id }: IPanelGroupContainerProps) 
   const handleSave = () => {
     setOpen(false);
     if (referencedGroupNode) {
+      // Adds a new row to the referenced group, making the one we made here visible
       dispatch(
-        FormLayoutActions.updateRepeatingGroups({
-          layoutElementId: referencedGroupNode.item.id,
+        FormLayoutActions.repGroupAddRow({
+          groupId: referencedGroupNode.item.id,
         }),
       );
     }

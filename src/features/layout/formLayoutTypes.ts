@@ -67,26 +67,6 @@ export interface IUpdateHiddenComponents {
   componentsToHide: string[];
 }
 
-export interface IUpdateRepeatingGroups {
-  layoutElementId: string;
-  remove?: boolean;
-  index?: number;
-}
-
-export interface IUpdateRepeatingGroupsFulfilled {
-  repeatingGroups: any;
-}
-
-export interface IUpdateRepeatingGroupsRemoveCancelled {
-  layoutElementId: string;
-  index: number;
-}
-
-export interface IUpdateRepeatingGroupsMultiPageIndex {
-  group: string;
-  index: number | undefined;
-}
-
 export interface IUpdateRepeatingGroupsEditIndex {
   group: string;
   index: number;

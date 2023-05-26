@@ -60,9 +60,9 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
   const setMultiPageIndex = useCallback(
     (index: number) => {
       dispatch(
-        FormLayoutActions.updateRepeatingGroupsMultiPageIndex({
-          group: id,
-          index,
+        FormLayoutActions.repGroupSetMultiPage({
+          groupId: id,
+          page: index,
         }),
       );
     },
@@ -99,7 +99,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
 
   const addNewRowToGroup = useCallback((): void => {
     if (!edit?.alwaysShowAddButton || edit?.mode === 'showAll') {
-      dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
+      dispatch(FormLayoutActions.repGroupAddRow({ groupId: id }));
     }
 
     if (edit?.mode !== 'showAll' && edit?.mode !== 'onlyTable') {
@@ -141,14 +141,8 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
     }
   };
 
-  const handleOnRemoveClick = (groupIndex: number): void => {
-    dispatch(
-      FormLayoutActions.updateRepeatingGroups({
-        layoutElementId: id,
-        remove: true,
-        index: groupIndex,
-      }),
-    );
+  const handleOnRemoveClick = (index: number): void => {
+    dispatch(FormLayoutActions.repGroupDeleteRow({ groupId: id, index }));
   };
 
   const setEditIndex = (index: number, forceValidation?: boolean): void => {

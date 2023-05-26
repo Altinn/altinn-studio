@@ -12,10 +12,7 @@ import { setupStore } from 'src/redux/store';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import { Triggers } from 'src/types';
 import type { ExprUnresolved } from 'src/features/expressions/types';
-import type {
-  IUpdateRepeatingGroupsEditIndex,
-  IUpdateRepeatingGroupsMultiPageIndex,
-} from 'src/features/layout/formLayoutTypes';
+import type { IUpdateRepeatingGroupsEditIndex } from 'src/features/layout/formLayoutTypes';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup } from 'src/layout/layout';
 
@@ -197,12 +194,12 @@ describe('GroupContainer', () => {
     })[0];
     await user.click(addButton);
 
-    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsMultiPageIndex> = {
+    const mockDispatchedAction: PayloadAction<Parameters<typeof FormLayoutActions.repGroupSetMultiPage>[0]> = {
       payload: {
-        group: 'container-closed-id',
-        index: 0,
+        groupId: 'container-closed-id',
+        page: 0,
       },
-      type: FormLayoutActions.updateRepeatingGroupsMultiPageIndex.type,
+      type: FormLayoutActions.repGroupSetMultiPage.type,
     };
 
     expect(store.dispatch).toHaveBeenLastCalledWith(mockDispatchedAction);

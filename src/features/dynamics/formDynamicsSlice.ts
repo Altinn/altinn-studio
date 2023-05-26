@@ -38,7 +38,7 @@ export const formDynamicsSlice = () => {
                 take(FormDataActions.fetchFulfilled),
                 take(FormDynamicsActions.fetchFulfilled),
                 take(FormRulesActions.fetchFulfilled),
-                take(FormLayoutActions.updateRepeatingGroupsFulfilled),
+                take(FormLayoutActions.initRepeatingGroupsFulfilled),
               ]);
               yield call(checkIfConditionalRulesShouldRunSaga, { type: '', payload: {} });
             }

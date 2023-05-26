@@ -1,8 +1,10 @@
+import { all, call, take, takeLatest } from 'redux-saga/effects';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormDataActions } from 'src/features/formData/formDataSlice';
+import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { watchFetchTextResourcesSaga } from 'src/features/textResources/fetch/fetchTextResourcesSagas';
-import {
-  replaceTextResourcesSaga,
-  watchReplaceTextResourcesSaga,
-} from 'src/features/textResources/replace/replaceTextResourcesSagas';
+import { replaceTextResourcesSaga } from 'src/features/textResources/replace/replaceTextResourcesSagas';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type {
   IFetchTextResourcesFulfilled,
@@ -41,7 +43,20 @@ export const textResourcesSlice = () => {
       }),
       replace: mkAction<void>({
         takeLatest: replaceTextResourcesSaga,
-        saga: () => watchReplaceTextResourcesSaga,
+        saga: () =>
+          function* (): SagaIterator {
+            yield all([
+              take(TextResourcesActions.fetchFulfilled),
+              take(FormDataActions.fetchFulfilled),
+              take(FormLayoutActions.initRepeatingGroupsFulfilled),
+            ]);
+            yield call(replaceTextResourcesSaga);
+            yield takeLatest(FormDataActions.fetchFulfilled, replaceTextResourcesSaga);
+            yield takeLatest(FormDataActions.updateFulfilled, replaceTextResourcesSaga);
+            yield takeLatest(FormDataActions.setFulfilled, replaceTextResourcesSaga);
+            yield takeLatest(TextResourcesActions.fetchFulfilled, replaceTextResourcesSaga);
+            yield takeLatest(FormLayoutActions.initRepeatingGroupsFulfilled, replaceTextResourcesSaga);
+          },
       }),
       replaceFulfilled: mkAction<IReplaceTextResourcesFulfilled>({
         reducer: (state, action) => {

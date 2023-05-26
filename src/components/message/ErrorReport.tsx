@@ -62,12 +62,12 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
         const childNode = i == 0 ? componentNode : (allParents[i - 1] as LayoutNode);
 
         // Go to correct multiPage page if necessary
-        if (parent.edit?.multiPage && 'multiPageIndex' in childNode.item) {
+        if (parent.edit?.multiPage && childNode.item.multiPageIndex !== undefined) {
           const multiPageIndex = childNode.item.multiPageIndex;
           dispatch(
-            FormLayoutActions.updateRepeatingGroupsMultiPageIndex({
-              group: parent.id,
-              index: multiPageIndex,
+            FormLayoutActions.repGroupSetMultiPage({
+              groupId: parent.id,
+              page: multiPageIndex,
             }),
           );
         }
@@ -75,9 +75,9 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
         if (childNode?.rowIndex !== undefined) {
           // Set editIndex to rowIndex
           dispatch(
-            FormLayoutActions.updateRepeatingGroupsEditIndex({
-              group: parent.id,
-              index: childNode.rowIndex,
+            FormLayoutActions.repGroupSetMultiPage({
+              groupId: parent.id,
+              page: childNode.rowIndex,
             }),
           );
         }

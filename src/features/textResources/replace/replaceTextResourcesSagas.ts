@@ -1,8 +1,6 @@
-import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
+import { put, select } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
-import { FormDataActions } from 'src/features/formData/formDataSlice';
-import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { TextResourcesActions } from 'src/features/textResources/textResourcesSlice';
 import { replaceTextResourceParams } from 'src/language/sharedLanguage';
 import { buildInstanceContext } from 'src/utils/instanceContext';
@@ -51,17 +49,4 @@ export function* replaceTextResourcesSaga(): SagaIterator {
   } catch (error) {
     yield put(TextResourcesActions.replaceRejected({ error }));
   }
-}
-
-export function* watchReplaceTextResourcesSaga(): SagaIterator {
-  yield all([
-    take(TextResourcesActions.fetchFulfilled),
-    take(FormDataActions.fetchFulfilled),
-    take(FormLayoutActions.updateRepeatingGroupsFulfilled),
-  ]);
-  yield call(replaceTextResourcesSaga);
-  yield takeLatest(FormDataActions.fetchFulfilled, replaceTextResourcesSaga);
-  yield takeLatest(FormDataActions.updateFulfilled, replaceTextResourcesSaga);
-  yield takeLatest(FormDataActions.setFulfilled, replaceTextResourcesSaga);
-  yield takeLatest(TextResourcesActions.fetchFulfilled, replaceTextResourcesSaga);
 }
