@@ -1,0 +1,137 @@
+{
+  "Rules": [
+    {
+      "RuleId": "urn:altinn:example:ruleid:1",
+      "Description": "A rule giving user with role REGNA, A0237, A0238, A0239, A0240, SISKD or KNUF and the app owner skd the right to instantiate a instance of a given app of skd/mva-melding-innsending-v1",
+      "Subject": [
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:A0237",
+        "urn:altinn:rolecode:A0238",
+        "urn:altinn:rolecode:A0240",
+        "urn:altinn:rolecode:SISKD",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:rolecode:A0239",
+        "urn:altinn:org:skd"
+      ],
+      "Actions": [
+        "instantiate",
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:skd",
+          "urn:altinn:app:mva-melding-innsending-v1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:2",
+      "Description": "Rule that defines that user with role REGNA, A0237, A0238, A0239, A0240, SISKD or KNUF can read for skd/mva-melding-innsending-v1 in any task or event",
+      "Subject": [
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:A0237",
+        "urn:altinn:rolecode:A0238",
+        "urn:altinn:rolecode:A0240",
+        "urn:altinn:rolecode:SISKD",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:rolecode:A0239"
+      ],
+      "Actions": [
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:skd",
+          "urn:altinn:app:mva-melding-innsending-v1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:3",
+      "Description": "Rule that defines that user with role REGNA, A0237, A0238, A0239, A0240, SISKD or KNUF can write and delete for skd/mva-melding-innsending-v1 when it is in Task_1",
+      "Subject": [
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:A0237",
+        "urn:altinn:rolecode:A0238",
+        "urn:altinn:rolecode:A0240",
+        "urn:altinn:rolecode:SISKD",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:rolecode:A0239"
+      ],
+      "Actions": [
+        "write",
+        "delete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:skd",
+          "urn:altinn:app:mva-melding-innsending-v1",
+          "urn:altinn:task:Task_1"
+        ],
+        [
+          "urn:altinn:org:skd",
+          "urn:altinn:app:mva-melding-innsending-v1",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:4",
+      "Description": "Rule that defines that user with role SISKD, KNUF, A0239 can write, confirm and delete for skd/mva-melding-innsending-v1 when it is in Task_2",
+      "Subject": [
+        "urn:altinn:rolecode:SISKD",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:rolecode:A0239"
+      ],
+      "Actions": [
+        "write",
+        "confirm",
+        "delete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:skd",
+          "urn:altinn:app:mva-melding-innsending-v1",
+          "urn:altinn:task:Task_2"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:5",
+      "Description": "Rule that defines that skd can delete, write or confirm an instance of skd/mva-melding-innsending-v1 in any task or event.",
+      "Subject": [
+        "urn:altinn:org:skd"
+      ],
+      "Actions": [
+        "delete",
+        "write",
+        "confirm"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:skd",
+          "urn:altinn:app:mva-melding-innsending-v1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:6",
+      "Description": "Rule that defines that skd can complete an instance of mva-melding-innsending-v1 which state is at the end event.",
+      "Subject": [
+        "urn:altinn:org:skd"
+      ],
+      "Actions": [
+        "complete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:skd",
+          "urn:altinn:app:mva-melding-innsending-v1",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
+      ]
+    }
+  ],
+  "RequiredAuthenticationLevelEndUser": "2",
+  "RequiredAuthenticationLevelOrg": null
+}

@@ -143,6 +143,42 @@ describe('formLayoutsUtils', () => {
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(layoutId, updatedLayouts[layoutId]);
     });
+
+    it('Does not add navigation buttons to layout if additional layout is receipt', async () => {
+      const layoutId = 'layout1';
+      const layoutReceiptId = 'receipt';
+      const callback = jest.fn();
+      const navButtonsId = 'navButtons';
+      const navButtonsComponent: FormButtonComponent = {
+        id: navButtonsId,
+        itemType: 'COMPONENT',
+        onClickAction: jest.fn(),
+        type: FormItemType.NavigationButtons,
+        dataModelBindings: {},
+      };
+      const layouts: IFormLayouts = {
+        [layoutId]: {
+          components: { [navButtonsId]: navButtonsComponent },
+          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          order: { [BASE_CONTAINER_ID]: [navButtonsId] },
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+        [layoutReceiptId]: createEmptyLayout(),
+      };
+      const updatedLayouts = await addOrRemoveNavigationButtons(
+        layouts,
+        callback,
+        null,
+        layoutReceiptId
+      );
+      const layout1Components = Object.values(updatedLayouts[layoutId].components);
+      const layoutReceiptComponents = Object.values(updatedLayouts[layoutReceiptId].components);
+      expect(layout1Components.length).toBe(0);
+      expect(layoutReceiptComponents.length).toBe(0);
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(layoutId, updatedLayouts[layoutId]);
+    });
   });
 
   describe('convertExternalLayoutsToInternalFormat', () => {

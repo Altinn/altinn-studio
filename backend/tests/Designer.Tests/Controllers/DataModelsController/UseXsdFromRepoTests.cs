@@ -1,56 +1,33 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
-using Altinn.Studio.Designer.Services.Interfaces;
-using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class UseXsdFromRepoTests : ApiTestsBase<DatamodelsController, AddXsdTests>
+public class UseXsdFromRepoTests : DatamodelsControllerTestsBase<UseXsdFromRepoTests>
 {
-    private const string VersionPrefix = "/designer/api";
-
     public UseXsdFromRepoTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
     }
 
-    protected override void ConfigureTestServices(IServiceCollection services)
+    [Theory]
+    [InlineData("ttd", "ttd-datamodels", "testUser")]
+    public async Task UseXsdFromRepo_DatamodelsRepo_ShouldReturnCreated(string org, string sourceRepository, string developer)
     {
-        services.Configure<ServiceRepositorySettings>(c =>
-            c.RepositoryLocation = TestRepositoriesLocation);
-        services.AddSingleton<IGitea, IGiteaMock>();
-    }
-
-    [Fact]
-    public async Task UseXsdFromRepo_DatamodelsRepo_ShouldReturnCreated()
-    {
-        // Arrange
-        var org = "ttd";
-        var sourceRepository = "ttd-datamodels";
-        var developer = "testUser";
         var targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         string filePath = "/App/models/41111.xsd";
-        var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/xsd-from-repo?filePath={filePath}";
+        string url = $"{VersionPrefix(org, targetRepository)}/xsd-from-repo?filePath={filePath}";
 
-        var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
 
-        try
-        {
-            var response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        }
-        finally
-        {
-            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-        }
+        using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 }

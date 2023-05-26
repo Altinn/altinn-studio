@@ -55,7 +55,7 @@ export const addOrRemoveNavigationButtons = async (
     if (currentLayoutName) {
       // Add navigation buttons to the current layout if they are not present, and run callback
       let currentLayout = layouts[currentLayoutName];
-      if (!hasNavigationButtons(currentLayout)) {
+      if (!hasNavigationButtons(currentLayout) && currentLayoutName !== receiptLayoutName){
         const navButtonsId = generateComponentId(FormItemType.NavigationButtons, layouts);
         currentLayout = addNavigationButtons(currentLayout, navButtonsId);
         updatedLayouts[currentLayoutName] = currentLayout;

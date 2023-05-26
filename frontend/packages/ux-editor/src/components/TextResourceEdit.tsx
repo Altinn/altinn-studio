@@ -69,8 +69,8 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   const { org, app } = useParams();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
 
-  const updateTextResource =
-    (text: string) => mutate({ language, textResources: [{ id: textResourceId, value: text }] });
+  const updateTextResource = (text: string) =>
+    mutate({ language, textResources: [{ id: textResourceId, value: text }] });
 
   const [value, setValue] = useState<string>(textResource?.value || '');
 
@@ -81,6 +81,8 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   return (
     <div>
       <TextArea
+        rows={5}
+        resize='vertical'
         label={t(`language.${language}`)}
         onBlur={(e) => updateTextResource((e.target as HTMLTextAreaElement).value)}
         onChange={(e) => setValue((e.target as HTMLTextAreaElement).value)}
