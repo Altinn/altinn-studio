@@ -1474,9 +1474,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private static XmlQualifiedName SetType(SchemaValueType type, Format format, string xsdType)
         {
+            // If the type and xsdType are not compatible, calculate the xsdType from the type and format
             if (string.IsNullOrWhiteSpace(xsdType) || !TypeAndXsdTypeAreCompatible(type, xsdType))
             {
-                xsdType = GetXsdType(type, format);
+                xsdType = GetXsdTypeFromTypeAndFormat(type, format);
             }
 
             return new XmlQualifiedName(xsdType, KnownXmlNamespaces.XmlSchemaNamespace);
@@ -1498,34 +1499,30 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             };
         }
 
-        private static string GetXsdType(SchemaValueType type, Format format)
+        private static string GetXsdTypeFromTypeAndFormat(SchemaValueType type, Format format)
         {
             return type switch
             {
-                SchemaValueType.Boolean => "boolean",
+                SchemaValueType.Boolean => XmlSchemaTypes.Boolean,
                 SchemaValueType.String => GetStringTypeFromFormat(format),
-                SchemaValueType.Number => "double",
-                SchemaValueType.Integer => "long",
-                _ => "string" // Fallback to open string value
+                SchemaValueType.Number => XmlSchemaTypes.Double,
+                SchemaValueType.Integer => XmlSchemaTypes.Long,
+                // Fallback to open string value
+                _ => "string"
             };
         }
 
         private static string GetStringTypeFromFormat(Format format)
         {
-            switch (format?.Key)
+            return format?.Key switch
             {
-                case "date-time":
-                    return "dateTime";
-                case "date":
-                    return "date";
-                case "time":
-                    return "time";
-                case "uri":
-                    return "anyURI";
-            }
-
-            // Fallback to open string value
-            return "string";
+                "date-time" => XmlSchemaTypes.DateTime,
+                "date" => XmlSchemaTypes.Date,
+                "time" => XmlSchemaTypes.Time,
+                "uri" => XmlSchemaTypes.AnyUri,
+                // Fallback to open string value
+                _ => XmlSchemaTypes.String
+            };
         }
 
         private static int GetKeywordSubSchemaIndex<T>(IReadOnlyList<JsonSchema> schemas)
