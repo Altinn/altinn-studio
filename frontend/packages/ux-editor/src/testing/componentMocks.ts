@@ -14,7 +14,9 @@ import {
   FormInputComponent,
   FormMapComponent,
   FormNavigationBarComponent,
+  FormOptionsType,
   FormPanelComponent,
+  FormPanelVariant,
   FormParagraphComponent,
   FormRadioButtonsComponent,
   FormTextareaComponent,
@@ -30,6 +32,7 @@ const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBinding
 const checkboxesComponent: FormCheckboxesComponent = {
   ...commonProps,
   type: ComponentType.Checkboxes,
+  optionsType: FormOptionsType.Manual,
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -40,6 +43,7 @@ const checkboxesComponent: FormCheckboxesComponent = {
 const radiosComponent: FormRadioButtonsComponent = {
   ...commonProps,
   type: ComponentType.RadioButtons,
+  optionsType: FormOptionsType.Manual,
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -130,19 +134,8 @@ const thirdPartyComponent: FormThirdPartyComponent = {
 const panelComponent: FormPanelComponent = {
   ...commonProps,
   type: ComponentType.Panel,
-  variant: {
-    title: 'test',
-    description: 'test',
-    type: 'test',
-    enum: 'info',
-    default: 'info',
-  },
-  showIcon: {
-    title: 'test',
-    description: 'test',
-    type: true,
-    default: true,
-  },
+  variant: FormPanelVariant.Info,
+  showIcon: true,
 };
 const mapComponent: FormMapComponent = {
   ...commonProps,

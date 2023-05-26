@@ -25,7 +25,14 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   [id: string]: any;
 }
 
+export enum FormOptionsType {
+  Codelist = 'codelist',
+  Manual = 'manual',
+  Unknown = '',
+}
+
 interface FormOptionsComponentBase<T extends ComponentType> extends FormComponentBase<T> {
+  optionsType: FormOptionsType;
   options: IOption[];
   preselectedOptionIndex?: number;
   optionsId: string;
@@ -101,20 +108,15 @@ export interface FormThirdPartyComponent extends FormComponentBase<ComponentType
   [id: string]: any;
 }
 
+export enum FormPanelVariant {
+  Info = 'info',
+  Warning = 'warning',
+  Success = 'success',
+}
+
 export interface FormPanelComponent extends FormComponentBase<ComponentType.Panel> {
-  variant: {
-    title: string;
-    description: string;
-    type: string;
-    enum: 'info' | 'warning' | 'success';
-    default: 'info';
-  };
-  showIcon: {
-    title: string;
-    description: string;
-    type: boolean;
-    default: true;
-  };
+  variant: FormPanelVariant;
+  showIcon: boolean;
 }
 
 export interface FormMapComponent extends FormComponentBase<ComponentType.Map> {

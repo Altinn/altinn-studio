@@ -21,12 +21,7 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
   ];
   const selectedHeaderSize = HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
 
-  const [selectedValue, setSelectedValue] = React.useState(
-    selectedHeaderSize ? sizes.find((size) => size.value === selectedHeaderSize) : sizes[0],
-  );
-
   const onSizeChange = (e: any) => {
-    setSelectedValue(e.value);
     handleComponentChange({
       ...component,
       size: e.value,
@@ -41,7 +36,7 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
       <Select
         inputId={`edit-header-size-select-${component.id}`}
         styles={selectStyles}
-        defaultValue={selectedValue}
+        value={selectedHeaderSize ? sizes.find((size) => size.value === selectedHeaderSize) : sizes[0]}
         onChange={onSizeChange}
         options={sizes}
       />

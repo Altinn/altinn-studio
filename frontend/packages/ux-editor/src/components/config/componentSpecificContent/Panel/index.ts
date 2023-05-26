@@ -1,0 +1,1 @@
+export { PanelComponent } from './PanelComponent';

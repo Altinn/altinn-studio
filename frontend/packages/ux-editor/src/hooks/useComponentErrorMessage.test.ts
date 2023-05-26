@@ -1,6 +1,6 @@
 import { renderHookWithMockStore } from '../testing/mocks';
 import { useComponentErrorMessage } from './useComponentErrorMessage';
-import { FormComponent } from '../types/FormComponent';
+import { FormComponent, FormOptionsType } from '../types/FormComponent';
 import { ComponentType } from '../components';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
@@ -14,6 +14,7 @@ describe('useComponentErrorMessage', () => {
         { label: 'Option 3', value: 'option1' },
       ],
       id: 'test',
+      optionsType: FormOptionsType.Manual,
       optionsId: 'test',
       itemType: 'COMPONENT',
       dataModelBindings: {},
@@ -31,6 +32,7 @@ describe('useComponentErrorMessage', () => {
         { label: 'Option 3', value: 'option3' },
       ],
       id: 'test',
+      optionsType: FormOptionsType.Manual,
       optionsId: 'test',
       itemType: 'COMPONENT',
       dataModelBindings: {},
