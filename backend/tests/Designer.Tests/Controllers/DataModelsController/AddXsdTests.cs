@@ -1,57 +1,29 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
-using Altinn.Studio.Designer.Services.Interfaces;
-using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>, IDisposable
+public class AddXsdTests : DatamodelsControllerTestsBase<AddXsdTests>
 {
-    private const string VersionPrefix = "/designer/api";
-
     public AddXsdTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
     }
 
-    protected override void ConfigureTestServices(IServiceCollection services)
+    [Theory]
+    [InlineData("ttd", "empty-app", "testUser")]
+    public async Task AddXsd_AppRepo_PreferredXsd_ShouldReturnCreated(string org, string sourceRepository, string developer)
     {
-        services.Configure<ServiceRepositorySettings>(c =>
-            c.RepositoryLocation = TestRepositoriesLocation);
-        services.AddSingleton<IGitea, IGiteaMock>();
-    }
-
-    private string CreatedFolderPath { get; set; }
-
-    public void Dispose()
-    {
-        if (!string.IsNullOrWhiteSpace(CreatedFolderPath))
-        {
-            TestDataHelper.DeleteDirectory(CreatedFolderPath);
-        }
-    }
-
-    [Fact]
-    public async Task AddXsd_AppRepo_PreferredXsd_ShouldReturnCreated()
-    {
-        // Arrange
-        var org = "ttd";
-        var sourceRepository = "empty-app";
-        var developer = "testUser";
-        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-        var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
+        string url = $"{VersionPrefix(org, targetRepository)}/upload";
 
         var fileStream = SharedResourcesHelper.LoadTestData(
             "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
@@ -69,17 +41,14 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>, IDis
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
-    [Fact]
-    public async Task AddXsd_AppRepo_PreferredJson_ShouldReturnCreated()
+    [Theory]
+    [InlineData("ttd", "empty-app-pref-json", "testUser")]
+    public async Task AddXsd_AppRepo_PreferredJson_ShouldReturnCreated(string org, string sourceRepository, string developer)
     {
-        // Arrange
-        var org = "ttd";
-        var sourceRepository = "empty-app-pref-json";
-        var developer = "testUser";
-        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-        var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
+        string url = $"{VersionPrefix(org, targetRepository)}/upload";
 
         var fileStream = SharedResourcesHelper.LoadTestData(
             "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
@@ -97,17 +66,14 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>, IDis
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
-    [Fact]
-    public async Task AddXsd_DatamodelsRepo_NonAsciiName_ShouldReturnCreated()
+    [Theory]
+    [InlineData("ttd", "empty-datamodels", "testUser")]
+    public async Task AddXsd_DatamodelsRepo_NonAsciiName_ShouldReturnCreated(string org, string sourceRepository, string developer)
     {
-        // Arrange
-        var org = "ttd";
-        var sourceRepository = "empty-datamodels";
-        var developer = "testUser";
-        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-        var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
+        string url = $"{VersionPrefix(org, targetRepository)}/upload";
 
         var fileStream = SharedResourcesHelper.LoadTestData(
             "Seres/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");

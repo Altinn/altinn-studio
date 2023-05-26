@@ -1474,47 +1474,54 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private static XmlQualifiedName SetType(SchemaValueType type, Format format, string xsdType)
         {
-            if (string.IsNullOrWhiteSpace(xsdType))
+            // If the type and xsdType are not compatible, calculate the xsdType from the type and format
+            if (string.IsNullOrWhiteSpace(xsdType) || !TypeAndXsdTypeAreCompatible(type, xsdType))
             {
-                switch (type)
-                {
-                    case SchemaValueType.Boolean:
-                        xsdType = "boolean";
-                        break;
-                    case SchemaValueType.String:
-                        xsdType = GetStringTypeFromFormat(format);
-                        break;
-                    case SchemaValueType.Number:
-                        xsdType = "double";
-                        break;
-                    case SchemaValueType.Integer:
-                        xsdType = "long";
-                        break;
-                    default:
-                        xsdType = "string"; // Fallback to open string value
-                        break;
-                }
+                xsdType = GetXsdTypeFromTypeAndFormat(type, format);
             }
 
             return new XmlQualifiedName(xsdType, KnownXmlNamespaces.XmlSchemaNamespace);
         }
 
+        private static bool TypeAndXsdTypeAreCompatible(SchemaValueType type, string xsdType)
+        {
+            return type switch
+            {
+                SchemaValueType.Boolean => xsdType == XmlSchemaTypes.Boolean,
+                SchemaValueType.String => XmlSchemaTypes.AllKnownTypes
+                    .Except(XmlSchemaTypes.AllNumericTypes)
+                    .Except(new List<string> { XmlSchemaTypes.Boolean })
+                    .Contains(xsdType),
+                SchemaValueType.Number => XmlSchemaTypes.NumericTypesWithFractions.Contains(xsdType),
+                SchemaValueType.Integer => XmlSchemaTypes.IntegerDataTypes.Contains(xsdType),
+                _ => false
+            };
+        }
+
+        private static string GetXsdTypeFromTypeAndFormat(SchemaValueType type, Format format)
+        {
+            return type switch
+            {
+                SchemaValueType.Boolean => XmlSchemaTypes.Boolean,
+                SchemaValueType.String => GetStringTypeFromFormat(format),
+                SchemaValueType.Number => XmlSchemaTypes.Double,
+                SchemaValueType.Integer => XmlSchemaTypes.Long,
+                // Fallback to open string value
+                _ => "string"
+            };
+        }
+
         private static string GetStringTypeFromFormat(Format format)
         {
-            switch (format?.Key)
+            return format?.Key switch
             {
-                case "date-time":
-                    return "dateTime";
-                case "date":
-                    return "date";
-                case "time":
-                    return "time";
-                case "uri":
-                    return "anyURI";
-            }
-
-            // Fallback to open string value
-            return "string";
+                "date-time" => XmlSchemaTypes.DateTime,
+                "date" => XmlSchemaTypes.Date,
+                "time" => XmlSchemaTypes.Time,
+                "uri" => XmlSchemaTypes.AnyUri,
+                // Fallback to open string value
+                _ => XmlSchemaTypes.String
+            };
         }
 
         private static int GetKeywordSubSchemaIndex<T>(IReadOnlyList<JsonSchema> schemas)
@@ -1529,25 +1536,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return false;
             }
 
-            switch (type.Name)
+            if (XmlSchemaTypes.AllNumericTypes.Contains(type.Name))
             {
-                case "integer":
-                case "nonPositiveInteger":
-                case "negativeInteger":
-                case "nonNegativeInteger":
-                case "positiveInteger":
-                case "long":
-                case "int":
-                case "short":
-                case "byte":
-                case "unsignedLong":
-                case "unsignedInt":
-                case "unsignedShort":
-                case "unsignedByte":
-                case "decimal":
-                case "float":
-                case "double":
-                    return true;
+                return true;
             }
 
             return false;

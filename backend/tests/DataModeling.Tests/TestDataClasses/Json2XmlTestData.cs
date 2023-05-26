@@ -13,6 +13,7 @@ public class Json2XmlTestData : IEnumerable<object[]>
         yield return new object[] { "Model/JsonSchema/General/SimpleSequence.json", "Model/XmlSchema/General/SimpleSequence.xsd" };
         yield return new object[] { "Model/JsonSchema/General/SimpleContentExtension.json", "Model/XmlSchema/General/SimpleContentExtension.xsd" };
         yield return new object[] { "Model/JsonSchema/General/SimpleContentRestriction.json", "Model/XmlSchema/General/SimpleContentRestriction.fromJson.xsd" };
+        yield return new object[] { "Model/JsonSchema/General/SimpleSequence_with_nonCompatible_XsdTypeAndType.json", "Model/XmlSchema/General/SimpleSequence.xsd" };
 
         // Following tests are skipped:
         // yield return new object[] { "Model/JsonSchema/General/SimpleAll.json", "Model/XmlSchema/General/SimpleAll.xsd" }; // "XsdStructureKeyword not supported. We default to sequence, and currently dont' support all. #6888"
