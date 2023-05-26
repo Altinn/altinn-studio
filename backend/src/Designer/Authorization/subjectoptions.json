@@ -1,13 +1,13 @@
 [
     {
         "SubjectId": "dagl",
-        "SubjectSource": "altinn.role",
+        "SubjectSource": "altinn:rolecode",
         "SubjectTitle": "Daglig leder",
         "SubjectDescription": "Daglig leder fra enhetsregisteret"
     },
     {
         "SubjectId": "lede",
-        "SubjectSource": "altinn.role",
+        "SubjectSource": "altinn:rolecode",
         "SubjectTitle": "Styreleder",
         "SubjectDescription": "Styreleder leder fra enhetsregisteret"
     }
