@@ -21,8 +21,8 @@ import {
   ROOT_POINTER,
   splitPointerInBaseAndName,
 } from '@altinn/schema-model';
-import { swapArrayElements } from 'app-shared/pure';
 import type { Dict } from '../../../../schema-model/src/lib/types';
+import { swapArrayElements } from 'app-shared/utils/arrayUtils';
 
 export const initialState: ISchemaState = {
   schema: {},
@@ -136,7 +136,7 @@ const schemaEditorSlice = createSlice({
       }
       state.uiSchema = removeNodeByPointer(state.uiSchema, path);
     },
-    setRestriction(state, action: PayloadAction<{ path: string; key: string; value?: string }>) {
+    setRestriction(state, action: PayloadAction<{ path: string; key: string; value?: string | boolean }>) {
       const { path, value, key } = action.payload;
       const schemaItem = getNodeByPointer(state.uiSchema, path);
       const restrictions = { ...schemaItem.restrictions };

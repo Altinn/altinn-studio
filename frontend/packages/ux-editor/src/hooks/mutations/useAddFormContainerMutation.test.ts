@@ -2,7 +2,7 @@ import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddFormContainerMutationArgs, useAddFormContainerMutation } from './useAddFormContainerMutation';
-import { ICreateFormContainer } from '../../types/global';
+import { FormContainer } from '../../types/FormContainer';
 import { ComponentType } from '../../components';
 import { layout1NameMock } from '../../testing/layoutMock';
 
@@ -10,7 +10,7 @@ import { layout1NameMock } from '../../testing/layoutMock';
 const org = 'org';
 const app = 'app';
 const id = 'testid';
-const container: ICreateFormContainer = {
+const container: FormContainer = {
   itemType: 'CONTAINER',
 }
 const defaultArgs: AddFormContainerMutationArgs = {

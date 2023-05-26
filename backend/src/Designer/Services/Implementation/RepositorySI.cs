@@ -5,6 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
@@ -14,6 +17,7 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using IdentityModel.OidcClient;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -1032,6 +1036,52 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task DeleteRepository(string org, string repository)
         {
             await _sourceControl.DeleteRepository(org, repository);
+        }
+
+        public bool SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
+        {
+            string policyPath = GetPolicyPath(org, repo, resourceId);
+
+            MemoryStream stream = new MemoryStream();
+            XmlWriter writer = XmlWriter.Create(stream, new XmlWriterSettings() { Indent = true });
+
+            XacmlSerializer.WritePolicy(writer, xacmlPolicy);
+
+            writer.Flush();
+            stream.Position = 0;
+
+            using (var fs = new FileStream(policyPath, FileMode.OpenOrCreate))
+            {
+                stream.CopyTo(fs);
+            }
+
+            return true;
+        }
+
+        public XacmlPolicy GetPolicy(string org, string repo, string resourceId)
+        {
+            string policyPath = GetPolicyPath(org, repo, resourceId);
+            XmlDocument policyDocument = new XmlDocument();
+            policyDocument.Load(policyPath);
+            XacmlPolicy policy;
+            using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
+            {
+                policy = XacmlParser.ParseXacmlPolicy(reader);
+            }
+
+            return policy;
+        }
+
+        private string GetPolicyPath(string org, string repo, string resourceId)
+        {
+            string localRepoPath = _settings.GetServicePath(org, repo, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string policyPath = Path.Combine(localRepoPath, _generalSettings.AuthorizationPolicyTemplate);
+            if (!string.IsNullOrEmpty(resourceId))
+            {
+                policyPath = Path.Combine(localRepoPath, resourceId, resourceId + "-policy.xml");
+            }
+
+            return policyPath;
         }
     }
 }

@@ -1,85 +1,60 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
-using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Json.Schema;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PostTests : ApiTestsBase<DatamodelsController, PostTests>
+public class PostTests : DatamodelsControllerTestsBase<PostTests>
 {
-    private const string VersionPrefix = "/designer/api";
-
     public PostTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
     }
 
-    protected override void ConfigureTestServices(IServiceCollection services)
-    {
-        services.Configure<ServiceRepositorySettings>(c =>
-            c.RepositoryLocation = TestRepositoriesLocation);
-        services.AddSingleton<IGitea, IGiteaMock>();
-    }
-
     [Theory]
-    [InlineData("ServiceA", true, "empty-app")]
-    [InlineData("", false, "xyz-datamodels")]
-    [InlineData("relative/folder", false, "xyz-datamodels")]
-    public async Task PostDatamodel_FromFormPost_ShouldReturnCreatedFromTemplate(string relativeDirectory, bool altinn2Compatible, string sourceRepository)
+    [InlineData("ServiceA", true, "empty-app", "ttd", "testUser")]
+    [InlineData("", false, "xyz-datamodels", "ttd", "testUser")]
+    [InlineData("relative/folder", false, "xyz-datamodels", "ttd", "testUser")]
+    public async Task PostDatamodel_FromFormPost_ShouldReturnCreatedFromTemplate(string relativeDirectory, bool altinn2Compatible, string sourceRepository, string org, string developer)
     {
-        // Arrange
-        var org = "ttd";
-        var developer = "testUser";
-        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-        var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/new";
+        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        string url = $"{VersionPrefix(org, targetRepository)}/new";
 
         var createViewModel = new CreateModelViewModel()
         { ModelName = "test", RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
-        var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+
+        using var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = JsonContent.Create(createViewModel, null, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
         };
 
-        // Act / Assert
-        try
-        {
-            var postResponse = await HttpClient.Value.SendAsync(postRequestMessage);
-            Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+        using var postResponse = await HttpClient.Value.SendAsync(postRequestMessage);
+        Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
-            Assert.Equal("application/json", postResponse.Content.Headers.ContentType.MediaType);
+        Assert.Equal("application/json", postResponse.Content.Headers.ContentType.MediaType);
 
-            var postContent = await postResponse.Content.ReadAsStringAsync();
-            JsonSchema postJsonSchema = JsonSchema.FromText(postContent);
-            Assert.NotNull(postJsonSchema);
+        string postContent = await postResponse.Content.ReadAsStringAsync();
+        JsonSchema postJsonSchema = JsonSchema.FromText(postContent);
+        Assert.NotNull(postJsonSchema);
 
-            // Try to read back the created schema to verify it's stored
-            // at the location provided in the post response
-            var location = postResponse.Headers.Location;
-            var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
-            var getResponse = await HttpClient.Value.SendAsync(getRequestMessage);
-            var getContent = await getResponse.Content.ReadAsStringAsync();
-            var getJsonSchema = JsonSchema.FromText(getContent);
-            Assert.NotNull(getJsonSchema);
-            Assert.Equal(postContent, getContent);
-        }
-        finally
-        {
-            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-        }
+        // Try to read back the created schema to verify it's stored
+        // at the location provided in the post response
+        var location = postResponse.Headers.Location;
+        using var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
+        using var getResponse = await HttpClient.Value.SendAsync(getRequestMessage);
+        string getContent = await getResponse.Content.ReadAsStringAsync();
+        var getJsonSchema = JsonSchema.FromText(getContent);
+        Assert.NotNull(getJsonSchema);
+        Assert.Equal(postContent, getContent);
     }
 
     [Theory]
@@ -91,11 +66,11 @@ public class PostTests : ApiTestsBase<DatamodelsController, PostTests>
     [InlineData("test/", "", false)]
     public async Task PostDatamodel_InvalidFormPost_ShouldReturnBadRequest(string modelName, string relativeDirectory, bool altinn2Compatible)
     {
-        var url = $"{VersionPrefix}/xyz/dummyRepo/datamodels/new";
+        string url = $"{VersionPrefix("xyz", "dummyRepo")}/new";
 
         var createViewModel = new CreateModelViewModel()
         { ModelName = modelName, RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
-        var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        using var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = JsonContent.Create(createViewModel, null, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
         };

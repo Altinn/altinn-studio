@@ -21,6 +21,7 @@ import { addConditionalRenderingConnection, deleteConditionalRenderingConnection
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
   handleClose: () => void;
+  handleOpen: () => void;
 }
 
 export function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
@@ -39,7 +40,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
-    props.handleClose();
+    props.handleOpen();
   }
 
   function handleClose() {

@@ -1,0 +1,11 @@
+.wrapper {
+  padding: calc(var(--list-item-gap) / 2) 0;
+}
+
+:first-child > .wrapper {
+  padding-top: var(--list-item-gap);
+}
+
+:last-child > .wrapper {
+  padding-bottom: var(--list-item-gap);
+}

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
@@ -178,6 +179,25 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Returns the json object as a string</returns>
         string GetRuleHandler(string org, string app);
+
+        /// <summary>
+        /// Saves policy to git repository
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="repo">The app or resource repository</param>
+        /// <param name="resourceId">The resourceId if resource repository</param>
+        /// <param name="xacmlPolicy">The xacml policyh</param>
+        /// <returns></returns>
+        bool SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy);
+
+        /// <summary>
+        /// Gets a specific polic for ann app or for a generic
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="repo"></param>
+        /// <param name="resourceId"></param>
+        /// <returns></returns>
+        XacmlPolicy GetPolicy(string org, string repo, string resourceId);
 
         /// <summary>
         /// Gets the widget settings for an app

@@ -1,12 +1,13 @@
-import { ICreateFormContainer, IInternalLayout } from '../../types/global';
+import { IInternalLayout } from '../../types/global';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { deepCopy } from 'app-shared/pure';
+import { FormContainer } from '../../types/FormContainer';
 
 export interface UpdateFormContainerMutationArgs {
-  updatedContainer: ICreateFormContainer;
+  updatedContainer: FormContainer;
   id: string;
 }
 

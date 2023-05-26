@@ -1,0 +1,12 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroupWrapper {
+  border-color: #1EAEF7;
+  border-style: dotted;
+  border-width: 0.15em 0;
+  padding-top: 0;
+  background-color: #0062BA08;
+}

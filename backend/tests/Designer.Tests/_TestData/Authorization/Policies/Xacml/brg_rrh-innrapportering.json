@@ -1,0 +1,180 @@
+{
+  "Rules": [
+    {
+      "RuleId": "urn:altinn:example:ruleid:1",
+      "Description": "A rule giving user with role MEDL, LEDE, NEST, DAGL, DTPR, DTSO, KOMP, FF\u00D8R, REPR, KONT or KNUF and the app owner brg the right to instantiate a instance of a given app of brg/rrh-innrapportering",
+      "Subject": [
+        "urn:altinn:rolecode:MEDL",
+        "urn:altinn:rolecode:LEDE",
+        "urn:altinn:rolecode:NEST",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:rolecode:DTPR",
+        "urn:altinn:rolecode:DTSO",
+        "urn:altinn:rolecode:KOMP",
+        "urn:altinn:rolecode:FF\u00D8R",
+        "urn:altinn:rolecode:REPR",
+        "urn:altinn:rolecode:KONT",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:org:brg"
+      ],
+      "Actions": [
+        "instantiate",
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:2",
+      "Description": "Rule that defines that user with role MEDL, LEDE, NEST, DAGL, DTPR, DTSO, KOMP, FF\u00D8R, REPR, KONT or KNUF can read and write for brg/rrh-innrapportering when it is in TaskUtfylling",
+      "Subject": [
+        "urn:altinn:rolecode:MEDL",
+        "urn:altinn:rolecode:LEDE",
+        "urn:altinn:rolecode:NEST",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:rolecode:DTPR",
+        "urn:altinn:rolecode:DTSO",
+        "urn:altinn:rolecode:KOMP",
+        "urn:altinn:rolecode:FF\u00D8R",
+        "urn:altinn:rolecode:REPR",
+        "urn:altinn:rolecode:KONT",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:org:brg"
+      ],
+      "Actions": [
+        "read",
+        "write"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:task:TaskUtfylling"
+        ],
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:end-event:BREnd"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:2b",
+      "Description": "Rule that defines that user with role MEDL, LEDE, NEST, DAGL, DTPR, DTSO, KOMP, FF\u00D8R, REPR, KONT or KNUF can read and confirm for brg/rrh-innrapportering when it is in TaskBekreftelse",
+      "Subject": [
+        "urn:altinn:rolecode:MEDL",
+        "urn:altinn:rolecode:LEDE",
+        "urn:altinn:rolecode:NEST",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:rolecode:DTPR",
+        "urn:altinn:rolecode:DTSO",
+        "urn:altinn:rolecode:KOMP",
+        "urn:altinn:rolecode:FF\u00D8R",
+        "urn:altinn:rolecode:REPR",
+        "urn:altinn:rolecode:KONT",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:org:brg"
+      ],
+      "Actions": [
+        "read",
+        "confirm"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:task:TaskBekreftelse"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:3",
+      "Description": "Rule that defines that user with role MEDL, LEDE, NEST, DAGL, DTPR, DTSO, KOMP, FF\u00D8R, REPR, KONT or KNUF can delete instances of brg/rrh-innrapportering",
+      "Subject": [
+        "urn:altinn:rolecode:MEDL",
+        "urn:altinn:rolecode:LEDE",
+        "urn:altinn:rolecode:NEST",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:rolecode:DTPR",
+        "urn:altinn:rolecode:DTSO",
+        "urn:altinn:rolecode:KOMP",
+        "urn:altinn:rolecode:FF\u00D8R",
+        "urn:altinn:rolecode:REPR",
+        "urn:altinn:rolecode:KONT",
+        "urn:altinn:rolecode:KNUF",
+        "urn:altinn:org:brg"
+      ],
+      "Actions": [
+        "delete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:4",
+      "Description": "Rule that defines that org can write to instances of brg/rrh-innrapportering for any states",
+      "Subject": [
+        "urn:altinn:org:brg"
+      ],
+      "Actions": [
+        "write"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:5",
+      "Description": "Rule that defines that org can complete an instance of brg/rrh-innrapportering which state is at the end event.",
+      "Subject": [
+        "urn:altinn:org:brg"
+      ],
+      "Actions": [
+        "complete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:end-event:BREnd"
+        ],
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:6",
+      "Description": "A rule giving user with role DAGL and the app owner brg the right to read the appresource events of a given app of brg/rrh-innrapportering",
+      "Subject": [
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:brg"
+      ],
+      "Actions": [
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:brg",
+          "urn:altinn:app:rrh-innrapportering",
+          "urn:altinn:appresource:events"
+        ]
+      ]
+    }
+  ],
+  "RequiredAuthenticationLevelEndUser": "2",
+  "RequiredAuthenticationLevelOrg": null
+}

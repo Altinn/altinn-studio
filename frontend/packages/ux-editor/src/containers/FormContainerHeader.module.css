@@ -1,0 +1,38 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.wrapper:hover .formGroupButtons, .editWrapper:hover .formGroupButtons {
+  display: flex;
+  visibility: visible;
+}
+
+.formGroup {
+  background-color: #0000000b;
+  color: #0062BA !important;
+  display: flex;
+  height: 48px;
+  padding-left: var(--margin-left-with-handle);
+  padding-right: var(--margin-horizontal);
+}
+
+.dragHandle {
+  cursor: move;
+}
+
+.formGroupBar {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.formGroupButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.emptyContainerText {
+  padding: 0 var(--margin-horizontal);
+}

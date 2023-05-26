@@ -39,7 +39,8 @@ const component: FormRadioButtonsComponent = {
     title: titleTextKey,
     description: descriptionTextKey,
   },
-  itemType: 'COMPONENT'
+  itemType: 'COMPONENT',
+  dataModelBindings: {},
 };
 const handleComponentChange = jest.fn();
 const defaultProps: RadioGroupPreviewProps = {

@@ -1,0 +1,134 @@
+{
+  "Rules": [
+    {
+      "RuleId": "urn:altinn:example:ruleid:1",
+      "Description": "A rule giving user with role REGNA or DAGL and the app owner dsb the right to instantiate a instance of a given app of dsb/uhell-med-eksplosiver",
+      "Subject": [
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:dsb"
+      ],
+      "Actions": [
+        "instantiate",
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:dsb",
+          "urn:altinn:app:uhell-med-eksplosiver"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:2",
+      "Description": "Rule that defines that user with role REGNA or DAGL can read and write for dsb/uhell-med-eksplosiver when it is in Task_1",
+      "Subject": [
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:DAGL"
+      ],
+      "Actions": [
+        "read",
+        "write"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:dsb",
+          "urn:altinn:app:uhell-med-eksplosiver",
+          "urn:altinn:task:Task_1"
+        ],
+        [
+          "urn:altinn:org:dsb",
+          "urn:altinn:app:uhell-med-eksplosiver",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:3",
+      "Description": "Rule that defines that user with role REGNA or DAGL can delete instances of dsb/uhell-med-eksplosiver",
+      "Subject": [
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:DAGL"
+      ],
+      "Actions": [
+        "delete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:dsb",
+          "urn:altinn:app:uhell-med-eksplosiver"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:4",
+      "Description": "Rule that defines that org can write to instances of dsb/uhell-med-eksplosiver for any states",
+      "Subject": [
+        "urn:altinn:org:dsb"
+      ],
+      "Actions": [
+        "write"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:dsb",
+          "urn:altinn:app:uhell-med-eksplosiver"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:5",
+      "Description": "Rule that defines that org can complete an instance of dsb/uhell-med-eksplosiver which state is at the end event.",
+      "Subject": [
+        "urn:altinn:org:dsb"
+      ],
+      "Actions": [
+        "complete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:dsb",
+          "urn:altinn:app:uhell-med-eksplosiver",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:6",
+      "Description": "A rule giving user with role REGNA or DAGL and the app owner dsb the right to read the appresource events of a given app of dsb/uhell-med-eksplosiver",
+      "Subject": [
+        "urn:altinn:rolecode:REGNA",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:dsb"
+      ],
+      "Actions": [
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:dsb",
+          "urn:altinn:app:uhell-med-eksplosiver",
+          "urn:altinn:appresource:events"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:7",
+      "Description": "dsb can delete an instance of dsb/uhell-med-eksplosiver in any task or event.",
+      "Subject": [
+        "urn:altinn:org:dsb"
+      ],
+      "Actions": [
+        "delete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:dsb",
+          "urn:altinn:app:uhell-med-eksplosiver"
+        ]
+      ]
+    }
+  ],
+  "RequiredAuthenticationLevelEndUser": "2",
+  "RequiredAuthenticationLevelOrg": null
+}

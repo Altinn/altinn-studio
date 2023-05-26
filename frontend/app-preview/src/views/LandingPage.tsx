@@ -1,16 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './LandingPage.module.css';
 import { PreviewContext } from '../PreviewContext';
 import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from "app-shared/providers/PreviewConnectionContext";
+import { useInstanceIdQuery } from '../../hooks/queries/useInstanceIdQuery';
 import AltinnStudioLogo from "app-shared/navigation/main-header/AltinnStudioLogo";
+import { ToggleButtonGroup } from '@digdir/design-system-react';
 
 export const LandingPage = () => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
+  const { data: instanceId } = useInstanceIdQuery(org, app);
+  const selectedLayoutInEditor = localStorage.getItem(instanceId);
+  const localSelectedViewSize = localStorage.getItem('viewSize');
+  const [viewSize, setViewSize] = useState<string>(localSelectedViewSize ?? 'desktop');
 
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
@@ -28,22 +34,47 @@ export const LandingPage = () => {
     })
   }
 
+  const handleChangeViewSizeClick = (selectedViewSize: string) => {
+      localStorage.setItem('viewSize', selectedViewSize);
+      setViewSize(selectedViewSize);
+  };
+
   return (
-    <PreviewContext>
-      <div className={classes.header}>
-        <a href={`/editor/${org}/${app}/ui-editor?`}>
-          <AltinnStudioLogo />
-        </a>
-        <div className={classes.betaTag}>
-          {'BETA'}
+      <PreviewContext>
+        <div className={classes.header}>
+          <a href={`/editor/${org}/${app}/ui-editor?layout=${selectedLayoutInEditor}`}>
+            <AltinnStudioLogo />
+          </a>
+          <div className={classes.betaTag}>
+            {'BETA'}
+          </div>
         </div>
-      </div>
-      <iframe
-        title={t('preview.iframe_title')}
-        id='app-frontend-react-iframe'
-        src={`/designer/html/preview.html?${stringify({ org, app })}`}
-        className={classes.iframe}
-      ></iframe>
-    </PreviewContext>
+        <div className={classes.subHeader}>
+          <span className={classes.viewSizeButtons}>
+          <ToggleButtonGroup
+            items={[
+              {
+                label: t('preview.view_size_desktop'),
+                value: 'desktop'
+              },
+              {
+                label: t('preview.view_size_mobile'),
+                value: 'mobile'
+              }
+            ]}
+            onChange={handleChangeViewSizeClick}
+            selectedValue={viewSize === 'Desktop' ? 'desktop' : 'mobile'}/>
+            </span>
+        </div>
+        <div className={classes.iframeMobileViewContainer}>
+          <iframe
+            title={t('preview.iframe_title')}
+            id='app-frontend-react-iframe'
+            src={`/designer/html/preview.html?${stringify({ org, app })}`}
+            className={viewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
+          ></iframe>
+          {viewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
+        </div>
+      </PreviewContext>
   );
 };

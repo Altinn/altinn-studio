@@ -43,7 +43,6 @@ export function ToolbarGroup(props: IToolbarGroupProps) {
             text={getComponentTitleByComponentType(component.type, t) || component.label}
             icon={component.icon}
             componentType={component.type}
-            onDropAction={component.actionMethod}
             onClick={props.handleComponentInformationOpen}
             key={component.type}
           />

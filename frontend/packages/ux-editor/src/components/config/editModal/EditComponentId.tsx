@@ -1,61 +1,58 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { TextField } from '@digdir/design-system-react';
-import ErrorPopover from 'app-shared/components/ErrorPopover';
+import React, { useEffect, useState } from 'react';
 import { idExists, validComponentId } from '../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { useFormLayoutsSelector } from '../../../hooks/useFormLayoutsSelector';
 import { selectedLayoutSelector } from '../../../selectors/formLayoutSelectors';
 import type { FormComponent } from '../../../types/FormComponent';
+import { TextFieldWithValidation } from '../../TextFieldWithValidation';
 
 export interface IEditComponentId {
-  handleComponentUpdate: (component: FormComponent) => void;
+  handleComponentUpdate: React.Dispatch<React.SetStateAction<FormComponent>>;
   component: FormComponent;
 }
 export const EditComponentId = ({ component, handleComponentUpdate }: IEditComponentId) => {
-  const [error, setError] = useState<string | null>(null);
   const [tmpId, setTmpId] = useState<string>(component?.id || '');
   const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
   const { t } = useTranslation();
-  const errorMessageRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
     setTmpId(component?.id);
-  }, [component]);
+  }, [component?.id]);
 
-  const handleClosePopup = () => setError(null);
-
-  const handleNewId = () => {
-    if (idExists(tmpId, components, containers) && tmpId !== component?.id) {
-      setError(t('ux_editor.modal_properties_component_id_not_unique_error'));
-    } else if (!tmpId || !validComponentId.test(tmpId)) {
-      setError(t('ux_editor.modal_properties_component_id_not_valid'));
-    } else {
-      setError(null);
-      handleComponentUpdate({
-        ...component,
+  const handleNewId = (_, error) => {
+    if (!error) {
+      handleComponentUpdate((prevState: FormComponent) => ({
+        ...prevState,
         id: tmpId,
-      });
+      }));
     }
   };
 
   const handleIdChange = (event: any) => {
-    setTmpId(event.target.value);
+    const newId = event.target.value;
+    setTmpId(newId);
   };
 
   return (
     <div>
-      <TextField
-        id={`component-id-input${component.id}`}
+      <TextFieldWithValidation
         label={t('ux_editor.modal_properties_component_change_id')}
-        onBlur={handleNewId}
+        name={`component-id-input${component.id}`}
+        value={tmpId}
+        validation={{
+          required: {
+            message: t('validation_errors.required'),
+          },
+          custom: (value) => {
+            if (idExists(value, components, containers) && value !== component.id) {
+              return t('ux_editor.modal_properties_component_id_not_unique_error');
+            } else if (!value || !validComponentId.test(value)) {
+              return t('ux_editor.modal_properties_component_id_not_valid');
+            }
+          }
+        }}
         onChange={handleIdChange}
-        value={tmpId ?? ''}
-      />
-      <div ref={errorMessageRef} />
-      <ErrorPopover
-        anchorEl={error ? errorMessageRef.current : null}
-        onClose={handleClosePopup}
-        errorMessage={error}
+        onBlur={handleNewId}
       />
     </div>
   );

@@ -1,10 +1,23 @@
 import { ComponentType } from '../components';
-import { ICreateFormComponent, IOption } from './global';
+import { IDataModelBindings, ITextResourceBindings, IOption } from './global';
 
-export interface FormComponentBase<T extends ComponentType = ComponentType> extends ICreateFormComponent {
+export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;
+  component?: string;
   itemType: 'COMPONENT';
   type: T;
+  name?: string;
+  size?: string;
+  options?: IOption[];
+  dataModelBindings: IDataModelBindings;
+  textResourceBindings?: ITextResourceBindings;
+  customType?: string;
+  codeListId?: string;
+  triggerValidation?: boolean;
+  handleUpdateElement?: (component: FormComponent) => void;
+  handleDeleteElement?: () => void;
+  handleUpdateFormData?: (formData: any) => void;
+  handleUpdateDataModel?: (dataModelBinding: string) => void;
   disabled?: boolean;
   required?: boolean;
   hidden?: boolean;
@@ -117,23 +130,25 @@ export interface FormMapComponent extends FormComponentBase<ComponentType.Map> {
   }[];
 }
 
-export type FormComponent =
-  | FormHeaderComponent
-  | FormParagraphComponent
-  | FormInputComponent
-  | FormImageComponent
-  | FormDatepickerComponent
-  | FormDropdownComponent
-  | FormCheckboxesComponent
-  | FormRadioButtonsComponent
-  | FormTextareaComponent
-  | FormFileUploaderComponent
-  | FormFileUploaderWithTagComponent
-  | FormButtonComponent
-  | FormAddressComponent
-  | FormGroupComponent
-  | FormNavigationBarComponent
-  | FormAttachmentListComponent
-  | FormThirdPartyComponent
-  | FormPanelComponent
-  | FormMapComponent;
+export type FormComponent<T extends ComponentType = ComponentType> = {
+  [ComponentType.AddressComponent]: FormAddressComponent;
+  [ComponentType.AttachmentList]: FormAttachmentListComponent;
+  [ComponentType.Button]: FormButtonComponent;
+  [ComponentType.Checkboxes]: FormCheckboxesComponent;
+  [ComponentType.Datepicker]: FormDatepickerComponent;
+  [ComponentType.Dropdown]: FormDropdownComponent;
+  [ComponentType.FileUploadWithTag]: FormFileUploaderWithTagComponent;
+  [ComponentType.FileUpload]: FormFileUploaderComponent;
+  [ComponentType.Group]: FormGroupComponent;
+  [ComponentType.Header]: FormHeaderComponent;
+  [ComponentType.Image]: FormImageComponent;
+  [ComponentType.Input]: FormInputComponent;
+  [ComponentType.Map]: FormMapComponent;
+  [ComponentType.NavigationBar]: FormNavigationBarComponent;
+  [ComponentType.NavigationButtons]: FormButtonComponent;
+  [ComponentType.Panel]: FormPanelComponent;
+  [ComponentType.Paragraph]: FormParagraphComponent;
+  [ComponentType.RadioButtons]: FormRadioButtonsComponent;
+  [ComponentType.TextArea]: FormTextareaComponent;
+  [ComponentType.ThirdParty]: FormThirdPartyComponent;
+}[T];

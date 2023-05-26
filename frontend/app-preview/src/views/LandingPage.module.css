@@ -4,21 +4,42 @@
   background-color: #0a572e;
 }
 
-.iframe {
+.iframeDesktop {
   height: 100%;
   width: 100%;
-  margin: 0;
   border: none;
+}
+
+.iframeMobileViewContainer {
+  display: flex;
+  justify-content: center;
+  background-color: #efefef;
+}
+
+.iframeMobile {
+  height: 100%;
+  width: 360px;
+  border: none;
+  margin: 0;
+}
+
+/* Mobile View Overlay to cover devtools in the middle of the screen */
+.iframeMobileViewOverlay {
+  position: absolute;
+  bottom: 0;
+  height: 100px;
+  width: 100%;
+  background-color: #efefef;
+  z-index: 1;
 }
 
 .header {
   font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: white;
-  border-bottom: 1px solid gray;
-  background-color: #15a859;
+  background-color: #118849;
   display: flex;
   align-items: center;
-  height: 80px;
+  height: 90px;
   padding: 0 2rem;
 }
 
@@ -30,4 +51,30 @@
   margin-left: 30px;
   padding: 0 5px;
   font-weight: bold;
+}
+
+.viewSizeButtons {
+  --component-toggle_button-color-border-inactive: white;
+  --component-toggle_button-color-border-active: white;
+  --component-toggle_button-color-background-active: white;
+  --component-toggle_button-color-background-inactive: transparent;
+  --component-toggle_button-color-text-active: black;
+  --component-toggle_button-color-text-inactive: white;
+}
+
+/* Overriding this style because it is hardcoded in the design system */
+.viewSizeButtons button[aria-pressed="false"]:hover {
+  background-color: #Dbf5d5 !important;
+  color: black !important;
+}
+
+.subHeader {
+  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: white;
+  border-bottom: 1px solid gray;
+  background-color: #0c6536;
+  display: flex;
+  align-items: center;
+  height: 70px;
+  padding: 0 2rem;
 }

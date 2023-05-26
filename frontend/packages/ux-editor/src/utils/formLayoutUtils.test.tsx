@@ -1,17 +1,19 @@
 import {
   addComponent,
+  addContainer,
+  addItemOfType,
   addNavigationButtons,
   convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
   extractChildrenFromGroup,
-  findContainerId,
+  findParentId,
   hasNavigationButtons,
+  moveLayoutItem,
   removeComponent,
   removeComponentsByType,
 } from './formLayoutUtils';
 import { ComponentType } from '../components';
 import {
-  ICreateFormContainer,
   IExternalComponent,
   IExternalFormLayout,
   IInternalLayout
@@ -23,9 +25,10 @@ import type {
   FormHeaderComponent,
   FormParagraphComponent
 } from '../types/FormComponent';
+import { FormContainer } from '../types/FormContainer';
 
 // Test data:
-const baseContainer: ICreateFormContainer = {
+const baseContainer: FormContainer = {
   index: 0,
   itemType: 'CONTAINER',
 };
@@ -53,7 +56,7 @@ const paragraphComponent: FormParagraphComponent = {
   customProperty,
 };
 const groupId = 'group-container';
-const groupContainer: ICreateFormContainer = {
+const groupContainer: FormContainer = {
   dataModelBindings: {},
   itemType: 'CONTAINER',
 };
@@ -68,7 +71,7 @@ const paragraphInGroupComponent: FormParagraphComponent = {
   dataModelBindings: {},
 };
 const groupInGroupId = 'group-child-container';
-const groupInGroupContainer: ICreateFormContainer = {
+const groupInGroupContainer: FormContainer = {
   dataModelBindings: {},
   itemType: 'CONTAINER',
 };
@@ -210,17 +213,20 @@ describe('formLayoutUtils', () => {
         {
           id: 'mockChildID_2',
           type: ComponentType.Header,
+          dataModelBindings: {},
           someProp: '2',
           size: 'normal',
         },
         {
           id: 'mockChildID_4',
           type: ComponentType.Paragraph,
+          dataModelBindings: {},
           someProp: '4',
         },
         {
           id: 'mockChildID_5',
           type: ComponentType.Dropdown,
+          dataModelBindings: {},
           someProp: '5',
           optionsId: 'mockChildID_5_options',
         },
@@ -232,6 +238,7 @@ describe('formLayoutUtils', () => {
         {
           id: 'mockChildID_7',
           type: ComponentType.Input,
+          dataModelBindings: {},
           someProp: '7',
         },
       ];
@@ -247,13 +254,15 @@ describe('formLayoutUtils', () => {
             someProp: '2',
             type: ComponentType.Header,
             itemType: 'COMPONENT',
-            size: 'normal'
+            size: 'normal',
+            dataModelBindings: {},
           },
           mockChildID_4: {
             id: 'mockChildID_4',
             someProp: '4',
             type: ComponentType.Paragraph,
             itemType: 'COMPONENT',
+            dataModelBindings: {},
           },
           mockChildID_5: {
             id: 'mockChildID_5',
@@ -261,12 +270,14 @@ describe('formLayoutUtils', () => {
             type: ComponentType.Dropdown,
             itemType: 'COMPONENT',
             optionsId: 'mockChildID_5_options',
+            dataModelBindings: {},
           },
           mockChildID_7: {
             id: 'mockChildID_7',
             someProp: '7',
             type: ComponentType.Input,
             itemType: 'COMPONENT',
+            dataModelBindings: {},
           },
         },
         order: {
@@ -351,12 +362,14 @@ describe('formLayoutUtils', () => {
         {
           id: 'mock-component-1',
           type: ComponentType.Header,
+          dataModelBindings: {},
           someProp: '1',
           size: 'normal'
         },
         {
           id: 'mock-component-2',
           type: ComponentType.Paragraph,
+          dataModelBindings: {},
           someProp: '2',
         },
       ];
@@ -370,8 +383,21 @@ describe('formLayoutUtils', () => {
       const expectedConvertedLayoutResult: IInternalLayout = {
         containers: { 'mock-group-id': { itemType: 'CONTAINER' } },
         components: {
-          'mock-component-1': { someProp: '1', itemType: 'COMPONENT', type: ComponentType.Header, id: 'mock-component-1', size: 'normal' },
-          'mock-component-2': { someProp: '2', itemType: 'COMPONENT', type: ComponentType.Paragraph, id: 'mock-component-2' },
+          'mock-component-1': {
+            someProp: '1',
+            itemType: 'COMPONENT',
+            type: ComponentType.Header,
+            id: 'mock-component-1',
+            size: 'normal',
+            dataModelBindings: {}
+          },
+          'mock-component-2': {
+            someProp: '2',
+            itemType: 'COMPONENT',
+            type: ComponentType.Paragraph,
+            id: 'mock-component-2',
+            dataModelBindings: {}
+          },
         },
         order: { 'mock-group-id': ['mock-component-1', 'mock-component-2'] },
         customRootProperties: {},
@@ -390,6 +416,7 @@ describe('formLayoutUtils', () => {
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
+        dataModelBindings: {},
       };
       const layout: IInternalLayout = {
         containers: mockInternal.containers,
@@ -415,15 +442,20 @@ describe('formLayoutUtils', () => {
     });
   });
 
-  describe('findContainerId', () => {
+  describe('findParentId', () => {
     it('Finds the container id for a given component id', () => {
-      const containerId = findContainerId(mockInternal, paragraphInGroupId);
+      const containerId = findParentId(mockInternal, paragraphInGroupId);
+      expect(containerId).toEqual(groupId);
+    });
+
+    it('Finds the parent container id for a given container id', () => {
+      const containerId = findParentId(mockInternal, groupInGroupId);
       expect(containerId).toEqual(groupId);
     });
 
     it('Returns undefined if no container is found', () => {
       const componentId = 'inexistentId';
-      const containerId = findContainerId(mockInternal, componentId);
+      const containerId = findParentId(mockInternal, componentId);
       expect(containerId).toBeUndefined();
     });
   });
@@ -433,6 +465,7 @@ describe('formLayoutUtils', () => {
       id: 'newComponent',
       type: ComponentType.Paragraph,
       itemType: 'COMPONENT',
+      dataModelBindings: {},
     };
 
     it('Adds component to the end of the base container by default', () => {
@@ -449,6 +482,28 @@ describe('formLayoutUtils', () => {
       expect(layout.order[groupId][position]).toEqual(newComponent.id);
       expect(layout.order[groupId].length).toEqual(mockInternal.order[groupId].length + 1);
     })
+  });
+
+  describe('addContainer', () => {
+    const id = 'testId';
+    const newContainer: FormContainer = { itemType: 'CONTAINER' };
+
+    it('Adds container to the end of the base container by default', () => {
+      const layout = addContainer(mockInternal, newContainer, id);
+      expect(layout.containers[id]).toEqual(newContainer);
+      expect(layout.order[BASE_CONTAINER_ID].slice(-1)[0]).toEqual(id);
+      expect(layout.order[BASE_CONTAINER_ID].length).toEqual(mockInternal.order[BASE_CONTAINER_ID].length + 1);
+      expect(layout.order[id]).toEqual([]);
+    });
+
+    it('Adds container to the given position of the given parent container', () => {
+      const position = 1;
+      const layout = addContainer(mockInternal, newContainer, id, groupId, position);
+      expect(layout.containers[id]).toEqual(newContainer);
+      expect(layout.order[groupId][position]).toEqual(id);
+      expect(layout.order[groupId].length).toEqual(mockInternal.order[groupId].length + 1);
+      expect(layout.order[id]).toEqual([]);
+    });
   });
 
   describe('removeComponent', () => {
@@ -481,6 +536,32 @@ describe('formLayoutUtils', () => {
       expect(layout.components[id].textResourceBindings).toEqual({ next: 'next', back: 'back' });
       expect(layout.order[BASE_CONTAINER_ID].slice(-1)[0]).toEqual(id);
       expect(layout.order[BASE_CONTAINER_ID].length).toEqual(mockInternal.order[BASE_CONTAINER_ID].length + 1);
+    });
+  });
+
+  describe('moveLayoutItem', () => {
+    it('Changes the order properties in order to move item to the given position', () => {
+      const updatedLayout = moveLayoutItem(mockInternal, paragraphInGroupId, groupInGroupId, 1); // Move paragraphInGroupId to the second position in groupInGroupId
+      expect(updatedLayout.order[groupId]).toEqual([groupInGroupId]); // Checks that paragraphInGroupId is no longer a part of this group
+      expect(updatedLayout.order[groupInGroupId]).toEqual([paragraphInGroupInGroupId, paragraphInGroupId]); // Checks that paragraphInGroupId is now in the desired position of the target group
+    });
+  });
+
+  describe('addItemOfType', () => {
+    it.each(Object.values(ComponentType).filter((v) => v !== ComponentType.Group))(
+      'Adds a new component to the layout when the given type is %s',
+      (componentType) => {
+        const id = 'newItemId';
+        const layout = addItemOfType(mockInternal, componentType, id);
+        expect(layout.components[id].itemType).toEqual('COMPONENT');
+        expect(layout.components[id].type).toEqual(componentType);
+      }
+    );
+
+    it('Adds a new container to the layout when the given type is Group', () => {
+      const id = 'newGroupId';
+      const layout = addItemOfType(mockInternal, ComponentType.Group, id);
+      expect(layout.containers[id].itemType).toEqual('CONTAINER');
     });
   });
 });

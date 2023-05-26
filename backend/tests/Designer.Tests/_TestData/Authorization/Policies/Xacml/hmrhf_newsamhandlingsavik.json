@@ -1,0 +1,118 @@
+{
+  "Rules": [
+    {
+      "RuleId": "urn:altinn:example:ruleid:1",
+      "Description": "A rule giving user with role UTINN or DAGL and the app owner hmrhf the right to instantiate a instance of a given app of hmrhf/newsamhandlingsavvik",
+      "Subject": [
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:hmrhf"
+      ],
+      "Actions": [
+        "instantiate",
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:2",
+      "Description": "Rule that defines that user with role UTINN or DAGL can read and write for hmrhf/newsamhandlingsavvik when it is in Task_1",
+      "Subject": [
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:DAGL"
+      ],
+      "Actions": [
+        "read",
+        "write"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik",
+          "urn:altinn:task:Task_1"
+        ],
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:3",
+      "Description": "Rule that defines that user with role UTINN or DAGL can delete instances of hmrhf/newsamhandlingsavvik",
+      "Subject": [
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:DAGL"
+      ],
+      "Actions": [
+        "delete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:4",
+      "Description": "Rule that defines that org can write to instances of hmrhf/newsamhandlingsavvik for any states",
+      "Subject": [
+        "urn:altinn:org:hmrhf"
+      ],
+      "Actions": [
+        "write"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:5",
+      "Description": "Rule that defines that org can complete an instance of hmrhf/newsamhandlingsavvik which state is at the end event.",
+      "Subject": [
+        "urn:altinn:org:hmrhf"
+      ],
+      "Actions": [
+        "complete"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik",
+          "urn:altinn:end-event:EndEvent_1"
+        ]
+      ]
+    },
+    {
+      "RuleId": "urn:altinn:example:ruleid:6",
+      "Description": "A rule giving user with role UTINN or DAGL and the app owner hmrhf the right to read the appresource events of a given app of hmrhf/newsamhandlingsavvik",
+      "Subject": [
+        "urn:altinn:rolecode:UTINN",
+        "urn:altinn:rolecode:DAGL",
+        "urn:altinn:org:hmrhf"
+      ],
+      "Actions": [
+        "read"
+      ],
+      "Resources": [
+        [
+          "urn:altinn:org:hmrhf",
+          "urn:altinn:app:newsamhandlingsavvik",
+          "urn:altinn:appresource:events"
+        ]
+      ]
+    }
+  ],
+  "RequiredAuthenticationLevelEndUser": "2",
+  "RequiredAuthenticationLevelOrg": null
+}

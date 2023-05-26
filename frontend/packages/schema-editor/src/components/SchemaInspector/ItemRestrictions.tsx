@@ -33,7 +33,7 @@ export interface RestrictionItemProps {
   restrictions: any;
   readonly: boolean;
   path: string;
-  onChangeRestrictionValue: (id: string, key: string, value?: string) => void;
+  onChangeRestrictionValue: (id: string, key: string, value?: string | boolean) => void;
   onChangeRestrictions: (id: string, restrictions: Dict) => void;
 }
 
@@ -64,7 +64,7 @@ export const ItemRestrictions = ({
     }
   };
 
-  const onChangeRestrictionValue = (path: string, key: string, value?: string) =>
+  const onChangeRestrictionValue = (path: string, key: string, value?: string | boolean) =>
     dispatch(
       setRestriction({
         path,

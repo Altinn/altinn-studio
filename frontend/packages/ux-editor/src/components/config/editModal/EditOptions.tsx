@@ -54,12 +54,12 @@ export function EditOptions({
       return;
     }
 
-    if (selectedOptionsType === SelectedOptionsType.Codelist) {
+    if (selectedOptionsType === SelectedOptionsType.Codelist && component.options !== undefined) {
       handleComponentChange({
         ...component,
         options: undefined,
       });
-    } else {
+    } else if (component.optionsId !== null) {
       handleComponentChange({
         ...component,
         optionsId: null,
@@ -69,7 +69,7 @@ export function EditOptions({
 
   useEffect(() => {
     resetPrevOptionsType();
-  }, [resetPrevOptionsType, selectedOptionsType]);
+  }, [resetPrevOptionsType]);
 
   const handleOptionsTypeChange = (value) => {
     setSelectedOptionsType(value);
