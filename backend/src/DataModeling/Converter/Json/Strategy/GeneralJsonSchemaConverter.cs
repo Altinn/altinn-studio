@@ -1489,11 +1489,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 SchemaValueType.Boolean => xsdType == XmlSchemaTypes.Boolean,
                 SchemaValueType.String => XmlSchemaTypes.AllKnownTypes
-                    .Except(XmlSchemaTypes.IntegerDataTypes)
-                    .Except(XmlSchemaTypes.NumbericTypesWithFractions)
-                    .Except(new List<string>{XmlSchemaTypes.Boolean})
+                    .Except(XmlSchemaTypes.AllNumericTypes)
+                    .Except(new List<string> { XmlSchemaTypes.Boolean })
                     .Contains(xsdType),
-                SchemaValueType.Number => XmlSchemaTypes.NumbericTypesWithFractions.Contains(xsdType),
+                SchemaValueType.Number => XmlSchemaTypes.NumericTypesWithFractions.Contains(xsdType),
                 SchemaValueType.Integer => XmlSchemaTypes.IntegerDataTypes.Contains(xsdType),
                 _ => false
             };
@@ -1537,25 +1536,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return false;
             }
 
-            switch (type.Name)
+            if (XmlSchemaTypes.AllNumericTypes.Contains(type.Name))
             {
-                case "integer":
-                case "nonPositiveInteger":
-                case "negativeInteger":
-                case "nonNegativeInteger":
-                case "positiveInteger":
-                case "long":
-                case "int":
-                case "short":
-                case "byte":
-                case "unsignedLong":
-                case "unsignedInt":
-                case "unsignedShort":
-                case "unsignedByte":
-                case "decimal":
-                case "float":
-                case "double":
-                    return true;
+                return true;
             }
 
             return false;

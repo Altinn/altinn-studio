@@ -299,10 +299,12 @@ public static class XmlSchemaTypes
         UnsignedShort
     };
 
-    public static IEnumerable<string> NumbericTypesWithFractions => new List<string>
+    public static IEnumerable<string> NumericTypesWithFractions => new List<string>
     {
         Decimal,
         Float,
         Double
     };
+
+    public static IEnumerable<string> AllNumericTypes => IntegerDataTypes.Union(NumericTypesWithFractions);
 }
