@@ -70,7 +70,7 @@ public class PostTests : DatamodelsControllerTestsBase<PostTests>
 
         var createViewModel = new CreateModelViewModel()
         { ModelName = modelName, RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
-        var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        using var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = JsonContent.Create(createViewModel, null, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
         };
