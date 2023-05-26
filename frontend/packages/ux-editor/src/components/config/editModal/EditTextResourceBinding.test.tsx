@@ -7,7 +7,7 @@ import type { ITextResource } from 'app-shared/types/global';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { FormItemType } from 'app-shared/types/FormItemType';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();

@@ -6,4 +6,4 @@ export { useDeleteLanguageMutation } from './useDeleteLanguageMutation';
 export { useRepoPushMutation } from './useRepoPushMutation';
 export { useTextIdMutation } from './useTextIdMutation';
 export { useUpsertTextResourceMutation } from './useUpsertTextResourceMutation';
-export { useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';
+export { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations/useUpsertTextResourcesMutation';

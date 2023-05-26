@@ -12,7 +12,7 @@ import { useDatamodelQuery } from './hooks/queries/useDatamodelQuery';
 import { useFormLayoutsQuery } from './hooks/queries/useFormLayoutsQuery';
 import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
 import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
-import { useTextResourcesQuery } from '../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/';
 import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
 import { firstAvailableLayout } from './utils/formLayoutsUtils';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';

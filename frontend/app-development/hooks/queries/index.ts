@@ -9,5 +9,5 @@ export { useOrgListQuery } from './useOrgListQuery';
 export { useRepoMetadataQuery } from './useRepoMetadataQuery';
 export { useRepoPullQuery } from './useRepoPullQuery';
 export { useRepoStatusQuery } from './useRepoStatusQuery';
-export { useTextResourcesQuery } from './useTextResourcesQuery';
+export { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 export { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';

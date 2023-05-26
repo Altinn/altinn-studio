@@ -8,7 +8,7 @@ import { last } from 'app-shared/utils/arrayUtils';
 import { FormItemType } from 'app-shared/types/FormItemType';
 import { RadioGroupPreview, RadioGroupPreviewProps } from './RadioGroupPreview';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormRadioButtonsComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();
