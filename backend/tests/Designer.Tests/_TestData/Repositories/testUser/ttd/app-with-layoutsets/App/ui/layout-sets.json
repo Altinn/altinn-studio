@@ -9,7 +9,7 @@
         },
         {
             "id": "layoutSet2",
-            "dataType": "data-model-2",
+            "dataType": null,
             "tasks": [
                 "Task_2"
             ]

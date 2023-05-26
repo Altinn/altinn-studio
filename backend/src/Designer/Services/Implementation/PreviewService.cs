@@ -4,7 +4,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -42,7 +41,7 @@ public class PreviewService : IPreviewService
             { new ()
                 // All data types attached to the current task in the process model should be added here
                     {
-                        DataType = dataType.Id,
+                        DataType = dataType?.Id,
                         Id = "test-datatask-id"
                     }
                 },

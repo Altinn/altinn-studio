@@ -363,7 +363,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
         public async Task<ActionResult> UpdateFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid)
         {
-            return await GetFormData(org, app, partyId + 1, instanceGuid);
+            return await GetFormData(org, app, partyId, instanceGuid);
         }
 
         /// <summary>
@@ -452,10 +452,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Process object where ended is set</returns>
         [HttpPut]
         [Route("instances/{partyId}/{instanceGuId}/process/next")]
-        public ActionResult ProcessNext(string org, string app, [FromRoute] int partyId, [FromQuery] string lang)
+        public async Task<ActionResult> ProcessNext(string org, string app, [FromRoute] int partyId, [FromQuery] string lang)
         {
-            string endProcess = @"{""ended"": ""ended""}";
-            return Ok(endProcess);
+            string refererHeader = Request.Headers["Referer"];
+            string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+            if (string.IsNullOrEmpty(layoutSetName))
+            {
+                string endProcess = @"{""ended"": ""ended""}";
+                return Ok(endProcess);
+            }
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName);
+            return Ok(mockInstance.Process);
         }
 
         /// <summary>
@@ -691,7 +699,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             try
             {
-                // TODO: Need code to get external options list based on language and source
+                // TODO: Need code to get dynamic options list based on language and source?
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
                 string options = await altinnAppGitRepository.GetOptions(optionListId);
@@ -705,14 +713,10 @@ namespace Altinn.Studio.Designer.Controllers
 
         private string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
         {
-            string layoutSetName = null;
-            if (refererHeader.Contains("selectedLayoutSetInEditor"))
-            {
-                Uri refererUri = new (refererHeader);
-                layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSetInEditor"];
-            }
+            Uri refererUri = new(refererHeader);
+            string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSetInEditor"];
 
-            return layoutSetName;
+            return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
         }
     }
 }
