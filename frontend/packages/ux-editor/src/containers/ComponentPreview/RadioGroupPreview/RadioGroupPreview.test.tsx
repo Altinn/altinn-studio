@@ -9,7 +9,7 @@ import { ComponentType } from '../../../components';
 import { RadioGroupPreview, RadioGroupPreviewProps } from './RadioGroupPreview';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
-import { FormRadioButtonsComponent } from '../../../types/FormComponent';
+import type { FormRadioButtonsComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();
 

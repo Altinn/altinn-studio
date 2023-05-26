@@ -9,7 +9,7 @@ import { last } from 'app-shared/utils/arrayUtils';
 import { ComponentType } from '../../../components';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
-import { FormCheckboxesComponent } from '../../../types/FormComponent';
+import type { FormCheckboxesComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();
 
