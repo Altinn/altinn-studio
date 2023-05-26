@@ -9,7 +9,7 @@ import { ComponentType } from '../../../components';
 import { RadioGroupPreview, RadioGroupPreviewProps } from './RadioGroupPreview';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
-import { FormOptionsType, FormRadioButtonsComponent } from '../../../types/FormComponent';
+import { FormRadioButtonsComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();
 
@@ -32,7 +32,6 @@ const options: IOption[] = [
 ];
 const component: FormRadioButtonsComponent = {
   id: '1',
-  optionsType: FormOptionsType.Manual,
   options,
   optionsId: '',
   type: ComponentType.RadioButtons,

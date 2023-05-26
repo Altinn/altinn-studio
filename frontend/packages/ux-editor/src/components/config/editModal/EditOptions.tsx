@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import type { IOption } from '../../../types/global';
 import {
   Button,
   ButtonColor,
@@ -16,7 +17,6 @@ import { TextResource } from '../../TextResource';
 import { useText } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
 import type { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
-import { FormOptionsType } from '../../../types/FormComponent';
 
 export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
   renderOptions?: {
@@ -24,19 +24,53 @@ export interface ISelectionEditComponentProvidedProps extends IGenericEditCompon
   };
 }
 
+export enum SelectedOptionsType {
+  Codelist = 'codelist',
+  Manual = 'manual',
+  Unknown = '',
+}
+
+const getSelectedOptionsType = (codeListId: string, options: IOption[]): SelectedOptionsType => {
+  if (codeListId) {
+    return SelectedOptionsType.Codelist;
+  }
+  if (options?.length) {
+    return SelectedOptionsType.Manual;
+  }
+  return SelectedOptionsType.Unknown;
+};
+
 export function EditOptions({
+  editFormId,
   component,
   handleComponentChange,
 }: ISelectionEditComponentProvidedProps) {
+  const previousEditFormId = useRef(editFormId);
+  const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
+  const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
   const t = useText();
 
-  const handleOptionsTypeChange = (value: FormOptionsType) => {
-    handleComponentChange({
-      ...component,
-      optionsType: value,
-      options: [],
-      optionsId: '',
-    });
+  useEffect(() => {
+    if (editFormId !== previousEditFormId.current) {
+      previousEditFormId.current = editFormId;
+      setSelectedOptionsType(initialSelectedOptionType);
+    }
+  }, [editFormId, initialSelectedOptionType]);
+
+  const handleOptionsTypeChange = (value: SelectedOptionsType) => {
+    setSelectedOptionsType(value);
+    if (selectedOptionsType === SelectedOptionsType.Codelist) {
+      handleComponentChange({
+        ...component,
+        options: [],
+      });
+    }
+    if (selectedOptionsType === SelectedOptionsType.Manual) {
+      handleComponentChange({
+        ...component,
+        optionsId: '',
+      });
+    }
   };
 
   const handleUpdateOptionLabel = (index: number) => (id: string) => {
@@ -89,13 +123,13 @@ export function EditOptions({
         }
         name={`${component.id}-options`}
         onChange={handleOptionsTypeChange}
-        value={component.optionsType}
+        value={selectedOptionsType}
         variant={RadioGroupVariant.Horizontal}
       />
-      {component.optionsType === FormOptionsType.Codelist && (
+      {selectedOptionsType === SelectedOptionsType.Codelist && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
-      {component.optionsType === FormOptionsType.Manual &&
+      {selectedOptionsType === SelectedOptionsType.Manual &&
         component.options?.map((option, index) => {
           const updateValue = (e: any) => handleUpdateOptionValue(index, e);
           const removeItem = () => handleRemoveOption(index);
@@ -141,7 +175,7 @@ export function EditOptions({
             </div>
           );
         })}
-      {component.optionsType === FormOptionsType.Manual && (
+      {selectedOptionsType === SelectedOptionsType.Manual && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <Button
             disabled={component.options?.some(({ label }) => !label)}

@@ -1,6 +1,6 @@
 import { ComponentType } from '../../components';
 import { ErrorCode, validateComponent } from './validateComponent';
-import { FormCheckboxesComponent, FormComponent, FormOptionsType, FormRadioButtonsComponent } from '../../types/FormComponent';
+import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
 
 describe('validateComponent', () => {
   describe('validateCheckboxGroup', () => {
@@ -9,7 +9,6 @@ describe('validateComponent', () => {
         type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsType: FormOptionsType.Codelist,
         optionsId: 'test',
         options: [],
         dataModelBindings: {},
@@ -25,7 +24,6 @@ describe('validateComponent', () => {
         type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsType: FormOptionsType.Manual,
         optionsId: 'test',
         options: [
           { label: 'test1', value: 'test' },
@@ -44,7 +42,6 @@ describe('validateComponent', () => {
         type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsType: FormOptionsType.Manual,
         optionsId: 'test',
         options: [
           { label: 'test1', value: 'test1' },
@@ -62,7 +59,6 @@ describe('validateComponent', () => {
         type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsType: FormOptionsType.Codelist,
         optionsId: 'test',
         options: [],
         dataModelBindings: {},
@@ -78,7 +74,6 @@ describe('validateComponent', () => {
         type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsType: FormOptionsType.Manual,
         optionsId: 'test',
         options: [
           { label: 'test1', value: 'test' },
@@ -97,7 +92,6 @@ describe('validateComponent', () => {
         type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsType: FormOptionsType.Manual,
         optionsId: 'test',
         options: [
           { label: 'test1', value: 'test1' },

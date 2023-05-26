@@ -2,7 +2,7 @@ import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { ComponentPreview, ComponentPreviewProps } from './ComponentPreview';
 import { ComponentType } from '../../components';
-import { FormComponent, FormOptionsType } from '../../types/FormComponent';
+import { FormComponent } from '../../types/FormComponent';
 import { componentMocks } from '../../testing/componentMocks';
 
 // Test data:
@@ -43,7 +43,6 @@ describe('ComponentPreview', () => {
   it('Displays error message when component is invalid', () => {
     const invalidComponent: FormComponent = {
       type: ComponentType.Checkboxes,
-      optionsType: FormOptionsType.Manual,
       options: [
         { label: 'Option 1', value: 'option1' },
         { label: 'Option 2', value: 'option2' },

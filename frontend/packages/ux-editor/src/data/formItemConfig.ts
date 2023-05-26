@@ -1,6 +1,6 @@
 import { ComponentType } from '../components';
 import { FormItem } from '../types/FormItem';
-import { FormPanelVariant, FormOptionsType } from '../types/FormComponent';
+import { FormPanelVariant } from '../types/FormComponent';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
@@ -53,7 +53,6 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Checkboxes,
       dataModelBindings: {},
-      optionsType: FormOptionsType.Unknown,
       options: [],
       optionsId: '',
       required: true,
@@ -229,7 +228,6 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.RadioButtons,
       dataModelBindings: {},
-      optionsType: FormOptionsType.Unknown,
       options: [],
       optionsId: '',
       required: true,

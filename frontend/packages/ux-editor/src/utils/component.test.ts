@@ -6,7 +6,7 @@ import {
   generateFormItem,
 } from './component';
 import { ComponentType } from '../components';
-import { FormCheckboxesComponent, FormComponent, FormOptionsType, FormRadioButtonsComponent } from '../types/FormComponent';
+import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
 
 describe('Component utils', () => {
   describe('changeTextResourceBinding', () => {
@@ -88,7 +88,6 @@ describe('Component utils', () => {
         const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
           id: 'test',
           type: componentType,
-          optionsType: FormOptionsType.Manual,
           options: [
             {
               label: 'testLabel',
@@ -122,7 +121,6 @@ describe('Component utils', () => {
         const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
           id: 'test',
           type: componentType,
-          optionsType: FormOptionsType.Manual,
           options: [
             {
               label: 'testLabel',

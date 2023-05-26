@@ -25,14 +25,7 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   [id: string]: any;
 }
 
-export enum FormOptionsType {
-  Codelist = 'codelist',
-  Manual = 'manual',
-  Unknown = '',
-}
-
 interface FormOptionsComponentBase<T extends ComponentType> extends FormComponentBase<T> {
-  optionsType: FormOptionsType;
   options: IOption[];
   preselectedOptionIndex?: number;
   optionsId: string;

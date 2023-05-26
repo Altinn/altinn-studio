@@ -198,6 +198,7 @@ const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
       <Provider store={store}>
         <ServicesContextProvider {...queriesMock}>
           <EditFormComponent
+            editFormId={''}
             component={allComponentProps}
             handleComponentUpdate={handleComponentUpdate}
           />
