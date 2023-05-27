@@ -3,7 +3,7 @@
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
-    /// MVC Controller responsible for presenting HTML that 
+    /// MVC Controller responsible for presenting HTML that
     /// </summary>
     public class ResourceAdmController : Controller
     {
