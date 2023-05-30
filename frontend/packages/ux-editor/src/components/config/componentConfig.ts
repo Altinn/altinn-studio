@@ -12,6 +12,7 @@ import { EditAutoComplete } from './editModal/EditAutoComplete';
 import type { FormComponent } from '../../types/FormComponent';
 
 export interface IGenericEditComponent<T extends FormComponent = FormComponent> {
+  editFormId?: string;
   component: T;
   handleComponentChange: (component: T) => void;
   layoutName?: string;

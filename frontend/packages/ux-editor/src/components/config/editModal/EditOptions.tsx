@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
 import {
   Button,
@@ -41,38 +41,36 @@ const getSelectedOptionsType = (codeListId: string, options: IOption[]): Selecte
 };
 
 export function EditOptions({
+  editFormId,
   component,
   handleComponentChange,
 }: ISelectionEditComponentProvidedProps) {
-  const [selectedOptionsType, setSelectedOptionsType] = useState(
-    getSelectedOptionsType(component.optionsId, component.options)
-  );
+  const previousEditFormId = useRef(editFormId);
+  const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
+  const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
   const t = useText();
 
-  const resetPrevOptionsType = useCallback(() => {
-    if (selectedOptionsType === SelectedOptionsType.Unknown) {
-      return;
-    }
-
-    if (selectedOptionsType === SelectedOptionsType.Codelist && component.options !== undefined) {
-      handleComponentChange({
-        ...component,
-        options: undefined,
-      });
-    } else if (component.optionsId !== null) {
-      handleComponentChange({
-        ...component,
-        optionsId: null,
-      });
-    }
-  }, [component, handleComponentChange, selectedOptionsType]);
-
   useEffect(() => {
-    resetPrevOptionsType();
-  }, [resetPrevOptionsType]);
+    if (editFormId !== previousEditFormId.current) {
+      previousEditFormId.current = editFormId;
+      setSelectedOptionsType(initialSelectedOptionType);
+    }
+  }, [editFormId, initialSelectedOptionType]);
 
-  const handleOptionsTypeChange = (value) => {
+  const handleOptionsTypeChange = (value: SelectedOptionsType) => {
     setSelectedOptionsType(value);
+    if (selectedOptionsType === SelectedOptionsType.Codelist) {
+      handleComponentChange({
+        ...component,
+        options: [],
+      });
+    }
+    if (selectedOptionsType === SelectedOptionsType.Manual) {
+      handleComponentChange({
+        ...component,
+        optionsId: '',
+      });
+    }
   };
 
   const handleUpdateOptionLabel = (index: number) => (id: string) => {

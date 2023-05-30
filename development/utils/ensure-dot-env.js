@@ -10,6 +10,7 @@ const randomPass = () =>
 const defaultEnvVars = {
   CYPRESS_TEST_APP: 'autodeploy-v3',
   DEVELOP_APP_DEVELOPMENT: 0,
+  DEVELOP_RESOURCE_ADMIN: true,
   DEVELOP_BACKEND: 0,
   DEVELOP_DASHBOARD: 0,
   DEVELOP_PREVIEW: 0,

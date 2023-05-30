@@ -1,0 +1,1 @@
+export { OlsenbandenPage } from './OlsenbandenPage';

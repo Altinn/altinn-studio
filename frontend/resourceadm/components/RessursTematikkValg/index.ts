@@ -1,0 +1,1 @@
+export { RessursTematikkValg } from './RessursTematikkValg';

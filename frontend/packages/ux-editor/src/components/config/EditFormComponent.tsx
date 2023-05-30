@@ -10,11 +10,13 @@ import { useFormLayoutsSelector, useComponentErrorMessage } from '../../hooks';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 
 export interface IEditFormComponentProps {
+  editFormId: string;
   component: FormComponent;
   handleComponentUpdate: React.Dispatch<React.SetStateAction<FormComponent>>;
 }
 
 export const EditFormComponent = ({
+  editFormId,
   component,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
@@ -28,6 +30,7 @@ export const EditFormComponent = ({
       if (!Tag) return null;
       return React.createElement<IGenericEditComponent>(Tag, {
         key: configType,
+        editFormId,
         handleComponentChange: handleComponentUpdate,
         component,
       });
