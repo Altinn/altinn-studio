@@ -19,7 +19,7 @@ interface PDFViewProps {
 }
 
 const PDFComponent = ({ node }: { node: LayoutNode }) => {
-  if (node.isType('Group')) {
+  if (node.isNonRepGroup()) {
     return (
       <DisplayGroupContainer
         groupNode={node}

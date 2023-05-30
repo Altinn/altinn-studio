@@ -1,0 +1,23 @@
+.groupTitle {
+  font-weight: 500;
+  font-size: 1.25rem;
+  margin-bottom: 0;
+}
+
+.groupBody {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+.groupContainer {
+  padding-bottom: 38px !important;
+}
+
+.groupingIndicator {
+  border-left: 2px solid #949494;
+  margin-left: 12px !important;
+  margin-bottom: 12px !important;
+  margin-top: 12px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}

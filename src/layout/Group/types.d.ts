@@ -33,6 +33,7 @@ export interface ILayoutGroup extends ILayoutCompBase<'Group'> {
   tableColumns?: ITableColumnFormatting<IGroupColumnFormatting>;
   edit?: IGroupEditProperties;
   panel?: IGroupPanel;
+  showGroupingIndicator?: boolean;
   hiddenRow?: ExprVal.Boolean;
   rowsBefore?: GridRow[];
   rowsAfter?: GridRow[];

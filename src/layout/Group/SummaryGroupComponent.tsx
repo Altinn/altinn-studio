@@ -94,7 +94,7 @@ export function SummaryGroupComponent({
                       ...overrides,
                       targetNode: n,
                       grid: {},
-                      largeGroup: false,
+                      largeGroup: targetNode.isNonRepGroup(),
                     }}
                   />
                 );

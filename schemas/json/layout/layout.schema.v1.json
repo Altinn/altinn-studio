@@ -567,6 +567,12 @@
           "description": "Alternatives for panel view of repeating group",
           "$ref": "#/definitions/groupPanelOptions"
         },
+        "showGroupingIndicator": {
+          "title": "Show grouping indicator",
+          "description": "Boolean to decide whether a vertical line indicating grouping of fields should be visible. Only relevant for non-repeating groups.",
+          "type": "boolean",
+          "default": false
+        },
         "maxCount": {
           "type": "integer",
           "title": "Maximum count",

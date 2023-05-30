@@ -44,16 +44,22 @@ export function GroupRenderer({ node }: GroupRendererProps) {
   }
 
   // Treat as regular components
-  return (
-    <DisplayGroupContainer
-      key={node.item.id}
-      groupNode={node}
-      renderLayoutNode={(n) => (
-        <GenericComponent
-          key={n.item.id}
-          node={n}
-        />
-      )}
-    />
-  );
+  if (node.isNonRepGroup()) {
+    return (
+      <DisplayGroupContainer
+        key={node.item.id}
+        groupNode={node}
+        renderLayoutNode={(n) => (
+          <GenericComponent
+            key={n.item.id}
+            node={n}
+          />
+        )}
+      />
+    );
+  }
+
+  // Invalid configuration
+  console.warn(`Group ${node.item.id} has an invalid configuration.`);
+  return null;
 }

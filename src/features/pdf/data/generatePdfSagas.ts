@@ -88,6 +88,7 @@ function generateAutomaticLayout(pdfFormat: IPdfFormat, uiConfig: IUiConfig, lay
           componentRef: component.id,
           pageRef,
           excludedChildren: pdfFormat?.excludedComponents,
+          largeGroup: component.type === 'Group' && (!component.maxCount || component.maxCount <= 1),
         } as ExprUnresolved<ILayoutCompSummary>;
       }
       return null;
