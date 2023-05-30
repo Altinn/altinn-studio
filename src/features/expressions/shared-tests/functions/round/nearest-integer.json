@@ -1,0 +1,5 @@
+{
+  "name": "Should round to nearest integer",
+  "expression": ["round", 3.2, null],
+  "expects": 3
+}

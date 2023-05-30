@@ -1,0 +1,5 @@
+{
+  "name": "Should return false if the comma-separated list does not contain the given value",
+  "expression": ["commaContains", "hello, bye, hola, adios", "Hasta luego"],
+  "expects": false
+}

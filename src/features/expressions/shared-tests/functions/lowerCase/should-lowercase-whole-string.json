@@ -1,0 +1,5 @@
+{
+  "name": "Should lowercase the whole string when given a string has multiple words",
+  "expression": ["lowerCase", "Hola, Como Estas?"],
+  "expects": "hola, como estas?"
+}

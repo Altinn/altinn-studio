@@ -12,6 +12,7 @@ import {
 import { ExprContext } from 'src/features/expressions/ExprContext';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
+import { getTextResourceByKey } from 'src/language/sharedLanguage';
 import { dataSourcesFromState, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -43,6 +44,8 @@ export interface EvalExprInObjArgs<T> {
   resolvingPerRow?: boolean;
   deleteNonExpressions?: boolean;
 }
+
+const altinnWindow = window as unknown as IAltinnWindow;
 
 /**
  * Magic key used to indicate a config value for all possible values in an object
@@ -508,6 +511,127 @@ export const ExprFunctions = {
     },
     args: [ExprVal.String] as const,
     returns: ExprVal.Any,
+  }),
+  round: defineFunc({
+    impl(number, decimalPoints: number | null): number | null {
+      if (number === null) {
+        throw new LookupNotFound(this, `"Value" parameter cannot be null.`);
+      }
+
+      if (decimalPoints !== undefined && decimalPoints !== null) {
+        const factor = 10 ** decimalPoints;
+        return Math.round(number * factor) / factor;
+      }
+
+      return Math.round(number);
+    },
+    args: [ExprVal.Number, ExprVal.Number] as const,
+    returns: ExprVal.Number,
+  }),
+  text: defineFunc({
+    impl(key): string | null {
+      if (key === null) {
+        throw new LookupNotFound(this, `"Key" parameter cannot be null.`);
+      }
+      const state = altinnWindow.reduxStore.getState();
+      return getTextResourceByKey(key, state.textResources.resources);
+    },
+    args: [ExprVal.String] as const,
+    returns: ExprVal.String,
+  }),
+  language: defineFunc({
+    impl(): string {
+      const state = altinnWindow.reduxStore.getState();
+      return state.profile.selectedAppLanguage || state.profile.profile.profileSettingPreference.language;
+    },
+    args: [] as const,
+    returns: ExprVal.String,
+  }),
+  contains: defineFunc({
+    impl(string: string, stringToContain: string): boolean {
+      if (string === null || stringToContain === null) {
+        throw new LookupNotFound(this, `"string" or "stringToContain" parameter cannot be null.`);
+      }
+
+      return string.includes(stringToContain);
+    },
+    args: [ExprVal.String, ExprVal.String] as const,
+    returns: ExprVal.Boolean,
+  }),
+  notContains: defineFunc({
+    impl(string: string, stringToNotContain: string): boolean {
+      if (string === null || stringToNotContain === null) {
+        throw new LookupNotFound(this, `"string" or "stringToNotContain" parameter cannot be null.`);
+      }
+      return !string.includes(stringToNotContain);
+    },
+    args: [ExprVal.String, ExprVal.String] as const,
+    returns: ExprVal.Boolean,
+  }),
+  endsWith: defineFunc({
+    impl(string: string, stringToMatch: string): boolean {
+      if (string === null || stringToMatch === null) {
+        throw new LookupNotFound(this, `"string" or "stringToMatch" parameter cannot be null.`);
+      }
+      return string.endsWith(stringToMatch);
+    },
+    args: [ExprVal.String, ExprVal.String] as const,
+    returns: ExprVal.Boolean,
+  }),
+  startsWith: defineFunc({
+    impl(string: string, stringToMatch: string): boolean {
+      if (string === null || stringToMatch === null) {
+        throw new LookupNotFound(this, `"string" or "stringToMatch" parameter cannot be null.`);
+      }
+
+      return string.startsWith(stringToMatch);
+    },
+    args: [ExprVal.String, ExprVal.String] as const,
+    returns: ExprVal.Boolean,
+  }),
+  stringLength: defineFunc({
+    impl(string: string): number {
+      if (string === null) {
+        throw new LookupNotFound(this, `"string" parameter cannot be null.`);
+      }
+
+      return string.length;
+    },
+    args: [ExprVal.String] as const,
+    returns: ExprVal.Number,
+  }),
+  commaContains: defineFunc({
+    impl(commaSeparatedString: string, stringToMatch: string): boolean {
+      if (commaSeparatedString === null || stringToMatch === null) {
+        throw new LookupNotFound(this, `"commaSeparatedString" or "stringToMatch" parameter cannot be null.`);
+      }
+
+      // Split the comma separated string into an array and remove whitespace from each part
+      const parsedToArray = commaSeparatedString.split(',').map((part) => part.trim());
+      return parsedToArray.includes(stringToMatch);
+    },
+    args: [ExprVal.String, ExprVal.String] as const,
+    returns: ExprVal.Boolean,
+  }),
+  lowerCase: defineFunc({
+    impl(string: string): string {
+      if (string === null) {
+        throw new LookupNotFound(this, `"string" parameter cannot be null.`);
+      }
+      return string.toLowerCase();
+    },
+    args: [ExprVal.String] as const,
+    returns: ExprVal.String,
+  }),
+  upperCase: defineFunc({
+    impl(string: string): string {
+      if (string === null) {
+        throw new LookupNotFound(this, `"string" parameter cannot be null.`);
+      }
+      return string.toUpperCase();
+    },
+    args: [ExprVal.String] as const,
+    returns: ExprVal.String,
   }),
 };
 

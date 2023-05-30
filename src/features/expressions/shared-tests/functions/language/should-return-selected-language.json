@@ -1,0 +1,8 @@
+{
+  "name": "Should return the selected language",
+  "expression": ["language"],
+  "expects": "nb",
+  "frontendSettings": {
+    "selectedLanguage": "nb"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Should be true when the given number ends with the given digit",
+  "expression": ["endsWith", 102, 2],
+  "expects": true
+}
