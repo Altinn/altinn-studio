@@ -8,7 +8,7 @@ import { initReactI18next } from 'react-i18next';
 import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
@@ -37,10 +37,8 @@ const queryClient = new QueryClient({
 
 root.render(
   <BrowserRouter basename={DASHBOARD_BASENAME}>
-    <QueryClientProvider client={queryClient}>
-      <ServicesContextProvider {...queries} {...mutations}>
-        <App />
-      </ServicesContextProvider>
-    </QueryClientProvider>
+    <ServicesContextProvider client={queryClient} {...queries} {...mutations}>
+      <App />
+    </ServicesContextProvider>
   </BrowserRouter>
 );

@@ -6,8 +6,8 @@ import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
 import AppHeader from 'app-shared/navigation/main-header/Header';
 
 import { userHasAccessToSelectedContext } from '../../utils/userUtils';
-import { useOrganizationsQuery } from '../../hooks/useOrganizationQueries';
-import { useUserQuery } from '../../hooks/useUserQueries';
+import { useOrganizationsQuery } from '../../hooks/queries';
+import { useUserQuery } from 'app-shared/hooks/queries';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 
 export const PageLayout = () => {
