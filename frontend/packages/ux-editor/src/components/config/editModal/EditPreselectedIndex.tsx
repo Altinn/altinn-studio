@@ -2,7 +2,7 @@ import React from 'react';
 import { TextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
 
 export function EditPreselectedIndex({ component, handleComponentChange }: IGenericEditComponent) {
@@ -15,13 +15,13 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
     });
   };
 
-  const mapComponentTypeToText = (componentType: FormItemType) => {
+  const mapComponentTypeToText = (componentType: ComponentType) => {
     switch (componentType) {
-      case FormItemType.Checkboxes:
+      case ComponentType.Checkboxes:
         return t('ux_editor.modal_check_box_set_preselected');
-      case FormItemType.RadioButtons:
+      case ComponentType.RadioButtons:
         return t('ux_editor.modal_radio_button_set_preselected');
-      case FormItemType.Dropdown:
+      case ComponentType.Dropdown:
         return t('ux_editor.component_dropdown_set_preselected');
       default:
         return 'Unknown component';
@@ -33,7 +33,7 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
       <TextField
         defaultValue={(component as FormCheckboxesComponent | FormRadioButtonsComponent).preselectedOptionIndex}
         formatting={{ number: {} }}
-        label={mapComponentTypeToText(component.type as FormItemType)}
+        label={mapComponentTypeToText(component.type as ComponentType)}
         onChange={handlePreselectedOptionChange}
         placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
       />

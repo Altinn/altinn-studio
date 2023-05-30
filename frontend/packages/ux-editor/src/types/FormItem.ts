@@ -1,6 +1,6 @@
 import { FormComponent } from './FormComponent';
 import { FormContainer } from './FormContainer';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
-export type FormItem<T extends FormItemType = FormItemType> =
-  FormItemType.Group extends T ? FormContainer : FormComponent<T>;
+export type FormItem<T extends ComponentType = ComponentType> =
+  ComponentType.Group extends T ? FormContainer : FormComponent<T>;

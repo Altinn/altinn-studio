@@ -9,7 +9,7 @@ import { FormComponent } from '../../types/FormComponent';
 import { appStateMock, queriesMock } from '../../testing/mocks';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const user = userEvent.setup();
 
@@ -42,7 +42,7 @@ describe('EditFormComponent', () => {
   test('should return input specific content when type input', () => {
     render({
       componentProps: {
-        type: FormItemType.Input,
+        type: ComponentType.Input,
       },
     });
 
@@ -60,7 +60,7 @@ describe('EditFormComponent', () => {
   test('should return header specific content when type header', () => {
     render({
       componentProps: {
-        type: FormItemType.Header,
+        type: ComponentType.Header,
       },
     });
 
@@ -74,7 +74,7 @@ describe('EditFormComponent', () => {
   test('should return file uploader specific content when type file uploader', () => {
     render({
       componentProps: {
-        type: FormItemType.FileUpload,
+        type: ComponentType.FileUpload,
       },
     });
 
@@ -97,7 +97,7 @@ describe('EditFormComponent', () => {
     const { allComponentProps } = render({
       componentProps: {
         maxNumberOfAttachments: 3,
-        type: FormItemType.FileUpload,
+        type: ComponentType.FileUpload,
       },
       handleComponentUpdate: handleUpdate,
     });
@@ -117,7 +117,7 @@ describe('EditFormComponent', () => {
       componentProps: {
         required: true,
         minNumberOfAttachments: 1,
-        type: FormItemType.FileUpload,
+        type: ComponentType.FileUpload,
       },
       handleComponentUpdate: handleUpdate,
     });
@@ -135,7 +135,7 @@ describe('EditFormComponent', () => {
   test('should return button specific content when type button', async () => {
     render({
       componentProps: {
-        type: FormItemType.Button,
+        type: ComponentType.Button,
       },
     });
     expect(await screen.findByTestId(buttonSpecificContentId)).toBeInTheDocument();
@@ -144,7 +144,7 @@ describe('EditFormComponent', () => {
   test('should render Image component when component type is Image', async () => {
     render({
       componentProps: {
-        type: FormItemType.Image,
+        type: ComponentType.Image,
       },
     });
     expect(await screen.findByTestId(imageSpecificContentId)).toBeInTheDocument();
@@ -153,7 +153,7 @@ describe('EditFormComponent', () => {
   it('should not render Image component when component type is not Image', async () => {
     render({
       componentProps: {
-        type: FormItemType.Button,
+        type: ComponentType.Button,
       },
     });
     expect(screen.queryByLabelText(srcValueLabel)).not.toBeInTheDocument();
@@ -187,7 +187,7 @@ const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
     textResourceBindings: {
       title: 'title',
     },
-    type: FormItemType.Input,
+    type: ComponentType.Input,
     id: 'test',
     itemType: 'COMPONENT',
     ...componentProps,

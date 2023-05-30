@@ -6,7 +6,7 @@ import { FileUploadComponent } from './FileUpload';
 import { SelectComponent } from './Select';
 import { CheckboxComponent } from './Checkbox';
 import type { IGenericEditComponent } from '../componentConfig';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useText } from '../../../hooks';
 import { MapComponent } from './Map';
 import { EditTextResourceBinding } from '../editModal/EditTextResourceBinding';
@@ -19,8 +19,8 @@ export function ComponentSpecificContent({
   const t = useText();
 
   switch (component.type) {
-    case FormItemType.NavigationButtons:
-    case FormItemType.Button:
+    case ComponentType.NavigationButtons:
+    case ComponentType.Button:
       return (
         <ButtonComponent
           component={component}
@@ -29,7 +29,7 @@ export function ComponentSpecificContent({
         />
       );
 
-    case FormItemType.AddressComponent:
+    case ComponentType.AddressComponent:
       return (
         <AddressComponent
           component={component}
@@ -38,8 +38,8 @@ export function ComponentSpecificContent({
         />
       );
 
-    case FormItemType.FileUpload:
-    case FormItemType.FileUploadWithTag:
+    case ComponentType.FileUpload:
+    case ComponentType.FileUploadWithTag:
       return (
         <FileUploadComponent
           component={component}
@@ -48,7 +48,7 @@ export function ComponentSpecificContent({
         />
       );
 
-    case FormItemType.Image: {
+    case ComponentType.Image: {
       return (
         <ImageComponent
           component={component}
@@ -58,7 +58,7 @@ export function ComponentSpecificContent({
       );
     }
 
-    case FormItemType.Panel: {
+    case ComponentType.Panel: {
       return (
         <>
           <EditTextResourceBinding
@@ -99,7 +99,7 @@ export function ComponentSpecificContent({
       );
     }
 
-    case FormItemType.Map: {
+    case ComponentType.Map: {
       return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
     }
     default: {

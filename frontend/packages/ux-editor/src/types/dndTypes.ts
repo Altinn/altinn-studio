@@ -1,8 +1,8 @@
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface NewDndItem {
   isNew: true;
-  type: FormItemType;
+  type: ComponentType;
 }
 
 export interface ExistingDndItem {

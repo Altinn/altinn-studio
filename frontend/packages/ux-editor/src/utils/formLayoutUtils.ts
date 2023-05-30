@@ -1,4 +1,4 @@
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type {
   IFormDesignerComponents,
   IFormDesignerContainers,
@@ -29,7 +29,7 @@ export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout
   const { layout, ...customDataProperties } = data;
 
   for (const element of topLevelComponents(layout)) {
-    if (element.type !== FormItemType.Group) {
+    if (element.type !== ComponentType.Group) {
       const { id, ...rest } = element;
       if (!rest.type && rest.component) {
         rest.type = rest.component;
@@ -60,7 +60,7 @@ export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout
 export function topLevelComponents(layout: ExternalComponent[]): ExternalComponent[] {
   const inGroup = new Set<string>();
   layout.forEach((component) => {
-    if (component.type === FormItemType.Group) {
+    if (component.type === ComponentType.Group) {
       const childList = component.edit?.multiPage
         ? component.children?.map((childId) => childId.split(':')[1] || childId)
         : component.children;
@@ -124,7 +124,7 @@ export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): 
       const { itemType, ...restOfGroup } = containers[id];
       formLayout.push({
         id,
-        type: FormItemType.Group,
+        type: ComponentType.Group,
         children: order[id],
         ...restOfGroup,
       });
@@ -156,7 +156,7 @@ function extractChildrenFromGroupInternal(
   const { itemType, ...restOfGroup } = containers[groupId];
   formLayout.push({
     id: groupId,
-    type: FormItemType.Group,
+    type: ComponentType.Group,
     children: order[groupId],
     ...restOfGroup,
   });
@@ -209,7 +209,7 @@ export const mapWidgetToToolbarElement = (
   };
 };
 
-export const mapComponentToToolbarElement = <T extends FormItemType>(c: FormItemConfigs[T]): IToolbarElement => ({
+export const mapComponentToToolbarElement = <T extends ComponentType>(c: FormItemConfigs[T]): IToolbarElement => ({
   label: c.name,
   icon: c.icon,
   type: c.name,
@@ -235,7 +235,7 @@ export const validComponentId = /^[0-9a-zA-Z-]+$/;
  */
 export const hasNavigationButtons = (layout: IInternalLayout): boolean => {
   const { components } = layout;
-  return Object.values(components).map(({ type }) => type).includes(FormItemType.NavigationButtons);
+  return Object.values(components).map(({ type }) => type).includes(ComponentType.NavigationButtons);
 }
 
 /**
@@ -316,7 +316,7 @@ export const removeComponent = (layout: IInternalLayout, componentId: string): I
  * @param componentType The type of the components to remove.
  * @returns The new layout.
  */
-export const removeComponentsByType = (layout: IInternalLayout, componentType: FormItemType): IInternalLayout => {
+export const removeComponentsByType = (layout: IInternalLayout, componentType: ComponentType): IInternalLayout => {
   let newLayout = layout;
   Object
     .keys(layout.components)
@@ -335,14 +335,14 @@ export const removeComponentsByType = (layout: IInternalLayout, componentType: F
  */
 export const addNavigationButtons = (layout: IInternalLayout, id: string): IInternalLayout => {
   const navigationButtons: FormComponent = {
-    componentType: FormItemType.NavigationButtons,
+    componentType: ComponentType.NavigationButtons,
     dataModelBindings: {},
     id,
     itemType: 'COMPONENT',
     onClickAction: () => {},
     showBackButton: true,
     textResourceBindings: { next: 'next', back: 'back', },
-    type: FormItemType.NavigationButtons,
+    type: ComponentType.NavigationButtons,
   };
   return addComponent(layout, navigationButtons);
 }
@@ -400,7 +400,7 @@ export const moveLayoutItem = (
  * @param position The desired index of the component within its container. Set it to a negative value to add it at the end. Defaults to -1.
  * @returns The new layout.
  */
-export const addItemOfType = <T extends FormItemType>(
+export const addItemOfType = <T extends ComponentType>(
   layout: IInternalLayout,
   componentType: T,
   id: string,

@@ -1,56 +1,56 @@
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormItem } from '../types/FormItem';
 
-export type FormItemConfig<T extends FormItemType = FormItemType> = {
+export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
   defaultProperties: FormItem<T>;
   icon?: string;
 };
 
-export type FormItemConfigs = { [T in FormItemType]: FormItemConfig<T> };
+export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
 
 export const formItemConfigs: FormItemConfigs = {
-  [FormItemType.AddressComponent]: {
-    name: FormItemType.AddressComponent,
+  [ComponentType.AddressComponent]: {
+    name: ComponentType.AddressComponent,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.AddressComponent,
+      type: ComponentType.AddressComponent,
       dataModelBindings: {},
       simplified: true,
       readOnly: false,
     },
     icon: 'fa fa-address',
   },
-  [FormItemType.AttachmentList]: {
-    name: FormItemType.AttachmentList,
+  [ComponentType.AttachmentList]: {
+    name: ComponentType.AttachmentList,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.AttachmentList,
+      type: ComponentType.AttachmentList,
       dataModelBindings: {},
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 0,
     },
     icon: 'fa fa-attachment',
   },
-  [FormItemType.Button]: {
-    name: FormItemType.Button,
+  [ComponentType.Button]: {
+    name: ComponentType.Button,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Button,
+      type: ComponentType.Button,
       dataModelBindings: {},
       onClickAction: () => {},
     },
     icon: 'fa fa-button',
   },
-  [FormItemType.Checkboxes]: {
-    name: FormItemType.Checkboxes,
+  [ComponentType.Checkboxes]: {
+    name: ComponentType.Checkboxes,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Checkboxes,
+      type: ComponentType.Checkboxes,
       dataModelBindings: {},
       options: [],
       optionsId: '',
@@ -58,12 +58,12 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-checkbox',
   },
-  [FormItemType.Datepicker]: {
-    name: FormItemType.Datepicker,
+  [ComponentType.Datepicker]: {
+    name: ComponentType.Datepicker,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Datepicker,
+      type: ComponentType.Datepicker,
       dataModelBindings: {},
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
@@ -72,23 +72,23 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-date',
   },
-  [FormItemType.Dropdown]: {
-    name: FormItemType.Dropdown,
+  [ComponentType.Dropdown]: {
+    name: ComponentType.Dropdown,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Dropdown,
+      type: ComponentType.Dropdown,
       dataModelBindings: {},
       optionsId: '',
     },
     icon: 'fa fa-drop-down',
   },
-  [FormItemType.FileUpload]: {
-    name: FormItemType.FileUpload,
+  [ComponentType.FileUpload]: {
+    name: ComponentType.FileUpload,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.FileUpload,
+      type: ComponentType.FileUpload,
       dataModelBindings: {},
       description: 'test',
       displayMode: 'list',
@@ -100,12 +100,12 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-attachment',
   },
-  [FormItemType.FileUploadWithTag]: {
-    name: FormItemType.FileUploadWithTag,
+  [ComponentType.FileUploadWithTag]: {
+    name: ComponentType.FileUploadWithTag,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.FileUploadWithTag,
+      type: ComponentType.FileUploadWithTag,
       dataModelBindings: {},
       description: 'test',
       displayMode: 'list',
@@ -118,30 +118,30 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-attachment',
   },
-  [FormItemType.Group]: {
-    name: FormItemType.Group,
+  [ComponentType.Group]: {
+    name: ComponentType.Group,
     defaultProperties: {
       itemType: 'CONTAINER',
     },
     icon: 'fa fa-group',
   },
-  [FormItemType.Header]: {
-    name: FormItemType.Header,
+  [ComponentType.Header]: {
+    name: ComponentType.Header,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Header,
+      type: ComponentType.Header,
       dataModelBindings: {},
       size: 'L',
     },
     icon: 'fa fa-title',
   },
-  [FormItemType.Image]: {
-    name: FormItemType.Image,
+  [ComponentType.Image]: {
+    name: ComponentType.Image,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Image,
+      type: ComponentType.Image,
       dataModelBindings: {},
       image: {
         src: {},
@@ -150,24 +150,24 @@ export const formItemConfigs: FormItemConfigs = {
       },
     }
   },
-  [FormItemType.Input]: {
-    name: FormItemType.Input,
+  [ComponentType.Input]: {
+    name: ComponentType.Input,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Input,
+      type: ComponentType.Input,
       dataModelBindings: {},
       required: true,
       readOnly: false,
     },
     icon: 'fa fa-short-answer',
   },
-  [FormItemType.Map]: {
-    name: FormItemType.Map,
+  [ComponentType.Map]: {
+    name: ComponentType.Map,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Map,
+      type: ComponentType.Map,
       dataModelBindings: {},
       centerLocation: {
         latitude: 0,
@@ -177,33 +177,33 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-address',
   },
-  [FormItemType.NavigationBar]: {
-    name: FormItemType.NavigationBar,
+  [ComponentType.NavigationBar]: {
+    name: ComponentType.NavigationBar,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.NavigationBar,
+      type: ComponentType.NavigationBar,
       dataModelBindings: {},
     },
     icon: 'fa fa-page-navigation',
   },
-  [FormItemType.NavigationButtons]: {
-    name: FormItemType.NavigationButtons,
+  [ComponentType.NavigationButtons]: {
+    name: ComponentType.NavigationButtons,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.NavigationButtons,
+      type: ComponentType.NavigationButtons,
       dataModelBindings: {},
       onClickAction: () => {},
     },
     icon: 'fa fa-button',
   },
-  [FormItemType.Panel]: {
-    name: FormItemType.Panel,
+  [ComponentType.Panel]: {
+    name: ComponentType.Panel,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Panel,
+      type: ComponentType.Panel,
       dataModelBindings: {},
       variant: {
         title: 'test',
@@ -221,22 +221,22 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-paragraph',
   },
-  [FormItemType.Paragraph]: {
-    name: FormItemType.Paragraph,
+  [ComponentType.Paragraph]: {
+    name: ComponentType.Paragraph,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.Paragraph,
+      type: ComponentType.Paragraph,
       dataModelBindings: {},
     },
     icon: 'fa fa-paragraph',
   },
-  [FormItemType.RadioButtons]: {
-    name: FormItemType.RadioButtons,
+  [ComponentType.RadioButtons]: {
+    name: ComponentType.RadioButtons,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.RadioButtons,
+      type: ComponentType.RadioButtons,
       dataModelBindings: {},
       options: [],
       optionsId: '',
@@ -244,22 +244,22 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: 'fa fa-radio-button',
   },
-  [FormItemType.TextArea]: {
-    name: FormItemType.TextArea,
+  [ComponentType.TextArea]: {
+    name: ComponentType.TextArea,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.TextArea,
+      type: ComponentType.TextArea,
       dataModelBindings: {},
     },
     icon: 'fa fa-long-answer',
   },
-  [FormItemType.ThirdParty]: {
-    name: FormItemType.ThirdParty,
+  [ComponentType.ThirdParty]: {
+    name: ComponentType.ThirdParty,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: FormItemType.ThirdParty,
+      type: ComponentType.ThirdParty,
       dataModelBindings: {},
       tagName: 'tag',
       framework: 'framework',
@@ -267,38 +267,38 @@ export const formItemConfigs: FormItemConfigs = {
   }
 };
 
-export const advancedItems: FormItemConfigs[FormItemType][] = [
-  formItemConfigs[FormItemType.AddressComponent],
-  formItemConfigs[FormItemType.AttachmentList],
-  formItemConfigs[FormItemType.Group],
-  formItemConfigs[FormItemType.NavigationBar],
-  formItemConfigs[FormItemType.Map],
+export const advancedItems: FormItemConfigs[ComponentType][] = [
+  formItemConfigs[ComponentType.AddressComponent],
+  formItemConfigs[ComponentType.AttachmentList],
+  formItemConfigs[ComponentType.Group],
+  formItemConfigs[ComponentType.NavigationBar],
+  formItemConfigs[ComponentType.Map],
 ];
 
-export const schemaComponents: FormItemConfigs[FormItemType][] = [
-  formItemConfigs[FormItemType.Input],
-  formItemConfigs[FormItemType.TextArea],
-  formItemConfigs[FormItemType.Checkboxes],
-  formItemConfigs[FormItemType.RadioButtons],
-  formItemConfigs[FormItemType.Dropdown],
-  formItemConfigs[FormItemType.FileUpload],
-  formItemConfigs[FormItemType.FileUploadWithTag],
-  formItemConfigs[FormItemType.Datepicker],
-  formItemConfigs[FormItemType.Button],
-  formItemConfigs[FormItemType.Image],
+export const schemaComponents: FormItemConfigs[ComponentType][] = [
+  formItemConfigs[ComponentType.Input],
+  formItemConfigs[ComponentType.TextArea],
+  formItemConfigs[ComponentType.Checkboxes],
+  formItemConfigs[ComponentType.RadioButtons],
+  formItemConfigs[ComponentType.Dropdown],
+  formItemConfigs[ComponentType.FileUpload],
+  formItemConfigs[ComponentType.FileUploadWithTag],
+  formItemConfigs[ComponentType.Datepicker],
+  formItemConfigs[ComponentType.Button],
+  formItemConfigs[ComponentType.Image],
 ];
 
-export const textComponents: FormItemConfigs[FormItemType][] = [
-  formItemConfigs[FormItemType.Header],
-  formItemConfigs[FormItemType.Paragraph],
-  formItemConfigs[FormItemType.Panel],
+export const textComponents: FormItemConfigs[ComponentType][] = [
+  formItemConfigs[ComponentType.Header],
+  formItemConfigs[ComponentType.Paragraph],
+  formItemConfigs[ComponentType.Panel],
 ];
 
-export const confOnScreenComponents: FormItemConfigs[FormItemType][] = [
-  formItemConfigs[FormItemType.Header],
-  formItemConfigs[FormItemType.Paragraph],
-  formItemConfigs[FormItemType.AttachmentList],
-  formItemConfigs[FormItemType.Image],
+export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
+  formItemConfigs[ComponentType.Header],
+  formItemConfigs[ComponentType.Paragraph],
+  formItemConfigs[ComponentType.AttachmentList],
+  formItemConfigs[ComponentType.Image],
 ];
 
 

@@ -11,7 +11,7 @@ import type {
 } from '../../types/global';
 import classes from './ConditionalRenderingComponent.module.css';
 import { withTranslation } from 'react-i18next';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ConditionalRenderingConnection, ConditionalRenderingConnections } from 'app-shared/types/RuleConfig';
 import i18next from 'i18next';
@@ -218,7 +218,7 @@ class ConditionalRendering extends React.Component<
       return options;
     }
     if (!baseContainer) {
-      const name = getComponentTitleByComponentType(FormItemType.Group, this.props.t);
+      const name = getComponentTitleByComponentType(ComponentType.Group, this.props.t);
       options.push(
         <option key={id} value={id}>
           {`${name} (${id})`}

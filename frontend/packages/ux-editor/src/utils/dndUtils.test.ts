@@ -1,7 +1,7 @@
 import { calculateNewPosition, getDragCursorPosition, } from './dndUtils';
 import type { ExistingDndItem, NewDndItem } from '../types/dndTypes';
 import { DragCursorPosition } from '../types/dndTypes';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { DropTargetMonitor, XYCoord } from 'react-dnd';
 import { RefObject } from 'react';
 
@@ -61,7 +61,7 @@ const dropItem: ExistingDndItem = {
 };
 const newDragItem: NewDndItem = {
   isNew: true,
-  type: FormItemType.Paragraph,
+  type: ComponentType.Paragraph,
 };
 const dragItemFromBelow: ExistingDndItem = {
   isNew: false,

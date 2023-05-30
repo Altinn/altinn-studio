@@ -2,7 +2,7 @@ import React from 'react';
 import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { FileUploadComponent } from './FileUploadComponent';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
 
 // Test data:
@@ -15,7 +15,7 @@ const component: FormFileUploaderComponent = {
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 0,
   onClickAction: jest.fn(),
-  type: FormItemType.FileUpload,
+  type: ComponentType.FileUpload,
   itemType: 'COMPONENT',
   dataModelBindings: {},
 };

@@ -1,32 +1,32 @@
 import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import i18next from 'i18next';
 
-export function getComponentHelperTextByComponentType(type: FormItemType, language: any): string {
+export function getComponentHelperTextByComponentType(type: ComponentType, language: any): string {
   switch (type) {
-    case FormItemType.Header: {
+    case ComponentType.Header: {
       return language['ux_editor.helper_text_for_header'];
     }
-    case FormItemType.Input: {
+    case ComponentType.Input: {
       return language['ux_editor.helper_text_for_input'];
     }
-    case FormItemType.Checkboxes: {
+    case ComponentType.Checkboxes: {
       return language['ux_editor.helper_text_for_check_box'];
     }
-    case FormItemType.RadioButtons: {
+    case ComponentType.RadioButtons: {
       return language['ux_editor.helper_text_for_radio_button'];
     }
-    case FormItemType.Image: {
+    case ComponentType.Image: {
       return language['ux_editor.helper_text_for_image'];
     }
-    case FormItemType.AttachmentList: {
+    case ComponentType.AttachmentList: {
       return language['ux_editor.helper_text_for_attachment_list'];
     }
-    case FormItemType.Button: {
+    case ComponentType.Button: {
       return language['ux_editor.helper_text_for_attachment_button'];
     }
-    case FormItemType.NavigationBar: {
+    case ComponentType.NavigationBar: {
       return language['ux_editor.helper_text_for_nav_bar'];
     }
     default: {
@@ -36,63 +36,63 @@ export function getComponentHelperTextByComponentType(type: FormItemType, langua
   }
 }
 
-export function getComponentTitleByComponentType(type: FormItemType, t: typeof i18next.t): string {
+export function getComponentTitleByComponentType(type: ComponentType, t: typeof i18next.t): string {
   switch (type) {
-    case FormItemType.Checkboxes: {
+    case ComponentType.Checkboxes: {
       return t('ux_editor.component_checkbox');
     }
-    case FormItemType.Dropdown: {
+    case ComponentType.Dropdown: {
       return t('ux_editor.component_dropdown');
     }
-    case FormItemType.FileUpload: {
+    case ComponentType.FileUpload: {
       return t('ux_editor.component_file_upload');
     }
-    case FormItemType.FileUploadWithTag: {
+    case ComponentType.FileUploadWithTag: {
       return t('ux_editor.component_file_upload_with_tag');
     }
-    case FormItemType.Header: {
+    case ComponentType.Header: {
       return t('ux_editor.component_header');
     }
-    case FormItemType.Input: {
+    case ComponentType.Input: {
       return t('ux_editor.component_input');
     }
-    case FormItemType.Image: {
+    case ComponentType.Image: {
       return t('ux_editor.component_image');
     }
-    case FormItemType.Datepicker: {
+    case ComponentType.Datepicker: {
       return t('ux_editor.component_datepicker');
     }
-    case FormItemType.Button: {
+    case ComponentType.Button: {
       return t('ux_editor.component_button');
     }
-    case FormItemType.TextArea: {
+    case ComponentType.TextArea: {
       return t('ux_editor.component_text_area');
     }
-    case FormItemType.RadioButtons: {
+    case ComponentType.RadioButtons: {
       return t('ux_editor.component_radio_button');
     }
-    case FormItemType.Paragraph: {
+    case ComponentType.Paragraph: {
       return t('ux_editor.component_paragraph');
     }
-    case FormItemType.AddressComponent: {
+    case ComponentType.AddressComponent: {
       return t('ux_editor.component_advanced_address');
     }
-    case FormItemType.Group: {
+    case ComponentType.Group: {
       return t('ux_editor.component_group');
     }
-    case FormItemType.NavigationButtons: {
+    case ComponentType.NavigationButtons: {
       return t('ux_editor.component_navigation_buttons');
     }
-    case FormItemType.AttachmentList: {
+    case ComponentType.AttachmentList: {
       return t('ux_editor.component_attachment_list');
     }
-    case FormItemType.NavigationBar: {
+    case ComponentType.NavigationBar: {
       return t('ux_editor.component_navigation_bar');
     }
-    case FormItemType.Panel: {
+    case ComponentType.Panel: {
       return t('ux_editor.component_information_panel');
     }
-    case FormItemType.Map: {
+    case ComponentType.Map: {
       return t('ux_editor.component_map');
     }
     default: {

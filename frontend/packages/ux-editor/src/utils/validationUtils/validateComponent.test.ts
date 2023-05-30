@@ -1,4 +1,4 @@
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ErrorCode, validateComponent } from './validateComponent';
 import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
 
@@ -6,7 +6,7 @@ describe('validateComponent', () => {
   describe('validateCheckboxGroup', () => {
     it('Returns ErrorCode.NoOptions if there are no options', () => {
       const component: FormCheckboxesComponent = {
-        type: FormItemType.Checkboxes,
+        type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
         optionsId: 'test',
@@ -21,7 +21,7 @@ describe('validateComponent', () => {
 
     it('Returns ErrorCode.DuplicateValues if there are duplicate values', () => {
       const component: FormCheckboxesComponent = {
-        type: FormItemType.Checkboxes,
+        type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
         optionsId: 'test',
@@ -39,7 +39,7 @@ describe('validateComponent', () => {
 
     it('Returns { isValid: true } if there are no errors', () => {
       const component: FormCheckboxesComponent = {
-        type: FormItemType.Checkboxes,
+        type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
         optionsId: 'test',
@@ -56,7 +56,7 @@ describe('validateComponent', () => {
   describe('validateRadioGroup', () => {
     it('Returns ErrorCode.NoOptions if there are no options', () => {
       const component: FormRadioButtonsComponent = {
-        type: FormItemType.RadioButtons,
+        type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
         optionsId: 'test',
@@ -71,7 +71,7 @@ describe('validateComponent', () => {
 
     it('Returns ErrorCode.DuplicateValues if there are duplicate values', () => {
       const component: FormRadioButtonsComponent = {
-        type: FormItemType.RadioButtons,
+        type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
         optionsId: 'test',
@@ -89,7 +89,7 @@ describe('validateComponent', () => {
 
     it('Returns { isValid: true } if there are no errors', () => {
       const component: FormRadioButtonsComponent = {
-        type: FormItemType.RadioButtons,
+        type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
         optionsId: 'test',
@@ -105,7 +105,7 @@ describe('validateComponent', () => {
 
   it('Returns { isValid: true } by default', () => {
     const component: FormComponent = {
-      type: FormItemType.Paragraph,
+      type: ComponentType.Paragraph,
       itemType: 'COMPONENT',
       id: 'test',
       dataModelBindings: {},

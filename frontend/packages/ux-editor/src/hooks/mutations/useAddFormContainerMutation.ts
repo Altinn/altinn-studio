@@ -1,6 +1,6 @@
 import { generateComponentId } from '../../utils/generateId';
 import { IInternalLayout } from '../../types/global';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
@@ -24,7 +24,7 @@ export const useAddFormContainerMutation = (org: string, app: string) => {
   return useMutation({
     mutationFn: ({ container, positionAfterId, addToId, callback, destinationIndex }: AddFormContainerMutationArgs) => {
       const layouts = formLayoutsQuery.data;
-      const id = generateComponentId(FormItemType.Group, layouts);
+      const id = generateComponentId(ComponentType.Group, layouts);
       let baseContainerId;
       if (Object.keys(layout.order) && Object.keys(layout.order).length > 0) {
         baseContainerId = Object.keys(layout.order)[0];

@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
 import { renderWithMockStore } from '../../../../testing/mocks';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 import type { FormImageComponent } from '../../../../types/FormComponent';
 
@@ -14,7 +14,7 @@ const user = userEvent.setup();
 const componentData: FormImageComponent = {
   id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
   textResourceBindings: {},
-  type: FormItemType.Image,
+  type: ComponentType.Image,
   image: {
     src: {},
   },

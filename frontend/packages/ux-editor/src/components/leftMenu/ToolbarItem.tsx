@@ -1,13 +1,13 @@
 import React, { MouseEvent } from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
 import { DraggableToolbarItem } from '../dragAndDrop/DraggableToolbarItem';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 interface IToolbarItemProps {
   text: string;
   notDraggable?: boolean;
-  onClick: (type: FormItemType, event: MouseEvent) => void;
-  componentType: FormItemType;
+  onClick: (type: ComponentType, event: MouseEvent) => void;
+  componentType: ComponentType;
   icon: string;
 }
 

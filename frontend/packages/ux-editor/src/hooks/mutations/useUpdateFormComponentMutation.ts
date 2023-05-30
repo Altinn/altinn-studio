@@ -1,6 +1,6 @@
 import { IInternalLayout } from '../../types/global';
 import { useMutation } from '@tanstack/react-query';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
@@ -50,7 +50,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string) => {
       }
 
       return formLayoutMutation.mutateAsync(updatedLayout).then(async (data) => {
-        if (updatedComponent.type === FormItemType.FileUpload || updatedComponent.type === FormItemType.FileUploadWithTag) {
+        if (updatedComponent.type === ComponentType.FileUpload || updatedComponent.type === ComponentType.FileUploadWithTag) {
           // Todo: Consider handling this in the backend
           const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
             updatedComponent as FormFileUploaderComponent;

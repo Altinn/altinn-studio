@@ -1,4 +1,4 @@
-export enum FormItemType {
+export enum ComponentType {
   Header = 'Header',
   Paragraph = 'Paragraph',
   Input = 'Input',

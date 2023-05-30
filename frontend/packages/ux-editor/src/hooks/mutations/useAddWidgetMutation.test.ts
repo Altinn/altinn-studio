@@ -3,14 +3,14 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddWidgetMutationArgs, useAddWidgetMutation } from './useAddWidgetMutation';
 import { IWidget, IWidgetTexts } from '../../types/global';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 
 // Test data:
 const org = 'org';
 const app = 'app';
-const displayName = FormItemType.TextArea;
+const displayName = ComponentType.TextArea;
 const language = 'nb';
 const textId = 'testid';
 const textValue = 'testvalue';

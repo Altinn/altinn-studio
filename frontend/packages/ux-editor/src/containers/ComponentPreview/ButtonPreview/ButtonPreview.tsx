@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, ButtonVariant, ButtonColor } from '@digdir/design-system-react';
 import { getTextResource } from '../../../utils/language';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './ButtonPreview.module.css';
 import { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../../../hooks';
@@ -16,7 +16,7 @@ export interface ButtonPreviewProps {
 export const ButtonPreview = ({ component }: ButtonPreviewProps): JSX.Element => {
   const texts: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
 
-  const isNavigationButton = component.type === FormItemType.NavigationButtons;
+  const isNavigationButton = component.type === ComponentType.NavigationButtons;
   const buttonColor = isNavigationButton ? ButtonColor.Primary : ButtonColor.Success;
   const navigationButtonText = component.showBackButton
     ? component.textResourceBindings?.back

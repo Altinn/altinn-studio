@@ -1,5 +1,5 @@
 import { areItemsUnique } from 'app-shared/utils/arrayUtils';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
 
 export enum ErrorCode {
@@ -46,9 +46,9 @@ const validateRadioGroup = (component: FormRadioButtonsComponent): ComponentVali
 
 export const validateComponent = (component: FormComponent): ComponentValidationResult => {
   switch (component.type) {
-    case FormItemType.Checkboxes:
+    case ComponentType.Checkboxes:
       return validateCheckboxGroup(component);
-    case FormItemType.RadioButtons:
+    case ComponentType.RadioButtons:
       return validateRadioGroup(component);
     default:
       return { isValid: true };

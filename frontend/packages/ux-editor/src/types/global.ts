@@ -1,7 +1,7 @@
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IErrorState } from '../features/error/errorSlice';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResource, ITextResources } from 'app-shared/types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from './FormComponent';
@@ -50,7 +50,7 @@ export interface IRuleModelFieldElement {
 export interface IWidget {
   components: any[];
   texts: IWidgetTexts[];
-  displayName: FormItemType;
+  displayName: ComponentType;
 }
 
 export interface IWidgetTexts {
@@ -61,7 +61,7 @@ export interface IWidgetTexts {
 export interface IToolbarElement {
   label: string;
   icon?: string;
-  type: FormItemType;
+  type: ComponentType;
 }
 
 export enum CollapsableMenus {

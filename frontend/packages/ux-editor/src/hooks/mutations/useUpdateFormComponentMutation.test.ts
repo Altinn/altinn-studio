@@ -1,7 +1,7 @@
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { UpdateFormComponentArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import { component1IdMock, layout1NameMock } from '../../testing/layoutMock';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
@@ -11,12 +11,12 @@ import { IDataModelBindings } from '../../types/global';
 const org = 'org';
 const app = 'app';
 const id = component1IdMock;
-const type = FormItemType.TextArea;
+const type = ComponentType.TextArea;
 const dataModelBindings: IDataModelBindings = {};
 const updatedComponent: FormComponent = {
   id,
   itemType: 'COMPONENT',
-  type: FormItemType.TextArea,
+  type: ComponentType.TextArea,
   dataModelBindings,
 }
 const defaultArgs: UpdateFormComponentArgs = { id, updatedComponent };
@@ -76,7 +76,7 @@ describe('useUpdateFormComponentMutation', () => {
       maxFileSizeInMB: 100,
       maxNumberOfAttachments: 2,
       minNumberOfAttachments: 1,
-      type: FormItemType.FileUpload,
+      type: ComponentType.FileUpload,
     };
     const args: UpdateFormComponentArgs = {
       ...defaultArgs,

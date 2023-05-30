@@ -20,7 +20,7 @@ import {
   FormTextareaComponent,
   FormThirdPartyComponent
 } from '../types/FormComponent';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> = {
   id: 'test',
@@ -29,7 +29,7 @@ const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBinding
 };
 const checkboxesComponent: FormCheckboxesComponent = {
   ...commonProps,
-  type: FormItemType.Checkboxes,
+  type: ComponentType.Checkboxes,
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -39,7 +39,7 @@ const checkboxesComponent: FormCheckboxesComponent = {
 };
 const radiosComponent: FormRadioButtonsComponent = {
   ...commonProps,
-  type: FormItemType.RadioButtons,
+  type: ComponentType.RadioButtons,
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -49,38 +49,38 @@ const radiosComponent: FormRadioButtonsComponent = {
 };
 const inputComponent: FormInputComponent = {
   ...commonProps,
-  type: FormItemType.Input,
+  type: ComponentType.Input,
 };
 const headerComponent: FormHeaderComponent = {
   ...commonProps,
-  type: FormItemType.Header,
+  type: ComponentType.Header,
   size: 'medium',
 };
 const paragraphComponent: FormParagraphComponent = {
   ...commonProps,
-  type: FormItemType.Paragraph,
+  type: ComponentType.Paragraph,
 };
 const imageComponent: FormImageComponent = {
   ...commonProps,
-  type: FormItemType.Image,
+  type: ComponentType.Image,
 };
 const datePickerComponent: FormDatepickerComponent = {
   ...commonProps,
-  type: FormItemType.Datepicker,
+  type: ComponentType.Datepicker,
   timeStamp: true,
 };
 const dropdownComponent: FormDropdownComponent = {
   ...commonProps,
-  type: FormItemType.Dropdown,
+  type: ComponentType.Dropdown,
   optionsId: 'test',
 };
 const textareaComponent: FormTextareaComponent = {
   ...commonProps,
-  type: FormItemType.TextArea,
+  type: ComponentType.TextArea,
 };
 const fileUploaderComponent: FormFileUploaderComponent = {
   ...commonProps,
-  type: FormItemType.FileUpload,
+  type: ComponentType.FileUpload,
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
@@ -90,7 +90,7 @@ const fileUploaderComponent: FormFileUploaderComponent = {
 };
 const fileUploaderWithTagComponent: FormFileUploaderWithTagComponent = {
   ...commonProps,
-  type: FormItemType.FileUploadWithTag,
+  type: ComponentType.FileUploadWithTag,
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
@@ -101,35 +101,35 @@ const fileUploaderWithTagComponent: FormFileUploaderWithTagComponent = {
 };
 const buttonComponent: FormButtonComponent = {
   ...commonProps,
-  type: FormItemType.Button,
+  type: ComponentType.Button,
   onClickAction: jest.fn(),
 };
 const addressComponent: FormAddressComponent = {
   ...commonProps,
-  type: FormItemType.AddressComponent,
+  type: ComponentType.AddressComponent,
   simplified: true,
 };
 const groupComponent: FormGroupComponent = {
   ...commonProps,
-  type: FormItemType.Group,
+  type: ComponentType.Group,
 };
 const navigationBarComponent: FormNavigationBarComponent = {
   ...commonProps,
-  type: FormItemType.NavigationBar,
+  type: ComponentType.NavigationBar,
 };
 const attachmentListComponent: FormAttachmentListComponent = {
   ...commonProps,
-  type: FormItemType.AttachmentList,
+  type: ComponentType.AttachmentList,
 };
 const thirdPartyComponent: FormThirdPartyComponent = {
   ...commonProps,
-  type: FormItemType.ThirdParty,
+  type: ComponentType.ThirdParty,
   tagName: 'test',
   framework: 'test',
 };
 const panelComponent: FormPanelComponent = {
   ...commonProps,
-  type: FormItemType.Panel,
+  type: ComponentType.Panel,
   variant: {
     title: 'test',
     description: 'test',
@@ -146,7 +146,7 @@ const panelComponent: FormPanelComponent = {
 };
 const mapComponent: FormMapComponent = {
   ...commonProps,
-  type: FormItemType.Map,
+  type: ComponentType.Map,
   centerLocation: {
     latitude: 0,
     longitude: 0,
@@ -155,23 +155,23 @@ const mapComponent: FormMapComponent = {
 };
 
 export const componentMocks = {
-  [FormItemType.AddressComponent]: addressComponent,
-  [FormItemType.AttachmentList]: attachmentListComponent,
-  [FormItemType.Button]: buttonComponent,
-  [FormItemType.Checkboxes]: checkboxesComponent,
-  [FormItemType.Datepicker]: datePickerComponent,
-  [FormItemType.Dropdown]: dropdownComponent,
-  [FormItemType.FileUploadWithTag]: fileUploaderWithTagComponent,
-  [FormItemType.FileUpload]: fileUploaderComponent,
-  [FormItemType.Group]: groupComponent,
-  [FormItemType.Header]: headerComponent,
-  [FormItemType.Image]: imageComponent,
-  [FormItemType.Input]: inputComponent,
-  [FormItemType.Map]: mapComponent,
-  [FormItemType.NavigationBar]: navigationBarComponent,
-  [FormItemType.Panel]: panelComponent,
-  [FormItemType.Paragraph]: paragraphComponent,
-  [FormItemType.RadioButtons]: radiosComponent,
-  [FormItemType.TextArea]: textareaComponent,
-  [FormItemType.ThirdParty]: thirdPartyComponent,
+  [ComponentType.AddressComponent]: addressComponent,
+  [ComponentType.AttachmentList]: attachmentListComponent,
+  [ComponentType.Button]: buttonComponent,
+  [ComponentType.Checkboxes]: checkboxesComponent,
+  [ComponentType.Datepicker]: datePickerComponent,
+  [ComponentType.Dropdown]: dropdownComponent,
+  [ComponentType.FileUploadWithTag]: fileUploaderWithTagComponent,
+  [ComponentType.FileUpload]: fileUploaderComponent,
+  [ComponentType.Group]: groupComponent,
+  [ComponentType.Header]: headerComponent,
+  [ComponentType.Image]: imageComponent,
+  [ComponentType.Input]: inputComponent,
+  [ComponentType.Map]: mapComponent,
+  [ComponentType.NavigationBar]: navigationBarComponent,
+  [ComponentType.Panel]: panelComponent,
+  [ComponentType.Paragraph]: paragraphComponent,
+  [ComponentType.RadioButtons]: radiosComponent,
+  [ComponentType.TextArea]: textareaComponent,
+  [ComponentType.ThirdParty]: thirdPartyComponent,
 };

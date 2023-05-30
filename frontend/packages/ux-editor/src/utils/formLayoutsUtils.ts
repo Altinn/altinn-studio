@@ -6,7 +6,7 @@ import {
   hasNavigationButtons,
   removeComponentsByType,
 } from './formLayoutUtils';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { generateComponentId } from './generateId';
 import { deepCopy } from 'app-shared/pure';
@@ -38,7 +38,7 @@ export const addOrRemoveNavigationButtons = async (
   if (allLayoutNames.length === 1) {
     // There is only one layout
     const name = allLayoutNames[0];
-    const layout = removeComponentsByType(layouts[name], FormItemType.NavigationButtons);
+    const layout = removeComponentsByType(layouts[name], ComponentType.NavigationButtons);
     await callback(name, layout);
     updatedLayouts[name] = layout;
   } else {
@@ -46,7 +46,7 @@ export const addOrRemoveNavigationButtons = async (
     for (const name of removeItemByValue(allLayoutNames, currentLayoutName)) {
       const layout = layouts[name];
       if (!hasNavigationButtons(layout)) {
-        const navButtonsId = generateComponentId(FormItemType.NavigationButtons, layouts);
+        const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
         const layoutWithNavigation = addNavigationButtons(layout, navButtonsId);
         updatedLayouts[name] = layoutWithNavigation;
         await callback(name, layoutWithNavigation);
@@ -56,7 +56,7 @@ export const addOrRemoveNavigationButtons = async (
       // Add navigation buttons to the current layout if they are not present, and run callback
       let currentLayout = layouts[currentLayoutName];
       if (!hasNavigationButtons(currentLayout) && currentLayoutName !== receiptLayoutName){
-        const navButtonsId = generateComponentId(FormItemType.NavigationButtons, layouts);
+        const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
         currentLayout = addNavigationButtons(currentLayout, navButtonsId);
         updatedLayouts[currentLayoutName] = currentLayout;
       }

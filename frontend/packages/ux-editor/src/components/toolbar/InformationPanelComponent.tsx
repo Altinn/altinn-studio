@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
-import type { FormItemType } from 'app-shared/types/FormItemType';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import { Popover } from '@mui/material';
 
@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 export interface IInformationPanelProvidedProps {
   anchorElement: any;
-  selectedComponent: FormItemType;
+  selectedComponent: ComponentType;
   informationPanelOpen: boolean;
   onClose: () => void;
   thirdPartyLibrary?: boolean;

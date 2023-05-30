@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { ButtonComponent } from './ButtonComponent';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
 
@@ -12,7 +12,7 @@ import type { FormButtonComponent } from '../../../../types/FormComponent';
 const component: FormButtonComponent = {
   id: '1',
   onClickAction: jest.fn(),
-  type: FormItemType.Button,
+  type: ComponentType.Button,
   itemType: 'COMPONENT',
   dataModelBindings: {},
 };
@@ -31,7 +31,7 @@ describe('ButtonComponent', () => {
     await act(() => user.click(screen.getAllByRole('option')[1]));
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
       ...component,
-      type: FormItemType.NavigationButtons,
+      type: ComponentType.NavigationButtons,
       showBackButton: true,
       textResourceBindings: {
         next: 'next',
@@ -46,7 +46,7 @@ describe('ButtonComponent', () => {
       handleComponentChange: mockHandleComponentChange,
       component: {
         ...component,
-        type: FormItemType.NavigationButtons,
+        type: ComponentType.NavigationButtons,
       },
     });
     const buttonTypeSelect = screen.getByRole('combobox');
@@ -54,7 +54,7 @@ describe('ButtonComponent', () => {
     await act(() => user.click(screen.getAllByRole('option')[0]));
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
       ...component,
-      type: FormItemType.Button,
+      type: ComponentType.Button,
       textResourceBindings: {
         title: textMock('ux_editor.modal_properties_button_type_submit'),
       },

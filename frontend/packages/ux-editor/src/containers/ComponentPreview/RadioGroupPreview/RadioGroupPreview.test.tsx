@@ -5,7 +5,7 @@ import type { ITextResource } from 'app-shared/types/global';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { RadioGroupPreview, RadioGroupPreviewProps } from './RadioGroupPreview';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
@@ -34,7 +34,7 @@ const component: FormRadioButtonsComponent = {
   id: '1',
   options,
   optionsId: '',
-  type: FormItemType.RadioButtons,
+  type: ComponentType.RadioButtons,
   textResourceBindings: {
     title: titleTextKey,
     description: descriptionTextKey,

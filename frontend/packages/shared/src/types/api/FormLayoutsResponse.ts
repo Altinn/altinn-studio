@@ -1,5 +1,5 @@
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export type FormLayoutsResponse = KeyValuePairs<ExternalFormLayout>;
 
@@ -17,6 +17,6 @@ export interface ExternalData {
 
 export interface ExternalComponent {
   id: string;
-  type: FormItemType;
+  type: ComponentType;
   [key: string]: any; // Todo: Set type here
 }

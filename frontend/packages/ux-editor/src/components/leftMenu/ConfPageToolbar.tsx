@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IToolbarElement } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarItem } from './ToolbarItem';
@@ -10,10 +10,10 @@ import { useTranslation } from 'react-i18next';
 
 export const ConfPageToolbar = () => {
   const [anchorElement, setAnchorElement] = useState<any>(null);
-  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<FormItemType>(null);
+  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentType>(null);
   const { t } = useTranslation();
   const componentList: IToolbarElement[] = confOnScreenComponents.map(mapComponentToToolbarElement);
-  const handleComponentInformationOpen = (component: FormItemType, event: any) => {
+  const handleComponentInformationOpen = (component: ComponentType, event: any) => {
     setCompSelForInfoPanel(component);
     setAnchorElement(event.currentTarget);
   };

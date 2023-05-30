@@ -1,5 +1,5 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { IInternalLayout } from '../types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from '../types/FormComponent';
@@ -10,7 +10,7 @@ export const layout2NameMock = 'Side2';
 
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = 'Component-1';
-export const component1TypeMock = FormItemType.Input;
+export const component1TypeMock = ComponentType.Input;
 export const component1Mock: FormComponent = {
   id: component1IdMock,
   type: component1TypeMock,
@@ -18,7 +18,7 @@ export const component1Mock: FormComponent = {
   dataModelBindings: {},
 };
 export const component2IdMock = 'Component-2';
-export const component2TypeMock = FormItemType.Paragraph;
+export const component2TypeMock = ComponentType.Paragraph;
 export const component2Mock: FormComponent = {
   id: component2IdMock,
   type: component2TypeMock,
@@ -61,7 +61,7 @@ export const layout1Mock: ExternalFormLayout = {
     layout: [
       {
         id: container1IdMock,
-        type: FormItemType.Group,
+        type: ComponentType.Group,
         children: [component1IdMock, component2IdMock],
       },
       {

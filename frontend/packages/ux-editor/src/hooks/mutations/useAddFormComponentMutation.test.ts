@@ -2,7 +2,7 @@ import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddFormComponentMutationArgs, useAddFormComponentMutation } from './useAddFormComponentMutation';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { layout1NameMock } from '../../testing/layoutMock';
 import type { FormComponent } from '../../types/FormComponent';
 
@@ -12,7 +12,7 @@ const app = 'app';
 const component: FormComponent = {
   id: 'test',
   itemType: 'COMPONENT',
-  type: FormItemType.Paragraph,
+  type: ComponentType.Paragraph,
   dataModelBindings: {},
 };
 const defaultArgs: AddFormComponentMutationArgs = {
@@ -62,7 +62,7 @@ describe('useAddFormComponentMutation', () => {
 
   it('Adds attachment metadata when component type is fileupload', async () => {
     const { result } = await renderAddFormComponentMutation();
-    const newComponent = { ...component, type: FormItemType.FileUpload };
+    const newComponent = { ...component, type: ComponentType.FileUpload };
     result.current.mutate({ ...defaultArgs, component: newComponent });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);

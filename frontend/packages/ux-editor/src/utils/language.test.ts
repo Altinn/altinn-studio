@@ -1,5 +1,5 @@
 import { getComponentHelperTextByComponentType } from './language';
-import { FormItemType } from 'app-shared/types/FormItemType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const language = {
   'ux_editor.helper_text_for_header': 'header help text',
@@ -13,35 +13,35 @@ const language = {
 
 describe('Designer > utils/language', () => {
   it('should return specific help text when component type is known', () => {
-    expect(getComponentHelperTextByComponentType(FormItemType.Header, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.Header, language)).toBe(
       language['ux_editor.helper_text_for_header']
     );
-    expect(getComponentHelperTextByComponentType(FormItemType.Input, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.Input, language)).toBe(
       language['ux_editor.helper_text_for_input']
     );
-    expect(getComponentHelperTextByComponentType(FormItemType.Checkboxes, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.Checkboxes, language)).toBe(
       language['ux_editor.helper_text_for_check_box']
     );
-    expect(getComponentHelperTextByComponentType(FormItemType.RadioButtons, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.RadioButtons, language)).toBe(
       language['ux_editor.helper_text_for_radio_button']
     );
-    expect(getComponentHelperTextByComponentType(FormItemType.Image, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.Image, language)).toBe(
       language['ux_editor.helper_text_for_image']
     );
-    expect(getComponentHelperTextByComponentType(FormItemType.AttachmentList, language)).toBe(
+    expect(getComponentHelperTextByComponentType(ComponentType.AttachmentList, language)).toBe(
       language['ux_editor.helper_text_for_attachment_list']
     );
   });
 
   it('should return fallback help text when component type is unknown', () => {
-    const unknownComponentTypes: FormItemType[] = [
-      FormItemType.Paragraph,
-      FormItemType.Datepicker,
-      FormItemType.Dropdown,
-      FormItemType.TextArea,
-      FormItemType.FileUpload,
-      FormItemType.AddressComponent,
-      FormItemType.Group,
+    const unknownComponentTypes: ComponentType[] = [
+      ComponentType.Paragraph,
+      ComponentType.Datepicker,
+      ComponentType.Dropdown,
+      ComponentType.TextArea,
+      ComponentType.FileUpload,
+      ComponentType.AddressComponent,
+      ComponentType.Group,
     ];
 
     unknownComponentTypes.forEach((componentType) => {
