@@ -27,7 +27,7 @@ export const layoutSettingsPath = (org, app) => `/designer/api/${org}/${app}/app
 export const formLayoutsPath = (org, app) => `/designer/api/${org}/${app}/app-development/form-layouts`; // Get
 export const formLayoutPath = (org, app, layout) => `/designer/api/${org}/${app}/app-development/form-layout/${layout}`; // Post, Delete
 export const formLayoutNamePath = (org, app, layoutName) => `/designer/api/${org}/${app}/app-development/form-layout-name/${layoutName}`; // Put
-export const optionListIdsPath = (org, app) => `designer/api/${org}/${app}/app-development/option-list-ids`; // Get
+export const optionListIdsPath = (org, app) => `/designer/api/${org}/${app}/app-development/option-list-ids`; // Get
 // Frontend-language
 export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.json`;
 

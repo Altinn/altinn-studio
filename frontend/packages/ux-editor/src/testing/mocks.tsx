@@ -14,7 +14,7 @@ import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer
 import { ILayoutSettings } from 'app-shared/types/global';
 import { BrowserRouter } from 'react-router-dom';
 import ruleHandlerMock from './ruleHandlerMock';
-import { PreviewConnectionContextProvider } from "app-shared/providers/PreviewConnectionContext";
+import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import { ruleConfig as ruleConfigMock } from './ruleConfigMock';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from './layoutMock';
 
@@ -66,12 +66,15 @@ export const queriesMock: ServicesContextProps = {
   getDeployPermissions: jest.fn(),
   getDeployments: jest.fn(),
   getEnvironments: jest.fn(),
-  getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
+  getFormLayoutSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
   getInstanceIdForPreview: jest.fn(),
   getOrgList: jest.fn(),
   getRepoMetadata: jest.fn(),
   getRepoPull: jest.fn(),
+  getOptionListIds: jest.fn(),
   getRepoStatus: jest.fn(),
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
@@ -92,32 +95,32 @@ export const queriesMock: ServicesContextProps = {
 
 export const renderWithMockStore =
   (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
-    (component: ReactNode) => {
-      const store = configureStore()({ ...appStateMock, ...state });
-      const renderResult = render(
-        <ServicesContextProvider {...queriesMock} {...queries}>
-          <PreviewConnectionContextProvider>
-            <Provider store={store}>
-              <BrowserRouter>{component}</BrowserRouter>
-            </Provider>
-          </PreviewConnectionContextProvider>
-        </ServicesContextProvider>
-      );
-      return { renderResult, store };
-    };
+  (component: ReactNode) => {
+    const store = configureStore()({ ...appStateMock, ...state });
+    const renderResult = render(
+      <ServicesContextProvider {...queriesMock} {...queries}>
+        <PreviewConnectionContextProvider>
+          <Provider store={store}>
+            <BrowserRouter>{component}</BrowserRouter>
+          </Provider>
+        </PreviewConnectionContextProvider>
+      </ServicesContextProvider>
+    );
+    return { renderResult, store };
+  };
 
 export const renderHookWithMockStore =
   (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
-    (hook: () => any) => {
-      const store = configureStore()({ ...appStateMock, ...state });
-      const renderHookResult = renderHook(hook, {
-        wrapper: ({ children }) => (
-          <ServicesContextProvider {...queriesMock} {...queries}>
-            <PreviewConnectionContextProvider>
-              <Provider store={store}>{children}</Provider>
-            </PreviewConnectionContextProvider>
-          </ServicesContextProvider>
-        ),
-      });
-      return { renderHookResult, store };
-    };
+  (hook: () => any) => {
+    const store = configureStore()({ ...appStateMock, ...state });
+    const renderHookResult = renderHook(hook, {
+      wrapper: ({ children }) => (
+        <ServicesContextProvider {...queriesMock} {...queries}>
+          <PreviewConnectionContextProvider>
+            <Provider store={store}>{children}</Provider>
+          </PreviewConnectionContextProvider>
+        </ServicesContextProvider>
+      ),
+    });
+    return { renderHookResult, store };
+  };

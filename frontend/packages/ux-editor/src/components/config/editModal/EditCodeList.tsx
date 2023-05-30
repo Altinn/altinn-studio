@@ -1,11 +1,7 @@
 import React from 'react';
-import { TextField, Select } from '@digdir/design-system-react';
+import { Select } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
-import type {
-  FormCheckboxesComponent,
-  FormRadioButtonsComponent,
-} from '../../../types/FormComponent';
 import { useOptionListQuery } from '../../../../../ux-editor/src/hooks/queries/useOptionListQuery';
 import { useParams } from 'react-router-dom';
 
@@ -26,29 +22,20 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
     });
   };
 
-  console.log(optionList);
-
   return (
     <div>
       <Select
         options={
           Array.isArray(optionList)
             ? optionList.map((option) => ({
-                label: option.name,
-                value: option.id,
+                label: option,
+                value: option,
               }))
             : []
         }
         label={t('ux_editor.modal_properties_code_list_id')}
         onChange={handleOptionsIdChange}
       />
-
-      {/*     <TextField
-        id='modal-properties-code-list-id'
-        label={t('ux_editor.modal_properties_code_list_id')}
-        onChange={handleOptionsIdChange}
-        value={(component as FormCheckboxesComponent | FormRadioButtonsComponent).optionsId || ''}
-      /> */}
       <p>
         <a
           target='_blank'

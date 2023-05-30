@@ -3,10 +3,16 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from '../../../../../app-development/common/ServiceContext';
 
 
-export const useOptionListQuery = (org: string, app: string): UseQueryResult => {
+
+export const useOptionListQuery = (org: string, app: string): UseQueryResult<string[]> => {
   const { getOptionListIds } = useServicesContext();
-  return useQuery(
+
+  return useQuery<string[]>(
     [QueryKey.OptionListIds, org, app],
-    () => getOptionListIds(org, app).then(result => result || { org: {}, app: {}, id: {} }),
+    () => getOptionListIds(org, app).then((result) => result || [])
   );
 };
+
+
+
+

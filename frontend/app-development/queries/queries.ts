@@ -45,4 +45,4 @@ export const getTextLanguages = (owner: string, app: string): Promise<string[]> 
 export const getTextResources = (owner: string, app: string, lang: string): Promise<ITextResourcesWithLanguage> => get(textResourcesPath(owner, app, lang));
 export const getUser = () => get(userCurrentPath());
 export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));
-export const getOptionListIds = (owner: string, app: string) => get(optionListIdsPath(owner, app));
+export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
