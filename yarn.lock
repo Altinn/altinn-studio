@@ -4369,10 +4369,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/marked@npm:4.3.1":
-  version: 4.3.1
-  resolution: "@types/marked@npm:4.3.1"
-  checksum: eb6891b925d53ea53057f088b28f9232016499e62639cbb4a67f7d34f288ec6a8e40aae4836dbd06bd0fc3c541fca1175cd50d9e8d405547b6be7b7781e6a2a5
+"@types/marked@npm:5.0.0":
+  version: 5.0.0
+  resolution: "@types/marked@npm:5.0.0"
+  checksum: 4828a51186074ac18bd04e2f84aff17e97ec72b227f9f4be0cedff6de6fe0fec016250bc22b2ae5d40d7cf0e6de1853df5d437f2dfe983cd96928763c75e6e47
   languageName: node
   linkType: hard
 
@@ -5439,7 +5439,7 @@ __metadata:
     "@types/dot-object": 2.1.2
     "@types/jest": 29.5.1
     "@types/json-schema": ^7.0.11
-    "@types/marked": 4.3.1
+    "@types/marked": 5.0.0
     "@types/mime": 3.0.1
     "@types/react": 18.2.6
     "@types/react-dom": 18.2.4
