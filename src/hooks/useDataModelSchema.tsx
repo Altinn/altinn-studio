@@ -20,7 +20,6 @@ function useDraft(enabled: boolean) {
     dataModels && currentDataModelName && currentDataModelName in dataModels && dataModels[currentDataModelName];
 
   if (!currentModel) {
-    console.warn('Unable to read current data model schema');
     return undefined;
   }
 
@@ -31,12 +30,12 @@ function useDraft(enabled: boolean) {
   // The library does not seem to support 2019-09 and 2020-12 versions yet, and for all others it seems the
   // schema version is not usually specified. Also, ajv seems to default to Draft07, so we'll do that too.
   const rootPath = getRootElementPath(currentModel);
-  const modelCopy = JSON.parse(JSON.stringify(currentModel));
+  const modelCopy = structuredClone(currentModel);
   if (rootPath) {
     modelCopy.$ref = rootPath;
   }
 
-  return new Draft07(currentModel);
+  return new Draft07(modelCopy);
 }
 
 const Context = React.createContext<Draft07 | undefined>(undefined);
