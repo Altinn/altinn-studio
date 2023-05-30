@@ -2,14 +2,14 @@
     "sets": [
         {
             "id": "layoutSet1",
-            "dataType": "data-model-1",
+            "dataType": "datamodel",
             "tasks": [
                 "Task_1"
             ]
         },
         {
             "id": "layoutSet2",
-            "dataType": "data-model-2",
+            "dataType": null,
             "tasks": [
                 "Task_2"
             ]

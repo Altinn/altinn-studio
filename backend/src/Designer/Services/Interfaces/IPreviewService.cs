@@ -9,29 +9,22 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 public interface IPreviewService
 {
     /// <summary>
-    /// Gets the application metadata as application object from platform models
-    /// </summary>
-    /// <param name="org">Organisation</param>
-    /// <param name="app">Repository</param>
-    /// <param name="developer">Username of developer</param>
-    public Task<Application> GetApplication(string org, string app, string developer);
-
-    /// <summary>
     /// Creates a mocked instance object with limited data needed to serve app-frontend
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="app">Repository</param>
     /// <param name="developer">Username of developer</param>
-    /// <param name="instanceOwnerPartyId"></param>
-    public Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId);
+    /// <param name="instanceOwnerPartyId">Id for instance owner party</param>
+    /// <param name="layoutSetName">Name of current layout set to view</param>
+    public Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId, string layoutSetName);
 
     /// <summary>
-    /// Gets the datatype from application metadata that corresponds to the process Task_1
-    /// which is default task id for apps without layoutset
+    /// Gets the datatype object with the datamodel name and datatype id based on the current layout set name
     /// </summary>
-    /// <param name="org"></param>
-    /// <param name="app"></param>
-    /// <param name="developer"></param>
-    /// <returns></returns>
-    public Task<DataType> GetDataTypeForTask1(string org, string app, string developer);
+    /// <param name="org">Organisation</param>
+    /// <param name="app">Repository</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="layoutSetName">Name of current layout set to view</param>
+    public Task<DataType> GetDataTypeForLayoutSetName(string org, string app, string developer, string layoutSetName);
+
 }
