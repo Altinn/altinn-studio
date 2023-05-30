@@ -1,0 +1,34 @@
+.rightContent {
+  align-items: center;
+  padding-right: 8rem;
+  gap: 1rem;
+}
+
+.rightContentButtons {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+.rightContentButtons > * {
+  flex: 1;
+}
+
+.previewButton {
+  --component-button-outline-primary-color-background-default: none;
+  --component-button-outline-primary-color-border-default: none;
+  --component-button-outline-primary-color-border-hover: #004e95;
+  --component-button-outline-primary-color-text-default: #ffffff;
+}
+
+.infoPreviewIsBetaMessage {
+  padding: 20px;
+  display: inline-block;
+}
+
+.infoIcon {
+  border: white 1px solid;
+  border-radius: 50%;
+  font-size: larger;
+  margin-top: 3px;
+}

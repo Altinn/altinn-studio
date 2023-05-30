@@ -1,0 +1,1 @@
+export { AltinnSubMenu } from "./AltinnSubMenu";

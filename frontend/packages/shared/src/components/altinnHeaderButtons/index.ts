@@ -1,0 +1,1 @@
+export { AltinnHeaderButton } from './AltinnHeaderButton';

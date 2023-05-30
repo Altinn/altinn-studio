@@ -1,0 +1,1 @@
+export { AltinnHeaderProfile } from './AltinnHeaderProfile';

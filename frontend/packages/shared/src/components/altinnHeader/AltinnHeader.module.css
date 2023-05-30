@@ -1,0 +1,72 @@
+.altinnHeaderBar {
+  display: flex;
+  align-items: center;
+  height: var(--toolbar-height);
+  padding: 0 2rem;
+}
+
+.regular {
+  background-color: #022f51;
+  color: #fff;
+}
+
+.preview {
+  background-color: #118849;
+  color: #fff;
+}
+
+.altinnHeaderBar .leftContent {
+  align-items: center;
+  border-right: 1px solid #fff2;
+  display: flex;
+  flex: 1;
+  line-height: 1;
+  overflow: hidden;
+  padding-right: 2rem;
+}
+
+.appName {
+  font-size: 1.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bigSlash {
+  font-size: 2rem;
+  padding: 0 0.5rem;
+}
+
+.altinnHeaderBar .rightContent {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.profileMenuWrapper {
+  flex: 2;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.userOrgNames {
+  text-align: right;
+  white-space: pre-line;
+  line-height: 25px;
+  font-size: 1rem;
+  margin-right: 15px;
+}
+
+.rightContentButtons {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  flex: 3;
+}
+
+.rightContentButtons > * {
+  flex: 1;
+}
