@@ -28,7 +28,7 @@ export const ContentTab = () => {
       isContainer ? (
         <EditFormContainer editFormId={formId} container={form} handleContainerUpdate={handleUpdate} />
       ) : (
-        <EditFormComponent component={form} handleComponentUpdate={handleUpdate} />
+        <EditFormComponent editFormId={formId} component={form} handleComponentUpdate={handleUpdate} />
       )
     }
     <div className={classes.buttonsContainer}>

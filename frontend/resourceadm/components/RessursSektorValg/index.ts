@@ -1,0 +1,1 @@
+export { RessursSektorValg } from './RessursSektorValg';

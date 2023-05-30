@@ -1,0 +1,1 @@
+export { RessurstilgangSide1 } from './RessurstilgangSide1';

@@ -1,5 +1,6 @@
 import { ComponentType } from '../components';
 import { FormItem } from '../types/FormItem';
+import { FormPanelVariant } from '../types/FormComponent';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
@@ -205,19 +206,8 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Panel,
       dataModelBindings: {},
-      variant: {
-        title: 'test',
-        description: 'test',
-        type: 'test',
-        enum: 'info',
-        default: 'info',
-      },
-      showIcon: {
-        title: 'test',
-        description: 'test',
-        type: true,
-        default: true,
-      },
+      variant: FormPanelVariant.Info,
+      showIcon: true,
     },
     icon: 'fa fa-paragraph',
   },

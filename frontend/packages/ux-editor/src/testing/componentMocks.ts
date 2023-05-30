@@ -15,6 +15,7 @@ import {
   FormMapComponent,
   FormNavigationBarComponent,
   FormPanelComponent,
+  FormPanelVariant,
   FormParagraphComponent,
   FormRadioButtonsComponent,
   FormTextareaComponent,
@@ -130,19 +131,8 @@ const thirdPartyComponent: FormThirdPartyComponent = {
 const panelComponent: FormPanelComponent = {
   ...commonProps,
   type: ComponentType.Panel,
-  variant: {
-    title: 'test',
-    description: 'test',
-    type: 'test',
-    enum: 'info',
-    default: 'info',
-  },
-  showIcon: {
-    title: 'test',
-    description: 'test',
-    type: true,
-    default: true,
-  },
+  variant: FormPanelVariant.Info,
+  showIcon: true,
 };
 const mapComponent: FormMapComponent = {
   ...commonProps,

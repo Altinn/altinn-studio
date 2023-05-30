@@ -6,7 +6,7 @@ import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
 import { Label } from 'app-shared/components/Label';
-import { IGenericEditComponent } from '../../componentConfig';
+import type { IGenericEditComponent } from '../../componentConfig';
 
 export const ImageComponent = ({
   component,
@@ -47,10 +47,13 @@ export const ImageComponent = ({
   };
 
   const handleAltTextChange = (id: string) => {
-    const updatedComponent = { ...component };
-    updatedComponent.textResourceBindings.altTextImg = id;
-
-    handleComponentChange(updatedComponent);
+    handleComponentChange({
+      ...component,
+      textResourceBindings: {
+        ...component.textResourceBindings,
+        altTextImg: id,
+      },
+    });
   };
 
   const handleSourceChange = (e: any) => {
@@ -99,7 +102,7 @@ export const ImageComponent = ({
             styles={selectStyles}
             options={alignOptions}
             onChange={handlePlacementChange}
-            defaultValue={selectedPlacement}
+            value={selectedPlacement}
             isClearable={true}
             placeholder=''
             inputId={placementSelectId}

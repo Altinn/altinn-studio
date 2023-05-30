@@ -1,0 +1,53 @@
+.actionLink {
+  align-items: center;
+  display: flex;
+  margin-right: 1rem;
+  min-width: 40px;
+}
+
+.actionLink:hover {
+  text-decoration: none;
+}
+
+.actionLink:hover span {
+  text-decoration: underline;
+}
+
+.dropdownIcon {
+  font-size: 2rem;
+}
+
+.editLink {
+  color: #165db8;
+}
+
+.editLink:hover {
+  color: #165db8;
+}
+
+.favoriteIcon {
+  font-size: 26px;
+  color: #000000;
+}
+
+.linkIcon {
+  font-size: 2rem;
+  height: 32px;
+  width: 32px;
+}
+
+.repoLink {
+  color: #57823d;
+}
+
+.repoLink:hover {
+  color: #57823d;
+}
+
+.textWithTooltip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.columnHeader {
+  background-color: white !important;
+}
