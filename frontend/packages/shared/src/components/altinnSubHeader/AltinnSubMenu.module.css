@@ -1,0 +1,15 @@
+.subToolbar {
+  align-items: center;
+  display: flex;
+  height: var(--subtoolbar-height);
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.regular {
+  background-color: #284e6a;
+}
+
+.preview {
+  background-color: #0c6536;
+}

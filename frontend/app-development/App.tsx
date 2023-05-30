@@ -165,7 +165,7 @@ export function App() {
         <h2>{t('session.expires')}</h2>
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
-      <PageHeader showSubMenu={!repoStatus.hasMergeConflict} />
+      <PageHeader showSubMenu={!repoStatus.hasMergeConflict} org={org} app={app} />
 
       <div className={classes.contentWrapper} data-testid={'app-content-wrapper'}>
         {repoStatus.hasMergeConflict ? (
