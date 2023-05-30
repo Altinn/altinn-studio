@@ -75,7 +75,7 @@ export function TopToolbar({
           >
             {error?.message ? (
               <>
-                <ErrorMessage>{error.message}</ErrorMessage>
+                <ErrorMessage role='alertdialog'>{error.message}</ErrorMessage>
                 <Button
                   onClick={() => setShowGenerationState(false)}
                   variant={ButtonVariant.Outline}
