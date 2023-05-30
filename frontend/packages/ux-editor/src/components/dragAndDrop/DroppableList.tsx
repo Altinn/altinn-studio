@@ -2,6 +2,7 @@ import React, { ReactNode, useCallback } from 'react';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
 import { DraggableEditorItemType, DndItem, HandleDrop } from '../../types/dndTypes';
 import classes from './DroppableList.module.css';
+import { cypressTestid } from '../../../../../testing/cypress/cypressTestid';
 
 export interface DroppableListProps {
   children: ReactNode;
@@ -36,5 +37,14 @@ export const DroppableList = ({
     }),
   });
   const backgroundColor = canBeDropped ? 'var(--list-empty-space-hover-color)' : 'transparent';
-  return <div ref={drop} style={{ backgroundColor }} className={classes.root}>{children}</div>;
+  return (
+    <div
+      className={classes.root}
+      data-testid={cypressTestid.droppableList}
+      ref={drop}
+      style={{ backgroundColor }}
+    >
+      {children}
+    </div>
+  );
 }
