@@ -11,11 +11,11 @@ import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutCompCheckboxes } from 'src/layout/Checkboxes/types';
 import type { IRepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
+import type { HRepGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { RootState } from 'src/redux/store';
 import type { IOption } from 'src/types';
 import type { ILanguage, ITextResource } from 'src/types/shared';
-import type { HRepGroup } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const user = userEvent.setup();
@@ -44,7 +44,6 @@ describe('RepeatingGroupsEditContainer', () => {
       },
       readOnly: false,
       required: false,
-      disabled: false,
     },
     {
       id: 'field2',
@@ -57,7 +56,6 @@ describe('RepeatingGroupsEditContainer', () => {
       },
       readOnly: false,
       required: false,
-      disabled: false,
     },
     {
       id: 'field3',
@@ -70,7 +68,6 @@ describe('RepeatingGroupsEditContainer', () => {
       },
       readOnly: false,
       required: false,
-      disabled: false,
     },
     {
       id: 'field4',

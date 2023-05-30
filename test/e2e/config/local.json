@@ -18,7 +18,5 @@
     "auditorFullName": "Gjentagende Forelder",
     "auditorFirstName": "Gjentagende",
     "auditorPartyId": "1002.500000"
-  },
-  "defaultCommandTimeout": 20000,
-  "requestTimeout": 20000
+  }
 }

@@ -7,9 +7,12 @@ import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import { formatISOString } from 'src/utils/formatDate';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Datepicker extends FormComponent<'Datepicker'> {
   render(props: PropsFromGenericComponent<'Datepicker'>): JSX.Element | null {
@@ -33,3 +36,13 @@ export class Datepicker extends FormComponent<'Datepicker'> {
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 }
+
+export const Config = {
+  def: new Datepicker(),
+};
+
+export type TypeConfig = {
+  layout: ILayoutCompDatepicker;
+  nodeItem: ExprResolved<ILayoutCompDatepicker>;
+  nodeObj: LayoutNode;
+};

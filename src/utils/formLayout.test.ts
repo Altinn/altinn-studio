@@ -40,7 +40,6 @@ const testLayout: ILayout = [
     },
     readOnly: false,
     required: false,
-    disabled: false,
   },
   {
     id: 'field2',
@@ -53,7 +52,6 @@ const testLayout: ILayout = [
     },
     readOnly: false,
     required: false,
-    disabled: false,
   },
 ];
 
@@ -237,7 +235,6 @@ describe('getRepeatingGroups', () => {
         },
         readOnly: false,
         required: false,
-        disabled: false,
       },
       {
         id: 'field2',
@@ -250,7 +247,6 @@ describe('getRepeatingGroups', () => {
         },
         readOnly: false,
         required: false,
-        disabled: false,
       },
     ];
     const formData = {
@@ -298,7 +294,6 @@ describe('getRepeatingGroups', () => {
         },
         readOnly: false,
         required: false,
-        disabled: false,
       },
     ];
     const formData = {

@@ -38,7 +38,6 @@ describe('PanelGroupContainer', () => {
       },
       readOnly: false,
       required: false,
-      disabled: false,
     },
     {
       id: 'input2',
@@ -51,7 +50,6 @@ describe('PanelGroupContainer', () => {
       },
       readOnly: false,
       required: false,
-      disabled: false,
     },
   ];
 

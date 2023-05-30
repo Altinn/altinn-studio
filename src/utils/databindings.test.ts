@@ -70,7 +70,6 @@ describe('utils/databindings.ts', () => {
         },
         readOnly: false,
         required: false,
-        disabled: false,
       },
       {
         id: 'field2',
@@ -83,7 +82,6 @@ describe('utils/databindings.ts', () => {
         },
         readOnly: false,
         required: false,
-        disabled: false,
       },
       {
         id: 'field3',
@@ -96,7 +94,6 @@ describe('utils/databindings.ts', () => {
         },
         readOnly: false,
         required: false,
-        disabled: false,
       },
       {
         id: 'field4',
@@ -109,7 +106,6 @@ describe('utils/databindings.ts', () => {
         },
         readOnly: false,
         required: false,
-        disabled: false,
       },
     ];
   });

@@ -3,11 +3,14 @@ import React from 'react';
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import { SimpleComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { ComponentTypeConfigs } from 'src/layout/components';
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { ComponentTypes } from 'src/layout/layout';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { AnyItem, HierarchyDataSources, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 /**
  * This enum is used to distinguish purely presentational components
@@ -80,6 +83,16 @@ abstract class AnyComponent<Type extends ComponentTypes> {
    */
   hierarchyGenerator(): ComponentHierarchyGenerator<Type> {
     return defaultGenerator;
+  }
+
+  makeNode(
+    item: AnyItem<Type>,
+    parent: LayoutNode | LayoutPage,
+    top: LayoutPage,
+    dataSources: HierarchyDataSources,
+    rowIndex?: number,
+  ): ComponentTypeConfigs[Type]['nodeObj'] {
+    return new LayoutNode(item, parent, top, dataSources, rowIndex);
   }
 }
 

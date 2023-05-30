@@ -2,8 +2,9 @@ import { GridHierarchyGenerator } from 'src/layout/Grid/hierarchy';
 import { nodesFromGridRow } from 'src/layout/Grid/tools';
 import { getRepeatingGroupStartStopIndex } from 'src/utils/formLayout';
 import { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+import type { HRepGroupChild, HRepGroupRow } from 'src/layout/Group/types';
 import type { ITextResource } from 'src/types';
-import type { HRepGroupChild, HRepGroupRow, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
 import type {
   ChildFactory,
   ChildFactoryProps,

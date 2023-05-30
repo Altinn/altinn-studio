@@ -29,7 +29,6 @@ const render = (submittingId: string) => {
     renderer: (props) => <ButtonComponent {...props} />,
     component: {
       id: 'some-id',
-      disabled: false,
     },
     genericProps: {
       text: submitBtnText,

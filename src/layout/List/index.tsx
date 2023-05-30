@@ -3,9 +3,12 @@ import React from 'react';
 import { FormComponent } from 'src/layout/LayoutComponent';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ILayoutCompList } from 'src/layout/List/types';
 import type { LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class List extends FormComponent<'List'> {
   render(props: PropsFromGenericComponent<'List'>): JSX.Element | null {
@@ -37,3 +40,13 @@ export class List extends FormComponent<'List'> {
     return false;
   }
 }
+
+export const Config = {
+  def: new List(),
+};
+
+export type TypeConfig = {
+  layout: ILayoutCompList;
+  nodeItem: ExprResolved<ILayoutCompList>;
+  nodeObj: LayoutNode;
+};

@@ -42,7 +42,6 @@ describe('SummaryGroupComponent', () => {
             },
             readOnly: false,
             required: false,
-            disabled: false,
             textResourceBindings: {
               title: 'mockField1',
             },
@@ -56,7 +55,6 @@ describe('SummaryGroupComponent', () => {
             },
             readOnly: false,
             required: false,
-            disabled: false,
             textResourceBindings: {
               title: 'mockField2',
             },

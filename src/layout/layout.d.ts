@@ -2,57 +2,21 @@ import type { TextField } from '@digdir/design-system-react';
 import type { GridSize } from '@material-ui/core';
 
 import type { ExprUnresolved, ExprVal } from 'src/features/expressions/types';
-import type { ILayoutCompActionButton } from 'src/layout/ActionButton/types';
-import type { IDataModelBindingsForAddress, ILayoutCompAddress } from 'src/layout/Address/types';
-import type { ILayoutCompAttachmentList } from 'src/layout/AttachmentList/types';
-import type { ILayoutCompButton } from 'src/layout/Button/types';
-import type { ILayoutCompButtonGroup } from 'src/layout/ButtonGroup/types';
+import type { IDataModelBindingsForAddress } from 'src/layout/Address/types';
 import type { ILayoutCompCheckboxes } from 'src/layout/Checkboxes/types';
-import type { ILayoutCompCustom } from 'src/layout/Custom/types';
-import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
+import type { ComponentConfigs, ComponentTypeConfigs } from 'src/layout/components';
 import type { ILayoutCompDropdown } from 'src/layout/Dropdown/types';
-import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
-import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
-import type { ILayoutCompGrid } from 'src/layout/Grid/types';
 import type { IDataModelBindingsForGroup, ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutCompHeader } from 'src/layout/Header/types';
-import type { ILayoutCompIFrame } from 'src/layout/Iframe/types';
-import type { ILayoutCompImage } from 'src/layout/Image/types';
-import type { ILayoutCompInput } from 'src/layout/Input/types';
-import type { ILayoutCompInstanceInformation } from 'src/layout/InstanceInformation/types';
-import type { ILayoutCompInstantiationButton } from 'src/layout/InstantiationButton/types';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
-import type { ILayoutCompLink } from 'src/layout/Link/types';
-import type { IDataModelBindingsForList, ILayoutCompList } from 'src/layout/List/types';
-import type { ILayoutCompMap } from 'src/layout/Map/types';
-import type { ILayoutCompMultipleSelect } from 'src/layout/MultipleSelect/types';
-import type { ILayoutCompNavBar } from 'src/layout/NavigationBar/types';
-import type { ILayoutCompNavButtons } from 'src/layout/NavigationButtons/types';
-import type { ILayoutCompPanel } from 'src/layout/Panel/types';
-import type { ILayoutCompParagraph } from 'src/layout/Paragraph/types';
-import type { ILayoutCompPrintButton } from 'src/layout/PrintButton/types';
+import type { IDataModelBindingsForList } from 'src/layout/List/types';
 import type { ILayoutCompRadioButtons } from 'src/layout/RadioButtons/types';
-import type { ILayoutCompSummary } from 'src/layout/Summary/types';
-import type { ILayoutCompTextArea } from 'src/layout/TextArea/types';
 import type { ILabelSettings, IMapping, IOption, IOptionSource, LayoutStyle, Triggers } from 'src/types';
 
 export interface ILayouts {
   [id: string]: ILayout | undefined;
 }
 
-/**
- * These keys are not defined anywhere in the actual form layout files, but have been snuck in here for convenience at
- * some point. They should instead be moved to IComponentProps or somewhere else, as they are computed values set in
- * app-frontend at some point, and not something the server-side sends us. Leaving them here as typings break without
- * them, but exposing them in a separate interface in order to make it clear these are on shaky ground.
- */
-interface NotInLayout {
-  baseComponentId?: string;
-  multiPageIndex?: number;
-  disabled?: boolean;
-}
-
-export interface ILayoutEntry<T extends ComponentTypes = ComponentTypes> extends NotInLayout {
+export interface ILayoutEntry<T extends ComponentTypes = ComponentTypes> {
   id: string;
   type: T;
 }
@@ -124,43 +88,9 @@ export interface ITableColumnProperties {
  * definition. If you want to reference a particular component layout type you can either reference the individual
  * type (ex. ILayoutCompTextArea), or ILayoutComponent<'TextArea'>.
  */
-interface Map {
-  ActionButton: ILayoutCompActionButton;
-  AddressComponent: ILayoutCompAddress;
-  AttachmentList: ILayoutCompAttachmentList;
-  Button: ILayoutCompButton;
-  ButtonGroup: ILayoutCompButtonGroup;
-  Checkboxes: ILayoutCompCheckboxes;
-  Custom: ILayoutCompCustom;
-  Datepicker: ILayoutCompDatepicker;
-  Dropdown: ILayoutCompDropdown;
-  FileUpload: ILayoutCompFileUpload;
-  FileUploadWithTag: ILayoutCompFileUploadWithTag;
-  Grid: ILayoutCompGrid;
-  Group: ILayoutGroup;
-  Header: ILayoutCompHeader;
-  IFrame: ILayoutCompIFrame;
-  Image: ILayoutCompImage;
-  Input: ILayoutCompInput;
-  InstantiationButton: ILayoutCompInstantiationButton;
-  InstanceInformation: ILayoutCompInstanceInformation;
-  Likert: ILayoutCompLikert;
-  Link: ILayoutCompLink;
-  List: ILayoutCompList;
-  Map: ILayoutCompMap;
-  MultipleSelect: ILayoutCompMultipleSelect;
-  NavigationBar: ILayoutCompNavBar;
-  NavigationButtons: ILayoutCompNavButtons;
-  Panel: ILayoutCompPanel;
-  Paragraph: ILayoutCompParagraph;
-  PrintButton: ILayoutCompPrintButton;
-  RadioButtons: ILayoutCompRadioButtons;
-  Summary: ILayoutCompSummary;
-  TextArea: ILayoutCompTextArea;
-}
 
-export type ComponentTypes = keyof Map;
-type AllComponents = Map[ComponentTypes];
+export type ComponentTypes = keyof typeof ComponentConfigs & keyof ComponentTypeConfigs;
+type AllComponents = ComponentLayoutTypeMap[ComponentTypes];
 
 export type ComponentExceptGroup = Exclude<ComponentTypes, 'Group'>;
 export type ComponentInGroup = ILayoutComponent | ILayoutGroup;

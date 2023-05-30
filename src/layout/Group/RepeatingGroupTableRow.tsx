@@ -12,9 +12,8 @@ import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { HRepGroup, ILayoutGroup } from 'src/layout/Group/types';
 import type { ITextResourceBindings } from 'src/types';
-import type { HRepGroup } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IRepeatingGroupTableRowProps {

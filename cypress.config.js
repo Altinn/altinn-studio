@@ -28,8 +28,8 @@ Valid environments are:
   videosFolder: 'test/videos',
   viewportHeight: 768,
   viewportWidth: 1536,
-  requestTimeout: 10000,
-  defaultCommandTimeout: 8000,
+  requestTimeout: 20000,
+  defaultCommandTimeout: 20000,
   reporter: 'junit',
   reporterOptions: {
     mochaFile: 'test/reports/result-[hash].xml',

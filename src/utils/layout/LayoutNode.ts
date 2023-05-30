@@ -2,6 +2,7 @@ import { getLayoutComponentObject } from 'src/layout';
 import { DataBinding } from 'src/utils/databindings/DataBinding';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ComponentClassMap } from 'src/layout';
+import type { HNonRepGroup, HRepGroup } from 'src/layout/Group/types';
 import type { ComponentTypes, IDataModelBindings } from 'src/layout/layout';
 import type { ComponentType } from 'src/layout/LayoutComponent';
 import type { IComponentBindingValidation, IComponentValidations, ValidationKeyOrAny } from 'src/types';
@@ -10,8 +11,6 @@ import type {
   AnyItem,
   HComponent,
   HierarchyDataSources,
-  HNonRepGroup,
-  HRepGroup,
   LayoutNodeFromComponentType,
   LayoutNodeFromType,
   ParentNode,

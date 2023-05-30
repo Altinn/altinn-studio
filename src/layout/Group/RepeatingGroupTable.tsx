@@ -15,9 +15,9 @@ import { RepeatingGroupTableRow } from 'src/layout/Group/RepeatingGroupTableRow'
 import { ComponentType } from 'src/layout/LayoutComponent';
 import { getColumnStylesRepeatingGroups, getTextResource } from 'src/utils/formComponentUtils';
 import type { GridComponent, GridRow } from 'src/layout/Grid/types';
+import type { HRepGroup } from 'src/layout/Group/types';
 import type { ITableColumnFormatting } from 'src/layout/layout';
 import type { ITextResourceBindings } from 'src/types';
-import type { HRepGroup } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IRepeatingGroupTableProps {

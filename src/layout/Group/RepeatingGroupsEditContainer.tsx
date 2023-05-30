@@ -11,9 +11,8 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { IGroupEditProperties } from 'src/layout/Group/types';
+import type { HRepGroup, HRepGroupRow, IGroupEditProperties } from 'src/layout/Group/types';
 import type { ILanguage } from 'src/types/shared';
-import type { HRepGroup, HRepGroupRow } from 'src/utils/layout/hierarchy.types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IRepeatingGroupsEditContainer {

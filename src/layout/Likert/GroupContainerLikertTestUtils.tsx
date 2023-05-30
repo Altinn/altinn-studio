@@ -94,7 +94,6 @@ const createRadioButton = (
   optionsId: 'option-test',
   readOnly: false,
   required: false,
-  disabled: false,
   ...props,
 });
 

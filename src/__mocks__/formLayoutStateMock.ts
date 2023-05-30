@@ -24,7 +24,6 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
           },
           readOnly: false,
           required: false,
-          disabled: false,
         },
         {
           id: 'field1',
@@ -37,7 +36,6 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
           },
           readOnly: false,
           required: false,
-          disabled: false,
         },
         {
           id: 'field2',
@@ -50,7 +48,6 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
           },
           readOnly: false,
           required: false,
-          disabled: false,
         },
         {
           id: 'field3',
@@ -63,7 +60,6 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
           },
           readOnly: false,
           required: false,
-          disabled: false,
         },
       ],
     },

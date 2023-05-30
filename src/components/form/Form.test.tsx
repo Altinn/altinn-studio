@@ -25,7 +25,6 @@ describe('Form', () => {
       },
       readOnly: false,
       required: true,
-      disabled: false,
     },
     {
       id: 'field2',
@@ -38,7 +37,6 @@ describe('Form', () => {
       },
       readOnly: false,
       required: false,
-      disabled: false,
     },
     {
       id: 'field3',
@@ -51,7 +49,6 @@ describe('Form', () => {
       },
       readOnly: false,
       required: false,
-      disabled: false,
     },
     {
       id: 'testGroupId',
@@ -93,7 +90,6 @@ describe('Form', () => {
         },
         readOnly: false,
         required: false,
-        disabled: false,
       },
     ];
 
@@ -128,7 +124,6 @@ describe('Form', () => {
         },
         readOnly: false,
         required: false,
-        disabled: false,
       },
     ];
 

@@ -19,7 +19,7 @@ import { Triggers } from 'src/types';
 import { getRepeatingGroupFilteredIndices } from 'src/utils/formLayout';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { HRepGroup } from 'src/utils/layout/hierarchy.types';
+import type { HRepGroup } from 'src/layout/Group/types';
 export interface IGroupProps {
   node: LayoutNode<HRepGroup, 'Group'>;
 }

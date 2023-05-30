@@ -1,4 +1,3 @@
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { ExprUnresolved } from 'src/features/expressions/types';
@@ -6,6 +5,7 @@ import type { DefGetter } from 'src/layout';
 import type { ComponentTypes, ILayout, ILayoutComponentExact, ILayouts } from 'src/layout/layout';
 import type { IRepeatingGroups, ITextResource } from 'src/types';
 import type { AnyItem, HierarchyDataSources, LayoutNodeFromType } from 'src/utils/layout/hierarchy.types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export type UnprocessedItem<T extends ComponentTypes = ComponentTypes> = ExprUnresolved<ILayoutComponentExact<T>>;
 
@@ -249,7 +249,12 @@ export class HierarchyGenerator {
    * Utility function to make it easier to create a LayoutNode object (used by processors in components)
    */
   makeNode<T extends ComponentTypes>({ item, parent, rowIndex }: ChildFactoryProps<T>): LayoutNodeFromType<T> {
-    const node = new LayoutNode(item as AnyItem, parent || this.top, this.top, this.dataSources, rowIndex);
+    const def = this.getLayoutComponentObject(item.type as ComponentTypes);
+    if (!def) {
+      throw new Error(`Could not find definition for component type '${item.type}'`);
+    }
+
+    const node = def.makeNode(item as AnyItem<any>, parent || this.top, this.top, this.dataSources, rowIndex);
     this.top._addChild(node);
 
     return node as LayoutNodeFromType<T>;
