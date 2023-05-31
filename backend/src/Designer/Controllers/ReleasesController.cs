@@ -47,7 +47,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             SearchResults<ReleaseEntity> releases = await _releaseService.GetAsync(org, app, query);
 
-            List<ReleaseEntity> laggingReleases = releases.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(10) < DateTime.UtcNow).ToList();
+            List<ReleaseEntity> laggingReleases = releases.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(2) < DateTime.UtcNow).ToList();
 
             foreach (ReleaseEntity release in laggingReleases)
             {
