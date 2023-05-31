@@ -48,7 +48,7 @@ export const ConfigureLayoutSetPanel = () => {
     }
   };
 
-  const handleClickOutside = (event: any) => {
+  const handleClickOutside = (event: Event) => {
     if (configPanelRef.current && !configPanelRef.current.contains(event.target as Node)) {
       setEditLayoutSetName(false);
       setLayoutSetName('');
