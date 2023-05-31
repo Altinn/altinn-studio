@@ -8,6 +8,7 @@ import { layout2NameMock } from '../../testing/layoutMock';
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 const layoutName = layout2NameMock;
 
 describe('useDeleteLayoutMutation', () => {
@@ -15,14 +16,14 @@ describe('useDeleteLayoutMutation', () => {
     const { result } = await renderDeleteLayoutMutation();
     await result.current.mutateAsync(layoutName);
     expect(queriesMock.deleteFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(org, app, layoutName);
+    expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(org, app, layoutName, selectedLayoutSet);
   });
 });
 
 const renderDeleteLayoutMutation = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useDeleteLayoutMutation(org, app)).renderHookResult;
+  return renderHookWithMockStore()(() => useDeleteLayoutMutation(org, app, selectedLayoutSet)).renderHookResult;
 }

@@ -6,9 +6,9 @@ import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { removeComponent } from '../../utils/formLayoutUtils';
 
-export const useDeleteFormComponentMutation = (org: string, app: string) =>  {
+export const useDeleteFormComponentMutation = (org: string, app: string, layoutSetName: string) =>  {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName);
+  const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   return useMutation({
     mutationFn: async (id: string) => {

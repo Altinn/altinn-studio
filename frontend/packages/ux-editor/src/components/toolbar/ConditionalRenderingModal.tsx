@@ -5,12 +5,14 @@ import { ConditionalRenderingComponent } from '../config/ConditionalRenderingCom
 import RuleButton from './RuleButton';
 import type { IRuleModelFieldElement } from '../../types/global';
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useFormLayoutsSelector } from '../../hooks';
 import {
   allLayoutComponentsSelector,
   allLayoutContainersSelector,
-  fullLayoutOrderSelector
+  fullLayoutOrderSelector,
+  selectedLayoutSetSelector,
 } from '../../selectors/formLayoutSelectors';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
@@ -27,9 +29,10 @@ export interface IConditionalRenderingModalProps {
 export function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
   const { org, app } = useParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const { data: ruleModel } = useRuleModelQuery(org, app);
-  const { data: ruleConfig } = useRuleConfigQuery(org, app);
-  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app);
+  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);
+  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSet);
   const layoutContainers = useFormLayoutsSelector(allLayoutContainersSelector);
   const layoutComponents = useFormLayoutsSelector(allLayoutComponentsSelector);
   const layoutOrder = useFormLayoutsSelector(fullLayoutOrderSelector);

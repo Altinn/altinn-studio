@@ -13,6 +13,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 
 describe('DesignView', () => {
   it('Renders with empty container text when there are no components or containers', async () => {
@@ -29,7 +30,7 @@ describe('DesignView', () => {
 });
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  const { result } = renderHookWithMockStore({}, queries)(() => useFormLayoutsQuery(org, app)).renderHookResult;
+  const { result } = renderHookWithMockStore({}, queries)(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult;
   await waitFor(() => result.current.isSuccess);
   return renderWithMockStore({}, queries)(
     <DndProvider backend={HTML5Backend}>

@@ -132,7 +132,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="relativeFilepath">The relative path to the file seen from the repository root.</param>
         public AltinnCoreFile GetAltinnCoreFileByRelativePath(string relativeFilepath)
         {
-            string absoluteFilepath = GetAbsoluteFilePathSanitized(relativeFilepath);
+            string absoluteFilepath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilepath);
             return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
         }
 

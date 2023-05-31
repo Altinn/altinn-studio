@@ -8,9 +8,9 @@ export interface UpdateLayoutOrderMutationArgs {
   direction: 'up' | 'down';
 }
 
-export const useUpdateLayoutOrderMutation = (org: string, app: string) => {
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
-  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app);
+export const useUpdateLayoutOrderMutation = (org: string, app: string, layoutSetName: string) => {
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
+  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   return useMutation({
     mutationFn: ({ layoutName, direction }: UpdateLayoutOrderMutationArgs) => {
       const layoutSettings = deepCopy(formLayoutSettingsQuery.data);

@@ -13,7 +13,7 @@ import { ITextResource } from 'app-shared/types/global';
 import { XMarkIcon, TrashIcon, PencilIcon, CheckmarkIcon, MonitorIcon } from '@navikt/aksel-icons';
 import { formItemConfigs } from '../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
-import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
 import { useFormLayoutsSelector, useTextResourcesSelector } from '../hooks';
@@ -42,10 +42,11 @@ export const FormComponent = memo(function FormComponent({
   const { t } = useTranslation();
   const { org, app } = useParams();
 
-  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app);
-
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
+
+  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app, selectedLayoutSetName);
 
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
 

@@ -8,6 +8,7 @@ import { container1IdMock, layout1Mock, layout1NameMock } from '../../testing/la
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 const maxCount = 2;
 const updatedContainer: FormContainer = {
   itemType: 'CONTAINER',
@@ -20,7 +21,7 @@ describe('useUpdateFormContainerMutation', () => {
   it('Saves layouts with new container', async () => {
     await renderAndWaitForData();
 
-    const updateFormContainerResult = renderHookWithMockStore()(() => useUpdateFormContainerMutation(org, app))
+    const updateFormContainerResult = renderHookWithMockStore()(() => useUpdateFormContainerMutation(org, app, selectedLayoutSet))
       .renderHookResult
       .result;
 
@@ -31,6 +32,7 @@ describe('useUpdateFormContainerMutation', () => {
       org,
       app,
       layout1NameMock,
+      selectedLayoutSet,
       expect.objectContaining({
         data: expect.objectContaining({
           layout: expect.arrayContaining([
@@ -47,6 +49,6 @@ describe('useUpdateFormContainerMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 }
