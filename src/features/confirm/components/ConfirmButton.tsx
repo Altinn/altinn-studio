@@ -45,6 +45,9 @@ export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: st
             }
           }
         })
+        .catch((error) => {
+          dispatch(ProcessActions.completeRejected({ error: JSON.parse(JSON.stringify(error)) }));
+        })
         .finally(() => {
           setValidateId(null);
         });

@@ -2,6 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import cn from 'classnames';
+import type { AxiosError } from 'axios';
 
 import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIconFormData';
 import { Form } from 'src/components/form/Form';
@@ -11,6 +12,7 @@ import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Confirm } from 'src/features/confirm/containers/Confirm';
 import { Feedback } from 'src/features/feedback/Feedback';
 import { InstanceDataActions } from 'src/features/instanceData/instanceDataSlice';
+import { ForbiddenError } from 'src/features/instantiate/containers/ForbiddenError';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { PDFView } from 'src/features/pdf/PDFView';
 import { ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
@@ -20,12 +22,14 @@ import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
 import { useProcess } from 'src/hooks/useProcess';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
+import { checkIfAxiosError, HttpStatusCodes } from 'src/utils/network/networking';
 
 export const ProcessWrapper = () => {
   const instantiating = useAppSelector((state) => state.instantiation.instantiating);
   const isLoading = useAppSelector((state) => state.isLoading.dataTask);
   const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
   const { hasApiErrors } = useApiErrorCheck();
+  const processError = useAppSelector((state) => state.process.error);
   const { dispatch, process, appOwner, appName } = useProcess();
 
   const instanceId = useAppSelector((state) => state.instantiation.instanceId);
@@ -46,7 +50,14 @@ export const ProcessWrapper = () => {
       );
     }
   }, [instantiating, instanceId, dispatch, instanceIdFromUrl]);
+
   if (hasApiErrors) {
+    if (checkIfAxiosError(processError)) {
+      const axiosError = processError as AxiosError;
+      if (axiosError.status === HttpStatusCodes.Forbidden) {
+        return <ForbiddenError />;
+      }
+    }
     return <UnknownError />;
   }
 
