@@ -1,4 +1,5 @@
 /// <reference types="cypress" />
+import '@testing-library/cypress/add-commands';
 import { login } from '../pageobjects/loginandreg';
 import { dashboard } from '../pageobjects/dashboard';
 import { designer } from '../pageobjects/designer';
