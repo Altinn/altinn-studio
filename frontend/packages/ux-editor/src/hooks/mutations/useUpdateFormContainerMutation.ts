@@ -11,9 +11,9 @@ export interface UpdateFormContainerMutationArgs {
   id: string;
 }
 
-export const useUpdateFormContainerMutation = (org: string, app: string) => {
+export const useUpdateFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutMutation = useFormLayoutMutation(org, app, layoutName);
+  const formLayoutMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
 
   return useMutation({
     mutationFn: ({ updatedContainer, id }: UpdateFormContainerMutationArgs) => {

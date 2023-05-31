@@ -21,7 +21,7 @@ import { selectedLayoutSelector } from '../../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { ITextResource } from 'app-shared/types/global';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { TextFieldWithValidation } from '../TextFieldWithValidation';
 import { FormContainer } from '../../types/FormContainer';
@@ -41,7 +41,8 @@ export const EditFormContainer = ({
 
   const { org, app } = useParams();
 
-  const { data: formLayouts } = useFormLayoutsQuery(org, app);
+  const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
   const { data: dataModel } = useDatamodelQuery(org, app);
   const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));

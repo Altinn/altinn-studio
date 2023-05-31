@@ -5,6 +5,7 @@
     "testEmail": "test1@test.com",
     "deployApp": "ttd/auto-deploy-app-v3",
     "designerApp": "ttd/designer",
+    "datamodelApp": "cypress_testuser/datamodel",
     "withoutDataModelApp": "ttd/appwithout-dm",
     "appOwner": "Testdepartementet",
     "appOwnerUsername": "ttd"

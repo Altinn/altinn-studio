@@ -18,13 +18,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", "layoutFile1", "newLayoutName")]
-        public async Task UpdateFormLayoutName_Change_FileName_And_ReturnsOk(string org, string app, string developer, string layoutName, string newLayoutName)
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "layoutFile1InSet1", "newLayoutName")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "layoutFile1", "newLayoutName")]
+        public async Task UpdateFormLayoutName_Change_FileName_And_ReturnsOk(string org, string app, string developer, string layoutSetName, string layoutName, string newLayoutName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/form-layout-name/{layoutName}";
+            string url = $"{VersionPrefix(org, targetRepository)}/form-layout-name/{layoutName}?layoutSetName={layoutSetName}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
@@ -36,8 +37,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            string oldLayoutPath = Path.Combine(CreatedFolderPath, "App", "ui", "layouts", $"{layoutName}.json");
-            string newLayoutPath = Path.Combine(CreatedFolderPath, "App", "ui", "layouts", $"{newLayoutName}.json");
+            string relativeOldLayoutPath = string.IsNullOrEmpty(layoutSetName)
+                ? $"App/ui/layouts/{layoutName}.json"
+                : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
+            string relativeNewLayoutPath = string.IsNullOrEmpty(layoutSetName)
+                ? $"App/ui/layouts/{newLayoutName}.json"
+                : $"App/ui/{layoutSetName}/layouts/{newLayoutName}.json";
+            string oldLayoutPath = Path.Combine(CreatedFolderPath, relativeOldLayoutPath);
+            string newLayoutPath = Path.Combine(CreatedFolderPath, relativeNewLayoutPath);
             File.Exists(oldLayoutPath).Should().BeFalse();
             File.Exists(newLayoutPath).Should().BeTrue();
         }

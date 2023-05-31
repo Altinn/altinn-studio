@@ -13,11 +13,11 @@ export interface UpdateContainerIdMutationArgs {
   newId: string;
 }
 
-export const useUpdateContainerIdMutation = (org: string, app: string) => {
+export const useUpdateContainerIdMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const { data: ruleConfig } = useRuleConfigQuery(org, app);
-  const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName);
-  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
+  const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
+  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
 
   return useMutation({
     mutationFn: ({ currentId, newId }: UpdateContainerIdMutationArgs) => {

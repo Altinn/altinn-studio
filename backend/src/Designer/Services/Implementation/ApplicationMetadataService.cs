@@ -145,6 +145,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task AddMetadataForAttachment(string org, string app, string applicationMetadata)
         {
             DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
+            // TODO: Adapt this when app can use layout sets
             formMetadata.TaskId = "Task_1";
             Application existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
             existingApplicationMetadata.DataTypes.Add(formMetadata);

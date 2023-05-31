@@ -1,1 +1,2 @@
-export const altinnDocsUrl = () => 'https://docs.altinn.studio/';
+// Docs
+export const altinnDocsUrl = (relativeUrl) => `https://docs.altinn.studio/${relativeUrl}`;

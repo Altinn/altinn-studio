@@ -16,10 +16,10 @@ export interface AddFormContainerMutationArgs {
   destinationIndex?: number;
 }
 
-export const useAddFormContainerMutation = (org: string, app: string) => {
-  const formLayoutsQuery = useFormLayoutsQuery(org, app);
+export const useAddFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
+  const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName);
+  const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
 
   return useMutation({
     mutationFn: ({ container, positionAfterId, addToId, callback, destinationIndex }: AddFormContainerMutationArgs) => {
