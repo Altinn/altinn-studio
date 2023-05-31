@@ -62,12 +62,8 @@ describe('Layout schema', () => {
           // Ignore errors about id not matching pattern. This is common, and we don't care that much about it.
           return false;
         }
-        if (error.message?.startsWith("must have required property 'size'")) {
-          // Fairly common for Header components. Maybe we should make this one optional?
-          return false;
-        }
 
-        return true;
+        return !error.message?.startsWith("must have required property 'size'");
       });
 
     for (const { appName, setName, entireFiles } of allLayoutSets) {

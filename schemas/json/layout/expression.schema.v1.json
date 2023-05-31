@@ -41,7 +41,7 @@
   "definitions": {
     "any": {
       "title": "Any expression",
-      "oneOf": [
+      "anyOf": [
         { "type": "null", "title": "Null/missing value" },
         { "$ref": "#/definitions/strict-string" },
         { "$ref": "#/definitions/strict-boolean" },
@@ -51,7 +51,7 @@
     },
     "string": {
       "title": "Any expression returning string",
-      "oneOf": [
+      "anyOf": [
         { "type": "null", "title": "Null/missing value" },
         { "$ref": "#/definitions/strict-string" },
         { "$ref": "#/definitions/func-if" },
@@ -61,18 +61,23 @@
     },
     "strict-string": {
       "title": "Any expression returning string (strict)",
-      "oneOf": [
+      "anyOf": [
         { "type": "string", "title": "String constant" },
         { "$ref": "#/definitions/func-component" },
         { "$ref": "#/definitions/func-dataModel" },
         { "$ref": "#/definitions/func-instanceContext" },
         { "$ref": "#/definitions/func-frontendSettings" },
-        { "$ref": "#/definitions/func-concat" }
+        { "$ref": "#/definitions/func-concat" },
+        { "$ref": "#/definitions/func-round" },
+        { "$ref": "#/definitions/func-text" },
+        { "$ref": "#/definitions/func-language" },
+        { "$ref": "#/definitions/func-lowerCase" },
+        { "$ref": "#/definitions/func-upperCase" }
       ]
     },
     "boolean": {
       "title": "Any expression returning boolean",
-      "oneOf": [
+      "anyOf": [
         { "type": "null", "title": "Null/missing value" },
         { "$ref": "#/definitions/strict-boolean" },
         { "$ref": "#/definitions/func-if" },
@@ -82,7 +87,7 @@
     },
     "strict-boolean": {
       "title": "Any expression returning boolean (strict)",
-      "oneOf": [
+      "anyOf": [
         { "type": "boolean", "title": "Boolean constant" },
         { "$ref": "#/definitions/func-equals" },
         { "$ref": "#/definitions/func-notEquals" },
@@ -93,12 +98,17 @@
         { "$ref": "#/definitions/func-not" },
         { "$ref": "#/definitions/func-and" },
         { "$ref": "#/definitions/func-or" },
-        { "$ref": "#/definitions/func-authContext" }
+        { "$ref": "#/definitions/func-authContext" },
+        { "$ref": "#/definitions/func-contains" },
+        { "$ref": "#/definitions/func-notContains" },
+        { "$ref": "#/definitions/func-endsWith" },
+        { "$ref": "#/definitions/func-startsWith" },
+        { "$ref": "#/definitions/func-commaContains" }
       ]
     },
     "number": {
       "title": "Any expression returning a number",
-      "oneOf": [
+      "anyOf": [
         { "type": "null", "title": "Null/missing value" },
         { "$ref": "#/definitions/strict-number" },
         { "$ref": "#/definitions/func-if" },
@@ -107,14 +117,15 @@
     },
     "strict-number": {
       "title": "Any expression returning a number (strict)",
-      "oneOf": [
-        { "type": "number", "title": "Numeric constant" }
+      "anyOf": [
+        { "type": "number", "title": "Numeric constant" },
+        { "$ref": "#/definitions/func-stringLength" }
       ]
     },
     "func-if": {
       "title": "If/else conditional expression",
       "description": "This function will evaluate and return the result of either branch. If else is not given, null will be returned instead.",
-      "oneOf": [
+      "anyOf": [
         { "$ref": "#/definitions/func-if-with-else" },
         { "$ref": "#/definitions/func-if-without-else" }
       ]
@@ -293,6 +304,121 @@
         { "$ref": "#/definitions/boolean" }
       ],
       "additionalItems": { "$ref": "#/definitions/boolean" }
+    },
+    "func-round": {
+      "title": "Round function",
+      "description": "This function rounds a number to the nearest integer, or to the specified number of decimals",
+      "type": "array",
+      "items": [
+        { "const":  "round" },
+        { "$ref": "#/definitions/number" },
+        { "$ref": "#/definitions/number" }
+      ],
+      "additionalItems": false
+    },
+    "func-text": {
+      "title": "Text function",
+      "description": "This function retrieves the value of a text resource key, or returns the key if no text resource is found",
+      "type": "array",
+      "items": [
+        { "const":  "text" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-language": {
+      "title": "Language function",
+      "description": "This function retrieves the current language (usually 'nb', 'nn' or 'en')",
+      "type": "array",
+      "items": [
+        { "const":  "language" }
+      ],
+      "additionalItems": false
+    },
+    "func-contains": {
+      "title": "Contains function",
+      "description": "This function checks if the first string contains the second string",
+      "type": "array",
+      "items": [
+        { "const":  "contains" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-notContains": {
+      "title": "Not contains function",
+      "description": "This function checks if the first string does not contain the second string",
+      "type": "array",
+      "items": [
+        { "const":  "notContains" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-startsWith": {
+      "title": "Starts with function",
+      "description": "This function checks if the first string starts with the second string",
+      "type": "array",
+      "items": [
+        { "const":  "startsWith" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-endsWith": {
+      "title": "Ends with function",
+      "description": "This function checks if the first string ends with the second string",
+      "type": "array",
+      "items": [
+        { "const":  "endsWith" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-stringLength": {
+      "title": "String length function",
+      "description": "This function returns the length of a string",
+      "type": "array",
+      "items": [
+        { "const":  "stringLength" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-commaContains": {
+      "title": "Comma contains function",
+      "description": "This function checks if the first comma-separated string contains the second string",
+      "type": "array",
+      "items": [
+        { "const":  "commaContains" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-lowerCase": {
+      "title": "Lower case function",
+      "description": "This function converts a string to lower case",
+      "type": "array",
+      "items": [
+        { "const":  "lowerCase" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-upperCase": {
+      "title": "Upper case function",
+      "description": "This function converts a string to upper case",
+      "type": "array",
+      "items": [
+        { "const":  "upperCase" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
     }
   }
 }

@@ -6,12 +6,6 @@ export class ExprRuntimeError extends Error {
   }
 }
 
-export class LookupNotFound extends ExprRuntimeError {
-  public constructor(context: ExprContext, message: string) {
-    super(context, message);
-  }
-}
-
 export class UnknownTargetType extends ExprRuntimeError {
   public constructor(context: ExprContext, type: string) {
     super(context, `Cannot cast to unknown type '${type}'`);

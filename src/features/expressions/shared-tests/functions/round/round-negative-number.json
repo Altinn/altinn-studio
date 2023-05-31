@@ -1,5 +1,5 @@
 {
   "name": "Should round negative number",
   "expression": ["round", -2.999, null],
-  "expects": -3
+  "expects": "-3"
 }

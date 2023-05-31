@@ -1,0 +1,25 @@
+{
+  "name": "Should text resource with resolved variable",
+  "disabledFrontend": true,
+  "expression": ["text", "found.key"],
+  "expects": "Hello world foo bar",
+  "textResources": [
+    {
+      "id": "found.key",
+      "value": "Hello world {0}",
+      "variables": [
+        {
+          "key": "My.Model.Value",
+          "dataSource": "dataModel.default"
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "My": {
+      "Model": {
+        "Value": "foo bar"
+      }
+    }
+  }
+}

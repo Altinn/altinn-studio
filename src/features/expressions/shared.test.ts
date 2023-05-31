@@ -53,6 +53,7 @@ describe('Expressions shared function tests', () => {
     it.each(folder.content)(
       '$name',
       ({
+        disabledFrontend,
         expression,
         expects,
         expectsFailure,
@@ -65,6 +66,11 @@ describe('Expressions shared function tests', () => {
         textResources,
         profile,
       }) => {
+        if (disabledFrontend) {
+          // Skipped tests usually means that the frontend does not support the feature yet
+          return;
+        }
+
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
           formData: dataModel ? dot.dot(dataModel) : {},

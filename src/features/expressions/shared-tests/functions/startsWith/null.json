@@ -1,0 +1,5 @@
+{
+  "name": "Should always be false when given a null",
+  "expression": ["startsWith", null, "null"],
+  "expects": false
+}

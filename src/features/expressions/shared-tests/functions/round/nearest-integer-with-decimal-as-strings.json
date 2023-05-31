@@ -1,5 +1,5 @@
 {
   "name": "Should round a number to the nearest integer with a precision of 2",
   "expression": ["round", "2.2199999", "2"],
-  "expects": 2.22
+  "expects": "2.22"
 }

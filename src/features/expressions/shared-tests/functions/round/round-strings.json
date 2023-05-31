@@ -1,5 +1,5 @@
 {
   "name": "Should be able to round a number to the nearest integer even if it is a string",
   "expression": ["round", "3.99", null],
-  "expects": 4
+  "expects": "4"
 }

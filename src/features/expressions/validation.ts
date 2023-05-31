@@ -115,14 +115,16 @@ function validateFunctionArgLength(
     return;
   }
 
-  if (actual.length !== minExpected) {
-    addError(
-      ctx,
-      path,
-      ValidationErrorMessage.ArgsWrongNum,
-      `${minExpected}${canSpread ? '+' : ''}`,
-      `${actual.length}`,
-    );
+  const maxExpected = ExprFunctions[func]?.args.length;
+  if (actual.length < minExpected || actual.length > maxExpected) {
+    let expected = `${minExpected}`;
+    if (canSpread) {
+      expected += '+';
+    } else if (maxExpected !== minExpected) {
+      expected += `-${maxExpected}`;
+    }
+
+    addError(ctx, path, ValidationErrorMessage.ArgsWrongNum, `${expected}`, `${actual.length}`);
   }
 }
 

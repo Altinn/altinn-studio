@@ -19,6 +19,7 @@ export interface Layouts {
 
 export interface SharedTest {
   name: string;
+  disabledFrontend?: boolean;
   layouts?: Layouts;
   dataModel?: any;
   instance?: IInstance;
