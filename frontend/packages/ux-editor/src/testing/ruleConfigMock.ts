@@ -56,4 +56,4 @@ export const conditionalRendering: ConditionalRenderingConnections = {
   [conditionalRenderingConnection2Id]: conditionalRenderingConnection2
 };
 
-export const ruleConfig: RuleConfig = { ruleConnection, conditionalRendering };
+export const ruleConfig: RuleConfig = { data: { ruleConnection, conditionalRendering } };
