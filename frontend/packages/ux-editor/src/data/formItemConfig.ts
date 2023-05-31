@@ -55,6 +55,7 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {},
       options: [],
       optionsId: '',
+      readOnly: false,
       required: true,
     },
     icon: 'fa fa-checkbox',
@@ -70,6 +71,7 @@ export const formItemConfigs: FormItemConfigs = {
       maxDate: '2100-01-01T12:00:00.000Z',
       timeStamp: false,
       readOnly: false,
+      required: true,
     },
     icon: 'fa fa-date',
   },
@@ -81,6 +83,8 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Dropdown,
       dataModelBindings: {},
       optionsId: '',
+      readOnly: false,
+      required: true,
     },
     icon: 'fa fa-drop-down',
   },
@@ -97,7 +101,6 @@ export const formItemConfigs: FormItemConfigs = {
       maxFileSizeInMB: 25,
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 1,
-      required: true,
     },
     icon: 'fa fa-attachment',
   },
@@ -115,7 +118,6 @@ export const formItemConfigs: FormItemConfigs = {
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 1,
       optionsId: 'test',
-      required: true,
     },
     icon: 'fa fa-attachment',
   },
@@ -149,7 +151,7 @@ export const formItemConfigs: FormItemConfigs = {
         width: '100%',
         align: 'center',
       },
-    }
+    },
   },
   [ComponentType.Input]: {
     name: ComponentType.Input,
@@ -175,6 +177,8 @@ export const formItemConfigs: FormItemConfigs = {
         longitude: 0,
       },
       zoom: 1,
+      readOnly: false,
+      required: true,
     },
     icon: 'fa fa-address',
   },
@@ -230,6 +234,7 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {},
       options: [],
       optionsId: '',
+      readOnly: false,
       required: true,
     },
     icon: 'fa fa-radio-button',
@@ -241,6 +246,8 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.TextArea,
       dataModelBindings: {},
+      readOnly: false,
+      required: true,
     },
     icon: 'fa fa-long-answer',
   },
@@ -254,7 +261,7 @@ export const formItemConfigs: FormItemConfigs = {
       tagName: 'tag',
       framework: 'framework',
     },
-  }
+  },
 };
 
 export const advancedItems: FormItemConfigs[ComponentType][] = [
@@ -290,6 +297,3 @@ export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Image],
 ];
-
-
-
