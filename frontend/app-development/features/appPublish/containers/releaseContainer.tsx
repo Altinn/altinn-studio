@@ -1,20 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import classes from './releaseContainer.module.css';
-import type { IRelease } from '../../../sharedResources/appRelease/types';
+import type { AppRelease } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
-import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
+import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { Button, ButtonSize, ButtonVariant, Popover } from '@digdir/design-system-react';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
-import { gitCommitPath } from 'app-shared/api-paths';
+import { gitCommitPath } from 'app-shared/api/paths';
 import { useMediaQuery } from '../../../hooks';
 import { useParams } from 'react-router-dom';
-import { useAppReleases, useBranchStatus, useRepoStatus } from '../hooks/query-hooks';
+import {
+  useBranchStatusQuery,
+  useAppReleasesQuery,
+  useRepoStatusQuery,
+} from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { QueryKey } from '../../../types/QueryKey';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { AltinnSpinner } from 'app-shared/components';
 
 export function ReleaseContainer() {
@@ -23,15 +27,15 @@ export function ReleaseContainer() {
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
-  const { data: releases = [] } = useAppReleases(org, app);
-  const { data: repoStatus, isLoading: repoStatusIsLoading } = useRepoStatus(org, app);
-  const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } = useBranchStatus(
+  const { data: releases = [] } = useAppReleasesQuery(org, app);
+  const { data: repoStatus, isLoading: repoStatusIsLoading } = useRepoStatusQuery(org, app);
+  const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } = useBranchStatusQuery(
     org,
     app,
     'master'
   );
 
-  const latestRelease: IRelease = releases && releases[0] ? releases[0] : null;
+  const latestRelease: AppRelease = releases && releases[0] ? releases[0] : null;
 
   const { t } = useTranslation();
 
@@ -229,7 +233,7 @@ export function ReleaseContainer() {
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
       <div className={classes.appReleaseHistory}>
         {!!releases.length &&
-          releases.map((release: IRelease, index: number) => (
+          releases.map((release: AppRelease, index: number) => (
             <ReleaseComponent key={index} release={release} />
           ))}
       </div>

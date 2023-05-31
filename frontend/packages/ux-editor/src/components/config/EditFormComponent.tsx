@@ -6,9 +6,8 @@ import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
-import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector, useComponentErrorMessage } from '../../hooks';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
-import { useComponentErrorMessage } from '../../hooks/useComponentErrorMessage';
 
 export interface IEditFormComponentProps {
   editFormId: string;

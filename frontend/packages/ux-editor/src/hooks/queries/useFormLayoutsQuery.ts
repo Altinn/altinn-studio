@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { IFormLayouts } from '../../types/global';
-import { useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { useDispatch } from 'react-redux';
-import { QueryKey } from '../../types/QueryKey';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 
 export const useFormLayoutsQuery =

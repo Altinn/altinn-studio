@@ -12,13 +12,13 @@ import { useDatamodelQuery } from './hooks/queries/useDatamodelQuery';
 import { useFormLayoutsQuery } from './hooks/queries/useFormLayoutsQuery';
 import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
 import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
-import { useTextResourcesQuery } from '../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/';
 import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
 import { firstAvailableLayout } from './utils/formLayoutsUtils';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { useRuleConfigQuery } from './hooks/queries/useRuleConfigQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
-import { useInstanceIdQuery } from './hooks/queries/useInstanceIdQuery';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries/useInstanceIdQuery';
 
 /**
  * This is the main React component responsible for controlling

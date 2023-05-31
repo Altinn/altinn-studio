@@ -1,8 +1,8 @@
-import { queryClient, useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import { queryClient, useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useMutation } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { QueryKey } from '../../types/QueryKey';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { IFormLayouts } from '../../types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';

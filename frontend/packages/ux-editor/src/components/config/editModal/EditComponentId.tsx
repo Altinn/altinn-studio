@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { idExists, validComponentId } from '../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
-import { useFormLayoutsSelector } from '../../../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector } from '../../../hooks';
 import { selectedLayoutSelector } from '../../../selectors/formLayoutSelectors';
 import type { FormComponent } from '../../../types/FormComponent';
 import { TextFieldWithValidation } from '../../TextFieldWithValidation';

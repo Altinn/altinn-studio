@@ -3,9 +3,9 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddWidgetMutationArgs, useAddWidgetMutation } from './useAddWidgetMutation';
 import { IWidget, IWidgetTexts } from '../../types/global';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResource } from 'app-shared/types/global';
-import { useTextResourcesQuery } from '../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 
 // Test data:
 const org = 'org';

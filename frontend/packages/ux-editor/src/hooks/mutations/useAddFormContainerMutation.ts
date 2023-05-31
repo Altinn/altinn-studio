@@ -1,6 +1,6 @@
 import { generateComponentId } from '../../utils/generateId';
 import { IInternalLayout } from '../../types/global';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';

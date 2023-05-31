@@ -2,7 +2,6 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAction, createSlice } from '@reduxjs/toolkit';
 import type {
   ICommit,
-  IRepository,
   IServiceDescription,
   IServiceId,
   IServiceName,
@@ -22,9 +21,10 @@ import type {
   IFetchServiceNameAction,
   IFetchInitialCommitAction,
 } from './types';
+import type { Repository } from 'app-shared/types/Repository';
 
 export interface IHandleServiceInformationState {
-  repositoryInfo: IRepository;
+  repositoryInfo: Repository;
   serviceNameObj: IServiceName;
   serviceDescriptionObj: IServiceDescription;
   serviceIdObj: IServiceId;

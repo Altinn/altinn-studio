@@ -1,7 +1,7 @@
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { UpdateFormComponentArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import { component1IdMock, layout1NameMock } from '../../testing/layoutMock';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';

@@ -4,7 +4,7 @@ import {
   RuleConfig,
   RuleConnection,
   RuleConnections
-} from '../types/RuleConfig';
+} from 'app-shared/types/RuleConfig';
 
 /**
  * Sets the rule connections for the rule config.

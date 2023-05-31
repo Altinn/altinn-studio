@@ -7,11 +7,11 @@ import type {
   ICreateReleaseRejectedActions,
   IGetReleaseActionFulfilled,
   IGetReleaseActionRejected,
-  IRelease,
 } from './types';
+import { AppRelease } from 'app-shared/types/AppRelease';
 
 export interface IAppReleaseState {
-  releases: IRelease[];
+  releases: AppRelease[];
   creatingRelease: boolean;
   errors: IAppReleaseErrors;
 }

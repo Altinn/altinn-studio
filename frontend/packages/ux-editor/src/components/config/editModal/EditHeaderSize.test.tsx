@@ -4,7 +4,7 @@ import { fireEvent, screen, within } from '@testing-library/react';
 import { EditHeaderSize } from './EditHeaderSize';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from '../../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const h4Text = 'Undertittel (H4)';
 const h3Text = 'Undertittel (H3)';

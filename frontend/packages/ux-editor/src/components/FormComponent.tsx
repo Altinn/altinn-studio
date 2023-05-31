@@ -5,7 +5,7 @@ import cn from 'classnames';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { ComponentPreview } from '../containers/ComponentPreview';
-import { ComponentType } from './index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './dragAndDrop/DragHandle';
@@ -16,9 +16,8 @@ import { getComponentTitleByComponentType, getTextResource, truncate } from '../
 import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector, useTextResourcesSelector } from '../hooks';
 import { useParams } from 'react-router-dom';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
 import { useTranslation } from 'react-i18next';
 
 export interface IFormComponentProps {

@@ -1,5 +1,5 @@
 import { areItemsUnique } from 'app-shared/utils/arrayUtils';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
 
 export enum ErrorCode {

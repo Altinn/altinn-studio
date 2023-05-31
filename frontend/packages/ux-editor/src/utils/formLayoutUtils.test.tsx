@@ -12,12 +12,8 @@ import {
   removeComponent,
   removeComponentsByType,
 } from './formLayoutUtils';
-import { ComponentType } from '../components';
-import {
-  IExternalComponent,
-  IExternalFormLayout,
-  IInternalLayout
-} from '../types/global';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { IInternalLayout } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
 import type {
@@ -26,6 +22,7 @@ import type {
   FormParagraphComponent
 } from '../types/FormComponent';
 import { FormContainer } from '../types/FormContainer';
+import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 
 // Test data:
 const baseContainer: FormContainer = {
@@ -111,7 +108,7 @@ const mockInternal: IInternalLayout = {
 };
 
 describe('formLayoutUtils', () => {
-  let mockLayout: IExternalFormLayout;
+  let mockLayout: ExternalFormLayout;
 
   beforeEach(() => {
     mockLayout = {
@@ -299,7 +296,7 @@ describe('formLayoutUtils', () => {
   describe('convertInternalToLayoutFormat', () => {
     it('should convert to correct format', () => {
       const convertedLayout = convertInternalToLayoutFormat(mockInternal);
-      const expectedResult: IExternalFormLayout = {
+      const expectedResult: ExternalFormLayout = {
         $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
         data: {
           layout: [
@@ -353,12 +350,12 @@ describe('formLayoutUtils', () => {
 
   describe('extractChildrenFromGroup', () => {
     it('should return all children from a container', () => {
-      const mockGroup: IExternalComponent = {
+      const mockGroup: ExternalComponent = {
         id: 'mock-group-id',
         type: ComponentType.Group,
         children: ['mock-component-1', 'mock-component-2'],
       };
-      const mockComponents: IExternalComponent[] = [
+      const mockComponents: ExternalComponent[] = [
         {
           id: 'mock-component-1',
           type: ComponentType.Header,

@@ -1,8 +1,8 @@
 import { versionNameValid } from './utils';
-import type { IRelease } from '../../../sharedResources/appRelease/types';
-import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
+import type { AppRelease } from 'app-shared/types/AppRelease';
+import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 
-const releases: IRelease[] = [
+const releases: AppRelease[] = [
   {
     tagName: 'existing-version-tag',
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

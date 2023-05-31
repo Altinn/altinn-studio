@@ -8,8 +8,8 @@ import {
 } from '../testing/mocks';
 import { act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
-import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
-import { queryClient } from '../../../../app-development/common/ServiceContext';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import { queryClient } from 'app-shared/contexts/ServicesContext';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 const user = userEvent.setup();

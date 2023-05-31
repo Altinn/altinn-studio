@@ -1,7 +1,7 @@
 import { calculateNewPosition, getDragCursorPosition, } from './dndUtils';
 import type { ExistingDndItem, NewDndItem } from '../types/dndTypes';
 import { DragCursorPosition } from '../types/dndTypes';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { DropTargetMonitor, XYCoord } from 'react-dnd';
 import { RefObject } from 'react';
 

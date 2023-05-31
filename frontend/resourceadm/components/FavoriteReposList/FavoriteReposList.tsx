@@ -1,13 +1,13 @@
 import React from 'react';
-import { RepoList } from '../../components/RepoList';
+import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
-import { useGetStarredRepos } from '../../hooks/useRepoQueries/useRepoQueries';
+import { useStarredReposQuery } from '../../hooks/queries';
 
 export const FavoriteReposList = () => {
 
   const { t } = useTranslation();
 
-  const { data: userStarredRepos, isLoading: isLoadingUserStarredRepos } = useGetStarredRepos();
+  const { data: userStarredRepos, isLoading: isLoadingUserStarredRepos } = useStarredReposQuery();
 
   return (
     <div data-testid='favorite-repos-list'>

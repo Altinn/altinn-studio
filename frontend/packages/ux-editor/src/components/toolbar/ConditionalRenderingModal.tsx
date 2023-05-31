@@ -6,7 +6,7 @@ import RuleButton from './RuleButton';
 import type { IRuleModelFieldElement } from '../../types/global';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector } from '../../hooks';
 import {
   allLayoutComponentsSelector,
   allLayoutContainersSelector,
@@ -15,7 +15,7 @@ import {
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
-import { ConditionalRenderingConnection } from '../../types/RuleConfig';
+import { ConditionalRenderingConnection } from 'app-shared/types/RuleConfig';
 import { addConditionalRenderingConnection, deleteConditionalRenderingConnection } from '../../utils/ruleConfigUtils';
 
 export interface IConditionalRenderingModalProps {

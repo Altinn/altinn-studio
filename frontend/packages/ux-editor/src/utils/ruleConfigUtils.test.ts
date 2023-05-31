@@ -1,4 +1,4 @@
-import { ConditionalRenderingConnection, RuleConnection } from '../types/RuleConfig';
+import { ConditionalRenderingConnection, RuleConnection } from 'app-shared/types/RuleConfig';
 import {
   addConditionalRenderingConnection,
   addRuleConnection,

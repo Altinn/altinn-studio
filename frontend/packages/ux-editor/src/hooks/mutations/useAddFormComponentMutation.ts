@@ -3,7 +3,7 @@ import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelect
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { generateComponentId } from '../../utils/generateId';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';

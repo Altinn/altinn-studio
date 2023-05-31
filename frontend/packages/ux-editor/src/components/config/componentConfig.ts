@@ -1,4 +1,4 @@
-import { ComponentType } from '../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditCodeList } from './editModal/EditCodeList';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
 import { EditDescription } from './editModal/EditDescription';

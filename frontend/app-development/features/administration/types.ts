@@ -1,4 +1,4 @@
-import type { IRepository } from '../../types/global';
+import type { Repository } from 'app-shared/types/Repository';
 
 export interface IFetchInitialCommitAction {
   url: string;
@@ -13,7 +13,7 @@ export interface IFetchServiceAction {
 }
 
 export interface IFetchServiceFulfilled {
-  repository: IRepository;
+  repository: Repository;
 }
 
 export interface IFetchServiceNameAction {

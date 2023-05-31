@@ -1,5 +1,5 @@
 import { getComponentHelperTextByComponentType } from './language';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const language = {
   'ux_editor.helper_text_for_header': 'header help text',

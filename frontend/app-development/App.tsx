@@ -22,13 +22,13 @@ import {
   repoMetaPath,
   serviceConfigPath,
   serviceNamePath,
-} from 'app-shared/api-paths';
+} from 'app-shared/api/paths';
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useRepoStatus } from './features/appPublish/hooks/query-hooks';
+import { useRepoStatusQuery } from './hooks/queries';
 import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
@@ -52,7 +52,7 @@ export function App() {
   const { org, app } = match.params;
   const repositoryType = getRepositoryType(org, app);
   const { t } = useTranslation();
-  const { data: repoStatus, refetch } = useRepoStatus(org, app);
+  const { data: repoStatus, refetch } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes
   );

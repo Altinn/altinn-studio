@@ -4,12 +4,13 @@ import { useMutation } from '@tanstack/react-query';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy } from 'app-shared/pure';
 import { convertInternalToLayoutFormat, createEmptyLayout } from '../../utils/formLayoutUtils';
-import { IExternalFormLayout, IInternalLayout } from '../../types/global';
+import { IInternalLayout } from '../../types/global';
+import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import {
   queryClient,
   useServicesContext,
-} from '../../../../../app-development/common/ServiceContext';
-import { QueryKey } from '../../types/QueryKey';
+} from 'app-shared/contexts/ServicesContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { ILayoutSettings } from 'app-shared/types/global';
@@ -28,7 +29,7 @@ export const useAddLayoutMutation = (org: string, app: string) => {
   const dispatch = useDispatch();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
-    const convertedLayout: IExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
+    const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
     return await saveFormLayout(org, app, updatedLayoutName, convertedLayout);
   };
 

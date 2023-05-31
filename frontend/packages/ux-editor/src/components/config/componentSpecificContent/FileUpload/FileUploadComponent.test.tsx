@@ -2,7 +2,7 @@ import React from 'react';
 import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { FileUploadComponent } from './FileUploadComponent';
-import { ComponentType } from '../../../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
 
 // Test data:

@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from "app-shared/providers/PreviewConnectionContext";
-import { useInstanceIdQuery } from '../../hooks/queries/useInstanceIdQuery';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import AltinnStudioLogo from "app-shared/navigation/main-header/AltinnStudioLogo";
 import { ToggleButtonGroup } from '@digdir/design-system-react';
 

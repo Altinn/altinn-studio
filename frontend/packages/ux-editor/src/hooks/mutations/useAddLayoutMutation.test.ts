@@ -3,7 +3,7 @@ import { AddLayoutMutationArgs, useAddLayoutMutation } from './useAddLayoutMutat
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const org = 'org';

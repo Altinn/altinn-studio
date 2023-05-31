@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
 import { FormPanelComponent, FormPanelVariant } from '../../../../types/FormComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
-import { ComponentType } from '../../../';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';

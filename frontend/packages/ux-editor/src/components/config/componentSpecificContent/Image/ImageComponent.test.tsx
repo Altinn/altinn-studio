@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
 import { renderWithMockStore } from '../../../../testing/mocks';
-import { ComponentType } from '../../../';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 import type { FormImageComponent } from '../../../../types/FormComponent';
 

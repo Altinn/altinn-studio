@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useServicesContext } from '../../common/ServiceContext';
-import { QueryKey } from '../../types/QueryKey';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useCreateRepoCommitMutation = (owner, app) => {
   const q = useQueryClient();

@@ -1,16 +1,15 @@
 import React from 'react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { MockServicesContextWrapper, Services } from '../../dashboardTestUtils';
+import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { Dashboard } from './Dashboard';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { User } from 'dashboard/services/userService';
-import { SearchRepository } from 'dashboard/services/repoService';
-import { starredRepo } from '../../data-mocks/starredRepo';
-import { searchedRepos } from '../../data-mocks/searchedRepos';
+import { User } from 'app-shared/types/User';
+import { starredRepoMock } from '../../data-mocks/starredRepoMock';
+import { searchedRepos } from '../../data-mocks/searchedReposMock';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
-type RenderWithMockServicesProps = Services;
-const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
+const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
   render(
     <MockServicesContextWrapper customServices={services}>
       <Dashboard organizations={[]} user={{} as User} />
@@ -33,30 +32,18 @@ describe('Dashboard', () => {
   });
 
   test('should display no favorites when starred repos is empty', async () => {
-    renderWithMockServices({
-      repoService: {
-        getStarredRepos: () => Promise.resolve([]),
-      },
-    });
+    renderWithMockServices({ getStarredRepos: () => Promise.resolve([]) });
     expect(await screen.findByText(textMock('dashboard.no_repos_result'))).toBeInTheDocument();
   });
 
   test('should display favorite list with one item', async () => {
-    renderWithMockServices({
-      repoService: {
-        getStarredRepos: () => Promise.resolve([starredRepo]),
-      },
-    });
+    renderWithMockServices({ getStarredRepos: () => Promise.resolve([starredRepoMock]) });
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('dashboard.loading')));
     expect(await screen.findAllByRole('menuitem', { name: textMock('dashboard.unstar') })).toHaveLength(1);
   });
 
   test('should display list of my application', async () => {
-    renderWithMockServices({
-      repoService: {
-        searchRepos: () => Promise.resolve({ ...searchedRepos } as unknown as SearchRepository),
-      },
-    });
+    renderWithMockServices({ searchRepos: () => Promise.resolve(searchedRepos) });
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('dashboard.loading')));
     expect(await screen.findAllByRole('menuitem', { name: textMock('dashboard.star') })).toHaveLength(1);
   });

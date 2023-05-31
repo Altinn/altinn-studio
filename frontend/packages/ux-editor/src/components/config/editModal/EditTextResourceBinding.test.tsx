@@ -5,9 +5,9 @@ import userEvent from '@testing-library/user-event';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import type { ITextResource } from 'app-shared/types/global';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from '../../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();

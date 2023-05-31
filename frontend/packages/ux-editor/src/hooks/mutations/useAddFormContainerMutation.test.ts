@@ -3,7 +3,7 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddFormContainerMutationArgs, useAddFormContainerMutation } from './useAddFormContainerMutation';
 import { FormContainer } from '../../types/FormContainer';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:

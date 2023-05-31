@@ -4,7 +4,7 @@ import '../../styles/index.css';
 import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists, validComponentId } from '../../utils/formLayoutUtils';
-import type { IDataModelFieldElement } from '../../types/global';
+import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import {
   Checkbox,
   CheckboxGroup,
@@ -16,9 +16,8 @@ import { TextResource } from '../TextResource';
 import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
 import { useText } from '../../hooks';
 import { useParams } from 'react-router-dom';
-import { useFormLayoutsSelector } from '../../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector, useTextResourcesSelector } from '../../hooks';
 import { selectedLayoutSelector } from '../../selectors/formLayoutSelectors';
-import { useTextResourcesSelector } from '../../hooks/useTextResourcesSelector';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { ITextResource } from 'app-shared/types/global';
@@ -114,8 +113,8 @@ export const EditFormContainer = ({
   };
 
   const getMaxOccursForGroupFromDataModel = useCallback((dataBindingName: string): number => {
-    const element: IDataModelFieldElement = dataModel.find(
-      (e: IDataModelFieldElement) => {
+    const element: DatamodelFieldElement = dataModel.find(
+      (e: DatamodelFieldElement) => {
         return e.dataBindingName === dataBindingName;
       }
     );

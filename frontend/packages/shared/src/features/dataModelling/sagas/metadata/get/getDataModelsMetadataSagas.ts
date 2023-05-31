@@ -3,7 +3,7 @@ import { call, put, takeLatest } from 'redux-saga/effects';
 import { get } from '../../../../../utils/networking';
 import type { IDataModelMetadataItem } from '../dataModelsMetadataSlice';
 import { DataModelsMetadataActions } from '../dataModelsMetadataSlice';
-import { datamodelsPath, datamodelsXsdPath } from '../../../../../api-paths';
+import { datamodelsPath, datamodelsXsdPath } from '../../../../../api/paths';
 import { _useParamsClassCompHack } from '../../../../../utils/_useParamsClassCompHack';
 
 function* getDataModelsMetadataSaga(): SagaIterator {

@@ -4,7 +4,7 @@ import classes from './ButtonComponent.module.css';
 import { EditTitle } from '../../editModal/EditTitle';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
-import { ComponentType } from '../../../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export const ButtonComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();

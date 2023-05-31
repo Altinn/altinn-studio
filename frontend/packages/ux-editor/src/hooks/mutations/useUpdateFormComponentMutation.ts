@@ -1,6 +1,6 @@
 import { IInternalLayout } from '../../types/global';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';

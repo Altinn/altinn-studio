@@ -1,7 +1,7 @@
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { removeComponent } from '../../utils/formLayoutUtils';

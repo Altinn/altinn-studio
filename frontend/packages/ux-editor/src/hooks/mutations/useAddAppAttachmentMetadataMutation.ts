@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import { ApplicationAttachmentMetadata } from '../../features/formDesigner/formDesignerTypes';
-import { useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationMetadataActions } from '../../../../../app-development/sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../../../app-development/sharedResources/applicationMetadata/selectors/applicationMetadataSelector';

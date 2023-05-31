@@ -4,7 +4,7 @@ import { get } from 'app-shared/utils/networking';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { RepoStatusActions } from '../repoStatusSlice';
 import type { IRepoStatusAction } from '../repoStatusSlice';
-import { masterRepoStatusPath } from 'app-shared/api-paths';
+import { masterRepoStatusPath } from 'app-shared/api/paths';
 
 // GET MASTER REPO
 export function* getMasterRepoStatusSaga({

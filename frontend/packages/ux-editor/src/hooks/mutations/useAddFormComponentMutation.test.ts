@@ -2,7 +2,7 @@ import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddFormComponentMutationArgs, useAddFormComponentMutation } from './useAddFormComponentMutation';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { layout1NameMock } from '../../testing/layoutMock';
 import type { FormComponent } from '../../types/FormComponent';
 

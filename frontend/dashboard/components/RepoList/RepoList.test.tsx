@@ -1,23 +1,21 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MockServicesContextWrapper, Services } from '../../dashboardTestUtils';
-import { starredRepo } from '../../data-mocks/starredRepo';
+import { MockServicesContextWrapper } from '../../dashboardTestUtils';
+import { starredRepoMock } from '../../data-mocks/starredRepoMock';
 import { IRepoListProps, RepoList } from './RepoList';
 import { IRepository } from 'app-shared/types/global';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 
-type RenderWithMockServicesProps = Services;
 const renderWithMockServices = (
   componentProps: IRepoListProps,
-  services?: RenderWithMockServicesProps
+  services?: Partial<ServicesContextProps>
 ) => {
   render(
-    <MockServicesContextWrapper
-      customServices={services}
-    >
-      <RepoList repos={[starredRepo] as unknown as IRepository[]} {...componentProps} />
+    <MockServicesContextWrapper customServices={services}>
+      <RepoList repos={[starredRepoMock] as unknown as IRepository[]} {...componentProps} />
     </MockServicesContextWrapper>
   );
 };
@@ -36,7 +34,7 @@ describe('RepoList', () => {
     const sortBtn = document.querySelector('button[aria-label="Sort"]');
     await act(() => user.click(sortBtn));
 
-    expect(handleSortMock).toHaveBeenCalledTimes(0);
+    expect(handleSortMock).not.toHaveBeenCalled();
   });
 
   test('should call onSortModelChange when clicking sort button and isServerSort is true', async () => {

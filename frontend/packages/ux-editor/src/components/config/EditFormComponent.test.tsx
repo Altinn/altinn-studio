@@ -8,8 +8,8 @@ import { IAppState } from '../../types/global';
 import { FormComponent } from '../../types/FormComponent';
 import { appStateMock, queriesMock } from '../../testing/mocks';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { ServicesContextProvider } from '../../../../../app-development/common/ServiceContext';
-import { ComponentType } from '../';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const user = userEvent.setup();
 

@@ -2,10 +2,11 @@ import React from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { VersionControlHeader } from './VersionControlHeader';
 import { setWindowLocationForTests } from '../../../testing/testUtils';
-import { ServicesContextProps, ServicesContextProvider } from '../../common/ServiceContext';
+import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { RepoStatus } from '../../features/appPublish/hooks/query-hooks';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const user = userEvent.setup();
 
@@ -30,11 +31,12 @@ const okRepoStatus: RepoStatus = {
   hasMergeConflict: false,
   repositoryStatus: 'Ok'
 };
-const getRepoMetadata = jest.fn(() => Promise.resolve({}));
-const getRepoStatus = jest.fn(() => Promise.resolve(okRepoStatus));
-const getRepoPull = jest.fn(() => Promise.resolve(okRepoStatus));
+const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
+const getRepoPull = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
 
-const queries: Partial<ServicesContextProps> = {
+const queries: ServicesContextProps = {
+  ...queriesMock,
   getRepoMetadata,
   getRepoStatus,
   getRepoPull,

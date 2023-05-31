@@ -4,9 +4,9 @@ import { getReposLabel } from '../../utils/repoUtils';
 import { getUidFilter } from '../../utils/filterUtils';
 import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
 import { useTranslation } from 'react-i18next';
-import { User } from 'dashboard/services/userService';
-import { Organization } from 'dashboard/services/organizationService';
-import { useSearchReposQuery } from 'dashboard/hooks/useRepoQueries';
+import { User } from 'app-shared/types/User';
+import { Organization } from 'app-shared/types/Organization';
+import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery';
 import { IRepository } from 'app-shared/types/global';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 

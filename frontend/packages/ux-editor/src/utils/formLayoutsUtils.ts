@@ -1,4 +1,4 @@
-import { IExternalFormLayouts, IFormLayouts, IInternalLayout } from '../types/global';
+import { IFormLayouts, IInternalLayout } from '../types/global';
 import {
   addNavigationButtons,
   convertFromLayoutToInternalFormat,
@@ -6,11 +6,12 @@ import {
   hasNavigationButtons,
   removeComponentsByType,
 } from './formLayoutUtils';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { generateComponentId } from './generateId';
 import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 
 /**
  * Update layouts to have navigation buttons if there are multiple layouts, or remove them if this is the only one.
@@ -76,7 +77,7 @@ interface AllLayouts {
  * @returns A list of layouts in internal format and a list of layouts with an invalid format.
  */
 export const convertExternalLayoutsToInternalFormat = (
-  layouts: IExternalFormLayouts
+  layouts: FormLayoutsResponse
 ): AllLayouts => {
   const convertedLayouts: IFormLayouts = {};
   const invalidLayouts: string[] = [];

@@ -1,0 +1,1 @@
+export { useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';

@@ -5,7 +5,7 @@ import { get } from 'app-shared/utils/networking';
 import { RepoStatusActions } from '../repoStatusSlice';
 import type { IRepoStatusAction } from '../repoStatusSlice';
 import postMessages from 'app-shared/utils/postMessages';
-import { repoResetPAth } from 'app-shared/api-paths';
+import { repoResetPAth } from 'app-shared/api/paths';
 
 // GET MASTER REPO
 export function* resetLocalRepoSaga({

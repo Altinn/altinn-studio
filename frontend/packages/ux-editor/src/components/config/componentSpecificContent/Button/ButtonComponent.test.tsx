@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { ButtonComponent } from './ButtonComponent';
-import { ComponentType } from '../../../';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
 

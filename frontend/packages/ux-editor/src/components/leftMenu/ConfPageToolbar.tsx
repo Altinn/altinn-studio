@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ComponentType } from '..';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IToolbarElement } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarItem } from './ToolbarItem';

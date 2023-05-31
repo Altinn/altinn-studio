@@ -1,9 +1,9 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { ButtonPreview } from './ButtonPreview';
-import { ComponentType } from '../../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
-import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { ITextResource } from 'app-shared/types/global';
 import type { FormButtonComponent } from '../../../types/FormComponent';
 

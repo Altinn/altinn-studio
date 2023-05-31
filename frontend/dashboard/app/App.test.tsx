@@ -1,12 +1,12 @@
 import React from 'react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { MockServicesContextWrapper, Services } from '../dashboardTestUtils';
+import { MockServicesContextWrapper } from '../dashboardTestUtils';
 
 import { App } from './App';
 import { textMock } from '../../testing/mocks/i18nMock';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
-type RenderWithMockServicesProps = Services;
-const renderWithMockServices = (services?: RenderWithMockServicesProps) => {
+const renderWithMockServices = (services: Partial<ServicesContextProps> = {}) => {
   render(
     <MockServicesContextWrapper customServices={services}>
       <App />
@@ -18,15 +18,11 @@ describe('App', () => {
 
   test('should display spinner while loading', () => {
     renderWithMockServices();
-    expect(screen.getByText(/dashboard.loading/)).toBeInTheDocument();
+    expect(screen.getByText(textMock('dashboard.loading'))).toBeInTheDocument();
   });
 
   test('should display error when failing to fetch current user', async () => {
-    renderWithMockServices({
-      userService: {
-        getCurrentUser: () => Promise.reject(),
-      },
-    });
+    renderWithMockServices({ getUser: () => Promise.reject() });
     expect(
       await screen.findByRole('heading', {
         level: 1,
@@ -36,11 +32,7 @@ describe('App', () => {
   });
 
   test('should display error when failing to fetch organizations', async () => {
-    renderWithMockServices({
-      organizationService: {
-        getOrganizations: () => Promise.reject(),
-      },
-    });
+    renderWithMockServices({ getOrganizations: () => Promise.reject() });
 
     expect(
       await screen.findByRole('heading', {
@@ -52,6 +44,7 @@ describe('App', () => {
 
   test('should display dashboard page if successfully loading data', async () => {
     renderWithMockServices();
+    await waitForElementToBeRemoved(screen.queryByText(textMock('dashboard.loading')));
     await waitForElementToBeRemoved(screen.queryByText(textMock('dashboard.loading')));
     expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.favourites') }));
     expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.my_apps') }));

@@ -1,10 +1,10 @@
 import React from 'react';
 import { IGenericEditComponent } from '../../components/config/componentConfig';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { CheckboxGroupPreview } from './CheckboxGroupPreview';
 import { RadioGroupPreview } from './RadioGroupPreview';
 import { ButtonPreview } from './ButtonPreview';
-import { useComponentErrorMessage } from '../../hooks/useComponentErrorMessage';
+import { useComponentErrorMessage } from '../../hooks';
 import { ErrorMessage } from '@digdir/design-system-react';
 
 export interface ComponentPreviewProps extends IGenericEditComponent {}
