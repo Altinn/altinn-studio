@@ -196,6 +196,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
           >
             <Grid
               key={index}
+              role='button'
               className={classes.subUnit}
               container={true}
               direction='column'
@@ -226,6 +227,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
     <Paper className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}>
       <Grid
         id={`party-${party.partyId}`}
+        role='button'
         data-testid='AltinnParty-PartyWrapper'
         container={true}
         direction='row'
