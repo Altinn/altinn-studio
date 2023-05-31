@@ -67,9 +67,8 @@ export function App() {
 
   useEffect(() => {
     localStorage.setItem(instanceId, selectedLayout);
-    // get default based on app being stateless or not: stateless --> '', stateful --> first layoutset in layoutsets.json
-    localStorage.setItem('layoutSetName', '');
-  }, [selectedLayout, instanceId]);
+    localStorage.setItem('layoutSetName', layoutSets ? selectedLayoutSet : '');
+  }, [selectedLayout, instanceId, selectedLayoutSet, layoutSets]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();

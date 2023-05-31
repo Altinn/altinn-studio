@@ -27,7 +27,7 @@ export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/app
 export const ruleConfigPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const layoutSetsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-sets?${s({ layoutSetName })}`; // Get, Put, Post
 export const layoutSettingsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
-export const formLayoutsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layouts?layoutSetName=${layoutSetName}`; // Get
+export const formLayoutsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
 export const formLayoutPath = (org, app, layout, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
 export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layout-name/${layoutName}?${s({ layoutSetName })}`; // Put
 
