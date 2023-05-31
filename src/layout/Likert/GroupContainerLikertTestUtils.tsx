@@ -17,7 +17,7 @@ import type { IValidationState } from 'src/features/validation/validationSlice';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ComponentInGroup, ILayoutComponent } from 'src/layout/layout';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
-import type { ILayoutValidations, ITextResource } from 'src/types';
+import type { ILayoutValidations, IOption, ITextResource } from 'src/types';
 
 export const defaultMockQuestions = [
   { Question: 'Hvordan trives du på skolen?', Answer: '' },
@@ -39,7 +39,7 @@ export const generateMockFormData = (likertQuestions: IQuestion[]): Record<strin
     {},
   );
 
-export const mockOptions = [
+export const defaultMockOptions = [
   {
     label: 'Bra',
     value: '1',
@@ -188,6 +188,7 @@ interface IQuestion {
 interface IRenderProps {
   mobileView: boolean;
   mockQuestions: IQuestion[];
+  mockOptions: IOption[];
   radioButtonProps: Partial<ExprUnresolved<ILayoutCompLikert>>;
   likertContainerProps: Partial<ExprUnresolved<ILayoutGroup>>;
   extraTextResources: ITextResource[];
@@ -197,6 +198,7 @@ interface IRenderProps {
 export const render = ({
   mobileView = false,
   mockQuestions = defaultMockQuestions,
+  mockOptions = defaultMockOptions,
   radioButtonProps,
   likertContainerProps,
   extraTextResources = [],
@@ -244,20 +246,20 @@ export const render = ({
   return { mockStoreDispatch };
 };
 
-export const validateTableLayout = (questions: IQuestion[]) => {
+export const validateTableLayout = (questions: IQuestion[], options: IOption[]) => {
   screen.getByRole('table');
 
-  for (const option of mockOptions) {
+  for (const option of defaultMockOptions) {
     const columnHeader = screen.getByRole('columnheader', {
       name: new RegExp(option.label),
     });
     expect(columnHeader).toBeInTheDocument();
   }
 
-  validateRadioLayout(questions);
+  validateRadioLayout(questions, options);
 };
 
-export const validateRadioLayout = (questions: IQuestion[], mobileView = false) => {
+export const validateRadioLayout = (questions: IQuestion[], options: IOption[], mobileView = false) => {
   if (mobileView) {
     expect(screen.getAllByRole('radiogroup')).toHaveLength(questions.length);
   } else {
@@ -275,7 +277,7 @@ export const validateRadioLayout = (questions: IQuestion[], mobileView = false) 
           name: question.Question,
         });
 
-    for (const option of mockOptions) {
+    for (const option of options) {
       // Ideally we should use `getByRole` selector here, but the tests that use this function
       // generates a DOM of several hundred nodes, and `getByRole` is quite slow since it has to traverse
       // the entire tree. Doing that in a loop (within another loop) on hundreds of nodes is not a good idea.

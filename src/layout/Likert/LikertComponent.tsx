@@ -48,6 +48,7 @@ const RadioGroupTableRow = ({
   legend,
   isValid,
   text,
+  getTextResourceAsString,
 }: IControlledRadioGroupProps) => {
   const id = node.item.id;
   const groupContainerId = node.closest((n) => n.type === 'Group')?.item.id;
@@ -84,7 +85,7 @@ const RadioGroupTableRow = ({
               checked={isChecked}
               onChange={handleChange}
               value={option.value}
-              label={`${getPlainTextFromNode(text)} ${option.label}`}
+              label={`${getPlainTextFromNode(text)} ${getTextResourceAsString(option.label)}`}
               hideLabel={true}
               name={rowLabelId}
               radioId={inputId}

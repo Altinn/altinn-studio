@@ -4,8 +4,8 @@ import userEvent from '@testing-library/user-event';
 import {
   createFormDataUpdateAction,
   createFormError,
+  defaultMockOptions,
   defaultMockQuestions,
-  mockOptions,
   questionsWithAnswers,
   render,
   validateRadioLayout,
@@ -28,10 +28,10 @@ describe('GroupContainerLikert', () => {
       render({
         radioButtonProps: {
           optionsId: 'non-existing-options-id',
-          options: mockOptions,
+          options: defaultMockOptions,
         },
       });
-      validateTableLayout(defaultMockQuestions);
+      validateTableLayout(defaultMockQuestions, defaultMockOptions);
     });
 
     it('should render title, description and left column header', () => {
@@ -57,7 +57,7 @@ describe('GroupContainerLikert', () => {
       });
       render({ mockQuestions: questions });
 
-      validateTableLayout(questions);
+      validateTableLayout(defaultMockQuestions, defaultMockOptions);
     });
 
     it('should render table with two selected row', () => {
@@ -78,7 +78,7 @@ describe('GroupContainerLikert', () => {
       });
 
       render({ mockQuestions: questions });
-      validateTableLayout(questions);
+      validateTableLayout(defaultMockQuestions, defaultMockOptions);
     });
 
     it('should render table with start binding', () => {
@@ -91,7 +91,7 @@ describe('GroupContainerLikert', () => {
         },
       });
 
-      validateTableLayout(defaultMockQuestions.slice(2));
+      validateTableLayout(defaultMockQuestions.slice(2), defaultMockOptions);
     });
 
     it('should render table with end binding', () => {
@@ -104,7 +104,7 @@ describe('GroupContainerLikert', () => {
         },
       });
 
-      validateTableLayout(defaultMockQuestions.slice(0, 3));
+      validateTableLayout(defaultMockQuestions.slice(0, 3), defaultMockOptions);
     });
 
     it('should render table with start and end binding', () => {
@@ -120,12 +120,12 @@ describe('GroupContainerLikert', () => {
         },
       });
 
-      validateTableLayout(defaultMockQuestions.slice(1, 3));
+      validateTableLayout(defaultMockQuestions.slice(1, 3), defaultMockOptions);
     });
 
     it('should render table view and click radiobuttons', async () => {
       const { mockStoreDispatch } = render();
-      validateTableLayout(defaultMockQuestions);
+      validateTableLayout(defaultMockQuestions, defaultMockOptions);
 
       const rad1 = screen.getByRole('row', {
         name: /Hvordan trives du på skolen/i,
@@ -159,7 +159,7 @@ describe('GroupContainerLikert', () => {
 
     it('should render standard view and use keyboard to navigate', async () => {
       const { mockStoreDispatch } = render();
-      validateTableLayout(defaultMockQuestions);
+      validateTableLayout(defaultMockQuestions, defaultMockOptions);
 
       await act(async () => {
         await user.tab();
@@ -180,7 +180,26 @@ describe('GroupContainerLikert', () => {
         Question: `nested-question-binding-${i}`,
       }));
       render({ mockQuestions, extraTextResources });
-      validateTableLayout(defaultMockQuestions);
+      validateTableLayout(defaultMockQuestions, defaultMockOptions);
+      screen.getByRole('radio', { name: 'Hvordan trives du på skolen? Bra' });
+      screen.getByRole('radio', { name: 'Hvordan trives du på skolen? Ok' });
+      screen.getByRole('radio', { name: 'Hvordan trives du på skolen? Dårlig' });
+    });
+
+    it('should support nested binding for options label referencing text resources', async () => {
+      const extraTextResources = defaultMockOptions.map((option, i) => ({
+        value: option.label,
+        id: `nested-option-binding-${i}`,
+      }));
+      const mockOptions = defaultMockOptions.map((option, i) => ({
+        ...option,
+        label: `nested-option-binding-${i}`,
+      }));
+      render({ mockOptions, extraTextResources });
+      validateTableLayout(defaultMockQuestions, mockOptions);
+      screen.getByRole('radio', { name: 'Hvordan trives du på skolen? Bra' });
+      screen.getByRole('radio', { name: 'Hvordan trives du på skolen? Ok' });
+      screen.getByRole('radio', { name: 'Hvordan trives du på skolen? Dårlig' });
     });
 
     it('should render error message', async () => {
@@ -229,7 +248,7 @@ describe('GroupContainerLikert', () => {
 
     it('should render mobile view and click radiobuttons', async () => {
       const { mockStoreDispatch } = render({ mobileView: true });
-      validateRadioLayout(defaultMockQuestions, true);
+      validateRadioLayout(defaultMockQuestions, defaultMockOptions, true);
       const rad1 = within(
         screen.getByRole('group', {
           name: /Hvordan trives du på skolen/i,
@@ -270,7 +289,7 @@ describe('GroupContainerLikert', () => {
       });
 
       render({ mockQuestions: questions, mobileView: true });
-      validateRadioLayout(questions, true);
+      validateRadioLayout(questions, defaultMockOptions, true);
 
       // Validate that radio is selected
       const selectedRow = within(
@@ -307,7 +326,7 @@ describe('GroupContainerLikert', () => {
         },
       });
 
-      validateRadioLayout(defaultMockQuestions.slice(1, 3), true);
+      validateRadioLayout(defaultMockQuestions.slice(1, 3), defaultMockOptions, true);
     });
   });
 });
