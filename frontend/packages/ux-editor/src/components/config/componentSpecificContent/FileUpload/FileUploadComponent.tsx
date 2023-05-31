@@ -1,13 +1,15 @@
 import React from 'react';
 import { FieldSet, RadioGroup, RadioGroupVariant, TextField } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
-import { EditTitle } from '../../editModal/EditTitle';
 import { useText } from '../../../../hooks';
-import { IGenericEditComponent } from '../../componentConfig';
-import { EditDescription } from '../../editModal/EditDescription';
+import { EditSettings, IGenericEditComponent } from '../../componentConfig';
 import { TextResource } from '../../../TextResource';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormFileUploaderComponent, FormFileUploaderWithTagComponent } from '../../../../types/FormComponent';
+import type {
+  FormFileUploaderComponent,
+  FormFileUploaderWithTagComponent,
+} from '../../../../types/FormComponent';
+import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 
 export const FileUploadComponent = ({
   component,
@@ -94,8 +96,27 @@ export const FileUploadComponent = ({
             variant={RadioGroupVariant.Horizontal}
           />
           <FieldSet className={classes.fieldset}>
-            <EditTitle component={component} handleComponentChange={handleComponentChange} />
-            <EditDescription component={component} handleComponentChange={handleComponentChange} />
+            <EditTextResourceBinding
+              component={component}
+              handleComponentChange={handleComponentChange}
+              textKey={EditSettings.Title}
+              labelKey='ux_editor.modal_properties_label'
+              placeholderKey='ux_editor.modal_properties_label_add'
+            />
+            <EditTextResourceBinding
+              component={component}
+              handleComponentChange={handleComponentChange}
+              textKey={EditSettings.Description}
+              labelKey='ux_editor.modal_properties_description'
+              placeholderKey='ux_editor.modal_properties_description_add'
+            />
+            <EditTextResourceBinding
+              component={component}
+              handleComponentChange={handleComponentChange}
+              textKey={EditSettings.Help}
+              labelKey='ux_editor.modal_properties_helptext'
+              placeholderKey='ux_editor.modal_properties_helptext_add'
+            />
           </FieldSet>
         </>
       ) : (
