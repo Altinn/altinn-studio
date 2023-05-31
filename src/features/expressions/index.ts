@@ -45,8 +45,6 @@ export interface EvalExprInObjArgs<T> {
   deleteNonExpressions?: boolean;
 }
 
-const altinnWindow = window as unknown as IAltinnWindow;
-
 /**
  * Magic key used to indicate a config value for all possible values in an object
  */
@@ -533,16 +531,19 @@ export const ExprFunctions = {
       if (key === null) {
         throw new LookupNotFound(this, `"Key" parameter cannot be null.`);
       }
-      const state = altinnWindow.reduxStore.getState();
-      return getTextResourceByKey(key, state.textResources.resources);
+
+      return getTextResourceByKey(key, this.dataSources.textResources);
     },
     args: [ExprVal.String] as const,
     returns: ExprVal.String,
   }),
   language: defineFunc({
-    impl(): string {
-      const state = altinnWindow.reduxStore.getState();
-      return state.profile.selectedAppLanguage || state.profile.profile.profileSettingPreference.language;
+    impl(): string | null {
+      const selectedLanguage =
+        this.dataSources.profile?.selectedAppLanguage ||
+        this.dataSources.profile?.profile?.profileSettingPreference?.language;
+
+      return selectedLanguage || null;
     },
     args: [] as const,
     returns: ExprVal.String,

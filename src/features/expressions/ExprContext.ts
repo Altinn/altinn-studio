@@ -4,7 +4,8 @@ import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
 import type { ExprConfig, Expression } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
-import type { IApplicationSettings, IAuthContext, IInstanceContext } from 'src/types/shared';
+import type { IProfileState } from 'src/features/profile';
+import type { IApplicationSettings, IAuthContext, IInstanceContext, ITextResource } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -14,6 +15,8 @@ export interface ContextDataSources {
   formData: IFormData;
   authContext: Partial<IAuthContext> | null;
   hiddenFields: Set<string>;
+  textResources: ITextResource[];
+  profile: IProfileState;
 }
 
 export interface PrettyErrorsOptions {

@@ -113,6 +113,8 @@ export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources
     authContext: buildAuthContext(state.process),
     validations: state.formValidations.validations,
     devTools: state.devTools,
+    textResources: state.textResources.resources,
+    profile: state.profile,
   };
 }
 
@@ -170,8 +172,20 @@ function useResolvedExpressions() {
       hiddenFields: new Set(hiddenFields),
       validations,
       devTools,
+      textResources,
+      profile: state.profile,
     }),
-    [formData, applicationSettings, instance, process, hiddenFields, validations, devTools],
+    [
+      formData,
+      applicationSettings,
+      instance,
+      process,
+      hiddenFields,
+      validations,
+      devTools,
+      textResources,
+      state.profile,
+    ],
   );
 
   return useMemo(
