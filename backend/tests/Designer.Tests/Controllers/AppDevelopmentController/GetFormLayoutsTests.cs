@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Designer.Tests.TestDataClasses;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -20,26 +21,15 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "empty-app", "testUser",
-            "TestData/App/ui/layoutWithUnknownProperties.json",
-            "TestData/App/ui/changename/layouts/form.json",
-            "TestData/App/ui/changename/layouts/summary.json",
-            "TestData/App/ui/datalist/layouts/formLayout.json",
-            "TestData/App/ui/datalist/layouts/summary.json",
-            "TestData/App/ui/group/layouts/hide.json",
-            "TestData/App/ui/group/layouts/prefill.json",
-            "TestData/App/ui/group/layouts/repeating.json",
-            "TestData/App/ui/group/layouts/summary.json",
-            "TestData/App/ui/likert/layouts/formLayout.json",
-            "TestData/App/ui/message/layouts/formLayout.json")]
-        public async Task GetAppDevelopment_ShouldReturnLayouts(string org, string app, string developer, params string[] expectedLayoutPaths)
+        [ClassData(typeof(FormLayoutsTestData))]
+        public async Task GetAppDevelopment_ShouldReturnLayouts(string org, string app, string developer, string layoutSetName, params string[] expectedLayoutPaths)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            Dictionary<string, string> expectedLayouts = await AddLayoutsToRepo(CreatedFolderPath, expectedLayoutPaths);
+            Dictionary<string, string> expectedLayouts = await AddLayoutsToRepo(CreatedFolderPath, layoutSetName, expectedLayoutPaths);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/form-layouts";
+            string url = $"{VersionPrefix(org, targetRepository)}/form-layouts?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -55,14 +45,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             }
         }
 
-        private static async Task<Dictionary<string, string>> AddLayoutsToRepo(string reppPath, string[] expectedLayoutPaths)
+        private static async Task<Dictionary<string, string>> AddLayoutsToRepo(string repoPath, string layoutSetName, string[] expectedLayoutPaths)
         {
-            Dictionary<string, string> expectedLayouts = new Dictionary<string, string>();
+            Dictionary<string, string> expectedLayouts = new();
             foreach (string layoutPath in expectedLayoutPaths)
             {
                 string layout = SharedResourcesHelper.LoadTestDataAsString(layoutPath);
                 string layoutName = $"{Guid.NewGuid()}{Path.GetFileNameWithoutExtension(layoutPath)}";
-                string layoutFolder = Path.Combine(reppPath, "App", "ui", "layouts");
+                string layoutFolder = string.IsNullOrEmpty(layoutSetName) ? Path.Combine(repoPath, "App", "ui", "layouts") : Path.Combine(repoPath, "App", "ui", layoutSetName, "layouts");
                 Directory.CreateDirectory(layoutFolder);
                 string layoutFilePath = Path.Combine(layoutFolder, $"{layoutName}.json");
                 await File.WriteAllTextAsync(layoutFilePath, layout);

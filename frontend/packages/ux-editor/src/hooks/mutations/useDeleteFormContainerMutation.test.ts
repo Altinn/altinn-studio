@@ -7,6 +7,7 @@ import { container1IdMock, layout1NameMock } from '../../testing/layoutMock';
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 const id = container1IdMock;
 
 describe('useDeleteFormContainerMutation', () => {
@@ -18,6 +19,7 @@ describe('useDeleteFormContainerMutation', () => {
       org,
       app,
       layout1NameMock,
+      selectedLayoutSet,
       expect.objectContaining({
         data: expect.objectContaining({
           layout: expect.not.arrayContaining([
@@ -31,7 +33,7 @@ describe('useDeleteFormContainerMutation', () => {
 
 
 const renderDeleteFormContainerMutation = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  return  renderHookWithMockStore()(() => useDeleteFormContainerMutation(org, app)).renderHookResult;
+  return  renderHookWithMockStore()(() => useDeleteFormContainerMutation(org, app, selectedLayoutSet)).renderHookResult;
 }

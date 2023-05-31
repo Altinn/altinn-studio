@@ -10,6 +10,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 const displayName = ComponentType.TextArea;
 const language = 'nb';
 const textId = 'testid';
@@ -41,9 +42,9 @@ describe('useAddWidgetMutation', () => {
 });
 
 const renderAddWidgetMutation = async () => {
-  const { result: formLayouts } = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult;
+  const { result: formLayouts } = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult;
   await waitFor(() => expect(formLayouts.current.isSuccess).toBe(true));
   const { result: texts } = renderHookWithMockStore()(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useAddWidgetMutation(org, app)).renderHookResult;
+  return renderHookWithMockStore()(() => useAddWidgetMutation(org, app, selectedLayoutSet)).renderHookResult;
 }

@@ -1,11 +1,8 @@
 import React from 'react';
 import { Popover } from '@mui/material';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
-import {
-  altinnDocsPath,
-  datamodelUploadPagePath,
-  repositoryGitPath
-} from 'app-shared/api/paths';
+import { datamodelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useParams } from 'react-router-dom';
 import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
@@ -38,7 +35,7 @@ export function CloneModal(props: ICloneModalProps) {
     >
       <SimpleContainer className={classes.modalContainer}>
         <div className={classes.blackText}>{t('sync_header.favourite_tool')}</div>
-        <a href={altinnDocsPath()} target='_blank' rel='noopener noreferrer'>
+        <a href={altinnDocsUrl('')} target='_blank' rel='noopener noreferrer'>
           {t('sync_header.favourite_tool_link')}
         </a>
         {dataModel.length === 0 && (

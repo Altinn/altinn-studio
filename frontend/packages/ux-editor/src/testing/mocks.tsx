@@ -13,7 +13,7 @@ import { BrowserRouter } from 'react-router-dom';
 import ruleHandlerMock from './ruleHandlerMock';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import { ruleConfig as ruleConfigMock } from './ruleConfigMock';
-import { externalLayoutsMock, layout1NameMock, layout2NameMock } from './layoutMock';
+import { externalLayoutsMock, layout1NameMock, layout2NameMock, layoutSetsMock } from './layoutMock';
 import { queriesMock as allQueriesMock } from 'app-shared/mocks/queriesMock';
 
 export const textResourcesMock: ITextResourcesState = {
@@ -29,6 +29,7 @@ export const formDesignerMock: IFormDesignerState = {
     error: null,
     saving: false,
     unSavedChanges: false,
+    selectedLayoutSet: 'test-layout-set',
     selectedLayout: layout1NameMock,
     invalidLayouts: [],
   },
@@ -51,6 +52,8 @@ export const textLanguagesMock = ['nb', 'nn', 'en'];
 export const queriesMock: ServicesContextProps = {
   ...allQueriesMock,
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
+  addLayoutSet: jest.fn(),
+  configureLayoutSet: jest.fn(),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteLanguageCode: jest.fn(),
@@ -71,6 +74,7 @@ export const queriesMock: ServicesContextProps = {
   getRepoPull: jest.fn(),
   getOptionListIds: jest.fn(),
   getRepoStatus: jest.fn(),
+  getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),

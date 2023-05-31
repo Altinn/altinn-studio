@@ -173,6 +173,7 @@ const render = ({ componentProps = {}, handleComponentUpdate = jest.fn() }: {
         invalidLayouts: [],
         saving: false,
         selectedLayout: 'FormLayout',
+        selectedLayoutSet: 'test-layout-set',
         unSavedChanges: false,
       },
     },

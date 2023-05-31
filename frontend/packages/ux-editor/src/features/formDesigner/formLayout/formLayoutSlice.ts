@@ -12,6 +12,7 @@ export interface IFormLayoutState {
   saving: boolean;
   unSavedChanges: boolean;
   selectedLayout: string;
+  selectedLayoutSet: string | null;
   invalidLayouts: string[];
 }
 
@@ -20,6 +21,7 @@ const initialState: IFormLayoutState = {
   saving: false,
   unSavedChanges: false,
   selectedLayout: 'default',
+  selectedLayoutSet: null,
   invalidLayouts: [],
 };
 
@@ -73,6 +75,9 @@ const formLayoutSlice = createSlice({
     updateSelectedLayout: (state, action: PayloadAction<string>) => {
       state.selectedLayout = action.payload;
     },
+    updateSelectedLayoutSet: (state, action: PayloadAction<string>) => {
+      state.selectedLayoutSet = action.payload;
+    }
   },
 });
 

@@ -29,11 +29,23 @@ context('WCAG', () => {
   it('accessibility test for app designer', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
     cy.testWcag();
-    cy.get(designer.appMenu.edit).click();
+
+    // Forms editor
+    cy.findByRole('link', { name: designer.appMenu.editText }).click();
     cy.testWcag();
-    cy.get(designer.appMenu.texts).click();
+
+    // Text editor
+    cy.findByRole('link', { name: designer.appMenu.textEditorText }).click();
+    cy.findByText('Lukk').click();
     cy.testWcag();
-    cy.get(designer.appMenu.deploy).click();
+
+    // Data model
+    cy.findByRole('link', { name: designer.appMenu.datamoodelText }).click();
+    cy.findByText('Lukk').click();
+    cy.testWcag();
+
+    // Deploy
+    cy.findByRole('button', { name: designer.appMenu.deployText }).click();
     cy.testWcag();
   });
 });
