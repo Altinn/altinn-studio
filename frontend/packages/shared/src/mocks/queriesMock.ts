@@ -23,6 +23,7 @@ export const queriesMock: ServicesContextProps = {
   getInstanceIdForPreview: jest.fn(),
   getOrgList: jest.fn(),
   getOrganizations: jest.fn(),
+  getOptionListIds: jest.fn(),
   getRepoMetadata: jest.fn(),
   getRepoPull: jest.fn(),
   getRepoStatus: jest.fn(),
