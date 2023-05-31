@@ -3,8 +3,6 @@ import { QueryKey } from '../../../../shared/src/types/QueryKey';
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 
 
-
-
 export const useOptionListQuery = (org: string, app: string): UseQueryResult<string[]> => {
   const { getOptionListIds } = useServicesContext();
 
