@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { ISchemaState } from '../../types';
+import type { SchemaState } from '../../types';
 import { NameError } from '../../types';
 import {
   addCombinationItem,
@@ -62,7 +62,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const [nameError, setNameError] = useState(NameError.NoError);
   const [itemDescription, setItemItemDescription] = useState<string>(description || '');
 
-  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+  const uiSchema = useSelector((state: SchemaState) => state.uiSchema);
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(uiSchema, pointer) : [];

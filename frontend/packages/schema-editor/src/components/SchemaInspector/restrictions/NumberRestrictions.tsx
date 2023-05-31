@@ -1,7 +1,7 @@
 import React, { useReducer } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
-import type { Dict } from '@altinn/schema-model';
-import { IntRestrictionKeys } from '@altinn/schema-model';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { IntRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { Label } from 'app-shared/components/Label';
@@ -29,20 +29,20 @@ export function NumberRestrictions({
   const { t } = useTranslation();
   const initialState: NumberRestrictionsReducerState = {
     isInteger,
-    isMinInclusive: restrictions[IntRestrictionKeys.exclusiveMinimum] === undefined,
-    isMaxInclusive: restrictions[IntRestrictionKeys.exclusiveMaximum] === undefined,
+    isMinInclusive: restrictions[IntRestrictionKey.exclusiveMinimum] === undefined,
+    isMaxInclusive: restrictions[IntRestrictionKey.exclusiveMaximum] === undefined,
     min:
-      restrictions[IntRestrictionKeys.exclusiveMinimum] ?? restrictions[IntRestrictionKeys.minimum],
+      restrictions[IntRestrictionKey.exclusiveMinimum] ?? restrictions[IntRestrictionKey.minimum],
     max:
-      restrictions[IntRestrictionKeys.exclusiveMaximum] ?? restrictions[IntRestrictionKeys.maximum],
+      restrictions[IntRestrictionKey.exclusiveMaximum] ?? restrictions[IntRestrictionKey.maximum],
     restrictions: Object.fromEntries(
-      Object.values(IntRestrictionKeys).map((key) => [key, restrictions[key]])
+      Object.values(IntRestrictionKey).map((key) => [key, restrictions[key]])
     ),
     numberRestrictionsError: NumberRestrictionsError.NoError,
   };
   const [formatState, dispatch] = useReducer(numberRestrictionsReducer, initialState);
 
-  const changeCallback = (changedRestrictions: Dict) => {
+  const changeCallback = (changedRestrictions: KeyValuePairs) => {
     onChangeRestrictions(path, changedRestrictions);
   };
   const dispatchAction = (type: NumberRestrictionsReducerActionType, value: any) =>
@@ -143,7 +143,7 @@ export function NumberRestrictions({
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setRestriction, e.target.value)
             }
-            value={formatState.restrictions[IntRestrictionKeys.multipleOf.toString()]}
+            value={formatState.restrictions[IntRestrictionKey.multipleOf.toString()]}
           />
         </div>
       </div>

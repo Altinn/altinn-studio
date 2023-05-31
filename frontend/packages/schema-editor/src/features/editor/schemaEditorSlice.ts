@@ -1,6 +1,6 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
-import type { IJsonSchema, ISchemaState } from '../../types';
+import type { JsonSchema, SchemaState } from '../../types';
 import type { UiSchemaNode, CombinationKind, FieldType } from '@altinn/schema-model';
 import {
   buildJsonSchema,
@@ -11,7 +11,7 @@ import {
   getNodeByPointer,
   getParentNodeByPointer,
   getUniqueNodePath,
-  Keywords,
+  Keyword,
   makePointer,
   ObjectKind,
   pointerIsDefinition,
@@ -21,10 +21,10 @@ import {
   ROOT_POINTER,
   splitPointerInBaseAndName,
 } from '@altinn/schema-model';
-import type { Dict } from '../../../../schema-model/src/lib/types';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { swapArrayElements } from 'app-shared/utils/arrayUtils';
 
-export const initialState: ISchemaState = {
+export const initialState: SchemaState = {
   schema: {},
   uiSchema: [],
   name: '/',
@@ -85,11 +85,11 @@ const schemaEditorSlice = createSlice({
       const { pointer, keepSelection, props } = action.payload;
       const addToNode = getNodeByPointer(state.uiSchema, pointer);
       const pointerBase = addToNode.isArray
-        ? makePointer(addToNode.pointer, Keywords.Items)
+        ? makePointer(addToNode.pointer, Keyword.Items)
         : addToNode.pointer;
       const newNodePointer = getUniqueNodePath(
         state.uiSchema,
-        makePointer(pointerBase, Keywords.Properties, 'name')
+        makePointer(pointerBase, Keyword.Properties, 'name')
       );
       addToNode.children.push(newNodePointer);
       if (!keepSelection) {
@@ -148,7 +148,7 @@ const schemaEditorSlice = createSlice({
       });
       schemaItem.restrictions = restrictions;
     },
-    setRestrictions(state, action: PayloadAction<{ path: string; restrictions: Dict }>) {
+    setRestrictions(state, action: PayloadAction<{ path: string; restrictions: KeyValuePairs }>) {
       const { path, restrictions } = action.payload;
       const schemaItem = getNodeByPointer(state.uiSchema, path);
       const schemaItemRestrictions = { ...schemaItem.restrictions };
@@ -267,7 +267,7 @@ const schemaEditorSlice = createSlice({
     },
     updateJsonSchema(state, action: PayloadAction<{ onSaveSchema?: (payload: any) => void }>) {
       const { onSaveSchema } = action.payload;
-      const updatedSchema: IJsonSchema = buildJsonSchema(state.uiSchema);
+      const updatedSchema: JsonSchema = buildJsonSchema(state.uiSchema);
       state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);

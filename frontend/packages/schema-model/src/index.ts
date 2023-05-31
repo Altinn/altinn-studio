@@ -1,15 +1,19 @@
 export { buildJsonSchema } from './lib/build-json-schema';
 export { buildUiSchema } from './lib/build-ui-schema';
-export {
-  ArrRestrictionKeys,
-  StrRestrictionKeys,
-  IntRestrictionKeys,
-  ObjRestrictionKeys,
-  castRestrictionType,
-} from './lib/restrictions';
+export { castRestrictionType } from './lib/restrictions';
 export { ROOT_POINTER } from './lib/constants';
-export type { UiSchemaNode, UiSchemaNodes, Dict } from './lib/types';
-export { ObjectKind, Keywords, FieldType, CombinationKind, StringFormat } from './lib/types';
+export type { UiSchemaNode, UiSchemaNodes } from './types';
+export {
+  ArrRestrictionKey,
+  CombinationKind,
+  FieldType,
+  IntRestrictionKey,
+  Keyword,
+  ObjRestrictionKey,
+  ObjectKind,
+  StrRestrictionKey,
+  StringFormat,
+} from './types';
 export {
   createNodeBase,
   replaceLastPointerSegment,

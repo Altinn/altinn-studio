@@ -6,13 +6,13 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event/dist/types/setup/setup';
 import { SchemaEditor, SchemaEditorTestIds } from './SchemaEditor';
-import type { ISchemaState } from '../types';
+import type { SchemaState } from '../types';
 import {
   buildUiSchema,
   CombinationKind,
   FieldType,
   getNodeByPointer,
-  Keywords,
+  Keyword,
   makePointer,
   ObjectKind,
 } from '@altinn/schema-model';
@@ -35,7 +35,7 @@ const texts = {
 const uiSchema = buildUiSchema(dataMock);
 const schemaState: GenerateSchemaState = { saving: false };
 
-const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) => {
+const renderEditor = (customState?: Partial<SchemaState>, editMode?: boolean) => {
   const mockInitialState = {
     name: 'test',
     saveSchemaUrl: '',
@@ -125,8 +125,8 @@ describe('SchemaEditor', () => {
 
   test('should show context menu and trigger correct dispatch when adding field on a specific node', async () => {
     const jsonSchema = {
-      [Keywords.Properties]: { mockItem: { [Keywords.Type]: FieldType.Object } },
-      [Keywords.Definitions]: {},
+      [Keyword.Properties]: { mockItem: { [Keyword.Type]: FieldType.Object } },
+      [Keyword.Definitions]: {},
     };
     const { store, user } = renderEditor({
       schema: jsonSchema,
@@ -144,8 +144,8 @@ describe('SchemaEditor', () => {
 
   test('should show context menu and trigger correct dispatch when adding reference on a specific node', async () => {
     const jsonSchema = {
-      [Keywords.Properties]: { mockItem: { [Keywords.Type]: FieldType.Object } },
-      [Keywords.Definitions]: {},
+      [Keyword.Properties]: { mockItem: { [Keyword.Type]: FieldType.Object } },
+      [Keyword.Definitions]: {},
     };
     const { store, user } = renderEditor({
       schema: jsonSchema,
@@ -175,13 +175,13 @@ describe('SchemaEditor', () => {
 
   test('should not show add property or add reference buttons on a reference node', async () => {
     const jsonSchema = {
-      [Keywords.Properties]: {
+      [Keyword.Properties]: {
         mockItem: {
-          [Keywords.Reference]: makePointer(Keywords.Definitions, 'mockDefinition'),
+          [Keyword.Reference]: makePointer(Keyword.Definitions, 'mockDefinition'),
         },
       },
-      [Keywords.Definitions]: {
-        mockDefinition: { [Keywords.Type]: FieldType.Object },
+      [Keyword.Definitions]: {
+        mockDefinition: { [Keyword.Type]: FieldType.Object },
       },
     };
     const { user } = renderEditor({
@@ -197,11 +197,11 @@ describe('SchemaEditor', () => {
 
   test('should not show add property or add reference buttons on a reference node that has not yet set reference', async () => {
     const jsonSchema = {
-      [Keywords.Properties]: {
-        mockItem: { [Keywords.Reference]: undefined },
+      [Keyword.Properties]: {
+        mockItem: { [Keyword.Reference]: undefined },
       },
-      [Keywords.Definitions]: {
-        mockDefinition: { [Keywords.Type]: FieldType.Object },
+      [Keyword.Definitions]: {
+        mockDefinition: { [Keyword.Type]: FieldType.Object },
       },
     };
     const uiSchemaToTest = buildUiSchema(jsonSchema);
@@ -227,13 +227,13 @@ describe('SchemaEditor', () => {
 
   test('should not show add property or add reference buttons on a field that is not type object', async () => {
     const jsonSchema = {
-      [Keywords.Properties]: {
+      [Keyword.Properties]: {
         mockItem: {
-          [Keywords.Reference]: makePointer(Keywords.Definitions, 'mockDefinition'),
+          [Keyword.Reference]: makePointer(Keyword.Definitions, 'mockDefinition'),
         },
       },
-      [Keywords.Definitions]: {
-        mockDefinition: { [Keywords.Type]: FieldType.Integer },
+      [Keyword.Definitions]: {
+        mockDefinition: { [Keyword.Type]: FieldType.Integer },
       },
     };
     const { user } = renderEditor({
@@ -267,8 +267,8 @@ describe('SchemaEditor', () => {
 
   test('should show context menu and trigger correct dispatch when adding a combination on a specific node', async () => {
     const jsonSchema = {
-      [Keywords.Properties]: { mockItem: { type: FieldType.Object } },
-      [Keywords.Definitions]: {},
+      [Keyword.Properties]: { mockItem: { type: FieldType.Object } },
+      [Keyword.Definitions]: {},
     };
     const { store, user } = renderEditor({
       schema: jsonSchema,
@@ -291,12 +291,12 @@ describe('SchemaEditor', () => {
 
   test('should only be possible to add a reference to a combination type', async () => {
     const jsonSchema = {
-      [Keywords.Properties]: {
+      [Keyword.Properties]: {
         mockItem: {
-          [CombinationKind.AllOf]: [{ [Keywords.Type]: FieldType.String }],
+          [CombinationKind.AllOf]: [{ [Keyword.Type]: FieldType.String }],
         },
       },
-      [Keywords.Definitions]: {},
+      [Keyword.Definitions]: {},
     };
     const uiSchemaToTest = buildUiSchema(jsonSchema);
     const { user } = renderEditor({
@@ -313,16 +313,16 @@ describe('SchemaEditor', () => {
 
   test('when a type is selected, the type edit panel should be rendered', async () => {
     const jsonSchema = {
-      [Keywords.Properties]: {
-        someProp: { [Keywords.Type]: FieldType.String },
-        testProp: { [Keywords.Reference]: `#/${Keywords.Definitions}/TestType` },
+      [Keyword.Properties]: {
+        someProp: { [Keyword.Type]: FieldType.String },
+        testProp: { [Keyword.Reference]: `#/${Keyword.Definitions}/TestType` },
       },
-      [Keywords.Definitions]: {
+      [Keyword.Definitions]: {
         TestType: {
-          [Keywords.Type]: FieldType.Object,
-          [Keywords.Properties]: {
-            prop1: { [Keywords.Type]: FieldType.String },
-            prop2: { [Keywords.Type]: FieldType.String },
+          [Keyword.Type]: FieldType.Object,
+          [Keyword.Properties]: {
+            prop1: { [Keyword.Type]: FieldType.String },
+            prop2: { [Keyword.Type]: FieldType.String },
           },
         },
       },
@@ -332,7 +332,7 @@ describe('SchemaEditor', () => {
       schema: jsonSchema,
       uiSchema: uiSchemaToTest,
     });
-    const type = screen.getByTestId(`type-item-#/${Keywords.Definitions}/TestType`);
+    const type = screen.getByTestId(`type-item-#/${Keyword.Definitions}/TestType`);
 
     await act(() => user.click(type));
 

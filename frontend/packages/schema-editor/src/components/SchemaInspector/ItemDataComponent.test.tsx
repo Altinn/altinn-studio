@@ -6,7 +6,7 @@ import {
   createChildNode,
   createNodeBase,
   FieldType,
-  Keywords,
+  Keyword,
   ObjectKind,
 } from '@altinn/schema-model';
 import React from 'react';
@@ -25,7 +25,7 @@ const mockTexts = {
   'schema_editor.type': 'Type',
 };
 
-const parentNode = createNodeBase(Keywords.Properties, 'test');
+const parentNode = createNodeBase(Keyword.Properties, 'test');
 parentNode.objectKind = ObjectKind.Combination;
 parentNode.fieldType = CombinationKind.AnyOf;
 const uiSchemaNodes = [parentNode];
@@ -36,7 +36,7 @@ const uiSchemaNodes = [parentNode];
   parentNode.children.push(childNode.pointer);
   uiSchemaNodes.push(childNode);
 });
-const anotherNode = createNodeBase(Keywords.Properties, 'can be toggled');
+const anotherNode = createNodeBase(Keyword.Properties, 'can be toggled');
 anotherNode.objectKind = ObjectKind.Field;
 anotherNode.fieldType = FieldType.String;
 uiSchemaNodes.push(anotherNode);

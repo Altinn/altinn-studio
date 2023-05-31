@@ -1,6 +1,6 @@
 import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
-import { ObjRestrictionKeys } from '@altinn/schema-model';
+import { ObjRestrictionKey } from '@altinn/schema-model';
 import { RestrictionField } from '../RestrictionField';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ export function ObjectRestrictions({
   onChangeRestrictionValue,
 }: RestrictionItemProps) {
   const { t } = useTranslation();
-  const defaults = Object.values(ObjRestrictionKeys);
+  const defaults = Object.values(ObjRestrictionKey);
   return defaults?.length ? (
     <>
       <Divider />
