@@ -5,12 +5,7 @@ import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists, validComponentId } from '../../utils/formLayoutUtils';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import {
-  Checkbox,
-  CheckboxGroup,
-  FieldSet,
-  TextField,
-} from '@digdir/design-system-react';
+import { Checkbox, CheckboxGroup, FieldSet, TextField } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
@@ -21,7 +16,10 @@ import { selectedLayoutSelector } from '../../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { ITextResource } from 'app-shared/types/global';
-import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import {
+  selectedLayoutNameSelector,
+  selectedLayoutSetSelector,
+} from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { TextFieldWithValidation } from '../TextFieldWithValidation';
 import { FormContainer } from '../../types/FormContainer';
@@ -30,13 +28,13 @@ export interface IEditFormContainerProps {
   editFormId: string;
   container: FormContainer;
   handleContainerUpdate: React.Dispatch<React.SetStateAction<FormContainer>>;
-};
+}
 
 export const EditFormContainer = ({
   editFormId,
   container,
   handleContainerUpdate,
-} : IEditFormContainerProps) => {
+}: IEditFormContainerProps) => {
   const t = useText();
 
   const { org, app } = useParams();
@@ -45,7 +43,9 @@ export const EditFormContainer = ({
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
   const { data: dataModel } = useDatamodelQuery(org, app);
   const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
-  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
+    textResourcesByLanguageSelector(DEFAULT_LANGUAGE)
+  );
 
   const [tmpId, setTmpId] = useState<string>(container.id);
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);
@@ -93,7 +93,7 @@ export const EditFormContainer = ({
       textResourceBindings: {
         ...prevState.textResourceBindings,
         add_button: id,
-      }
+      },
     }));
   };
 
@@ -113,25 +113,29 @@ export const EditFormContainer = ({
     setTableHeadersError(errorMessage);
   };
 
-  const getMaxOccursForGroupFromDataModel = useCallback((dataBindingName: string): number => {
-    const element: DatamodelFieldElement = dataModel.find(
-      (e: DatamodelFieldElement) => {
+  const getMaxOccursForGroupFromDataModel = useCallback(
+    (dataBindingName: string): number => {
+      const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
         return e.dataBindingName === dataBindingName;
-      }
-    );
-    return element?.maxOccurs;
-  }, [dataModel]);
+      });
+      return element?.maxOccurs;
+    },
+    [dataModel]
+  );
 
-  const handleDataModelGroupChange = useCallback((dataBindingName: string, key: string) => {
-    const maxOccurs = getMaxOccursForGroupFromDataModel(dataBindingName);
-    handleContainerUpdate((prevState) => ({
-      ...prevState,
-      dataModelBindings: {
-        [key]: dataBindingName,
-      },
-      maxCount: maxOccurs,
-    }));
-  }, [getMaxOccursForGroupFromDataModel, handleContainerUpdate]);
+  const handleDataModelGroupChange = useCallback(
+    (dataBindingName: string, key: string) => {
+      const maxOccurs = getMaxOccursForGroupFromDataModel(dataBindingName);
+      handleContainerUpdate((prevState) => ({
+        ...prevState,
+        dataModelBindings: {
+          [key]: dataBindingName,
+        },
+        maxCount: maxOccurs,
+      }));
+    },
+    [getMaxOccursForGroupFromDataModel, handleContainerUpdate]
+  );
 
   const handleNewId = (_, error) => {
     if (!error) {
@@ -164,7 +168,7 @@ export const EditFormContainer = ({
               } else if (!value || !validComponentId.test(value)) {
                 return t('ux_editor.modal_properties_group_id_not_valid');
               }
-            }
+            },
           }}
           onChange={handleIdChange}
           onBlur={handleNewId}
@@ -183,7 +187,7 @@ export const EditFormContainer = ({
           />
           <div>
             <TextField
-              disabled={!!container.dataModelBindings.group}
+              disabled={!!container.dataModelBindings?.group}
               formatting={{ number: {} }}
               id='modal-properties-maximum-files'
               label={t('ux_editor.modal_properties_group_max_occur')}
@@ -204,8 +208,7 @@ export const EditFormContainer = ({
                 label: getTextResource(components[id].textResourceBindings?.title, textResources),
                 name: id,
                 checked:
-                container.tableHeaders === undefined ||
-                container.tableHeaders.includes(id),
+                  container.tableHeaders === undefined || container.tableHeaders.includes(id),
               }))}
               legend={t('ux_editor.modal_properties_group_table_headers')}
               onChange={handleTableHeadersChange}
@@ -215,4 +218,4 @@ export const EditFormContainer = ({
       )}
     </FieldSet>
   );
-}
+};
