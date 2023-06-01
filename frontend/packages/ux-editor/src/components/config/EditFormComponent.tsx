@@ -12,7 +12,7 @@ import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors'
 export interface IEditFormComponentProps {
   editFormId: string;
   component: FormComponent;
-  handleComponentUpdate: React.Dispatch<React.SetStateAction<FormComponent>>;
+  handleComponentUpdate: (component: FormComponent) => void;
 }
 
 export const EditFormComponent = ({

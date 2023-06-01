@@ -1,6 +1,7 @@
 import { waitFor } from '@testing-library/react';
 import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
+import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
 import { UpdateFormContainerMutationArgs, useUpdateFormContainerMutation } from './useUpdateFormContainerMutation';
 import { FormContainer } from '../../types/FormContainer';
 import { container1IdMock, layout1Mock, layout1NameMock } from '../../testing/layoutMock';
@@ -50,5 +51,7 @@ describe('useUpdateFormContainerMutation', () => {
 
 const renderAndWaitForData = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const ruleConfigResult = renderHookWithMockStore()(() => useRuleConfigQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
+  await waitFor(() => expect(ruleConfigResult.current.isSuccess).toBe(true));
 }

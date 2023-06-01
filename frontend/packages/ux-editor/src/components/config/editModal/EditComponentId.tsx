@@ -7,7 +7,7 @@ import type { FormComponent } from '../../../types/FormComponent';
 import { TextFieldWithValidation } from '../../TextFieldWithValidation';
 
 export interface IEditComponentId {
-  handleComponentUpdate: React.Dispatch<React.SetStateAction<FormComponent>>;
+  handleComponentUpdate: (component: FormComponent) => void;
   component: FormComponent;
 }
 export const EditComponentId = ({ component, handleComponentUpdate }: IEditComponentId) => {
@@ -19,17 +19,14 @@ export const EditComponentId = ({ component, handleComponentUpdate }: IEditCompo
     setTmpId(component?.id);
   }, [component?.id]);
 
-  const handleNewId = (_, error) => {
-    if (!error) {
-      handleComponentUpdate((prevState: FormComponent) => ({
-        ...prevState,
-        id: tmpId,
-      }));
-    }
-  };
-
-  const handleIdChange = (event: any) => {
+  const handleIdChange = (event: React.ChangeEvent<HTMLInputElement>, error: string) => {
     const newId = event.target.value;
+    if (!error) {
+      handleComponentUpdate({
+        ...component,
+        id: newId,
+      });
+    }
     setTmpId(newId);
   };
 
@@ -52,7 +49,6 @@ export const EditComponentId = ({ component, handleComponentUpdate }: IEditCompo
           }
         }}
         onChange={handleIdChange}
-        onBlur={handleNewId}
       />
     </div>
   );

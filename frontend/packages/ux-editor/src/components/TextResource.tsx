@@ -75,7 +75,8 @@ export const TextResource = ({
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
   const isEditing = textResourceId && editId === textResourceId;
 
-  const handleEditButtonClick = () => {
+  const handleEditButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     if (textResourceId) {
       setEditId(textResourceId);
     } else {

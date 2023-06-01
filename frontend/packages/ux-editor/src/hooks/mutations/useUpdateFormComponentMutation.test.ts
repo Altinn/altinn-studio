@@ -89,7 +89,13 @@ describe('useUpdateFormComponentMutation', () => {
   });
 });
 
-const renderAndWaitForData = () => queryClientMock.setQueryData(
-  [QueryKey.FormLayouts, org, app, selectedLayoutSet],
-  convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts
-);
+const renderAndWaitForData = () => {
+  queryClientMock.setQueryData(
+    [QueryKey.FormLayouts, org, app, selectedLayoutSet],
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts
+  );
+  queryClientMock.setQueryData(
+    [QueryKey.RuleConfig, org, app, selectedLayoutSet],
+    {}
+  );
+};

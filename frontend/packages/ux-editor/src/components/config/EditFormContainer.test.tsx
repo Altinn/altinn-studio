@@ -31,19 +31,19 @@ describe('EditFormContainer', () => {
     await render();
 
     const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id') + ' *');
-    await act(() => user.type(containerIdInput, "new-test"));
+    await act(() => user.type(containerIdInput, "test"));
     await act(() => user.click(document.body));
-    expect(handleContainerUpdateMock).toHaveBeenCalledTimes(1);
+    expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
   });
 
   it('should display an error when containerId is invalid', async () => {
     await render();
 
     const containerIdInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id') + ' *');
-    await act(() => user.type(containerIdInput, "new test"));
+    await act(() => user.type(containerIdInput, "test@"));
     await act(() => user.click(document.body));
     expect(screen.getByText(textMock('ux_editor.modal_properties_group_id_not_valid'))).toBeInTheDocument();
-    expect(handleContainerUpdateMock).toHaveBeenCalledTimes(0);
+    expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
   });
 });
 

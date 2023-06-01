@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useState, useEffect } from 'react';
+import React, { ChangeEvent, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import '../../styles/index.css';
 import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
@@ -27,8 +27,8 @@ import { FormContainer } from '../../types/FormContainer';
 export interface IEditFormContainerProps {
   editFormId: string;
   container: FormContainer;
-  handleContainerUpdate: React.Dispatch<React.SetStateAction<FormContainer>>;
-}
+  handleContainerUpdate: (updatedContainer: FormContainer) => void;
+};
 
 export const EditFormContainer = ({
   editFormId,
@@ -59,21 +59,23 @@ export const EditFormContainer = ({
     setTmpId(container.id);
   }, [container.id]);
 
-  const handleChangeRepeatingGroup = () => {
-    handleContainerUpdate((prevState) => {
-      const isRepeating = prevState.maxCount > 0;
-      if (isRepeating) {
-        // we are disabling the repeating feature, remove datamodelbinding
-        return {
-          ...prevState,
-          dataModelBindings: { group: undefined },
-          maxCount: undefined,
-          textResourceBindings: undefined,
-        };
-      } else {
-        return { ...prevState, maxCount: 2 };
-      }
-    });
+  const handleChangeRepeatingGroup = (event: ChangeEvent<HTMLInputElement>) => {
+    const isRepeating = event.target.checked;
+    if (isRepeating) {
+      handleContainerUpdate({
+        ...container,
+        maxCount: 2,
+        dataModelBindings: { group: undefined },
+      });
+    } else {
+      // we are disabling the repeating feature, remove datamodelbinding
+      handleContainerUpdate({
+        ...container,
+        dataModelBindings: { group: undefined },
+        maxCount: undefined,
+        textResourceBindings: undefined,
+      });
+    }
   };
 
   const handleMaxOccurChange = (event: any) => {
@@ -81,20 +83,20 @@ export const EditFormContainer = ({
     if (maxOcc < 2) {
       maxOcc = 2;
     }
-    handleContainerUpdate((prevState) => ({
-      ...prevState,
+    handleContainerUpdate({
+      ...container,
       maxCount: maxOcc,
-    }));
+    });
   };
 
   const handleButtonTextChange = (id: string) => {
-    handleContainerUpdate((prevState) => ({
-      ...prevState,
+    handleContainerUpdate({
+      ...container,
       textResourceBindings: {
-        ...prevState.textResourceBindings,
+        ...container.textResourceBindings,
         add_button: id,
       },
-    }));
+    });
   };
 
   const handleTableHeadersChange = (ids: string[]) => {
@@ -113,41 +115,32 @@ export const EditFormContainer = ({
     setTableHeadersError(errorMessage);
   };
 
-  const getMaxOccursForGroupFromDataModel = useCallback(
-    (dataBindingName: string): number => {
-      const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
-        return e.dataBindingName === dataBindingName;
-      });
-      return element?.maxOccurs;
-    },
-    [dataModel]
-  );
-
-  const handleDataModelGroupChange = useCallback(
-    (dataBindingName: string, key: string) => {
-      const maxOccurs = getMaxOccursForGroupFromDataModel(dataBindingName);
-      handleContainerUpdate((prevState) => ({
-        ...prevState,
-        dataModelBindings: {
-          [key]: dataBindingName,
-        },
-        maxCount: maxOccurs,
-      }));
-    },
-    [getMaxOccursForGroupFromDataModel, handleContainerUpdate]
-  );
-
-  const handleNewId = (_, error) => {
-    if (!error) {
-      handleContainerUpdate((prevState) => ({
-        ...prevState,
-        id: tmpId,
-      }));
-    }
+  const getMaxOccursForGroupFromDataModel = (dataBindingName: string): number => {
+    const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
+      return e.dataBindingName === dataBindingName;
+    });
+    return element?.maxOccurs;
   };
 
-  const handleIdChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleDataModelGroupChange = (dataBindingName: string, key: string) => {
+    const maxOccurs = getMaxOccursForGroupFromDataModel(dataBindingName);
+    handleContainerUpdate({
+      ...container,
+      dataModelBindings: {
+        [key]: dataBindingName,
+      },
+      maxCount: maxOccurs,
+    });
+  };
+
+  const handleIdChange = (event: React.ChangeEvent<HTMLInputElement>, error: string) => {
     const newId = event.target.value;
+    if (!error) {
+      handleContainerUpdate({
+        ...container,
+        id: newId,
+      });
+    }
     setTmpId(newId);
   };
 
@@ -171,7 +164,6 @@ export const EditFormContainer = ({
             },
           }}
           onChange={handleIdChange}
-          onBlur={handleNewId}
         />
       </div>
       <Checkbox
@@ -201,13 +193,13 @@ export const EditFormContainer = ({
             label={t('ux_editor.modal_properties_group_add_button')}
             textResourceId={container.textResourceBindings?.add_button}
           />
-          {items.length > 0 && (
+          {items?.length > 0 && (
             <CheckboxGroup
               error={tableHeadersError}
               items={items
                 .filter((id) => !!components[id])
                 .map((id) => ({
-                  label: getTextResource(components[id].textResourceBindings?.title, textResources),
+                  label: getTextResource(components[id]?.textResourceBindings?.title, textResources),
                   name: id,
                   checked:
                     container.tableHeaders === undefined || container.tableHeaders.includes(id),

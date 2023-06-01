@@ -1,4 +1,5 @@
 import React, { useContext } from 'react';
+import { useSelector } from 'react-redux';
 import { FormContainer } from './FormContainer';
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
@@ -18,18 +19,22 @@ import { DragDropListItem } from '../components/dragAndDrop/DragDropListItem';
 import { ConnectDragSource } from 'react-dnd';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 
-export const DesignView = () => {
+export interface DesignViewProps {
+  className?: string;
+}
+
+export const DesignView = ({ className }: DesignViewProps) => {
   const { org, app } = useParams();
   const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const layoutName = useFormLayoutsSelector(selectedLayoutNameSelector);
   const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName, selectedLayoutSet);
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
-  const { formId, form, handleDiscard, handleEdit, handleContainerSave, handleComponentSave } = useContext(FormContext);
+  const { formId, form, handleDiscard, handleEdit, handleComponentSave } = useContext(FormContext);
+
   const { t } = useTranslation();
 
   const layout = layouts?.[layoutName];
@@ -64,13 +69,12 @@ export const DesignView = () => {
         dragHandleRef={dragHandleRef}
         handleDiscard={handleDiscard}
         handleEdit={handleEdit}
-        handleSave={handleContainerSave}
         id={id}
         isBaseContainer={isBaseContainer}
         isEditMode={formId === id}
       >
         <DroppableList containerId={id} handleDrop={handleDrop} disabledDrop={disabledDrop}>
-          {items.length ? items.map((itemId: string, itemIndex: number) => (
+          {items?.length ? items.map((itemId: string, itemIndex: number) => (
             <DragDropListItem
               disabledDrop={disabledDrop}
               key={itemId}
@@ -106,5 +110,16 @@ export const DesignView = () => {
     );
   };
 
-  return renderContainer(BASE_CONTAINER_ID, true);
+  return (
+    <div
+      className={className}
+      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+        event.stopPropagation();
+        handleEdit(null)
+      }}
+    >
+      <h1 className={classes.pageHeader}>{layoutName}</h1>
+      {renderContainer(BASE_CONTAINER_ID, true)}
+    </div>
+  )
 };
