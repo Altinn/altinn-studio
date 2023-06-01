@@ -33,7 +33,7 @@
   z-index: 1;
 }
 
-.header {
+/* .header {
   font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: white;
   background-color: #118849;
@@ -42,7 +42,7 @@
   height: 90px;
   padding: 0 2rem;
 }
-
+ */
 .betaTag {
   border: 2px solid white;
   border-radius: 4px;
@@ -63,8 +63,8 @@
 }
 
 /* Overriding this style because it is hardcoded in the design system */
-.viewSizeButtons button[aria-pressed="false"]:hover {
-  background-color: #Dbf5d5 !important;
+.viewSizeButtons button[aria-pressed='false']:hover {
+  background-color: #dbf5d5 !important;
   color: black !important;
 }
 
