@@ -1,0 +1,36 @@
+name: Pack and publish nugets
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install dotnet6
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            5.0.x
+            6.0.x
+      - name: Install deps
+        run: |
+          dotnet restore
+      - name: Build
+        run: |
+          dotnet build --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+      - name: Pack
+        run: |
+          dotnet pack Altinn.FileAnalyzers.sln --configuration Release --no-restore --no-build -p:BuildNumber=${{ github.run_number }} -p:Deterministic=true
+      - name: Versions
+        run: |
+          dotnet --version
+      - name: Publish
+        run: |
+          dotnet nuget push src/**/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}

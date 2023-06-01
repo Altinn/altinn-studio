@@ -1,0 +1,67 @@
+name: Code test and analysis (fork)
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened, ready_for_review]
+jobs:
+  test:
+    if: github.repository_owner == 'Altinn' && (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
+    name: Build and Test
+    runs-on: windows-latest
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.0.x
+            5.0.x
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: dotnet build
+        run: dotnet build Altinn.FileAnalyzers.sln -v m
+
+      - name: dotnet test
+        run: dotnet test Altinn.FileAnalyzers.sln --results-directory TestResults/ --collect:"XPlat Code Coverage" -v m
+
+      - name: Generate coverage results
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          reportgenerator -reports:TestResults/**/coverage.cobertura.xml -targetdir:TestResults/Output/CoverageReport -reporttypes:Cobertura
+
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage-report
+          path: TestResults/Output/CoverageReport/
+
+  code-coverage:
+    if:  github.repository_owner == 'Altinn' && (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+    name: Report code coverage
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Download Coverage Results
+        uses: actions/download-artifact@master
+        with:
+          name: code-coverage-report
+          path: dist/
+      - name: Create Coverage Summary Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: dist/Cobertura.xml
+          badge: true
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: '60 80'
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: code-coverage-results.md
