@@ -21,6 +21,7 @@ import {
   emptyPolicyRule,
   mapPolicyRuleToPolicyRuleBackendObject,
 } from 'resourceadm/utils/policyEditorUtils';
+import { VerificationModal } from 'resourceadm/components/VerificationModal';
 
 /**
  * Displays the content where a user can add and edit a policy
@@ -38,9 +39,13 @@ export const PolicyEditor = () => {
   const [actions, setActions] = useState<string[]>([]);
   const [subjects, setSubjects] = useState<PolicySubjectType[]>([]);
   const [policyRules, setPolicyRules] = useState<PolicyRuleCardType[]>([]);
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
 
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated
   const [lastRuleId, setLastRuleId] = useState(0);
+
+  // To keep track of which rule to delete
+  const [ruleIdToDelete, setRuleIdToDelete] = useState('0');
 
   // TODO - implement useOnce hook to get the policy
   useEffect(() => {
@@ -79,7 +84,10 @@ export const PolicyEditor = () => {
         resourceId={resourceId}
         resourceType={resourceType}
         handleDuplicateRule={() => handleDuplicateRule(i)}
-        handleDeleteRule={() => handleDeleteRule(i)}
+        handleDeleteRule={() => {
+          setVerificationModalOpen(true);
+          setRuleIdToDelete(pr.RuleId);
+        }}
       />
     </div>
   ));
@@ -128,11 +136,15 @@ export const PolicyEditor = () => {
    *
    * @param index the index of the rule to delete
    */
-  const handleDeleteRule = (index: number) => {
-    console.log('clicked');
+  const handleDeleteRule = (ruleId: string) => {
     const updatedRules = [...policyRules];
-    updatedRules.splice(index, 1);
+    const indexToRemove = updatedRules.findIndex((a) => a.RuleId === ruleId);
+    updatedRules.splice(indexToRemove, 1);
     setPolicyRules(updatedRules);
+
+    // Reset
+    setVerificationModalOpen(false);
+    setRuleIdToDelete('0');
   };
 
   /**
@@ -166,14 +178,17 @@ export const PolicyEditor = () => {
         <div className={classes.addCardButtonWrapper}>
           <CardButton buttonText='Legg til ekstra regelsett' onClick={handleAddCardClick} />
         </div>
-        <Button
-          type='button'
-          onClick={() => {
-            handleSavePolicy();
-          }}
-        >
+        <Button type='button' onClick={handleSavePolicy}>
           Lagre policyen
         </Button>
+        <VerificationModal
+          isOpen={verificationModalOpen}
+          onClose={() => setVerificationModalOpen(false)}
+          text='Er du sikker på at du vil slette denne regelen?'
+          closeButtonText='Nei, gå tilbake'
+          actionButtonText='Ja, slett regel'
+          onPerformAction={() => handleDeleteRule(ruleIdToDelete)}
+        />
       </div>
     </div>
   );

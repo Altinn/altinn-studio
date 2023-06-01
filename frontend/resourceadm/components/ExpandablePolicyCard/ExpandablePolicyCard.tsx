@@ -11,7 +11,6 @@ import {
 import { PolicyRuleSubjectListItem } from '../PolicyRuleSubjectListItem';
 import { PolicySubjectSelectButton } from '../PolicySubjectSelectButton';
 import { ResourceNarrowingList } from '../ResourceNarrowingList';
-import { VerificationModal } from '../VerificationModal';
 import { WarningCard } from '../WarningCard';
 import { ExclamationmarkTriangleFillIcon } from '@navikt/aksel-icons';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
@@ -60,7 +59,6 @@ export const ExpandablePolicyCard = ({
   const [selectedActions, setSelectedActions] = useState(policyRule.Actions);
   const [ruleDescription, setRuleDescription] = useState(policyRule.Description);
   const [selectedSubjectTitles, setSelectedSubjectTitles] = useState(policyRule.Subject);
-  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
 
   const [hasResourceError, setHasResourceError] = useState(policyRule.Resources.length === 0);
   const [hasRightsError, setHasRightsErrors] = useState(policyRule.Actions.length === 0);
@@ -344,15 +342,6 @@ export const ExpandablePolicyCard = ({
     return hasResourceError || hasRightsError || hasSubjectsError;
   };
 
-  /**
-   * Removes the rule and closes the modal
-   */
-  const handleRemoveRule = () => {
-    console.log('inside');
-    handleDeleteRule();
-    setVerificationModalOpen(false);
-  };
-
   return (
     <div className={classes.wrapper}>
       <div className={classes.cardWrapper}>
@@ -360,7 +349,7 @@ export const ExpandablePolicyCard = ({
           title={`Regel ${getPolicyRuleId()}`}
           isCard
           handleDuplicateElement={handleDuplicateRule}
-          handleRemoveElement={() => setVerificationModalOpen(true)}
+          handleRemoveElement={handleDeleteRule}
         >
           <p className={classes.subHeader}>Hvilken ressurser skal regelen gjelde for?</p>
           {displayResources}
@@ -394,14 +383,6 @@ export const ExpandablePolicyCard = ({
               rows={5}
             />
           </div>
-          <VerificationModal
-            isOpen={verificationModalOpen}
-            onClose={() => setVerificationModalOpen(false)}
-            text='Er du sikker på at du vil slette denne regelen?'
-            closeButtonText='Nei, gå tilbake'
-            actionButtonText='Ja, slett regel'
-            onPerformAction={handleRemoveRule}
-          />
         </ExpandablePolicyElement>
       </div>
       {getHasRuleError() && (
