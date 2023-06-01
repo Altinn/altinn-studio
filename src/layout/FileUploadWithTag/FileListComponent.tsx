@@ -2,11 +2,11 @@ import React from 'react';
 
 import { Button, ButtonColor, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@material-ui/core';
-import { PencilIcon } from '@navikt/aksel-icons';
+import { CheckmarkCircleFillIcon, PencilIcon } from '@navikt/aksel-icons';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import { FileName } from 'src/layout/FileUpload/shared/render';
+import { useLanguage } from 'src/hooks/useLanguage';
+import { AttachmentFileName } from 'src/layout/FileUpload/shared/AttachmentFileName';
 import { EditWindowComponent } from 'src/layout/FileUploadWithTag/EditWindowComponent';
 import classes from 'src/layout/FileUploadWithTag/FileListComponent.module.css';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
@@ -14,6 +14,7 @@ import { atleastOneTagExists } from 'src/utils/formComponentUtils';
 import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IOption } from 'src/types';
+
 export interface FileListProps extends PropsFromGenericComponent<'FileUploadWithTag'> {
   attachments: IAttachment[];
   editIndex: number;
@@ -32,10 +33,11 @@ export interface FileListProps extends PropsFromGenericComponent<'FileUploadWith
 export const bytesInOneMB = 1048576;
 
 export function FileList(props: FileListProps): JSX.Element | null {
+  const { lang, langAsString } = useLanguage();
+
   if (!props.attachments || props.attachments.length === 0) {
     return null;
   }
-
   const { textResourceBindings } = props.node.item;
 
   return (
@@ -51,21 +53,15 @@ export function FileList(props: FileListProps): JSX.Element | null {
           {atleastOneTagExists(props.attachments) && (
             <TableHead className={classes.tableHeader}>
               <TableRow className={props.mobileView ? classes.mobileTableRow : ''}>
-                <TableCell align='left'>
-                  {getLanguageFromKey('form_filler.file_uploader_list_header_name', props.language)}
-                </TableCell>
+                <TableCell align='left'>{lang('form_filler.file_uploader_list_header_name')}</TableCell>
                 <TableCell align='left'>
                   {textResourceBindings?.tagTitle && props.getTextResource(textResourceBindings.tagTitle)}
                 </TableCell>
                 {!props.mobileView ? (
-                  <TableCell align='left'>
-                    {getLanguageFromKey('form_filler.file_uploader_list_header_file_size', props.language)}
-                  </TableCell>
+                  <TableCell align='left'>{lang('form_filler.file_uploader_list_header_file_size')}</TableCell>
                 ) : null}
                 {!props.mobileView ? (
-                  <TableCell align='left'>
-                    {getLanguageFromKey('form_filler.file_uploader_list_header_status', props.language)}
-                  </TableCell>
+                  <TableCell align='left'>{lang('form_filler.file_uploader_list_header_status')}</TableCell>
                 ) : null}
                 <TableCell />
               </TableRow>
@@ -83,12 +79,12 @@ export function FileList(props: FileListProps): JSX.Element | null {
                     key={`altinn-file-list-row-${attachment.id}`}
                     className={props.mobileView ? classes.mobileTableRow : ''}
                   >
-                    <TableCell
-                      key={`attachment-name-${index}`}
-                      className={classes.textContainer}
-                    >
+                    <TableCell key={`attachment-name-${index}`}>
                       <div style={{ minWidth: '0px' }}>
-                        <FileName>{props.attachments[index].name}</FileName>
+                        <AttachmentFileName
+                          attachment={props.attachments[index]}
+                          mobileView={props.mobileView}
+                        />
                         {props.mobileView ? (
                           <div
                             style={{
@@ -97,16 +93,11 @@ export function FileList(props: FileListProps): JSX.Element | null {
                           >
                             {attachment.uploaded ? (
                               <div>
-                                {(attachment.size / bytesInOneMB).toFixed(2)}{' '}
-                                {getLanguageFromKey('form_filler.file_uploader_mb', props.language)}
-                                <i
-                                  className='ai ai-check-circle'
+                                {(attachment.size / bytesInOneMB).toFixed(2)} {lang('form_filler.file_uploader_mb')}
+                                <CheckmarkCircleFillIcon
+                                  aria-label={langAsString('form_filler.file_uploader_list_status_done')}
                                   role='img'
-                                  aria-label={getLanguageFromKey(
-                                    'form_filler.file_uploader_list_status_done',
-                                    props.language,
-                                  )}
-                                  style={{ marginLeft: '10px' }}
+                                  style={{ marginLeft: '5px' }}
                                 />
                               </div>
                             ) : (
@@ -116,39 +107,29 @@ export function FileList(props: FileListProps): JSX.Element | null {
                                   marginBottom: '1rem',
                                   marginRight: '0.8125rem',
                                 }}
-                                srContent={getLanguageFromKey('general.loading', props.language)}
+                                srContent={langAsString('general.loading')}
                               />
                             )}
                           </div>
                         ) : null}
                       </div>
                     </TableCell>
-                    <TableCell
-                      key={`attachment-tag-${index}`}
-                      className={classes.textContainer}
-                    >
+                    <TableCell key={`attachment-tag-${index}`}>
                       {label && props.getTextResourceAsString(label)}
                     </TableCell>
                     {!props.mobileView ? (
-                      <TableCell
-                        key={`attachment-size-${index}`}
-                        className={classes.textContainer}
-                      >
-                        {`${(attachment.size / bytesInOneMB).toFixed(2)} ${getLanguageFromKey(
+                      <TableCell key={`attachment-size-${index}`}>
+                        {`${(attachment.size / bytesInOneMB).toFixed(2)} ${langAsString(
                           'form_filler.file_uploader_mb',
-                          props.language,
                         )}`}
                       </TableCell>
                     ) : null}
                     {!props.mobileView ? (
-                      <TableCell
-                        key={`attachment-status-${index}`}
-                        className={classes.textContainer}
-                      >
+                      <TableCell key={`attachment-status-${index}`}>
                         {attachment.uploaded ? (
-                          <div>
-                            {getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)}
-                            <i className='ai ai-check-circle' />
+                          <div className={classes.fileStatus}>
+                            {lang('form_filler.file_uploader_list_status_done')}
+                            <CheckmarkCircleFillIcon aria-hidden={true} />
                           </div>
                         ) : (
                           <AltinnLoader
@@ -157,7 +138,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
                               marginBottom: '1rem',
                               marginRight: '0.8125rem',
                             }}
-                            srContent={getLanguageFromKey('general.loading', props.language)}
+                            srContent={langAsString('general.loading')}
                           />
                         )}
                       </TableCell>
@@ -167,15 +148,15 @@ export function FileList(props: FileListProps): JSX.Element | null {
                       key={`edit-${index}`}
                     >
                       <Button
+                        className={classes.editButton}
                         size={ButtonSize.Small}
                         variant={ButtonVariant.Quiet}
                         color={ButtonColor.Secondary}
                         onClick={() => props.onEdit(index)}
                         icon={<PencilIcon aria-hidden={true} />}
                         iconPlacement='right'
-                        className={classes.customStyleEditButton}
                       >
-                        {getLanguageFromKey('general.edit_alt', props.language)}
+                        {!props.mobileView && lang('general.edit_alt')}
                       </Button>
                     </TableCell>
                   </TableRow>

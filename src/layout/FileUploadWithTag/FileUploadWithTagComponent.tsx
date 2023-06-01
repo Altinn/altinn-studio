@@ -1,5 +1,4 @@
 import React from 'react';
-import { isMobile } from 'react-device-detect';
 import type { FileRejection } from 'react-dropzone';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -9,7 +8,7 @@ import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { DropzoneComponent } from 'src/layout/FileUpload/shared/DropzoneComponent';
 import { handleRejectedFiles } from 'src/layout/FileUpload/shared/handleRejectedFiles';
 import { AttachmentsCounter } from 'src/layout/FileUpload/shared/render';
@@ -62,7 +61,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
         state.formLayout.uiConfig.fileUploadersWithTag[id]?.chosenOptions) ??
       {},
   );
-
+  const { langAsString } = useLanguage();
   const attachments: IAttachment[] = useAppSelector((state: IRuntimeState) => state.attachments.attachments[id] || []);
 
   const setValidationsFromArray = (validationArray: string[]) => {
@@ -102,7 +101,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       const tmpValidations: { id: string; message: string }[] = [];
       tmpValidations.push({
         id: attachment.id,
-        message: `${getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', language)} ${(
+        message: `${langAsString('form_filler.file_uploader_validation_error_no_chosen_tag')} ${(
           getTextResource(textResourceBindings?.tagTitle || '') || ''
         )
           .toString()
@@ -156,13 +155,9 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     if (totalAttachments > maxNumberOfAttachments) {
       // if the user adds more attachments than max, all should be ignored
       setValidationsFromArray([
-        `${getLanguageFromKey(
+        `${langAsString(
           'form_filler.file_uploader_validation_error_exceeds_max_files_1',
-          language,
-        )} ${maxNumberOfAttachments} ${getLanguageFromKey(
-          'form_filler.file_uploader_validation_error_exceeds_max_files_2',
-          language,
-        )}`,
+        )} ${maxNumberOfAttachments} ${langAsString('form_filler.file_uploader_validation_error_exceeds_max_files_2')}`,
       ]);
     } else {
       // we should upload all files, if any rejected files we should display an error
@@ -215,8 +210,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       {shouldShowFileUpload() && (
         <DropzoneComponent
           id={id}
-          isMobile={isMobile}
-          language={language}
+          isMobile={mobileView}
           maxFileSizeInMB={maxFileSizeInMB}
           readOnly={!!readOnly}
           onClick={handleClick}

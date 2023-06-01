@@ -1,0 +1,28 @@
+.file {
+  display: flex;
+  text-overflow: ellipsis;
+  gap: 5px;
+}
+.primaryColor {
+  color: #0062ba;
+}
+
+.icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.download {
+  display: flex;
+  padding: 0;
+}
+
+.truncate {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.extension {
+  white-space: nowrap;
+}

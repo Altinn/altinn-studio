@@ -20,7 +20,7 @@ describe('FileUploadWithTagComponent', () => {
 
       render({ attachments });
 
-      expect(screen.getByText(/general\.loading/i)).toBeInTheDocument();
+      expect(screen.getByText('Laster innhold')).toBeInTheDocument();
     });
 
     it('should not show spinner when file status has uploaded=true', () => {
@@ -29,7 +29,7 @@ describe('FileUploadWithTagComponent', () => {
 
       render({ attachments });
 
-      expect(screen.queryByText(/general\.loading/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
     });
   });
 
@@ -40,7 +40,7 @@ describe('FileUploadWithTagComponent', () => {
 
       render({ attachments, editIndex: 0 });
 
-      expect(screen.getByText(/general\.loading/i)).toBeInTheDocument();
+      expect(screen.getByText('Laster innhold')).toBeInTheDocument();
     });
 
     it('should not show spinner in edit mode when file status has updating=false', () => {
@@ -49,7 +49,7 @@ describe('FileUploadWithTagComponent', () => {
 
       render({ attachments, editIndex: 0 });
 
-      expect(screen.queryByText(/general\.loading/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
     });
   });
 
@@ -80,7 +80,7 @@ describe('FileUploadWithTagComponent', () => {
 
       expect(
         screen.getByRole('button', {
-          name: /general\.save/i,
+          name: 'Lagre',
         }),
       ).not.toBeDisabled();
     });
@@ -96,7 +96,7 @@ describe('FileUploadWithTagComponent', () => {
 
       expect(
         screen.getByRole('button', {
-          name: /general\.save/i,
+          name: 'Lagre',
         }),
       ).toBeDisabled();
     });
@@ -109,7 +109,7 @@ describe('FileUploadWithTagComponent', () => {
 
       expect(
         screen.getByRole('button', {
-          name: /general\.save/i,
+          name: 'Lagre',
         }),
       ).toBeDisabled();
     });
@@ -122,7 +122,7 @@ describe('FileUploadWithTagComponent', () => {
 
       expect(
         screen.queryByRole('button', {
-          name: /general\.save/i,
+          name: 'Lagre',
         }),
       ).not.toBeInTheDocument();
     });
@@ -135,7 +135,7 @@ describe('FileUploadWithTagComponent', () => {
 
       expect(
         screen.getByRole('button', {
-          name: /general\.save/i,
+          name: 'Lagre',
         }),
       ).toBeInTheDocument();
     });
@@ -148,7 +148,7 @@ describe('FileUploadWithTagComponent', () => {
 
       expect(
         screen.queryByRole('button', {
-          name: /general\.save/i,
+          name: 'Lagre',
         }),
       ).not.toBeInTheDocument();
     });
@@ -163,7 +163,7 @@ describe('FileUploadWithTagComponent', () => {
 
       expect(
         screen.getByRole('presentation', {
-          name: /form_filler\.file_uploader_drag form_filler\.file_uploader_find form_filler\.file_uploader_valid_file_format form_filler\.file_upload_valid_file_format_all/i,
+          name: 'Dra og slipp eller let etter fil Tillatte filformater er: alle',
         }),
       ).toBeInTheDocument();
     });
@@ -176,7 +176,7 @@ describe('FileUploadWithTagComponent', () => {
 
       expect(
         screen.queryByRole('presentation', {
-          name: /form_filler\.file_uploader_drag form_filler\.file_uploader_find form_filler\.file_uploader_valid_file_format form_filler\.file_upload_valid_file_format_all/i,
+          name: 'Dra og slipp eller let etter fil Tillatte filformater er: alle',
         }),
       ).not.toBeInTheDocument();
     });

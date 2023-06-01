@@ -1,0 +1,56 @@
+.blueUnderline {
+  border-bottom: 2px solid #1eadf7;
+}
+
+.blueUnderlineDotted {
+  border-bottom: 1px dotted #1eadf7;
+}
+
+.fileUploadTable > tbody > tr > td {
+  padding: 10px 4px 10px 6px;
+}
+.fileUploadTable > thead > tr > th {
+  font-size: 0.875rem;
+  padding: 4px 4px 4px 6px;
+}
+
+.deleteButton {
+  float: right;
+  padding-right: 0;
+}
+
+.fileUploadTable > tbody > tr > td:first-child {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.fileUploadTable {
+  width: 100%;
+  margin-top: 1.5rem;
+  border-spacing: 0 0.75rem;
+  table-layout: fixed;
+  box-shadow: none;
+}
+
+.fileStatus {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.fileUploadButton {
+  cursor: pointer;
+  background: 0;
+  font-size: 1rem;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  padding: 0;
+  margin-top: 1.5rem;
+}
+
+.deleteLoader {
+  margin-bottom: 1rem;
+  margin-right: 0.5rem;
+  float: right;
+}

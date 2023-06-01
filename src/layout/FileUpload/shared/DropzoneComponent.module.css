@@ -1,0 +1,47 @@
+.uploadIcon {
+  font-size: 3rem !important;
+  margin-bottom: 15px;
+}
+
+.fileUploadWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fileUploadTextBold {
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 0.375rem;
+}
+.blueUnderLine {
+  border-bottom: 2px solid #1eadf7 !important;
+}
+
+.fileUploadTextBoldSmall {
+  font-weight: bold;
+  font-size: 0.75rem;
+  margin-bottom: 0;
+}
+
+.fileUploadText {
+  font-weight: 300;
+  font-size: 1rem;
+}
+
+.fileUploadInvalid:focus {
+  border-style: solid !important;
+  outline-color: #e23b53 !important;
+  border-color: #e23b53 !important;
+}
+
+.fileUpload:hover {
+  border-style: solid !important;
+}
+
+.fileUpload:focus {
+  border-color: #0062ba !important;
+  border-style: solid !important;
+  outline: 2px solid #0062ba;
+  outline-offset: 0px;
+}

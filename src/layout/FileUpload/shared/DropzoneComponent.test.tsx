@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 
 import { DropzoneComponent } from 'src/layout/FileUpload/shared/DropzoneComponent';
+import { renderWithProviders } from 'src/testUtils';
 import type { IDropzoneComponentProps } from 'src/layout/FileUpload/shared/DropzoneComponent';
 
 describe('DropzoneComponent', () => {
@@ -48,7 +49,7 @@ describe('DropzoneComponent', () => {
       validFileEndings,
       textResourceBindings,
     } as IDropzoneComponentProps;
-    render(
+    renderWithProviders(
       <DropzoneComponent
         {...defaultProps}
         {...props}

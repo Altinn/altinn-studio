@@ -2,7 +2,8 @@ import React from 'react';
 import DropZone from 'react-dropzone';
 import type { FileRejection } from 'react-dropzone';
 
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import { useLanguage } from 'src/hooks/useLanguage';
+import classes from 'src/layout/FileUpload/shared/DropzoneComponent.module.css';
 import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/shared/mapExtensionToAcceptMime';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
@@ -11,7 +12,6 @@ import type { ITextResourceBindings } from 'src/types';
 export interface IDropzoneComponentProps {
   id: string;
   isMobile: boolean;
-  language: any;
   maxFileSizeInMB: number;
   readOnly: boolean;
   onClick: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -52,7 +52,6 @@ export const validationErrorStyle = {
 export function DropzoneComponent({
   id,
   isMobile,
-  language,
   maxFileSizeInMB,
   readOnly,
   onClick,
@@ -63,15 +62,15 @@ export function DropzoneComponent({
   textResourceBindings,
 }: IDropzoneComponentProps): JSX.Element {
   const maxSizeLabelId = `file-upload-max-size-${id}`;
+  const { lang, langAsString } = useLanguage();
   return (
     <div>
       <div
-        className='file-upload-text-bold-small'
+        className={classes.fileUploadTextBoldSmall}
         id={maxSizeLabelId}
       >
-        {`${getLanguageFromKey('form_filler.file_uploader_max_size', language)} ${maxFileSizeInMB} ${getLanguageFromKey(
+        {`${langAsString('form_filler.file_uploader_max_size')} ${maxFileSizeInMB} ${langAsString(
           'form_filler.file_uploader_mb',
-          language,
         )}`}
       </div>
       <DropZone
@@ -106,7 +105,7 @@ export function DropzoneComponent({
               style={styles}
               id={`altinn-drop-zone-${id}`}
               data-testid={`altinn-drop-zone-${id}`}
-              className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}
+              className={`${classes.fileUpload}${hasValidationMessages ? classes.fileUploadInvalid : ''}`}
               aria-labelledby={labelId}
               aria-describedby={ariaDescribedBy}
             >
@@ -114,22 +113,23 @@ export function DropzoneComponent({
                 {...getInputProps()}
                 id={id}
               />
-              <div className='container'>
+              <div className={`container ${classes.fileUploadWrapper}`}>
                 <div className='col text-center icon'>
-                  <i className='ai ai-upload' />
+                  <i className={`ai ai-upload ${classes.uploadIcon}`} />
                 </div>
                 <div className='col text-center'>
                   <span
                     id={dragLabelId}
-                    className='file-upload-text-bold'
+                    className={`${classes.fileUploadTextBold}`}
                   >
                     {isMobile ? (
-                      <>{getLanguageFromKey('form_filler.file_uploader_upload', language)}</>
+                      lang('form_filler.file_uploader_upload')
                     ) : (
                       <>
-                        {getLanguageFromKey('form_filler.file_uploader_drag', language)}
-                        <span className='file-upload-text-bold blue-underline'>
-                          {` ${getLanguageFromKey('form_filler.file_uploader_find', language)}`}
+                        {langAsString('form_filler.file_uploader_drag')}
+                        <span className={`${classes.fileUploadTextBold} ${classes.blueUnderLine}`}>
+                          {' '}
+                          {langAsString('form_filler.file_uploader_find')}
                         </span>
                       </>
                     )}
@@ -138,12 +138,12 @@ export function DropzoneComponent({
                 <div className='col text-center'>
                   <span
                     id={formatLabelId}
-                    className='file-upload-text'
+                    className={classes.fileUploadText}
                   >
-                    {getLanguageFromKey('form_filler.file_uploader_valid_file_format', language)}
+                    {langAsString('form_filler.file_uploader_valid_file_format')}
                     {hasCustomFileEndings
                       ? ` ${validFileEndings}`
-                      : ` ${getLanguageFromKey('form_filler.file_upload_valid_file_format_all', language)}`}
+                      : ` ${langAsString('form_filler.file_upload_valid_file_format_all')}`}
                   </span>
                 </div>
               </div>

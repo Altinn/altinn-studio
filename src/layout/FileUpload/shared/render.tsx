@@ -1,26 +1,6 @@
 import React from 'react';
 
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
-import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
-
-export const FileName = ({ children }: { children: string | undefined }) => (
-  <div
-    style={{
-      display: 'flex',
-    }}
-  >
-    <div
-      style={{
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {removeFileEnding(children)}
-    </div>
-    <div>{getFileEnding(children)}</div>
-  </div>
-);
 
 interface IAttachmentsCounterProps {
   language: any;

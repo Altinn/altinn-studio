@@ -19,7 +19,7 @@ describe('FileUploadComponent', () => {
 
     expect(
       screen.getByRole('button', {
-        name: /form_filler\.file_uploader_add_attachment/i,
+        name: 'Legg til flere vedlegg',
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(/form_filler\.file_uploader_number_of_files 2\/3\./i)).toBeInTheDocument();
@@ -33,7 +33,7 @@ describe('FileUploadComponent', () => {
 
     expect(
       screen.queryByRole('button', {
-        name: /form_filler\.file_uploader_add_attachment/i,
+        name: 'Legg til flere vedlegg',
       }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(/form_filler\.file_uploader_number_of_files 3\/3\./i)).toBeInTheDocument();
@@ -46,7 +46,7 @@ describe('FileUploadComponent', () => {
 
       render({ attachments });
 
-      expect(screen.getByText(/general\.loading/i)).toBeInTheDocument();
+      expect(screen.getByText('Laster innhold')).toBeInTheDocument();
     });
 
     it('should not show loading when file uploaded=true', () => {
@@ -55,7 +55,7 @@ describe('FileUploadComponent', () => {
 
       render({ attachments });
 
-      expect(screen.queryByText(/general\.loading/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
     });
 
     it('should show loading when file deleting=true', () => {
@@ -64,7 +64,7 @@ describe('FileUploadComponent', () => {
 
       render({ attachments });
 
-      expect(screen.getByText(/general\.loading/i)).toBeInTheDocument();
+      expect(screen.getByText('Laster innhold')).toBeInTheDocument();
     });
 
     it('should not show loading when file deleting=false', () => {
@@ -73,7 +73,7 @@ describe('FileUploadComponent', () => {
 
       render({ attachments });
 
-      expect(screen.queryByText(/general\.loading/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
     });
   });
 
