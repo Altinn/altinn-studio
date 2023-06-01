@@ -204,12 +204,14 @@ export const EditFormContainer = ({
           {items.length > 0 && (
             <CheckboxGroup
               error={tableHeadersError}
-              items={items.map((id) => ({
-                label: getTextResource(components[id].textResourceBindings?.title, textResources),
-                name: id,
-                checked:
-                  container.tableHeaders === undefined || container.tableHeaders.includes(id),
-              }))}
+              items={items
+                .filter((id) => !!components[id])
+                .map((id) => ({
+                  label: getTextResource(components[id].textResourceBindings?.title, textResources),
+                  name: id,
+                  checked:
+                    container.tableHeaders === undefined || container.tableHeaders.includes(id),
+                }))}
               legend={t('ux_editor.modal_properties_group_table_headers')}
               onChange={handleTableHeadersChange}
             />
