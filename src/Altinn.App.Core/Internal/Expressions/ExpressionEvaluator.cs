@@ -76,6 +76,7 @@ public static class ExpressionEvaluator
             ExpressionFunction.and => And(args),
             ExpressionFunction.or => Or(args),
             ExpressionFunction.not => Not(args),
+            ExpressionFunction.gatewayAction => state.GetGatewayAction(),
             _ => throw new ExpressionEvaluatorTypeErrorException($"Function \"{expr.Function}\" not implemented"),
         };
         return ret;
@@ -191,6 +192,8 @@ public static class ExpressionEvaluator
         {
             bool ab => throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value {(ab ? "true" : "false")}"),
             string s => parseNumber(s),
+            decimal d => (double)d,
+            int i => (double)i,
             object o => o as double?, // assume all relevant numers are representable as double (as in frontend)
             _ => null,
         };
@@ -199,6 +202,8 @@ public static class ExpressionEvaluator
         {
             bool bb => throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value {(bb ? "true" : "false")}"),
             string s => parseNumber(s),
+            decimal d => (double)d,
+            int i => (double)i,
             object o => o as double?, // assume all relevant numers are representable as double (as in frontend)
             _ => null,
         };

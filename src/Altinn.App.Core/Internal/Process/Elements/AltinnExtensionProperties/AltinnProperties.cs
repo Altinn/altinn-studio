@@ -20,5 +20,11 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         //[XmlElement(ElementName = "taskType", Namespace = "http://altinn.no", IsNullable = true)]
         [XmlElement("taskType", Namespace = "http://altinn.no")]
         public string? TaskType { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the data type id connected to the task
+        /// </summary>
+        [XmlElement("connectedDataTypeId", Namespace = "http://altinn.no", IsNullable = true)]
+        public string? ConnectedDataTypeId { get; set; }
     }
 }

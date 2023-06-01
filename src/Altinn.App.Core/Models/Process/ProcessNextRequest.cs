@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Internal.Process;
+namespace Altinn.App.Core.Models.Process;
 
 /// <summary>
 /// Class that defines the request for moving the process to the next task

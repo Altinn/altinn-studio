@@ -6,6 +6,7 @@ using Altinn.App.Core.Tests.Internal.Process.TestUtils;
 using Altinn.App.PlatformServices.Tests.Internal.Process.StubGatewayFilters;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
@@ -185,6 +186,6 @@ public class ProcessNavigatorTests
     private static IProcessNavigator SetupProcessNavigator(string bpmnfile, IEnumerable<IProcessExclusiveGateway> gatewayFilters)
     {
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        return new ProcessNavigator(pr, new ExclusiveGatewayFactory(gatewayFilters));
+        return new ProcessNavigator(pr, new ExclusiveGatewayFactory(gatewayFilters), new NullLogger<ProcessNavigator>());
     }
 }

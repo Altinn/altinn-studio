@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Models
+namespace Altinn.App.Core.Models.Process
 {
     /// <summary>
     /// Represents a change in process state for an instance.

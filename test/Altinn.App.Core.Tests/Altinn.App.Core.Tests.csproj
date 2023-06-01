@@ -85,6 +85,10 @@
     <EmbeddedResource Include="Internal\Pdf\TestData\example.pdf" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="LayoutExpressions\CommonTests\exclusive-tests\functions\" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>

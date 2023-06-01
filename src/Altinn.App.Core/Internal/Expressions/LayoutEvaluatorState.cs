@@ -16,16 +16,18 @@ public class LayoutEvaluatorState
     private readonly LayoutModel _componentModel;
     private readonly FrontEndSettings _frontEndSettings;
     private readonly Instance _instanceContext;
+    private readonly string? _gatewayAction;
 
     /// <summary>
     /// Constructor for LayoutEvaluatorState. Usually called via <see cref="LayoutEvaluatorStateInitializer" /> that can be fetched from dependency injection.
     /// </summary>
-    public LayoutEvaluatorState(IDataModelAccessor dataModel, LayoutModel componentModel, FrontEndSettings frontEndSettings, Instance instance)
+    public LayoutEvaluatorState(IDataModelAccessor dataModel, LayoutModel componentModel, FrontEndSettings frontEndSettings, Instance instance, string? gatewayAction = null)
     {
         _dataModel = dataModel;
         _componentModel = componentModel;
         _frontEndSettings = frontEndSettings;
         _instanceContext = instance;
+        _gatewayAction = gatewayAction;
     }
 
 
@@ -182,6 +184,15 @@ public class LayoutEvaluatorState
             ),
             _ => throw new ExpressionEvaluatorTypeErrorException($"Unknown Instance context property {key}"),
         };
+    }
+
+    /// <summary>
+    /// Get the gateway action from the instance context
+    /// </summary>
+    /// <returns>Returns null if no action defined</returns>
+    public string? GetGatewayAction()
+    {
+        return _gatewayAction;
     }
 
     /// <summary>

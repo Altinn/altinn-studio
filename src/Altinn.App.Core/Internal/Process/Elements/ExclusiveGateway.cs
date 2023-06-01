@@ -13,6 +13,12 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// </summary>
         [XmlAttribute("default")]
         public string? Default { get; set; }
+        
+        /// <summary>
+        ///
+        /// </summary>
+        [XmlElement("extensionElements")]
+        public ExtensionElements? ExtensionElements { get; set; }
 
         /// <summary>
         /// String representation of process element type

@@ -29,9 +29,9 @@ public class LayoutEvaluatorStateInitializer
     /// <summary>
     /// Initialize LayoutEvaluatorState with given Instance, data object and layoutSetId
     /// </summary>
-    public Task<LayoutEvaluatorState> Init(Instance instance, object data, string? layoutSetId)
+    public Task<LayoutEvaluatorState> Init(Instance instance, object data, string? layoutSetId, string? gatewayAction = null)
     {
         var layouts = _appResources.GetLayoutModel(layoutSetId);
-        return Task.FromResult(new LayoutEvaluatorState(new DataModel(data), layouts, _frontEndSettings, instance));
+        return Task.FromResult(new LayoutEvaluatorState(new DataModel(data), layouts, _frontEndSettings, instance, gatewayAction));
     }
 }

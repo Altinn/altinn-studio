@@ -1,4 +1,4 @@
-namespace Altinn.App.Core.Models
+namespace Altinn.App.Core.Models.Process
 {
     /// <summary>
     /// Class representing the result of a process change

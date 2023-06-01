@@ -1,7 +1,9 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.Process;
 
@@ -12,16 +14,19 @@ public class ProcessNavigator : IProcessNavigator
 {
     private readonly IProcessReader _processReader;
     private readonly ExclusiveGatewayFactory _gatewayFactory;
+    private readonly ILogger<ProcessNavigator> _logger;
 
     /// <summary>
     /// Initialize a new instance of <see cref="ProcessNavigator"/>
     /// </summary>
     /// <param name="processReader">The process reader</param>
     /// <param name="gatewayFactory">Service to fetch wanted gateway filter implementation</param>
-    public ProcessNavigator(IProcessReader processReader, ExclusiveGatewayFactory gatewayFactory)
+    /// <param name="logger">The logger</param>
+    public ProcessNavigator(IProcessReader processReader, ExclusiveGatewayFactory gatewayFactory, ILogger<ProcessNavigator> logger)
     {
         _processReader = processReader;
         _gatewayFactory = gatewayFactory;
+        _logger = logger;
     }
 
 
@@ -60,8 +65,15 @@ public class ProcessNavigator : IProcessNavigator
             }
 
             var gateway = (ExclusiveGateway)directFlowTarget;
-            IProcessExclusiveGateway? gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway(directFlowTarget.Id);
             List<SequenceFlow> outgoingFlows = _processReader.GetOutgoingSequenceFlows(directFlowTarget);
+            IProcessExclusiveGateway? gatewayFilter = null;
+            if(outgoingFlows.Any(a => a.ConditionExpression != null))
+            {
+                gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway("AltinnExpressionsExclusiveGateway");
+            } else
+            {
+                gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway(directFlowTarget.Id);
+            }
             List<SequenceFlow> filteredList;
             if (gatewayFilter == null)
             {
@@ -69,9 +81,14 @@ public class ProcessNavigator : IProcessNavigator
             }
             else
             {
-                filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance, action);
+                ProcessGatewayInformation gatewayInformation = new()
+                {
+                    Action = action,
+                    DataTypeId = gateway.ExtensionElements?.AltinnProperties?.ConnectedDataTypeId
+                };
+                
+                filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance, gatewayInformation);
             }
-
             var defaultSequenceFlow = filteredList.Find(s => s.Id == gateway.Default);
             if (defaultSequenceFlow != null)
             {
@@ -84,7 +101,7 @@ public class ProcessNavigator : IProcessNavigator
                 filteredNext.AddRange(await NextFollowAndFilterGateways(instance, filteredTargets, action));
             }
         }
-
+        _logger.LogDebug("Filtered next elements: {FilteredNextElements}", string.Join(", ", filteredNext.Select(e => e.Id)));
         return filteredNext;
     }
 
