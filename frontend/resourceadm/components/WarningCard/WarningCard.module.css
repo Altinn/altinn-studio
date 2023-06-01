@@ -1,0 +1,10 @@
+.wrapper {
+  display: flex;
+  background-color: #F9CAD3;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.25);
+  padding: 12px;
+}
+
+.iconWrapper {
+  margin-right: 10px;
+}

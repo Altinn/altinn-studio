@@ -8,6 +8,8 @@ import { ResourceDashboard } from '../pages/ResourceDashboard';
 import { RessurstilgangSide1 } from '../pages/RessurstilgangSide1';
 import { OlsenbandenPage } from '../pages/OlsenbandenPage';
 import { TestPage } from '../pages/TestPage';
+import { PolicyEditorStartPage } from 'resourceadm/pages/PolicyEditorStartPage';
+import { PolicyEditor } from 'resourceadm/pages/PolicyEditor';
 
 import { Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -17,9 +19,7 @@ import { useOrganizationsQuery } from '../hooks/queries';
 
 import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
 
-
 export const App = (): JSX.Element => {
-
   const { t } = useTranslation();
 
   const { data: user, isError: isUserError } = useUserQuery();
@@ -58,19 +58,26 @@ export const App = (): JSX.Element => {
     return (
       <div className={classes.root}>
         <Routes>
-
-        <Route element={ <TestPage /> } >
-            <Route path='/' element={ <ResourceDashboard user = {user} organizations={organizations} /> } />
+          <Route element={<TestPage />}>
+            <Route
+              path='/'
+              element={<ResourceDashboard user={user} organizations={organizations} />}
+            />
           </Route>
 
           <Route element={<PageLayout />}>
-            <Route path='/skatt/repo1'  element={ <ResourceDashboard user = {user} organizations={organizations} /> } />
+            <Route
+              path='/skatt/repo1'
+              element={<ResourceDashboard user={user} organizations={organizations} />}
+            />
           </Route>
 
-          <Route path='/skatt/dummy1' element={ <RessurstilgangSide1 /> } />
+          <Route path='/skatt/dummy1' element={<RessurstilgangSide1 />} />
 
-          <Route path='/olsenbanden' element={ <OlsenbandenPage /> } />
+          <Route path='/olsenbanden' element={<OlsenbandenPage />} />
 
+          <Route path='/PolicyEditorStartPage' element={<PolicyEditorStartPage />} />
+          <Route path='/policyEditor' element={<PolicyEditor />} />
         </Routes>
       </div>
     );

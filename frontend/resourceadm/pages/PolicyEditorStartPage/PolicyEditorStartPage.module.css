@@ -1,0 +1,23 @@
+.wrapper {
+  padding: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contentWrapper {
+  background: #DEDEDE;
+  padding-block: 20px;
+  padding-inline: 40px;
+  border-radius: 15px;
+}
+
+.buttonWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.buttonWrapper > button {
+  margin-top: 20px;
+}
