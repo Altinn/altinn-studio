@@ -94,7 +94,7 @@ export const ResourceDashboard = ({
         <Button
           type='button'
           onClick={() => {
-            navigate('/resource', {
+            navigate('/resource/about', {
               state: {
                 resourceId: resourceIdMock1,
                 resourceType: resourceTypeMock1,

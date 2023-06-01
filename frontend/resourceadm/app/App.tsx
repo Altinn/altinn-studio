@@ -80,7 +80,7 @@ export const App = (): JSX.Element => {
           <Route path='/PolicyEditorStartPage' element={<PolicyEditorStartPage />} />
           <Route path='/policyEditor' element={<PolicyEditor />} />
 
-          <Route path='/resource' element={<ResourcePage />} />
+          <Route path={`/resource/:pageType`} element={<ResourcePage />} />
         </Routes>
       </div>
     );
