@@ -22,6 +22,7 @@ export enum EditSettings {
   Title = 'title',
   Description = 'description',
   Help = 'help',
+  TagTitle = 'tagTitle',
   DataModelBindings = 'dataModelBindings',
   Size = 'size',
   ReadOnly = 'readonly',
@@ -74,10 +75,13 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
     EditSettings.AutoComplete,
   ],
   [ComponentType.AddressComponent]: [EditSettings.Title, EditSettings.Help],
+  [ComponentType.FileUpload]: [EditSettings.Title, EditSettings.Description, EditSettings.Help],
   [ComponentType.FileUploadWithTag]: [
     EditSettings.Title,
     EditSettings.Description,
     EditSettings.Help,
+    EditSettings.TagTitle,
+    EditSettings.CodeList,
   ],
   [ComponentType.Panel]: [EditSettings.Title],
   [ComponentType.Map]: [EditSettings.ReadOnly],
@@ -91,8 +95,8 @@ export const configComponents: IConfigComponents = {
       component={component}
       handleComponentChange={handleComponentChange}
       textKey={EditSettings.Title}
-      labelKey='ux_editor.modal_properties_label'
-      placeholderKey='ux_editor.modal_properties_label_add'
+      labelKey='ux_editor.modal_properties_textResourceBindings_title'
+      placeholderKey='ux_editor.modal_properties_textResourceBindings_title_add'
     />
   ),
   [EditSettings.ReadOnly]: EditReadOnly,
@@ -102,8 +106,17 @@ export const configComponents: IConfigComponents = {
       component={component}
       handleComponentChange={handleComponentChange}
       textKey={EditSettings.Description}
-      labelKey='ux_editor.modal_properties_description'
-      placeholderKey='ux_editor.modal_properties_description_add'
+      labelKey='ux_editor.modal_properties_textResourceBindings_description'
+      placeholderKey='ux_editor.modal_properties_textResourceBindings_description_add'
+    />
+  ),
+  [EditSettings.TagTitle]: ({ component, handleComponentChange }: IGenericEditComponent) => (
+    <EditTextResourceBinding
+      component={component}
+      handleComponentChange={handleComponentChange}
+      textKey={EditSettings.TagTitle}
+      labelKey='ux_editor.modal_properties_textResourceBindings_tag'
+      placeholderKey='ux_editor.modal_properties_textResourceBindings_tag_add'
     />
   ),
   [EditSettings.Options]: EditOptions,
@@ -115,8 +128,8 @@ export const configComponents: IConfigComponents = {
       component={component}
       handleComponentChange={handleComponentChange}
       textKey={EditSettings.Help}
-      labelKey='ux_editor.modal_properties_helptext'
-      placeholderKey='ux_editor.modal_properties_helptext_add'
+      labelKey='ux_editor.modal_properties_textResourceBindings_help'
+      placeholderKey='ux_editor.modal_properties_textResourceBindings_help_add'
     />
   ),
 };

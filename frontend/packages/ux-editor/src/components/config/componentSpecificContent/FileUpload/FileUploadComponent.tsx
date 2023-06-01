@@ -2,14 +2,12 @@ import React from 'react';
 import { FieldSet, RadioGroup, RadioGroupVariant, TextField } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
-import { EditSettings, IGenericEditComponent } from '../../componentConfig';
-import { TextResource } from '../../../TextResource';
+import { IGenericEditComponent } from '../../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type {
   FormFileUploaderComponent,
   FormFileUploaderWithTagComponent,
 } from '../../../../types/FormComponent';
-import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 
 export const FileUploadComponent = ({
   component,
@@ -22,19 +20,6 @@ export const FileUploadComponent = ({
 
   const handleDisplayModeChange = (displayMode: string) =>
     handleComponentChange({ ...component, displayMode });
-
-  const handleTagTitleChange = (id: string): void => {
-    const updatedComponent = { ...component };
-    updatedComponent.textResourceBindings.tagTitle = id;
-    handleComponentChange(updatedComponent);
-  };
-
-  const handleOptionsIdChange = (e: any) => {
-    handleComponentChange({
-      ...component,
-      optionsId: e.target.value,
-    });
-  };
 
   const handleHasCustomFileEndingsChange = (value: string) => {
     const componentCopy = { ...component } as
@@ -77,81 +62,6 @@ export const FileUploadComponent = ({
 
   return (
     <FieldSet className={classes.fieldset}>
-      {component.type === ComponentType.FileUpload ? (
-        <>
-          <RadioGroup
-            items={[
-              {
-                label: t('ux_editor.modal_properties_file_upload_simple'),
-                value: 'simple',
-              },
-              {
-                label: t('ux_editor.modal_properties_file_upload_list'),
-                value: 'list',
-              },
-            ]}
-            name={`${component.id}-display-mode`}
-            onChange={handleDisplayModeChange}
-            value={fileUploaderComponent.displayMode}
-            variant={RadioGroupVariant.Horizontal}
-          />
-          <FieldSet className={classes.fieldset}>
-            <EditTextResourceBinding
-              component={component}
-              handleComponentChange={handleComponentChange}
-              textKey={EditSettings.Title}
-              labelKey='ux_editor.modal_properties_label'
-              placeholderKey='ux_editor.modal_properties_label_add'
-            />
-            <EditTextResourceBinding
-              component={component}
-              handleComponentChange={handleComponentChange}
-              textKey={EditSettings.Description}
-              labelKey='ux_editor.modal_properties_description'
-              placeholderKey='ux_editor.modal_properties_description_add'
-            />
-            <EditTextResourceBinding
-              component={component}
-              handleComponentChange={handleComponentChange}
-              textKey={EditSettings.Help}
-              labelKey='ux_editor.modal_properties_helptext'
-              placeholderKey='ux_editor.modal_properties_helptext_add'
-            />
-          </FieldSet>
-        </>
-      ) : (
-        <>
-          <TextResource
-            handleIdChange={handleTagTitleChange}
-            label={t('ux_editor.modal_properties_tag')}
-            placeholder={t('ux_editor.modal_properties_tag_add')}
-            textResourceId={component.textResourceBindings?.tagTitle}
-            generateIdOptions={{
-              componentId: component.id,
-              layoutId: layoutName,
-              textResourceKey: 'tagTitle',
-            }}
-          />
-          <div>
-            <TextField
-              id='modal-properties-code-list-id'
-              label={t('ux_editor.modal_properties_code_list_id')}
-              onChange={handleOptionsIdChange}
-              value={component.optionsId}
-            />
-          </div>
-          <p>
-            <a
-              target='_blank'
-              rel='noopener noreferrer'
-              href='https://docs.altinn.studio/app/development/data/options/'
-            >
-              {t('ux_editor.modal_properties_code_list_read_more')}
-            </a>
-          </p>
-        </>
-      )}
-
       <RadioGroup
         items={[
           {
@@ -175,6 +85,24 @@ export const FileUploadComponent = ({
           label={t('ux_editor.modal_properties_valid_file_endings_helper')}
           onChange={handleValidFileEndingsChange}
           value={fileUploaderComponent.validFileEndings}
+        />
+      )}
+      {component.type === ComponentType.FileUpload && (
+        <RadioGroup
+          items={[
+            {
+              label: t('ux_editor.modal_properties_file_upload_simple'),
+              value: 'simple',
+            },
+            {
+              label: t('ux_editor.modal_properties_file_upload_list'),
+              value: 'list',
+            },
+          ]}
+          name={`${component.id}-display-mode`}
+          onChange={handleDisplayModeChange}
+          value={fileUploaderComponent.displayMode}
+          variant={RadioGroupVariant.Horizontal}
         />
       )}
       <div>
