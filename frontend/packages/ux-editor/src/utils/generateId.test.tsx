@@ -1,6 +1,6 @@
 import { IFormLayouts } from '../types/global';
 import { generateComponentId, generateTextResourceId } from './generateId';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 describe('generateComponentId', () => {
   const layouts: IFormLayouts = {

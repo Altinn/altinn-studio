@@ -7,8 +7,8 @@ import { setCurrentEditId } from '../features/appData/textResources/textResource
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
-import { selectedLayoutSelector } from '../selectors/formLayoutSelectors';
+import { useFormLayoutsSelector } from '../hooks';
+import { selectedLayoutSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { useRuleConfigMutation } from '../hooks/mutations/useRuleConfigMutation';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { switchSelectedFieldId } from '../utils/ruleConfigUtils';
@@ -40,17 +40,18 @@ type FormContextProviderProps = {
 export const FormContextProvider = ({ children }: FormContextProviderProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useParams();
+  const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
 
   const [formId, setFormId] = useState<string>();
   const [form, setForm] = useState<FormContainer | FormComponent>();
 
-  const { data: ruleConfig } = useRuleConfigQuery(org, app);
-  const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app);
-  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSetName);
+  const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutSetName);
+  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSetName);
   const { components } = useFormLayoutsSelector(selectedLayoutSelector);
 
-  const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(org, app);
-  const { mutateAsync: updateContainerId } = useUpdateContainerIdMutation(org, app);
+  const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(org, app, selectedLayoutSetName);
+  const { mutateAsync: updateContainerId } = useUpdateContainerIdMutation(org, app, selectedLayoutSetName);
 
   const handleUpdateFormContainer = useCallback(
     updateFormContainer,

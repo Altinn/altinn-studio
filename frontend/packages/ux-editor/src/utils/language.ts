@@ -1,6 +1,6 @@
 import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import i18next from 'i18next';
 
 export function getComponentHelperTextByComponentType(type: ComponentType, language: any): string {

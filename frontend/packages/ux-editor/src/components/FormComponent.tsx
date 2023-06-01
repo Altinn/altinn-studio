@@ -5,7 +5,7 @@ import cn from 'classnames';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import { ComponentPreview } from '../containers/ComponentPreview';
-import { ComponentType } from './index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './dragAndDrop/DragHandle';
@@ -13,12 +13,11 @@ import { ITextResource } from 'app-shared/types/global';
 import { XMarkIcon, TrashIcon, PencilIcon, CheckmarkIcon, MonitorIcon } from '@navikt/aksel-icons';
 import { formItemConfigs } from '../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
-import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../hooks/mutations/useDeleteFormComponentMutation';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector, useTextResourcesSelector } from '../hooks';
 import { useParams } from 'react-router-dom';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
 import { useTranslation } from 'react-i18next';
 
 export interface IFormComponentProps {
@@ -43,10 +42,11 @@ export const FormComponent = memo(function FormComponent({
   const { t } = useTranslation();
   const { org, app } = useParams();
 
-  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app);
-
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const selectedLayout = useFormLayoutsSelector(selectedLayoutNameSelector);
+  const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
+
+  const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(org, app, selectedLayoutSetName);
 
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
 

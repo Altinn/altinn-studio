@@ -1,4 +1,4 @@
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormItem } from '../types/FormItem';
 import { FormPanelVariant } from '../types/FormComponent';
 

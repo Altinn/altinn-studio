@@ -5,7 +5,7 @@ import {
   changeTextResourceBinding,
   generateFormItem,
 } from './component';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
 
 describe('Component utils', () => {

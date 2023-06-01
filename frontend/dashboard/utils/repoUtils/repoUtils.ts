@@ -1,6 +1,6 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import type { IRepository } from 'app-shared/types/global';
-import { Organization } from 'dashboard/services/organizationService';
+import { Organization } from 'app-shared/types/Organization';
 import i18next from 'i18next';
 
 type GetReposLabel = {

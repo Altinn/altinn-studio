@@ -2,13 +2,14 @@ import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddFormComponentMutationArgs, useAddFormComponentMutation } from './useAddFormComponentMutation';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { layout1NameMock } from '../../testing/layoutMock';
 import type { FormComponent } from '../../types/FormComponent';
 
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 const component: FormComponent = {
   id: 'test',
   itemType: 'COMPONENT',
@@ -32,6 +33,7 @@ describe('useAddFormComponentMutation', () => {
       org,
       app,
       layout1NameMock,
+      selectedLayoutSet,
       expect.objectContaining({
         data: expect.objectContaining({
           layout: expect.arrayContaining([
@@ -70,7 +72,7 @@ describe('useAddFormComponentMutation', () => {
 });
 
 const renderAddFormComponentMutation = async () => {
-  const { result } = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult;
+  const { result } = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useAddFormComponentMutation(org, app)).renderHookResult;
+  return renderHookWithMockStore()(() => useAddFormComponentMutation(org, app, selectedLayoutSet)).renderHookResult;
 }

@@ -1,12 +1,19 @@
 //Selectors in designer
+import {cypressTestid} from "../../cypressTestid";
+
 export const designer = {
   appMenu: {
     about: "[data-testid='top_menu.about']",
     edit: "[data-testid='top_menu.create']",
+    editText: 'Lage',
     texts: "[data-testid='top_menu.texts']",
+    textEditorText: 'Tekst',
     deploy: "[data-testid='top_menu.deploy']",
+    deployText: 'Publiser',
     preview: "[data-testid='top_menu.preview']",
+    previewText: 'Forhåndsvis',
     datamodel: "[data-testid='top_menu.datamodel']",
+    datamoodelText: 'Datamodell',
   },
   olderBuilds: 'Tidligere bygg av applikasjonen',
   inprogressSpinner: "[role='progressbar']",
@@ -56,7 +63,7 @@ export const designer = {
     uiEditor: "[data-testid='leftMenu_ui-editor']",
     accessControl: "a[data-testid='leftMenu_accesscontrol']",
   },
-  dragToArea: "[data-testid='droppable-draggable-container']",
+  dragToArea: `[data-testid='${cypressTestid.droppableList}']`,
   draggable: "div[draggable='true']",
   formComponents: {
     shortAnswer: "i[class^='fa fa-short-answer']",

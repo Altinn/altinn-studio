@@ -1,7 +1,7 @@
 import { FormComponent } from '../types/FormComponent';
 import { useTranslation } from 'react-i18next';
 import { validateComponent } from '../utils/validationUtils';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 /**
  * Returns an error message for the given component, or null if the component is valid.

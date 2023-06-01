@@ -1,6 +1,5 @@
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type {
-  IExternalFormLayout,
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
@@ -8,7 +7,6 @@ import type {
   IToolbarElement,
   IWidget,
 } from '../types/global';
-import { IExternalComponent } from '../types/global';
 import i18next from 'i18next';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
@@ -19,13 +17,14 @@ import { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
 import { FormItemConfigs } from '../data/formItemConfig';
 import { FormContainer } from '../types/FormContainer';
+import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 
-export function convertFromLayoutToInternalFormat(formLayout: IExternalFormLayout): IInternalLayout {
+export function convertFromLayoutToInternalFormat(formLayout: ExternalFormLayout): IInternalLayout {
   const convertedLayout: IInternalLayout = createEmptyLayout();
 
   if (!formLayout || !formLayout.data) return convertedLayout;
 
-  const formLayoutCopy: IExternalFormLayout = deepCopy(formLayout);
+  const formLayoutCopy: ExternalFormLayout = deepCopy(formLayout);
   const { data, $schema, ...customRootProperties } = formLayoutCopy;
   const { layout, ...customDataProperties } = data;
 
@@ -58,7 +57,7 @@ export function convertFromLayoutToInternalFormat(formLayout: IExternalFormLayou
  * Takes a layout and removes the components in it that belong to groups. This returns
  * only the top-level layout components.
  */
-export function topLevelComponents(layout: IExternalComponent[]): IExternalComponent[] {
+export function topLevelComponents(layout: ExternalComponent[]): ExternalComponent[] {
   const inGroup = new Set<string>();
   layout.forEach((component) => {
     if (component.type === ComponentType.Group) {
@@ -79,17 +78,17 @@ export function topLevelComponents(layout: IExternalComponent[]): IExternalCompo
  * @returns The external form layout.
  */
 const createExternalLayout = (
-  layout: IExternalComponent[],
+  layout: ExternalComponent[],
   customRootProperties: KeyValuePairs,
   customDataProperties: KeyValuePairs,
-): IExternalFormLayout => ({
+): ExternalFormLayout => ({
   ...customRootProperties,
   $schema: layoutSchemaUrl(),
   data: { ...customDataProperties, layout },
 });
 
-export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): IExternalFormLayout {
-  const formLayout: IExternalComponent[] = [];
+export function convertInternalToLayoutFormat(internalFormat: IInternalLayout): ExternalFormLayout {
+  const formLayout: ExternalComponent[] = [];
 
   if (!internalFormat) return createExternalLayout(formLayout, {}, {});
 
@@ -150,7 +149,7 @@ function extractChildrenFromGroupInternal(
   components: IFormDesignerComponents,
   containers: IFormDesignerContainers,
   order: IFormLayoutOrder,
-  formLayout: IExternalComponent[],
+  formLayout: ExternalComponent[],
   groupId: string
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -175,8 +174,8 @@ function extractChildrenFromGroupInternal(
 }
 
 export function extractChildrenFromGroup(
-  group: IExternalComponent,
-  components: IExternalComponent[],
+  group: ExternalComponent,
+  components: ExternalComponent[],
   convertedLayout: IInternalLayout
 ) {
   const { id, children, type, ...restOfGroup } = group;
@@ -186,8 +185,8 @@ export function extractChildrenFromGroup(
   };
   convertedLayout.order[id] = children || [];
   children?.forEach((componentId: string) => {
-    const component: IExternalComponent =
-      components.find((candidate: IExternalComponent) => candidate.id === componentId);
+    const component: ExternalComponent =
+      components.find((candidate: ExternalComponent) => candidate.id === componentId);
     if (component.type === 'Group') {
       extractChildrenFromGroup(component, components, convertedLayout);
     } else {

@@ -4,7 +4,7 @@ import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { ComponentType } from '../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface IToolbarItemProvidedProps {
   componentType: ComponentType;

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
-import { useSearchReposQuery } from '../../hooks/useRepoQueries';
-import { SearchRepository } from '../../services/repoService';
+import { useSearchReposQuery } from '../queries';
+import { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
 import { useSearchParamsState } from '../useSearchParamsState';
 import { DATAGRID_PAGE_SIZE_TYPE, DATAGRID_ROWS_PER_PAGE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
 
 type UseRepoSearchResult = {
-  searchResults: SearchRepository | undefined;
+  searchResults: SearchRepositoryResponse | undefined;
   isLoadingSearchResults: boolean;
   pageSize: number;
   sortModel: GridSortModel;
@@ -20,7 +20,6 @@ type UseReposSearchProps = {
   uid?: number;
   defaultPageSize?: DATAGRID_PAGE_SIZE_TYPE;
 };
-
 export const useReposSearch = ({
   keyword,
   uid,
@@ -31,7 +30,6 @@ export const useReposSearch = ({
     const parsedValue = Number(value);
     return DATAGRID_ROWS_PER_PAGE_OPTIONS.includes(parsedValue) ? parsedValue as DATAGRID_PAGE_SIZE_TYPE : defaultPageSize;
   });
-  
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
 
   const { data: searchResults, isLoading: isLoadingSearchResults } = useSearchReposQuery({
@@ -53,7 +51,6 @@ export const useReposSearch = ({
 };
 
 type BuildQueryProps = { limit?: number } & Omit<UseReposSearchProps, 'defaultPageSize'>;
-
 const buildQuery = (params: BuildQueryProps): UseReposSearchProps => {
   let query: BuildQueryProps;
 

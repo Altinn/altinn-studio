@@ -4,7 +4,7 @@ import {
   convertExternalLayoutsToInternalFormat,
   firstAvailableLayout,
 } from './formLayoutsUtils';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';

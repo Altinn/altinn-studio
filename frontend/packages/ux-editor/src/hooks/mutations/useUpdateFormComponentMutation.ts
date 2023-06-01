@@ -1,6 +1,6 @@
 import { IInternalLayout } from '../../types/global';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
@@ -15,9 +15,9 @@ export interface UpdateFormComponentArgs {
   id: string;
 }
 
-export const useUpdateFormComponentMutation = (org: string, app: string) => {
+export const useUpdateFormComponentMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutMutation = useFormLayoutMutation(org, app, layoutName);
+  const formLayoutMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);

@@ -22,7 +22,7 @@ import {
   createDatamodelPath,
   datamodelAddXsdFromRepoPath,
   datamodelPath,
-} from '../../../api-paths';
+} from '../../../api/paths';
 import { _useParamsClassCompHack } from '../../../utils/_useParamsClassCompHack';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {

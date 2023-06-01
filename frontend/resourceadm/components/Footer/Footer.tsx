@@ -1,5 +1,5 @@
 import React from 'react';
-import { Resources } from '../../components/Resources';
+import { Resources } from '../Resources';
 import classes from './Footer.module.css';
 
 export const Footer = () => {

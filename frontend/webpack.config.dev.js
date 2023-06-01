@@ -1,5 +1,5 @@
 const commonConfig = require('./webpack.common');
-const setupMiddlewares = require('./testing/mockend/src');
+const setupMiddlewares = require('@altinn-studio/mockend/src');
 const devServerPorts = require('./testing/mockend/ports.json');
 
 module.exports = {

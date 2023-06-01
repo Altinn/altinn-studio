@@ -1,8 +1,10 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ComponentType } from '../components';
-import { IExternalFormLayout, IExternalFormLayouts, IInternalLayout } from '../types/global';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { IInternalLayout } from '../types/global';
+import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from '../types/FormComponent';
+import { ExternalFormLayout, FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
@@ -54,7 +56,7 @@ export const layoutMock: IInternalLayout = {
   customDataProperties: customDataPropertiesMock,
 };
 
-export const layout1Mock: IExternalFormLayout = {
+export const layout1Mock: ExternalFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [
@@ -76,13 +78,22 @@ export const layout1Mock: IExternalFormLayout = {
   },
   ...customRootPropertiesMock,
 };
-const layout2Mock: IExternalFormLayout = {
+const layout2Mock: ExternalFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [],
   },
 };
-export const externalLayoutsMock: IExternalFormLayouts = {
+export const externalLayoutsMock: FormLayoutsResponse = {
   [layout1NameMock]: layout1Mock,
   [layout2NameMock]: layout2Mock,
+};
+
+export const layoutSetsMock: LayoutSets = {
+  sets: [{
+    id: 'test-layout-set',
+    dataTypes: 'datamodel',
+    tasks: ['task_1']
+
+  }]
 };

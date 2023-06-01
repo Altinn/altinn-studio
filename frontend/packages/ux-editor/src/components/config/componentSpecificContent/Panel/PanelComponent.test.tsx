@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
 import { FormPanelComponent, FormPanelVariant } from '../../../../types/FormComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
-import { ComponentType } from '../../../';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -12,6 +12,7 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 
 const component: FormPanelComponent = {
   id: '',
@@ -27,8 +28,8 @@ const mockHandleComponentChange = jest.fn();
 const user = userEvent.setup();
 
 const waitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

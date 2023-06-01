@@ -6,10 +6,10 @@ import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { deepCopy } from 'app-shared/pure';
 import { v4 as uuidv4 } from 'uuid';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { queryClient } from '../../../../../app-development/common/ServiceContext';
-import { QueryKey } from '../../types/QueryKey';
+import { queryClient } from 'app-shared/contexts/ServicesContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { useUpsertTextResourcesMutation } from '../../../../../app-development/hooks/mutations/useUpsertTextResourcesMutation';
+import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { extractLanguagesFromWidgetTexts, extractTextsFromWidgetTextsByLanguage } from '../../utils/widgetUtils';
 
 export interface AddWidgetMutationArgs {
@@ -18,9 +18,9 @@ export interface AddWidgetMutationArgs {
   containerId?: string;
 }
 
-export const useAddWidgetMutation = (org: string, app: string) => {
+export const useAddWidgetMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const { mutateAsync: updateLayout } = useFormLayoutMutation(org, app, layoutName);
+  const { mutateAsync: updateLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const { mutateAsync: updateText } = useUpsertTextResourcesMutation(org, app);
   return useMutation({
     mutationFn: async ({ widget, position, containerId }: AddWidgetMutationArgs) => {
@@ -51,7 +51,7 @@ export const useAddWidgetMutation = (org: string, app: string) => {
     },
     onSuccess: (updatedLayout: IInternalLayout) => {
       queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app],
+        [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
           const newLayouts: IFormLayouts = deepCopy(oldLayouts);
           newLayouts[layoutName] = updatedLayout;

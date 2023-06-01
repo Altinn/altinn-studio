@@ -6,7 +6,7 @@ import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
 import { EditDescription } from '../../editModal/EditDescription';
 import { TextResource } from '../../../TextResource';
-import { ComponentType } from '../../../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormFileUploaderComponent, FormFileUploaderWithTagComponent } from '../../../../types/FormComponent';
 
 export const FileUploadComponent = ({

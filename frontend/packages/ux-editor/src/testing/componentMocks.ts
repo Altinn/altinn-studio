@@ -21,7 +21,7 @@ import {
   FormTextareaComponent,
   FormThirdPartyComponent
 } from '../types/FormComponent';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> = {
   id: 'test',

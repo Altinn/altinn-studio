@@ -3,7 +3,7 @@ import classes from './profileMenu.module.css';
 import { Menu, MenuItem } from '@mui/material';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../utils/networking';
-import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api-paths';
+import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api/paths';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/User';
@@ -55,7 +55,7 @@ export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
           </MenuItem>
         )}
         <MenuItem className={classes.menuItem}>
-          <a href={altinnDocsUrl()} target='_blank' rel='noopener noreferrer'>
+          <a href={altinnDocsUrl('')} target='_blank' rel='noopener noreferrer'>
             {t('sync_header.documentation')}
           </a>
         </MenuItem>

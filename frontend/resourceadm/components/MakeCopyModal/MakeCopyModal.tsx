@@ -10,7 +10,7 @@ import { TextField } from '@digdir/design-system-react';
 import classes from './MakeCopyModal.module.css';
 import { SimpleContainer } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
-import { useCopyAppMutation } from 'dashboard/hooks/useRepoQueries';
+import { useCopyAppMutation } from '../../hooks/mutations';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;

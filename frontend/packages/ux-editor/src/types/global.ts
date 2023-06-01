@@ -1,7 +1,7 @@
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IErrorState } from '../features/error/errorSlice';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResource, ITextResources } from 'app-shared/types/global';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FormComponent } from './FormComponent';
@@ -39,51 +39,7 @@ export interface IInternalLayout {
   customDataProperties: KeyValuePairs;
 }
 
-export type IExternalFormLayouts = KeyValuePairs<IExternalFormLayout>;
-
-export interface IExternalFormLayout {
-  $schema: string;
-  data: IExternalData;
-  [key: string]: any;
-}
-
-export interface IExternalComponent {
-  id: string;
-  type: ComponentType;
-  [key: string]: any; // Todo: Set type here
-}
-
-export interface IExternalData {
-  layout: IExternalComponent[];
-  hidden?: boolean;
-  [key: string]: any;
-}
-
 export type IFormLayoutOrder = KeyValuePairs<string[]>;
-
-export interface IDataModelFieldElement {
-  choices?: any;
-  customProperties?: any;
-  dataBindingName: string;
-  displayString: string;
-  fixedValue?: any;
-  id: string;
-  isReadOnly: boolean;
-  isTagContent: boolean;
-  jsonSchemaPointer: string;
-  maxOccurs: number;
-  minOccurs: number;
-  name: string;
-  parentElement: string;
-  restrictions: any;
-  texts: any;
-  type: string;
-  typeName?: string;
-  xmlSchemaXPath: string;
-  xName?: string;
-  xPath: string;
-  xsdValueType?: string;
-}
 
 export interface IRuleModelFieldElement {
   type: 'rule' | 'condition';

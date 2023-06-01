@@ -1,8 +1,8 @@
-import { queryClient, useServicesContext } from '../../../../../app-development/common/ServiceContext';
+import { queryClient, useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useMutation } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { QueryKey } from '../../types/QueryKey';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { IFormLayouts } from '../../types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
@@ -14,18 +14,18 @@ export interface UpdateLayoutNameMutationArgs {
   newName: string;
 }
 
-export const useUpdateLayoutNameMutation = (org: string, app: string) => {
+export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetName: string) => {
   const { updateFormLayoutName } = useServicesContext();
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
-  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app);
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
+  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const dispatch = useDispatch();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>
-      updateFormLayoutName(org, app, oldName, newName).then(() => ({ oldName, newName })),
+      updateFormLayoutName(org, app, oldName, newName, layoutSetName).then(() => ({ oldName, newName })),
     onSuccess: ({ oldName, newName }) => {
       dispatch(FormLayoutActions.updateSelectedLayout(newName));
       queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app],
+        [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
           const newLayouts = deepCopy(oldLayouts);
           newLayouts[newName] = newLayouts[oldName];

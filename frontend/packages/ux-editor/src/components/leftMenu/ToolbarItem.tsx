@@ -1,7 +1,7 @@
 import React, { MouseEvent } from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
 import { DraggableToolbarItem } from '../dragAndDrop/DraggableToolbarItem';
-import { ComponentType } from '../index';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 interface IToolbarItemProps {
   text: string;

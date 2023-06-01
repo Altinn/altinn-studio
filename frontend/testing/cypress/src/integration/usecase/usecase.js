@@ -38,17 +38,17 @@ context(
         .should('contain', Cypress.env('deployApp').split('/')[1]);
 
       // Forms editor
-      cy.get(designer.appMenu.edit).should('be.visible').click();
+      cy.findByRole('link', { name: designer.appMenu.editText }).click();
       cy.get(designer.formComponents.shortAnswer)
         .parentsUntil(designer.draggable)
         .should('be.visible');
 
       // Text editor
-      cy.get(designer.appMenu.texts).should('be.visible').click();
+      cy.findByRole('link', { name: designer.appMenu.textEditorText }).should('be.visible').click();
       cy.get(designer.texts.new).should('be.visible');
 
       // Preview
-      cy.get(designer.appMenu.preview).should('be.visible');
+      cy.findByRole('button', { name: designer.appMenu.previewText }).should('be.visible');
       cy.visit('/preview/' + Cypress.env('deployApp'));
       cy.get(`a[href^="/editor/${Cypress.env('deployApp')}"]`)
         .should('be.visible')

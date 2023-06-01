@@ -10,7 +10,7 @@ import { expect } from '@jest/globals';
 import { getGeneralJsonSchemaForTest, selectorsTestSchema } from '../../test/testUtils';
 import { ROOT_POINTER } from './constants';
 import { makePointer } from './utils';
-import { dataMock } from '../../../schema-editor/src/mockData';
+import { dataMock } from '@altinn/schema-editor/mockData';
 
 const testSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
 

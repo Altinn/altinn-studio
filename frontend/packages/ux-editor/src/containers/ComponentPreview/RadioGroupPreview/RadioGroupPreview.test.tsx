@@ -5,10 +5,10 @@ import type { ITextResource } from 'app-shared/types/global';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { last } from 'app-shared/utils/arrayUtils';
-import { ComponentType } from '../../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { RadioGroupPreview, RadioGroupPreviewProps } from './RadioGroupPreview';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { useTextResourcesQuery } from '../../../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormRadioButtonsComponent } from '../../../types/FormComponent';
 
 const user = userEvent.setup();

@@ -12,8 +12,8 @@ import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
-import { User } from '../../services/userService';
-import { Organization } from '../../services/organizationService';
+import { User } from 'app-shared/types/User';
+import { Organization } from 'app-shared/types/Organization';
 
 type ResourceDashboardProps = {
   user: User;

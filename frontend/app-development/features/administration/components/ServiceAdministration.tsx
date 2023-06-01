@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import classes from './Administration.module.css';
-import type { IRepository } from '../../../types/global';
+import type { Repository } from 'app-shared/types/Repository';
 import { AltinnSpinner } from 'app-shared/components';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
-import { serviceConfigPath } from 'app-shared/api-paths';
+import { serviceConfigPath } from 'app-shared/api/paths';
 import { useAppDispatch, useAppSelector } from '../../../hooks';
 import { useParams } from 'react-router-dom';
 
 export interface ServiceAdministrationProps {
-  repository: IRepository;
+  repository: Repository;
 }
 
 export function ServiceAdministration({ repository }: ServiceAdministrationProps) {

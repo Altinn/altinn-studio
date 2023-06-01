@@ -1,0 +1,21 @@
+.branchIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.leftContent svg {
+  color: #fff;
+}
+
+.rightContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.previewButton {
+  --component-button-outline-primary-color-background-default: none;
+  --component-button-outline-primary-color-border-default: none;
+  --component-button-outline-primary-color-border-hover: #004e95;
+  --component-button-outline-primary-color-text-default: #ffffff;
+}

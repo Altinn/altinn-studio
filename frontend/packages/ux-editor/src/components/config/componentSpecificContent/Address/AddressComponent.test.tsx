@@ -2,7 +2,7 @@ import React from 'react';
 import { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { AddressComponent } from './AddressComponent';
-import { ComponentType } from '../../../';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 
 // Test data:

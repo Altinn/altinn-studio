@@ -1,4 +1,4 @@
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface NewDndItem {
   isNew: true;

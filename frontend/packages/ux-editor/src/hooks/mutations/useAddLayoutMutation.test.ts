@@ -3,12 +3,13 @@ import { AddLayoutMutationArgs, useAddLayoutMutation } from './useAddLayoutMutat
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const layoutName = 'layoutName';
+const selectedLayoutSet = 'test-layout-set';
 const defaultArgs: AddLayoutMutationArgs = { layoutName }
 
 describe('useAddLayoutMutation', () => {
@@ -17,7 +18,7 @@ describe('useAddLayoutMutation', () => {
   it('Calls saveFormLayout with new layout', async () => {
     await renderAndWaitForData();
 
-    const addLayoutResult = renderHookWithMockStore()(() => useAddLayoutMutation(org, app))
+    const addLayoutResult = renderHookWithMockStore()(() => useAddLayoutMutation(org, app, selectedLayoutSet))
       .renderHookResult
       .result;
 
@@ -29,6 +30,7 @@ describe('useAddLayoutMutation', () => {
       org,
       app,
       layoutName,
+      selectedLayoutSet,
       {
         $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
         data: {
@@ -43,8 +45,8 @@ describe('useAddLayoutMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 }

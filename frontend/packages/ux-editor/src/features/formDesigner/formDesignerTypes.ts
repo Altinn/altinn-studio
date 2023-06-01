@@ -10,14 +10,6 @@ export interface IFormDesignerActionRejected {
   error: Error;
 }
 
-export interface ApplicationAttachmentMetadata {
-  id: string;
-  maxCount: number;
-  minCount: number;
-  maxSize: number;
-  fileType: string;
-}
-
 export interface IAddApplicationMetadataAction {
   id: string;
   maxFiles: number;

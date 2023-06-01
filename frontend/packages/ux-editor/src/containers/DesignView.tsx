@@ -2,11 +2,9 @@ import React, { useContext } from 'react';
 import { FormContainer } from './FormContainer';
 import type { FormContainer as IFormContainer } from '../types/FormContainer';
 import type { FormComponent as IFormComponent } from '../types/FormComponent';
-
 import type { ExistingDndItem, HandleDrop, ItemPosition, NewDndItem } from '../types/dndTypes';
 import { DraggableEditorItemType } from '../types/dndTypes';
-import { useParams } from 'react-router-dom';
-import { useFormLayoutsSelector } from '../hooks/useFormLayoutsSelector';
+import { useFormLayoutsSelector } from '../hooks';
 import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
@@ -20,12 +18,16 @@ import { DragDropListItem } from '../components/dragAndDrop/DragDropListItem';
 import { ConnectDragSource } from 'react-dnd';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 
 export const DesignView = () => {
   const { org, app } = useParams();
-  const { data: layouts } = useFormLayoutsQuery(org, app);
+  const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
+  const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const layoutName = useFormLayoutsSelector(selectedLayoutNameSelector);
-  const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName);
+  const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName, selectedLayoutSet);
   const { formId, form, handleDiscard, handleEdit, handleContainerSave, handleComponentSave } = useContext(FormContext);
   const { t } = useTranslation();
 

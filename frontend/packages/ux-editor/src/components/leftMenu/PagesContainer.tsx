@@ -7,13 +7,15 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { useText } from '../../hooks';
+import { selectedLayoutSetSelector } from "../../selectors/formLayoutSelectors";
 
 export function PagesContainer() {
   const { org, app } = useParams();
   const t = useText();
   const [searchParams, setSearchParams] = useSearchParams();
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
-  const addLayoutMutation = useAddLayoutMutation(org, app);
+  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const layoutOrder = formLayoutSettingsQuery.data.pages.order;
   const invalidLayouts: string[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.invalidLayouts

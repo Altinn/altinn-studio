@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react';
 import { useWidgetsQuery } from './useWidgetsQuery';
 import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { IWidget } from '../../types/global';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const org = 'org';

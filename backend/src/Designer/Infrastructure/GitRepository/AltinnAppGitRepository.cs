@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
 using LibGit2Sharp;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
@@ -36,7 +37,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
         private const string LAYOUT_SETS_FILENAME = "layout-sets.json";
-        private const string RULE_HANDLER_FILENAME = "ruleHandler.js";
+        private const string RULE_HANDLER_FILENAME = "RuleHandler.js";
         private const string RULE_CONFIGURATION_FILENAME = "RuleConfiguration.json";
 
         private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
@@ -367,6 +368,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public void DeleteLayout(string layoutSetName, string layoutName)
         {
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+            if (!FileExistsByRelativePath(layoutFilePath))
+            {
+                throw new FileNotFoundException("Layout was not found or has already been deleted");
+            }
             DeleteFileByRelativePath(layoutFilePath);
         }
 
@@ -381,6 +386,43 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string[] layoutSetNames = GetDirectoriesByRelativeDirectory(layoutSetsRelativePath);
 
             return layoutSetNames;
+        }
+
+        /// <summary>
+        /// Configure the initial layout set by moving layoutsfolder to new dest: App/ui/{layoutSetName}/layouts
+        /// </summary>
+        public void MoveLayoutsToInitialLayoutSet(string layoutSetName)
+        {
+            string destRelativePath = GetPathToLayoutSet(layoutSetName);
+            if (DirectoryExistsByRelativePath(destRelativePath))
+            {
+                throw new BadHttpRequestException("Layout sets are already configured");
+            }
+            string destAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(destRelativePath);
+
+            string sourceRelativePath = GetPathToLayoutSet(null);
+            if (!DirectoryExistsByRelativePath(sourceRelativePath))
+            {
+                throw new NotFoundException("Layouts folder doesn't exist");
+            }
+
+            string sourceAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativePath);
+            string layoutSetToCreatePath = destAbsolutePath.Remove(destAbsolutePath.IndexOf(LAYOUTS_IN_SET_FOLDER_NAME, StringComparison.Ordinal));
+            Directory.CreateDirectory(layoutSetToCreatePath);
+            Directory.Move(sourceAbsolutePath, destAbsolutePath);
+        }
+
+        public void MoveOtherUiFilesToLayoutSet(string layoutSetName)
+        {
+            string sourceLayoutSettingsPath = GetPathToLayoutSettings(null);
+            string destLayoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
+            MoveFileByRelativePath(sourceLayoutSettingsPath, destLayoutSettingsPath, LAYOUT_SETTINGS_FILENAME);
+            string sourceRuleHandlerPath = GetPathToRuleHandler(null);
+            string destRuleHandlerPath = GetPathToRuleHandler(layoutSetName);
+            MoveFileByRelativePath(sourceRuleHandlerPath, destRuleHandlerPath, RULE_HANDLER_FILENAME);
+            string sourceRuleConfigPath = GetPathToRuleConfiguration(null);
+            string destRuleConfigPath = GetPathToRuleConfiguration(layoutSetName);
+            MoveFileByRelativePath(sourceRuleConfigPath, destRuleConfigPath, RULE_CONFIGURATION_FILENAME);
         }
 
         /// <summary>
@@ -508,7 +550,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 throw new ArgumentException("New layout name must be unique.");
             }
-            File.Move(GetAbsoluteFilePathSanitized(currentFilePath), GetAbsoluteFilePathSanitized(newFilePath));
+            File.Move(GetAbsoluteFileOrDirectoryPathSanitized(currentFilePath), GetAbsoluteFileOrDirectoryPathSanitized(newFilePath));
         }
 
         public async Task<LayoutSets> GetLayoutSetsFile()
@@ -521,7 +563,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 return layoutSetsFile;
             }
 
-            throw new NotFoundException("No layoutset was found for this app");
+            throw new NotFoundException("No layout set was found for this app");
+        }
+
+        public async Task SaveLayoutSetsFile(LayoutSets layoutSets)
+        {
+            if (AppUsesLayoutSets())
+            {
+                string layoutSetsFilePath = GetPathToLayoutSetsFile();
+                string layoutSetsString = JsonSerializer.Serialize(layoutSets, _jsonOptions);
+                await WriteTextByRelativePathAsync(layoutSetsFilePath, layoutSetsString);
+            }
+
+            throw new NotFoundException("No layout set was found for this app");
         }
 
         /// <summary>
@@ -557,12 +611,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Saves the RuleConfiguration.json for a specific layoutset
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
-        /// <param name="ruleConfiguration">The layoutsettings to be saved</param>
-        /// <returns>The content of Settings.json</returns>
-        public async Task SaveRuleConfiguration(string layoutSetName, string ruleConfiguration)
+        /// <param name="ruleConfiguration">The ruleConfiguration to be saved</param>
+        public async Task SaveRuleConfiguration(string layoutSetName, JsonNode ruleConfiguration)
         {
             string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);
-            await WriteTextByRelativePathAsync(ruleConfigurationPath, ruleConfiguration);
+            string serializedRuleConfiguration = ruleConfiguration.ToJsonString(_jsonOptions);
+            await WriteTextByRelativePathAsync(ruleConfigurationPath, serializedRuleConfiguration);
         }
 
         /// <summary>
@@ -578,7 +632,27 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 string ruleConfiguration = await ReadTextByRelativePathAsync(ruleConfigurationPath);
                 return ruleConfiguration;
             }
-            throw new NotFoundException("Rule configuration not found.");
+            throw new FileNotFoundException("Rule configuration not found.");
+        }
+
+        public async Task<LayoutSets> CreateLayoutSetFile(string layoutSetName)
+        {
+            LayoutSets layoutSets = new()
+            {
+                Sets = new List<LayoutSetConfig>
+                {
+                    new()
+                    {
+                        Id = layoutSetName,
+                        DataType = null, // TODO: Add name of datamodel - but what if it does not exist?
+                        Tasks = new List<string> { "Task_1" }
+                    }
+                }
+            };
+            string layoutSetsString = JsonSerializer.Serialize(layoutSets, _jsonOptions);
+            string pathToLayOutSets = Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETS_FILENAME);
+            await WriteTextByRelativePathAsync(pathToLayOutSets, layoutSetsString);
+            return layoutSets;
         }
 
         /// <summary>

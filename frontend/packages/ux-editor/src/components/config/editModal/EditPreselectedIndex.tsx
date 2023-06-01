@@ -2,7 +2,7 @@ import React from 'react';
 import { TextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
-import { ComponentType } from '../../';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
 
 export function EditPreselectedIndex({ component, handleComponentChange }: IGenericEditComponent) {

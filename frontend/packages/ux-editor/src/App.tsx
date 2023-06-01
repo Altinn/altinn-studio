@@ -3,22 +3,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { deepCopy } from 'app-shared/pure';
+import { useParams } from 'react-router-dom';
 import { useText } from './hooks';
 import { PageSpinner } from 'app-shared/components/PageSpinner';
 import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelQuery } from './hooks/queries/useDatamodelQuery';
-import { useFormLayoutsQuery } from './hooks/queries/useFormLayoutsQuery';
-import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
-import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
-import { useTextResourcesQuery } from '../../../app-development/hooks/queries/useTextResourcesQuery';
-import { useRuleModelQuery } from './hooks/queries/useRuleModelQuery';
-import { firstAvailableLayout } from './utils/formLayoutsUtils';
-import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import { useRuleConfigQuery } from './hooks/queries/useRuleConfigQuery';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from './selectors/formLayoutSelectors';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
-import { useInstanceIdQuery } from './hooks/queries/useInstanceIdQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries/useInstanceIdQuery';
+import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -30,30 +24,21 @@ export function App() {
   const dispatch = useDispatch();
   const t = useText();
   const { org, app } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
 
-  const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
-  const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(org, app);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app);
-  const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
-  const { isSuccess: isRuleModelFetched } = useRuleModelQuery(org, app);
-  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app);
-  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
-
-  const layoutPagesOrder = formLayoutSettings?.pages.order;
+  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
+  const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } = useDatamodelQuery(org, app);
+  const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   const componentIsReady =
-    formLayouts &&
     areWidgetsFetched &&
-    formLayoutSettings &&
     isDatamodelFetched &&
-    areTextResourcesFetched &&
-    isRuleModelFetched &&
-    isRuleConfigFetched;
+    areTextResourcesFetched;
 
-  const componentHasError = dataModelFetchedError || layoutFetchedError || widgetFetchedError;
+  const componentHasError = dataModelFetchedError || widgetFetchedError;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -67,9 +52,6 @@ export function App() {
     if (dataModelFetchedError) {
       return createErrorMessage(t('general.dataModel'));
     }
-    if (layoutFetchedError) {
-      return createErrorMessage(t('general.layout'));
-    }
     if (widgetFetchedError) {
       return createErrorMessage(t('general.widget'));
     }
@@ -77,31 +59,16 @@ export function App() {
     return createErrorMessage(t('general.unknown_error'));
   };
 
-  /**
-   * Set the correct selected layout based on url parameters
-   */
   useEffect(() => {
-    if (searchParams.has('deletedLayout')) {
-      const layoutToSelect = firstAvailableLayout(
-        searchParams.get('deletedLayout'),
-        layoutPagesOrder
-      );
-      dispatch(FormLayoutActions.updateSelectedLayout(layoutToSelect));
-      setSearchParams(
-        layoutToSelect !== DEFAULT_SELECTED_LAYOUT_NAME ? { layout: layoutToSelect } : {}
-      );
-    } else if (!searchParams.has('layout') && layoutPagesOrder?.[0]) {
-      setSearchParams({ ...deepCopy(searchParams), layout: layoutPagesOrder[0] });
-      dispatch(FormLayoutActions.updateSelectedLayout(layoutPagesOrder[0]));
-    } else if (searchParams.has('layout')) {
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParams.get('layout')));
+    if (selectedLayoutSet === null && layoutSets){
+      dispatch(FormLayoutActions.updateSelectedLayoutSet(layoutSets.sets[0].id));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, layoutPagesOrder, selectedLayout, org, app]);
+  }, [dispatch, selectedLayoutSet, layoutSets]);
 
   useEffect(() => {
     localStorage.setItem(instanceId, selectedLayout);
-  }, [selectedLayout, instanceId]);
+    localStorage.setItem('layoutSetName', layoutSets ? selectedLayoutSet : '');
+  }, [selectedLayout, instanceId, selectedLayoutSet, layoutSets]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
@@ -112,7 +79,9 @@ export function App() {
     return (
       <>
         <ErrorMessageComponent />
-        <FormDesigner selectedLayout={selectedLayout} />
+        <FormDesigner
+          selectedLayout={selectedLayout}
+          selectedLayoutSet={selectedLayoutSet}/>
       </>
     );
   }

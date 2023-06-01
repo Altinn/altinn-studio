@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from "app-shared/providers/PreviewConnectionContext";
-import { useInstanceIdQuery } from '../../hooks/queries/useInstanceIdQuery';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import AltinnStudioLogo from "app-shared/navigation/main-header/AltinnStudioLogo";
 import { ToggleButtonGroup } from '@digdir/design-system-react';
 
@@ -17,6 +17,8 @@ export const LandingPage = () => {
   const selectedLayoutInEditor = localStorage.getItem(instanceId);
   const localSelectedViewSize = localStorage.getItem('viewSize');
   const [viewSize, setViewSize] = useState<string>(localSelectedViewSize ?? 'desktop');
+  const selectedLayoutSetInEditor = localStorage.getItem('layoutSetName');
+
 
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
@@ -70,7 +72,7 @@ export const LandingPage = () => {
           <iframe
             title={t('preview.iframe_title')}
             id='app-frontend-react-iframe'
-            src={`/designer/html/preview.html?${stringify({ org, app })}`}
+            src={`/designer/html/preview.html?${stringify({ org, app, selectedLayoutSetInEditor })}`}
             className={viewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           ></iframe>
           {viewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}

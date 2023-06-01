@@ -2,7 +2,7 @@ import type { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import { ConfigurationActions } from '../configurationSlice';
-import { envConfigPath } from 'app-shared/api-paths';
+import { envConfigPath } from 'app-shared/api/paths';
 
 // GET ENVIRONMENTS
 function* getEnvironmentsSaga(): SagaIterator {

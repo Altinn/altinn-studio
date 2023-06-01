@@ -5,7 +5,7 @@ import { ButtonComponent } from './Button';
 import { AddressComponent } from './Address';
 import { FileUploadComponent } from './FileUpload';
 import type { IGenericEditComponent } from '../componentConfig';
-import { ComponentType } from '../..';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
 
 

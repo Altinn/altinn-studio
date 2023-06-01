@@ -13,10 +13,10 @@ import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSele
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { useTextResourcesSelector } from '../hooks/useTextResourcesSelector';
-import { useUpsertTextResourcesMutation } from '../../../../app-development/hooks/mutations/useUpsertTextResourcesMutation';
+import { useTextResourcesSelector } from '../hooks';
+import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
-import { useTextResourcesQuery } from '../../../../app-development/hooks/queries/useTextResourcesQuery';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();

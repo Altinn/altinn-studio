@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
-import { useSearchReposQuery } from 'dashboard/hooks/useRepoQueries';
-import { SearchRepository } from '../../services/repoService';
+import { useSearchReposQuery } from '../queries';
+import { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
 import { useSearchParamsState } from '../useSearchParamsState';
 import { DATAGRID_PAGE_SIZE_TYPE, DATAGRID_ROWS_PER_PAGE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
 
 type UseRepoSearchResult = {
-  searchResults: SearchRepository | undefined;
+  searchResults: SearchRepositoryResponse | undefined;
   isLoadingSearchResults: boolean;
   pageSize: number;
   sortModel: GridSortModel;

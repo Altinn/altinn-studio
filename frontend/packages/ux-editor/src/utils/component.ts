@@ -5,7 +5,7 @@ import type {
   FormComponent,
   FormRadioButtonsComponent
 } from '../types/FormComponent';
-import { ComponentType } from '../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { formItemConfigs } from '../data/formItemConfig';
 import { FormItem } from '../types/FormItem';
 

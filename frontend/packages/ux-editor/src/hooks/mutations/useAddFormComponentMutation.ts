@@ -3,7 +3,7 @@ import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelect
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { generateComponentId } from '../../utils/generateId';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
@@ -17,10 +17,10 @@ export interface AddFormComponentMutationArgs {
   callback?: (...args: any[]) => any;
 }
 
-export const useAddFormComponentMutation = (org: string, app: string) => {
+export const useAddFormComponentMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutsQuery = useFormLayoutsQuery(org, app);
-  const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName);
+  const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
+  const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const appAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const layouts: IFormLayouts = formLayoutsQuery.data;
 

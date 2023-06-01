@@ -1,7 +1,7 @@
 import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { ComponentPreview, ComponentPreviewProps } from './ComponentPreview';
-import { ComponentType } from '../../components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormComponent } from '../../types/FormComponent';
 import { componentMocks } from '../../testing/componentMocks';
 

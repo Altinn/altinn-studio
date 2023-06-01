@@ -1,0 +1,28 @@
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  list-style-type: none;
+  flex: 1;
+  padding: 0 2rem;
+  gap: 2rem;
+  font-size: 1rem;
+}
+
+.menuItem {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.menuItem :hover {
+  border-bottom: 2px solid #fff;
+}
+
+.menuItem a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.menuItem.active {
+  border-bottom: 2px solid #fff;
+}
