@@ -12,6 +12,7 @@ const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 const maxCount = 2;
 const updatedContainer: FormContainer = {
+  id: 'newId',
   itemType: 'CONTAINER',
   maxCount,
 };
@@ -19,7 +20,7 @@ const id = container1IdMock;
 const mutationArgs: UpdateFormContainerMutationArgs = { id, updatedContainer };
 
 describe('useUpdateFormContainerMutation', () => {
-  it('Saves layouts with new container', async () => {
+  it('Saves layouts with new container and updates rule config', async () => {
     await renderAndWaitForData();
 
     const updateFormContainerResult = renderHookWithMockStore()(() => useUpdateFormContainerMutation(org, app, selectedLayoutSet))
@@ -39,7 +40,7 @@ describe('useUpdateFormContainerMutation', () => {
           layout: expect.arrayContaining([
             {
               ...layout1Mock.data.layout[0],
-              id,
+              id: updatedContainer.id,
               maxCount,
             }
           ])
