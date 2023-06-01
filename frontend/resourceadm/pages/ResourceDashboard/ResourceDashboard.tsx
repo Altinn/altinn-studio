@@ -14,7 +14,7 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { User } from 'app-shared/types/User';
 import { Organization } from 'app-shared/types/Organization';
-import { resourceIdMock1, resourceTypeMock1 } from 'resourceadm/data-mocks/policies';
+import { resourceIdMock1 } from 'resourceadm/data-mocks/policies';
 
 type ResourceDashboardProps = {
   user: User;
@@ -94,12 +94,7 @@ export const ResourceDashboard = ({
         <Button
           type='button'
           onClick={() => {
-            navigate('/resource/about', {
-              state: {
-                resourceId: resourceIdMock1,
-                resourceType: resourceTypeMock1,
-              },
-            });
+            navigate(`/resource/${resourceIdMock1}/about`);
           }}
         >
           Gå til mock ressurs 1

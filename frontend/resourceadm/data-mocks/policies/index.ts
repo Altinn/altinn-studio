@@ -6,7 +6,7 @@ export const resourceIdMock2: string = "test_id_2"
 export const resourceIdMock3: string = "test_id_3"
 
 // RESOURCE TYPE
-export const resourceTypeMock1: string = "urn:altinn:resource1"
+export const resourceTypeMock1: string = "urn:altinn.resource"
 export const resourceTypeMock2: string = "urn:altinn:resource2"
 export const resourceTypeMock3: string = "urn:altinn:resource3"
 

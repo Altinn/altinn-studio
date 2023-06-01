@@ -9,7 +9,7 @@ import {
   PolicyRuleBackendType,
   PolicySubjectType,
 } from 'resourceadm/types/global';
-import { useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   actionsListMock,
   policyMock1,
@@ -29,11 +29,8 @@ import { VerificationModal } from 'resourceadm/components/VerificationModal';
 export const PolicyEditor = () => {
   // TODO - translation
 
-  const { state } = useLocation();
-
-  // Set the resurceId sent in params or set it to null. If null, display error (TODO)
-  const resourceId = state === null ? null : state.resourceId;
-  const resourceType = state === null ? null : state.resourceType;
+  const { resourceId } = useParams();
+  const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
 
   // TODO - replace with list from backend
   const [actions, setActions] = useState<string[]>([]);

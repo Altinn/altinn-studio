@@ -12,7 +12,8 @@ import { PolicyEditor } from '../PolicyEditor';
  */
 export const ResourcePage = () => {
   const navigate = useNavigate();
-  const { pageType } = useParams();
+
+  const { pageType, resourceId } = useParams();
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
     pageType as NavigationBarPageType
@@ -20,7 +21,7 @@ export const ResourcePage = () => {
 
   const navigateToPage = (page: NavigationBarPageType) => {
     setCurrentPage(page);
-    navigate(`/resource/${page}`);
+    navigate(`/resource/${resourceId}/${page}`);
   };
 
   const goBack = () => {
