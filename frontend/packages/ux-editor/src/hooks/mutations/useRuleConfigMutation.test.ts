@@ -7,14 +7,16 @@ const org = 'org';
 const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 const newRuleConfig: RuleConfig = {
-  ruleConnection: {
-    ruleConnection1: {
-      selectedFunction: 'selectedFunction1',
-      inputParams: {},
-      outParams: {}
-    }
-  },
-  conditionalRendering: {}
+  data: {
+    ruleConnection: {
+      ruleConnection1: {
+        selectedFunction: 'selectedFunction1',
+        inputParams: {},
+        outParams: {}
+      }
+    },
+    conditionalRendering: {}
+  }
 };
 
 describe('useRuleConfigMutation', () => {

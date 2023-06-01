@@ -7,6 +7,7 @@ export const useRuleConfigQuery = (org: string, app: string, layoutSetName: stri
   const { getRuleConfig } = useServicesContext();
   return useQuery<RuleConfig>(
     [QueryKey.RuleConfig, org, app, layoutSetName],
-    () => getRuleConfig(org, app, layoutSetName).then(result => result || { ruleConnection: {}, conditionalRendering: {} }),
+    () => getRuleConfig(org, app, layoutSetName).then(result => result || { data: { ruleConnection: {}, conditionalRendering: {} } }),
+
   );
 };
