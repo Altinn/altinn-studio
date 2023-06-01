@@ -9,7 +9,7 @@ import {
   FieldType,
   getCapabilities,
   getNameFromPointer,
-  Keywords,
+  Keyword,
   ObjectKind,
   pointerIsDefinition,
 } from '@altinn/schema-model';
@@ -126,7 +126,7 @@ export const SchemaItemLabel = ({
             role={'link'}
             tabIndex={-1}
           >
-            {refNode.pointer.replace(`#/${Keywords.Definitions}/`, '')}
+            {refNode.pointer.replace(`#/${Keyword.Definitions}/`, '')}
           </span>
         )}
         {selectedNode.objectKind === ObjectKind.Reference && !refNode && (

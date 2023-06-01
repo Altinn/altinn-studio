@@ -1,6 +1,7 @@
-import type { Dict, UiSchemaNode } from '../types';
-import { CombinationKind, FieldType, ObjectKind } from '../types';
+import type { UiSchemaNode } from '../../types';
+import { CombinationKind, FieldType, ObjectKind } from '../../types';
 import { findEnumFieldType, findJsonFieldType, findUiFieldType } from './field-type';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 test.each([
   [{}, undefined],
@@ -18,7 +19,7 @@ test.each([
   [{ allOf: [], type: FieldType.String }, FieldType.String],
   [{ pattern: '' }, FieldType.String],
   [{ enum: ['h'] }, FieldType.String],
-])('correct ui type for %p', (schemaNode: Dict, expected) => {
+])('correct ui type for %p', (schemaNode: KeyValuePairs, expected) => {
   expect(findUiFieldType(schemaNode)).toBe(expected);
 });
 

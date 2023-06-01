@@ -1,4 +1,4 @@
-import { StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
+import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import type {
   StringRestricionsReducerState,
   StringRestrictionsReducerAction,
@@ -45,7 +45,7 @@ describe('stringRestrictionsReducer', () => {
     it('Updates state correctly', () => {
       const state = dispatchAction({
         type: StringRestrictionsReducerActionType.setRestriction,
-        restriction: StrRestrictionKeys.format,
+        restriction: StrRestrictionKey.format,
         value: StringFormat.DateTime,
         changeCallback,
       });

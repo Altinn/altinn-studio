@@ -1,18 +1,20 @@
-import type { Dict, UiSchemaNode } from '../types';
-import { FieldType, ObjectKind } from '../types';
-import { getCombinationKind, getObjectKind } from '../utils';
+import type { UiSchemaNode } from '../../types';
 import {
-  ArrRestrictionKeys,
-  IntRestrictionKeys,
-  ObjRestrictionKeys,
-  StrRestrictionKeys,
-} from '../restrictions';
+  ArrRestrictionKey,
+  FieldType,
+  IntRestrictionKey,
+  ObjRestrictionKey,
+  ObjectKind,
+  StrRestrictionKey,
+} from '../../types';
+import { getCombinationKind, getObjectKind } from '../utils';
 import { removeDuplicates, arrayIntersection } from 'app-shared/utils/arrayUtils';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export const isCompundFieldType = (schemaNodeType: string | string[]) =>
   Array.isArray(schemaNodeType) && schemaNodeType.length === 2;
 
-export const findUiFieldType = (schemaNode: Dict) => {
+export const findUiFieldType = (schemaNode: KeyValuePairs) => {
   const objectKind = getObjectKind(schemaNode);
   const keys = Object.keys(schemaNode);
   if (typeof schemaNode.properties === 'object') {
@@ -25,13 +27,13 @@ export const findUiFieldType = (schemaNode: Dict) => {
   } else if (isCompundFieldType(schemaNode.type)) {
     // @see SeresNillable.json, we need to support types where stuff can be null.
     return schemaNode.type.filter((t: FieldType) => t !== FieldType.Null).pop();
-  } else if (arrayIntersection(keys, Object.values(IntRestrictionKeys)).length) {
+  } else if (arrayIntersection(keys, Object.values(IntRestrictionKey)).length) {
     return FieldType.Number;
-  } else if (arrayIntersection(keys, Object.values(ArrRestrictionKeys)).length) {
+  } else if (arrayIntersection(keys, Object.values(ArrRestrictionKey)).length) {
     return FieldType.Boolean;
-  } else if (arrayIntersection(keys, Object.values(StrRestrictionKeys)).length) {
+  } else if (arrayIntersection(keys, Object.values(StrRestrictionKey)).length) {
     return FieldType.String;
-  } else if (arrayIntersection(keys, Object.values(ObjRestrictionKeys)).length) {
+  } else if (arrayIntersection(keys, Object.values(ObjRestrictionKey)).length) {
     return FieldType.Object;
   } else if (Array.isArray(schemaNode.enum) && schemaNode.enum.length) {
     return findEnumFieldType(schemaNode.enum);

@@ -12,7 +12,7 @@ import {
   createNodeBase,
   FieldType,
   getNodeByPointer,
-  Keywords,
+  Keyword,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
@@ -117,7 +117,7 @@ describe('SchemaInspector', () => {
 
   test('Adds new object field when pressing the enter key', async () => {
     const testUiSchema = buildUiSchema({});
-    const parentNode = createNodeBase(Keywords.Properties, 'test');
+    const parentNode = createNodeBase(Keyword.Properties, 'test');
     parentNode.fieldType = FieldType.Object;
     // eslint-disable-next-line testing-library/no-node-access
     parentNode.children = ['#/properties/test/properties/abc'];
@@ -133,7 +133,7 @@ describe('SchemaInspector', () => {
 
   test('Adds new valid value field when pressing the enter key', async () => {
     const testUiSchema = buildUiSchema({});
-    const item = createNodeBase(Keywords.Properties, 'test');
+    const item = createNodeBase(Keyword.Properties, 'test');
     item.fieldType = FieldType.String;
     item.enum = ['valid value'];
     testUiSchema.push(item);

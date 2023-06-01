@@ -3,7 +3,7 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import { NumberRestrictions } from './NumberRestrictions';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { IntRestrictionKeys } from '@altinn/schema-model';
+import { IntRestrictionKey } from '@altinn/schema-model';
 
 const user = userEvent.setup();
 
@@ -103,12 +103,12 @@ describe('NumberRestrictions component', () => {
     });
     userEvent.type(textBoxMinimum, '1');
     const expectedRestrictions = {
-      [IntRestrictionKeys.minimum]: 1,
-      [IntRestrictionKeys.exclusiveMinimum]: undefined,
-      [IntRestrictionKeys.maximum]: undefined,
-      [IntRestrictionKeys.exclusiveMaximum]: undefined,
-      [IntRestrictionKeys.multipleOf]: undefined,
-      [IntRestrictionKeys.integer]: undefined,
+      [IntRestrictionKey.minimum]: 1,
+      [IntRestrictionKey.exclusiveMinimum]: undefined,
+      [IntRestrictionKey.maximum]: undefined,
+      [IntRestrictionKey.exclusiveMaximum]: undefined,
+      [IntRestrictionKey.multipleOf]: undefined,
+      [IntRestrictionKey.integer]: undefined,
     };
 
     await waitFor(() =>
@@ -131,12 +131,12 @@ describe('NumberRestrictions component', () => {
     });
     userEvent.type(textBoxMinimum, '0');
     const expectedRestrictions = {
-      [IntRestrictionKeys.minimum]: 0,
-      [IntRestrictionKeys.exclusiveMinimum]: undefined,
-      [IntRestrictionKeys.maximum]: undefined,
-      [IntRestrictionKeys.exclusiveMaximum]: undefined,
-      [IntRestrictionKeys.multipleOf]: undefined,
-      [IntRestrictionKeys.integer]: undefined,
+      [IntRestrictionKey.minimum]: 0,
+      [IntRestrictionKey.exclusiveMinimum]: undefined,
+      [IntRestrictionKey.maximum]: undefined,
+      [IntRestrictionKey.exclusiveMaximum]: undefined,
+      [IntRestrictionKey.multipleOf]: undefined,
+      [IntRestrictionKey.integer]: undefined,
     };
 
     await waitFor(() =>

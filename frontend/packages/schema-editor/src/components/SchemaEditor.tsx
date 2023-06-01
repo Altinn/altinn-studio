@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { AltinnSpinner } from 'app-shared/components';
-import type { IJsonSchema, ISchemaState } from '../types';
+import type { JsonSchema, SchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
 import {
   setJsonSchema,
@@ -38,14 +38,14 @@ export interface IEditorProps {
   name?: string;
   onSaveSchema: (payload: any) => void;
   saveUrl: string;
-  schema: IJsonSchema;
+  schema: JsonSchema;
   schemaState: GenerateSchemaState;
   editMode: boolean;
   toggleEditMode: () => void;
 }
 
 const rootNodesSelector = createSelector(
-  (state: ISchemaState) => state.uiSchema,
+  (state: SchemaState) => state.uiSchema,
   (uiSchema) => {
     const nodesmap = new Map();
     if (uiSchema.length) {
@@ -58,7 +58,7 @@ const rootNodesSelector = createSelector(
 );
 
 const rootChildrenSelector = createSelector(
-  (state: ISchemaState) => state.uiSchema,
+  (state: SchemaState) => state.uiSchema,
   (uiSchema) => {
     if (uiSchema.length) {
       return getNodeByPointer(uiSchema, ROOT_POINTER).children;
@@ -117,16 +117,16 @@ export const SchemaEditor = ({
       : properties.push(rootNodeMap.get(childPointer))
   );
 
-  const selectedPropertyParent = useSelector((state: ISchemaState) =>
+  const selectedPropertyParent = useSelector((state: SchemaState) =>
     getParentNodeByPointer(state.uiSchema, state.selectedPropertyNodeId)
   );
 
-  const selectedId = useSelector((state: ISchemaState) =>
+  const selectedId = useSelector((state: SchemaState) =>
     state.selectedEditorTab === 'properties'
       ? state.selectedPropertyNodeId
       : state.selectedDefinitionNodeId
   );
-  const selectedItem = useSelector((state: ISchemaState) =>
+  const selectedItem = useSelector((state: SchemaState) =>
     selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined
   );
 
@@ -148,7 +148,7 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionParent = useSelector((state: ISchemaState) =>
+  const selectedDefinitionParent = useSelector((state: SchemaState) =>
     getParentNodeByPointer(state.uiSchema, state.selectedDefinitionNodeId)
   );
   useEffect(() => {

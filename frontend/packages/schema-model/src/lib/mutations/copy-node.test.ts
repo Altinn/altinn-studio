@@ -1,10 +1,10 @@
 import { copyNodePointer } from './copy-node';
 import { buildUiSchema } from '../build-ui-schema';
-import { FieldType, Keywords } from '../types';
+import { FieldType, Keyword } from '../../types';
 import { makePointer as p } from '../utils';
 import { getRootNode } from '../selectors';
 
-const { Properties, Type } = Keywords;
+const { Properties, Type } = Keyword;
 test('that it can copy nodes', () => {
   const uiSchemaNodes = buildUiSchema({
     [Properties]: {
