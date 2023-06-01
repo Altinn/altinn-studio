@@ -2,7 +2,7 @@ import React from 'react';
 import { Select } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
-import { useOptionListQuery } from '../../../../../ux-editor/src/hooks/queries/useOptionListQuery';
+import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useParams } from 'react-router-dom';
 
 export enum SelectedOptionsType {
@@ -14,7 +14,13 @@ export enum SelectedOptionsType {
 export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
   const t = useText();
   const { org, app } = useParams();
-  const { data: optionList } = useOptionListQuery(org, app);
+
+  const {
+    data: optionListIds,
+    isLoading: isLoadingCodeList,
+    error,
+    status,
+  } = useOptionListIdsQuery(org, app);
   const handleOptionsIdChange = (e: any) => {
     handleComponentChange({
       ...component,
@@ -24,18 +30,24 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   return (
     <div>
-      <Select
-        options={
-          Array.isArray(optionList)
-            ? optionList.map((option) => ({
-                label: option,
-                value: option,
-              }))
-            : []
-        }
-        label={t('ux_editor.modal_properties_code_list_id')}
-        onChange={handleOptionsIdChange}
-      />
+      {status === 'loading' ? (
+        'Loading...'
+      ) : status === 'error' ? (
+        <span>{'An error has occurred'}</span>
+      ) : (
+        <>
+          <Select
+            options={optionListIds.map((option) => ({
+              label: option,
+              value: option,
+            }))}
+            label={t('ux_editor.modal_properties_code_list_id')}
+            onChange={handleOptionsIdChange}
+          />
+          <div>{isLoadingCodeList ? 'loading...' : ' '}</div>
+        </>
+      )}
+
       <p>
         <a
           target='_blank'
