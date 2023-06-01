@@ -3,15 +3,20 @@ import React from 'react';
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 
 import { useLanguage } from 'src/hooks/useLanguage';
+import { getSandboxProperties } from 'src/layout/IFrame/utils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IFrameComponentProps = PropsFromGenericComponent<'IFrame'>;
 
 export const IFrameComponent = ({ node, getTextResourceAsString }: IFrameComponentProps): JSX.Element => {
   const { lang } = useLanguage();
+  const { textResourceBindings, sandbox } = node.item;
+
+  const sandboxProperties = getSandboxProperties(sandbox);
+  const iFrameTitle = textResourceBindings?.title;
+  const HTMLString = iFrameTitle ? getTextResourceAsString(iFrameTitle) : '';
 
   const isSrcDocUnsupported = !('srcdoc' in document.createElement('iframe'));
-
   if (isSrcDocUnsupported) {
     return (
       <Panel
@@ -22,10 +27,6 @@ export const IFrameComponent = ({ node, getTextResourceAsString }: IFrameCompone
       </Panel>
     );
   }
-
-  const { textResourceBindings } = node.item;
-  const iFrameTitle = textResourceBindings?.title;
-  const HTMLString = iFrameTitle ? getTextResourceAsString(iFrameTitle) : '';
 
   // Resize the iframe to fit the content thats loaded inside it
   const adjustIFrameSize = (iframe: React.BaseSyntheticEvent): void => {
@@ -40,7 +41,7 @@ export const IFrameComponent = ({ node, getTextResourceAsString }: IFrameCompone
       srcDoc={HTMLString}
       title={iFrameTitle}
       onLoad={adjustIFrameSize}
-      sandbox='allow-same-origin'
+      sandbox={sandboxProperties}
     />
   );
 };
