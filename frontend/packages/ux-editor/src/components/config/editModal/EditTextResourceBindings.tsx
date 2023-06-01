@@ -1,5 +1,4 @@
 import React from 'react';
-import { Accordion } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 
