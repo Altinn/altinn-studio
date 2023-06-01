@@ -5,7 +5,7 @@
   "dependencies": {
     "@altinn/altinn-design-system": "0.27.7",
     "@digdir/design-system-react": "0.11.3",
-    "@mui/material": "5.13.1",
+    "@mui/material": "5.13.2",
     "@reduxjs/toolkit": "1.9.5",
     "axios": "1.4.0",
     "classnames": "2.3.2",
@@ -21,7 +21,7 @@
     "redux-saga": "1.2.3"
   },
   "devDependencies": {
-    "@types/react": "18.2.6",
+    "@types/react": "18.2.7",
     "jest": "29.5.0",
     "typescript": "5.0.4"
   },
