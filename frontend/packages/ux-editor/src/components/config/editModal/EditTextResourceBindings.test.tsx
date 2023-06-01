@@ -3,8 +3,7 @@ import {
   EditTextResourceBindings,
   EditTextResourceBindingsProps,
 } from './EditTextResourceBindings';
-import { act, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen, waitFor } from '@testing-library/react';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
 import type { ITextResource } from 'app-shared/types/global';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
@@ -12,8 +11,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
-
-const user = userEvent.setup();
 
 // Test data:
 const org = 'org';
