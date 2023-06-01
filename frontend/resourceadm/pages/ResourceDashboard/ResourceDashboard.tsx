@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CenterContainer } from '../../components/CenterContainer';
 import { Footer } from '../../components/Footer';
 
@@ -14,6 +14,7 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { User } from 'app-shared/types/User';
 import { Organization } from 'app-shared/types/Organization';
+import { resourceIdMock1, resourceTypeMock1 } from 'resourceadm/data-mocks/policies';
 
 type ResourceDashboardProps = {
   user: User;
@@ -26,6 +27,8 @@ export const ResourceDashboard = ({
   organizations,
   disableDebounce,
 }: ResourceDashboardProps) => {
+  const navigate = useNavigate();
+
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
@@ -84,7 +87,23 @@ export const ResourceDashboard = ({
         <h3> Dette er RessursDashboard side pakket inn i TestPage </h3>
         <h5> bygger gradvis fra Dashboard mal. PageLayout krasjet i oppdatering 16.05.23</h5>
         <h5> Vi ønsker muligens listefunksjonalitet her, som i RepoList og OrgRepoList, </h5>
-
+        {/*
+            Dummy button that takes the user to the resource page where the user can navigate
+            between the 3 pages "about the resource", "security", and "policy".
+        */}
+        <Button
+          type='button'
+          onClick={() => {
+            navigate('/resource', {
+              state: {
+                resourceId: resourceIdMock1,
+                resourceType: resourceTypeMock1,
+              },
+            });
+          }}
+        >
+          Gå til mock ressurs 1
+        </Button>
       </CenterContainer>
       <Footer />
     </>

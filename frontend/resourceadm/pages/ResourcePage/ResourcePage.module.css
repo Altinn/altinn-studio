@@ -1,0 +1,8 @@
+.resourceWrapper {
+  display: flex;
+}
+
+.resourcePageWrapper {
+  flex-grow: 1;
+  padding: 20px;
+}
