@@ -33,7 +33,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
       {status === 'loading' ? (
         'Loading...'
       ) : status === 'error' ? (
-        <span>{'An error has occurred'}</span>
+        <span>{error instanceof Error ? error.message : 'An error has occurred'}</span>
       ) : (
         <>
           <Select
