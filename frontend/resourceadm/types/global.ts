@@ -33,3 +33,5 @@ export interface PolicyRuleBackendType {
 export interface PolicyEditorSendType {
   Rules: PolicyRuleBackendType[]
 }
+
+export type NavigationBarPageType = 'about' | 'security' | 'policy';

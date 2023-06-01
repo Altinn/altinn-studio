@@ -18,6 +18,7 @@ import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
 
 import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
+import { ResourcePage } from 'resourceadm/pages/ResourcePage';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -78,6 +79,8 @@ export const App = (): JSX.Element => {
 
           <Route path='/PolicyEditorStartPage' element={<PolicyEditorStartPage />} />
           <Route path='/policyEditor' element={<PolicyEditor />} />
+
+          <Route path={`/resource/:resourceId/:pageType`} element={<ResourcePage />} />
         </Routes>
       </div>
     );

@@ -1,0 +1,69 @@
+.navigationBar {
+  background-color: #F4F5F6;
+  width: 250px;
+  height: 100vh;
+  left: 0;
+  border: 1px solid #bebebe;
+}
+
+.backButton {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  border-bottom: 2px solid #A0A0A0;
+  width: 100%;
+  padding-block: 20px;
+  padding-left: 20px;
+}
+
+.buttonText {
+  font-size: 16px;
+  font-weight: 400;
+  text-align: left;
+}
+
+.navigationElements {
+  display: flex;
+  flex-direction: column;
+}
+
+.navigationElement {
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  padding-block: 20px;
+  border: none;
+  border-bottom: 1px solid #bebebe;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.navigationElementSelected {
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  padding-block: 20px;
+  border: none;
+  border-bottom: 1px solid #bebebe;
+  background-color: #E3F7FF;
+  cursor: pointer;
+}
+
+.navigationElement:hover, .navigationElementSelected:hover, .backButton:hover {
+  background-color: #00315D;
+  color: #FFFFFF;
+}
+
+.navigationElement:focus, .navigationElementSelected:focus, .backButton:focus {
+  background-color: #b3d0ea;
+  color: #000000;
+}
+
+.navigationElement:focus:hover, .navigationElementSelected:focus:hover {
+  background-color: #d4e6f8;
+  color: #000000;
+}
+
+.icon {
+  margin-right: 10px;
+}
