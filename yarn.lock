@@ -60,7 +60,7 @@ __metadata:
     jsonpointer: 5.0.1
   peerDependencies:
     "@altinn/altinn-design-system": 0.27.8
-    "@digdir/design-system-react": 0.11.3
+    "@digdir/design-system-react": 0.12.1
     "@mui/material": 5.13.2
     "@reduxjs/toolkit": 1.9.5
     axios: 1.4.0
@@ -89,7 +89,7 @@ __metadata:
   resolution: "@altinn/text-editor@workspace:frontend/packages/text-editor"
   dependencies:
     "@altinn/altinn-design-system": 0.27.8
-    "@digdir/design-system-react": 0.11.3
+    "@digdir/design-system-react": 0.12.1
     iso-639-1: 2.1.15
     jest: 29.5.0
   peerDependencies:
@@ -1635,18 +1635,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.11.3":
-  version: 0.11.3
-  resolution: "@digdir/design-system-react@npm:0.11.3"
+"@digdir/design-system-react@npm:0.12.1":
+  version: 0.12.1
+  resolution: "@digdir/design-system-react@npm:0.12.1"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
+    "@digdir/design-system-tokens": ^0.1.1
     "@floating-ui/react": 0.17.0
     "@navikt/ds-icons": ^2.3.0
     react-number-format: ^5.1.4
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 302c2a9b51d599247f34dfba35d85ad988ab2a30a1161c766f24ea555651099495ae6a110b5ea0bd20e367ca2ca0d410fb382427faf2679d8afb6b416b67e275
+  checksum: c868f6690be009f57d05f9f319d0552310f225cd2d6a8cc23412c5a906722f3282984715d5e639333086b4819bf28cc9995c4113f31ef0a4a97833254a3000b2
+  languageName: node
+  linkType: hard
+
+"@digdir/design-system-tokens@npm:^0.1.1":
+  version: 0.1.2
+  resolution: "@digdir/design-system-tokens@npm:0.1.2"
+  checksum: 7701afc7c8c410038f859a67f1b5b0648107c8ab4c202755f6a5c05c8c8ff8fdbd3eec49654f44baf5fb059caf3cca3c938dc2eb683faef7ea73ddf3407411dc
   languageName: node
   linkType: hard
 
@@ -5195,7 +5203,7 @@ __metadata:
   resolution: "app-development@workspace:frontend/app-development"
   dependencies:
     "@altinn/altinn-design-system": 0.27.8
-    "@digdir/design-system-react": 0.11.3
+    "@digdir/design-system-react": 0.12.1
     "@mui/material": 5.13.2
     "@reduxjs/toolkit": 1.9.5
     "@tanstack/react-query": 4.29.11
@@ -5225,7 +5233,7 @@ __metadata:
   resolution: "app-preview@workspace:frontend/app-preview"
   dependencies:
     "@altinn/altinn-design-system": 0.27.8
-    "@digdir/design-system-react": 0.11.3
+    "@digdir/design-system-react": 0.12.1
     axios: 1.4.0
     classnames: 2.3.2
     cross-env: 7.0.3
@@ -5246,7 +5254,7 @@ __metadata:
   resolution: "app-shared@workspace:frontend/packages/shared"
   dependencies:
     "@altinn/altinn-design-system": 0.27.8
-    "@digdir/design-system-react": 0.11.3
+    "@digdir/design-system-react": 0.12.1
     "@mui/material": 5.13.2
     "@reduxjs/toolkit": 1.9.5
     "@types/react": 18.2.7
@@ -6808,7 +6816,7 @@ __metadata:
   resolution: "dashboard@workspace:frontend/dashboard"
   dependencies:
     "@altinn/altinn-design-system": 0.27.8
-    "@digdir/design-system-react": 0.11.3
+    "@digdir/design-system-react": 0.12.1
     "@mui/x-data-grid": 5.17.26
     "@tanstack/react-query": 4.29.11
     cross-env: 7.0.3
@@ -13251,7 +13259,7 @@ __metadata:
   resolution: "resourceadm@workspace:frontend/resourceadm"
   dependencies:
     "@altinn/altinn-design-system": 0.27.8
-    "@digdir/design-system-react": 0.11.3
+    "@digdir/design-system-react": 0.12.1
     "@mui/x-data-grid": 5.17.26
     "@svgr/webpack": 7.0.0
     "@tanstack/react-query": 4.29.11
