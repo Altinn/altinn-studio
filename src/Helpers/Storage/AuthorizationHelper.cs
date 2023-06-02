@@ -162,6 +162,33 @@ namespace Altinn.Platform.Storage.Helpers
             bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, user);
             return authorized;
         }
+        
+        /// <summary>
+        /// Authorizes that the user has one or more of the actions on an instance.
+        /// </summary>
+        /// <returns>true if the user is authorized.</returns>
+        public async Task<bool> AuthorizeAnyOfInstanceActions(ClaimsPrincipal user, Instance instance, List<string> actions)
+        {
+            if (actions.Count == 0)
+            {
+                return false;
+            }
+
+            var request = CreateMultiDecisionRequest(user, new List<Instance>() { instance }, actions);
+            
+            _logger.LogDebug("// Authorization Helper // AuthorizeAnyOfInstanceActions // request: {Request}", JsonConvert.SerializeObject(request));
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            
+            _logger.LogDebug("// Authorization Helper // AuthorizeAnyOfInstanceActions // response: {Response}", JsonConvert.SerializeObject(response));
+            if (response?.Response != null)
+            {
+                return response.Response.Any(r => DecisionHelper.ValidateDecisionResult(r, user));
+            }
+            
+            _logger.LogInformation("// Authorization Helper // Authorize instance action failed for request: {Request}", JsonConvert.SerializeObject(request));
+            return false;
+
+        }
 
         /// <summary>
         /// Authorize instances, and returns a list of instances that the user has the right to read.
