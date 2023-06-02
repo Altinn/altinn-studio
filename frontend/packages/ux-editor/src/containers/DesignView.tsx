@@ -121,5 +121,5 @@ export const DesignView = ({ className }: DesignViewProps) => {
       <h1 className={classes.pageHeader}>{layoutName}</h1>
       {renderContainer(BASE_CONTAINER_ID, true)}
     </div>
-  )
+  );
 };
