@@ -2,7 +2,6 @@
   "name": "resourceadm",
   "version": "0.1.0",
   "author": "Altinn",
-  "type": "module",
   "browserslist": [
     ">0.2%",
     "not dead",
@@ -11,7 +10,7 @@
   ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.27.8",
-    "@digdir/design-system-react": "0.11.3",
+    "@digdir/design-system-react": "0.13.0",
     "@mui/x-data-grid": "5.17.26",
     "@tanstack/react-query": "4.29.11",
     "react": "18.2.0",
@@ -35,5 +34,6 @@
     "test": "jest --maxWorkers=50%",
     "typecheck": "npx tsc --noEmit",
     "typecheck:watch": "tsc --noEmit -w"
-  }
+  },
+  "type": "module"
 }
