@@ -61,6 +61,9 @@ export const queriesMock: ServicesContextProps = {
   configureLayoutSet: jest.fn(),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
+  getFormLayoutSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
   getInstanceIdForPreview: jest.fn(),
   getOptionListIds: jest.fn(),
@@ -72,9 +75,6 @@ export const queriesMock: ServicesContextProps = {
   getWidgetSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getFormLayoutSettings: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve({})),
   upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
