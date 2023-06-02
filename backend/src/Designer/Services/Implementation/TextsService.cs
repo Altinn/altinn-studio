@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
+using NuGet.Protocol;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -212,7 +213,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 else
                 {
                     int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
-                    textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value };
+                    if (textResourceContainsKey.Variables == null)
+                    {
+                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value };
+                    }
+                    else
+                    {
+                        List<TextResourceVariable> variables = textResourceContainsKey.Variables;
+                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value, Variables = variables };
+                    }
                 }
             }
 
