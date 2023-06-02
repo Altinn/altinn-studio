@@ -48,6 +48,20 @@
     {
       "id": "ServiceName",
       "value": "Hvem er hvem?"
+    },
+    {
+      "id": "TextUsingVariables",
+      "value": "Dette er en tekst som skal oppdateres, men som har variablene {0} og {1} tilknyttet seg, som IKKE skal bli borte eller endret",
+        "variables": [
+        {
+          "key": "aFieldInTheModel",
+          "datasource": "dataModel.testModel"
+        },
+        {
+          "key": "appId",
+          "datasource": "instanceContext"
+        }
+      ]
     }
   ]
 }
