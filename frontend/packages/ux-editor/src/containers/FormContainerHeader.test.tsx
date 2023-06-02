@@ -39,6 +39,7 @@ const render = async (props: Partial<IFormContainerHeaderProps> = {}) => {
   const allProps: IFormContainerHeaderProps = {
     id: container1IdMock,
     expanded: true,
+    isEditMode: false,
     handleExpanded: jest.fn(),
     handleDelete: handleDeleteMock,
     handleEdit: handleEditMock,

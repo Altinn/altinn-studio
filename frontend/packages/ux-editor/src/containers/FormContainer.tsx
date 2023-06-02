@@ -70,6 +70,7 @@ export const FormContainer = ({
         <FormContainerHeader
           id={isEditMode ? container.id : id}
           expanded={expanded}
+          isEditMode={isEditMode}
           handleExpanded={setExpanded}
           handleDelete={handleDelete}
           handleEdit={handleEdit}

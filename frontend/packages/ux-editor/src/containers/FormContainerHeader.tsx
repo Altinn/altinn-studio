@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { ConnectDragSource } from 'react-dnd';
+import cn from 'classnames';
 import '../styles/index.css';
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
 import classes from './FormContainerHeader.module.css';
@@ -11,6 +12,7 @@ import type { FormContainer } from '../types/FormContainer';
 export interface IFormContainerHeaderProps {
   id: string;
   expanded: boolean;
+  isEditMode: boolean;
   handleExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   handleDelete: (event: React.MouseEvent<HTMLButtonElement>) => void;
   handleEdit: (component: FormContainer) => void;
@@ -20,13 +22,14 @@ export interface IFormContainerHeaderProps {
 export const FormContainerHeader = memo(function FormContainerHeader({
   id,
   expanded,
+  isEditMode,
   handleExpanded,
   handleDelete,
   dragHandleRef,
 } : IFormContainerHeaderProps) {
   const t = useText();
   return (
-    <div className={classes.formGroup} data-testid='form-group'>
+    <div className={cn(isEditMode && classes.editMode, classes.formGroup)} data-testid='form-group'>
       <div ref={dragHandleRef} className={classes.dragHandle}>
         <DragHandle />
       </div>
