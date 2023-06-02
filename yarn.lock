@@ -27,9 +27,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.27.7":
-  version: 0.27.7
-  resolution: "@altinn/altinn-design-system@npm:0.27.7"
+"@altinn/altinn-design-system@npm:0.27.8":
+  version: 0.27.8
+  resolution: "@altinn/altinn-design-system@npm:0.27.8"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
     "@navikt/ds-icons": ^2.0.0
@@ -40,7 +40,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 847b1de87adce8adda7fd2f7f8e31adfc0633f9ca47aa79d120dde9b669bbc0fd0b93bd76b7e78bee998572b9f9653d135d324a89b61b1a6cfac4d827d30c267
+  checksum: 4e8fa3790bb2544d057b16be3f29d1e296b2438caaf84d5096a24e954c02cb9b2adaaf3a6c2d4dbc9eaa5aac80667c7c10f2a1bf7cc346107fbaeeb38ac65b60
   languageName: node
   linkType: hard
 
@@ -59,7 +59,7 @@ __metadata:
     jest: 29.5.0
     jsonpointer: 5.0.1
   peerDependencies:
-    "@altinn/altinn-design-system": 0.27.7
+    "@altinn/altinn-design-system": 0.27.8
     "@digdir/design-system-react": 0.11.3
     "@mui/material": 5.13.2
     "@reduxjs/toolkit": 1.9.5
@@ -88,7 +88,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:frontend/packages/text-editor"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.7
+    "@altinn/altinn-design-system": 0.27.8
     "@digdir/design-system-react": 0.11.3
     iso-639-1: 2.1.15
     jest: 29.5.0
@@ -5194,7 +5194,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:frontend/app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.7
+    "@altinn/altinn-design-system": 0.27.8
     "@digdir/design-system-react": 0.11.3
     "@mui/material": 5.13.2
     "@reduxjs/toolkit": 1.9.5
@@ -5224,7 +5224,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:frontend/app-preview"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.7
+    "@altinn/altinn-design-system": 0.27.8
     "@digdir/design-system-react": 0.11.3
     axios: 1.4.0
     classnames: 2.3.2
@@ -5245,7 +5245,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:frontend/packages/shared"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.7
+    "@altinn/altinn-design-system": 0.27.8
     "@digdir/design-system-react": 0.11.3
     "@mui/material": 5.13.2
     "@reduxjs/toolkit": 1.9.5
@@ -6807,7 +6807,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:frontend/dashboard"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.7
+    "@altinn/altinn-design-system": 0.27.8
     "@digdir/design-system-react": 0.11.3
     "@mui/x-data-grid": 5.17.26
     "@tanstack/react-query": 4.29.11
@@ -13250,7 +13250,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "resourceadm@workspace:frontend/resourceadm"
   dependencies:
-    "@altinn/altinn-design-system": 0.27.7
+    "@altinn/altinn-design-system": 0.27.8
     "@digdir/design-system-react": 0.11.3
     "@mui/x-data-grid": 5.17.26
     "@svgr/webpack": 7.0.0
