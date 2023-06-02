@@ -65,7 +65,7 @@ export const LandingPage = () => {
               }
             ]}
             onChange={handleChangeViewSizeClick}
-            selectedValue={viewSize === 'Desktop' ? 'desktop' : 'mobile'}/>
+            selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}/>
             </span>
         </div>
         <div className={classes.iframeMobileViewContainer}>
