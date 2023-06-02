@@ -24,6 +24,7 @@ export const datamodelUploadPagePath = (org, app) => `${APP_DEVELOPMENT_BASENAME
 export const ruleHandlerPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get
 export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Post
 export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/widget-settings`; // Get
+export const optionListIdsPath = (org, app) => `/designer/api/${org}/${app}/app-development/option-list-ids`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const layoutSetsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-sets?${s({ layoutSetName })}`; // Get, Put, Post
 export const layoutSettingsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post

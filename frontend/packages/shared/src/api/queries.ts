@@ -23,6 +23,7 @@ import {
   userCurrentPath,
   userStarredListPath,
   widgetSettingsPath,
+  optionListIdsPath,
 } from './paths';
 import {
   AppDeploymentsResponse,
@@ -71,3 +72,4 @@ export const getTextResources = (owner: string, app: string, lang: string) => ge
 export const getUser = () => get<User>(userCurrentPath());
 export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
+export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
