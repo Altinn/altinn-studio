@@ -20,14 +20,15 @@ namespace Altinn.FileAnalyzers.Tests.MimeType
             analysisResult.MimeType.Should().Be("application/pdf");
         }
 
-        // Test that the analyser fails on a file that is not a PDF but a jpg
         [Fact]
         public async Task Analyse_InvalidPdf_ShouldReturnCorrectMimeType()
         {
             var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             MimeTypeAnalyser mimeTypeAnalyser = new MimeTypeAnalyser(httpContextAccessorMock.Object);
             var stream = EmbeddedResource.LoadDataAsStream("Altinn.FileAnalyzers.Tests.MimeType.example.jpg.pdf");
+            
             FileAnalysisResult analysisResult = await mimeTypeAnalyser.Analyse(stream);
+            
             analysisResult.MimeType.Should().Be("image/jpeg");
         }
     }
