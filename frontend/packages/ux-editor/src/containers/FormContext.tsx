@@ -49,7 +49,6 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutSetName);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSetName);
   const { components } = useFormLayoutsSelector(selectedLayoutSelector);
-
   const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(org, app, selectedLayoutSetName);
   const { mutateAsync: updateContainerId } = useUpdateContainerIdMutation(org, app, selectedLayoutSetName);
 
