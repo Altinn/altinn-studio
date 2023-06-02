@@ -1,5 +1,4 @@
 ﻿using Altinn.App.Core.Features.FileAnalysis;
-using Altinn.Codelists.Tests;
 using Altinn.FileAnalyzers.MimeType;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -31,8 +30,5 @@ namespace Altinn.FileAnalyzers.Tests.MimeType
             FileAnalysisResult analysisResult = await mimeTypeAnalyser.Analyse(stream);
             analysisResult.MimeType.Should().Be("image/jpeg");
         }
-
-
-
     }
 }

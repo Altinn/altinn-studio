@@ -1,7 +1,6 @@
-﻿using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 
-namespace Altinn.Codelists.Tests;
+namespace Altinn.FileAnalyzers.Tests;
 
 public static class EmbeddedResource
 {
