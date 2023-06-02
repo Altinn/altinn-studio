@@ -33,7 +33,7 @@
   z-index: 1;
 }
 
-/* .header {
+.header {
   font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: white;
   background-color: #118849;
@@ -42,7 +42,7 @@
   height: 90px;
   padding: 0 2rem;
 }
- */
+
 .betaTag {
   border: 2px solid white;
   border-radius: 4px;
@@ -77,4 +77,19 @@
   align-items: center;
   height: 70px;
   padding: 0 2rem;
+}
+
+.sub {
+  flex-direction: row;
+  text-align: right;
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end; /* Justify the elements to the right side */
+}
+
+.shareButton {
+  background-color: #0c6536;
+
+  text-align: center;
 }

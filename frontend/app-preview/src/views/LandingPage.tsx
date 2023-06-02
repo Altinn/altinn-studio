@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import classes from './LandingPage.module.css';
-import classesFromAltinnHeader from '../../../../frontend/packages/shared/src/components/altinnHeader/AltinnHeader.module.css';
-import classesFromAltinnheaderProfile from '../../../../frontend/packages/shared/src/components/AltinnHeaderProfile/AltinnHeaderProfile.module.css';
 import { PreviewContext } from '../PreviewContext';
 import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
@@ -9,19 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import AltinnStudioLogo from 'app-shared/navigation/main-header/AltinnStudioLogo';
-import { ToggleButtonGroup } from '@digdir/design-system-react';
-import { AltinnHeader } from 'app-shared/components/altinnHeader';
-import classnames from 'classnames';
-import { AltinnHeaderProfile } from 'app-shared/components/AltinnHeaderProfile';
-import { IRepository } from 'app-shared/types/global';
-import { User } from 'app-shared/types/User';
+import { Button, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Pagination } from '@altinn/altinn-design-system';
+import { LinkIcon } from '@navikt/aksel-icons';
 
-export interface LandingPageProps {
-  repository: IRepository;
-  user: User;
-}
-
-export const LandingPage = ({ repository, user }: LandingPageProps) => {
+// ----------------------------------
+export const LandingPage = () => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
@@ -54,39 +45,11 @@ export const LandingPage = ({ repository, user }: LandingPageProps) => {
 
   return (
     <PreviewContext>
-      {/*    <div className={classes.header}>
-          <a href={`/editor/${org}/${app}/ui-editor?layout=${selectedLayoutInEditor}`}>
-            <AltinnStudioLogo />
-          </a>
-          <div className={classes.betaTag}>
-            {'BETA'}
-          </div>
-        </div> */}
+      <div className={classes.header}>
+        <AltinnStudioLogo />
 
-      <div className={classesFromAltinnHeader.altinnHeaderBar}>
-        <AltinnHeader
-          app={app}
-          variant='preview'
-          menu={[]}
-          showSubMenu={false}
-          subMenuContent={null}
-          buttonActions={[]}
-          user={user}
-          org={org}
-          repository={repository}
-        />
-
-        <div
-          className={classnames(
-            classesFromAltinnheaderProfile.rightContent,
-            classesFromAltinnheaderProfile.profileMenuWrapper,
-            classesFromAltinnheaderProfile.userOrgNames
-          )}
-        >
-          <AltinnHeaderProfile org={org} repository={repository} user={user} />
-        </div>
+        <div className={classes.betaTag}>{'BETA'}</div>
       </div>
-
       <div className={classes.subHeader}>
         <span className={classes.viewSizeButtons}>
           <ToggleButtonGroup
@@ -104,7 +67,17 @@ export const LandingPage = ({ repository, user }: LandingPageProps) => {
             selectedValue={viewSize === 'Desktop' ? 'desktop' : 'mobile'}
           />
         </span>
+
+        <div className={classes.sub}>
+          <LinkIcon title='a11y-title' />
+          <Button>Del</Button>
+
+          <Button>Restart</Button>
+          <Button>Button</Button>
+        </div>
       </div>
+
+      {/*  
       <div className={classes.iframeMobileViewContainer}>
         <iframe
           title={t('preview.iframe_title')}
@@ -113,7 +86,7 @@ export const LandingPage = ({ repository, user }: LandingPageProps) => {
           className={viewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
         ></iframe>
         {viewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
-      </div>
+      </div> */}
     </PreviewContext>
   );
 };
