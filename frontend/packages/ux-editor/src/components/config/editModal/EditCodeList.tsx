@@ -17,11 +17,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   const t = useText();
   const { org, app } = useParams();
 
-  const {
-    data: optionListIds,
-    isLoading: isLoadingCodeList,
-    error: isError,
-  } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, isLoading, isError, error } = useOptionListIdsQuery(org, app);
   const handleOptionsIdChange = (e: any) => {
     handleComponentChange({
       ...component,
@@ -31,10 +27,12 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   return (
     <div>
-      {isLoadingCodeList ? (
+      {isLoading ? (
         <AltinnSpinner />
       ) : isError ? (
-        <ErrorMessage>{t('ux_editor.modal_properties_error_message')}</ErrorMessage>
+        <ErrorMessage>
+          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
+        </ErrorMessage>
       ) : (
         <Select
           options={optionListIds.map((option) => ({
