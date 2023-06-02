@@ -4,6 +4,8 @@ import { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useParams } from 'react-router-dom';
+import { AltinnSpinner } from 'app-shared/components';
+import { ErrorMessage } from '@digdir/design-system-react';
 
 export enum SelectedOptionsType {
   Codelist = 'codelist',
@@ -18,8 +20,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   const {
     data: optionListIds,
     isLoading: isLoadingCodeList,
-    error,
-    status,
+    error: isError,
   } = useOptionListIdsQuery(org, app);
   const handleOptionsIdChange = (e: any) => {
     handleComponentChange({
@@ -30,22 +31,19 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   return (
     <div>
-      {status === 'loading' ? (
-        'Loading...'
-      ) : status === 'error' ? (
-        <span>{error instanceof Error ? error.message : 'An error has occurred'}</span>
+      {isLoadingCodeList ? (
+        <AltinnSpinner />
+      ) : isError ? (
+        <ErrorMessage>{t('ux_editor.modal_properties_error_message')}</ErrorMessage>
       ) : (
-        <>
-          <Select
-            options={optionListIds.map((option) => ({
-              label: option,
-              value: option,
-            }))}
-            label={t('ux_editor.modal_properties_code_list_id')}
-            onChange={handleOptionsIdChange}
-          />
-          <div>{isLoadingCodeList ? 'loading...' : ' '}</div>
-        </>
+        <Select
+          options={optionListIds.map((option) => ({
+            label: option,
+            value: option,
+          }))}
+          label={t('ux_editor.modal_properties_code_list_id')}
+          onChange={handleOptionsIdChange}
+        />
       )}
 
       <p>

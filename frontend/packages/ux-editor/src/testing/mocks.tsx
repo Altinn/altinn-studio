@@ -13,7 +13,12 @@ import { BrowserRouter } from 'react-router-dom';
 import ruleHandlerMock from './ruleHandlerMock';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import { ruleConfig as ruleConfigMock } from './ruleConfigMock';
-import { externalLayoutsMock, layout1NameMock, layout2NameMock, layoutSetsMock } from './layoutMock';
+import {
+  externalLayoutsMock,
+  layout1NameMock,
+  layout2NameMock,
+  layoutSetsMock,
+} from './layoutMock';
 import { queriesMock as allQueriesMock } from 'app-shared/mocks/queriesMock';
 
 export const textResourcesMock: ITextResourcesState = {
@@ -56,24 +61,9 @@ export const queriesMock: ServicesContextProps = {
   configureLayoutSet: jest.fn(),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
-  deleteLanguageCode: jest.fn(),
-  getAppReleases: jest.fn(),
-  getBranchStatus: jest.fn(),
-  getDatamodel: jest.fn(),
-  getDatamodelsXsd: jest.fn(),
-  getDeployPermissions: jest.fn(),
-  getDeployments: jest.fn(),
-  getEnvironments: jest.fn(),
-  getFormLayoutSettings: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
   getInstanceIdForPreview: jest.fn(),
-  getOrgList: jest.fn(),
-  getRepoMetadata: jest.fn(),
-  getRepoPull: jest.fn(),
   getOptionListIds: jest.fn(),
-  getRepoStatus: jest.fn(),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
