@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CenterContainer } from '../../components/CenterContainer';
 import { Footer } from '../../components/Footer';
 
@@ -15,6 +15,7 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import { User } from 'app-shared/types/User';
 import { Organization } from 'app-shared/types/Organization';
 import { resourceIdMock1 } from 'resourceadm/data-mocks/policies';
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 type ResourceDashboardProps = {
   user: User;
@@ -28,6 +29,12 @@ export const ResourceDashboard = ({
   disableDebounce,
 }: ResourceDashboardProps) => {
   const navigate = useNavigate();
+
+  // Gets the org and repo of the current location
+  const location = useLocation();
+  const currentUrl = location.pathname;
+  const urlOrg = currentUrl.split('/')[1];
+  const urlRepo = currentUrl.split('/')[2];
 
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');
@@ -90,11 +97,13 @@ export const ResourceDashboard = ({
         {/*
             Dummy button that takes the user to the resource page where the user can navigate
             between the 3 pages "about the resource", "security", and "policy".
+
+            // TODO - replace resourceIdMock1 with the real ID of the resource
         */}
         <Button
           type='button'
           onClick={() => {
-            navigate(`/resource/${resourceIdMock1}/about`);
+            navigate(getResourcePageURL(urlOrg, urlRepo, resourceIdMock1, 'about'));
           }}
         >
           Gå til mock ressurs 1

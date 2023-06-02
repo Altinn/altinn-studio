@@ -8,8 +8,6 @@ import { ResourceDashboard } from '../pages/ResourceDashboard';
 import { RessurstilgangSide1 } from '../pages/RessurstilgangSide1';
 import { OlsenbandenPage } from '../pages/OlsenbandenPage';
 import { TestPage } from '../pages/TestPage';
-import { PolicyEditorStartPage } from 'resourceadm/pages/PolicyEditorStartPage';
-import { PolicyEditor } from 'resourceadm/pages/PolicyEditor';
 
 import { Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -55,13 +53,15 @@ export const App = (): JSX.Element => {
     return <ErrorMessage title={error.title} message={error.message} />;
   }
 
+  const basePath = '/:org/:repo';
+
   if (componentIsReady) {
     return (
       <div className={classes.root}>
         <Routes>
           <Route element={<TestPage />}>
             <Route
-              path='/'
+              path={basePath}
               element={<ResourceDashboard user={user} organizations={organizations} />}
             />
           </Route>
@@ -77,10 +77,9 @@ export const App = (): JSX.Element => {
 
           <Route path='/olsenbanden' element={<OlsenbandenPage />} />
 
-          <Route path='/PolicyEditorStartPage' element={<PolicyEditorStartPage />} />
-          <Route path='/policyEditor' element={<PolicyEditor />} />
-
-          <Route path={`/resource/:resourceId/:pageType`} element={<ResourcePage />} />
+          <Route element={<PageLayout />}>
+            <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
+          </Route>
         </Routes>
       </div>
     );

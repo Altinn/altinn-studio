@@ -1,7 +1,8 @@
 .navigationBar {
   background-color: #F4F5F6;
   width: 250px;
-  height: 100vh;
+  min-height: 100vh;
+  height: 100%;
   left: 0;
   border: 1px solid #bebebe;
 }
