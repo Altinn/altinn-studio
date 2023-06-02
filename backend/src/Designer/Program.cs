@@ -180,14 +180,19 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AllowSynchronousIO = true;
     });
 
-    var maskinportenSettings = new MaskinportenSettings();
-    configuration.GetSection("MaskinportenSettings").Bind(maskinportenSettings);
+    services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
+    var maskinPortenClientName = "MaskinportenClient";
+    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
+    services.AddHttpClient<IResourceRegistry, ResourceRegistryService>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
+
+    var maskinportenSettings = new MaskinportenClientSettings();
+    configuration.GetSection("MaskinportenClientSettings").Bind(maskinportenSettings);
 
     //services.Configure<MaskinportenSettings>(configuration.GetSection("MaskinportenSettings"));
-    var maskinPortenClientName = "MaskinportenClient";
-    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenSettings"));
-    //services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
-    services.AddHttpClient<IMaskinportenClient, MaskinportenClient>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
+    //var maskinPortenClientName = "MaskinportenClient";
+    //services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenSettings"));
+    services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenClient", maskinportenSettings);
+    //services.AddHttpClient<IMaskinportenClient, MaskinportenClient>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
 
     services.RegisterServiceImplementations(configuration);
 

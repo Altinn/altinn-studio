@@ -23,6 +23,7 @@
     <PackageReference Include="Altinn.Common.AccessTokenClient" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" />
     <PackageReference Include="Altinn.Platform.Models" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
     <PackageReference Include="CompilerAttributes" />
     <PackageReference Include="ini-parser-netstandard" />
     <PackageReference Include="JWTCookieAuthentication" />
@@ -62,6 +63,7 @@
     <CoreLanguage Include="../Common/Languages/ini/*" />
     <Compile Remove="Controllers\ManualTestingController.cs" />
     <None Remove="jwtselfsignedcert.pfx" />
+    <Watch Remove="Configuration\MaskinportenClientSettings.cs" />
     <Watch Remove="Controllers\CompetentAuthority.cs" />
     <Watch Remove="Controllers\ResourceAdmController.cs" />
     <Watch Remove="Controllers\ResourceAdminController.cs" />

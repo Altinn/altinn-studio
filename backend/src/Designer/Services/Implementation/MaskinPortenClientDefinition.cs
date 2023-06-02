@@ -5,16 +5,20 @@ using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
 using Microsoft.Extensions.Options;
+using Azure.Security.KeyVault.Secrets;
+using Altinn.Studio.Designer.Configuration;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
     public class MaskinPortenClientDefinition : IClientDefinition
     {
         //private ISecrets _secrets;
+        private SecretClient _secretClient;
 
         public IMaskinportenSettings ClientSettings { get; set; }
+        //public MaskinportenClientSettings ClientSettings { get; set; }
 
-        public MaskinPortenClientDefinition(IOptions<MaskinportenSettings> clientSettings)
+        public MaskinPortenClientDefinition(IOptions<MaskinportenClientSettings> clientSettings)
         {
             ClientSettings = clientSettings.Value;
             //_secrets = secrets;

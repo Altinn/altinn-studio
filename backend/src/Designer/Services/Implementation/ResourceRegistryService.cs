@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -17,15 +18,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpClient _httpClient;
         private readonly IHttpClientFactory _httpClientFactory;
         //private readonly IMaskinportenClient _maskinportenClient;
-        private readonly IMaskinportenService _maskinPortenService; //TODO: Vurdere om denne heller skal brukes fra en egen klasse
-        private readonly MaskinPortenClientDefinition _maskinportenClientDefinition;
+        private readonly IMaskinportenService _maskinPortenService;
+        private readonly IClientDefinition _maskinportenClientDefinition;
+
+        //private readonly MaskinportenClientSettings _maskinportenClientSettings;
 
         public ResourceRegistryService()
         {
 
         }
 
-        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, MaskinPortenClientDefinition maskinPortenClientDefinition)
+        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition)
         {
             _httpClient = httpClient;
             _httpClientFactory = httpClientFactory;
@@ -55,6 +58,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
         {
             return await _maskinPortenService.GetToken(_maskinportenClientDefinition.ClientSettings.EncodedJwk, _maskinportenClientDefinition.ClientSettings.Environment, _maskinportenClientDefinition.ClientSettings.ClientId, _maskinportenClientDefinition.ClientSettings.Scope, _maskinportenClientDefinition.ClientSettings.Resource, _maskinportenClientDefinition.ClientSettings.ConsumerOrgNo);
+            //return await _maskinPortenService.GetToken(_maskinportenClientDefinition);
+            //return await _maskinPortenService.GetToken(_maskinportenClientSettings.EncodedJwk, _maskinportenClientSettings.Environment, _maskinportenClientSettings.ClientId, _maskinportenClientSettings.Scope, "ResourceRegistry");
         }
 
         private async Task<TokenResponse> ExchangeToken(TokenResponse tokenResponse, string environment)
