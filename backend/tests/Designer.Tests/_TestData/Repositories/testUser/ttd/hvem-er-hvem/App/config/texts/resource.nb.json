@@ -55,11 +55,11 @@
         "variables": [
         {
           "key": "aFieldInTheModel",
-          "datasource": "dataModel.testModel"
+          "dataSource": "dataModel.testModel"
         },
         {
           "key": "appId",
-          "datasource": "instanceContext"
+          "dataSource": "instanceContext"
         }
       ]
     }
