@@ -27,9 +27,10 @@ const useStyles = makeStyles({
   },
   iconButton: {
     padding: 0,
-    '&:focus': {
-      outline: 'var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width)',
-      outlineOffset: 'var(--semantic-tab_focus-outline-offset)',
+    '&:focus-within': {
+      outline: 'var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color)',
+      outlineOffset: 'var(--fds-focus-border-width)',
+      boxShadow: '0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color)',
     },
   },
 });

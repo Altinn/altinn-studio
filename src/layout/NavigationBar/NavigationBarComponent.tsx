@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
   },
   containerBase: {
     borderRadius: '40px',
-
+    margin: 2,
     '&:active': {
       backgroundColor: theme.altinnPalette.primary.blueDark,
     },
@@ -39,7 +39,8 @@ const useStyles = makeStyles((theme) => ({
     cursor: 'pointer',
     background: 'none',
     font: 'inherit',
-    border: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
+    border: 'none',
+    outline: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
     width: '100%',
     height: '100%',
     display: 'block',
@@ -49,11 +50,12 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '1rem',
 
     '&:hover': {
-      outline: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
+      outline: `3px solid ${theme.altinnPalette.primary.blueMedium}`,
     },
-    '&:focus': {
-      outline: 'var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width)',
-      outlineOffset: 'var(--semantic-tab_focus-outline-offset)',
+    '&:focus-within': {
+      outline: 'var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color)',
+      outlineOffset: 'var(--fds-focus-border-width)',
+      boxShadow: '0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color)',
     },
   },
   buttonSelected: {

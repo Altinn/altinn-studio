@@ -9,14 +9,17 @@ import type { IAttachment } from 'src/types/shared';
 
 const useStyles = makeStyles(() => ({
   a: {
+    margin: '4px 0',
+    borderRadius: 'var(--interactive_components-border_radius-normal)',
     '&:hover': {
       borderBottom: '0px',
     },
-    '&:focus': {
+    '&:focus-within': {
       borderBottom: '0px',
       backgroundColor: 'transparent',
-      outline: 'var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width)',
-      outlineOffset: 'var(--semantic-tab_focus-outline-offset)',
+      outline: 'var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color)',
+      outlineOffset: 'var(--fds-focus-border-width)',
+      boxShadow: '0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color)',
     },
     '&:active': {
       borderBottom: '0px',

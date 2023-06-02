@@ -37,6 +37,12 @@ declare global {
       navPage(page: string): Chainable<Element>;
 
       /**
+       * Finds and clicks a navigation menu element with the specified text/page name
+       * Verifies that the page has changed
+       */
+      gotoNavPage(page: string): Chainable<Element>;
+
+      /**
        * Send in the form just completed by gotoAndComplete(), and wait for the next task to render
        */
       sendIn(target?: FrontendTestTask): Chainable<Element>;

@@ -15,7 +15,7 @@
 }
 
 button.buttonMargin {
-  margin-top: calc(var(--semantic-tab_focus-outline-offset) + var(--semantic-tab_focus-outline-width));
+  margin-top: calc(2 * var(--fds-focus-border-width));
 }
 
 @media only screen and (max-width: 1200px) {

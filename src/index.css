@@ -15,6 +15,11 @@
   --repeating-group-edit-divider-color: var(--colors-blue-200);
   --repeating-group-error-color: var(--colors-red-200);
 
+  /* Focus styles */
+  --fds-inner-focus-border-color: #1e2b3c;
+  --fds-outer-focus-border-color: #fadf4b;
+  --fds-focus-border-width: 3px;
+
   /*Border styles*/
   --border-color-primary: #008fd6;
   --dashed-border-primary: 1px dashed var(--border-color-primary);
@@ -43,6 +48,13 @@
     --page-max-width: 1056px;
     --page-padding-x: 0;
   }
+}
+
+/* TODO: remove when https://github.com/digdir/designsystem/issues/497 is resolved 
+ * This is a workaround to avoid the dropdown list from being hidden behind the dev tools panel
+ */
+* {
+  --option_list-z_index: 10002 !important;
 }
 
 /* Custom CSS for all app */

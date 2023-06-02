@@ -36,20 +36,10 @@ describe('Options', () => {
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     cy.addItemToGroup(1, 2, 'automation');
     cy.addItemToGroup(3, 4, 'altinn');
-    cy.get(appFrontend.group.options).then((options) => {
-      cy.wrap(options).should('be.visible');
-      cy.wrap(options)
-        .parents('[data-testid="select-root"]')
-        .find('[role=option]')
-        .eq(0)
-        .should('have.text', 'Endre fra: 1, Endre til: 2');
-      cy.wrap(options)
-        .parents('[data-testid="select-root"]')
-        .find('[role=option]')
-        .eq(1)
-        .should('have.text', 'Endre fra: 3, Endre til: 4');
-      cy.wrap(options).dsSelect('Endre fra: 1, Endre til: 2');
-      cy.wrap(options).should('have.value', 'Endre fra: 1, Endre til: 2');
-    });
+    cy.get(appFrontend.group.options).click();
+    cy.findByRole('option', { name: 'Endre fra: 1, Endre til: 2' }).should('be.visible');
+    cy.findByRole('option', { name: 'Endre fra: 3, Endre til: 4' }).should('be.visible');
+    cy.findByRole('option', { name: 'Endre fra: 1, Endre til: 2' }).click();
+    cy.get(appFrontend.group.options).should('have.value', 'Endre fra: 1, Endre til: 2');
   });
 });

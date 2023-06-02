@@ -77,7 +77,7 @@ const RadioGroupTableRow = ({
           <TableCell
             key={option.value}
             align={'center'}
-            style={{ padding: '4px 12px' }}
+            style={{ padding: '10px', lineHeight: 0 }}
             onBlur={handleBlur}
           >
             <RadioButton

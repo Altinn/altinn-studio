@@ -16,7 +16,7 @@ describe('Summary', () => {
       }
     });
     cy.goto('changename');
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
 
     // Verify empty summary components
     cy.get('[data-testid=summary-summary-2]').contains(texts.emptySummary);
@@ -31,9 +31,9 @@ describe('Summary', () => {
         cy.wrap(items).eq(2).should('contain.text', `Referanse 2 : ${texts.emptySummary}`);
       });
 
-    cy.navPage('form').click();
+    cy.gotoNavPage('form');
     cy.gotoAndComplete('changename');
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get(appFrontend.backButton).should('be.visible');
 
     // Summary displays change button for editable fields and does not for readonly fields
@@ -103,17 +103,17 @@ describe('Summary', () => {
 
     // Hide the component the Summary refers to, which should hide the summary component as well
     cy.get('[data-testid=summary-summary-1]').contains('span', 'Du har valgt å endre:').should('be.visible');
-    cy.navPage('form').click();
+    cy.gotoNavPage('form');
     cy.get(appFrontend.changeOfName.newFirstName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).type('hidePrevName');
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-summary-1]').should('not.exist');
 
     // Test summary of non-repeating group
-    cy.navPage('form').click();
+    cy.gotoNavPage('form');
     cy.get('#reference').dsSelect('Ola Nordmann');
     cy.get('#reference2').dsSelect('Ole');
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
       .then((items) => {
@@ -122,11 +122,11 @@ describe('Summary', () => {
         cy.wrap(items).eq(2).should('contain.text', 'Referanse 2 : Ole');
       });
 
-    cy.navPage('form').click();
+    cy.gotoNavPage('form');
     cy.get('#sources').dsSelect('Digitaliseringsdirektoratet');
     cy.get('#reference').dsSelect('Sophie Salt');
     cy.get('#reference2').dsSelect('Dole');
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
       .then((items) => {
@@ -135,11 +135,11 @@ describe('Summary', () => {
         cy.wrap(items).eq(2).should('contain.text', 'Referanse 2 : Dole');
       });
 
-    cy.navPage('form').click();
+    cy.gotoNavPage('form');
     cy.get('#sources').dsSelect('Annet');
     cy.get('#reference').dsSelect('Test');
     cy.get('#reference2').dsSelect('Doffen');
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
       .then((items) => {
@@ -153,11 +153,11 @@ describe('Summary', () => {
     cy.goto('group');
 
     // Verify empty group summary
-    cy.navPage('repeating').click();
+    cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-group-component] > div').last().should('contain.text', texts.emptySummary);
-    cy.navPage('prefill').click();
+    cy.gotoNavPage('prefill');
 
     cy.gotoAndComplete('group');
 
@@ -209,11 +209,11 @@ describe('Summary', () => {
         cy.wrap(item).eq(5).should('contain.text', `${texts.nestedOption2}, ${texts.nestedOption3}`);
       });
 
-    cy.navPage('prefill').click();
+    cy.gotoNavPage('prefill');
     cy.get(appFrontend.group.prefill.liten).dsCheck();
     cy.get(appFrontend.group.prefill.middels).dsCheck();
     cy.get(appFrontend.group.prefill.svaer).dsCheck();
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
 
     function assertSummaryItem(groupRow: number, items: { [key: string]: boolean }) {
       cy.get(appFrontend.group.mainGroupSummary)
@@ -257,12 +257,12 @@ describe('Summary', () => {
     assertSummaryItem(3, prefillRowAbove100);
 
     // Verify empty values in group summary
-    cy.navPage('repeating').click();
+    cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.saveSubGroup).click();
     cy.get(appFrontend.group.saveMainGroup).click();
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get('#summary-mainGroup-4 > [data-testid=summary-currentValue-4] > div')
       .children()
       .last()
@@ -299,9 +299,9 @@ describe('Summary', () => {
 
     // Hiding the group should hide the group summary as well
     cy.get('[data-testid=summary-summary1]').should('be.visible');
-    cy.navPage('repeating').click();
+    cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).find('input[type=checkbox]').dsUncheck();
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-summary1]').should('not.exist');
   });
 
@@ -314,7 +314,7 @@ describe('Summary', () => {
     cy.goto('group');
 
     cy.get(appFrontend.group.prefill['liten']).dsCheck();
-    cy.navPage('repeating').click();
+    cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     // Add data
     cy.get(appFrontend.group.row(0).editBtn).click();
@@ -331,7 +331,7 @@ describe('Summary', () => {
     cy.get(appFrontend.group.comments).type('third comment');
     cy.get(appFrontend.group.saveSubGroup).clickAndGone();
 
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     //Skjul kommentar felt
     cy.get('[data-testid=summary-group-component]')
       .children()

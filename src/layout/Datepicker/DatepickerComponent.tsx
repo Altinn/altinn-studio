@@ -19,24 +19,21 @@ export type IDatepickerProps = PropsFromGenericComponent<'Datepicker'>;
 
 const iconSize = '30px';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     backgroundColor: 'white',
     boxSizing: 'border-box',
     height: '36px',
     fontSize: '1rem',
     fontFamily: 'Altinn-DIN',
-    borderWidth: '2px',
-    borderStyle: 'solid',
     borderRadius: 'var(--interactive_components-border_radius-normal)',
     marginBottom: '0px',
-    borderColor: theme.altinnPalette.primary.blueMedium,
+    outline: '1px solid var(--component-input-color-border-default)',
     '&:hover': {
-      borderColor: theme.altinnPalette.primary.blueDark,
+      outline: '2px solid var(--component-input-color-border-hover)',
     },
     '&:has(input:focus-visible)': {
-      outline: 'var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width)',
-      outlineOffset: 'var(--semantic-tab_focus-outline-offset)',
+      outline: 'var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color)',
     },
   },
   input: {
@@ -44,8 +41,10 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: '12px',
   },
   invalid: {
-    borderColor: `${theme.altinnPalette.primary.red} !important`,
-    outlineColor: `${theme.altinnPalette.primary.red} !important`,
+    outlineColor: `var(--component-input-error-color-border-default)`,
+    '&:hover': {
+      outlineColor: `var(--component-input-error-color-border-default)`,
+    },
   },
   icon: {
     fontSize: iconSize,
@@ -58,8 +57,9 @@ const useStyles = makeStyles((theme) => ({
       outline: 'none',
     },
     '&:focus-visible': {
-      outline: 'var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width)',
-      outlineOffset: 'var(--semantic-tab_focus-outline-offset)',
+      outline: 'var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color)',
+      outlineOffset: 'var(--fds-focus-border-width)',
+      boxShadow: '0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color)',
     },
   },
   formHelperText: {

@@ -4,9 +4,11 @@
 */
 
 .link {
+  composes: focusable from 'src/styles/utils.module.css';
   color: var(--semantic-surface-action-default) !important;
   border: none !important; /* Override old design-system global css, remove when possible */
   border-radius: var(--interactive_components-border_radius-normal);
+  padding: 4px;
 }
 
 .link:hover {
@@ -15,11 +17,6 @@
 
 .link:active {
   color: var(--semantic-surface-action-active) !important;
-}
-
-.link:focus-visible {
-  outline: var(--semantic-tab_focus-outline-color) solid var(--semantic-tab_focus-outline-width);
-  outline-offset: var(--semantic-tab_focus-outline-offset);
 }
 
 /* Override old design-system global css, remove when possible */

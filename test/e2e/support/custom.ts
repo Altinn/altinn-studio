@@ -32,7 +32,7 @@ Cypress.Commands.add('dsUncheck', { prevSubject: true }, (subject: JQueryWithSel
 Cypress.Commands.add('dsSelect', { prevSubject: true }, (subject: JQueryWithSelector | undefined, name) => {
   cy.log(`Selecting ${name}`);
   cy.wrap(subject).click();
-  cy.wrap(subject).parents('[data-testid="select-root"]').findByRole('option', { name }).click();
+  cy.findByRole('option', { name }).click();
   cy.get('body').click();
   cy.wrap(subject);
 });
@@ -52,6 +52,11 @@ Cypress.Commands.add('navPage', (page: string) => {
     }
     cy.get(appFrontend.navMenu).findByText(regex);
   });
+});
+
+Cypress.Commands.add('gotoNavPage', (page: string) => {
+  cy.navPage(page).click();
+  cy.navPage(page).should('have.attr', 'aria-current', 'page');
 });
 
 Cypress.Commands.add('numberFormatClear', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
