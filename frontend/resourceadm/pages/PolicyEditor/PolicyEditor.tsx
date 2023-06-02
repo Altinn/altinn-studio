@@ -29,6 +29,12 @@ import { VerificationModal } from 'resourceadm/components/VerificationModal';
 export const PolicyEditor = () => {
   // TODO - translation
 
+  // TODO - legge på
+  /*
+requiredAuthenticationLevelEndUser: "2"  // Nedtrekk 1-4 - Påloggingsnivå - default 3. - Sette på toppen
+requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
+  */
+
   const { resourceId } = useParams();
   const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
 

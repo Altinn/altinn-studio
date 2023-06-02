@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditor } from '../PolicyEditor';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { get } from 'app-shared/utils/networking';
+import { getPolicyRulesUrl } from 'resourceadm/utils/backendUrlUtils/backendUserUtils';
 
 /**
  * Displays the 3 pages to manage resources and a left navigation bar.
@@ -19,6 +21,17 @@ export const ResourcePage = () => {
   const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
     pageType as NavigationBarPageType
   );
+
+  // legg på param for å kjøre mot backend eller mock.
+  const a = () => {
+    get(getPolicyRulesUrl('ttd', 'resourceadm-resources', 'resourceId3')).then((res) => {
+      console.log(res);
+    });
+  };
+
+  useEffect(() => {
+    a();
+  });
 
   /**
    * Navigates to the selected page
