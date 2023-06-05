@@ -9,11 +9,11 @@ import {
  * Empty rule when new card added
  */
 export const emptyPolicyRule: PolicyRuleCardType = {
-  RuleId: '0',
-  Resources: [],
-  Actions: [],
-  Subject: [],
-  Description: '',
+  ruleId: '0',
+  resources: [],
+  actions: [],
+  subject: [],
+  description: '',
 };
 
 /**
@@ -35,8 +35,8 @@ export const mapPolicySubjectToSubjectTitle = (
   });
 
   return subjectIds.map((subjectId) => {
-    if (subjectOptions.map((s) => s.SubjectId).includes(subjectId)) {
-      return subjectOptions.find((s) => s.SubjectId === subjectId).SubjectTitle;
+    if (subjectOptions.map((s) => s.subjectId).includes(subjectId)) {
+      return subjectOptions.find((s) => s.subjectId === subjectId).subjectTitle;
     }
   });
 };
@@ -75,19 +75,19 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCardType = (
   rules: PolicyRuleBackendType[]
 ): PolicyRuleCardType[] => {
   const newRules = rules.map((r) => {
-    const idArr = r.RuleId.split(':');
+    const idArr = r.ruleId.split(':');
     const id = idArr[idArr.length - 1];
 
-    const mappedResources = r.Resources.map((resource) =>
+    const mappedResources = r.resources.map((resource) =>
       resource.map(r => mapResourceFromBackendToResourceType(r))
     );
 
     return {
-      RuleId: id,
-      Actions: r.Actions,
-      Description: r.Description,
-      Subject: mapPolicySubjectToSubjectTitle(subjectOptions, r.Subject),
-      Resources: mappedResources,
+      ruleId: id,
+      actions: r.actions,
+      description: r.description,
+      subject: mapPolicySubjectToSubjectTitle(subjectOptions, r.subject),
+      resources: mappedResources,
     };
   });
   return newRules;
@@ -105,8 +105,8 @@ export const mapSubjectTitleToSubjectString = (
   subjectOptions: PolicySubjectType[],
   subjectTitle: string
 ): string => {
-  const subject: PolicySubjectType = subjectOptions.find((s) => s.SubjectTitle === subjectTitle);
-  return `urn:${subject.SubjectSource}:${subject.SubjectId}`;
+  const subject: PolicySubjectType = subjectOptions.find((s) => s.subjectTitle === subjectTitle);
+  return `urn:${subject.subjectSource}:${subject.subjectId}`;
 };
 
 /**
@@ -126,14 +126,14 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
   resourceType: string,
   resourceId: string
 ): PolicyRuleBackendType => {
-  const resources: string[][] = policyRule.Resources.map((resource) => resource.map(r => `${r.type}:${r.id}`));
-  const subject: string[] = policyRule.Subject.map((s) => mapSubjectTitleToSubjectString(subjectOptions, s));
+  const resources: string[][] = policyRule.resources.map((resource) => resource.map(r => `${r.type}:${r.id}`));
+  const subject: string[] = policyRule.subject.map((s) => mapSubjectTitleToSubjectString(subjectOptions, s));
 
   return {
-    RuleId: `${resourceType}:${resourceId}:ruleid:${policyRule.RuleId}`,
-    Description: policyRule.Description,
-    Subject: subject,
-    Actions: policyRule.Actions,
-    Resources: resources,
+    ruleId: `${resourceType}:${resourceId}:ruleid:${policyRule.ruleId}`,
+    description: policyRule.description,
+    subject: subject,
+    actions: policyRule.actions,
+    resources: resources,
   };
 };

@@ -55,14 +55,14 @@ export const ExpandablePolicyCard = ({
   handleDuplicateRule,
   handleDeleteRule,
 }: Props) => {
-  const [resources, setResources] = useState<PolicyRuleResourceType[][]>(policyRule.Resources);
-  const [selectedActions, setSelectedActions] = useState(policyRule.Actions);
-  const [ruleDescription, setRuleDescription] = useState(policyRule.Description);
-  const [selectedSubjectTitles, setSelectedSubjectTitles] = useState(policyRule.Subject);
+  const [resources, setResources] = useState<PolicyRuleResourceType[][]>(policyRule.resources);
+  const [selectedActions, setSelectedActions] = useState(policyRule.actions);
+  const [ruleDescription, setRuleDescription] = useState(policyRule.description);
+  const [selectedSubjectTitles, setSelectedSubjectTitles] = useState(policyRule.subject);
 
-  const [hasResourceError, setHasResourceError] = useState(policyRule.Resources.length === 0);
-  const [hasRightsError, setHasRightsErrors] = useState(policyRule.Actions.length === 0);
-  const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.Subject.length === 0);
+  const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
+  const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
+  const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.subject.length === 0);
 
   /**
    * Function to update the fields inside the rule object in the rule array.
@@ -78,10 +78,10 @@ export const ExpandablePolicyCard = ({
     const updatedRules = [...rules];
     updatedRules[rulePosition] = {
       ...updatedRules[rulePosition],
-      Description: d,
-      Subject: s,
-      Actions: a,
-      Resources: r,
+      description: d,
+      subject: s,
+      actions: a,
+      resources: r,
     };
     setPolicyRules(updatedRules);
   };
@@ -91,8 +91,8 @@ export const ExpandablePolicyCard = ({
    */
   const getSubjectOptions = () => {
     return subjects
-      .filter((s) => !selectedSubjectTitles.includes(s.SubjectTitle))
-      .map((s) => ({ value: s.SubjectTitle, label: s.SubjectTitle }));
+      .filter((s) => !selectedSubjectTitles.includes(s.subjectTitle))
+      .map((s) => ({ value: s.subjectTitle, label: s.subjectTitle }));
   };
   const [subjectOptions, setSubjectOptions] = useState(getSubjectOptions());
 
@@ -100,7 +100,7 @@ export const ExpandablePolicyCard = ({
    * Gets the id of the policy
    */
   const getPolicyRuleId = () => {
-    return policyRule.RuleId.toString();
+    return policyRule.ruleId.toString();
   };
 
   /**

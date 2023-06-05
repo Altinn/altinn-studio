@@ -8,6 +8,7 @@ import {
   PolicyRuleCardType,
   PolicyRuleBackendType,
   PolicySubjectType,
+  RequiredAuthLevelType,
 } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
 import {
@@ -22,6 +23,7 @@ import {
   mapPolicyRuleToPolicyRuleBackendObject,
 } from 'resourceadm/utils/policyEditorUtils';
 import { VerificationModal } from 'resourceadm/components/VerificationModal';
+import { SelectAuthLevel } from 'resourceadm/components/SelectAuthLevel';
 
 /**
  * Displays the content where a user can add and edit a policy
@@ -44,6 +46,8 @@ requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
   const [policyRules, setPolicyRules] = useState<PolicyRuleCardType[]>([]);
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
 
+  const [requiredAuthLevel, setRequiredAuthLevel] = useState<RequiredAuthLevelType>('3');
+
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated
   const [lastRuleId, setLastRuleId] = useState(0);
 
@@ -62,13 +66,13 @@ requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
     setPolicyRules(
       mapPolicyRulesBackendObjectToPolicyRuleCardType(
         subjectsListMock,
-        resourceId === 'test_id_1' ? policyMock1.Rules : policyMock2.Rules
+        resourceId === 'test_id_1' ? policyMock1.rules : policyMock2.rules
       )
     );
 
     // TODO - replace when found out how to handle the IDs
     setLastRuleId(
-      resourceId === 'test_id_1' ? policyMock1.Rules.length + 1 : policyMock2.Rules.length + 1
+      resourceId === 'test_id_1' ? policyMock1.rules.length + 1 : policyMock2.rules.length + 1
     );
   }, [resourceId]);
 
@@ -89,7 +93,7 @@ requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
         handleDuplicateRule={() => handleDuplicateRule(i)}
         handleDeleteRule={() => {
           setVerificationModalOpen(true);
-          setRuleIdToDelete(pr.RuleId);
+          setRuleIdToDelete(pr.ruleId);
         }}
       />
     </div>
@@ -129,7 +133,7 @@ requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
   const handleDuplicateRule = (index: number) => {
     const ruleToDuplicate: PolicyRuleCardType = {
       ...policyRules[index],
-      RuleId: getRuleId().toString(),
+      ruleId: getRuleId().toString(),
     };
     setPolicyRules([...policyRules, ruleToDuplicate]);
   };
@@ -141,7 +145,7 @@ requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
    */
   const handleDeleteRule = (ruleId: string) => {
     const updatedRules = [...policyRules];
-    const indexToRemove = updatedRules.findIndex((a) => a.RuleId === ruleId);
+    const indexToRemove = updatedRules.findIndex((a) => a.ruleId === ruleId);
     updatedRules.splice(indexToRemove, 1);
     setPolicyRules(updatedRules);
 
@@ -159,7 +163,9 @@ requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
     );
 
     const resourceWithRules: PolicyEditorSendType = {
-      Rules: policyEditorRules,
+      rules: policyEditorRules,
+      requiredAuthenticationLevelEndUser: requiredAuthLevel,
+      requiredAuthenticationLevelOrg: '3',
     };
 
     // TODO - Error handling
@@ -173,10 +179,19 @@ requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
       <div>
         <div className={classes.policyEditorTop}>
           <h2 className={classes.policyEditorHeader}>Policy editor</h2>
-          <p>
-            Policy gjelder for ressursen: <strong>{resourceId}</strong>
-          </p>
+          <p className={classes.subHeader}>Navn på policyen</p>
+          <div className={classes.textFieldIdWrapper}>
+            <div className={classes.idBox}>
+              <p className={classes.idBoxText}>id</p>
+            </div>
+            <p className={classes.idText}>{resourceId}</p>
+          </div>
         </div>
+        <div className={classes.selectAuthLevelWrapper}>
+          <p className={classes.subHeader}>Velg påkrevd sikkerhetsnivå for bruker</p>
+          <SelectAuthLevel value={requiredAuthLevel} setValue={(v) => setRequiredAuthLevel(v)} />
+        </div>
+        <p className={classes.subHeader}>Regler for policyen</p>
         {displayRules}
         <div className={classes.addCardButtonWrapper}>
           <CardButton buttonText='Legg til ekstra regelsett' onClick={handleAddCardClick} />

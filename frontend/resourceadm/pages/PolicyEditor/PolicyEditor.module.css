@@ -13,6 +13,10 @@
   margin-bottom: 50px;
 }
 
+.selectAuthLevelWrapper {
+  width: 300px;
+}
+
 .addCardButtonWrapper {
   margin-block: 20px;
   width: 595px;
@@ -30,21 +34,7 @@
 
 .subHeader {
   font-weight: 500;
-  margin-bottom: 5px;
-  margin-top: 20px;
-}
-
-/* TODO - Fix hover, tab-focus, active, visisted. */
-.externalLink {
-  color: #000000;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-color: #1EAEF7;
-  text-decoration-thickness: 1.5px;
-}
-
-.componentWrapper {
-  margin-top: 10px;
+  margin-top: 40px;
 }
 
 .textFieldIdWrapper {
@@ -74,16 +64,11 @@
 
 .idText {
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
-}
-
-.emptyPolicyName {
-  height: 36px;
-  margin-top: 5px;
 }
 
 p {
