@@ -89,6 +89,7 @@ export const PolicyEditor = ({
    * updates the store of the next rule id
    */
   const getRuleId = () => {
+    console.log('lastruleid', lastRuleId);
     const currentRuleId = lastRuleId;
     setLastRuleId(currentRuleId + 1);
     return currentRuleId;
@@ -103,8 +104,8 @@ export const PolicyEditor = ({
       ...[
         {
           ...emptyPolicyRule,
-          RuleId: getRuleId().toString(),
-          Resources: [[{ type: resourceType, id: resourceId }]],
+          ruleId: getRuleId().toString(),
+          resources: [[{ type: resourceType, id: resourceId }]],
         },
       ],
     ]);

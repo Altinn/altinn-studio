@@ -3,9 +3,10 @@ import classes from './PolicyEditorPage.module.css';
 import { PolicyBackendType, PolicySubjectType } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
 import { actionsListMock, subjectsListMock } from 'resourceadm/data-mocks/policies';
-import { get } from 'app-shared/utils/networking';
+import { get, put } from 'app-shared/utils/networking';
 import { getPolicyRulesUrl } from 'resourceadm/utils/backendUrlUtils';
 import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
+import { getPolicyUrlByOrgRepoAndId } from 'resourceadm/utils/backendUrlUtils/backendUserUtils';
 
 /**
  * Displays the content where a user can add and edit a policy
@@ -57,6 +58,19 @@ export const PolicyEditorPage = () => {
     // setLastRuleId(resourceId === 'resource_id_1' ? policyMock1.rules.length + 1 : policyMock2.rules.length + 1);
   }, [policy, org, repo, resourceId]);
 
+  const handleSavePolicy = (p: PolicyBackendType) => {
+    put(getPolicyUrlByOrgRepoAndId(org, repo, resourceId), p)
+      .then(() => {
+        console.log('success');
+        // TODO - maybe add a success message / card?
+      })
+      .catch((err) => {
+        console.error(err);
+        console.log({ err });
+        // TODO - handle error
+      });
+  };
+
   /**
    * Displays the content based on the state of the page
    */
@@ -76,7 +90,7 @@ export const PolicyEditorPage = () => {
         subjects={subjects}
         resourceType={resourceType}
         resourceId={resourceId}
-        onSave={(p: PolicyBackendType) => console.log(policy)}
+        onSave={handleSavePolicy}
       />
     );
   };

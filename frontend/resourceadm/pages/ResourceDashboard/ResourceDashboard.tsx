@@ -14,7 +14,7 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { User } from 'app-shared/types/User';
 import { Organization } from 'app-shared/types/Organization';
-import { resourceIdMock1 } from 'resourceadm/data-mocks/policies';
+import { resourceIdMock2 } from 'resourceadm/data-mocks/policies';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 type ResourceDashboardProps = {
@@ -98,12 +98,12 @@ export const ResourceDashboard = ({
             Dummy button that takes the user to the resource page where the user can navigate
             between the 3 pages "about the resource", "security", and "policy".
 
-            // TODO - replace resourceIdMock1 with the real ID of the resource
+            // TODO - replace resourceIdMock2 with the real ID of the resource
         */}
         <Button
           type='button'
           onClick={() => {
-            navigate(getResourcePageURL(urlOrg, urlRepo, resourceIdMock1, 'about'));
+            navigate(getResourcePageURL(urlOrg, urlRepo, resourceIdMock2, 'about'));
           }}
         >
           Gå til mock ressurs 1
