@@ -1,7 +1,7 @@
 import { findCustomAttributes } from './custom-properties';
 import { Keyword } from '../../types';
 
-test('that we are handling custom properties ', () => {
+test('findCustomAttributes', () => {
   const customData = 'custom-data';
   expect(
     findCustomAttributes({

@@ -191,6 +191,10 @@ const schemaEditorSlice = createSlice({
       const { path, required } = action.payload;
       getNodeByPointer(state.uiSchema, path).isRequired = required;
     },
+    setCustomProperties(state, action: PayloadAction<{ path: string, properties: KeyValuePairs }>) {
+      const { path, properties } = action.payload;
+      getNodeByPointer(state.uiSchema, path).custom = properties;
+    },
     setCombinationType(state, action: PayloadAction<{ type: CombinationKind; path: string }>) {
       const { type, path } = action.payload;
       const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
@@ -320,6 +324,7 @@ export const {
   navigateToType,
   promoteProperty,
   setCombinationType,
+  setCustomProperties,
   setDescription,
   setJsonSchema,
   setPropertyName,

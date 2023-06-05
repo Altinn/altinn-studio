@@ -42,6 +42,8 @@ const texts = {
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
   const store = configureStore()({
     uiSchema: uiSchemaMap,
+    selectedDefinitionNodeId: selectedItem?.pointer,
+    selectedEditorTab: 'definitions',
   });
   const user = userEvent.setup();
 

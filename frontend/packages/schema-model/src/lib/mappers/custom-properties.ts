@@ -11,14 +11,16 @@ const specialAttributes = [
 
 // Deals with custom properties... or really what properties that we not know about.
 export const findCustomAttributes = (schemaNode: KeyValuePairs) => {
-  const outout: KeyValuePairs = {};
+  const output: KeyValuePairs = {};
+  console.log(schemaNode);
   Object.keys(schemaNode).forEach((key) => {
     if (!specialAttributes.includes(key)) {
-      outout[key] = schemaNode[key];
+      output[key] = schemaNode[key];
     }
     if (key === UnhandledKeyword.Schema) {
-      outout[key] = META_SCHEMA_ID;
+      output[key] = META_SCHEMA_ID;
     }
   });
-  return outout;
+  console.log(output);
+  return output;
 };
