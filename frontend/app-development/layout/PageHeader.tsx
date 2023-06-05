@@ -10,7 +10,7 @@ import { VersionControlHeader } from 'app-development/layout/version-control/Ver
 import classes from './PageHeader.module.css';
 import { useUserQuery } from 'app-development/hooks/queries';
 import { useAppSelector } from 'app-development/hooks';
-import { previewPath, publiserPath } from 'app-shared/api/paths';
+import { editorPath, previewPath, publiserPath } from 'app-shared/api/paths';
 import { TopBarMenu } from './AppBar/appBarConfig';
 import { ButtonVariant } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
@@ -22,41 +22,63 @@ interface PageHeaderProps {
   app: string;
 }
 
-const subMenuContent = () => {
-  return (
-    <>
-      <div className={classes.leftContent} data-testid='branching-icon'>
-        {<BranchingIcon className={classes.branchIcon} />}
-      </div>
-      <div className={classes.rightContent}>
-        {<VersionControlHeader data-testid='version-control-header' />}
-        {<ThreeDotsMenu data-testid='three-dots-menu' />}
-      </div>
-    </>
-  );
+export const subMenuContent = () => {
+  if (window.location.pathname.includes('preview')) {
+    return (
+      <ul>
+        <li>Preview</li>
+        <li>Edit</li>
+      </ul>
+    );
+  } else
+    return (
+      <>
+        <div className={classes.leftContent} data-testid='branching-icon'>
+          {<BranchingIcon className={classes.branchIcon} />}
+        </div>
+        <div className={classes.rightContent}>
+          {<VersionControlHeader data-testid='version-control-header' />}
+          {<ThreeDotsMenu data-testid='three-dots-menu' />}
+        </div>
+      </>
+    );
 };
 
-const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
-  const actions = [
-    {
-      title: 'top_menu.preview',
-      path: previewPath,
-      menuKey: TopBarMenu.Preview,
-      buttonVariant: ButtonVariant.Outline,
-      headerButtonsClasses: classes.previewButton,
-      handleClick: () => window.open(previewPath(org, app), '_blank'),
-      inBeta: true,
-    },
-    {
-      title: 'top_menu.deploy',
-      path: publiserPath,
-      menuKey: TopBarMenu.Deploy,
-      buttonVariant: ButtonVariant.Outline,
-      headerButtonsClasses: undefined,
-      handleClick: () => (window.location.href = publiserPath(org, app)),
-    },
-  ];
-  return actions;
+export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
+  if (window.location.pathname.includes('preview')) {
+    const previewAction = [
+      {
+        title: 'top_menu.preview_back_to_editing',
+        path: editorPath,
+        menuKey: TopBarMenu.Preview,
+        buttonVariant: ButtonVariant.Outline,
+        headerButtonsClasses: undefined,
+        handleClick: () => window.open(editorPath(org, app), '_blank'),
+      },
+    ];
+    return previewAction;
+  } else {
+    const actions = [
+      {
+        title: 'top_menu.preview',
+        path: previewPath,
+        menuKey: TopBarMenu.Preview,
+        buttonVariant: ButtonVariant.Outline,
+        headerButtonsClasses: classes.previewButton,
+        handleClick: () => window.open(previewPath(org, app), '_blank'),
+        inBeta: true,
+      },
+      {
+        title: 'top_menu.deploy',
+        path: publiserPath,
+        menuKey: TopBarMenu.Deploy,
+        buttonVariant: ButtonVariant.Outline,
+        headerButtonsClasses: undefined,
+        handleClick: () => (window.location.href = publiserPath(org, app)),
+      },
+    ];
+    return actions;
+  }
 };
 
 export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {

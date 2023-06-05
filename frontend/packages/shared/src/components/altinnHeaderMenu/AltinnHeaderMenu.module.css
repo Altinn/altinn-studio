@@ -26,3 +26,13 @@
 .menuItem.active {
   border-bottom: 2px solid #fff;
 }
+
+.previewLinkElement {
+  text-decoration: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 2;
+  font-size: 1rem;
+}

@@ -5,14 +5,26 @@ import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { useInstanceIdQuery, useUserQuery } from 'app-shared/hooks/queries';
 import AltinnStudioLogo from 'app-shared/navigation/main-header/AltinnStudioLogo';
 import { Button, ToggleButtonGroup } from '@digdir/design-system-react';
 import { Pagination } from '@altinn/altinn-design-system';
 import { LinkIcon } from '@navikt/aksel-icons';
+import { AltinnHeader } from 'app-shared/components/altinnHeader';
+import { buttonActions, subMenuContent } from 'app-development/layout/PageHeader';
+import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
+import { IRepository } from 'app-shared/types/global';
 
 // ----------------------------------
-export const LandingPage = () => {
+
+export interface LandingPageProps {
+  showSubMenu: boolean;
+  variant?: AltinnHeaderVariant;
+  repository?: IRepository;
+  subMenuContent?: JSX.Element;
+}
+
+export const LandingPage = ({ showSubMenu, variant = 'preview', repository }: LandingPageProps) => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
@@ -21,6 +33,7 @@ export const LandingPage = () => {
   const localSelectedViewSize = localStorage.getItem('viewSize');
   const [viewSize, setViewSize] = useState<string>(localSelectedViewSize ?? 'desktop');
   const selectedLayoutSetInEditor = localStorage.getItem('layoutSetName');
+  const { data: user } = useUserQuery();
 
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
@@ -45,39 +58,50 @@ export const LandingPage = () => {
 
   return (
     <PreviewContext>
-      <div className={classes.header}>
-        <AltinnStudioLogo />
+      <AltinnHeader
+        menu={undefined}
+        showSubMenu={showSubMenu}
+        subMenuContent={subMenuContent()}
+        activeMenuSelection={undefined}
+        org={org}
+        app={app}
+        user={user}
+        repository={repository}
+        buttonActions={buttonActions(org, app)}
+        variant={variant}
+      />
+    </PreviewContext>
+  );
+};
 
-        <div className={classes.betaTag}>{'BETA'}</div>
-      </div>
-      <div className={classes.subHeader}>
-        <span className={classes.viewSizeButtons}>
+{
+  /*  
+
+           <div className={classes.header}>
+          <a href={`/editor/${org}/${app}/ui-editor?layout=${selectedLayoutInEditor}`}>
+            <AltinnStudioLogo />
+          </a>
+          <div className={classes.betaTag}>
+            {'BETA'}
+          </div>
+        </div>
+        <div className={classes.subHeader}>
+          <span className={classes.viewSizeButtons}>
           <ToggleButtonGroup
             items={[
               {
                 label: t('preview.view_size_desktop'),
-                value: 'desktop',
+                value: 'desktop'
               },
               {
                 label: t('preview.view_size_mobile'),
-                value: 'mobile',
-              },
+                value: 'mobile'
+              }
             ]}
             onChange={handleChangeViewSizeClick}
-            selectedValue={viewSize === 'Desktop' ? 'desktop' : 'mobile'}
-          />
-        </span>
-
-        <div className={classes.sub}>
-          <LinkIcon title='a11y-title' />
-          <Button>Del</Button>
-
-          <Button>Restart</Button>
-          <Button>Button</Button>
+            selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}/>
+            </span>
         </div>
-      </div>
-
-      {/*  
       <div className={classes.iframeMobileViewContainer}>
         <iframe
           title={t('preview.iframe_title')}
@@ -86,7 +110,5 @@ export const LandingPage = () => {
           className={viewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
         ></iframe>
         {viewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
-      </div> */}
-    </PreviewContext>
-  );
-};
+      </div> */
+}

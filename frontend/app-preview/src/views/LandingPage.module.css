@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Inter');
+/* @import url('https://fonts.googleapis.com/css?family=Inter');
 
 .landingPage {
   background-color: #0a572e;
@@ -22,9 +22,10 @@
   border: none;
   margin: 0;
 }
+ */
 
 /* Mobile View Overlay to cover devtools in the middle of the screen */
-.iframeMobileViewOverlay {
+/* .iframeMobileViewOverlay {
   position: absolute;
   bottom: 0;
   height: 100px;
@@ -61,9 +62,9 @@
   --component-toggle_button-color-text-active: black;
   --component-toggle_button-color-text-inactive: white;
 }
-
+ */
 /* Overriding this style because it is hardcoded in the design system */
-.viewSizeButtons button[aria-pressed='false']:hover {
+/* .viewSizeButtons button[aria-pressed='false']:hover {
   background-color: #dbf5d5 !important;
   color: black !important;
 }
@@ -79,17 +80,18 @@
   padding: 0 2rem;
 }
 
-.sub {
+.leftSubHeaderButtons {
   flex-direction: row;
   text-align: right;
   align-items: center;
   display: flex;
   gap: 16px;
-  justify-content: flex-end; /* Justify the elements to the right side */
+  justify-content: flex-end; 
 }
 
 .shareButton {
-  background-color: #0c6536;
-
-  text-align: center;
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
 }
+ */
