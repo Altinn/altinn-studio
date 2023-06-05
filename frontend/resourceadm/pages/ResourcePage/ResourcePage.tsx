@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
-import { PolicyEditor } from '../PolicyEditor';
+import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
@@ -45,7 +45,7 @@ export const ResourcePage = () => {
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' && <h1>Om ressursen - TODO sett inn komponent</h1>}
         {currentPage === 'security' && <h1>Sikkerhet - TODO sett inn komponent</h1>}
-        {currentPage === 'policy' && <PolicyEditor />}
+        {currentPage === 'policy' && <PolicyEditorPage />}
       </div>
     </div>
   );
