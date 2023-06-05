@@ -14,7 +14,7 @@ describe('useComponentErrorMessage', () => {
         { label: 'Option 3', value: 'option1' },
       ],
       id: 'test',
-      optionsId: 'test',
+      optionsId: '',
       itemType: 'COMPONENT',
       dataModelBindings: {},
     };
@@ -31,7 +31,7 @@ describe('useComponentErrorMessage', () => {
         { label: 'Option 3', value: 'option3' },
       ],
       id: 'test',
-      optionsId: 'test',
+      optionsId: '',
       itemType: 'COMPONENT',
       dataModelBindings: {},
     };

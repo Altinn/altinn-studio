@@ -9,7 +9,7 @@ describe('validateComponent', () => {
         type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsId: 'test',
+        optionsId: '',
         options: [],
         dataModelBindings: {},
       };
@@ -24,7 +24,7 @@ describe('validateComponent', () => {
         type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsId: 'test',
+        optionsId: '',
         options: [
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
@@ -35,6 +35,18 @@ describe('validateComponent', () => {
         isValid: false,
         error: ErrorCode.DuplicateValues,
       });
+    });
+
+    it('Returns { isValid: true } if optionsId is filled in', () => {
+      const component: FormCheckboxesComponent = {
+        type: ComponentType.Checkboxes,
+        itemType: 'COMPONENT',
+        id: 'test',
+        optionsId: 'test',
+        options: [],
+        dataModelBindings: {},
+      };
+      expect(validateComponent(component)).toEqual({ isValid: true });
     });
 
     it('Returns { isValid: true } if there are no errors', () => {
@@ -59,7 +71,7 @@ describe('validateComponent', () => {
         type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsId: 'test',
+        optionsId: '',
         options: [],
         dataModelBindings: {},
       };
@@ -74,7 +86,7 @@ describe('validateComponent', () => {
         type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsId: 'test',
+        optionsId: '',
         options: [
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
@@ -85,6 +97,18 @@ describe('validateComponent', () => {
         isValid: false,
         error: ErrorCode.DuplicateValues,
       });
+    });
+
+    it('Returns { isValid: true } if optionsId is filled in', () => {
+      const component: FormRadioButtonsComponent = {
+        type: ComponentType.RadioButtons,
+        itemType: 'COMPONENT',
+        id: 'test',
+        optionsId: 'test',
+        options: [],
+        dataModelBindings: {},
+      };
+      expect(validateComponent(component)).toEqual({ isValid: true });
     });
 
     it('Returns { isValid: true } if there are no errors', () => {

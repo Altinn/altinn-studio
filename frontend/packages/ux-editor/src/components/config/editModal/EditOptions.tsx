@@ -59,13 +59,13 @@ export function EditOptions({
 
   const handleOptionsTypeChange = (value: SelectedOptionsType) => {
     setSelectedOptionsType(value);
-    if (selectedOptionsType === SelectedOptionsType.Codelist) {
+    if (value === SelectedOptionsType.Codelist) {
       handleComponentChange({
         ...component,
         options: [],
       });
     }
-    if (selectedOptionsType === SelectedOptionsType.Manual) {
+    if (value === SelectedOptionsType.Manual) {
       handleComponentChange({
         ...component,
         optionsId: '',

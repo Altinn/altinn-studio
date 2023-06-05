@@ -49,7 +49,7 @@ describe('ComponentPreview', () => {
         { label: 'Option 3', value: 'option1' },
       ],
       id: 'test',
-      optionsId: 'test',
+      optionsId: '',
       itemType: 'COMPONENT',
       dataModelBindings: {},
     };

@@ -13,35 +13,39 @@ export type ComponentValidationResult = {
 }
 
 const validateCheckboxGroup = (component: FormCheckboxesComponent): ComponentValidationResult => {
-  if (!component.options || component.options.length === 0) {
-    return {
-      isValid: false,
-      error: ErrorCode.NoOptions,
-    };
-  } else if (!areItemsUnique(component.options.map((option) => option.value))) {
-    return {
-      isValid: false,
-      error: ErrorCode.DuplicateValues,
-    };
-  } else {
-    return { isValid: true };
+  if (!component.optionsId) {
+    if (!component.options || component.options.length === 0) {
+      return {
+        isValid: false,
+        error: ErrorCode.NoOptions,
+      };
+    } else if (!areItemsUnique(component.options.map((option) => option.value))) {
+      return {
+        isValid: false,
+        error: ErrorCode.DuplicateValues,
+      };
+    }
   }
+
+  return { isValid: true };
 };
 
 const validateRadioGroup = (component: FormRadioButtonsComponent): ComponentValidationResult => {
-  if (!component.options || component.options.length === 0) {
-    return {
-      isValid: false,
-      error: ErrorCode.NoOptions,
-    };
-  } else if (!areItemsUnique(component.options.map((option) => option.value))) {
-    return {
-      isValid: false,
-      error: ErrorCode.DuplicateValues,
-    };
-  } else {
-    return { isValid: true };
+  if (!component.optionsId) {
+    if (!component.options || component.options.length === 0) {
+      return {
+        isValid: false,
+        error: ErrorCode.NoOptions,
+      };
+    } else if (!areItemsUnique(component.options.map((option) => option.value))) {
+      return {
+        isValid: false,
+        error: ErrorCode.DuplicateValues,
+      };
+    }
   }
+
+  return { isValid: true };
 }
 
 export const validateComponent = (component: FormComponent): ComponentValidationResult => {

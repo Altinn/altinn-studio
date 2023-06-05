@@ -18,10 +18,10 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   const { org, app } = useParams();
 
   const { data: optionListIds, isLoading, isError, error } = useOptionListIdsQuery(org, app);
-  const handleOptionsIdChange = (e: any) => {
+  const handleOptionsIdChange = (optionsId: string) => {
     handleComponentChange({
       ...component,
-      optionsId: e.target.value,
+      optionsId,
     });
   };
 
@@ -41,6 +41,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
           }))}
           label={t('ux_editor.modal_properties_code_list_id')}
           onChange={handleOptionsIdChange}
+          value={component.optionsId}
         />
       )}
 
