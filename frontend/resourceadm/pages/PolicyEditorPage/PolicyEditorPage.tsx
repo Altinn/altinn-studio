@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './PolicyEditorPage.module.css';
 import { PolicyBackendType, PolicySubjectType } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { get, put } from 'app-shared/utils/networking';
 import { getPolicyRulesUrl } from 'resourceadm/utils/backendUrlUtils';
 import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
 import { getPolicyUrlByOrgRepoAndId } from 'resourceadm/utils/backendUrlUtils/backendUserUtils';
+import { useOnce } from 'resourceadm/hooks/useOnce';
 
 /**
  * Displays the content where a user can add and edit a policy
@@ -23,8 +24,10 @@ export const PolicyEditorPage = () => {
   const [policy, setPolicy] = useState<PolicyBackendType>();
   const [loading, setLoading] = useState(false);
 
-  // TODO - implement useOnce hook to get the policy
-  useEffect(() => {
+  /**
+   * Get the policy, actions, and subjects when the page loads
+   */
+  useOnce(() => {
     // TODO - API Call to get the correct actions, AND TRANSLATE THEM
     setActions(actionsListMock);
     // TODO - API Call to get the correct subjects
@@ -56,7 +59,7 @@ export const PolicyEditorPage = () => {
      */
     // setPolicyRules(mapPolicyRulesBackendObjectToPolicyRuleCardType(subjectsListMock, resourceId === 'resource_id_1' ? policyMock1.rules : policyMock2.rules));
     // setLastRuleId(resourceId === 'resource_id_1' ? policyMock1.rules.length + 1 : policyMock2.rules.length + 1);
-  }, [policy, org, repo, resourceId]);
+  });
 
   const handleSavePolicy = (p: PolicyBackendType) => {
     put(getPolicyUrlByOrgRepoAndId(org, repo, resourceId), p)
