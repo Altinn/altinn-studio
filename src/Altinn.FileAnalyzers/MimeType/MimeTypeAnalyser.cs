@@ -10,10 +10,11 @@ namespace Altinn.FileAnalyzers.MimeType;
 /// </summary>
 public class MimeTypeAnalyser : IFileAnalyser
 {
+    private readonly ContentInspector _inspector;
     /// <summary>
     /// Initializes a new instance of the <see cref="MimeTypeAnalyser"/> class.
     /// </summary>
-    public MimeTypeAnalyser(IHttpContextAccessor httpContextAccessor)
+    public MimeTypeAnalyser(IHttpContextAccessor httpContextAccessor, ContentInspector inspector)
     {
         // Allow synchronous IO access for the usage of MimeDetective
         // which does not have async methods. This on a per request basis.
@@ -22,6 +23,8 @@ public class MimeTypeAnalyser : IFileAnalyser
         {
             syncIOFeature.AllowSynchronousIO = true;
         }
+
+        _inspector = inspector;
     }
 
     /// <inheritDoc/>
@@ -34,22 +37,7 @@ public class MimeTypeAnalyser : IFileAnalyser
     public async Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
-        // TODO: Move to service registration as singleton
-        var Inspector = new ContentInspectorBuilder()
-        {
-            Definitions = MimeDetective.Definitions.Default.All(),
-            MatchEvaluatorOptions = new MimeDetective.Engine.DefinitionMatchEvaluatorOptions()
-            {
-                Include_Matches_Complete = true,
-                Include_Matches_Failed = false,
-                Include_Matches_Partial = true,
-                Include_Segments_Prefix = true,
-                Include_Segments_Strings = true
-            }
-        }
-        .Build();
-
-        var results = Inspector.Inspect(stream);
+        var results = _inspector.Inspect(stream);
 
         // We only care for the 100% match anything else is considered unsafe.
         var match = results.OrderByDescending(match => match.Points).FirstOrDefault(match => match.Percentage == 1);
