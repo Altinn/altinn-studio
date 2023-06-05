@@ -1,5 +1,5 @@
-import type { UiSchemaNode } from './types';
-import { FieldType, ObjectKind } from './types';
+import type { UiSchemaNode } from '../types';
+import { FieldType, ObjectKind } from '../types';
 import { ROOT_POINTER } from './constants';
 import { pointerIsDefinition } from './utils';
 

@@ -16,10 +16,9 @@ import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
 
 import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
-
+import { ResourcePage } from 'resourceadm/pages/ResourcePage';
 
 export const App = (): JSX.Element => {
-
   const { t } = useTranslation();
 
   const { data: user, isError: isUserError } = useUserQuery();
@@ -54,23 +53,33 @@ export const App = (): JSX.Element => {
     return <ErrorMessage title={error.title} message={error.message} />;
   }
 
+  const basePath = '/:org/:repo';
+
   if (componentIsReady) {
     return (
       <div className={classes.root}>
         <Routes>
-
-        <Route element={ <TestPage /> } >
-            <Route path='/' element={ <ResourceDashboard user = {user} organizations={organizations} /> } />
+          <Route element={<TestPage />}>
+            <Route
+              path={basePath}
+              element={<ResourceDashboard user={user} organizations={organizations} />}
+            />
           </Route>
 
           <Route element={<PageLayout />}>
-            <Route path='/skatt/repo1'  element={ <ResourceDashboard user = {user} organizations={organizations} /> } />
+            <Route
+              path='/skatt/repo1'
+              element={<ResourceDashboard user={user} organizations={organizations} />}
+            />
           </Route>
 
-          <Route path='/skatt/dummy1' element={ <RessurstilgangSide1 /> } />
+          <Route path='/skatt/dummy1' element={<RessurstilgangSide1 />} />
 
-          <Route path='/olsenbanden' element={ <OlsenbandenPage /> } />
+          <Route path='/olsenbanden' element={<OlsenbandenPage />} />
 
+          <Route element={<PageLayout />}>
+            <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
+          </Route>
         </Routes>
       </div>
     );

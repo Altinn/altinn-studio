@@ -1,12 +1,23 @@
 import React from 'react';
-import { TextField } from '@digdir/design-system-react';
+import { Select } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
-import type { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
+import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
+import { useParams } from 'react-router-dom';
+import { AltinnSpinner } from 'app-shared/components';
+import { ErrorMessage } from '@digdir/design-system-react';
+
+export enum SelectedOptionsType {
+  Codelist = 'codelist',
+  Manual = 'manual',
+  Unknown = '',
+}
 
 export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
   const t = useText();
+  const { org, app } = useParams();
 
+  const { data: optionListIds, isLoading, isError, error } = useOptionListIdsQuery(org, app);
   const handleOptionsIdChange = (e: any) => {
     handleComponentChange({
       ...component,
@@ -16,12 +27,23 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   return (
     <div>
-      <TextField
-        id='modal-properties-code-list-id'
-        label={t('ux_editor.modal_properties_code_list_id')}
-        onChange={handleOptionsIdChange}
-        value={(component as FormCheckboxesComponent | FormRadioButtonsComponent).optionsId || ''}
-      />
+      {isLoading ? (
+        <AltinnSpinner />
+      ) : isError ? (
+        <ErrorMessage>
+          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
+        </ErrorMessage>
+      ) : (
+        <Select
+          options={optionListIds.map((option) => ({
+            label: option,
+            value: option,
+          }))}
+          label={t('ux_editor.modal_properties_code_list_id')}
+          onChange={handleOptionsIdChange}
+        />
+      )}
+
       <p>
         <a
           target='_blank'

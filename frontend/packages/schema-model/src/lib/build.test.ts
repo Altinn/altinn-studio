@@ -6,8 +6,8 @@ import {
   validateSchema,
 } from '../../test/testUtils';
 
-import type { Dict } from './types';
-import { ObjectKind } from './types';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { ObjectKind } from '../types';
 import { buildUiSchema } from './build-ui-schema';
 import { buildJsonSchema } from './build-json-schema';
 import { ROOT_POINTER } from './constants';
@@ -15,7 +15,7 @@ import { dataMock } from '@altinn/schema-editor/mockData';
 
 test.each(getSeresJsonSchemasForTest())(
   'Seres model %p can be converted',
-  (name: string, testSchema: Dict) => {
+  (name: string, testSchema: KeyValuePairs) => {
     const uiSchemaNodes = buildUiSchema(testSchema);
     dumpToDebug(__dirname, name, uiSchemaNodes);
     const jsonSchema = buildJsonSchema(uiSchemaNodes);

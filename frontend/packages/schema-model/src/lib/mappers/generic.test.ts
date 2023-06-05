@@ -1,13 +1,13 @@
 import { findGenericKeywordsOnNode, genericKeywords } from './generic';
-import { Keywords } from '../types';
-import { IntRestrictionKeys } from '../restrictions';
+import { Keyword, IntRestrictionKey } from '../../types';
+import {  } from '../restrictions';
 
 test('should return just keywords', () => {
   const generics = findGenericKeywordsOnNode({
-    [Keywords.Const]: 'ALLTID',
+    [Keyword.Const]: 'ALLTID',
     'some non keyword': 'dfasd',
-    [IntRestrictionKeys.maximum]: 10,
+    [IntRestrictionKey.maximum]: 10,
   });
   expect(Object.keys(generics)).toEqual(genericKeywords);
-  expect(generics[Keywords.Const]).toBe('ALLTID');
+  expect(generics[Keyword.Const]).toBe('ALLTID');
 });

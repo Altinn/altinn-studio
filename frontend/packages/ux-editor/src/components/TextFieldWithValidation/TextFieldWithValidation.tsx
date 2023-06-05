@@ -55,8 +55,8 @@ export const TextFieldWithValidation = ({
         required={isRequired}
       />
       {validationError && (
-        <ErrorMessage id={errorMessageId}>
-          <p className={classes.errorMessageText}>{validationError}</p>
+        <ErrorMessage id={errorMessageId} className={classes.errorMessageText}>
+          {validationError}
         </ErrorMessage>
       )}
     </>

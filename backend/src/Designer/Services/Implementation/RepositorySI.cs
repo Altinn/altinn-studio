@@ -17,7 +17,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using IdentityModel.OidcClient;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -878,6 +877,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 foreach (FileSystemObject resourceFile in contents)
                 {
+                    if (resourceFile.Type.Equals("Dir") && !resourceFile.Name.StartsWith("."))
+                    {
+                        List<FileSystemObject> contentsInFolder = GetContents(org, repository, resourceFile.Name);
+
+                        if (contentsInFolder != null)
+                        {
+                            foreach (FileSystemObject content in contentsInFolder)
+                            {
+                                if (content.Name.EndsWith("_resource.json"))
+                                {
+                                    resourceFiles.Add(content);
+                                }
+                            }
+                        }
+                    }
                     if (resourceFile.Name.EndsWith("_resource.json"))
                     {
                         resourceFiles.Add(resourceFile);

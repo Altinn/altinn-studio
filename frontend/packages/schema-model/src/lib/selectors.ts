@@ -1,5 +1,5 @@
-import type { UiSchemaNode, UiSchemaNodes } from './types';
-import { Keywords } from './types';
+import type { UiSchemaNode, UiSchemaNodes } from '../types';
+import { Keyword } from '../types';
 import { makePointer } from './utils';
 import { ROOT_POINTER } from './constants';
 
@@ -7,7 +7,7 @@ export const getRootNodes = (uiSchemaNodes: UiSchemaNodes, defs: boolean): UiSch
   const rootNodes: UiSchemaNodes = [];
   if (hasNodePointer(uiSchemaNodes, ROOT_POINTER)) {
     getRootNode(uiSchemaNodes)
-      .children.filter((p) => p.startsWith(makePointer(Keywords.Definitions)) === defs)
+      .children.filter((p) => p.startsWith(makePointer(Keyword.Definitions)) === defs)
       .forEach((childPointer) => rootNodes.push(getNodeByPointer(uiSchemaNodes, childPointer)));
   }
   return rootNodes;
@@ -45,10 +45,7 @@ export const hasNodePointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): b
 export const getNodeByPointer = (
   uiSchemaNodes: UiSchemaNodes,
   pointer: string
-): UiSchemaNode | undefined => {
-  const uiSchemaNode = getNodePointerCache(uiSchemaNodes).get(pointer);
-  return uiSchemaNode;
-};
+): UiSchemaNode | undefined => getNodePointerCache(uiSchemaNodes).get(pointer);
 
 /**
  * Returns the index or undefined.

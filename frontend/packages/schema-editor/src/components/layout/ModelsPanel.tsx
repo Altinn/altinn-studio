@@ -10,12 +10,12 @@ import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   CombinationKind,
   FieldType,
-  Keywords,
+  Keyword,
   makePointer,
   ObjectKind,
 } from '@altinn/schema-model';
 import { useDispatch, useSelector } from 'react-redux';
-import type { ISchemaState } from '../../types';
+import type { SchemaState } from '../../types';
 import type { PanelProps } from './layoutTypes';
 import { useTranslation } from 'react-i18next';
 
@@ -33,7 +33,7 @@ export const ModelsPanel = ({
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
-  const selectedPropertyNodeId = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
+  const selectedPropertyNodeId = useSelector((state: SchemaState) => state.selectedPropertyNodeId);
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newNode: Partial<UiSchemaNode> = { objectKind };
     if (objectKind === ObjectKind.Field) {
@@ -46,7 +46,7 @@ export const ModelsPanel = ({
     dispatch(
       addRootItem({
         name: 'name',
-        location: makePointer(Keywords.Properties),
+        location: makePointer(Keyword.Properties),
         props: newNode,
       })
     );

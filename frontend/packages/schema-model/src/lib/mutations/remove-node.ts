@@ -1,6 +1,6 @@
 // Changes to the uiNodeMap
-import type { UiSchemaNode, UiSchemaNodes } from '../types';
-import { ObjectKind } from '../types';
+import type { UiSchemaNode, UiSchemaNodes } from '../../types';
+import { ObjectKind } from '../../types';
 import { getParentNodeByPointer, getReferredNodes, hasNodePointer } from '../selectors';
 import { splitPointerInBaseAndName } from '../utils';
 

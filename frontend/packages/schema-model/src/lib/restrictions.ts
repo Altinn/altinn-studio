@@ -1,43 +1,16 @@
 import { valueExists } from '@altinn/schema-editor/utils/value';
-import type { Dict } from './types';
-
-export enum IntRestrictionKeys {
-  integer = 'integer',
-  exclusiveMaximum = 'exclusiveMaximum',
-  exclusiveMinimum = 'exclusiveMinimum',
-  maximum = 'maximum',
-  minimum = 'minimum',
-  multipleOf = 'multipleOf',
-}
-
-export enum StrRestrictionKeys {
-  format = 'format',
-  formatExclusiveMaximum = 'formatExclusiveMaximum',
-  formatExclusiveMinimum = 'formatExclusiveMinimum',
-  formatMaximum = 'formatMaximum',
-  formatMinimum = 'formatMinimum',
-  maxLength = 'maxLength',
-  minLength = 'minLength',
-  pattern = 'pattern',
-}
-
-export enum ObjRestrictionKeys {}
-
-export enum ArrRestrictionKeys {
-  maxItems = 'maxItems',
-  minItems = 'minItems',
-  uniqueItems = 'uniqueItems',
-}
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { ArrRestrictionKey, IntRestrictionKey, ObjRestrictionKey, StrRestrictionKey } from '../types';
 
 export const AllRestrictions = {
-  ...ArrRestrictionKeys,
-  ...IntRestrictionKeys,
-  ...ObjRestrictionKeys,
-  ...StrRestrictionKeys,
+  ...ArrRestrictionKey,
+  ...IntRestrictionKey,
+  ...ObjRestrictionKey,
+  ...StrRestrictionKey,
 };
 
-export const findRestrictionsOnNode = (schemaNode: Dict): Dict => {
-  const restrictions: Dict = {};
+export const findRestrictionsOnNode = (schemaNode: KeyValuePairs): KeyValuePairs => {
+  const restrictions: KeyValuePairs = {};
   Object.values(AllRestrictions).forEach((key) => {
     if (schemaNode[key] !== undefined) {
       restrictions[key] = schemaNode[key];
@@ -51,16 +24,16 @@ export const castRestrictionType = (key: string, value?: string | boolean) => {
     return undefined;
   } else if (
     [
-      ArrRestrictionKeys.maxItems,
-      ArrRestrictionKeys.minItems,
-      IntRestrictionKeys.exclusiveMaximum,
-      IntRestrictionKeys.exclusiveMinimum,
-      IntRestrictionKeys.maximum,
-      IntRestrictionKeys.minimum,
-      IntRestrictionKeys.multipleOf,
-      StrRestrictionKeys.maxLength,
-      StrRestrictionKeys.minLength,
-    ].includes(key as ArrRestrictionKeys & StrRestrictionKeys & IntRestrictionKeys)
+      ArrRestrictionKey.maxItems,
+      ArrRestrictionKey.minItems,
+      IntRestrictionKey.exclusiveMaximum,
+      IntRestrictionKey.exclusiveMinimum,
+      IntRestrictionKey.maximum,
+      IntRestrictionKey.minimum,
+      IntRestrictionKey.multipleOf,
+      StrRestrictionKey.maxLength,
+      StrRestrictionKey.minLength,
+    ].includes(key as ArrRestrictionKey & StrRestrictionKey & IntRestrictionKey)
   ) {
     return parseInt(value.toString());
   } else {
