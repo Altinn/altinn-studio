@@ -242,4 +242,15 @@ describe('UI Components', () => {
       });
     });
   });
+
+  it('should countdown remaining letters', () => {
+    cy.goto('changename');
+    cy.get('#form-content-newFirstName').contains('Du har 4 tegn igjen');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get('#form-content-newFirstName').contains('Du har 1 tegn igjen');
+    cy.get(appFrontend.changeOfName.newFirstName).type('r');
+    cy.get('#form-content-newFirstName').contains('Du har 0 tegn igjen');
+    cy.get(appFrontend.changeOfName.newFirstName).type('r');
+    cy.get('#form-content-newFirstName').contains('Du har overskredet maks antall tegn med 1');
+  });
 });

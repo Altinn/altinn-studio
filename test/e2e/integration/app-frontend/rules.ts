@@ -8,11 +8,7 @@ describe('Rules', () => {
     cy.get(appFrontend.changeOfName.newFirstName).type('automation');
     cy.get(appFrontend.changeOfName.newMiddleName).type('is');
     cy.get(appFrontend.changeOfName.newLastName).type('fun');
-    cy.get(appFrontend.changeOfName.newFullName)
-      .should('have.value', 'automation is fun')
-      .parents()
-      .eq(4)
-      .should('have.css', 'max-width', '50%');
+    cy.get(appFrontend.changeOfName.newFullName).should('have.value', 'automation is fun');
   });
 
   it('Rule is run when a backend calculation updates a relevant field', () => {

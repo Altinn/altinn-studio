@@ -1,6 +1,10 @@
 import React from 'react';
 
+import { TextArea } from '@digdir/design-system-react';
+
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
+import { useLanguage } from 'src/hooks/useLanguage';
+import { createCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 import 'src/styles/shared.css';
@@ -15,7 +19,8 @@ export function TextAreaComponent({
   overrideDisplay,
   getTextResourceAsString,
 }: ITextAreaProps) {
-  const { id, readOnly, textResourceBindings, saveWhileTyping, autocomplete } = node.item;
+  const { lang } = useLanguage();
+  const { id, readOnly, textResourceBindings, saveWhileTyping, autocomplete, maxLength } = node.item;
   const suppliedValue = formData?.simpleBinding;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,
@@ -24,28 +29,27 @@ export function TextAreaComponent({
   );
 
   return (
-    <div className='a-form-group-items input-group p-0'>
-      <textarea
-        id={id}
-        onBlur={() => saveValue()}
-        onChange={(e) => setValue(e.target.value)}
-        onPaste={() => onPaste()}
-        readOnly={readOnly}
-        style={{ resize: 'none' }} // This is prone to change soon, implemented inline until then. See issue #1116
-        className={
-          (isValid ? 'form-control a-textarea ' : 'form-control a-textarea validation-error') +
-          (readOnly ? ' disabled' : '')
-        }
-        value={value}
-        data-testid={id}
-        aria-describedby={
-          overrideDisplay?.renderedInTable !== true && textResourceBindings ? `description-${id}` : undefined
-        }
-        aria-label={
-          overrideDisplay?.renderedInTable === true ? getTextResourceAsString(textResourceBindings?.title) : undefined
-        }
-        autoComplete={autocomplete}
-      />
-    </div>
+    <TextArea
+      id={id}
+      onBlur={() => saveValue()}
+      onChange={(e) => setValue(e.target.value)}
+      onPaste={() => onPaste()}
+      readOnly={readOnly}
+      resize='vertical'
+      characterLimit={!readOnly && maxLength !== undefined ? createCharacterLimit(maxLength, lang) : undefined}
+      className={
+        (isValid ? 'form-control a-textarea ' : 'form-control a-textarea validation-error') +
+        (readOnly ? ' disabled' : '')
+      }
+      value={value}
+      data-testid={id}
+      aria-describedby={
+        overrideDisplay?.renderedInTable !== true && textResourceBindings ? `description-${id}` : undefined
+      }
+      aria-label={
+        overrideDisplay?.renderedInTable === true ? getTextResourceAsString(textResourceBindings?.title) : undefined
+      }
+      autoComplete={autocomplete}
+    />
   );
 }

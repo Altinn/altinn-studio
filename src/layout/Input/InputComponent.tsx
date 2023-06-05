@@ -4,7 +4,9 @@ import { SearchField } from '@altinn/altinn-design-system';
 import { TextField } from '@digdir/design-system-react';
 
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
+import { createCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IInputFormatting } from 'src/layout/layout';
 
@@ -18,13 +20,23 @@ export function InputComponent({
   overrideDisplay,
   getTextResourceAsString,
 }: IInputProps) {
-  const { id, readOnly, required, formatting, variant, textResourceBindings, saveWhileTyping, autocomplete } =
-    node.item;
+  const {
+    id,
+    readOnly,
+    required,
+    formatting,
+    variant,
+    textResourceBindings,
+    saveWhileTyping,
+    autocomplete,
+    maxLength,
+  } = node.item;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,
     formData?.simpleBinding ?? '',
     saveWhileTyping,
   );
+  const { lang } = useLanguage();
   const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IInputFormatting, value);
   const handleChange = (e) => setValue(e.target.value);
 
@@ -50,6 +62,7 @@ export function InputComponent({
           onBlur={saveValue}
           onChange={handleChange}
           onPaste={onPaste}
+          characterLimit={!readOnly && maxLength !== undefined ? createCharacterLimit(maxLength, lang) : undefined}
           readOnly={readOnly}
           isValid={isValid}
           required={required}
