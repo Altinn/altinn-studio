@@ -1,9 +1,9 @@
-import { PolicyEditorSendType, PolicyRuleBackendType, PolicyRuleResourceType, PolicySubjectType } from "resourceadm/types/global";
+import { PolicyBackendType, PolicyRuleBackendType, PolicyRuleResourceType, PolicySubjectType } from "resourceadm/types/global";
 
 // RESOURCE ID
-export const resourceIdMock1: string = "test_id_1"
-export const resourceIdMock2: string = "test_id_2"
-export const resourceIdMock3: string = "test_id_3"
+export const resourceIdMock1: string = "resource_id_1"
+export const resourceIdMock2: string = "resource_id_2"
+export const resourceIdMock3: string = "resourceId3"
 
 // RESOURCE TYPE
 export const resourceTypeMock1: string = "urn:altinn.resource"
@@ -34,13 +34,13 @@ const ruleMock1: PolicyRuleBackendType = {
 }
 
 // POLICIES
-export const policyMock1: PolicyEditorSendType = {
+export const policyMock1: PolicyBackendType = {
   rules: [ruleMock1],
   requiredAuthenticationLevelEndUser: '3',
   requiredAuthenticationLevelOrg: '4'
 };
 
-export const policyMock2: PolicyEditorSendType = {
+export const policyMock2: PolicyBackendType = {
   rules: [],
   requiredAuthenticationLevelEndUser: '3',
   requiredAuthenticationLevelOrg: '4'
@@ -126,6 +126,13 @@ const subjectMock10: PolicySubjectType = {
   subjectDescription: "Daglig leder fra enhetsregisteret"
 }
 
+const subjectMock11: PolicySubjectType = {
+  subjectId: "ADMAI",
+  subjectSource: "altinn:rolecode",
+  subjectTitle: "ADMAI from backend",
+  subjectDescription: "ADMAI from backen"
+}
+
 export const subjectsListMock: PolicySubjectType[] = [
   subjectMock1,
   subjectMock2,
@@ -136,5 +143,6 @@ export const subjectsListMock: PolicySubjectType[] = [
   subjectMock7,
   subjectMock8,
   subjectMock9,
-  subjectMock10
+  subjectMock10,
+  subjectMock11
 ]

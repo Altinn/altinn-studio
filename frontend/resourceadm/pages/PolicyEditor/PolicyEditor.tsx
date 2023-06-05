@@ -4,19 +4,14 @@ import { ExpandablePolicyCard } from 'resourceadm/components/ExpandablePolicyCar
 import { CardButton } from 'resourceadm/components/CardButton';
 import { Button } from '@digdir/design-system-react';
 import {
-  PolicyEditorSendType,
+  PolicyBackendType,
   PolicyRuleCardType,
   PolicyRuleBackendType,
   PolicySubjectType,
   RequiredAuthLevelType,
 } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
-import {
-  actionsListMock,
-  policyMock1,
-  policyMock2,
-  subjectsListMock,
-} from 'resourceadm/data-mocks/policies';
+import { actionsListMock, subjectsListMock } from 'resourceadm/data-mocks/policies';
 import {
   mapPolicyRulesBackendObjectToPolicyRuleCardType,
   emptyPolicyRule,
@@ -24,6 +19,8 @@ import {
 } from 'resourceadm/utils/policyEditorUtils';
 import { VerificationModal } from 'resourceadm/components/VerificationModal';
 import { SelectAuthLevel } from 'resourceadm/components/SelectAuthLevel';
+import { get } from 'app-shared/utils/networking';
+import { getPolicyRulesUrl } from 'resourceadm/utils/backendUrlUtils';
 
 /**
  * Displays the content where a user can add and edit a policy
@@ -31,13 +28,7 @@ import { SelectAuthLevel } from 'resourceadm/components/SelectAuthLevel';
 export const PolicyEditor = () => {
   // TODO - translation
 
-  // TODO - legge på
-  /*
-requiredAuthenticationLevelEndUser: "2"  // Nedtrekk 1-4 - Påloggingsnivå - default 3. - Sette på toppen
-requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
-  */
-
-  const { resourceId } = useParams();
+  const { resourceId, org, repo } = useParams();
   const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
 
   // TODO - replace with list from backend
@@ -61,20 +52,24 @@ requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
     // TODO - API Call to get the correct subjects
     setSubjects(subjectsListMock);
 
-    // TODO - API Call to get policy by the resource ID
-    // TODO - Find out what the object sent from backend looks like
-    setPolicyRules(
-      mapPolicyRulesBackendObjectToPolicyRuleCardType(
-        subjectsListMock,
-        resourceId === 'test_id_1' ? policyMock1.rules : policyMock2.rules
-      )
-    );
+    // legg på param for å kjøre mot backend eller mock.
+    // E.g., http://studio.localhost/resourceadm/ttd/resourceadm-resources/resource/resource_id_1/policy
+    get(getPolicyRulesUrl(org, repo, resourceId)).then((res: unknown) => {
+      const policy: PolicyBackendType = res as PolicyBackendType;
+      const policyRulesMapped: PolicyRuleCardType[] =
+        mapPolicyRulesBackendObjectToPolicyRuleCardType(subjectsListMock, policy.rules);
 
-    // TODO - replace when found out how to handle the IDs
-    setLastRuleId(
-      resourceId === 'test_id_1' ? policyMock1.rules.length + 1 : policyMock2.rules.length + 1
-    );
-  }, [resourceId]);
+      setPolicyRules(policyRulesMapped);
+      setLastRuleId(policyRulesMapped.length + 1);
+    });
+
+    /**
+     * IF you do not want to run against backend, comment out the get above,
+     * and coment in the code below
+     */
+    // setPolicyRules(mapPolicyRulesBackendObjectToPolicyRuleCardType(subjectsListMock, resourceId === 'resource_id_1' ? policyMock1.rules : policyMock2.rules));
+    // setLastRuleId(resourceId === 'resource_id_1' ? policyMock1.rules.length + 1 : policyMock2.rules.length + 1);
+  }, [org, repo, resourceId]);
 
   /**
    * Displays all the rule cards
@@ -162,7 +157,7 @@ requiredAuthenticationLevelOrg: null  // Denne er 3 hele tiden.
       mapPolicyRuleToPolicyRuleBackendObject(subjects, pr, resourceType, resourceId)
     );
 
-    const resourceWithRules: PolicyEditorSendType = {
+    const resourceWithRules: PolicyBackendType = {
       rules: policyEditorRules,
       requiredAuthenticationLevelEndUser: requiredAuthLevel,
       requiredAuthenticationLevelOrg: '3',

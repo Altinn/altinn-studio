@@ -1,7 +1,3 @@
-export interface PolicyType {
-  rules: PolicyRuleCardType[]
-}
-
 export interface PolicyRuleCardType {
   ruleId: string;
   description: string;
@@ -31,7 +27,7 @@ export interface PolicyRuleBackendType {
 }
 
 export type RequiredAuthLevelType = '1' | '2' | '3' | '4';
-export interface PolicyEditorSendType {
+export interface PolicyBackendType {
   rules: PolicyRuleBackendType[],
   requiredAuthenticationLevelEndUser: RequiredAuthLevelType,
   requiredAuthenticationLevelOrg: string
