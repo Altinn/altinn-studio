@@ -310,7 +310,6 @@ namespace Designer.Tests.Controllers
 
                 HttpResponseMessage response2 = await HttpClient.Value.SendAsync(httpRequestMessage2);
                 response2.EnsureSuccessStatusCode();
-                string responseBody2 = await response2.Content.ReadAsStringAsync();
             }
 
 
@@ -361,7 +360,6 @@ namespace Designer.Tests.Controllers
                 httpRequestMessage2.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
                 HttpResponseMessage response2 = await HttpClient.Value.SendAsync(httpRequestMessage2);
                 response2.EnsureSuccessStatusCode();
-                string responseBody2 = await response2.Content.ReadAsStringAsync();
             }
 
 
