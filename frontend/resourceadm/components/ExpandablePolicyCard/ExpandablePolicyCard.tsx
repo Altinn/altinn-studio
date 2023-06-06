@@ -4,6 +4,7 @@ import { Chip } from '../Chip';
 
 import classes from './ExpandablePolicyCard.module.css';
 import {
+  PolicyActionType,
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
@@ -17,7 +18,7 @@ import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 
 interface Props {
   policyRule: PolicyRuleCardType;
-  actions: string[];
+  actions: PolicyActionType[];
   subjects: PolicySubjectType[];
   rules: PolicyRuleCardType[];
   setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCardType[]>>;
@@ -188,12 +189,14 @@ export const ExpandablePolicyCard = ({
    * Displays the actions
    */
   const displayActions = actions.map((a, i) => {
+    console.log('aaaaa', actions);
+    console.log('policy aaaa', policyRule.actions);
     return (
       <Chip
         key={i}
-        text={a}
-        isSelected={policyRule.actions.includes(a)}
-        onClick={() => handleClickAction(i, a)}
+        text={a.actionTitle}
+        isSelected={policyRule.actions.includes(a.actionTitle)}
+        onClick={() => handleClickAction(i, a.actionTitle)}
       />
     );
   });
@@ -205,7 +208,7 @@ export const ExpandablePolicyCard = ({
     const updatedSelectedActions = [...policyRule.actions];
 
     // If already present, remove it and check if there is an error
-    if (policyRule.actions.includes(actions[index])) {
+    if (policyRule.actions.includes(actions[index].actionTitle)) {
       const selectedActionIndex = policyRule.actions.findIndex((a) => a === action);
       updatedSelectedActions.splice(selectedActionIndex, 1);
       setHasRightsErrors(updatedSelectedActions.length === 0);

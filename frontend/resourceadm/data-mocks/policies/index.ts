@@ -1,4 +1,4 @@
-import { PolicyBackendType, PolicyRuleBackendType, PolicyRuleResourceType, PolicySubjectType } from "resourceadm/types/global";
+import { PolicyActionType, PolicyBackendType, PolicyRuleBackendType, PolicyRuleResourceType, PolicySubjectType } from "resourceadm/types/global";
 
 // RESOURCE ID
 export const resourceIdMock1: string = "resource_id_1"
@@ -47,12 +47,42 @@ export const policyMock2: PolicyBackendType = {
 };
 
 // ACTIONS
-export const actionsListMock: string[] = [
-  "read",
-  "write",
-  "confirm",
-  "sign",
-  "delete"
+const actionMock1: PolicyActionType = {
+  actionId: 'read',
+  actionTitle: 'Les',
+  actionDescription: null
+}
+
+const actionMock2: PolicyActionType = {
+  actionId: 'write',
+  actionTitle: 'Skriv',
+  actionDescription: null
+}
+
+const actionMock3: PolicyActionType = {
+  actionId: 'delete',
+  actionTitle: 'Slett',
+  actionDescription: null
+}
+
+const actionMock4: PolicyActionType = {
+  actionId: 'confirm',
+  actionTitle: 'Bekreft',
+  actionDescription: null
+}
+
+const actionMock5: PolicyActionType = {
+  actionId: 'sign',
+  actionTitle: 'Sign',
+  actionDescription: null
+}
+
+export const actionsListMock = [
+  actionMock1,
+  actionMock2,
+  actionMock3,
+  actionMock4,
+  actionMock5
 ]
 
 // SUBJECTS

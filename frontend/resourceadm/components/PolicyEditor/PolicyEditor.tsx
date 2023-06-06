@@ -9,6 +9,7 @@ import {
   PolicyRuleBackendType,
   PolicySubjectType,
   RequiredAuthLevelType,
+  PolicyActionType,
 } from 'resourceadm/types/global';
 import {
   mapPolicyRulesBackendObjectToPolicyRuleCardType,
@@ -20,7 +21,7 @@ import { SelectAuthLevel } from 'resourceadm/components/SelectAuthLevel';
 
 interface Props {
   policy: PolicyBackendType;
-  actions: string[];
+  actions: PolicyActionType[];
   subjects: PolicySubjectType[];
   resourceType: string;
   resourceId: string;
@@ -147,7 +148,7 @@ export const PolicyEditor = ({
    */
   const handleSavePolicy = (rules: PolicyRuleCardType[]) => {
     const policyEditorRules: PolicyRuleBackendType[] = rules.map((pr) =>
-      mapPolicyRuleToPolicyRuleBackendObject(subjects, pr, resourceType, resourceId)
+      mapPolicyRuleToPolicyRuleBackendObject(subjects, actions, pr, resourceType, resourceId)
     );
 
     const updatedPolicy: PolicyBackendType = {

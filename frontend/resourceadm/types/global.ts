@@ -18,6 +18,12 @@ export interface PolicySubjectType {
   subjectDescription: string;
 }
 
+export interface PolicyActionType {
+  actionId: string,
+  actionTitle: string,
+  actionDescription: string | null
+}
+
 export interface PolicyRuleBackendType {
   ruleId: string,
   description: string,

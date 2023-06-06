@@ -1,4 +1,5 @@
 import {
+  PolicyActionType,
   PolicyRuleBackendType,
   PolicyRuleCardType,
   PolicyRuleResourceType,
@@ -110,10 +111,26 @@ export const mapSubjectTitleToSubjectString = (
 };
 
 /**
+ * Maps a Action title to the action id
+ *
+ * @param actionOptions the possible actions to select from
+ * @param actionTitle the title of the action
+ *
+ * @returns a string of the correct format to send
+ */
+export const mapActionTitleToActionId = (
+  actionOptions: PolicyActionType[],
+  actionTitle: string
+): string => {
+  return actionOptions.find(a => a.actionTitle === actionTitle).actionId
+}
+
+/**
  * Maps a policy rule object used on the policy cards to a policy rule object
  * to be sent to backend where all fields are strings.
  *
  * @param subjectOptions the possible subjects to select from
+ * @param actionOptions the possible actions to select from
  * @param policyRule the policy rule to map
  * @param resourceType the type of the parent resource
  * @param resourceId the id of the parent resource
@@ -122,18 +139,20 @@ export const mapSubjectTitleToSubjectString = (
  */
 export const mapPolicyRuleToPolicyRuleBackendObject = (
   subjectOptions: PolicySubjectType[],
+  actionOptions: PolicyActionType[],
   policyRule: PolicyRuleCardType,
   resourceType: string,
   resourceId: string
 ): PolicyRuleBackendType => {
   const resources: string[][] = policyRule.resources.map((resource) => resource.map(r => `${r.type}:${r.id}`));
   const subject: string[] = policyRule.subject.map((s) => mapSubjectTitleToSubjectString(subjectOptions, s));
+  const actions: string[] = policyRule.actions.map((a) => mapActionTitleToActionId(actionOptions, a))
 
   return {
     ruleId: `${resourceType}:${resourceId}:ruleid:${policyRule.ruleId}`,
     description: policyRule.description,
     subject: subject,
-    actions: policyRule.actions,
+    actions: actions,
     resources: resources,
   };
 };

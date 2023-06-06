@@ -35,7 +35,8 @@
 }
 
 .chip:focus, .chipSelected:focus {
-  border: 1px solid #FFDA06;
+  outline: 2px solid #98177e;
+  outline-offset: 3px;
   /* TODO - handle when clicked and accessed with keyboard */
 }
 

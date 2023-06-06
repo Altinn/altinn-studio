@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './PolicyEditorPage.module.css';
-import { PolicyBackendType, PolicySubjectType } from 'resourceadm/types/global';
+import { PolicyActionType, PolicyBackendType, PolicySubjectType } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
 import { actionsListMock, subjectsListMock } from 'resourceadm/data-mocks/policies';
 import { get, put } from 'app-shared/utils/networking';
@@ -23,7 +23,7 @@ export const PolicyEditorPage = () => {
   const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
 
   // TODO - replace with list from backend
-  const [actions, setActions] = useState<string[]>([]);
+  const [actions, setActions] = useState<PolicyActionType[]>([]);
   const [subjects, setSubjects] = useState<PolicySubjectType[]>([]);
   const [policy, setPolicy] = useState<PolicyBackendType>();
   const [loading, setLoading] = useState(false);
@@ -33,29 +33,27 @@ export const PolicyEditorPage = () => {
    * Get the policy, actions, and subjects when the page loads
    */
   useOnce(() => {
-    // TODO - API Call to get the correct actions, AND TRANSLATE THEM
-    setActions(actionsListMock);
-    // TODO - API Call to get the correct subjects
-    setSubjects(subjectsListMock);
-
+    // Get the ations when page loads
     get(getActionOptionsUrlByOrgAndRepo(org, repo))
       .then((res) => {
-        console.log('actions', res);
+        setActions(res);
       })
       .catch((err) => {
         console.log({ err });
         console.error(err);
       });
 
+    // Get the subjects when page loads
     get(getSubjectOptionsUrlByOrgAndRepo(org, repo))
       .then((res) => {
-        console.log('subjects', res);
+        setSubjects(res);
       })
       .catch((err) => {
         console.log({ err });
         console.error(err);
       });
 
+    // Start loading when trying to get the policies
     setLoading(true);
     // legg på param for å kjøre mot backend eller mock.
     // E.g., http://studio.localhost/resourceadm/ttd/resourceadm-resources/resource/resource_id_1/policy
@@ -75,9 +73,11 @@ export const PolicyEditorPage = () => {
       });
 
     /**
-     * IF you do not want to run against backend, comment out the get above,
+     * IF you do not want to run against backend, comment out the getters above,
      * and coment in the code below
      */
+    // setActions(actionsListMock);
+    // setSubjects(subjectsListMock);
     // setPolicyRules(mapPolicyRulesBackendObjectToPolicyRuleCardType(subjectsListMock, resourceId === 'resource_id_1' ? policyMock1.rules : policyMock2.rules));
     // setLastRuleId(resourceId === 'resource_id_1' ? policyMock1.rules.length + 1 : policyMock2.rules.length + 1);
   });
