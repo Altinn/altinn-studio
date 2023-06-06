@@ -10,10 +10,6 @@ import { RessursTematikkValg } from '../../components/RessursTematikkValg';
 import { RessursTypeValg } from '../../components/RessursTypeValg';
 import { useState } from 'react';
 
-import AltinnIcon from './AltinnLogoMedNavnFraFigma.svg'; // bruker @SVGR/webpack
-// https://blog.logrocket.com/how-to-use-svgs-react/#using-svg-component
-
-
 export const AboutResource = () => {
 
     // Første TextField fra @digdir/design-system-react;
