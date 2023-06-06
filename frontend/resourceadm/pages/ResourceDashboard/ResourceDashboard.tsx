@@ -17,6 +17,8 @@ import { Organization } from 'app-shared/types/Organization';
 import { resourceIdMock1 } from 'resourceadm/data-mocks/policies';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
+import { useParams } from "react-router-dom"; // tester PageLayoutBanner
+
 type ResourceDashboardProps = {
   user: User;
   organizations: Organization[];
@@ -47,6 +49,9 @@ export const ResourceDashboard = ({
   const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
+
+  // Banner selectedContext: 
+  const { selectedContext } = useParams();
 
   return (
     <>
@@ -81,7 +86,7 @@ export const ResourceDashboard = ({
             onMouseLeave={handleNewLinkFocusOut}
             data-testid={'dashboard.new_app'}
           >
-            <span>Ny ressurs</span>
+            <span>Opprett ny ressurs</span>
             <i
               className={cn('fa', classes.plusIcon, {
                 'fa-circle-plus': isNewLinkFocused,
@@ -91,9 +96,11 @@ export const ResourceDashboard = ({
           </Link>
         </div>
 
-        <h3> Dette er RessursDashboard side pakket inn i TestPage </h3>
-        <h5> bygger gradvis fra Dashboard mal. PageLayout krasjet i oppdatering 16.05.23</h5>
+        <h3> Dette er RessursDashboard side pakket inn i PageLayout banner </h3>
+        <h5> Vi bygger gradvis fra Dashboard mal. </h5>
         <h5> Vi ønsker muligens listefunksjonalitet her, som i RepoList og OrgRepoList, </h5>
+        <h6>Henter useParams() = {`selectedContext: ${selectedContext}: testet`} </h6>
+       
         {/*
             Dummy button that takes the user to the resource page where the user can navigate
             between the 3 pages "about the resource", "security", and "policy".

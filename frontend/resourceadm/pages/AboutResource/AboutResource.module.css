@@ -5,29 +5,15 @@
   position: relative;
 }
 
-.banner {
-  /* lyseblått banner som går tvers over siden: setter til 1000px for nå. 
-  Skal nok ikke være med til /frontend/ressurstilgang/ der et mørkeblått-banner
-  skal være, men greitt her for å se de hvite tekstboksene.  */
-  background-color: #78C1F9;
-  /* width : 100%; */
-  width: 1000px;
-  height: 450px;
-
-  position: relative;
-  z-index: 1;
-}
-
-
 .fleksBoksHolder {
   /* Holder vensteHvitBoks og hoyreHvitBoks 
-  Skal delvis overlappe lyseblå banner  */
+  Skal delvis overlappe lyseblå banner: nå fjernet */
   
   display: flex;
-  width: 100%;
-  position: absolute; 
+  width: 1000px;
+  position: relative; 
   z-index: 2;
-  top: 70px;
+  top: 10px;
 }
 
 .venstreHvitBoks {

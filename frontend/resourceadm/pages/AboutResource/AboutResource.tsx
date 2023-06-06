@@ -1,7 +1,7 @@
 
 
 import React from 'react';
-import classes from './RessurstilgangSide1.module.css';
+import classes from './AboutResource.module.css';
 import { RessursTittelInput } from '../../components/RessursTittelInput';
 import { RessursBeskrivelseInput } from '../../components/RessursBeskrivelseInput';
 import { RessursRettighetsBeskrivelseInput } from '../../components/RessursRettighetsBeskrivelseInput';
@@ -14,7 +14,7 @@ import AltinnIcon from './AltinnLogoMedNavnFraFigma.svg'; // bruker @SVGR/webpac
 // https://blog.logrocket.com/how-to-use-svgs-react/#using-svg-component
 
 
-export const RessurstilgangSide1 = () => {
+export const AboutResource = () => {
 
     // Første TextField fra @digdir/design-system-react;
     // Andre tekstfelt : Description = Beskrivelse
@@ -46,15 +46,10 @@ export const RessurstilgangSide1 = () => {
 
       <div className={classes.bannerOgBoksKontainer}>
 
-        <div className={classes.banner}>
-          <div className={classes.posisjonAltinnIkon}>
-            <AltinnIcon />
-          </div>
-        </div>
-
         <div className={classes.fleksBoksHolder}>
+          
           <div className={classes.venstreHvitBoks}>
-            <p className={classes.boksOverskrift}> Informasjon om ressursen (RuneSkisse)</p>
+            <p className={classes.boksOverskrift}> Informasjon om ressursen </p>
 
             <div className={classes.tekstFelt1}>
               <RessursTittelInput

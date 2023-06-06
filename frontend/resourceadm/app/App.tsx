@@ -53,7 +53,8 @@ export const App = (): JSX.Element => {
     return <ErrorMessage title={error.title} message={error.message} />;
   }
 
-  const basePath = '/:org/:repo';
+  // PageLayout banner uses organization, named as selectedContext
+  const basePath = '/:selectedContext/:repo';
 
   if (componentIsReady) {
     return (
@@ -68,14 +69,10 @@ export const App = (): JSX.Element => {
 
           <Route element={<PageLayout />}>
             <Route
-              path='/skatt/repo1'
+              path='/:selectedContext/repo'
               element={<ResourceDashboard user={user} organizations={organizations} />}
             />
           </Route>
-
-          <Route path='/skatt/dummy1' element={<RessurstilgangSide1 />} />
-
-          <Route path='/olsenbanden' element={<OlsenbandenPage />} />
 
           <Route element={<PageLayout />}>
             <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
