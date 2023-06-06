@@ -67,7 +67,7 @@ export const ResourceNarrowingList = ({
       >
         {displayResources}
         <Button type='button' onClick={handleClickAddResource} color='secondary'>
-          Legg til en innsnevring av ressursen {/* TODO - Komme med bedre navn*/}
+          Legg til en innsnevring av ressursen {/* TODO - Komme med bedre navn + translation */}
         </Button>
       </ExpandablePolicyElement>
     </div>

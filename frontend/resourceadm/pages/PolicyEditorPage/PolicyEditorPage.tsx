@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import classes from './PolicyEditorPage.module.css';
 import { PolicyActionType, PolicyBackendType, PolicySubjectType } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
-import { actionsListMock, subjectsListMock } from 'resourceadm/data-mocks/policies';
 import { get, put } from 'app-shared/utils/networking';
 import { getPolicyRulesUrl } from 'resourceadm/utils/backendUrlUtils';
 import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
 import {
-  getActionOptionsUrlByOrgAndRepo,
-  getPolicyUrlByOrgRepoAndId,
-  getSubjectOptionsUrlByOrgAndRepo,
+  getActionOptionsUrlBySelectedContextAndRepo,
+  getPolicyUrlBySelectedContextRepoAndId,
+  getSubjectOptionsUrlBySelectedContextAndRepo,
 } from 'resourceadm/utils/backendUrlUtils/backendUserUtils';
 import { useOnce } from 'resourceadm/hooks/useOnce';
 
@@ -19,10 +18,9 @@ import { useOnce } from 'resourceadm/hooks/useOnce';
 export const PolicyEditorPage = () => {
   // TODO - translation
 
-  const { resourceId, org, repo } = useParams();
+  const { resourceId, selectedContext, repo } = useParams();
   const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
 
-  // TODO - replace with list from backend
   const [actions, setActions] = useState<PolicyActionType[]>([]);
   const [subjects, setSubjects] = useState<PolicySubjectType[]>([]);
   const [policy, setPolicy] = useState<PolicyBackendType>();
@@ -34,9 +32,10 @@ export const PolicyEditorPage = () => {
    */
   useOnce(() => {
     // Get the ations when page loads
-    get(getActionOptionsUrlByOrgAndRepo(org, repo))
-      .then((res) => {
-        setActions(res);
+    get(getActionOptionsUrlBySelectedContextAndRepo(selectedContext, repo))
+      .then((res: unknown) => {
+        const actionRes: PolicyActionType[] = res as PolicyActionType[];
+        setActions(actionRes);
       })
       .catch((err) => {
         console.log({ err });
@@ -44,9 +43,10 @@ export const PolicyEditorPage = () => {
       });
 
     // Get the subjects when page loads
-    get(getSubjectOptionsUrlByOrgAndRepo(org, repo))
-      .then((res) => {
-        setSubjects(res);
+    get(getSubjectOptionsUrlBySelectedContextAndRepo(selectedContext, repo))
+      .then((res: unknown) => {
+        const subjectsRes: PolicySubjectType[] = res as PolicySubjectType[];
+        setSubjects(subjectsRes);
       })
       .catch((err) => {
         console.log({ err });
@@ -57,7 +57,7 @@ export const PolicyEditorPage = () => {
     setLoading(true);
     // legg på param for å kjøre mot backend eller mock.
     // E.g., http://studio.localhost/resourceadm/ttd/resourceadm-resources/resource/resource_id_1/policy
-    get(getPolicyRulesUrl(org, repo, resourceId))
+    get(getPolicyRulesUrl(selectedContext, repo, resourceId))
       .then((res: unknown) => {
         const policyRes: PolicyBackendType = res as PolicyBackendType;
 
@@ -86,7 +86,7 @@ export const PolicyEditorPage = () => {
     // TODO - Error handling
     console.log('Object to be sent as JSON object: \n', JSON.stringify(p, null, 2));
 
-    put(getPolicyUrlByOrgRepoAndId(org, repo, resourceId), p)
+    put(getPolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId), p)
       .then((res) => {
         console.log('success', res);
         // TODO - maybe add a success message / card?
@@ -124,7 +124,7 @@ export const PolicyEditorPage = () => {
             subjects={subjects}
             resourceType={resourceType}
             resourceId={resourceId}
-            onSave={handleSavePolicy} // TODO
+            onSave={handleSavePolicy}
           />
         </>
       );

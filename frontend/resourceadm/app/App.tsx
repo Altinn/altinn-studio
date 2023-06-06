@@ -53,7 +53,7 @@ export const App = (): JSX.Element => {
     return <ErrorMessage title={error.title} message={error.message} />;
   }
 
-  const basePath = '/:org/:repo';
+  const basePath = '/:selectedContext/:repo';
 
   if (componentIsReady) {
     return (

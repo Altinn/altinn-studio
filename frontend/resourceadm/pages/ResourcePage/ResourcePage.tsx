@@ -14,7 +14,7 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 export const ResourcePage = () => {
   const navigate = useNavigate();
 
-  const { pageType, resourceId, org, repo } = useParams();
+  const { pageType, resourceId, selectedContext, repo } = useParams();
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
     pageType as NavigationBarPageType
@@ -23,19 +23,16 @@ export const ResourcePage = () => {
   /**
    * Navigates to the selected page
    */
-  /**
-   * Navigates to the selected page
-   */
   const navigateToPage = (page: NavigationBarPageType) => {
     setCurrentPage(page);
-    navigate(getResourcePageURL(org, repo, resourceId, page));
+    navigate(getResourcePageURL(selectedContext, repo, resourceId, page));
   };
 
   /**
    * Takes the user back to where they came from
    */
   const goBack = () => {
-    navigate(getResourceDashboardURL(org, repo));
+    navigate(getResourceDashboardURL(selectedContext, repo));
   };
 
   return (

@@ -136,7 +136,6 @@ export const ExpandablePolicyCard = ({
     const updatedResources = [...policyRule.resources, newResource];
     updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
 
-    // TODO - Display Error when fields are empty???
     setHasResourceError(false);
   };
 
@@ -188,18 +187,14 @@ export const ExpandablePolicyCard = ({
   /**
    * Displays the actions
    */
-  const displayActions = actions.map((a, i) => {
-    console.log('aaaaa', actions);
-    console.log('policy aaaa', policyRule.actions);
-    return (
-      <Chip
-        key={i}
-        text={a.actionTitle}
-        isSelected={policyRule.actions.includes(a.actionTitle)}
-        onClick={() => handleClickAction(i, a.actionTitle)}
-      />
-    );
-  });
+  const displayActions = actions.map((a, i) => (
+    <Chip
+      key={i}
+      text={a.actionTitle}
+      isSelected={policyRule.actions.includes(a.actionTitle)}
+      onClick={() => handleClickAction(i, a.actionTitle)}
+    />
+  ));
 
   /**
    * Removes or adds an action
