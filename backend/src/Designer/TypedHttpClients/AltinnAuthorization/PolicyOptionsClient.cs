@@ -44,14 +44,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 
         }
 
-
         public async Task<List<SubjectOption>> GetSubjectOptions()
         {
+                string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
 
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
-
-            string filename = Path.Join(GetOptionsPath(), "subjectoptions.json");
-            List<SubjectOption> subjectOptions;
+             List<SubjectOption> subjectOptions;
 
             try
             {
