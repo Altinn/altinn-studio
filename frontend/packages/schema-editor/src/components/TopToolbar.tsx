@@ -7,14 +7,14 @@ import { Button, ButtonVariant, ErrorMessage, Popover, Spinner } from '@digdir/d
 import { GenerateSchemaState } from 'app-shared/types/global';
 import cn from 'classnames';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { IJsonSchema } from '@altinn/schema-editor/types';
+import { JsonSchema } from '@altinn/schema-editor/types';
 
 export interface TopToolbarProps {
   Toolbar: JSX.Element;
   editMode: boolean;
   saveAction?: (payload: any) => void;
   toggleEditMode?: (e: any) => void;
-  schema: IJsonSchema;
+  schema: JsonSchema;
   schemaState: GenerateSchemaState;
 }
 
@@ -75,7 +75,7 @@ export function TopToolbar({
           >
             {error?.message ? (
               <>
-                <ErrorMessage>{error.message}</ErrorMessage>
+                <ErrorMessage role='alertdialog'>{error.message}</ErrorMessage>
                 <Button
                   onClick={() => setShowGenerationState(false)}
                   variant={ButtonVariant.Outline}

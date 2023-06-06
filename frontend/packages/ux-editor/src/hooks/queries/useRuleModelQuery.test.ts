@@ -26,12 +26,13 @@ import {
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 
 describe('useRuleModelQuery', () => {
   it('Calls getRuleModel with correct parameters', async () => {
     await renderAndWaitForSuccess();
     expect(queriesMock.getRuleModel).toHaveBeenCalledTimes(1);
-    expect(queriesMock.getRuleModel).toHaveBeenCalledWith(org, app);
+    expect(queriesMock.getRuleModel).toHaveBeenCalledWith(org, app, selectedLayoutSet);
   });
 
   it('Parses file correctly and returns an array of rules and conditions', async () => {
@@ -73,7 +74,7 @@ describe('useRuleModelQuery', () => {
 });
 
 const renderAndWaitForSuccess = async () => {
-  const { renderHookResult } = renderHookWithMockStore()(() => useRuleModelQuery(org, app));
+  const { renderHookResult } = renderHookWithMockStore()(() => useRuleModelQuery(org, app, selectedLayoutSet));
   await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
   return renderHookResult;
 };

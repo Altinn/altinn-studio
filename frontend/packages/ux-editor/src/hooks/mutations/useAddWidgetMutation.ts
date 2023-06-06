@@ -18,9 +18,9 @@ export interface AddWidgetMutationArgs {
   containerId?: string;
 }
 
-export const useAddWidgetMutation = (org: string, app: string) => {
+export const useAddWidgetMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const { mutateAsync: updateLayout } = useFormLayoutMutation(org, app, layoutName);
+  const { mutateAsync: updateLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const { mutateAsync: updateText } = useUpsertTextResourcesMutation(org, app);
   return useMutation({
     mutationFn: async ({ widget, position, containerId }: AddWidgetMutationArgs) => {
@@ -51,7 +51,7 @@ export const useAddWidgetMutation = (org: string, app: string) => {
     },
     onSuccess: (updatedLayout: IInternalLayout) => {
       queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app],
+        [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
           const newLayouts: IFormLayouts = deepCopy(oldLayouts);
           newLayouts[layoutName] = updatedLayout;

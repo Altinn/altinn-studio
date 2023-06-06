@@ -1,8 +1,12 @@
-﻿using Altinn.Authorization.ABAC.Xacml;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.PolicyAdmin;
 using Altinn.Studio.PolicyAdmin.Models;
 using Microsoft.AspNetCore.Mvc;
+using PolicyAdmin.Models;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -10,10 +14,12 @@ namespace Altinn.Studio.Designer.Controllers
     public class PolicyController : ControllerBase
     {
         private readonly IRepository _repository;
+        private readonly IPolicyOptions _policyOptions;
 
-        public PolicyController(IRepository repository)
+        public PolicyController(IRepository repository, IPolicyOptions policyOptions)
         {
             _repository = repository;
+            _policyOptions = policyOptions;
         }
 
         /// <summary>
@@ -121,6 +127,25 @@ namespace Altinn.Studio.Designer.Controllers
             }
             return Ok(vpd);
         }
+
+        [HttpGet]
+        [Route("subjectoptions")]
+        public async Task<ActionResult> GetSubjectOptions(string org, string app)
+        {
+            List<SubjectOption> subjectOptions = await _policyOptions.GetSubjectOptions();
+            return Ok(subjectOptions);
+        }
+
+
+        [HttpGet]
+        [Route("actionoptions")]
+        public async Task<ActionResult> GetActionOptions(string org, string app)
+        {
+            List<ActionOption> actionOptions = await _policyOptions.GetActionOptions();
+
+            return Ok(actionOptions);
+        }
+
 
         private ValidationProblemDetails ValidatePolicy(ResourcePolicy policy)
         {

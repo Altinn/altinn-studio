@@ -1,0 +1,92 @@
+/* TODO - font families */
+.policyEditorWrapper {
+  /* This goes outside the screen to the right atm - TODO - fix*/
+  width: 80%;
+  margin: 0;
+  padding-inline: 10%;
+  padding-top: 20px;
+  padding-bottom: 50px;
+}
+
+.policyEditorTop {
+  width: 450px;
+  margin-bottom: 50px;
+}
+
+.addCardButtonWrapper {
+  margin-block: 20px;
+  width: 595px;
+  min-width: 595px;
+}
+
+.space {
+  margin-block: 20px;
+}
+
+.policyEditorHeader {
+  margin-bottom: 40px;
+  font-weight: 400;
+}
+
+.subHeader {
+  font-weight: 500;
+  margin-bottom: 5px;
+  margin-top: 20px;
+}
+
+/* TODO - Fix hover, tab-focus, active, visisted. */
+.externalLink {
+  color: #000000;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: #1EAEF7;
+  text-decoration-thickness: 1.5px;
+}
+
+.componentWrapper {
+  margin-top: 10px;
+}
+
+.textFieldIdWrapper {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.idBox {
+  background-color: #E9EAEC;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 1px;
+  padding: 2px;
+  margin-right: 8px;
+}
+
+.idBoxText {
+  font-size: 10px;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+}
+
+.idText {
+  font-size: 14px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.emptyPolicyName {
+  height: 36px;
+  margin-top: 5px;
+}
+
+p {
+  margin: 0;
+  line-height: 24px;
+}

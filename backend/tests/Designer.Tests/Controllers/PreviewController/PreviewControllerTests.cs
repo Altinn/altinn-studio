@@ -32,6 +32,8 @@ namespace Designer.Tests.Controllers.PreviewController
         private const string LayoutSetName2 = "layoutSet2";
         private const string PartyId = "51001";
         private const string InstanceGuId = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
+        private const string AttachmentGuId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+        private const string MockedReferrerUrl = "https://studio-mock-url.no";
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -214,7 +216,7 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={App}&selectedLayoutSetInEditor=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -234,7 +236,7 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -253,7 +255,7 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={App}&selectedLayoutSetInEditor=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -267,7 +269,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/empty-app/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={App}&selectedLayoutSetInEditor=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -283,7 +285,7 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -297,7 +299,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName2}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName2}");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -311,7 +313,51 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={App}&selectedLayoutSetInEditor=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Post_Attachment_Ok()
+        {
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data?dataType=FileUploadId";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status201Created, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Delete_Attachment_Ok()
+        {
+            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Post_AttachmentForStateFulApp_Ok()
+        {
+            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data?dataType=FileUploadId";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
+
+            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            Assert.Equal(StatusCodes.Status201Created, (int)response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Delete_AttachmentForStateFulApp_Ok()
+        {
+            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -322,7 +368,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={App}&selectedLayoutSetInEditor=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -339,7 +385,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -356,7 +402,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={App}&selectedLayoutSetInEditor=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -373,7 +419,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -391,7 +437,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={App}&selectedLayoutSetInEditor=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -408,7 +454,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -425,7 +471,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={App}&selectedLayoutSetInEditor=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSetInEditor=");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -439,7 +485,7 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"http://studio.localhost/designer/html/preview.html?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSetInEditor={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);

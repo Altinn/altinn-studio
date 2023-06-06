@@ -1,7 +1,8 @@
-import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
-import { CombinationKind, FieldType, Keywords, ObjectKind } from './types';
+import type { UiSchemaNode, UiSchemaNodes } from '../types';
+import { CombinationKind, FieldType, Keyword, ObjectKind } from '../types';
 import { hasNodePointer } from './selectors';
 import { ROOT_POINTER } from './constants';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => ({
   objectKind: ObjectKind.Field,
@@ -25,12 +26,12 @@ export const makePointer = (...args: any[]) => {
   }
   return args.join('/');
 };
-export const getCombinationKind = (schemaNode: Dict): CombinationKind => {
+export const getCombinationKind = (schemaNode: KeyValuePairs): CombinationKind => {
   const kinds = Object.values(CombinationKind).filter((k) => Object.keys(schemaNode).includes(k));
   return kinds[0];
 };
 
-export const getObjectKind = (schemaNode: Dict): ObjectKind => {
+export const getObjectKind = (schemaNode: KeyValuePairs): ObjectKind => {
   if (schemaNode.$ref) {
     return ObjectKind.Reference;
   } else if (getCombinationKind(schemaNode)) {
@@ -59,7 +60,7 @@ export const replaceLastPointerSegment = (pointer: string, newLastSegment: strin
 };
 
 export const pointerIsDefinition = (pointer: string) =>
-  pointer.startsWith(makePointer(Keywords.Definitions)) && !pointer.includes(Keywords.Properties);
+  pointer.startsWith(makePointer(Keyword.Definitions)) && !pointer.includes(Keyword.Properties);
 
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
   childNodes.some((child) => child.fieldType === FieldType.Null);

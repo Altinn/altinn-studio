@@ -21,16 +21,16 @@ export interface AddLayoutMutationArgs {
   isReceiptPage?: boolean;
 }
 
-export const useAddLayoutMutation = (org: string, app: string) => {
+export const useAddLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { saveFormLayout } = useServicesContext();
-  const formLayoutsQuery = useFormLayoutsQuery(org, app);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app);
-  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app);
+  const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
+  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
+  const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const dispatch = useDispatch();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
-    return await saveFormLayout(org, app, updatedLayoutName, convertedLayout);
+    return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, convertedLayout);
   };
 
   return useMutation({
@@ -66,7 +66,7 @@ export const useAddLayoutMutation = (org: string, app: string) => {
         })
       );
 
-      queryClient.setQueryData([QueryKey.FormLayouts, org, app], () => newLayouts);
+      queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => newLayouts);
     },
   });
 };

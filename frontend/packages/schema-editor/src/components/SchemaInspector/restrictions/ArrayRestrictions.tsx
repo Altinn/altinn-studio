@@ -1,6 +1,6 @@
 import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
-import { ArrRestrictionKeys } from '@altinn/schema-model';
+import { ArrRestrictionKey } from '@altinn/schema-model';
 import { TextField } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
@@ -19,26 +19,26 @@ export function ArrayRestrictions({
       <div className={classes.items}>
         <div className={classes.item}>
           <TextField
-            label={t('schema_editor.' + ArrRestrictionKeys.minItems)}
-            onChange={(e) => onChangeRestrictionValue(path, ArrRestrictionKeys.minItems, e.target.value)}
-            value={restrictions[ArrRestrictionKeys.minItems]}
+            label={t('schema_editor.' + ArrRestrictionKey.minItems)}
+            onChange={(e) => onChangeRestrictionValue(path, ArrRestrictionKey.minItems, e.target.value)}
+            value={restrictions[ArrRestrictionKey.minItems]}
             formatting={{ number: {} }}
           />
         </div>
         <div className={classes.item}>
           <TextField
-            label={t('schema_editor.' + ArrRestrictionKeys.maxItems)}
-            onChange={(e) => onChangeRestrictionValue(path, ArrRestrictionKeys.maxItems, e.target.value)}
-            value={restrictions[ArrRestrictionKeys.maxItems]}
+            label={t('schema_editor.' + ArrRestrictionKey.maxItems)}
+            onChange={(e) => onChangeRestrictionValue(path, ArrRestrictionKey.maxItems, e.target.value)}
+            value={restrictions[ArrRestrictionKey.maxItems]}
             formatting={{ number: {} }}
           />
         </div>
       </div>
       <div>
         <Checkbox
-          checked={restrictions[ArrRestrictionKeys.uniqueItems]}
-          label={t('schema_editor.' + ArrRestrictionKeys.uniqueItems)}
-          onChange={(e) => onChangeRestrictionValue(path, ArrRestrictionKeys.uniqueItems, e.target.checked)}
+          checked={restrictions[ArrRestrictionKey.uniqueItems]}
+          label={t('schema_editor.' + ArrRestrictionKey.uniqueItems)}
+          onChange={(e) => onChangeRestrictionValue(path, ArrRestrictionKey.uniqueItems, e.target.checked)}
         />
       </div>
     </>

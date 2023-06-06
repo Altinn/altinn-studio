@@ -5,7 +5,6 @@ import { CollapsableMenus } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarGroup } from './ToolbarGroup';
 import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../../utils/formLayoutUtils';
-
 import './DefaultToolbar.css';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
