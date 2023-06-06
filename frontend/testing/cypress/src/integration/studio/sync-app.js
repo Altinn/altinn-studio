@@ -24,7 +24,7 @@ context('Sync app and deploy', () => {
   it('is possible sync changes', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
     // Sync app changes
-    cy.get(designer.appMenu.edit).click();
+    cy.findByRole('link', { name: designer.appMenu.editText }).click();
     cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
     cy.get(designer.dragToArea).trigger('drop');
     cy.get('#share_changes_button').click();

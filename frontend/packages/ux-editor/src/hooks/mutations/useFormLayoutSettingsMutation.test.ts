@@ -5,10 +5,11 @@ import { waitFor } from '@testing-library/react';
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 
 describe('useFormLayoutSettingsMutation', () => {
   it('Calls saveFormLayoutSettings with correct arguments and payload', async () => {
-    const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsMutation(org, app))
+    const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsMutation(org, app, selectedLayoutSet))
       .renderHookResult
       .result;
 
@@ -24,6 +25,7 @@ describe('useFormLayoutSettingsMutation', () => {
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
       org,
       app,
+      selectedLayoutSet,
       layoutSettings
     );
   });

@@ -5,7 +5,7 @@
   "devDependencies": {
     "@faker-js/faker": "7.6.0",
     "@testing-library/cypress": "9.0.0",
-    "axe-core": "4.7.1",
+    "axe-core": "4.7.2",
     "cypress": "12.13.0",
     "cypress-axe": "1.4.0",
     "cypress-plugin-tab": "1.0.5",

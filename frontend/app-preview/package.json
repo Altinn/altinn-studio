@@ -9,8 +9,8 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.27.7",
-    "@digdir/design-system-react": "0.11.3",
+    "@altinn/altinn-design-system": "0.27.8",
+    "@digdir/design-system-react": "0.13.0",
     "axios": "1.4.0",
     "classnames": "2.3.2",
     "qs": "6.11.2",
@@ -23,7 +23,7 @@
     "cross-env": "7.0.3",
     "jest": "29.5.0",
     "typescript": "5.0.4",
-    "webpack": "5.83.1",
+    "webpack": "5.84.1",
     "webpack-dev-server": "4.15.0"
   },
   "license": "3-Clause BSD",

@@ -5,15 +5,18 @@ import { RuleConfig } from 'app-shared/types/RuleConfig';
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 const newRuleConfig: RuleConfig = {
-  ruleConnection: {
-    ruleConnection1: {
-      selectedFunction: 'selectedFunction1',
-      inputParams: {},
-      outParams: {}
-    }
-  },
-  conditionalRendering: {}
+  data: {
+    ruleConnection: {
+      ruleConnection1: {
+        selectedFunction: 'selectedFunction1',
+        inputParams: {},
+        outParams: {}
+      }
+    },
+    conditionalRendering: {}
+  }
 };
 
 describe('useRuleConfigMutation', () => {
@@ -23,8 +26,8 @@ describe('useRuleConfigMutation', () => {
     const { result } = await render();
     await result.current.mutateAsync(newRuleConfig);
     expect(queriesMock.saveRuleConfig).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveRuleConfig).toHaveBeenCalledWith(org, app, newRuleConfig);
+    expect(queriesMock.saveRuleConfig).toHaveBeenCalledWith(org, app, selectedLayoutSet, newRuleConfig);
   });
 });
 
-const render = async () => renderHookWithMockStore()(() => useRuleConfigMutation(org, app)).renderHookResult;
+const render = async () => renderHookWithMockStore()(() => useRuleConfigMutation(org, app, selectedLayoutSet)).renderHookResult;

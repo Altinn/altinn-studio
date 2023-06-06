@@ -1,6 +1,10 @@
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export interface RuleConfig {
+  data: RuleConfigData;
+}
+
+export interface RuleConfigData {
   ruleConnection: RuleConnections;
   conditionalRendering: ConditionalRenderingConnections;
 }

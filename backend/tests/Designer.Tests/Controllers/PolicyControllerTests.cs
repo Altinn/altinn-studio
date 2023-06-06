@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using PolicyAdmin.Models;
 using Xunit;
 
 namespace Designer.Tests.Controllers
@@ -38,17 +39,19 @@ namespace Designer.Tests.Controllers
             ResourcePolicy resourcePolicy = CreateTestPolicy("ttd", targetRepository);
 
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+            string responseBody;
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData))
+            {
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
 
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                responseBody = await response.Content.ReadAsStringAsync();
+            }
 
             try
             {
-                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+                Assert.NotEmpty(responseBody);
             }
             finally
             {
@@ -64,18 +67,19 @@ namespace Designer.Tests.Controllers
 
             ResourcePolicy resourcePolicy = CreateTestPolicy("ttd", targetRepository, null);
 
+            string responseBody;
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/ttdres1";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
-
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData))
+            {
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                responseBody = await response.Content.ReadAsStringAsync();
+            }
 
             try
             {
-                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+                Assert.NotEmpty(responseBody);
             }
             finally
             {
@@ -90,19 +94,20 @@ namespace Designer.Tests.Controllers
             await TestDataHelper.CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
 
             ResourcePolicy resourcePolicy = CreateTestPolicy("ttd", targetRepository, "ttdres2");
-
+            string responseBody;
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/ttdres2";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
 
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData))
+            {
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                responseBody = await response.Content.ReadAsStringAsync();
+            }
 
             try
             {
-                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+                Assert.NotEmpty(responseBody);
             }
             finally
             {
@@ -116,17 +121,19 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "apps-test", "testUser", targetRepository);
-
+            ResourcePolicy resourcePolicy;
 
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
-            ResourcePolicy resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
+            {
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
+
             try
             {
-                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
                 Assert.NotNull(resourcePolicy.Rules);
                 Assert.Equal(6, resourcePolicy.Rules.Count);
             }
@@ -144,16 +151,74 @@ namespace Designer.Tests.Controllers
 
 
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/ttdres1";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
-            ResourcePolicy resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            ResourcePolicy resourcePolicy;
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
+            {
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
+
             try
             {
-                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
                 Assert.NotNull(resourcePolicy.Rules);
                 Assert.Single(resourcePolicy.Rules);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
+        [Fact]
+        public async Task Get_ActionOptions()
+        {
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/actionoptions";
+            List<ActionOption> actionOptions;
+
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
+            {
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                actionOptions = System.Text.Json.JsonSerializer.Deserialize<List<ActionOption>>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
+
+            try
+            {
+                Assert.NotNull(actionOptions);
+
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
+        [Fact]
+        public async Task Get_SubjectOptions()
+        {
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/subjectoptions";
+            List<SubjectOption> subjectionOptions;
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
+            {
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                subjectionOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
+
+            try
+            {
+                Assert.NotNull(subjectionOptions);
             }
             finally
             {
@@ -170,11 +235,16 @@ namespace Designer.Tests.Controllers
 
 
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/validate";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
-            ValidationProblemDetails validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            ValidationProblemDetails validationDetails;
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
+            {
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
+
+
             try
             {
                 Assert.Equal(StatusCodes.Status200OK, (int)validationDetails.Status);
@@ -193,11 +263,15 @@ namespace Designer.Tests.Controllers
 
 
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/validate/ttdres1";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
-            ValidationProblemDetails validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            ValidationProblemDetails validationDetails;
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
+            {
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
+
             try
             {
                 Assert.Equal(StatusCodes.Status200OK, (int)validationDetails.Status);
@@ -216,31 +290,38 @@ namespace Designer.Tests.Controllers
             await TestDataHelper.CopyRepositoryForTest("ttd", "apps-test", "testUser", targetRepository);
 
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
-            ResourcePolicy resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            ResourcePolicy resourcePolicy;
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
+            {
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
 
             // Add empty illegal rule
             resourcePolicy.Rules.Add(new PolicyRule() { RuleId = "xys" });
 
             string dataPathWithData2 = $"{_versionPrefix}/ttd/{targetRepository}/policy";
-            HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Put, dataPathWithData2);
+            using (HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Put, dataPathWithData2))
+            {
 
-            httpRequestMessage2.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
+                httpRequestMessage2.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
 
-            HttpResponseMessage response2 = await HttpClient.Value.SendAsync(httpRequestMessage2);
-            response2.EnsureSuccessStatusCode();
-            string responseBody2 = await response2.Content.ReadAsStringAsync();
+                HttpResponseMessage response2 = await HttpClient.Value.SendAsync(httpRequestMessage2);
+                response2.EnsureSuccessStatusCode();
+            }
 
 
             string dataPathWithData3 = $"{_versionPrefix}/ttd/{targetRepository}/policy/validate";
-            HttpRequestMessage httpRequestMessage3 = new HttpRequestMessage(HttpMethod.Get, dataPathWithData3);
-            HttpResponseMessage response3 = await HttpClient.Value.SendAsync(httpRequestMessage3);
-            response.EnsureSuccessStatusCode();
-            string responseBody3 = await response3.Content.ReadAsStringAsync();
-            ValidationProblemDetails validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody3, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            ValidationProblemDetails validationDetails;
+            using (HttpRequestMessage httpRequestMessage3 = new HttpRequestMessage(HttpMethod.Get, dataPathWithData3))
+            {
+                HttpResponseMessage response3 = await HttpClient.Value.SendAsync(httpRequestMessage3);
+                string responseBody3 = await response3.Content.ReadAsStringAsync();
+                validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody3, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
+
             try
             {
                 Assert.Equal(StatusCodes.Status400BadRequest, (int)validationDetails.Status);
@@ -261,31 +342,36 @@ namespace Designer.Tests.Controllers
             await TestDataHelper.CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
 
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/ttdres1";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
-            ResourcePolicy resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            ResourcePolicy resourcePolicy;
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
+            {
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
 
             // Add empty illegal rule
             resourcePolicy.Rules.Add(new PolicyRule() { RuleId = "xys" });
 
             string dataPathWithData2 = $"{_versionPrefix}/ttd/{targetRepository}/policy/ttdres1";
-            HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Put, dataPathWithData2);
-
-            httpRequestMessage2.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response2 = await HttpClient.Value.SendAsync(httpRequestMessage2);
-            response2.EnsureSuccessStatusCode();
-            string responseBody2 = await response2.Content.ReadAsStringAsync();
+            using (HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Put, dataPathWithData2))
+            {
+                httpRequestMessage2.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
+                HttpResponseMessage response2 = await HttpClient.Value.SendAsync(httpRequestMessage2);
+                response2.EnsureSuccessStatusCode();
+            }
 
 
             string dataPathWithData3 = $"{_versionPrefix}/ttd/{targetRepository}/policy/validate/ttdres1";
-            HttpRequestMessage httpRequestMessage3 = new HttpRequestMessage(HttpMethod.Get, dataPathWithData3);
-            HttpResponseMessage response3 = await HttpClient.Value.SendAsync(httpRequestMessage3);
-            response.EnsureSuccessStatusCode();
-            string responseBody3 = await response3.Content.ReadAsStringAsync();
-            ValidationProblemDetails validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody3, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            ValidationProblemDetails validationDetails;
+            using (HttpRequestMessage httpRequestMessage3 = new HttpRequestMessage(HttpMethod.Get, dataPathWithData3))
+            {
+                HttpResponseMessage response3 = await HttpClient.Value.SendAsync(httpRequestMessage3);
+                string responseBody3 = await response3.Content.ReadAsStringAsync();
+                validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody3, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            }
+
             try
             {
                 Assert.Equal(StatusCodes.Status400BadRequest, (int)validationDetails.Status);

@@ -8,6 +8,7 @@ import { baseContainerIdMock } from '../../testing/layoutMock';
 const org = 'org';
 const app = 'app';
 const layoutName = 'layoutName';
+const selectedLayoutSet = 'test-layout-set';
 
 describe('useFormLayoutMutation', () => {
   it('Calls saveFormLayout with correct arguments and payload', async () => {
@@ -41,6 +42,7 @@ describe('useFormLayoutMutation', () => {
       org,
       app,
       layoutName,
+      selectedLayoutSet,
       expect.objectContaining({
         data: {
           layout: [
@@ -62,7 +64,7 @@ describe('useFormLayoutMutation', () => {
 });
 
 const renderAndMutate = (layout: IInternalLayout) => renderHookWithMockStore()
-  (() => useFormLayoutMutation(org, app, layoutName))
+  (() => useFormLayoutMutation(org, app, layoutName, selectedLayoutSet))
     .renderHookResult
     .result
     .current

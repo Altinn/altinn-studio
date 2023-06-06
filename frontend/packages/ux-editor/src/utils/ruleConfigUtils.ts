@@ -15,7 +15,7 @@ import {
 const setRuleConnections = (
   ruleConfig: RuleConfig,
   ruleConnection: RuleConnections
-): RuleConfig => ({ ...ruleConfig, ruleConnection });
+): RuleConfig => ({ data: { ...ruleConfig.data, ruleConnection } });
 
 /**
  * Adds a rule connection to the rule config.
@@ -29,7 +29,7 @@ export const addRuleConnection = (
   id: string,
   connection: RuleConnection
 ) => {
-  const newConnections = { ...ruleConfig.ruleConnection, [id]: connection };
+  const newConnections = { ...ruleConfig.data.ruleConnection, [id]: connection };
   return setRuleConnections(ruleConfig, newConnections);
 }
 
@@ -40,7 +40,7 @@ export const addRuleConnection = (
  * @returns The new rule config.
  */
 export const deleteRuleConnection = (ruleConfig: RuleConfig, id: string) => {
-  const newConnections = { ...ruleConfig.ruleConnection };
+  const newConnections = { ...ruleConfig.data.ruleConnection };
   delete newConnections[id];
   return setRuleConnections(ruleConfig, newConnections);
 }
@@ -54,7 +54,7 @@ export const deleteRuleConnection = (ruleConfig: RuleConfig, id: string) => {
 const setConditionalRenderingConnections = (
   ruleConfig: RuleConfig,
   conditionalRendering: ConditionalRenderingConnections
-): RuleConfig => ({ ...ruleConfig, conditionalRendering });
+): RuleConfig => ({ data: { ...ruleConfig.data, conditionalRendering } });
 
 /**
  * Adds a conditional rendering connection to the rule config.
@@ -68,7 +68,7 @@ export const addConditionalRenderingConnection = (
   id: string,
   connection: ConditionalRenderingConnection
 ) => {
-  const newConnections = { ...ruleConfig.conditionalRendering, [id]: connection };
+  const newConnections = { ...ruleConfig.data.conditionalRendering, [id]: connection };
   return setConditionalRenderingConnections(ruleConfig, newConnections);
 };
 
@@ -82,7 +82,7 @@ export const deleteConditionalRenderingConnection = (
   ruleConfig: RuleConfig,
   id: string
 ): RuleConfig => {
-  const newConnections = { ...ruleConfig.conditionalRendering };
+  const newConnections = { ...ruleConfig.data.conditionalRendering };
   delete newConnections[id];
   return setConditionalRenderingConnections(ruleConfig, newConnections);
 };
@@ -102,7 +102,7 @@ export const switchSelectedFieldId = async (
   callback: (ruleConfig: RuleConfig) => Promise<RuleConfig>
 ): Promise<void> => {
   let updated: boolean = false;
-  const { conditionalRendering } = ruleConfig;
+  const { conditionalRendering } = ruleConfig.data;
   Object.values(conditionalRendering).forEach(({ selectedFields }) => {
     Object.entries(selectedFields).forEach(([key, value]) => {
       if (value === currentId) {

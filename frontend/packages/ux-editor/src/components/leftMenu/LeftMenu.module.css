@@ -34,3 +34,14 @@
 .receipt {
   border-bottom: 1px solid #c9c9c9;
 }
+
+.layoutSetList {
+  border-color: #E4E7EA;
+  border-style: solid;
+  border-width: 1px 0;
+  max-height: 10%;
+  overflow-y: auto;
+  resize: vertical;
+  margin-left: 20px;
+  padding: 10px;
+}

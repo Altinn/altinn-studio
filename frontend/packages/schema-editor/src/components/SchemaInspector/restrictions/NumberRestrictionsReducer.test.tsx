@@ -8,11 +8,11 @@ import {
   numberRestrictionsReducer,
   NumberRestrictionsReducerActionType,
 } from './NumberRestrictionsReducer';
-import { IntRestrictionKeys } from '@altinn/schema-model';
+import { IntRestrictionKey } from '@altinn/schema-model';
 
 const maxNumber = 5;
 const minNumber = 3;
-const defaultRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+const defaultRestrictions: { [restriction in IntRestrictionKey]?: number } = {
   maximum: maxNumber,
   minimum: minNumber,
   exclusiveMaximum: undefined,
@@ -48,7 +48,7 @@ describe('NumberRestrictionsReducer', () => {
       const value = 2;
       const state = dispatchAction({
         type: NumberRestrictionsReducerActionType.setRestriction,
-        restriction: IntRestrictionKeys.multipleOf,
+        restriction: IntRestrictionKey.multipleOf,
         changeCallback,
         value,
       });
@@ -84,7 +84,7 @@ describe('NumberRestrictionsReducer', () => {
     });
 
     it('Updates state correctly on change from exclusive to inclusive', () => {
-      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+      const initialRestrictions: { [restriction in IntRestrictionKey]?: number } = {
         ...defaultRestrictions,
         minimum: undefined,
         exclusiveMinimum: minNumber,
@@ -133,7 +133,7 @@ describe('NumberRestrictionsReducer', () => {
     });
 
     it('Updates state correctly on change from exclusive to inclusive', () => {
-      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+      const initialRestrictions: { [restriction in IntRestrictionKey]?: number } = {
         ...defaultRestrictions,
         maximum: undefined,
         exclusiveMaximum: maxNumber,
@@ -164,7 +164,7 @@ describe('NumberRestrictionsReducer', () => {
     const type = NumberRestrictionsReducerActionType.setMin;
 
     it('Updates state correctly when inclusive', () => {
-      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+      const initialRestrictions: { [restriction in IntRestrictionKey]?: number } = {
         ...defaultRestrictions,
         minimum: minNumber,
         exclusiveMinimum: undefined,
@@ -191,7 +191,7 @@ describe('NumberRestrictionsReducer', () => {
     });
 
     it('Updates state correctly when exclusive', () => {
-      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+      const initialRestrictions: { [restriction in IntRestrictionKey]?: number } = {
         ...defaultRestrictions,
         minimum: undefined,
         exclusiveMinimum: minNumber,
@@ -222,7 +222,7 @@ describe('NumberRestrictionsReducer', () => {
     const type = NumberRestrictionsReducerActionType.setMax;
 
     it('Updates state correctly when inclusive', () => {
-      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+      const initialRestrictions: { [restriction in IntRestrictionKey]?: number } = {
         ...defaultRestrictions,
         maximum: maxNumber,
         exclusiveMaximum: undefined,
@@ -249,7 +249,7 @@ describe('NumberRestrictionsReducer', () => {
     });
 
     it('Updates state correctly when exclusive', () => {
-      const initialRestrictions: { [restriction in IntRestrictionKeys]?: number } = {
+      const initialRestrictions: { [restriction in IntRestrictionKey]?: number } = {
         ...defaultRestrictions,
         maximum: undefined,
         exclusiveMaximum: maxNumber,

@@ -1,5 +1,5 @@
 import { buildUiSchema } from '../build-ui-schema';
-import { FieldType, Keywords, ObjectKind } from '../types';
+import { FieldType, Keyword, ObjectKind } from '../../types';
 import { buildJsonSchema } from '../build-json-schema';
 import {
   getGeneralJsonSchemaForTest,
@@ -58,6 +58,6 @@ test('that we can insert nodes into the node array', () => {
 test('that insertSchemaNode throws error on existing pointer', () => {
   const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
   expect(() =>
-    insertSchemaNode(uiSchemaNodes, createNodeBase(Keywords.Properties, 'hello'))
+    insertSchemaNode(uiSchemaNodes, createNodeBase(Keyword.Properties, 'hello'))
   ).toThrowError();
 });

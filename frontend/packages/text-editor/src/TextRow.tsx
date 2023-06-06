@@ -102,7 +102,7 @@ export const TextRow = ({
                 onBlur={handleTextIdBlur}
                 onChange={handleTextIdChange}
               />
-              {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
+              {keyError ? <ErrorMessage role='alertdialog'>{keyError}</ErrorMessage> : null}
             </div>
           ) : (
             <div role='text' aria-readonly className={classes.textId}>

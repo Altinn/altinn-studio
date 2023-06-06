@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrayRestrictions } from './ArrayRestrictions';
-import { ArrRestrictionKeys } from '@altinn/schema-model';
+import { ArrRestrictionKey } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
@@ -30,7 +30,7 @@ describe('ArrayRestrictions', () => {
 
   test('ArrayRestrictions should render correctly', async () => {
     render();
-    Object.values(ArrRestrictionKeys).forEach((key) => {
+    Object.values(ArrRestrictionKey).forEach((key) => {
       expect(screen.getByLabelText(textMock('schema_editor.' + key))).toBeDefined();
     });
   });
@@ -42,10 +42,10 @@ describe('ArrayRestrictions', () => {
       },
     };
     render(props);
-    const minItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKeys.minItems));
+    const minItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.minItems));
     userEvent.type(minItems, 'test 2');
     await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKeys.minItems, '12')
+      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKey.minItems, '12')
     );
   });
 
@@ -56,10 +56,10 @@ describe('ArrayRestrictions', () => {
       },
     };
     render(props);
-    const maxItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKeys.maxItems));
+    const maxItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.maxItems));
     userEvent.type(maxItems, 'test 2');
     await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKeys.maxItems, '12')
+      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKey.maxItems, '12')
     );
   });
 
@@ -70,10 +70,10 @@ describe('ArrayRestrictions', () => {
       },
     };
     render(props);
-    const uniqueItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKeys.uniqueItems));
+    const uniqueItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.uniqueItems));
     userEvent.click(uniqueItems);
     await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKeys.uniqueItems, true)
+      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(pathMock, ArrRestrictionKey.uniqueItems, true)
     );
   });
 });

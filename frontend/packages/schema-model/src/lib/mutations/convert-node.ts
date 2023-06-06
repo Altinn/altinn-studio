@@ -1,5 +1,5 @@
-import type { UiSchemaNodes } from '../types';
-import { Keywords, ObjectKind } from '../types';
+import type { UiSchemaNodes } from '../../types';
+import { Keyword, ObjectKind } from '../../types';
 import { createNodeBase, getUniqueNodePath, makePointer, pointerIsDefinition } from '../utils';
 import {
   getNodeByPointer,
@@ -26,7 +26,7 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
 
   const promotedNodePointer = getUniqueNodePath(
     uiSchemaNodes,
-    makePointer(Keywords.Definitions, pointer.split('/').pop())
+    makePointer(Keyword.Definitions, pointer.split('/').pop())
   );
 
   const updatedUiSchemaNodes = renameNodePointer(uiSchemaNodes, pointer, promotedNodePointer);
