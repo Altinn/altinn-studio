@@ -50,6 +50,7 @@ export function TextAreaComponent({
         overrideDisplay?.renderedInTable === true ? getTextResourceAsString(textResourceBindings?.title) : undefined
       }
       autoComplete={autocomplete}
+      style={{ height: '150px' }}
     />
   );
 }
