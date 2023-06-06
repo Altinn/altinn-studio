@@ -90,10 +90,15 @@ export const externalLayoutsMock: FormLayoutsResponse = {
 };
 
 export const layoutSetsMock: LayoutSets = {
-  sets: [{
+  sets: [
+    {
     id: 'test-layout-set',
     dataTypes: 'datamodel',
     tasks: ['task_1']
-
-  }]
+    },
+    {
+      id: 'test-layout-set-2',
+      dataTypes: 'datamodel-2',
+      tasks: ['task_2']
+    }]
 };
