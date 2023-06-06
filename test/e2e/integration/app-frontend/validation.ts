@@ -266,4 +266,46 @@ describe('Validation', () => {
       .should('contain.text', texts.next);
     cy.get(appFrontend.errorReport).find('li:contains("Du må fylle ut hvem gjelder saken?")').should('have.length', 1);
   });
+
+  it('Clicking the error report should focus the correct field', () => {
+    cy.interceptLayout('group', (component) => {
+      if (component.id === 'comments') {
+        component.required = true;
+      }
+    });
+    cy.goto('group');
+
+    cy.get(appFrontend.group.prefill.liten).dsCheck();
+    cy.get(appFrontend.group.prefill.stor).dsCheck();
+
+    cy.get(appFrontend.nextButton).click();
+
+    // Check that showGroupToContinue is focused
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.errorReport).findByText(texts.requiredOpenRepGroup).click();
+    cy.get(appFrontend.group.showGroupToContinue).find('input').should('be.focused');
+
+    // Check that nested group with multipage gets focus
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).comments).type('comment');
+    cy.get(appFrontend.group.saveSubGroup).click();
+    cy.get(appFrontend.group.addNewItemSubGroup).click();
+    cy.get(appFrontend.group.saveSubGroup).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.get(appFrontend.group.row(2).editBtn).click();
+    cy.get(appFrontend.errorReport).findByText(texts.requiredComment).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(1).comments).should('be.focused');
+
+    // Check that switching page works
+    cy.get(appFrontend.group.row(0).nestedGroup.row(1).comments).type('comment2');
+    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.gotoNavPage('summary');
+    cy.get(appFrontend.sendinButton).click();
+    cy.get(appFrontend.errorReport).findByText(texts.requiredSendersName).click();
+    cy.get(appFrontend.group.sendersName).should('be.focused');
+  });
 });

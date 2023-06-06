@@ -224,6 +224,7 @@ export class AppFrontend {
       deleteBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) [data-testid=delete-button]`,
       nestedGroup: {
         row: (subIdx: number) => ({
+          comments: `#comments-${idx}-${subIdx}`,
           uploadTagMulti: makeUploaderSelectors('subUploader', `${idx}-${subIdx}`, 2, 'tagged'),
           nestedDynamics: `#nestedDynamics-${idx}-${subIdx} input[type=checkbox]`,
           nestedOptions: [

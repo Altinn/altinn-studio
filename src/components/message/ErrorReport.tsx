@@ -75,9 +75,9 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
         if (childNode?.rowIndex !== undefined) {
           // Set editIndex to rowIndex
           dispatch(
-            FormLayoutActions.repGroupSetMultiPage({
-              groupId: parent.id,
-              page: childNode.rowIndex,
+            FormLayoutActions.updateRepeatingGroupsEditIndex({
+              group: parent.id,
+              index: childNode.rowIndex,
             }),
           );
         }
