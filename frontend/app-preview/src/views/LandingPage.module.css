@@ -1,7 +1,49 @@
-/* @import url('https://fonts.googleapis.com/css?family=Inter');
+.header {
+  display: flex;
+  align-items: center;
+  height: 90px;
+}
 
-.landingPage {
-  background-color: #0a572e;
+.subHeader {
+  color: white;
+  border-bottom: 1px solid gray;
+  background-color: #0c6536;
+  display: flex;
+  align-items: center;
+  height: 70px;
+  position: relative;
+  height: 50px;
+}
+
+.leftSubHeaderButtons {
+  flex-direction: row;
+  text-align: right;
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  flex: 3;
+  --component-button-quiet-primary-color-background-default: none;
+  --component-button-quiet-primary-color-border-default: none;
+  --component-button-quiet-primary-color-border-hover: #004e95;
+  --component-button-quiet-primary-color-text-default: #ffffff;
+}
+
+.viewSizeButtons {
+  margin: 4px 4px 4px 15px;
+  flex: 1;
+  --component-toggle_button-color-border-inactive: white;
+  --component-toggle_button-color-border-active: white;
+  --component-toggle_button-color-background-active: white;
+  --component-toggle_button-color-background-inactive: transparent;
+  --component-toggle_button-color-text-active: black;
+  --component-toggle_button-color-text-inactive: white;
+}
+
+/* Overriding this style because it is hardcoded in the design system */
+.viewSizeButtons button[aria-pressed='false']:hover {
+  background-color: #dbf5d5 !important;
+  color: black !important;
 }
 
 .iframeDesktop {
@@ -22,10 +64,9 @@
   border: none;
   margin: 0;
 }
- */
 
 /* Mobile View Overlay to cover devtools in the middle of the screen */
-/* .iframeMobileViewOverlay {
+.iframeMobileViewOverlay {
   position: absolute;
   bottom: 0;
   height: 100px;
@@ -33,65 +74,3 @@
   background-color: #efefef;
   z-index: 1;
 }
-
-.header {
-  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: white;
-  background-color: #118849;
-  display: flex;
-  align-items: center;
-  height: 90px;
-  padding: 0 2rem;
-}
-
-.betaTag {
-  border: 2px solid white;
-  border-radius: 4px;
-  width: fit-content;
-  height: fit-content;
-  margin-left: 30px;
-  padding: 0 5px;
-  font-weight: bold;
-}
-
-.viewSizeButtons {
-  --component-toggle_button-color-border-inactive: white;
-  --component-toggle_button-color-border-active: white;
-  --component-toggle_button-color-background-active: white;
-  --component-toggle_button-color-background-inactive: transparent;
-  --component-toggle_button-color-text-active: black;
-  --component-toggle_button-color-text-inactive: white;
-}
- */
-/* Overriding this style because it is hardcoded in the design system */
-/* .viewSizeButtons button[aria-pressed='false']:hover {
-  background-color: #dbf5d5 !important;
-  color: black !important;
-}
-
-.subHeader {
-  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: white;
-  border-bottom: 1px solid gray;
-  background-color: #0c6536;
-  display: flex;
-  align-items: center;
-  height: 70px;
-  padding: 0 2rem;
-}
-
-.leftSubHeaderButtons {
-  flex-direction: row;
-  text-align: right;
-  align-items: center;
-  display: flex;
-  gap: 16px;
-  justify-content: flex-end; 
-}
-
-.shareButton {
-  align-items: center;
-  display: flex;
-  justify-content: flex-end;
-}
- */

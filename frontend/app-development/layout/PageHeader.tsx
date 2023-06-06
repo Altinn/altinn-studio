@@ -23,25 +23,17 @@ interface PageHeaderProps {
 }
 
 export const subMenuContent = () => {
-  if (window.location.pathname.includes('preview')) {
-    return (
-      <ul>
-        <li>Preview</li>
-        <li>Edit</li>
-      </ul>
-    );
-  } else
-    return (
-      <>
-        <div className={classes.leftContent} data-testid='branching-icon'>
-          {<BranchingIcon className={classes.branchIcon} />}
-        </div>
-        <div className={classes.rightContent}>
-          {<VersionControlHeader data-testid='version-control-header' />}
-          {<ThreeDotsMenu data-testid='three-dots-menu' />}
-        </div>
-      </>
-    );
+  return (
+    <>
+      <div className={classes.leftContent} data-testid='branching-icon'>
+        {<BranchingIcon className={classes.branchIcon} />}
+      </div>
+      <div className={classes.rightContent}>
+        {<VersionControlHeader data-testid='version-control-header' />}
+        {<ThreeDotsMenu data-testid='three-dots-menu' />}
+      </div>
+    </>
+  );
 };
 
 export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
