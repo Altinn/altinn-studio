@@ -5,8 +5,6 @@ import { PageSpinner } from 'app-shared/components';
 
 import { PageLayout } from 'resourceadm/pages/PageLayout';
 import { ResourceDashboard } from '../pages/ResourceDashboard';
-import { RessurstilgangSide1 } from '../pages/RessurstilgangSide1';
-import { OlsenbandenPage } from '../pages/OlsenbandenPage';
 import { TestPage } from '../pages/TestPage';
 
 import { Route, Routes } from 'react-router-dom';
