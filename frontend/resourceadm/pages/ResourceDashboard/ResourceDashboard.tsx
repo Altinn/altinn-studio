@@ -99,8 +99,7 @@ export const ResourceDashboard = ({
         <h3> Dette er RessursDashboard side pakket inn i PageLayout banner </h3>
         <h5> Vi bygger gradvis fra Dashboard mal. </h5>
         <h5> Vi ønsker muligens listefunksjonalitet her, som i RepoList og OrgRepoList, </h5>
-        <h6>Henter useParams() = {`selectedContext: ${selectedContext}: testet`} </h6>
-       
+        
         {/*
             Dummy button that takes the user to the resource page where the user can navigate
             between the 3 pages "about the resource", "security", and "policy".
