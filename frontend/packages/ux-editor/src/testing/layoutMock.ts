@@ -94,11 +94,11 @@ export const layoutSetsMock: LayoutSets = {
     {
     id: 'test-layout-set',
     dataTypes: 'datamodel',
-    tasks: ['task_1']
+    tasks: ['Task_1']
     },
     {
       id: 'test-layout-set-2',
       dataTypes: 'datamodel-2',
-      tasks: ['task_2']
+      tasks: ['Task_2']
     }]
 };

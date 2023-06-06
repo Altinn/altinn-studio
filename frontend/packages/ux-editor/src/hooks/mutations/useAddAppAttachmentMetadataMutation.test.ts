@@ -7,6 +7,7 @@ const org = 'org';
 const app = 'app';
 const metadata: ApplicationAttachmentMetadata = {
   id: 'test',
+  taskId: 'Task_1',
   maxCount: 3,
   minCount: 1,
   maxSize: 16,

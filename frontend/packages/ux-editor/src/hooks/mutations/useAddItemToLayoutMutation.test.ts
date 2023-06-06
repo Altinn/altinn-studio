@@ -3,9 +3,10 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { AddFormItemMutationArgs, useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { useLayoutSetsQuery } from "../queries/useLayoutSetsQuery";
-import { ApplicationAttachmentMetadata } from "app-shared/types/ApplicationAttachmentMetadata";
-import { IAppState } from "../../types/global";
+import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
+import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import { IAppState } from '../../types/global';
+import { layoutSetsMock } from "../../testing/layoutMock";
 
 // Test data:
 const org = 'org';
@@ -33,16 +34,20 @@ const appStateMockCopy = (layoutSetName: string): Partial<IAppState> => {
 }
 
 const applicationAttachmentMetaDataMock: ApplicationAttachmentMetadata = {
-    id: 'some-id',
+    id,
     taskId: 'some-task-id',
     maxCount: 1,
     minCount: 1,
     maxSize: 25,
-    fileType: 'PNG',
+    fileType: undefined,
 }
 
 describe('useAddItemToLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.resetModules(); // Reset the module cache after each test suite
+  });
 
   it('Returns ID of new item', async () => {
     const { result } = await renderAddItemToLayoutMutation(selectedLayoutSet);
@@ -74,23 +79,24 @@ describe('useAddItemToLayoutMutation', () => {
 
   it('Adds correct taskId to attachment metadata when component type is fileUpload and selectedLayoutSet is test-layout-set-2', async () => {
     const { result } = await renderAddItemToLayoutMutation('test-layout-set-2');
-    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUploadWithTag });
+    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith({ ...applicationAttachmentMetaDataMock, taskId: 'task_2' });
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, { ...applicationAttachmentMetaDataMock, taskId: 'Task_2' });
   });
 
   it('Adds Task_1 to attachment metadata when component type is fileUpload and selectedLayoutSet is undefined', async () => {
     const { result } = await renderAddItemToLayoutMutation(undefined);
-    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUploadWithTag });
+    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith({ ...applicationAttachmentMetaDataMock, taskId: 'task_1' });
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, { ...applicationAttachmentMetaDataMock, taskId: 'Task_1' });
   });
 });
 
 const renderAddItemToLayoutMutation = async (layoutSetName: string) => {
+  const newOrg = layoutSetName ? org : 'newOrg';
   const { result: formLayoutsResult } = renderHookWithMockStore(appStateMockCopy(layoutSetName))(() => useFormLayoutsQuery(org, app, layoutSetName)).renderHookResult;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  const { result: layoutSetsResult } = renderHookWithMockStore(appStateMockCopy(layoutSetName))(() => useLayoutSetsQuery(org, app)).renderHookResult;
-  await waitFor(() => expect(layoutSetsResult.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useAddItemToLayoutMutation(org, app, layoutSetName)).renderHookResult;
+  const { result: layoutSetsResult } = renderHookWithMockStore(appStateMockCopy(layoutSetName), { getLayoutSets: () => Promise.resolve(layoutSetName ? layoutSetsMock : undefined) })(() => useLayoutSetsQuery(newOrg, app)).renderHookResult;
+  if (layoutSetName) await waitFor (() => expect(layoutSetsResult.current.isLoading).toBe(false));
+  return renderHookWithMockStore(appStateMockCopy(layoutSetName))(() => useAddItemToLayoutMutation(org, app, layoutSetName)).renderHookResult;
 }
