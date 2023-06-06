@@ -1,0 +1,1 @@
+export { AboutResource } from './AboutResource';

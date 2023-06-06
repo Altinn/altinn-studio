@@ -4,6 +4,8 @@ import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditor } from '../PolicyEditor';
+import { AboutResource } from '../AboutResource';
+
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
@@ -14,7 +16,9 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 export const ResourcePage = () => {
   const navigate = useNavigate();
 
-  const { pageType, resourceId, org, repo } = useParams();
+  const { pageType, resourceId, repo, selectedContext } = useParams();
+  const org:string = selectedContext; // FIXME: org replaced by selectedContext
+  // due to PageLayout banner integration
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
     pageType as NavigationBarPageType
@@ -43,7 +47,7 @@ export const ResourcePage = () => {
         goBack={goBack}
       />
       <div className={classes.resourcePageWrapper}>
-        {currentPage === 'about' && <h1>Om ressursen - TODO sett inn komponent</h1>}
+        {currentPage === 'about' && <AboutResource />}
         {currentPage === 'security' && <h1>Sikkerhet - TODO sett inn komponent</h1>}
         {currentPage === 'policy' && <PolicyEditor />}
       </div>
