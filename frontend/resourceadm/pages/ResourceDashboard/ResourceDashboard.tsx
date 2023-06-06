@@ -81,7 +81,7 @@ export const ResourceDashboard = ({
             onMouseLeave={handleNewLinkFocusOut}
             data-testid={'dashboard.new_app'}
           >
-            <span>Ny ressurs</span>
+            <span>Opprett ny ressurs</span>
             <i
               className={cn('fa', classes.plusIcon, {
                 'fa-circle-plus': isNewLinkFocused,
@@ -91,9 +91,10 @@ export const ResourceDashboard = ({
           </Link>
         </div>
 
-        <h3> Dette er RessursDashboard side pakket inn i TestPage </h3>
-        <h5> bygger gradvis fra Dashboard mal. PageLayout krasjet i oppdatering 16.05.23</h5>
+        <h3> Dette er RessursDashboard side pakket inn i PageLayout banner </h3>
+        <h5> Vi bygger gradvis fra Dashboard mal. </h5>
         <h5> Vi ønsker muligens listefunksjonalitet her, som i RepoList og OrgRepoList, </h5>
+        
         {/*
             Dummy button that takes the user to the resource page where the user can navigate
             between the 3 pages "about the resource", "security", and "policy".

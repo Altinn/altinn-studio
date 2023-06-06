@@ -4,6 +4,8 @@ import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
+import { AboutResource } from '../AboutResource';
+
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
@@ -44,9 +46,10 @@ export const ResourcePage = () => {
       />
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' && (
-          <div className={classes.resourcePage}>
+          /*<div className={classes.resourcePage}>
             <h2 className={classes.resourceH2}>Om ressursen - TODO sett inn komponent</h2>
-          </div>
+          </div>*/
+          <AboutResource />
         )}
         {currentPage === 'security' && (
           <div className={classes.resourcePage}>

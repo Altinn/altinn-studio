@@ -5,8 +5,6 @@ import { PageSpinner } from 'app-shared/components';
 
 import { PageLayout } from 'resourceadm/pages/PageLayout';
 import { ResourceDashboard } from '../pages/ResourceDashboard';
-import { RessurstilgangSide1 } from '../pages/RessurstilgangSide1';
-import { OlsenbandenPage } from '../pages/OlsenbandenPage';
 import { TestPage } from '../pages/TestPage';
 
 import { Route, Routes } from 'react-router-dom';
@@ -53,6 +51,7 @@ export const App = (): JSX.Element => {
     return <ErrorMessage title={error.title} message={error.message} />;
   }
 
+  // PageLayout banner uses organization, named as selectedContext
   const basePath = '/:selectedContext/:repo';
 
   if (componentIsReady) {
@@ -68,14 +67,10 @@ export const App = (): JSX.Element => {
 
           <Route element={<PageLayout />}>
             <Route
-              path='/skatt/repo1'
+              path='/:selectedContext/repo'
               element={<ResourceDashboard user={user} organizations={organizations} />}
             />
           </Route>
-
-          <Route path='/skatt/dummy1' element={<RessurstilgangSide1 />} />
-
-          <Route path='/olsenbanden' element={<OlsenbandenPage />} />
 
           <Route element={<PageLayout />}>
             <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
