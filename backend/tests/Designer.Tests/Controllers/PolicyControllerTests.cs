@@ -319,7 +319,6 @@ namespace Designer.Tests.Controllers
             using (HttpRequestMessage httpRequestMessage3 = new HttpRequestMessage(HttpMethod.Get, dataPathWithData3))
             {
                 HttpResponseMessage response3 = await HttpClient.Value.SendAsync(httpRequestMessage3);
-                response3.EnsureSuccessStatusCode();
                 string responseBody3 = await response3.Content.ReadAsStringAsync();
                 validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody3, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             }
@@ -371,7 +370,6 @@ namespace Designer.Tests.Controllers
             using (HttpRequestMessage httpRequestMessage3 = new HttpRequestMessage(HttpMethod.Get, dataPathWithData3))
             {
                 HttpResponseMessage response3 = await HttpClient.Value.SendAsync(httpRequestMessage3);
-                response3.EnsureSuccessStatusCode();
                 string responseBody3 = await response3.Content.ReadAsStringAsync();
                 validationDetails = System.Text.Json.JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody3, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             }

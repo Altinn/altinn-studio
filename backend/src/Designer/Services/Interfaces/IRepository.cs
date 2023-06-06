@@ -83,7 +83,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="resourceId">The resourceId if resource repository</param>
         /// <param name="xacmlPolicy">The xacml policyh</param>
         /// <returns></returns>
-        bool SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy);
+        Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy);
 
         /// <summary>
         /// Gets a specific polic for ann app or for a generic
