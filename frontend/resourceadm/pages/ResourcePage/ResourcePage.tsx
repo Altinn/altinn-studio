@@ -5,8 +5,6 @@ import { NavigationBarPageType } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import { PolicyEditor } from '../PolicyEditor';
-import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
  * Displays the 3 pages to manage resources and a left navigation bar.
@@ -16,7 +14,7 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 export const ResourcePage = () => {
   const navigate = useNavigate();
 
-  const { pageType, resourceId, org, repo, org, repo } = useParams();
+  const { pageType, resourceId, org, repo } = useParams();
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
     pageType as NavigationBarPageType
@@ -36,11 +34,7 @@ export const ResourcePage = () => {
   /**
    * Takes the user back to where they came from
    */
-  /**
-   * Takes the user back to where they came from
-   */
   const goBack = () => {
-    navigate(getResourceDashboardURL(org, repo));
     navigate(getResourceDashboardURL(org, repo));
   };
 

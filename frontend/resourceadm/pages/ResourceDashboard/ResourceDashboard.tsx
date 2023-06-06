@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CenterContainer } from '../../components/CenterContainer';
 import { Footer } from '../../components/Footer';
 
@@ -16,7 +16,6 @@ import { User } from 'app-shared/types/User';
 import { Organization } from 'app-shared/types/Organization';
 import { resourceIdMock2 } from 'resourceadm/data-mocks/policies';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 type ResourceDashboardProps = {
   user: User;
@@ -30,12 +29,6 @@ export const ResourceDashboard = ({
   disableDebounce,
 }: ResourceDashboardProps) => {
   const navigate = useNavigate();
-
-  // Gets the org and repo of the current location
-  const location = useLocation();
-  const currentUrl = location.pathname;
-  const urlOrg = currentUrl.split('/')[1];
-  const urlRepo = currentUrl.split('/')[2];
 
   // Gets the org and repo of the current location
   const location = useLocation();
@@ -106,14 +99,11 @@ export const ResourceDashboard = ({
             between the 3 pages "about the resource", "security", and "policy".
 
             // TODO - replace resourceIdMock2 with the real ID of the resource
-
-            // TODO - replace resourceIdMock1 with the real ID of the resource
         */}
         <Button
           type='button'
           onClick={() => {
             navigate(getResourcePageURL(urlOrg, urlRepo, resourceIdMock2, 'about'));
-            navigate(getResourcePageURL(urlOrg, urlRepo, resourceIdMock1, 'about'));
           }}
         >
           Gå til mock ressurs 1
