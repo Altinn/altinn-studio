@@ -131,20 +131,15 @@ export const PolicyEditor = ({
    */
   const handleDeleteRule = (ruleId: string) => {
     const updatedRules = [...policyRules];
-    console.log('updated rules', updatedRules);
     const indexToRemove = updatedRules.findIndex((a) => a.ruleId === ruleId);
-    console.log('index to remove', indexToRemove);
-    const b = updatedRules.splice(indexToRemove, 1);
-    console.log('b', b);
-    console.log('updated again', updatedRules);
-
+    updatedRules.splice(indexToRemove, 1);
     setPolicyRules(updatedRules);
 
     // Reset
     setVerificationModalOpen(false);
     setRuleIdToDelete('0');
 
-    // handleSavePolicy(updatedRules);
+    handleSavePolicy(updatedRules);
   };
 
   /**
