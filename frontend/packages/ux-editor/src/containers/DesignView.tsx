@@ -5,12 +5,12 @@ import type { FormComponent as IFormComponent } from '../types/FormComponent';
 import type { ExistingDndItem, HandleDrop, ItemPosition, NewDndItem } from '../types/dndTypes';
 import { DraggableEditorItemType } from '../types/dndTypes';
 import { useFormLayoutsSelector } from '../hooks';
-import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
+import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
 import { FormComponent } from '../components/FormComponent';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { generateComponentId } from '../utils/generateId';
-import { addItemOfType, moveLayoutItem } from '../utils/formLayoutUtils';
+import { moveLayoutItem } from '../utils/formLayoutUtils';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { FormContext } from './FormContext';
 import { DroppableList } from '../components/dragAndDrop/DroppableList';
@@ -20,7 +20,7 @@ import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
+import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 
 export const DesignView = () => {
   const { org, app } = useParams();
@@ -28,6 +28,7 @@ export const DesignView = () => {
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const layoutName = useFormLayoutsSelector(selectedLayoutNameSelector);
   const { mutate: updateFormLayout } = useFormLayoutMutation(org, app, layoutName, selectedLayoutSet);
+  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
   const { formId, form, handleDiscard, handleEdit, handleContainerSave, handleComponentSave } = useContext(FormContext);
   const { t } = useTranslation();
 
@@ -39,7 +40,7 @@ export const DesignView = () => {
 
   const addItem = (item: NewDndItem, { parentId, index }: ItemPosition) => {
     const newId = generateComponentId(item.type, layouts);
-    updateFormLayout(addItemOfType(layout, item.type, newId, parentId, index));
+    addItemToLayout({ componentType: item.type, newId, parentId, index });
   };
   const moveItem = (item: ExistingDndItem, { parentId, index }: ItemPosition) =>
     updateFormLayout(moveLayoutItem(layout, item.id, parentId, index));

@@ -9,8 +9,8 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.27.7",
-    "@digdir/design-system-react": "0.11.3",
+    "@altinn/altinn-design-system": "0.27.8",
+    "@digdir/design-system-react": "0.13.0",
     "@mui/material": "5.13.2",
     "@reduxjs/toolkit": "1.9.5",
     "@tanstack/react-query": "4.29.11",

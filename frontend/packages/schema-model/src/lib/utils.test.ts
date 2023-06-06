@@ -6,7 +6,7 @@ import {
   makePointer,
   replaceLastPointerSegment,
 } from './utils';
-import { FieldType, Keywords } from './types';
+import { FieldType, Keyword } from '../types';
 import { expect } from '@jest/globals';
 import { buildUiSchema } from './build-ui-schema';
 import { getNodeByPointer } from './selectors';
@@ -36,14 +36,14 @@ test('that we can check if combination is nullable', () => {
 
 test('that we can getNameFromPointer', () => {
   const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
-  const uiSchemaNode = getNodeByPointer(uiSchemaNodes, makePointer(Keywords.Properties, 'hello'));
+  const uiSchemaNode = getNodeByPointer(uiSchemaNodes, makePointer(Keyword.Properties, 'hello'));
   expect(getNameFromPointer(uiSchemaNode)).toBe('hello');
 });
 
 test('that we can getUniqueNodePath', () => {
   const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
-  expect(getUniqueNodePath(uiSchemaNodes, makePointer(Keywords.Properties, 'hello'))).toBe(
-    makePointer(Keywords.Properties, 'hello0')
+  expect(getUniqueNodePath(uiSchemaNodes, makePointer(Keyword.Properties, 'hello'))).toBe(
+    makePointer(Keyword.Properties, 'hello0')
   );
 });
 

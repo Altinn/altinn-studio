@@ -73,8 +73,11 @@
     <Watch Remove="Models\Keyword.cs" />
     <Watch Remove="Models\ResourceReference.cs" />
     <Watch Remove="Models\ServiceResource.cs" />
+    <Watch Remove="RepositoryClient\Client\PolicyOptionsClient.cs" />
+    <Watch Remove="Services\Implementation\PolicyOptionsService.cs" />
     <Watch Remove="Services\Implementation\ResourceService.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
+    <Watch Remove="Services\Interfaces\IPolicyOptions.cs" />
     <Watch Remove="Services\Interfaces\IResourceService.cs" />
   </ItemGroup>
 

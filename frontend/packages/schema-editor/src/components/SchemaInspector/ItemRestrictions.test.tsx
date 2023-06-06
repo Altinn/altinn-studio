@@ -8,7 +8,7 @@ import {
   CombinationKind,
   createNodeBase,
   FieldType,
-  Keywords,
+  Keyword,
   ObjectKind,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
@@ -18,7 +18,7 @@ const legendText = 'Liste med gyldige verdier';
 const texts = {
   'schema_editor.enum_legend': legendText,
 };
-const mockSelectedNode = createNodeBase(Keywords.Properties, 'test');
+const mockSelectedNode = createNodeBase(Keyword.Properties, 'test');
 const defaultProps: ItemRestrictionsProps = { ...mockSelectedNode };
 
 // Mocks:

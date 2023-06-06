@@ -70,7 +70,7 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   const { mutate } = useUpsertTextResourcesMutation(org, app);
 
   const updateTextResource = (text: string) =>
-    mutate({ language, textResources: [{ id: textResourceId, value: text }] });
+    mutate({ language, textResources: [{ id: textResourceId, value: text, variables: textResource.variables }] });
 
   const [value, setValue] = useState<string>(textResource?.value || '');
 

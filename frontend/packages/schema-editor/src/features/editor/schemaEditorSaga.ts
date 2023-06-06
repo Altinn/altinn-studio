@@ -2,10 +2,10 @@ import type { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { put } from 'app-shared/utils/networking';
 import { SchemaEditorActions } from './schemaEditorSlice';
-import type { ISchemaState } from '../../types';
+import type { SchemaState } from '../../types';
 import { buildJsonSchema } from '@altinn/schema-model';
 
-export const autoSavePropsSelector = (state: ISchemaState) => {
+export const autoSavePropsSelector = (state: SchemaState) => {
   return { uiSchema: state.uiSchema, saveUrl: state.saveSchemaUrl };
 };
 

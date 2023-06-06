@@ -334,6 +334,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Action for getting the json schema for the datamodel for the default data task test-datatask-id
         /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Json schema for datamodel for the current task</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
@@ -358,12 +360,43 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Action for updating the json schema for the datamodel for the current data task in the process
         /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="partyId"></param>
+        /// <param name="instanceGuid"></param>
         /// <returns>Json schema for datamodel for the current data task in the process</returns>
         [HttpPut]
         [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
         public async Task<ActionResult> UpdateFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid)
         {
             return await GetFormData(org, app, partyId, instanceGuid);
+        }
+
+        /// <summary>
+        /// Action for mocking upload of an attachment to an attachment component
+        /// </summary>
+        /// <param name="dataType">Id of the attachment component in application metadata</param>
+        /// <returns>A 201 Created response with a mocked data element</returns>
+        [HttpPost]
+        [Route("instances/{partyId}/{instanceGuid}/data")]
+        public ActionResult PostAttachment([FromQuery] string dataType)
+        {
+            // This guid will be the unique id of the uploaded attachment
+            Guid guid = Guid.NewGuid();
+            DataElement dataElement = new() { Id = guid.ToString() };
+            return Created("link-to-app-placeholder", dataElement);
+        }
+
+        /// <summary>
+        /// Action for mocking deleting an uploaded attachment to an attachment component
+        /// </summary>
+        /// <param name="dataTypeId">Id of the attachment in application metadata</param>
+        /// <returns>Ok</returns>
+        [HttpDelete]
+        [Route("instances/{partyId}/{instanceGuid}/data/{dataTypeId}")]
+        public ActionResult DeleteAttachment([FromRoute] string dataTypeId)
+        {
+            return Ok();
         }
 
         /// <summary>

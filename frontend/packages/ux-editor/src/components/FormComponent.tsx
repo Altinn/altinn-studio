@@ -10,7 +10,7 @@ import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './dragAndDrop/DragHandle';
 import { ITextResource } from 'app-shared/types/global';
-import { XMarkIcon, TrashIcon, PencilIcon, CheckmarkIcon, MonitorIcon } from '@navikt/aksel-icons';
+import { CheckmarkIcon, MonitorIcon, PencilIcon, TrashIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { formItemConfigs } from '../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
@@ -59,7 +59,7 @@ export const FormComponent = memo(function FormComponent({
 
   const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
 
-  const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
+  const handleDelete = (): void => {
     deleteFormComponent(id);
     handleDiscard();
   };

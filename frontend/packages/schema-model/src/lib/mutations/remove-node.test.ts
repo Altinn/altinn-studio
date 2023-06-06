@@ -6,7 +6,7 @@ import {
   validateSchema,
 } from '../../../test/testUtils';
 import { buildJsonSchema } from '../build-json-schema';
-import { CombinationKind, FieldType, Keywords } from '../types';
+import { CombinationKind, FieldType, Keyword } from '../../types';
 import { makePointer } from '../utils';
 import { renameNodePointer } from './rename-node';
 
@@ -17,14 +17,14 @@ test('that we can remove a node by pointer', () => {
   expect(uiSchemaNodes).toEqual(buildUiSchema(simpleTestJsonSchema));
   const changedNodeMap = removeNodeByPointer(
     uiSchemaNodes,
-    makePointer(Keywords.Properties, 'world')
+    makePointer(Keyword.Properties, 'world')
   );
   const jsonSchema = buildJsonSchema(changedNodeMap);
   expect(validateSchema(jsonSchema)).toBeTruthy();
   expect(jsonSchema).toEqual({
-    [Keywords.Properties]: {
+    [Keyword.Properties]: {
       hello: {
-        [Keywords.Type]: FieldType.String,
+        [Keyword.Type]: FieldType.String,
       },
     },
   });
@@ -32,9 +32,9 @@ test('that we can remove a node by pointer', () => {
 test('that we can remove an combination', () => {
   const uiSchemaNodes = buildUiSchema({
     [CombinationKind.OneOf]: [
-      { [Keywords.Type]: FieldType.String },
-      { [Keywords.Type]: FieldType.Null },
-      { [Keywords.Type]: FieldType.Number },
+      { [Keyword.Type]: FieldType.String },
+      { [Keyword.Type]: FieldType.Null },
+      { [Keyword.Type]: FieldType.Number },
     ],
   });
   const nodesAfterMutation = removeNodeByPointer(
@@ -44,8 +44,8 @@ test('that we can remove an combination', () => {
   const jsonSchema = buildJsonSchema(nodesAfterMutation);
   expect(jsonSchema).toEqual({
     [CombinationKind.OneOf]: [
-      { [Keywords.Type]: FieldType.String },
-      { [Keywords.Type]: FieldType.Number },
+      { [Keyword.Type]: FieldType.String },
+      { [Keyword.Type]: FieldType.Number },
     ],
   });
 });
@@ -62,18 +62,18 @@ test('that removeNodeByPointer throws error on unknown pointer', () => {
 
 test('that we can remove a node with names that start on the same ', () => {
   const uiSchemaNodes = buildUiSchema({
-    [Keywords.Properties]: {
+    [Keyword.Properties]: {
       name0: {
-        [Keywords.Type]: FieldType.String,
+        [Keyword.Type]: FieldType.String,
       },
       name: {
-        [Keywords.Type]: FieldType.String,
+        [Keyword.Type]: FieldType.String,
       },
     },
   });
   const mutatedSchema = removeNodeByPointer(
     uiSchemaNodes,
-    makePointer(Keywords.Properties, 'name')
+    makePointer(Keyword.Properties, 'name')
   );
   const jsonSchema = buildJsonSchema(mutatedSchema);
   expect(jsonSchema).toStrictEqual({ properties: { name0: { type: 'string' } } });

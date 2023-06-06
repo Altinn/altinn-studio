@@ -1,6 +1,6 @@
 import { Capabilites, getCapabilities } from './capabilities';
 import { createNodeBase } from './utils';
-import { FieldType, ObjectKind } from './types';
+import { FieldType, ObjectKind } from '../types';
 import { expect } from '@jest/globals';
 
 test('that capabilities work as expected', () => {

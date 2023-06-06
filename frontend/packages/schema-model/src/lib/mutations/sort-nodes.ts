@@ -1,4 +1,4 @@
-import type { UiSchemaNode, UiSchemaNodes } from '../types';
+import type { UiSchemaNode, UiSchemaNodes } from '../../types';
 import { ROOT_POINTER } from '../constants';
 
 export const sortNodesByChildren = (uiSchemaNodes: UiSchemaNodes): UiSchemaNodes => {

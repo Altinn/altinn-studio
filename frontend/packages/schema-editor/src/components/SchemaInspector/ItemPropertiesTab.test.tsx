@@ -8,14 +8,14 @@ import {
   createChildNode,
   createNodeBase,
   FieldType,
-  Keywords,
+  Keyword,
   ObjectKind,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 test('item property tab renders combinations', async () => {
   const uiSchemaNodes: UiSchemaNodes = [];
-  const selectedNode = createNodeBase(Keywords.Properties, 'test');
+  const selectedNode = createNodeBase(Keyword.Properties, 'test');
   selectedNode.objectKind = ObjectKind.Combination;
   selectedNode.fieldType = CombinationKind.AnyOf;
   uiSchemaNodes.push(selectedNode);

@@ -1,5 +1,5 @@
-import type { UiSchemaNodes } from '../types';
-import { CombinationKind } from '../types';
+import type { UiSchemaNodes } from '../../types';
+import { CombinationKind } from '../../types';
 import { getNodeByPointer, hasNodePointer } from '../selectors';
 import { splitPointerInBaseAndName } from '../utils';
 

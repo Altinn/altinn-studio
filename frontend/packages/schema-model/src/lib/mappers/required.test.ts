@@ -1,16 +1,16 @@
 import { buildUiSchema } from '../build-ui-schema';
-import { Keywords } from '../types';
+import { Keyword } from '../../types';
 import { findRequiredProps } from './required';
 import { getParentNodeByPointer } from '../selectors';
 
 test('that we find required props', () => {
   const expected = ['world'];
   const uiNodeMap = buildUiSchema({
-    [Keywords.Properties]: {
+    [Keyword.Properties]: {
       hello: {},
       world: {},
     },
-    [Keywords.Required]: expected,
+    [Keyword.Required]: expected,
   });
   const parentNode = getParentNodeByPointer(uiNodeMap, '#/properties/world');
 

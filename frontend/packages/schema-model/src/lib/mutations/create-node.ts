@@ -1,5 +1,5 @@
-import type { UiSchemaNode, UiSchemaNodes } from '../types';
-import { FieldType, Keywords, ObjectKind } from '../types';
+import type { UiSchemaNode, UiSchemaNodes } from '../../types';
+import { FieldType, Keyword, ObjectKind } from '../../types';
 import { createNodeBase } from '../utils';
 import { getParentNodeByPointer, hasNodePointer } from '../selectors';
 import { deepCopy } from 'app-shared/pure';
@@ -44,9 +44,9 @@ export const createChildNode = (
       isCombinationItem: true,
     });
   } else if (fieldType === FieldType.Object && isDefinition) {
-    return createNodeBase(pointer, Keywords.Definitions, displayName);
+    return createNodeBase(pointer, Keyword.Definitions, displayName);
   } else if (fieldType === FieldType.Object && !isDefinition) {
-    return createNodeBase(pointer, Keywords.Properties, displayName);
+    return createNodeBase(pointer, Keyword.Properties, displayName);
   } else if (objectKind === ObjectKind.Field) {
     throw new Error(`Can't add node to fieldtype ${fieldType}`);
   } else {
