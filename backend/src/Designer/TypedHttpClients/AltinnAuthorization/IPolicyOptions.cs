@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using PolicyAdmin.Models;
 
-namespace Altinn.Studio.Designer.Services.Interfaces
+namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 {
     public interface IPolicyOptions
     {

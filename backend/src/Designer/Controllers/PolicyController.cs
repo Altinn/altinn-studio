@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.PolicyAdmin;
 using Altinn.Studio.PolicyAdmin.Models;
 using Microsoft.AspNetCore.Mvc;
