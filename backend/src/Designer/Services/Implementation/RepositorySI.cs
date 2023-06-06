@@ -1030,7 +1030,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string deletePath = _settings.GetServicePath(org, $"{repo}_SCHEDULED_FOR_DELETE_{DateTime.Now.Ticks}", developer);
             Directory.Move(origRepo, deletePath);
 
-            // Run deletion task in background. It's not a critical issue if it fails. And should be easy to clean up.
+            // Run deletion task in background. It's not a critical issue if it fails.
             Task.Run(() =>
             {
                 try
@@ -1045,7 +1045,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     directory.Delete(true);
                 }
-                catch (Exception)
+                catch
                 {
                     _logger.LogWarning("Failed to delete repository {Repo} for org {Org}.", repo, org);
                 }
