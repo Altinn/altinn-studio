@@ -17,8 +17,6 @@ import { Organization } from 'app-shared/types/Organization';
 import { resourceIdMock1 } from 'resourceadm/data-mocks/policies';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
-import { useParams } from "react-router-dom"; // tester PageLayoutBanner
-
 type ResourceDashboardProps = {
   user: User;
   organizations: Organization[];
@@ -49,9 +47,6 @@ export const ResourceDashboard = ({
   const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
-
-  // Banner selectedContext: 
-  const { selectedContext } = useParams();
 
   return (
     <>
