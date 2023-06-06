@@ -45,12 +45,7 @@ export const ResourcePage = () => {
         goBack={goBack}
       />
       <div className={classes.resourcePageWrapper}>
-        {currentPage === 'about' && (
-          /*<div className={classes.resourcePage}>
-            <h2 className={classes.resourceH2}>Om ressursen - TODO sett inn komponent</h2>
-          </div>*/
-          <AboutResource />
-        )}
+        {currentPage === 'about' && <AboutResource />}
         {currentPage === 'security' && (
           <div className={classes.resourcePage}>
             <h2 className={classes.resourceH2}>Sikkerhet - TODO sett inn komponent</h2>
