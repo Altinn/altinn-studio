@@ -1,4 +1,4 @@
-import { UiSchemaNodes } from '../types';
+import { UiSchemaNodes } from '../../types';
 import { deepCopy } from 'app-shared/pure';
 import { getParentNodeByPointer } from '../selectors';
 

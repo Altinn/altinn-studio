@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { StringRestrictions } from './StringRestrictions';
-import { StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
+import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
@@ -69,10 +69,10 @@ describe('StringRestrictions', () => {
   });
 
   test.each([
-    [StrRestrictionKeys.format, 'button'],
-    [StrRestrictionKeys.minLength, 'textbox'],
-    [StrRestrictionKeys.maxLength, 'textbox'],
-    [StrRestrictionKeys.pattern, 'textbox'],
+    [StrRestrictionKey.format, 'button'],
+    [StrRestrictionKey.minLength, 'textbox'],
+    [StrRestrictionKey.maxLength, 'textbox'],
+    [StrRestrictionKey.pattern, 'textbox'],
     ['pattern_test_field', 'textbox'],
   ])('%s %s should appear by default', async (key, role) => {
     renderStringRestrictions();
@@ -121,7 +121,7 @@ describe('StringRestrictions', () => {
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKeys.format]: StringFormat.Date })
+      expect.objectContaining({ [StrRestrictionKey.format]: StringFormat.Date })
     );
     onChangeRestrictions.mockReset();
     rerender(<StringRestrictions {...defaultProps} />);
@@ -130,7 +130,7 @@ describe('StringRestrictions', () => {
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKeys.format]: '' })
+      expect.objectContaining({ [StrRestrictionKey.format]: '' })
     );
   });
 
@@ -218,7 +218,7 @@ describe('StringRestrictions', () => {
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKeys.formatMinimum]: input })
+      expect.objectContaining({ [StrRestrictionKey.formatMinimum]: input })
     );
   });
 
@@ -229,7 +229,7 @@ describe('StringRestrictions', () => {
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKeys.formatMaximum]: input })
+      expect.objectContaining({ [StrRestrictionKey.formatMaximum]: input })
     );
   });
 
@@ -306,7 +306,7 @@ describe('StringRestrictions', () => {
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKeys.minLength]: '12' })
+      expect.objectContaining({ [StrRestrictionKey.minLength]: '12' })
     );
   });
 
@@ -323,7 +323,7 @@ describe('StringRestrictions', () => {
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKeys.maxLength]: '144' })
+      expect.objectContaining({ [StrRestrictionKey.maxLength]: '144' })
     );
   });
 
@@ -338,7 +338,7 @@ describe('StringRestrictions', () => {
     renderStringRestrictions({ restrictions: { pattern: '[a-z' } });
     await act(() => user.type(screen.getByLabelText(texts[`schema_editor.pattern`]), ']'));
     expect(onChangeRestrictionValue).toHaveBeenCalledTimes(1);
-    expect(onChangeRestrictionValue).toHaveBeenCalledWith(path, StrRestrictionKeys.pattern, '[a-z]');
+    expect(onChangeRestrictionValue).toHaveBeenCalledWith(path, StrRestrictionKey.pattern, '[a-z]');
   });
 });
 

@@ -42,7 +42,7 @@ context('Designer', () => {
 
   it('is possible to add and delete form components', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
-    cy.get(designer.appMenu['edit']).click();
+    cy.findByRole('link', { name: designer.appMenu.editText }).click();
     cy.get("button[aria-label='Legg til ny side']").click();
     cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
     cy.get(designer.dragToArea).trigger('drop');

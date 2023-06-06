@@ -1,11 +1,12 @@
-import { findRestrictionsOnNode, IntRestrictionKeys } from './restrictions';
+import { findRestrictionsOnNode } from './restrictions';
+import { IntRestrictionKey } from '../types';
 
 test('should return just restrictions', () => {
   const restictions = findRestrictionsOnNode({
-    [IntRestrictionKeys.maximum]: 4,
+    [IntRestrictionKey.maximum]: 4,
     'not a restrition': 'sdfasd',
   });
   expect(restictions).toEqual({
-    [IntRestrictionKeys.maximum]: 4,
+    [IntRestrictionKey.maximum]: 4,
   });
 });

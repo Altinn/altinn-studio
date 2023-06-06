@@ -12,6 +12,7 @@ const user = userEvent.setup();
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 const name = formDesignerMock.layout.selectedLayout;
 const defaultProps: IPageElementProps = { name };
 
@@ -28,7 +29,7 @@ describe('PageElement', () => {
     await act(() => user.type(textbox, newName));
     await act(() => user.tab());
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(org, app, name, newName);
+    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(org, app, name, newName, selectedLayoutSet);
   });
 });
 
@@ -36,8 +37,8 @@ const render = (props: Partial<IPageElementProps> = {}) =>
   renderWithMockStore()(<PageElement {...defaultProps} {...props} />);
 
 const waitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

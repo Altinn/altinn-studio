@@ -8,14 +8,14 @@ import {
   createChildNode,
   createNodeBase,
   FieldType,
-  Keywords,
+  Keyword,
   ObjectKind,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const selectedItem: UiSchemaNode = {
-  ...createNodeBase(Keywords.Properties, 'test'),
+  ...createNodeBase(Keyword.Properties, 'test'),
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
 };
@@ -186,7 +186,7 @@ describe('ItemFieldsTab', () => {
   });
 
   test('Inputs are disabled if the selected item is a reference', async () => {
-    const referencedNode = createNodeBase(Keywords.Definitions, 'testtype');
+    const referencedNode = createNodeBase(Keyword.Definitions, 'testtype');
     renderItemFieldsTab(
       {
         selectedItem: {

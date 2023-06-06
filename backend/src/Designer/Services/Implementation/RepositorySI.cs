@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Schema;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
@@ -17,11 +18,11 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using IdentityModel.OidcClient;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using static Altinn.Studio.Designer.Infrastructure.GitRepository.AltinnAppGitRepository;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -236,59 +237,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return resourceTexts;
         }
 
-        /// <summary>
-        /// Get the Json form model from disk for Dynamics
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        public string GetRuleHandler(string org, string app)
-        {
-            string filePath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string fileData = null;
-
-            if (File.Exists(filePath))
-            {
-                fileData = File.ReadAllText(filePath, Encoding.UTF8);
-            }
-
-            return fileData;
-        }
-
-        /// <summary>
-        /// Get the Json file from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        public string GetRuleConfig(string org, string app)
-        {
-            string filePath = _settings.GetRuleConfigPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            if (File.Exists(filePath))
-            {
-                string fileData = File.ReadAllText(filePath, Encoding.UTF8);
-                return fileData;
-            }
-            throw new FileNotFoundException("Rule configuration not found.");
-        }
-
-        /// <summary>
-        /// Save rule handler file to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="content">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveRuleHandler(string org, string app, string content)
-        {
-            string filePath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, content, Encoding.UTF8);
-
-            return true;
-        }
-
         /// <inheritdoc/>
         public string GetWidgetSettings(string org, string app)
         {
@@ -300,40 +248,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return fileData;
-        }
-
-        /// <summary>
-        /// Save the Rules configuration JSON file to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveRuleConfig(string org, string app, string resource)
-        {
-            string filePath = _settings.GetRuleConfigPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, resource, Encoding.UTF8);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Method that stores configuration to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name on config</param>
-        /// <param name="config">The content</param>
-        /// <returns>A boolean indicating if everything went ok</returns>
-        public bool SaveConfiguration(string org, string app, string name, string config)
-        {
-            string filePath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, config, Encoding.UTF8);
-
-            return true;
         }
 
         /// <summary>
@@ -965,6 +879,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 foreach (FileSystemObject resourceFile in contents)
                 {
+                    if (resourceFile.Type.Equals("Dir") && !resourceFile.Name.StartsWith("."))
+                    {
+                        List<FileSystemObject> contentsInFolder = GetContents(org, repository, resourceFile.Name);
+
+                        if (contentsInFolder != null)
+                        {
+                            foreach (FileSystemObject content in contentsInFolder)
+                            {
+                                if (content.Name.EndsWith("_resource.json"))
+                                {
+                                    resourceFiles.Add(content);
+                                }
+                            }
+                        }
+                    }
                     if (resourceFile.Name.EndsWith("_resource.json"))
                     {
                         resourceFiles.Add(resourceFile);
@@ -1038,22 +967,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await _sourceControl.DeleteRepository(org, repository);
         }
 
-        public bool SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
+        public async Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy)
         {
             string policyPath = GetPolicyPath(org, repo, resourceId);
 
-            MemoryStream stream = new MemoryStream();
-            XmlWriter writer = XmlWriter.Create(stream, new XmlWriterSettings() { Indent = true });
-
-            XacmlSerializer.WritePolicy(writer, xacmlPolicy);
-
-            writer.Flush();
-            stream.Position = 0;
-
-            using (var fs = new FileStream(policyPath, FileMode.OpenOrCreate))
+    
+            string xsd;
+            await using (MemoryStream stream = new MemoryStream())
+            await using (var xw = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, Async = true }))
             {
-                stream.CopyTo(fs);
+                XacmlSerializer.WritePolicy(xw, xacmlPolicy);
+                xw.Flush();
+                stream.Position = 0;
+                xsd = Encoding.UTF8.GetString(stream.ToArray());
             }
+            await WriteTextAsync(policyPath, xsd);    
 
             return true;
         }
@@ -1082,6 +1010,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return policyPath;
+        }
+
+        private static async Task WriteTextAsync(string absoluteFilePath, string text)
+        {
+            byte[] encodedText = Encoding.UTF8.GetBytes(text);
+            await using FileStream sourceStream = new(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+            await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length));
         }
     }
 }

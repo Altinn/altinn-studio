@@ -21,14 +21,16 @@ export const datamodelUploadPagePath = (org, app) => `${APP_DEVELOPMENT_BASENAME
 // See frontend/app-development/utils/urlHelper.ts Deployments
 
 // FormEditor
-export const ruleHandlerPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-handler`; // Get
+export const ruleHandlerPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get
 export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Post
 export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/widget-settings`; // Get
-export const ruleConfigPath = (org, app) => `/designer/api/${org}/${app}/app-development/rule-config`; // Get, Post
-export const layoutSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/layout-settings`; // Get, Post
-export const formLayoutsPath = (org, app) => `/designer/api/${org}/${app}/app-development/form-layouts`; // Get
-export const formLayoutPath = (org, app, layout) => `/designer/api/${org}/${app}/app-development/form-layout/${layout}`; // Post, Delete
-export const formLayoutNamePath = (org, app, layoutName) => `/designer/api/${org}/${app}/app-development/form-layout-name/${layoutName}`; // Put
+export const optionListIdsPath = (org, app) => `/designer/api/${org}/${app}/app-development/option-list-ids`; // Get
+export const ruleConfigPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
+export const layoutSetsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-sets?${s({ layoutSetName })}`; // Get, Put, Post
+export const layoutSettingsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
+export const formLayoutsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
+export const formLayoutPath = (org, app, layout, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
+export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layout-name/${layoutName}?${s({ layoutSetName })}`; // Put
 
 // Frontend-language
 export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.json`;
@@ -113,9 +115,3 @@ export const userCurrentPath = () => '/designer/api/user/current'; // Get
 export const userReposPath = () => '/designer/api/user/repos'; // Get
 export const userStarredListPath = () => '/designer/api/user/starred'; // Get
 export const userStarredRepoPath = (org, app) => `/designer/api/user/starred/${org}/${app}`; // Put, Delete
-
-// Deprecated
-export const getServiceFilesPath = (org, app, fileEditorMode) => `/designer/api/${org}/${app}/service-development/get-all?${s({ fileEditorMode })}`; // Get
-
-// Docs
-export const altinnDocsPath = () => 'https://docs.altinn.studio/';

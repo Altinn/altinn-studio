@@ -17,7 +17,7 @@ export const ComponentPreview = ({
   const errorMessage = useComponentErrorMessage(component);
 
   if (errorMessage) {
-    return <ErrorMessage>{errorMessage}</ErrorMessage>;
+    return <ErrorMessage role='alertdialog'>{errorMessage}</ErrorMessage>;
   }
 
   switch (component.type) {

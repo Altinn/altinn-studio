@@ -1,14 +1,14 @@
+import React from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditCodeList } from './editModal/EditCodeList';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
-import { EditDescription } from './editModal/EditDescription';
 import { EditHeaderSize } from './editModal/EditHeaderSize';
 import { EditOptions } from './editModal/EditOptions';
 import { EditPreselectedIndex } from './editModal/EditPreselectedIndex';
 import { EditReadOnly } from './editModal/EditReadOnly';
 import { EditRequired } from './editModal/EditRequired';
-import { EditTitle } from './editModal/EditTitle';
 import { EditAutoComplete } from './editModal/EditAutoComplete';
+import { EditTextResourceBinding } from './editModal/EditTextResourceBinding';
 import type { FormComponent } from '../../types/FormComponent';
 
 export interface IGenericEditComponent<T extends FormComponent = FormComponent> {
@@ -21,6 +21,8 @@ export interface IGenericEditComponent<T extends FormComponent = FormComponent> 
 export enum EditSettings {
   Title = 'title',
   Description = 'description',
+  Help = 'help',
+  TagTitle = 'tagTitle',
   DataModelBindings = 'dataModelBindings',
   Size = 'size',
   ReadOnly = 'readonly',
@@ -35,6 +37,7 @@ export const editBoilerPlate = [
   EditSettings.DataModelBindings,
   EditSettings.Title,
   EditSettings.Description,
+  EditSettings.Help,
   EditSettings.ReadOnly,
   EditSettings.Required,
 ];
@@ -71,8 +74,15 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
     EditSettings.PreselectedIndex,
     EditSettings.AutoComplete,
   ],
-  [ComponentType.AddressComponent]: [EditSettings.Title],
-  [ComponentType.FileUploadWithTag]: [EditSettings.Title, EditSettings.Description],
+  [ComponentType.AddressComponent]: [EditSettings.Title, EditSettings.Help],
+  [ComponentType.FileUpload]: [EditSettings.Title, EditSettings.Description, EditSettings.Help],
+  [ComponentType.FileUploadWithTag]: [
+    EditSettings.Title,
+    EditSettings.Description,
+    EditSettings.Help,
+    EditSettings.TagTitle,
+    EditSettings.CodeList,
+  ],
   [ComponentType.Panel]: [EditSettings.Title],
   [ComponentType.Map]: [EditSettings.ReadOnly],
 };
@@ -80,12 +90,46 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
 export const configComponents: IConfigComponents = {
   [EditSettings.DataModelBindings]: EditDataModelBindings,
   [EditSettings.Size]: EditHeaderSize,
-  [EditSettings.Title]: EditTitle,
+  [EditSettings.Title]: ({ component, handleComponentChange }: IGenericEditComponent) => (
+    <EditTextResourceBinding
+      component={component}
+      handleComponentChange={handleComponentChange}
+      textKey={EditSettings.Title}
+      labelKey='ux_editor.modal_properties_textResourceBindings_title'
+      placeholderKey='ux_editor.modal_properties_textResourceBindings_title_add'
+    />
+  ),
   [EditSettings.ReadOnly]: EditReadOnly,
   [EditSettings.Required]: EditRequired,
-  [EditSettings.Description]: EditDescription,
+  [EditSettings.Description]: ({ component, handleComponentChange }: IGenericEditComponent) => (
+    <EditTextResourceBinding
+      component={component}
+      handleComponentChange={handleComponentChange}
+      textKey={EditSettings.Description}
+      labelKey='ux_editor.modal_properties_textResourceBindings_description'
+      placeholderKey='ux_editor.modal_properties_textResourceBindings_description_add'
+    />
+  ),
+  [EditSettings.TagTitle]: ({ component, handleComponentChange }: IGenericEditComponent) => (
+    <EditTextResourceBinding
+      component={component}
+      handleComponentChange={handleComponentChange}
+      textKey={EditSettings.TagTitle}
+      labelKey='ux_editor.modal_properties_textResourceBindings_tag'
+      placeholderKey='ux_editor.modal_properties_textResourceBindings_tag_add'
+    />
+  ),
   [EditSettings.Options]: EditOptions,
   [EditSettings.CodeList]: EditCodeList,
   [EditSettings.PreselectedIndex]: EditPreselectedIndex,
   [EditSettings.AutoComplete]: EditAutoComplete,
+  [EditSettings.Help]: ({ component, handleComponentChange }: IGenericEditComponent) => (
+    <EditTextResourceBinding
+      component={component}
+      handleComponentChange={handleComponentChange}
+      textKey={EditSettings.Help}
+      labelKey='ux_editor.modal_properties_textResourceBindings_help'
+      placeholderKey='ux_editor.modal_properties_textResourceBindings_help_add'
+    />
+  ),
 };

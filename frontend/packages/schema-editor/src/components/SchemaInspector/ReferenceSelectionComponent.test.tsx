@@ -4,7 +4,7 @@ import { renderWithRedux } from '../../../test/renderWithRedux';
 import type { IReferenceSelectionProps } from './ReferenceSelectionComponent';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import { createNodeBase, Keywords, ObjectKind } from '@altinn/schema-model';
+import { createNodeBase, Keyword, ObjectKind } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -16,14 +16,14 @@ const label = 'Refererer til';
 const onChangeRef = jest.fn();
 const onGoToDefButtonClick = jest.fn();
 const selectedNode: UiSchemaNode = {
-  ...createNodeBase(Keywords.Reference, 'test'),
+  ...createNodeBase(Keyword.Reference, 'test'),
   objectKind: ObjectKind.Reference,
   reference: '',
 };
 const type1Name = 'type1';
 const type2Name = 'type2';
-const type1 = createNodeBase(Keywords.Definitions, type1Name);
-const type2 = createNodeBase(Keywords.Definitions, type2Name);
+const type1 = createNodeBase(Keyword.Definitions, type1Name);
+const type2 = createNodeBase(Keyword.Definitions, type2Name);
 const rootNode = {
   ...createNodeBase('#'),
   children: [selectedNode, type1, type2].map((node) => node.pointer),

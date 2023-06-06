@@ -1,0 +1,16 @@
+[
+    {
+        "ActionId": "read",
+        "ActionTitle": "Les",
+
+    },
+    {
+        "ActionId": "write",
+        "ActionTitle": "Skriv"
+
+    },
+    {
+        "ActionId": "delete",
+        "ActionTitle": "Slett"
+    }
+]

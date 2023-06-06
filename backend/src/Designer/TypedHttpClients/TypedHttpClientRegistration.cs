@@ -45,6 +45,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnStorageTextResourceClient, AltinnStorageTextResourceClient>();
             services.AddKubernetesWrapperTypedHttpClient();
+            services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
 
             return services;
         }

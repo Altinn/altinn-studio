@@ -4,11 +4,11 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useRuleModelQuery =
-  (org: string, app: string): UseQueryResult<IRuleModelFieldElement[]> => {
+  (org: string, app: string, layoutSetName: string): UseQueryResult<IRuleModelFieldElement[]> => {
     const { getRuleModel } = useServicesContext();
     return useQuery<IRuleModelFieldElement[]>(
-      [QueryKey.RuleHandler, org, app],
-      () => getRuleModel(org, app).then((ruleModel) => {
+      [QueryKey.RuleHandler, org, app, layoutSetName],
+      () => getRuleModel(org, app, layoutSetName).then((ruleModel) => {
         const ruleModelFields: IRuleModelFieldElement[] = [];
 
         // Add script file to DOM to make it possible to read from it

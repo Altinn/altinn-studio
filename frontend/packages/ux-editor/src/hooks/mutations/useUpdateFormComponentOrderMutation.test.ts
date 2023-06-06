@@ -14,6 +14,7 @@ import {
 // Test data:
 const org = 'org';
 const app = 'app';
+const selectedLayoutSet = 'test-layout-set';
 
 describe('useUpdateFormComponentOrderMutation', () => {
   afterEach(jest.clearAllMocks);
@@ -21,7 +22,7 @@ describe('useUpdateFormComponentOrderMutation', () => {
   it('Calls updateFormComponentOrder with correct arguments and payload', async () => {
     await renderAndWaitForData();
 
-    const componentOrderResult = renderHookWithMockStore()(() => useUpdateFormComponentOrderMutation(org, app))
+    const componentOrderResult = renderHookWithMockStore()(() => useUpdateFormComponentOrderMutation(org, app, selectedLayoutSet))
       .renderHookResult
       .result;
 
@@ -36,6 +37,7 @@ describe('useUpdateFormComponentOrderMutation', () => {
       org,
       app,
       layout1NameMock,
+      selectedLayoutSet,
       expect.objectContaining({
         data: expect.objectContaining({
           layout: [
@@ -50,6 +52,6 @@ describe('useUpdateFormComponentOrderMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 }
