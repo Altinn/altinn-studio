@@ -64,32 +64,32 @@ export const PolicyEditor = ({
   /**
    * Displays all the rule cards
    */
-  const displayRules = policyRules.map((pr, i) => (
-    <div className={classes.space} key={i}>
-      <ExpandablePolicyCard
-        policyRule={pr}
-        actions={actions}
-        subjects={subjects}
-        rules={policyRules}
-        setPolicyRules={setPolicyRules}
-        rulePosition={i}
-        resourceId={resourceId}
-        resourceType={resourceType}
-        handleDuplicateRule={() => handleDuplicateRule(i)}
-        handleDeleteRule={() => {
-          setVerificationModalOpen(true);
-          setRuleIdToDelete(pr.ruleId);
-        }}
-      />
-    </div>
-  ));
+  const displayRules = policyRules.map((pr, i) => {
+    return (
+      <div className={classes.space} key={i}>
+        <ExpandablePolicyCard
+          policyRule={pr}
+          actions={actions}
+          subjects={subjects}
+          rules={policyRules}
+          setPolicyRules={setPolicyRules}
+          resourceId={resourceId}
+          resourceType={resourceType}
+          handleDuplicateRule={() => handleDuplicateRule(i)}
+          handleDeleteRule={() => {
+            setVerificationModalOpen(true);
+            setRuleIdToDelete(pr.ruleId);
+          }}
+        />
+      </div>
+    );
+  });
 
   /**
    * Returns the rule ID to be used on the new element, and
    * updates the store of the next rule id
    */
   const getRuleId = () => {
-    console.log('lastruleid', lastRuleId);
     const currentRuleId = lastRuleId;
     setLastRuleId(currentRuleId + 1);
     return currentRuleId;
@@ -131,8 +131,13 @@ export const PolicyEditor = ({
    */
   const handleDeleteRule = (ruleId: string) => {
     const updatedRules = [...policyRules];
+    console.log('updated rules', updatedRules);
     const indexToRemove = updatedRules.findIndex((a) => a.ruleId === ruleId);
-    updatedRules.splice(indexToRemove, 1);
+    console.log('index to remove', indexToRemove);
+    const b = updatedRules.splice(indexToRemove, 1);
+    console.log('b', b);
+    console.log('updated again', updatedRules);
+
     setPolicyRules(updatedRules);
 
     // Reset
