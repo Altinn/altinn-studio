@@ -9,7 +9,8 @@ import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelect
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
-import { useLayoutSetsQuery } from "../queries/useLayoutSetsQuery";
+import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
+import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export interface UpdateFormComponentArgs {
   updatedComponent: FormComponent;
@@ -22,7 +23,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
-  const getLayoutSets = useLayoutSetsQuery(org, app);
+  const { data: getLayoutSets } = useLayoutSetsQuery(org, app);
 
   return useMutation({
     mutationFn: ({ updatedComponent, id }: UpdateFormComponentArgs) => {
@@ -55,8 +56,8 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
       return formLayoutMutation.mutateAsync(updatedLayout).then(async (data) => {
         if (updatedComponent.type === ComponentType.FileUpload || updatedComponent.type === ComponentType.FileUploadWithTag) {
           // Todo: Consider handling this in the backend
-          const layoutSets = getLayoutSets?.data;
-          const taskId = layoutSets ? layoutSets?.sets.find(set => set.id === layoutSetName)?.tasks[0] : 'Task_1';
+          const layoutSets = getLayoutSets;
+          const taskId = layoutSets ? layoutSets?.sets.find(set => set.id === layoutSetName)?.tasks[0] : TASKID_FOR_STATELESS_APPS;
           const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
             updatedComponent as FormFileUploaderComponent;
           if (id !== updatedComponent.id) {

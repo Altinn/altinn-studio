@@ -5,8 +5,9 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import type { FormFileUploaderComponent } from '../../types/FormComponent';
-import { addItemOfType } from "../../utils/formLayoutUtils";
-import { useLayoutSetsQuery } from "../queries/useLayoutSetsQuery";
+import { addItemOfType } from '../../utils/formLayoutUtils';
+import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
+import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export interface AddFormItemMutationArgs {
   componentType: ComponentType;
@@ -19,7 +20,7 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const appAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
-  const getLayoutSets = useLayoutSetsQuery(org, app);
+  const { data: getLayoutSets } = useLayoutSetsQuery(org, app);
 
   return useMutation({
     mutationFn: ({ componentType, newId, parentId, index }: AddFormItemMutationArgs) => {
@@ -30,8 +31,8 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
 
       return formLayoutsMutation.mutateAsync(updatedLayout).then(() => {
         if (componentType === ComponentType.FileUpload || componentType === ComponentType.FileUploadWithTag) {
-          const layoutSets = getLayoutSets?.data;
-          const taskId = layoutSets ? layoutSets?.sets.find(set => set.id === layoutSetName)?.tasks[0] : 'Task_1';
+          const layoutSets = getLayoutSets;
+          const taskId = layoutSets ? layoutSets?.sets.find(set => set.id === layoutSetName)?.tasks[0] : TASKID_FOR_STATELESS_APPS;
           const fileUploadComponent = updatedLayout.components[newId];
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
           const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
