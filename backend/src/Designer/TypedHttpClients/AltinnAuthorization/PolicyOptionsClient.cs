@@ -46,15 +46,15 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 
         public async Task<List<SubjectOption>> GetSubjectOptions()
         {
-                string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
 
-             List<SubjectOption> subjectOptions;
+            List<SubjectOption> subjectOptions;
 
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url);
                 string subjectOptionsString = await response.Content.ReadAsStringAsync();
-                
+
                 subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString);
                 return subjectOptions;
             }

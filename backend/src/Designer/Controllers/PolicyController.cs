@@ -141,7 +141,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("actionoptions")]
         public async Task<ActionResult> GetActionOptions(string org, string app)
         {
-            List<ActionOption> actionOptions = await _policyOptions.GetActionOptions(); 
+            List<ActionOption> actionOptions = await _policyOptions.GetActionOptions();
 
             return Ok(actionOptions);
         }
