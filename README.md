@@ -1,7 +1,6 @@
 ## Local testing of apps
 
-These are some of the required steps, tips and tricks when it comes to running an app on a machine. The primary goal is
-to be able to iterate over changes and verifying them without needing to deploy the app to the test environment.
+These are some of the required steps, tips, and tricks when it comes to running an app on a local machine. The primary goal is to be able to iterate over changes and verifying them without needing to deploy the app to the test environment.
 
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
@@ -19,19 +18,20 @@ to be able to iterate over changes and verifying them without needing to deploy 
 
 ### Setup
 
-1. Clone the `app-localtest` repository to a local folder
+1. Clone the `app-localtest` repository to a local folder and move into the folder.
+
    ```shell
    git clone https://github.com/Altinn/app-localtest
    cd app-localtest
    ```
 
-2. Build and run the containers in the background. This mode supports running one app at a time. If you need to run
-   multiple apps at once, remove `--profile localtest` from the command and follow the instructions below to run
-   LocalTest locally outside Docker.
+2. Build and run the containers in the background. 
 
-   ```shell
-   docker compose --profile localtest up -d --build
-   ```
+    ```shell
+    docker compose --profile localtest up -d --build
+    ```
+
+    This mode supports running one app at a time. If you need to run multiple apps at once, remove `--profile localtest` from the command and follow the instructions below to run LocalTest locally outside Docker.
 
    Note: Using profiles requires docker-compose version [1.28.0](https://docs.docker.com/compose/release-notes/#1280)
    or later. If your version does not support profiles and you prefer to run localtest in Docker, make sure to follow
@@ -39,10 +39,22 @@ to be able to iterate over changes and verifying them without needing to deploy 
    the profile restriction in `docker-compose.yml`.
 
 3. Start your app
-   ```shell
-   cd /path/to/your/appliaction/App
-   dotnet run
-   ```
+  
+    _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/) and [cloned it](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
+  
+    Move into the `App` folder of your application.
+
+     Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
+
+    ```shell
+    cd C:\my_applications\my-awasome-app\App
+    ```
+
+     Run the application:
+
+     ```shell
+     dotnet run
+    ```
 
 The app and local platform services are now running locally. The app can be accessed on <http://local.altinn.cloud>.
 
