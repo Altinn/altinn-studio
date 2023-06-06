@@ -1,9 +1,8 @@
 /* TODO - font families */
 .policyEditorWrapper {
-  /* This goes outside the screen to the right atm - TODO - fix*/
-  width: 80%;
+  width: 90%;
   margin: 0;
-  padding-inline: 10%;
-  padding-top: 20px;
+  padding-top: 2%;
   padding-bottom: 50px;
+  padding-inline: 2%;
 }

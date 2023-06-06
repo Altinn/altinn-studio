@@ -16,3 +16,33 @@ export const getPolicyUrlByOrgRepoAndId = (
 ): string => {
   return `${basePath}/${org}/${repo}/policy/${resourceId}`
 }
+
+/**
+ * Gets the URL path to the API for the subject options for a policy
+ *
+ * @param org the organisation
+ * @param repo the repo
+ *
+ * @returns the url path string
+ */
+export const getSubjectOptionsUrlByOrgAndRepo = (
+  org: string,
+  repo: string
+): string => {
+  return `${basePath}/${org}/${repo}/policy/subjectoptions`
+}
+
+/**
+ * Gets the URL path to the API for the action options for a policy
+ *
+ * @param org the organisation
+ * @param repo the repo
+ *
+ * @returns the url path string
+ */
+export const getActionOptionsUrlByOrgAndRepo = (
+  org: string,
+  repo: string
+): string => {
+  return `${basePath}/${org}/${repo}/policy/actionoptions`
+}

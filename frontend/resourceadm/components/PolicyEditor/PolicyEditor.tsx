@@ -138,33 +138,31 @@ export const PolicyEditor = ({
     // Reset
     setVerificationModalOpen(false);
     setRuleIdToDelete('0');
+
+    // handleSavePolicy(updatedRules);
   };
 
   /**
    * Handle the saving of the updated policy
    */
-  const handleSavePolicy = () => {
-    const policyEditorRules: PolicyRuleBackendType[] = policyRules.map((pr) =>
+  const handleSavePolicy = (rules: PolicyRuleCardType[]) => {
+    const policyEditorRules: PolicyRuleBackendType[] = rules.map((pr) =>
       mapPolicyRuleToPolicyRuleBackendObject(subjects, pr, resourceType, resourceId)
     );
 
-    const resourceWithRules: PolicyBackendType = {
+    const updatedPolicy: PolicyBackendType = {
       rules: policyEditorRules,
       requiredAuthenticationLevelEndUser: requiredAuthLevel,
       requiredAuthenticationLevelOrg: '3',
     };
-
-    // TODO - Error handling
-    console.log('Object to be sent as JSON object: \n', JSON.stringify(resourceWithRules, null, 2));
-
-    onSave(resourceWithRules);
+    onSave(updatedPolicy);
   };
 
   return (
     <div>
       <div className={classes.policyEditorTop}>
         <h2 className={classes.policyEditorHeader}>Policy editor</h2>
-        <p className={classes.subHeader}>Navn på policyen</p>
+        <h3 className={classes.subHeader}>Navn på ressursen</h3>
         <div className={classes.textFieldIdWrapper}>
           <div className={classes.idBox}>
             <p className={classes.idBoxText}>id</p>
@@ -173,15 +171,17 @@ export const PolicyEditor = ({
         </div>
       </div>
       <div className={classes.selectAuthLevelWrapper}>
-        <p className={classes.subHeader}>Velg påkrevd sikkerhetsnivå for bruker</p>
-        <SelectAuthLevel value={requiredAuthLevel} setValue={(v) => setRequiredAuthLevel(v)} />
+        <h3 className={classes.subHeader}>Velg påkrevd sikkerhetsnivå for bruker</h3>
+        <div className={classes.selectAuthLevel}>
+          <SelectAuthLevel value={requiredAuthLevel} setValue={(v) => setRequiredAuthLevel(v)} />
+        </div>
       </div>
-      <p className={classes.subHeader}>Regler for policyen</p>
+      <h3 className={classes.subHeader}>Regler for policyen</h3>
       {displayRules}
       <div className={classes.addCardButtonWrapper}>
         <CardButton buttonText='Legg til ekstra regelsett' onClick={handleAddCardClick} />
       </div>
-      <Button type='button' onClick={handleSavePolicy}>
+      <Button type='button' onClick={() => handleSavePolicy(policyRules)}>
         Lagre policyen
       </Button>
       <VerificationModal

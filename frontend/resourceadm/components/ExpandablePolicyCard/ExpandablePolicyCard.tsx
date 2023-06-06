@@ -354,7 +354,7 @@ export const ExpandablePolicyCard = ({
           <p className={classes.subHeader}>Hvilken ressurser skal regelen gjelde for?</p>
           {displayResources}
           <div className={classes.addResourceButton}>
-            <Button type='button' onClick={handleClickAddResource}>
+            <Button type='button' onClick={handleClickAddResource} color='secondary'>
               Legg til en ressurs
             </Button>
           </div>

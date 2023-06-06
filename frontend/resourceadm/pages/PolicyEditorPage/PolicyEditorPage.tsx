@@ -6,7 +6,11 @@ import { actionsListMock, subjectsListMock } from 'resourceadm/data-mocks/polici
 import { get, put } from 'app-shared/utils/networking';
 import { getPolicyRulesUrl } from 'resourceadm/utils/backendUrlUtils';
 import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
-import { getPolicyUrlByOrgRepoAndId } from 'resourceadm/utils/backendUrlUtils/backendUserUtils';
+import {
+  getActionOptionsUrlByOrgAndRepo,
+  getPolicyUrlByOrgRepoAndId,
+  getSubjectOptionsUrlByOrgAndRepo,
+} from 'resourceadm/utils/backendUrlUtils/backendUserUtils';
 import { useOnce } from 'resourceadm/hooks/useOnce';
 
 /**
@@ -23,6 +27,7 @@ export const PolicyEditorPage = () => {
   const [subjects, setSubjects] = useState<PolicySubjectType[]>([]);
   const [policy, setPolicy] = useState<PolicyBackendType>();
   const [loading, setLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   /**
    * Get the policy, actions, and subjects when the page loads
@@ -33,25 +38,41 @@ export const PolicyEditorPage = () => {
     // TODO - API Call to get the correct subjects
     setSubjects(subjectsListMock);
 
-    // TODO - add useOnce hook
-    if (policy === undefined) {
-      setLoading(true);
-      // legg på param for å kjøre mot backend eller mock.
-      // E.g., http://studio.localhost/resourceadm/ttd/resourceadm-resources/resource/resource_id_1/policy
-      get(getPolicyRulesUrl(org, repo, resourceId))
-        .then((res: unknown) => {
-          const policyRes: PolicyBackendType = res as PolicyBackendType;
+    get(getActionOptionsUrlByOrgAndRepo(org, repo))
+      .then((res) => {
+        console.log('actions', res);
+      })
+      .catch((err) => {
+        console.log({ err });
+        console.error(err);
+      });
 
-          // TODO - do more checks
-          setPolicy(policyRes);
-          setLoading(false);
-        })
-        .catch((e) => {
-          console.error(e);
-          console.log({ e });
-          setLoading(false);
-        });
-    }
+    get(getSubjectOptionsUrlByOrgAndRepo(org, repo))
+      .then((res) => {
+        console.log('subjects', res);
+      })
+      .catch((err) => {
+        console.log({ err });
+        console.error(err);
+      });
+
+    setLoading(true);
+    // legg på param for å kjøre mot backend eller mock.
+    // E.g., http://studio.localhost/resourceadm/ttd/resourceadm-resources/resource/resource_id_1/policy
+    get(getPolicyRulesUrl(org, repo, resourceId))
+      .then((res: unknown) => {
+        const policyRes: PolicyBackendType = res as PolicyBackendType;
+
+        // TODO - do more checks
+        setPolicy(policyRes);
+        setLoading(false);
+      })
+      .catch((e) => {
+        console.error(e);
+        console.log({ e });
+        setLoading(false);
+        setHasError(true);
+      });
 
     /**
      * IF you do not want to run against backend, comment out the get above,
@@ -62,9 +83,12 @@ export const PolicyEditorPage = () => {
   });
 
   const handleSavePolicy = (p: PolicyBackendType) => {
+    // TODO - Error handling
+    console.log('Object to be sent as JSON object: \n', JSON.stringify(p, null, 2));
+
     put(getPolicyUrlByOrgRepoAndId(org, repo, resourceId), p)
-      .then(() => {
-        console.log('success');
+      .then((res) => {
+        console.log('success', res);
         // TODO - maybe add a success message / card?
       })
       .catch((err) => {
@@ -82,9 +106,28 @@ export const PolicyEditorPage = () => {
       // TODO spinner
       return <p>Loading content</p>;
     }
-    if (policy === undefined) {
+    /*if (hasError) {
       // TODO handle error
       return <p>error</p>;
+    }*/
+    if (policy === undefined) {
+      return (
+        <>
+          <p>Hei</p>
+          <PolicyEditor
+            policy={{
+              rules: [],
+              requiredAuthenticationLevelEndUser: '3',
+              requiredAuthenticationLevelOrg: '3',
+            }}
+            actions={actions}
+            subjects={subjects}
+            resourceType={resourceType}
+            resourceId={resourceId}
+            onSave={handleSavePolicy} // TODO
+          />
+        </>
+      );
     }
     return (
       <PolicyEditor
