@@ -989,6 +989,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public XacmlPolicy GetPolicy(string org, string repo, string resourceId)
         {
             string policyPath = GetPolicyPath(org, repo, resourceId);
+            if (!File.Exists(policyPath))
+            {
+                return null;
+            }
+
             XmlDocument policyDocument = new XmlDocument();
             policyDocument.Load(policyPath);
             XacmlPolicy policy;
@@ -1006,7 +1011,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string policyPath = Path.Combine(localRepoPath, _generalSettings.AuthorizationPolicyTemplate);
             if (!string.IsNullOrEmpty(resourceId))
             {
-                policyPath = Path.Combine(localRepoPath, resourceId, resourceId + "-policy.xml");
+                policyPath = Path.Combine(localRepoPath, resourceId, resourceId + "_policy.xml");
             }
 
             return policyPath;
