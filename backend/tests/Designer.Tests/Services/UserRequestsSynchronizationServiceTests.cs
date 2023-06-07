@@ -12,7 +12,9 @@ namespace Designer.Tests.Services
         {
             var settings = new UserRequestSynchronizationSettings
             {
-                MaxDegreeOfParallelism = 1, SemaphoreExpiryInSeconds = 1, CleanUpFrequencyInSeconds = 1
+                MaxDegreeOfParallelism = 1,
+                SemaphoreExpiryInSeconds = 1,
+                CleanUpFrequencyInSeconds = 1
             };
             var service = new UserRequestsSynchronizationService(settings);
 

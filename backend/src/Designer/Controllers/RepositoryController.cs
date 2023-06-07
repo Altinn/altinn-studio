@@ -239,6 +239,7 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
             semaphore.Wait();
+
             try
             {
                 _repository.ResetLocalRepository(org, repository);
