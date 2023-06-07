@@ -6,6 +6,7 @@ import type { FormComponent, FormFileUploaderComponent } from '../../types/FormC
 import { IDataModelBindings } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
+import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 
 // Test data:
 const org = 'org';
@@ -89,7 +90,13 @@ describe('useUpdateFormComponentMutation', () => {
   });
 });
 
-const renderAndWaitForData = () => queryClientMock.setQueryData(
-  [QueryKey.FormLayouts, org, app, selectedLayoutSet],
-  convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts
-);
+const renderAndWaitForData = () => {
+  queryClientMock.setQueryData(
+    [QueryKey.FormLayouts, org, app, selectedLayoutSet],
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts
+  );
+  queryClientMock.setQueryData(
+    [QueryKey.RuleConfig, org, app, selectedLayoutSet],
+    ruleConfigMock
+  );
+};

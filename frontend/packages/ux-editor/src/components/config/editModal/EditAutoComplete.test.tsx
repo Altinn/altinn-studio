@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditAutoComplete } from './EditAutoComplete';
-import { act, render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../../../types/FormComponent';
@@ -48,7 +48,7 @@ test('should set the chosen options within the search field', async () => {
   await waitFor(() => expect(searchField).toHaveValue('of'));
   await act(() => user.click(screen.getByRole('option', { name: 'off' })));
 
-  await waitForElementToBeRemoved(screen.queryByRole('dialog'));
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   await waitFor(() => expect(searchField).toHaveValue('off'));
 });
 
@@ -60,7 +60,7 @@ test('should toggle autocomplete-popup based onFocus and onBlur', async () => {
   expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
   await act(() => user.tab());
-  await waitForElementToBeRemoved(screen.queryByRole('dialog'));
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 });
 
 test('should call handleComponentChangeMock callback ', async () => {
@@ -78,7 +78,7 @@ test('should call handleComponentChangeMock callback ', async () => {
   await screen.findByRole('dialog');
 
   await act(() => user.click(screen.getByRole('option', { name: 'on' })));
-  await waitForElementToBeRemoved(screen.queryByRole('dialog'));
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(handleComponentChangeMock).toHaveBeenCalledWith({
     autocomplete: 'on',
     dataModelBindings: {},

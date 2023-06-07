@@ -10,7 +10,7 @@ export interface TextFieldWithValidationProps {
   name: string;
   validation: Validation;
   inputMode?: 'search' | 'text' | 'none' | 'tel' | 'numeric' | 'url' | 'email' | 'decimal';
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>, error: string) => void;
   onBlur?: (event: React.ChangeEvent<HTMLInputElement>, error: string) => void;
 }
 export const TextFieldWithValidation = ({
@@ -26,15 +26,15 @@ export const TextFieldWithValidation = ({
   const errorMessageId = useId();
 
   const validateOnBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
-    if (!event.target.value) {
-      validate(event.target.value);
+    if (onBlur) {
+      const error = validate(event.target.value);
+      onBlur(event, error);
     }
-    if (onBlur) onBlur(event, validationError);
   };
 
   const handleOnTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    validate(event.target.value);
-    onChange(event);
+    const error = validate(event.target.value);
+    onChange(event, error);
   };
 
   const textFieldLabel = `${label} ${validation?.required ? '*' : ''}`;

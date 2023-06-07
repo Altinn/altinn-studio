@@ -52,10 +52,6 @@
   background-color: #f5f5f5;
 }
 
-.pageHeader {
-  margin: var(--margin-top) var(--margin-horizontal) 0 var(--margin-horizontal);
-}
-
 .warningMessage {
   margin: 1rem var(--margin-horizontal);
 }

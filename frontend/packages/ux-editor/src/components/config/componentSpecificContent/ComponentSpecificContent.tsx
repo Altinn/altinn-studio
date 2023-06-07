@@ -64,7 +64,12 @@ export function ComponentSpecificContent({
     }
 
     case ComponentType.Map: {
-      return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
+      return (
+        <MapComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+        />
+      );
     }
     default: {
       return null;

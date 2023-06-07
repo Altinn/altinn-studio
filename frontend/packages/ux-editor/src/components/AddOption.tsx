@@ -46,7 +46,8 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
     errorMessage = duplicateErrorText;
   }
 
-  const addOption = (option: IOption) => {
+  const addOption = (event: React.MouseEvent<HTMLButtonElement>, option: IOption) => {
+    event.stopPropagation();
     handleComponentChange(addOptionToComponent(component, option));
     setIsAddMode(false);
     setNewOption(generateRandomOption());
@@ -78,7 +79,7 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
         <div className={classes.addButtons}>
           <Button
             disabled={!isNewValueValid}
-            onClick={() => addOption(newOption)}
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) => addOption(event, newOption)}
             title={t('general.add')}
           >
             {t('general.add')}

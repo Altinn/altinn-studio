@@ -26,6 +26,7 @@ export const PanelComponent = ({
         handleComponentChange={handleComponentChange}
         textKey='body'
         labelKey='ux_editor.modal_text_resource_body'
+        placeholderKey='ux_editor.modal_text_resource_body_add'
       />
       <Checkbox
         label={t('ux_editor.show_icon')}
