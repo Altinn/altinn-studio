@@ -50,13 +50,6 @@
   }
 }
 
-/* TODO: remove when https://github.com/digdir/designsystem/issues/497 is resolved 
- * This is a workaround to avoid the dropdown list from being hidden behind the dev tools panel
- */
-* {
-  --option_list-z_index: 10002 !important;
-}
-
 /* Custom CSS for all app */
 
 /* Workaround to avoid (PDF) postfix from Altinn designsystem */

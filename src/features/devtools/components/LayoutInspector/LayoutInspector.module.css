@@ -93,7 +93,7 @@
   position: absolute;
   top: 32px;
   right: 0;
-  z-index: 10001;
+  z-index: 1001;
 }
 
 .headerLink {
