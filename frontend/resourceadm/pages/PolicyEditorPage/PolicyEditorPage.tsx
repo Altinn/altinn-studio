@@ -117,7 +117,7 @@ export const PolicyEditorPage = () => {
     }
     // TODO error handling
     if (hasError) {
-      return <p>Error getting content</p>;
+      return <p>Beklager, det skjedde en feil under innhenting av innholdet</p>;
     }
     return (
       <PolicyEditor
