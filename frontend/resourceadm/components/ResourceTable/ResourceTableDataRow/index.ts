@@ -1,0 +1,1 @@
+export { ResourceTableDataRow } from './ResourceTableDataRow'

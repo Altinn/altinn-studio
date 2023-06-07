@@ -4,7 +4,7 @@ import './App.css';
 import { PageSpinner } from 'app-shared/components';
 
 import { PageLayout } from 'resourceadm/pages/PageLayout';
-import { ResourceDashboard } from '../pages/ResourceDashboard';
+import { ResourceDashboardOld } from '../pages/ResourceDashboardOld';
 import { TestPage } from '../pages/TestPage';
 
 import { Route, Routes } from 'react-router-dom';
@@ -15,6 +15,7 @@ import { useOrganizationsQuery } from '../hooks/queries';
 
 import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
 import { ResourcePage } from 'resourceadm/pages/ResourcePage';
+import { ResourceDashboard } from 'resourceadm/pages/ResourceDashboard';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -58,17 +59,21 @@ export const App = (): JSX.Element => {
     return (
       <div className={classes.root}>
         <Routes>
+          <Route element={<PageLayout />}>
+            <Route path={basePath} element={<ResourceDashboard />} />
+          </Route>
+
           <Route element={<TestPage />}>
             <Route
-              path={basePath}
-              element={<ResourceDashboard user={user} organizations={organizations} />}
+              path={basePath + '/old'}
+              element={<ResourceDashboardOld user={user} organizations={organizations} />}
             />
           </Route>
 
           <Route element={<PageLayout />}>
             <Route
               path='/:selectedContext/repo'
-              element={<ResourceDashboard user={user} organizations={organizations} />}
+              element={<ResourceDashboardOld user={user} organizations={organizations} />}
             />
           </Route>
 

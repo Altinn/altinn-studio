@@ -1,0 +1,27 @@
+.tableData {
+  padding-block: 15px;
+  border-bottom: 2px solid #BCC7CC;
+}
+
+.tableDataLarge {
+  width: 27%;
+}
+
+.tableDataMedium {
+  width: 17%;
+  padding-left: 1%;
+}
+
+.tableDataSall {
+  width: 10%;
+}
+
+.tableDataXSmall {
+  width: 2%;
+}
+
+.tableDataText {
+  font-size: 16px;
+  font-weight: 400;
+  font-family: Roboto, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}

@@ -1,0 +1,28 @@
+.searchBox {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.searchField {
+  border: 1px solid #0062BA;
+  padding: 12px;
+  font-size: 16px;
+  padding-right: 30px;
+  min-width: 350px;
+}
+
+.searchField:hover {
+  border: 1px solid #67c7f4;
+}
+
+.searchField:focus {
+  outline: 2px solid #98177e;
+  outline-offset: 3px;
+}
+
+.searchIconWrapper {
+  position: absolute;
+  right: 0.5rem;
+  padding-right: 5px;
+}

@@ -1,1 +1,1 @@
-export { ResourceDashboard } from './ResourceDashboard';
+export { ResourceDashboard } from './ResourceDashboard'
