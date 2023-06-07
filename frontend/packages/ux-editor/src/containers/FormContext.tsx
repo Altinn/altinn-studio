@@ -8,6 +8,7 @@ import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateForm
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { useFormLayoutsSelector } from '../hooks';
 import { selectedLayoutSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
+import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
 
 export type FormContext = {
   formId: string;
@@ -75,7 +76,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
       if (id !== updatedContainer.id) {
         setFormId(updatedContainer.id);
       }
-    }, 500);
+    }, AUTOSAVE_DEBOUNCE_INTERVAL);
   }, [handleUpdateFormContainer]);
 
   const handleComponentSave = useCallback(async (id: string, updatedComponent: FormComponent): Promise<void> => {
@@ -94,7 +95,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
           setFormId(updatedComponent.id);
         }
       }
-    }, 500);
+    }, AUTOSAVE_DEBOUNCE_INTERVAL);
   }, [components, updateFormComponent]);
 
   const value = useMemo(() => ({

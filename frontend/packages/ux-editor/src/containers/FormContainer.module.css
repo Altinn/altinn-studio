@@ -10,7 +10,7 @@
   background-color: #0062BA08;
 }
 
-.editMode.formGroupWrapper {
+.formGroupWrapper.editMode {
   border-color: #008FD6;
   border-style: dashed;
   box-shadow: 0 0 4px #1EADF740;

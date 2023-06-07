@@ -295,6 +295,59 @@ export const addContainer = (
 };
 
 /**
+ * Updates a container.
+ * @param layout The layout to update.
+ * @param updatedContainer The updated container.
+ * @param containerId The current id of the updated container.
+ * @returns The new layout.
+ */
+export const updateContainer = (
+  layout: IInternalLayout,
+  updatedContainer: FormContainer,
+  containerId: string,
+): IInternalLayout => {
+  const oldLayout: IInternalLayout = deepCopy(layout);
+
+  const currentId = containerId;
+  const newId = updatedContainer.id || currentId;
+
+  if (currentId !== newId) {
+    // Update component ID:
+    oldLayout.containers[newId] = {
+      ...oldLayout.containers[currentId],
+    };
+    delete oldLayout.containers[currentId];
+
+    // Update ID in parent container order:
+    const parentContainer = Object.keys(oldLayout.order).find((containerId: string) => {
+      return oldLayout.order[containerId].indexOf(currentId) > -1;
+    });
+    if (parentContainer) {
+      const parentContainerOrder = oldLayout.order[parentContainer];
+      const containerIndex = parentContainerOrder.indexOf(currentId);
+      parentContainerOrder[containerIndex] = newId;
+    }
+
+    // Update ID of the containers order array:
+    oldLayout.order[newId] = layout.order[currentId];
+    delete oldLayout.order[currentId];
+  }
+
+  const newLayout: IInternalLayout = {
+    ...oldLayout,
+    containers: {
+      ...oldLayout.containers,
+      [newId]: {
+        ...oldLayout.containers[newId],
+        ...updatedContainer,
+      }
+    }
+  }
+
+  return newLayout;
+}
+
+/**
  * Removes a component from a layout.
  * @param layout The layout to remove the component from.
  * @param componentId The id of the component to remove.

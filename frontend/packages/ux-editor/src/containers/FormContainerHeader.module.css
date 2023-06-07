@@ -1,10 +1,11 @@
 .formGroup {
-  border-left: 6px solid transparent;
+  --border-left-width: 6px;
+  border-left: var(--border-left-width) solid transparent;
   background-color: #0000000b;
   color: #0062BA !important;
   display: flex;
   height: 48px;
-  padding-left: calc(var(--margin-left-with-handle) - 6px);
+  padding-left: calc(var(--margin-left-with-handle) - var(--border-left-width));
   padding-right: var(--margin-horizontal);
 }
 
