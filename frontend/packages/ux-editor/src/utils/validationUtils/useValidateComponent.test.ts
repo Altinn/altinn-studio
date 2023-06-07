@@ -139,6 +139,4 @@ describe('validateComponent', () => {
   });
 });
 
-const render = (component: FormComponent) => {
-  return renderHookWithMockStore()(() => useValidateComponent(component)).renderHookResult.result.current;
-}
+const render = (component: FormComponent) => renderHookWithMockStore()(() => useValidateComponent(component)).renderHookResult.result.current;

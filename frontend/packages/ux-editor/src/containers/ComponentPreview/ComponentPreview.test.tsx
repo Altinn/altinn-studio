@@ -83,6 +83,4 @@ describe('ComponentPreview', () => {
   });
 });
 
-const render = async (props: Partial<ComponentPreviewProps> = {}) => {
-  return renderWithMockStore({}, )(<ComponentPreview {...defaultProps} {...props} />);
-};
+const render = (props: Partial<ComponentPreviewProps> = {}) => renderWithMockStore({}, )(<ComponentPreview {...defaultProps} {...props} />);
