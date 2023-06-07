@@ -152,7 +152,7 @@ namespace Altinn.Studio.PolicyAdmin
                 return policyOutput;
             }
 
-            if (policyInput.Rules != null)
+            if (policyInput.Rules != null || policyInput.Rules.Count == 0)
             {
                 foreach (PolicyRule rule in policyInput.Rules)
                 {
