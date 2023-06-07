@@ -1,5 +1,6 @@
 import {
   PolicyActionType,
+  PolicyBackendType,
   PolicyRuleBackendType,
   PolicyRuleCardType,
   PolicyRuleResourceType,
@@ -16,6 +17,15 @@ export const emptyPolicyRule: PolicyRuleCardType = {
   subject: [],
   description: '',
 };
+
+/**
+ * Empty policy
+ */
+export const emptyPolicy: PolicyBackendType = {
+  rules: [],
+  requiredAuthenticationLevelEndUser: '3',
+  requiredAuthenticationLevelOrg: '3'
+}
 
 /**
  * Maps the list of policy subject strings from backend of the format
@@ -62,6 +72,16 @@ export const mapResourceFromBackendToResourceType = (
   };
 };
 
+const mapPolicyActionsToActionTitle = (
+  actionOptions: PolicyActionType[],
+  actionIds: string[]
+): string[] => {
+
+  return actionIds.map(aId => actionOptions.find(a => aId === a.actionId).actionTitle)
+
+  // return []
+}
+
 /**
  * Maps the policy rules object from backend to an object of the type used to
  * display data on the policy cards on the policy editor.
@@ -73,6 +93,7 @@ export const mapResourceFromBackendToResourceType = (
  */
 export const mapPolicyRulesBackendObjectToPolicyRuleCardType = (
   subjectOptions: PolicySubjectType[],
+  actionOptions: PolicyActionType[],
   rules: PolicyRuleBackendType[]
 ): PolicyRuleCardType[] => {
   const newRules = rules.map((r) => {
@@ -83,9 +104,11 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCardType = (
       resource.map(r => mapResourceFromBackendToResourceType(r))
     );
 
+    const actionTitles = mapPolicyActionsToActionTitle(actionOptions, r.actions)
+
     return {
       ruleId: id,
-      actions: r.actions,
+      actions: actionTitles,
       description: r.description,
       subject: mapPolicySubjectToSubjectTitle(subjectOptions, r.subject),
       resources: mappedResources,

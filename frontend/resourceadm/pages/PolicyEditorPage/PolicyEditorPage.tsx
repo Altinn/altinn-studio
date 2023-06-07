@@ -11,6 +11,13 @@ import {
   getSubjectOptionsUrlBySelectedContextAndRepo,
 } from 'resourceadm/utils/backendUrlUtils/backendUserUtils';
 import { useOnce } from 'resourceadm/hooks/useOnce';
+import {
+  mapPolicyActionResultToPolicyActions,
+  mapPolicyResultToPolicyObject,
+  mapPolicySubjectResultToPolicySubjects,
+} from 'resourceadm/utils/mapperUtils';
+import { emptyPolicy } from 'resourceadm/utils/policyEditorUtils';
+import { Spinner } from '@digdir/design-system-react';
 
 /**
  * Displays the content where a user can add and edit a policy
@@ -23,7 +30,7 @@ export const PolicyEditorPage = () => {
 
   const [actions, setActions] = useState<PolicyActionType[]>([]);
   const [subjects, setSubjects] = useState<PolicySubjectType[]>([]);
-  const [policy, setPolicy] = useState<PolicyBackendType>();
+  const [policy, setPolicy] = useState<PolicyBackendType>(emptyPolicy);
   const [loading, setLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -31,43 +38,42 @@ export const PolicyEditorPage = () => {
    * Get the policy, actions, and subjects when the page loads
    */
   useOnce(() => {
-    // Get the ations when page loads
-    get(getActionOptionsUrlBySelectedContextAndRepo(selectedContext, repo))
-      .then((res: unknown) => {
-        const actionRes: PolicyActionType[] = res as PolicyActionType[];
-        setActions(actionRes);
-      })
-      .catch((err) => {
-        console.log({ err });
-        console.error(err);
-      });
-
-    // Get the subjects when page loads
-    get(getSubjectOptionsUrlBySelectedContextAndRepo(selectedContext, repo))
-      .then((res: unknown) => {
-        const subjectsRes: PolicySubjectType[] = res as PolicySubjectType[];
-        setSubjects(subjectsRes);
-      })
-      .catch((err) => {
-        console.log({ err });
-        console.error(err);
-      });
-
     // Start loading when trying to get the policies
     setLoading(true);
-    // legg på param for å kjøre mot backend eller mock.
-    // E.g., http://studio.localhost/resourceadm/ttd/ttd-resources/resource/resource_id_1/policy
-    get(getPolicyRulesUrl(selectedContext, repo, resourceId))
-      .then((res: unknown) => {
-        const policyRes: PolicyBackendType = res as PolicyBackendType;
 
-        // TODO - do more checks
-        setPolicy(policyRes);
-        setLoading(false);
+    // Get the ations when page loads
+    get(getActionOptionsUrlBySelectedContextAndRepo(selectedContext, repo))
+      .then((actionResult: unknown) => {
+        // Set the actions
+        setActions(mapPolicyActionResultToPolicyActions(actionResult));
+
+        // Get the subjects when page loads
+        get(getSubjectOptionsUrlBySelectedContextAndRepo(selectedContext, repo))
+          .then((subjectResult: unknown) => {
+            // Set the subjects
+            setSubjects(mapPolicySubjectResultToPolicySubjects(subjectResult));
+
+            // E.g., http://studio.localhost/designer/api/ttd/ttd-resources/policy/resource_id_7
+            get(getPolicyRulesUrl(selectedContext, repo, resourceId))
+              .then((policyResult: unknown) => {
+                // Set the policy
+                setPolicy(mapPolicyResultToPolicyObject(policyResult));
+                setLoading(false);
+              })
+              .catch((err) => {
+                console.error('Error getting the policy', err);
+                setLoading(false);
+                setHasError(true);
+              });
+          })
+          .catch((err) => {
+            console.error('Error getting the subjects', err);
+            setLoading(false);
+            setHasError(true);
+          });
       })
-      .catch((e) => {
-        console.error(e);
-        console.log({ e });
+      .catch((err) => {
+        console.error('Error getting the actions', err);
         setLoading(false);
         setHasError(true);
       });
@@ -102,32 +108,16 @@ export const PolicyEditorPage = () => {
    * Displays the content based on the state of the page
    */
   const displayContent = () => {
-    if (loading) {
-      // TODO spinner
-      return <p>Loading content</p>;
-    }
-    /*if (hasError) {
-      // TODO handle error
-      return <p>error</p>;
-    }*/
-    if (policy === undefined) {
+    if (!loading) {
       return (
-        <>
-          <p>Hei</p>
-          <PolicyEditor
-            policy={{
-              rules: [],
-              requiredAuthenticationLevelEndUser: '3',
-              requiredAuthenticationLevelOrg: '3',
-            }}
-            actions={actions}
-            subjects={subjects}
-            resourceType={resourceType}
-            resourceId={resourceId}
-            onSave={handleSavePolicy}
-          />
-        </>
+        <div className={classes.spinnerWrapper}>
+          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
+        </div>
       );
+    }
+    // TODO error handling
+    if (hasError) {
+      return <p>Error getting content</p>;
     }
     return (
       <PolicyEditor

@@ -34,7 +34,7 @@ export interface PolicyRuleBackendType {
 
 export type RequiredAuthLevelType = '1' | '2' | '3' | '4';
 export interface PolicyBackendType {
-  rules: PolicyRuleBackendType[],
+  rules: PolicyRuleBackendType[] | null,
   requiredAuthenticationLevelEndUser: RequiredAuthLevelType,
   requiredAuthenticationLevelOrg: string
 }

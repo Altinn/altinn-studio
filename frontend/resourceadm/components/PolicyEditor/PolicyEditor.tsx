@@ -48,7 +48,7 @@ export const PolicyEditor = ({
   // TODO - translation
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCardType[]>(
-    mapPolicyRulesBackendObjectToPolicyRuleCardType(subjects, policy.rules)
+    mapPolicyRulesBackendObjectToPolicyRuleCardType(subjects, actions, policy.rules)
   );
   const [requiredAuthLevel, setRequiredAuthLevel] = useState<RequiredAuthLevelType>(
     policy.requiredAuthenticationLevelEndUser
