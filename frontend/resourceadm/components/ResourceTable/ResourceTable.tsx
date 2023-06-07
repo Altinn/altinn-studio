@@ -45,8 +45,8 @@ export const ResourceTable = ({ list, isSortedByNewest }: Props) => {
           <th className={classes.tableHeader}>
             <p className={classes.tableHeaderText}>Policy</p>
           </th>
-          <th className={classes.tableHeader} />
-          <th className={classes.tableHeader} />
+          <th className={classes.tableHeader} aria-label='Rediger ressurs kolonne' />
+          <th className={classes.tableHeader} aria-label='Se flere valg for ressursen' />
         </tr>
         {displayRows}
       </tbody>

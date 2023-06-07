@@ -18,6 +18,7 @@ export const SearchBox = ({ onChange }: Props) => {
         type='text'
         placeholder='Søk etter ressurs'
         onChange={handleChange}
+        aria-label='Søk etter ressurs'
       />
       <div className={classes.searchIconWrapper}>
         <MagnifyingGlassIcon title='Search icon' fontSize='1.5rem' />
