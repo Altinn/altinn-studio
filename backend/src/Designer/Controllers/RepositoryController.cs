@@ -205,10 +205,10 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
 
             try
             {
-                semaphore.Wait();
                 RepoStatus pullStatus = _sourceControl.PullRemoteChanges(org, repository);
 
                 RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
@@ -238,9 +238,9 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
             try
             {
-                semaphore.Wait();
                 _repository.ResetLocalRepository(org, repository);
                 return Ok();
             }

@@ -19,7 +19,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public UserRequestsSynchronizationService(UserRequestSynchronizationSettings userParallelizationSettings)
         {
             _userParallelizationSettings = userParallelizationSettings;
-            _timer = new Timer(_ => CleanupUnusedKeys(), null, TimeSpan.FromMinutes(_userParallelizationSettings.CleanUpFrequencyInMinutes), TimeSpan.FromMinutes(_userParallelizationSettings.CleanUpFrequencyInMinutes));
+            _timer = new Timer(_ => CleanupUnusedKeys(), null, TimeSpan.FromSeconds(_userParallelizationSettings.CleanUpFrequencyInSeconds), TimeSpan.FromSeconds(_userParallelizationSettings.CleanUpFrequencyInSeconds));
         }
 
         public SemaphoreSlim GetRequestsSemaphore(string org, string repo, string developer)
@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         private static string GenerateKey(string org, string repo, string developer)
-            => $"{org}_{repo}_{developer}".Remove(' ');
+            => $"{org}_{repo}_{developer}".ToLower();
 
         private void CleanupUnusedKeys()
         {
@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             foreach ((string key, DateTime lastUsed) in s_lastUsedTimes)
             {
-                if (now.Subtract(lastUsed).TotalMinutes >= _userParallelizationSettings.SemaphoreExpiryInMinutes)
+                if (now.Subtract(lastUsed).TotalSeconds >= _userParallelizationSettings.SemaphoreExpiryInSeconds)
                 {
                     s_lastUsedTimes.TryRemove(key, out DateTime _);
                     s_semaphoreSlims.TryRemove(key, out SemaphoreSlim semaphoreSlim);

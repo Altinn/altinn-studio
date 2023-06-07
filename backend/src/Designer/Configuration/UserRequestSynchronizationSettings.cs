@@ -10,11 +10,11 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Describes the number of minutes a semaphore will be kept before it is removed. Expiry is renewed each time the semaphore is used.
         /// </summary>
-        public int SemaphoreExpiryInMinutes { get; set; } = 120;
+        public int SemaphoreExpiryInSeconds { get; set; } = 2 * 60 * 60;
         /// <summary>
         /// Describes how frequently the service will clean up unused semaphores.
         /// </summary>
-        public int CleanUpFrequencyInMinutes { get; set; } = 120;
+        public int CleanUpFrequencyInSeconds { get; set; } = 2 * 60 * 60;
         /// <summary>
         /// Defines the maximum number of parallel requests per user.
         /// </summary>
