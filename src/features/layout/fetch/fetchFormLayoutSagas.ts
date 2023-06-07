@@ -54,13 +54,11 @@ export function* fetchLayoutSaga(): SagaIterator {
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
     const hiddenLayoutsExpressions: ExprUnresolved<IHiddenLayoutsExpressions> = {};
-    let autoSave: boolean | undefined;
     let firstLayoutKey: string;
     if (layoutResponse.data?.layout) {
       layouts.FormLayout = layoutResponse.data.layout;
       hiddenLayoutsExpressions.FormLayout = layoutResponse.data.hidden;
       firstLayoutKey = 'FormLayout';
-      autoSave = layoutResponse.data.autoSave;
     } else {
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
 
@@ -79,7 +77,6 @@ export function* fetchLayoutSaga(): SagaIterator {
         layouts[key] = cleanLayout(layoutResponse[key].data.layout);
         hiddenLayoutsExpressions[key] = layoutResponse[key].data.hidden;
         navigationConfig[key] = layoutResponse[key].data.navigation;
-        autoSave = layoutResponse[key].data.autoSave;
       });
     }
 
@@ -102,7 +99,6 @@ export function* fetchLayoutSaga(): SagaIterator {
         hiddenLayoutsExpressions,
       }),
     );
-    yield put(FormLayoutActions.updateAutoSave({ autoSave }));
     yield put(
       FormLayoutActions.updateCurrentView({
         newView: firstLayoutKey,

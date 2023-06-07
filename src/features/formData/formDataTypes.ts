@@ -14,8 +14,6 @@ export interface IFormDataRejected {
 
 export interface ISubmitDataAction {
   url?: string;
-  apiMode?: string;
-  stopWithWarnings?: boolean;
   componentId: string;
 }
 

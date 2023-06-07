@@ -57,7 +57,6 @@ describe('NavigationButton', () => {
     },
     uiConfig: {
       currentView: 'layout1',
-      autoSave: true,
       focus: null,
       hiddenFields: [],
       repeatingGroups: {},

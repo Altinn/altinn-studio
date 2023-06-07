@@ -136,13 +136,10 @@ export function* updateCurrentViewSaga({
           }),
         );
       } else if (
-        !canFormBeSaved(
-          {
-            validations: { [currentView]: validations[currentView] },
-            invalidDataTypes: false,
-          },
-          'Complete',
-        )
+        !canFormBeSaved({
+          validations: { [currentView]: validations[currentView] },
+          invalidDataTypes: false,
+        })
       ) {
         yield put(
           FormLayoutActions.updateCurrentViewRejected({

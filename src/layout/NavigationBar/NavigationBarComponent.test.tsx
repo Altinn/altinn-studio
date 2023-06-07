@@ -33,7 +33,6 @@ const render = ({ dispatch = jest.fn() }: Props = {}) => {
             hidden: [],
           },
           currentView: 'page1',
-          autoSave: false,
           focus: 'focus',
           hiddenFields: [],
           repeatingGroups: {},

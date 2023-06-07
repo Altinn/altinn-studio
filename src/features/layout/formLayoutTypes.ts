@@ -35,10 +35,6 @@ export interface ISetCurrentViewCacheKey {
   key: string | undefined;
 }
 
-export interface IUpdateAutoSave {
-  autoSave: boolean | undefined;
-}
-
 export interface IUpdateCurrentView {
   newView: string;
   returnToView?: string;

@@ -37,7 +37,6 @@ const render = (submittingId: string) => {
     },
     manipulateState: (state) => {
       state.formData.submittingId = submittingId;
-      state.formLayout.uiConfig.autoSave = true;
     },
   });
 };

@@ -94,7 +94,6 @@ describe('fetchFormLayoutSagas', () => {
             hiddenLayoutsExpressions: { ...hiddenExprPage1 },
           }),
         )
-        .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'page1',
@@ -120,7 +119,6 @@ describe('fetchFormLayoutSagas', () => {
             hiddenLayoutsExpressions: { FormLayout: hiddenExprPage1['page1'] },
           }),
         )
-        .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'FormLayout',
@@ -169,7 +167,6 @@ describe('fetchFormLayoutSagas', () => {
             },
           }),
         )
-        .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'page2',
@@ -201,7 +198,6 @@ describe('fetchFormLayoutSagas', () => {
             },
           }),
         )
-        .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'page1',
@@ -227,7 +223,6 @@ describe('fetchFormLayoutSagas', () => {
             hiddenLayoutsExpressions: { ...hiddenExprPage1 },
           }),
         )
-        .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'page1',
@@ -253,7 +248,6 @@ describe('fetchFormLayoutSagas', () => {
             hiddenLayoutsExpressions: { ...hiddenExprPage1 },
           }),
         )
-        .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'page1',

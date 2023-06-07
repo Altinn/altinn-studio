@@ -42,7 +42,6 @@ export const initialState: ILayoutState = {
   uiConfig: {
     focus: null,
     hiddenFields: [],
-    autoSave: null,
     repeatingGroups: null,
     fileUploadersWithTag: {},
     receiptLayoutName: undefined,
@@ -160,12 +159,6 @@ export const formLayoutSlice = () => {
           reducer: (state, action) => {
             const { key } = action.payload;
             state.uiConfig.currentViewCacheKey = key;
-          },
-        }),
-        updateAutoSave: mkAction<LayoutTypes.IUpdateAutoSave>({
-          reducer: (state, action) => {
-            const { autoSave } = action.payload;
-            state.uiConfig.autoSave = autoSave;
           },
         }),
         updateCurrentView: mkAction<LayoutTypes.IUpdateCurrentView>({

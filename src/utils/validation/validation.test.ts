@@ -738,15 +738,12 @@ describe('utils > validation', () => {
 
   describe('canFormBeSaved', () => {
     it('should validate correctly', () => {
-      const apiModeComplete = 'Complete';
-      const falseResult = validation.canFormBeSaved(mockFormValidationResult, apiModeComplete);
+      const falseResult = validation.canFormBeSaved(mockFormValidationResult);
       const falseResult2 = validation.canFormBeSaved(mockInvalidTypes);
       const trueResult2 = validation.canFormBeSaved(null);
-      const trueResult3 = validation.canFormBeSaved(mockFormValidationResult);
       expect(falseResult).toBeFalsy();
       expect(falseResult2).toBeFalsy();
       expect(trueResult2).toBeTruthy();
-      expect(trueResult3).toBeTruthy();
     });
   });
 

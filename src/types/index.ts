@@ -176,7 +176,6 @@ export interface IHiddenLayoutsExpressions {
 }
 
 export interface IUiConfig {
-  autoSave: boolean | null | undefined;
   receiptLayoutName?: string;
   currentView: string;
   currentViewCacheKey?: string;

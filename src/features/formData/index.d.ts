@@ -17,9 +17,8 @@ export interface IFormDataState {
   unsavedChanges: boolean;
   saving: boolean;
 
-  // The component IDs which triggered submitting/saving last time
+  // The component IDs which triggered a submit (saving the form data in order to move to the next step)
   submittingId: string;
-  savingId: string;
 
   error: Error | null;
 }

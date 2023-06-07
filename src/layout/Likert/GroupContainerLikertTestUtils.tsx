@@ -127,7 +127,6 @@ const createLayout = (
     },
     currentView: 'FormLayout',
     focus: null,
-    autoSave: null,
     fileUploadersWithTag: {},
     navigationConfig: {},
     tracks: {
@@ -212,7 +211,6 @@ export const render = ({
     lastSavedFormData: {},
     error: null,
     submittingId: '',
-    savingId: '',
     unsavedChanges: false,
     saving: false,
   };

@@ -40,7 +40,6 @@ const getLayout = (
           index: 3,
         },
       },
-      autoSave: false,
       currentView: 'FormLayout',
       focus: undefined,
       tracks: {

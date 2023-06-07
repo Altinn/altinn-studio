@@ -70,7 +70,6 @@ describe('SummaryGroupComponent', () => {
         ],
       },
       uiConfig: {
-        autoSave: true,
         focus: null,
         hiddenFields: [],
         repeatingGroups: {

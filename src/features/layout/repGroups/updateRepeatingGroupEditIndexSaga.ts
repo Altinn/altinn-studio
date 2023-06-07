@@ -101,7 +101,7 @@ export function* updateRepeatingGroupEditIndexSaga({
       yield put(ValidationActions.updateValidations({ validations: newValidations }));
       const rowValidations = filterValidationsByRow(resolvedNodes, combinedValidations, group, rowIndex);
 
-      if (canFormBeSaved({ validations: rowValidations, invalidDataTypes: false }, 'Complete')) {
+      if (canFormBeSaved({ validations: rowValidations, invalidDataTypes: false })) {
         if (shouldAddRow) {
           yield put(FormLayoutActions.repGroupAddRow({ groupId: group }));
         }

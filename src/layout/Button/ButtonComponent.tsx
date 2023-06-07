@@ -4,10 +4,8 @@ import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { ProcessActions } from 'src/features/process/processSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import classes from 'src/layout/Button/ButtonComponent.module.css';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
-import { SaveButton } from 'src/layout/Button/SaveButton';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -24,9 +22,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   const props: IButtonProvidedProps = { ...componentProps, ...node.item, node };
 
   const dispatch = useAppDispatch();
-  const autoSave = useAppSelector((state) => state.formLayout.uiConfig.autoSave);
   const submittingId = useAppSelector((state) => state.formData.submittingId);
-  const savingId = useAppSelector((state) => state.formData.savingId);
   const confirmingId = useAppSelector((state) => state.process.completingId);
   const currentTaskType = useAppSelector((state) => state.instanceData.instance?.process?.currentTask?.altinnTaskType);
   const processActionsFeature = useAppSelector(
@@ -55,9 +51,6 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
       </div>
     );
   }
-  const saveFormData = () => {
-    dispatch(FormDataActions.submit({ componentId: 'saveBtn' }));
-  };
 
   const submitTask = ({ componentId }: { componentId: string }) => {
     if (!disabled) {
@@ -66,8 +59,6 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
         dispatch(
           FormDataActions.submit({
             url: `${window.location.origin}/${org}/${app}/api/${instanceId}`,
-            apiMode: 'Complete',
-            stopWithWarnings: false,
             componentId,
           }),
         );
@@ -78,23 +69,12 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
       }
     }
   };
-  const busyWithId = savingId || submittingId || confirmingId || '';
+  const busyWithId = submittingId || confirmingId || '';
   return (
     <div
       className={classes.container}
       style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
     >
-      {autoSave === false && ( // can this be removed from the component?
-        <SaveButton
-          onClick={saveFormData}
-          id='saveBtn'
-          busyWithId={busyWithId}
-          language={props.language}
-          disabled={disabled}
-        >
-          {getLanguageFromKey('general.save', props.language)}
-        </SaveButton>
-      )}
       <SubmitButton
         onClick={() => submitTask({ componentId: id })}
         id={id}

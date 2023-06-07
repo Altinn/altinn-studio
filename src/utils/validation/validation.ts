@@ -820,16 +820,16 @@ export function mapToComponentValidationsGivenNode(
   addErrorToValidations(validations, layoutId, foundNode.item.id, fieldKey, errorMessage);
 }
 
-/*
+/**
  * Checks if form can be saved. If it contains anything other than valid error messages it returns false
  */
-export function canFormBeSaved(validationResult: IValidationResult | null, apiMode?: string): boolean {
+export function canFormBeSaved(validationResult: IValidationResult | null): boolean {
   if (validationResult && validationResult.invalidDataTypes) {
     return false;
   }
 
   const validations = validationResult?.validations;
-  if (!validations || apiMode !== 'Complete') {
+  if (!validations) {
     return true;
   }
   return Object.keys(validations).every((layoutId: string) =>
