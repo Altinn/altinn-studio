@@ -108,7 +108,7 @@ export const PolicyEditorPage = () => {
    * Displays the content based on the state of the page
    */
   const displayContent = () => {
-    if (!loading) {
+    if (loading) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
