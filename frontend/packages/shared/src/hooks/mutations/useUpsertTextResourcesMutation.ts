@@ -1,6 +1,6 @@
 import { ITextResource, ITextResources } from 'app-shared/types/global';
-import { useMutation } from '@tanstack/react-query';
-import { queryClient, useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertTextResourcesArrayToObject, modifyTextResources } from 'app-shared/utils/textResourceUtils';
 import { usePreviewConnection } from "app-shared/providers/PreviewConnectionContext";
@@ -13,6 +13,7 @@ export interface UpsertTextResourcesMutationArgs {
 export const useUpsertTextResourcesMutation = (org: string, app: string) => {
   const previewConnection = usePreviewConnection();
   const { upsertTextResources } = useServicesContext();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ language, textResources }: UpsertTextResourcesMutationArgs) =>
       upsertTextResources(

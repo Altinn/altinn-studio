@@ -1,12 +1,11 @@
 import { IFormDesignerComponents, IFormLayouts, IInternalLayout, IWidget } from '../../types/global';
 import { convertFromLayoutToInternalFormat } from '../../utils/formLayoutUtils';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { deepCopy } from 'app-shared/pure';
 import { v4 as uuidv4 } from 'uuid';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { queryClient } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
@@ -22,6 +21,7 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
   const { mutateAsync: updateLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const { mutateAsync: updateText } = useUpsertTextResourcesMutation(org, app);
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ widget, position, containerId }: AddWidgetMutationArgs) => {
       const internalComponents = convertFromLayoutToInternalFormat({

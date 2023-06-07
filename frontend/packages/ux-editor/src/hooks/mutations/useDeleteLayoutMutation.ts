@@ -1,5 +1,5 @@
-import { useMutation } from '@tanstack/react-query';
-import { queryClient, useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -25,6 +25,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const dispatch = useDispatch();
   const t = useText();
+  const queryClient = useQueryClient();
 
   const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);

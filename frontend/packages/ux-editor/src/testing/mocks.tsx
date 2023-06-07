@@ -20,6 +20,7 @@ import {
   layoutSetsMock,
 } from './layoutMock';
 import { queriesMock as allQueriesMock } from 'app-shared/mocks/queriesMock';
+import { QueryClient } from '@tanstack/react-query';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -80,12 +81,23 @@ export const queriesMock: ServicesContextProps = {
   upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
 };
 
+export const queryClientMock = new QueryClient({
+  logger: {
+    log: () => {},
+    warn: () => {},
+    error: () => {},
+  },
+  defaultOptions: {
+    queries: { staleTime: Infinity },
+  },
+});
+
 export const renderWithMockStore =
   (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
   (component: ReactNode) => {
     const store = configureStore()({ ...appStateMock, ...state });
     const renderResult = render(
-      <ServicesContextProvider {...queriesMock} {...queries}>
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClientMock}>
         <PreviewConnectionContextProvider>
           <Provider store={store}>
             <BrowserRouter>{component}</BrowserRouter>
@@ -95,14 +107,13 @@ export const renderWithMockStore =
     );
     return { renderResult, store };
   };
-
 export const renderHookWithMockStore =
   (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
   (hook: () => any) => {
     const store = configureStore()({ ...appStateMock, ...state });
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => (
-        <ServicesContextProvider {...queriesMock} {...queries}>
+        <ServicesContextProvider {...queriesMock} {...queries} client={queryClientMock}>
           <PreviewConnectionContextProvider>
             <Provider store={store}>{children}</Provider>
           </PreviewConnectionContextProvider>
