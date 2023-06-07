@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
@@ -13,7 +11,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// Creates a data element based on element type, instance id, content type, content file name and file size. 
         /// </summary>
         /// <returns>DataElement</returns>
-        public static DataElement CreateDataElement(string dataType, List<Guid> refs, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user)
+        public static DataElement CreateDataElement(string dataType, List<Guid> refs, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user, List<Guid> generatedFromId)
         {
             string dataId = Guid.NewGuid().ToString();
 
@@ -39,6 +37,23 @@ namespace Altinn.Platform.Storage.Helpers
                 Size = fileSize,
                 Refs = refs,
             };
+
+            if (generatedFromId != null && generatedFromId.Any())
+            {
+                var references = new List<Reference>();
+                foreach (Guid id in generatedFromId)
+                {
+                    references.Add(
+                        new Reference
+                        {
+                            Relation = Interface.Enums.RelationType.GeneratedFrom,
+                            Value = id.ToString(),
+                            ValueType = Interface.Enums.ReferenceType.DataElement
+                        });
+                }
+
+                newData.References = references;
+            }
 
             string filePath = DataFileName(instance.AppId, guidFromInstanceId, newData.Id);
             newData.BlobStoragePath = filePath;
