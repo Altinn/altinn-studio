@@ -342,7 +342,7 @@ export const updateContainer = (
         ...updatedContainer,
       }
     }
-  }
+  };
 
   return newLayout;
 }
