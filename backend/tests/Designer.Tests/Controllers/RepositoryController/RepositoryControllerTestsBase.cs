@@ -15,6 +15,7 @@ namespace Designer.Tests.Controllers.RepositoryController
     {
         protected static string VersionPrefix => "/designer/api/repos";
         protected string CreatedFolderPath { get; set; }
+        protected string CreatedSecondaryFolderPath { get; set; }
         protected readonly Mock<IRepository> RepositoryMock;
 
         public void Dispose()
@@ -22,6 +23,10 @@ namespace Designer.Tests.Controllers.RepositoryController
             if (!string.IsNullOrWhiteSpace(CreatedFolderPath))
             {
                 TestDataHelper.DeleteDirectory(CreatedFolderPath);
+            }
+            if (!string.IsNullOrWhiteSpace(CreatedSecondaryFolderPath))
+            {
+                TestDataHelper.DeleteDirectory(CreatedSecondaryFolderPath);
             }
         }
 

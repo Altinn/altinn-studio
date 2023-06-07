@@ -28,7 +28,6 @@ namespace Designer.Tests.Controllers.DataModelsController;
 public class PutDatamodelTests : DatamodelsControllerTestsBase<PutDatamodelTests>
 {
     private string TargetTestRepository { get; }
-    private string CreatedTestRepoPath { get; set; }
 
     private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
@@ -51,7 +50,7 @@ public class PutDatamodelTests : DatamodelsControllerTestsBase<PutDatamodelTests
         string fileName = Path.GetFileName(HttpUtility.UrlDecode(modelPath));
         string modelName = fileName!.Remove(fileName.Length - ".schema.json".Length);
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, repo, user, TargetTestRepository);
 
         using var request = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -68,7 +67,7 @@ public class PutDatamodelTests : DatamodelsControllerTestsBase<PutDatamodelTests
     public async Task ValidInput_ShouldReturn_NoContent_And_Create_Files2(string modelPath, string schema, string expectedErrorCode, string org, string repo, string user)
     {
         string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, repo, user, TargetTestRepository);
 
         using var request = new HttpRequestMessage(HttpMethod.Put, url)
         {
@@ -83,7 +82,7 @@ public class PutDatamodelTests : DatamodelsControllerTestsBase<PutDatamodelTests
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
     {
-        var location = Path.GetFullPath(Path.Combine(CreatedTestRepoPath, "App", "models"));
+        var location = Path.GetFullPath(Path.Combine(CreatedFolderPath, "App", "models"));
         var jsonSchemaLocation = Path.Combine(location, $"{modelName}.schema.json");
         var xsdSchemaLocation = Path.Combine(location, $"{modelName}.xsd");
         var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");

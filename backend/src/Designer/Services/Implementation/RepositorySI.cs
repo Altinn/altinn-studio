@@ -340,7 +340,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 if (Directory.Exists(repoPath))
                 {
-                    Directory.Delete(repoPath, true);
+                    FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
                 }
 
                 _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
@@ -389,7 +389,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (Directory.Exists(targetRepositoryPath))
             {
-                Directory.Delete(targetRepositoryPath, true);
+                FireDeletionOfLocalRepo(org, targetRepository, developer);
             }
 
             _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
@@ -440,7 +440,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (Directory.Exists(repoPath))
             {
-                Directory.Delete(repoPath, true);
+                FireDeletionOfLocalRepo(org, repositoryName, developer);
                 _sourceControl.CloneRemoteRepository(org, repositoryName);
                 return true;
             }
@@ -1017,6 +1017,39 @@ namespace Altinn.Studio.Designer.Services.Implementation
             byte[] encodedText = Encoding.UTF8.GetBytes(text);
             await using FileStream sourceStream = new(absoluteFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
             await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length));
+        }
+
+        private void FireDeletionOfLocalRepo(string org, string repo, string developer)
+        {
+            string origRepo = _settings.GetServicePath(org, repo, developer);
+            if (!Directory.Exists(origRepo))
+            {
+                return;
+            }
+            // Rename the folder to be deleted. This operation should be much faster than delete.
+            string deletePath = _settings.GetServicePath(org, $"{repo}_SCHEDULED_FOR_DELETE_{DateTime.Now.Ticks}", developer);
+            Directory.Move(origRepo, deletePath);
+
+            // Run deletion task in background. It's not a critical issue if it fails.
+            Task.Run(() =>
+            {
+                try
+                {
+                    // On windows platform the deletion fail due to hidden files.
+                    var directory = new DirectoryInfo(deletePath) { Attributes = FileAttributes.Normal };
+
+                    foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+                    {
+                        info.Attributes = FileAttributes.Normal;
+                    }
+
+                    directory.Delete(true);
+                }
+                catch
+                {
+                    _logger.LogWarning("Failed to delete repository {Repo} for org {Org}.", repo, org);
+                }
+            });
         }
     }
 }
