@@ -4,7 +4,9 @@ using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
+using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Filters.UserRequestContext;
 using Altinn.Studio.Designer.Repository;
@@ -13,6 +15,8 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using static Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords;
 
 namespace Altinn.Studio.Designer.Infrastructure
@@ -55,6 +59,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IPreviewService, PreviewService>();
             services.RegisterDatamodeling(configuration);
             services.AddUserRequestContext();
+            services.RegisterUserRequestSynchronization(configuration);
 
             return services;
         }
@@ -67,6 +72,14 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
             services.RegisterSettings<CSharpGenerationSettings>(configuration);
             RegisterXsdKeywords();
+            return services;
+        }
+
+        public static IServiceCollection RegisterUserRequestSynchronization(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<UserRequestSynchronizationSettings>(configuration.GetSection(nameof(UserRequestSynchronizationSettings)));
+            services.TryAddSingleton(typeof(UserRequestSynchronizationSettings), svc => ((IOptions<object>)svc.GetService(typeof(IOptions<UserRequestSynchronizationSettings>)))!.Value);
+            services.TryAddSingleton<IUserRequestsSynchronizationService, UserRequestsSynchronizationService>();
             return services;
         }
     }
