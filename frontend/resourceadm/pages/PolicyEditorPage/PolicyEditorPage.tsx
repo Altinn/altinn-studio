@@ -56,7 +56,7 @@ export const PolicyEditorPage = () => {
     // Start loading when trying to get the policies
     setLoading(true);
     // legg på param for å kjøre mot backend eller mock.
-    // E.g., http://studio.localhost/resourceadm/ttd/resourceadm-resources/resource/resource_id_1/policy
+    // E.g., http://studio.localhost/resourceadm/ttd/ttd-resources/resource/resource_id_1/policy
     get(getPolicyRulesUrl(selectedContext, repo, resourceId))
       .then((res: unknown) => {
         const policyRes: PolicyBackendType = res as PolicyBackendType;

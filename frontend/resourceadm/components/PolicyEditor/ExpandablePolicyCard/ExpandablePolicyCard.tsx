@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button, TextArea } from '@digdir/design-system-react';
-import { Chip } from '../Chip';
-
+import { ExclamationmarkTriangleFillIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
 import {
   PolicyActionType,
@@ -13,8 +12,8 @@ import { PolicyRuleSubjectListItem } from '../PolicyRuleSubjectListItem';
 import { PolicySubjectSelectButton } from '../PolicySubjectSelectButton';
 import { ResourceNarrowingList } from '../ResourceNarrowingList';
 import { WarningCard } from '../WarningCard';
-import { ExclamationmarkTriangleFillIcon } from '@navikt/aksel-icons';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
+import { Chip } from '../Chip';
 
 interface Props {
   policyRule: PolicyRuleCardType;

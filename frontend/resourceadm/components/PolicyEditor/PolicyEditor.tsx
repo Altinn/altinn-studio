@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './PolicyEditor.module.css';
-import { ExpandablePolicyCard } from 'resourceadm/components/ExpandablePolicyCard';
-import { CardButton } from 'resourceadm/components/CardButton';
+import { ExpandablePolicyCard } from 'resourceadm/components/PolicyEditor/ExpandablePolicyCard';
+import { CardButton } from 'resourceadm/components/PolicyEditor/CardButton';
 import { Button } from '@digdir/design-system-react';
 import {
   PolicyBackendType,
@@ -16,7 +16,7 @@ import {
   emptyPolicyRule,
   mapPolicyRuleToPolicyRuleBackendObject,
 } from 'resourceadm/utils/policyEditorUtils';
-import { VerificationModal } from 'resourceadm/components/VerificationModal';
+import { VerificationModal } from 'resourceadm/components/PolicyEditor/VerificationModal';
 import { SelectAuthLevel } from 'resourceadm/components/SelectAuthLevel';
 
 interface Props {
