@@ -2,8 +2,8 @@
 {
     public interface IUserRequestContext
     {
-        string Org { get; set; }
-        string Repo { get; set; }
-        string Developer { get; set; }
+        string Org { get; }
+        string Repo { get; }
+        string Developer { get; }
     }
 }

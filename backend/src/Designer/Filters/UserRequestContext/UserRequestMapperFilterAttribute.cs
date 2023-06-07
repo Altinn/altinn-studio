@@ -6,7 +6,7 @@ namespace Altinn.Studio.Designer.Filters.UserRequestContext
     public class UserRequestMapperFilterAttribute : ActionFilterAttribute
     {
         private readonly IUserRequestContext _userRequestContext;
-        
+
         public UserRequestMapperFilterAttribute(IUserRequestContext userRequestContext)
         {
             _userRequestContext = userRequestContext;
@@ -17,13 +17,13 @@ namespace Altinn.Studio.Designer.Filters.UserRequestContext
             base.OnActionExecuting(context);
             var httpRequest = context.HttpContext.Request;
 
-            object org = httpRequest.RouteValues["org"];
-            object repo = httpRequest.RouteValues["repo"] ?? httpRequest.RouteValues["repository"] ?? httpRequest.RouteValues["app"];
+            string org = httpRequest.RouteValues["org"]?.ToString();
+            object repo = httpRequest.RouteValues["repo"]?.ToString() ?? httpRequest.RouteValues["repository"]?.ToString() ?? httpRequest.RouteValues["app"]?.ToString();
             string developer = AuthenticationHelper.GetDeveloperUserName(httpRequest.HttpContext);
 
-            _userRequestContext.Org = org?.ToString();
-            _userRequestContext.Repo = repo?.ToString();
-            _userRequestContext.Developer = developer;
+            PropertySetterUtils.SetValue(_userRequestContext, nameof(_userRequestContext.Org), org);
+            PropertySetterUtils.SetValue(_userRequestContext, nameof(_userRequestContext.Repo), repo);
+            PropertySetterUtils.SetValue(_userRequestContext, nameof(_userRequestContext.Developer), developer);
         }
     }
 }

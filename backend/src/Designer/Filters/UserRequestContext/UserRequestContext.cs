@@ -2,8 +2,8 @@
 {
     public class UserRequestContext : IUserRequestContext
     {
-        public string Org { get; set; }
-        public string Repo { get; set; }
-        public string Developer { get; set; }
+        public string Org { get; }
+        public string Repo { get; }
+        public string Developer { get; }
     }
 }
