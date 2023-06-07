@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Filters.UserRequestContext
             var httpRequest = context.HttpContext.Request;
 
             string org = httpRequest.RouteValues["org"]?.ToString();
-            object repo = httpRequest.RouteValues["repo"]?.ToString() ?? httpRequest.RouteValues["repository"]?.ToString() ?? httpRequest.RouteValues["app"]?.ToString();
+            string repo = httpRequest.RouteValues["repo"]?.ToString() ?? httpRequest.RouteValues["repository"]?.ToString() ?? httpRequest.RouteValues["app"]?.ToString();
             string developer = AuthenticationHelper.GetDeveloperUserName(httpRequest.HttpContext);
 
             PropertySetterUtils.SetValue(_userRequestContext, nameof(_userRequestContext.Org), org);

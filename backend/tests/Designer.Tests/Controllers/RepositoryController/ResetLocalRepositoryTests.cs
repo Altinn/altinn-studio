@@ -31,7 +31,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         public async Task ResetRepo_Returns200(string org, string repo, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath =  await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
+            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
             CreatedSecondaryFolderPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, repo, targetRepository);
 
             // Arrange
