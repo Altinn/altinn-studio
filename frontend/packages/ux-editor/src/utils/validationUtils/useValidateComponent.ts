@@ -1,6 +1,8 @@
 import { areItemsUnique } from 'app-shared/utils/arrayUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
+import { useOptionListIdsQuery } from '../../hooks/queries/useOptionListIdsQuery';
+import { useParams } from 'react-router-dom';
 
 export enum ErrorCode {
   NoOptions = 'NoOptions',
@@ -12,26 +14,16 @@ export type ComponentValidationResult = {
   error?: ErrorCode;
 }
 
-const validateCheckboxGroup = (component: FormCheckboxesComponent): ComponentValidationResult => {
-  if (!component.optionsId) {
-    if (!component.options || component.options.length === 0) {
+const validateGroup = (component: FormCheckboxesComponent | FormRadioButtonsComponent, optionListIds: string[]): ComponentValidationResult => {
+  if (component.optionsId) {
+    const isExistingOptionId = optionListIds?.includes(component.optionsId);
+    if (!isExistingOptionId) {
       return {
         isValid: false,
         error: ErrorCode.NoOptions,
       };
-    } else if (!areItemsUnique(component.options.map((option) => option.value))) {
-      return {
-        isValid: false,
-        error: ErrorCode.DuplicateValues,
-      };
     }
-  }
-
-  return { isValid: true };
-};
-
-const validateRadioGroup = (component: FormRadioButtonsComponent): ComponentValidationResult => {
-  if (!component.optionsId) {
+  } else {
     if (!component.options || component.options.length === 0) {
       return {
         isValid: false,
@@ -48,12 +40,14 @@ const validateRadioGroup = (component: FormRadioButtonsComponent): ComponentVali
   return { isValid: true };
 }
 
-export const validateComponent = (component: FormComponent): ComponentValidationResult => {
+export const useValidateComponent = (component: FormComponent): ComponentValidationResult => {
+  const { org, app } = useParams();
+  const { data: optionListIds } = useOptionListIdsQuery(org, app);
+
   switch (component.type) {
     case ComponentType.Checkboxes:
-      return validateCheckboxGroup(component);
     case ComponentType.RadioButtons:
-      return validateRadioGroup(component);
+      return validateGroup(component, optionListIds);
     default:
       return { isValid: true };
   }

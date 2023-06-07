@@ -36,7 +36,7 @@ const checkboxesComponent: FormCheckboxesComponent = {
     { label: 'Option 2', value: 'option2' },
     { label: 'Option 3', value: 'option3' },
   ],
-  optionsId: 'test',
+  optionsId: '',
 };
 const radiosComponent: FormRadioButtonsComponent = {
   ...commonProps,
@@ -46,7 +46,7 @@ const radiosComponent: FormRadioButtonsComponent = {
     { label: 'Option 2', value: 'option2' },
     { label: 'Option 3', value: 'option3' },
   ],
-  optionsId: 'test',
+  optionsId: '',
 };
 const inputComponent: FormInputComponent = {
   ...commonProps,
@@ -73,7 +73,7 @@ const datePickerComponent: FormDatepickerComponent = {
 const dropdownComponent: FormDropdownComponent = {
   ...commonProps,
   type: ComponentType.Dropdown,
-  optionsId: 'test',
+  optionsId: '',
 };
 const textareaComponent: FormTextareaComponent = {
   ...commonProps,
@@ -98,7 +98,7 @@ const fileUploaderWithTagComponent: FormFileUploaderWithTagComponent = {
   maxFileSizeInMB: 1,
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 1,
-  optionsId: 'test',
+  optionsId: '',
 };
 const buttonComponent: FormButtonComponent = {
   ...commonProps,

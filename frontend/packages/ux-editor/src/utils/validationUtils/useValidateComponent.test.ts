@@ -1,6 +1,7 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { ErrorCode, validateComponent } from './validateComponent';
+import { ErrorCode, useValidateComponent } from './useValidateComponent';
 import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
+import { optionListIdsMock, renderHookWithMockStore } from '../../testing/mocks';
 
 describe('validateComponent', () => {
   describe('validateCheckboxGroup', () => {
@@ -13,7 +14,7 @@ describe('validateComponent', () => {
         options: [],
         dataModelBindings: {},
       };
-      expect(validateComponent(component)).toEqual({
+      expect(render(component)).toEqual({
         isValid: false,
         error: ErrorCode.NoOptions,
       });
@@ -31,7 +32,7 @@ describe('validateComponent', () => {
         ],
         dataModelBindings: {},
       };
-      expect(validateComponent(component)).toEqual({
+      expect(render(component)).toEqual({
         isValid: false,
         error: ErrorCode.DuplicateValues,
       });
@@ -42,11 +43,11 @@ describe('validateComponent', () => {
         type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsId: 'test',
+        optionsId: optionListIdsMock[0],
         options: [],
         dataModelBindings: {},
       };
-      expect(validateComponent(component)).toEqual({ isValid: true });
+      expect(render(component)).toEqual({ isValid: true });
     });
 
     it('Returns { isValid: true } if there are no errors', () => {
@@ -54,14 +55,14 @@ describe('validateComponent', () => {
         type: ComponentType.Checkboxes,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsId: 'test',
+        optionsId: '',
         options: [
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
         dataModelBindings: {},
       };
-      expect(validateComponent(component)).toEqual({ isValid: true });
+      expect(render(component)).toEqual({ isValid: true });
     });
   });
 
@@ -75,7 +76,7 @@ describe('validateComponent', () => {
         options: [],
         dataModelBindings: {},
       };
-      expect(validateComponent(component)).toEqual({
+      expect(render(component)).toEqual({
         isValid: false,
         error: ErrorCode.NoOptions,
       });
@@ -93,7 +94,7 @@ describe('validateComponent', () => {
         ],
         dataModelBindings: {},
       };
-      expect(validateComponent(component)).toEqual({
+      expect(render(component)).toEqual({
         isValid: false,
         error: ErrorCode.DuplicateValues,
       });
@@ -104,11 +105,11 @@ describe('validateComponent', () => {
         type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsId: 'test',
+        optionsId: optionListIdsMock[1],
         options: [],
         dataModelBindings: {},
       };
-      expect(validateComponent(component)).toEqual({ isValid: true });
+      expect(render(component)).toEqual({ isValid: true });
     });
 
     it('Returns { isValid: true } if there are no errors', () => {
@@ -116,14 +117,14 @@ describe('validateComponent', () => {
         type: ComponentType.RadioButtons,
         itemType: 'COMPONENT',
         id: 'test',
-        optionsId: 'test',
+        optionsId: '',
         options: [
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
         dataModelBindings: {},
       };
-      expect(validateComponent(component)).toEqual({ isValid: true });
+      expect(render(component)).toEqual({ isValid: true });
     });
   });
 
@@ -134,6 +135,10 @@ describe('validateComponent', () => {
       id: 'test',
       dataModelBindings: {},
     };
-    expect(validateComponent(component)).toEqual({ isValid: true });
+    expect(render(component)).toEqual({ isValid: true });
   });
 });
+
+const render = (component: FormComponent) => {
+  return renderHookWithMockStore()(() => useValidateComponent(component)).renderHookResult.result.current;
+}
