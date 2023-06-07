@@ -7,7 +7,7 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { getLayoutOrderFromTracks, selectLayoutOrder } from 'src/selectors/getLayoutOrder';
-import { Triggers } from 'src/types';
+import { filterPageValidations, Triggers } from 'src/types';
 import {
   getCurrentDataTypeForApplication,
   getCurrentDataTypeId,
@@ -114,40 +114,40 @@ export function* updateCurrentViewSaga({
         layoutState.layouts || {},
         state.textResources.resources,
       );
+
       validationResult.validations = mergeValidationObjects(
         validationResult.validations,
         componentSpecificValidations,
         emptyFieldsValidations,
         mappedValidations,
       );
-      const validations =
-        runValidations === Triggers.ValidatePage
-          ? { [currentView]: validationResult.validations[currentView] } // only store validations for the specific page
-          : validationResult.validations;
+
+      const validations = filterPageValidations(
+        validationResult.validations,
+        runValidations,
+        currentView,
+        visibleLayouts ?? [],
+      );
+
       yield put(ValidationActions.updateValidations({ validations }));
-      if (state.formLayout.uiConfig.returnToView) {
-        if (!skipPageCaching && currentViewCacheKey) {
-          localStorage.setItem(currentViewCacheKey, newView);
-        }
-        yield put(
-          FormLayoutActions.updateCurrentViewFulfilled({
-            newView,
-            focusComponentId,
-          }),
-        );
-      } else if (
-        !canFormBeSaved({
-          validations: { [currentView]: validations[currentView] },
-          invalidDataTypes: false,
-        })
+
+      /*
+       * If only the current page or the previous pages are validated, this makes no difference.
+       * If all pages are validated, we need to make sure that the current and previous pages are valid before allowing the user to
+       * navigate to the next page; but if the error is on a future page, we should not prevent the user from navigating
+       * to the next page.
+       */
+      const validationsToCheckBeforeNavigation = filterPageValidations(
+        validations,
+        Triggers.ValidateCurrentAndPreviousPages,
+        currentView,
+        visibleLayouts ?? [],
+      );
+
+      if (
+        state.formLayout.uiConfig.returnToView ||
+        canFormBeSaved({ validations: validationsToCheckBeforeNavigation, invalidDataTypes: false })
       ) {
-        yield put(
-          FormLayoutActions.updateCurrentViewRejected({
-            error: null,
-            keepScrollPos,
-          }),
-        );
-      } else {
         if (!skipPageCaching && currentViewCacheKey) {
           localStorage.setItem(currentViewCacheKey, newView);
         }
@@ -156,6 +156,13 @@ export function* updateCurrentViewSaga({
             newView,
             returnToView,
             focusComponentId,
+          }),
+        );
+      } else {
+        yield put(
+          FormLayoutActions.updateCurrentViewRejected({
+            error: null,
+            keepScrollPos,
           }),
         );
       }

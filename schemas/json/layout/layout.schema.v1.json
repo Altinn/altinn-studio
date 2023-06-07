@@ -831,7 +831,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["validation", "validateRow", "validatePage", "validateAllPages", "calculatePageOrder"]
+        "enum": ["validation", "validateRow", "validatePage", "validateCurrentAndPreviousPages", "validateAllPages", "calculatePageOrder"]
       }
     },
     "selectionComponents": {

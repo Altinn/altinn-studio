@@ -274,11 +274,15 @@ export enum Triggers {
   Validation = 'validation',
   CalculatePageOrder = 'calculatePageOrder',
   ValidatePage = 'validatePage',
+  ValidateCurrentAndPreviousPages = 'validateCurrentAndPreviousPages',
   ValidateAllPages = 'validateAllPages',
   ValidateRow = 'validateRow',
 }
 
-export type TriggersPageValidation = Triggers.ValidateAllPages | Triggers.ValidatePage;
+export type TriggersPageValidation =
+  | Triggers.ValidateAllPages
+  | Triggers.ValidateCurrentAndPreviousPages
+  | Triggers.ValidatePage;
 
 /**
  * Reduces a list of validation triggers to be only one value (preferring validation for all pages
@@ -287,9 +291,37 @@ export type TriggersPageValidation = Triggers.ValidateAllPages | Triggers.Valida
 export function reducePageValidations(triggers?: Triggers[]): TriggersPageValidation | undefined {
   return triggers?.includes(Triggers.ValidateAllPages)
     ? Triggers.ValidateAllPages
+    : triggers?.includes(Triggers.ValidateCurrentAndPreviousPages)
+    ? Triggers.ValidateCurrentAndPreviousPages
     : triggers?.includes(Triggers.ValidatePage)
     ? Triggers.ValidatePage
     : undefined;
+}
+
+/**
+ * Filters an IValidations object to only include validations for the given TriggersPageValidation trigger.
+ */
+export function filterPageValidations(
+  validations: IValidations,
+  trigger: TriggersPageValidation,
+  currentView: string,
+  pageOrder: string[],
+): IValidations {
+  if (trigger === Triggers.ValidateAllPages) {
+    return validations;
+  }
+
+  if (trigger === Triggers.ValidateCurrentAndPreviousPages) {
+    const index = pageOrder.indexOf(currentView);
+    const previousPages = pageOrder.slice(0, index + 1);
+    return Object.fromEntries(Object.entries(validations).filter(([page]) => previousPages.includes(page)));
+  }
+
+  if (trigger === Triggers.ValidatePage) {
+    return { [currentView]: validations[currentView] };
+  }
+
+  return {};
 }
 
 export interface ILabelSettings {

@@ -53,15 +53,19 @@ describe('Summary', () => {
         .contains(mui.gridContainer, texts.dateOfEffect)
         .then((summaryDate) => {
           cy.wrap(summaryDate).children().find('button').click();
-          cy.get(appFrontend.changeOfName.dateOfEffect).clear();
-          cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
-          cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {
-            force: true,
-          });
-          cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).select('address');
-          cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
-          cy.get(appFrontend.backToSummaryButton).click();
         });
+
+      cy.get(appFrontend.changeOfName.dateOfEffect).clear();
+      cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
+      cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {
+        force: true,
+      });
+      cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).select('address');
+      cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
+
+      cy.get(appFrontend.backToSummaryButton).click();
+      cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+      cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldDateFrom);
     });
 
     // Summary of attachment components
@@ -368,7 +372,13 @@ describe('Summary', () => {
   it('Navigation between summary and pages', () => {
     cy.gotoAndComplete('changename');
 
-    const triggerVariations: (Triggers | undefined)[] = [undefined, Triggers.ValidatePage, Triggers.ValidateAllPages];
+    const triggerVariations: (Triggers | undefined)[] = [
+      undefined,
+      Triggers.ValidatePage,
+      Triggers.ValidateCurrentAndPreviousPages,
+      Triggers.ValidateAllPages,
+    ];
+
     for (const trigger of triggerVariations) {
       injectExtraPageAndSetTriggers(trigger);
 
@@ -387,16 +397,28 @@ describe('Summary', () => {
       } else {
         cy.navPage('form').should('have.attr', 'aria-current', 'page');
         cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldLastName);
+
+        /*
+         * Test that ValidateAllPages and ValidatePreviousPages prevents the user from proceeding
+         * when there are errors on a previous page.
+         */
+        cy.gotoNavPage('summary');
+        cy.get(appFrontend.nextButton).click();
+        if (trigger === Triggers.ValidatePage) {
+          cy.navPage('grid').should('have.attr', 'aria-current', 'page');
+        } else {
+          cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+        }
+
+        cy.gotoNavPage('form');
         cy.get(appFrontend.changeOfName.newLastName).type('a');
         cy.get(appFrontend.nextButton).clickAndGone();
       }
 
       if (trigger === Triggers.ValidateAllPages) {
         cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut page3required');
-        cy.navPage('summary').click();
-      } else if (trigger !== undefined) {
-        cy.navPage('summary').should('have.attr', 'aria-current', 'page');
       }
+      cy.navPage('summary').should('have.attr', 'aria-current', 'page');
 
       cy.get(newFirstNameSummary).should('contain.text', `Hello world`);
 
