@@ -2,10 +2,22 @@
 
 namespace Altinn.Studio.Designer.Configuration
 {
+    /// <summary>
+    /// Settings that provide configuration for the user request synchronization service.
+    /// </summary>
     public class UserRequestSynchronizationSettings : ISettingsMarker
     {
+        /// <summary>
+        /// Describes the number of minutes a semaphore will be kept before it is removed. Expiry is renewed each time the semaphore is used.
+        /// </summary>
         public int SemaphoreExpiryInMinutes { get; set; } = 120;
+        /// <summary>
+        /// Describes how frequently the service will clean up unused semaphores.
+        /// </summary>
         public int CleanUpFrequencyInMinutes { get; set; } = 120;
+        /// <summary>
+        /// Defines the maximum number of parallel requests per user.
+        /// </summary>
         public int MaxDegreeOfParallelism { get; set; } = 1;
     }
 }

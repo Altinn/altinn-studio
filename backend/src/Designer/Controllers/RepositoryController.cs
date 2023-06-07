@@ -39,6 +39,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
+        /// <param name="userRequestsSynchronizationService">An <see cref="IUserRequestsSynchronizationService"/> used to control parallel execution of user requests.</param>
         public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _giteaApi = giteaWrapper;

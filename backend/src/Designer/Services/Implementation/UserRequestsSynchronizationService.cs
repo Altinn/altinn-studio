@@ -7,18 +7,19 @@ using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
+    /// <inheritdoc cref="IUserRequestsSynchronizationService"/>
     public class UserRequestsSynchronizationService : IUserRequestsSynchronizationService, IDisposable
     {
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> s_semaphoreSlims = new ConcurrentDictionary<string, SemaphoreSlim>();
         private static readonly ConcurrentDictionary<string, DateTime> s_lastUsedTimes = new ConcurrentDictionary<string, DateTime>();
-        private readonly UserRequestSynchronizationSettings _settings;
+        private readonly UserRequestSynchronizationSettings _userParallelizationSettings;
 
         private readonly Timer _timer;
 
-        public UserRequestsSynchronizationService(UserRequestSynchronizationSettings settings)
+        public UserRequestsSynchronizationService(UserRequestSynchronizationSettings userParallelizationSettings)
         {
-            _settings = settings;
-            _timer = new Timer(_ => CleanupUnusedKeys(), null, TimeSpan.FromMinutes(_settings.CleanUpFrequencyInMinutes), TimeSpan.FromMinutes(_settings.CleanUpFrequencyInMinutes));
+            _userParallelizationSettings = userParallelizationSettings;
+            _timer = new Timer(_ => CleanupUnusedKeys(), null, TimeSpan.FromMinutes(_userParallelizationSettings.CleanUpFrequencyInMinutes), TimeSpan.FromMinutes(_userParallelizationSettings.CleanUpFrequencyInMinutes));
         }
 
         public SemaphoreSlim GetRequestsSemaphore(string org, string repo, string developer)
@@ -29,7 +30,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string key = GenerateKey(org, repo, developer);
             s_lastUsedTimes.AddOrUpdate(key, DateTime.Now, (k, v) => DateTime.Now);
-            return s_semaphoreSlims.GetOrAdd(key, new SemaphoreSlim(_settings.MaxDegreeOfParallelism, _settings.MaxDegreeOfParallelism));
+            return s_semaphoreSlims.GetOrAdd(key, new SemaphoreSlim(_userParallelizationSettings.MaxDegreeOfParallelism, _userParallelizationSettings.MaxDegreeOfParallelism));
         }
 
         private static string GenerateKey(string org, string repo, string developer)
@@ -41,7 +42,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             foreach ((string key, DateTime lastUsed) in s_lastUsedTimes)
             {
-                if (now.Subtract(lastUsed).TotalMinutes >= _settings.SemaphoreExpiryInMinutes)
+                if (now.Subtract(lastUsed).TotalMinutes >= _userParallelizationSettings.SemaphoreExpiryInMinutes)
                 {
                     s_lastUsedTimes.TryRemove(key, out DateTime _);
                     s_semaphoreSlims.TryRemove(key, out SemaphoreSlim semaphoreSlim);
