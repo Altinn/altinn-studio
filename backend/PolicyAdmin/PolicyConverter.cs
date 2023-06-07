@@ -23,32 +23,36 @@ namespace Altinn.Studio.PolicyAdmin
                 rule.Actions = new List<string>();
                 rule.Resources = new List<List<string>>();
 
-                foreach (XacmlAnyOf anyOf in xr.Target.AnyOf)
+
+                if (xr.Target != null)
                 {
-                    foreach (XacmlAllOf allOf in anyOf.AllOf)
+                    foreach (XacmlAnyOf anyOf in xr.Target.AnyOf)
                     {
-                        List<string>? subject = GetRuleSubjects(allOf);
-
-                        List<string>? resource = GetRuleResources(allOf);
-
-                        List<string>? action = GetRuleActions(allOf);
-
-                        if (subject != null)
+                        foreach (XacmlAllOf allOf in anyOf.AllOf)
                         {
-                            rule.Subject.AddRange(subject);
+                            List<string>? subject = GetRuleSubjects(allOf);
+
+                            List<string>? resource = GetRuleResources(allOf);
+
+                            List<string>? action = GetRuleActions(allOf);
+
+                            if (subject != null)
+                            {
+                                rule.Subject.AddRange(subject);
+                            }
+
+                            if (action != null)
+                            {
+                                rule.Actions.AddRange(action);
+                            }
+
+                            if (resource != null)
+                            {
+                                rule.Resources.Add(resource);
+                            }
                         }
 
-                        if (action != null)
-                        {
-                            rule.Actions.AddRange(action);
-                        }
-
-                        if (resource != null)
-                        {
-                            rule.Resources.Add(resource);
-                        }
                     }
-
                 }
 
                 policy.Rules.Add(rule);
@@ -154,6 +158,11 @@ namespace Altinn.Studio.PolicyAdmin
                 {
                     policyOutput.Rules.Add(ConvertRule(rule));
                 }
+            }
+            else
+            {
+                // Add empty rule in XACML since a rule is required when loading document. 
+                policyOutput.Rules.Add(new XacmlRule("1", XacmlEffectType.Permit));
             }
 
             if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelEndUser))

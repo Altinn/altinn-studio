@@ -3,7 +3,7 @@
   "description": "studio tests",
   "version": "1.0.0",
   "devDependencies": {
-    "@faker-js/faker": "7.6.0",
+    "@faker-js/faker": "8.0.2",
     "@testing-library/cypress": "9.0.0",
     "axe-core": "4.7.2",
     "cypress": "12.13.0",

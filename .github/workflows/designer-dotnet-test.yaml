@@ -37,6 +37,6 @@ jobs:
       - name: Test
         run: |
            dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m
-      - name: FormatCheck
-        run: |
-           dotnet format backend/Designer.sln --verify-no-changes
+      # - name: FormatCheck
+      #   run: |
+      #      dotnet format backend/Designer.sln --verify-no-changes

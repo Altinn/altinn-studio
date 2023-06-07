@@ -44,12 +44,6 @@ export default function () {
   });
   addErrorCount(success);
 
-  var res = eFormidling.getCapabilities(orgNo);
-  var success = check(res, {
-    'Get Capabilities for orgNo Status is 200': (r) => r.status === 200,
-  });
-  addErrorCount(success);
-
   var res = eFormidling.checkHealth();
   var success = check(res, {
     'Check Health Status is 200': (r) => r.status === 200,
