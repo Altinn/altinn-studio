@@ -34,6 +34,11 @@ namespace Altinn.Studio.Designer.Controllers
         {
             XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
 
+            if(xacmlPolicy == null)
+            {
+                return Ok(new ResourcePolicy());
+            }
+
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
 
             return Ok(resourcePolicy);
@@ -41,7 +46,7 @@ namespace Altinn.Studio.Designer.Controllers
 
 
         /// <summary>
-        /// Gets the resource policy, url PUT "/designer/api/org/app/{resoruceid}
+        /// Gets the resource policy, url PUT "/designer/api/org/app/{resoruceid}.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -52,6 +57,11 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult GetResourcePolicy(string org, string app, string resourceid)
         {
             XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
+
+            if (xacmlPolicy == null)
+            {
+                return Ok(new ResourcePolicy());
+            }
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
 
