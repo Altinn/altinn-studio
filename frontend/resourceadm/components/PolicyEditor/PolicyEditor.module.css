@@ -53,7 +53,7 @@
 }
 
 .idBoxText {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   margin: 0;
   padding: 0;
@@ -68,7 +68,7 @@
   width: 100%;
 }
 
-p, h2, h3 {
+p, h1, h2 {
   margin: 0;
   line-height: 24px;
 }

@@ -12,6 +12,7 @@ const authlevelOptions = [
 interface Props {
   value: RequiredAuthLevelType;
   setValue: (v: RequiredAuthLevelType) => void;
+  label: string;
 }
 
 /**
@@ -19,13 +20,16 @@ interface Props {
  *
  * @param props.value the value selected
  * @param props.setValue function that sets the value selected
+ * @param props.label hidden form label for the input field
  */
-export const SelectAuthLevel = ({ value, setValue }: Props) => {
+export const SelectAuthLevel = ({ value, setValue, label }: Props) => {
   return (
     <Select
       options={authlevelOptions}
       onChange={(v: RequiredAuthLevelType) => setValue(v)}
       value={value}
+      label={label}
+      hideLabel
     />
   );
 };

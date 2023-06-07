@@ -162,8 +162,8 @@ export const PolicyEditor = ({
   return (
     <div>
       <div className={classes.policyEditorTop}>
-        <h2 className={classes.policyEditorHeader}>Policy editor</h2>
-        <h3 className={classes.subHeader}>Navn på ressursen</h3>
+        <h1 className={classes.policyEditorHeader}>Policy editor</h1>
+        <h2 className={classes.subHeader}>Navn på ressursen</h2>
         <div className={classes.textFieldIdWrapper}>
           <div className={classes.idBox}>
             <p className={classes.idBoxText}>id</p>
@@ -172,12 +172,16 @@ export const PolicyEditor = ({
         </div>
       </div>
       <div className={classes.selectAuthLevelWrapper}>
-        <h3 className={classes.subHeader}>Velg påkrevd sikkerhetsnivå for bruker</h3>
+        <h2 className={classes.subHeader}>Velg påkrevd sikkerhetsnivå for bruker</h2>
         <div className={classes.selectAuthLevel}>
-          <SelectAuthLevel value={requiredAuthLevel} setValue={(v) => setRequiredAuthLevel(v)} />
+          <SelectAuthLevel
+            value={requiredAuthLevel}
+            setValue={(v) => setRequiredAuthLevel(v)}
+            label='Velg påkrevd sikkerhetsnivå for bruker'
+          />
         </div>
       </div>
-      <h3 className={classes.subHeader}>Regler for policyen</h3>
+      <h2 className={classes.subHeader}>Regler for policyen</h2>
       {displayRules}
       <div className={classes.addCardButtonWrapper}>
         <CardButton buttonText='Legg til ekstra regelsett' onClick={handleAddCardClick} />
