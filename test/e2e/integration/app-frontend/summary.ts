@@ -458,6 +458,32 @@ describe('Summary', () => {
     cy.get(appFrontend.nextButton).click();
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
   });
+
+  ['Summary Title', undefined].forEach((title) => {
+    it(`should display title from summary component if (${title} !== undefined), else title from reference component`, () => {
+      cy.interceptLayout('changename', (component) => {
+        if (component.type === 'Summary' && component.id === 'summary-4') {
+          component.textResourceBindings = {
+            title,
+            accessibleTitle: title,
+          };
+        }
+      });
+      cy.goto('changename');
+      cy.gotoNavPage('summary');
+      if (title === undefined) {
+        cy.get('[data-testid=summary-summary-4]').should('contain.text', 'Når vil du at navnendringen skal skje?');
+        cy.get('[data-testid=summary-summary-4]')
+          .find('button')
+          .should('have.attr', 'aria-label', 'Endre: Når vil du at navnendringen skal skje?');
+      } else {
+        cy.get('[data-testid=summary-summary-4]').should('contain.text', title);
+        cy.get('[data-testid=summary-summary-4]')
+          .find('button')
+          .should('have.attr', 'aria-label', 'Endre: Summary Title');
+      }
+    });
+  });
 });
 
 /**
