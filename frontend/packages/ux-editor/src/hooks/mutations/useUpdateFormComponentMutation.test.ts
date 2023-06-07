@@ -1,11 +1,11 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
-import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { waitFor } from '@testing-library/react';
+import { queriesMock, queryClientMock, renderHookWithMockStore } from '../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { UpdateFormComponentArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
-import { component1IdMock, layout1NameMock } from '../../testing/layoutMock';
+import { component1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 import { IDataModelBindings } from '../../types/global';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 
 // Test data:
 const org = 'org';
@@ -26,7 +26,7 @@ describe('useUpdateFormComponentMutation', () => {
   afterEach(jest.clearAllMocks);
 
   it('Saves layout with updated component', async () => {
-    await renderAndWaitForData();
+    renderAndWaitForData();
 
     const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
       .renderHookResult
@@ -55,7 +55,7 @@ describe('useUpdateFormComponentMutation', () => {
   });
 
   it('Does not run attachment metadata queries if the component type is not fileupload', async () => {
-    await renderAndWaitForData();
+    renderAndWaitForData();
     const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
       .renderHookResult
       .result;
@@ -66,7 +66,7 @@ describe('useUpdateFormComponentMutation', () => {
   });
 
   it('Updates attachment metadata queries if the component type is fileupload', async () => {
-    await renderAndWaitForData();
+    renderAndWaitForData();
     const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
       .renderHookResult
       .result;
@@ -89,7 +89,7 @@ describe('useUpdateFormComponentMutation', () => {
   });
 });
 
-const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-}
+const renderAndWaitForData = () => queryClientMock.setQueryData(
+  [QueryKey.FormLayouts, org, app, selectedLayoutSet],
+  convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts
+);
