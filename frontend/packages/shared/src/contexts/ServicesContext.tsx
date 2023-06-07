@@ -11,7 +11,7 @@ export type ServicesContextProviderProps = ServicesContextProps & {
 };
 
 const ServicesContext = createContext<ServicesContextProps>(null);
-export const queryClient = new QueryClient({
+const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: Infinity,

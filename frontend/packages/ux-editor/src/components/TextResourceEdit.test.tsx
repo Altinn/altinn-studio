@@ -5,7 +5,9 @@ import type { ITextResources, ITextResourcesWithLanguage } from 'app-shared/type
 import userEvent from '@testing-library/user-event';
 import { TextResourceEdit } from './TextResourceEdit';
 import {
-  appDataMock, queriesMock,
+  appDataMock,
+  queriesMock,
+  queryClientMock,
   renderHookWithMockStore,
   renderWithMockStore,
   textResourcesMock
@@ -13,7 +15,6 @@ import {
 import { act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { queryClient } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 
@@ -45,7 +46,7 @@ describe('TextResourceEdit', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-    queryClient.clear();
+    queryClientMock.clear();
   });
 
   it('Does not render anything if edit id is undefined', async () => {

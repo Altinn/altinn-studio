@@ -1,8 +1,8 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { IFormLayouts, IInternalLayout } from '../../types/global';
 import { convertInternalToLayoutFormat } from '../../utils/formLayoutUtils';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { queryClient, useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 
@@ -10,6 +10,7 @@ export const useFormLayoutMutation = (org: string, app: string, layoutName: stri
 
   const previewConnection = usePreviewConnection();
   const { saveFormLayout } = useServicesContext();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {

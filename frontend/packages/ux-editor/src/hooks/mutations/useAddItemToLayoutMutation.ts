@@ -20,7 +20,7 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const appAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
-  const { data: getLayoutSets } = useLayoutSetsQuery(org, app);
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   return useMutation({
     mutationFn: ({ componentType, newId, parentId, index }: AddFormItemMutationArgs) => {
@@ -31,7 +31,6 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
 
       return formLayoutsMutation.mutateAsync(updatedLayout).then(() => {
         if (componentType === ComponentType.FileUpload || componentType === ComponentType.FileUploadWithTag) {
-          const layoutSets = getLayoutSets;
           const taskId = layoutSets ? layoutSets?.sets.find(set => set.id === layoutSetName)?.tasks[0] : TASKID_FOR_STATELESS_APPS;
           const fileUploadComponent = updatedLayout.components[newId];
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
