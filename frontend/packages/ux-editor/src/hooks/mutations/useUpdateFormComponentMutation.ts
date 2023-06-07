@@ -23,7 +23,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
-  const { data: getLayoutSets } = useLayoutSetsQuery(org, app);
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   return useMutation({
     mutationFn: ({ updatedComponent, id }: UpdateFormComponentArgs) => {
@@ -56,7 +56,6 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
       return formLayoutMutation.mutateAsync(updatedLayout).then(async (data) => {
         if (updatedComponent.type === ComponentType.FileUpload || updatedComponent.type === ComponentType.FileUploadWithTag) {
           // Todo: Consider handling this in the backend
-          const layoutSets = getLayoutSets;
           const taskId = layoutSets ? layoutSets?.sets.find(set => set.id === layoutSetName)?.tasks[0] : TASKID_FOR_STATELESS_APPS;
           const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
             updatedComponent as FormFileUploaderComponent;

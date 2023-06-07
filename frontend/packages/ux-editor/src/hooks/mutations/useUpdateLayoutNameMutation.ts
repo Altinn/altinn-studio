@@ -1,5 +1,5 @@
-import { queryClient, useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { useMutation } from '@tanstack/react-query';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -19,6 +19,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>
       updateFormLayoutName(org, app, oldName, newName, layoutSetName).then(() => ({ oldName, newName })),

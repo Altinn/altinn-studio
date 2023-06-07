@@ -1,6 +1,6 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
-import { queryClient, useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { FormLayoutActions } from "../../features/formDesigner/formLayout/formLayoutSlice";
 
@@ -11,6 +11,7 @@ export interface ConfigureLayoutSetMutationArgs {
 export const useConfigureLayoutSetMutation = (org: string, app: string) => {
   const { configureLayoutSet } = useServicesContext();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   return useMutation({
 

@@ -716,7 +716,7 @@
   "sync_header.changes_made_samme_place_submessage": "Du må beskrive de endringer du gjort før du kan hente ned den siste versjonen.",
   "sync_header.changes_made_samme_place_subsubmessage": "Gode beskrivelser av hva som er endret gjør det enklere å finne tilbake til tidligere versjoner.",
   "sync_header.changes_to_share": "Last opp dine endringer",
-  "sync_header.clone": "Clone",
+  "sync_header.clone": "Klone",
   "sync_header.clone_https": "Klone med HTTPS",
   "sync_header.clone_https_button": "Kopier Lenke",
   "sync_header.controlling_service_status": "Sjekker status på appen din",
