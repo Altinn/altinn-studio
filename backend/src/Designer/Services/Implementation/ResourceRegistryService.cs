@@ -17,11 +17,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly HttpClient _httpClient;
         private readonly IHttpClientFactory _httpClientFactory;
-        //private readonly IMaskinportenClient _maskinportenClient;
         private readonly IMaskinportenService _maskinPortenService;
         private readonly IClientDefinition _maskinportenClientDefinition;
-
-        //private readonly MaskinportenClientSettings _maskinportenClientSettings;
 
         public ResourceRegistryService()
         {
@@ -38,10 +35,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource)
         {
-            string resourceRegistryUrl = $"resourceregistry/api/v1/resource";
+            string resourceRegistryUrl = $"http://localhost:5100/resourceregistry/api/v1/resource";
             string serviceResourceString = JsonConvert.SerializeObject(serviceResource);
 
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
+            var myHttpClient = _httpClientFactory.CreateClient("myHttpClient");
 
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
             HttpResponseMessage response = await _httpClient.PostAsync(resourceRegistryUrl, new StringContent(serviceResourceString, Encoding.UTF8, "application/json"));
@@ -58,13 +56,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
         {
             return await _maskinPortenService.GetToken(_maskinportenClientDefinition.ClientSettings.EncodedJwk, _maskinportenClientDefinition.ClientSettings.Environment, _maskinportenClientDefinition.ClientSettings.ClientId, _maskinportenClientDefinition.ClientSettings.Scope, _maskinportenClientDefinition.ClientSettings.Resource, _maskinportenClientDefinition.ClientSettings.ConsumerOrgNo);
-            //return await _maskinPortenService.GetToken(_maskinportenClientDefinition);
-            //return await _maskinPortenService.GetToken(_maskinportenClientSettings.EncodedJwk, _maskinportenClientSettings.Environment, _maskinportenClientSettings.ClientId, _maskinportenClientSettings.Scope, "ResourceRegistry");
-        }
-
-        private async Task<TokenResponse> ExchangeToken(TokenResponse tokenResponse, string environment)
-        {
-            return await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, environment);
         }
     }
 }

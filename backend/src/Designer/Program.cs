@@ -2,9 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Extensions;
-using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
@@ -188,11 +186,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     var maskinportenSettings = new MaskinportenClientSettings();
     configuration.GetSection("MaskinportenClientSettings").Bind(maskinportenSettings);
 
-    //services.Configure<MaskinportenSettings>(configuration.GetSection("MaskinportenSettings"));
-    //var maskinPortenClientName = "MaskinportenClient";
-    //services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenSettings"));
-    services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenClient", maskinportenSettings);
-    //services.AddHttpClient<IMaskinportenClient, MaskinportenClient>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
+    services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
     services.RegisterServiceImplementations(configuration);
 
