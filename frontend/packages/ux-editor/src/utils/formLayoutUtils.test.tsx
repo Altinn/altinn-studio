@@ -11,6 +11,7 @@ import {
   moveLayoutItem,
   removeComponent,
   removeComponentsByType,
+  updateContainer,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { IInternalLayout } from '../types/global';
@@ -500,6 +501,17 @@ describe('formLayoutUtils', () => {
       expect(layout.order[groupId][position]).toEqual(id);
       expect(layout.order[groupId].length).toEqual(mockInternal.order[groupId].length + 1);
       expect(layout.order[id]).toEqual([]);
+    });
+  });
+
+  describe('updateContainer', () => {
+    const containerId = groupId;
+    const newContainerId = groupId + '-new';
+    const updatedContainer: FormContainer = { ...groupContainer, id: newContainerId };
+
+    it('Updates container based on the given container id', () => {
+      const layout = updateContainer(mockInternal, updatedContainer, containerId);
+      expect(layout.containers[newContainerId]).toEqual(updatedContainer);
     });
   });
 

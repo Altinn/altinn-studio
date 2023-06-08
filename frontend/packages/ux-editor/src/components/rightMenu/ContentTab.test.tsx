@@ -47,32 +47,23 @@ describe('ContentTab', () => {
   describe('when editing a container', () => {
     const props = {
       formId: container1IdMock,
-      form: layoutMock.containers[container1IdMock]
+      form: { ... layoutMock.containers[container1IdMock], id: 'id' }
     };
 
     it('should render the component', async () => {
       await render(props);
 
-      expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: textMock('general.save') })).toBeInTheDocument();
+      expect(screen.getByText(textMock('ux_editor.modal_properties_group_change_id') + ' *')).toBeInTheDocument();
     });
 
-    it('should save when clicking the Save button', async () => {
+    it('should auto-save when updating a field', async () => {
       await render(props);
 
-      const button = screen.getByRole('button', { name: textMock('general.save') });
-      await act(() => user.click(button));
+      const idInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id') + ' *');
+      await act(() => user.type(idInput, "test"));
 
-      expect(FormContextProviderMock.handleContainerSave).toHaveBeenCalledTimes(1);
-    });
-
-    it('should cancel form when clicking the Cancel button', async () => {
-      await render(props);
-
-      const button = screen.getByRole('button', { name: textMock('general.cancel') });
-      await act(() => user.click(button));
-
-      expect(FormContextProviderMock.handleDiscard).toHaveBeenCalledTimes(1);
+      expect(FormContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
+      expect(FormContextProviderMock.handleContainerSave).toHaveBeenCalledTimes(4);
     });
   });
 
@@ -85,26 +76,17 @@ describe('ContentTab', () => {
     it('should render the component', async () => {
       await render(props);
 
-      expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: textMock('general.save') })).toBeInTheDocument();
+      expect(screen.getByText(textMock('ux_editor.modal_properties_component_change_id') + ' *')).toBeInTheDocument();
     });
 
-    it('should save when clicking the Save button', async () => {
+    it('should auto-save when updating a field', async () => {
       await render(props);
 
-      const button = screen.getByRole('button', { name: textMock('general.save') });
-      await act(() => user.click(button));
+      const idInput = screen.getByLabelText(textMock('ux_editor.modal_properties_component_change_id') + ' *');
+      await act(() => user.type(idInput, "test"));
 
-      expect(FormContextProviderMock.handleComponentSave).toHaveBeenCalledTimes(1);
-    });
-
-    it('should cancel form when clicking the Cancel button', async () => {
-      await render(props);
-
-      const button = screen.getByRole('button', { name: textMock('general.cancel') });
-      await act(() => user.click(button));
-
-      expect(FormContextProviderMock.handleDiscard).toHaveBeenCalledTimes(1);
+      expect(FormContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
+      expect(FormContextProviderMock.handleComponentSave).toHaveBeenCalledTimes(4);
     });
   });
 });

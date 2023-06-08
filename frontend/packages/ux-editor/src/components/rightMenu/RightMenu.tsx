@@ -5,11 +5,16 @@ import { ConditionalRenderingTab } from './ConditionalRenderingTab';
 import { CalculationsTab } from './CalculationsTab';
 import { ContentTab } from './ContentTab';
 import { useTranslation } from 'react-i18next';
+import cn from 'classnames';
 
-export const RightMenu = () => {
+export interface RightMenuProps {
+  className?: string;
+}
+
+export const RightMenu = ({ className }: RightMenuProps) => {
   const { t } = useTranslation();
   return (
-    <div className={classes.main} data-testid={'ux-editor.right-menu'}>
+    <div className={cn(className, classes.main)} data-testid={'ux-editor.right-menu'}>
       <Tabs
         items={[
           {

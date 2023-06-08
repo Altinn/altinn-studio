@@ -9,7 +9,6 @@ import { container1IdMock, layoutMock } from '../testing/layoutMock';
 
 const handleDiscardMock = jest.fn();
 const handleEditMock = jest.fn();
-const handleSaveMock = jest.fn().mockImplementation(() => Promise.resolve());
 
 describe('FormContainer', () => {
   afterEach(jest.clearAllMocks);
@@ -28,7 +27,6 @@ const render = async (props: Partial<IFormContainerProps> = {}) => {
     id: container1IdMock,
     container: layoutMock.containers[container1IdMock],
     handleEdit: handleEditMock,
-    handleSave: handleSaveMock,
     handleDiscard: handleDiscardMock,
     children: [],
     isEditMode: false,

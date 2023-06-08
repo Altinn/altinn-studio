@@ -4,6 +4,9 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
+import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
+import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
+import { useRuleConfigMutation } from './useRuleConfigMutation';
 import { useFormLayoutsSelector } from '../useFormLayoutsSelector';
 import { selectedLayoutWithNameSelector } from '../../selectors/formLayoutSelectors';
 import { deepCopy } from 'app-shared/pure';
@@ -19,20 +22,23 @@ export interface UpdateFormComponentArgs {
 
 export const useUpdateFormComponentMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useFormLayoutsSelector(selectedLayoutWithNameSelector);
-  const formLayoutMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
+  const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-
+  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
   return useMutation({
     mutationFn: ({ updatedComponent, id }: UpdateFormComponentArgs) => {
 
       const updatedLayout: IInternalLayout = deepCopy(layout);
       const { components, order } = updatedLayout;
 
-      if (id !== updatedComponent.id) {
-        const newId = updatedComponent.id;
+      const currentId = id;
+      const newId = updatedComponent.id;
+
+      if (currentId !== newId) {
         components[newId] = {
           ...components[id],
           ...updatedComponent,
@@ -53,7 +59,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
         };
       }
 
-      return formLayoutMutation.mutateAsync(updatedLayout).then(async (data) => {
+      return saveLayout(updatedLayout).then(async (data) => {
         if (updatedComponent.type === ComponentType.FileUpload || updatedComponent.type === ComponentType.FileUploadWithTag) {
           // Todo: Consider handling this in the backend
           const taskId = layoutSets ? layoutSets?.sets.find(set => set.id === layoutSetName)?.tasks[0] : TASKID_FOR_STATELESS_APPS;
@@ -80,7 +86,10 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
           }
           return data;
         }
-      });
+      }).then(() => ({ currentId, newId }));
+    },
+    onSuccess: async ({ currentId, newId }) => {
+      await switchSelectedFieldId(ruleConfig, currentId, newId, saveRuleConfig);
     }
   });
 }
