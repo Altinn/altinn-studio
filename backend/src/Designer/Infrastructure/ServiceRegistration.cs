@@ -6,13 +6,10 @@ using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
-using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Factories;
-using Altinn.Studio.Designer.Filters.UserRequestContext;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -58,7 +55,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.AddTransient<IPreviewService, PreviewService>();
             services.RegisterDatamodeling(configuration);
-            services.AddUserRequestContext();
             services.RegisterUserRequestSynchronization(configuration);
 
             return services;

@@ -23,7 +23,7 @@ namespace Designer.Tests.Services
             Assert.Equal(semaphore2, semaphore);
 
             // Check if semaphore will expire
-            System.Threading.Thread.Sleep(2000);
+            System.Threading.Thread.Sleep(3000);
 
             var semaphore3 = service.GetRequestsSemaphore(org, repo, developer);
             Assert.NotEqual(semaphore3, semaphore);

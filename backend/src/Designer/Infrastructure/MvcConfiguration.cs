@@ -1,9 +1,5 @@
-using System.IO;
-using System.Runtime.InteropServices;
 using Altinn.Studio.Designer.Filters.Datamodeling;
-using Altinn.Studio.Designer.Filters.UserRequestContext;
 using Altinn.Studio.Designer.ModelBinding;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,9 +20,9 @@ namespace Altinn.Studio.Designer.Infrastructure
                 .AddMvcOptions(options =>
                 {
                     options.Filters.Add(typeof(DatamodelingExceptionFilterAttribute));
-                    options.Filters.Add(typeof(UserRequestMapperFilterAttribute));
                 })
                 .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()));
+
 
             services.AddMvc(options => options.EnableEndpointRouting = false);
 
