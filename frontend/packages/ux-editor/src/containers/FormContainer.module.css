@@ -4,9 +4,15 @@
 }
 
 .formGroupWrapper {
-  border-color: #1EAEF7;
-  border-style: dotted;
-  border-width: 0.15em 0;
-  padding-top: 0;
+  border-color: #6a6a6a;
+  border-style: solid;
+  border-width: 1px 0;
   background-color: #0062BA08;
+}
+
+.formGroupWrapper.editMode {
+  border-color: #008FD6;
+  border-style: dashed;
+  box-shadow: 0 0 4px #1EADF740;
+  box-sizing: border-box;
 }

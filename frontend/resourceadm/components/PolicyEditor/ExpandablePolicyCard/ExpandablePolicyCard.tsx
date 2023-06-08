@@ -13,7 +13,7 @@ import { PolicySubjectSelectButton } from '../PolicySubjectSelectButton';
 import { ResourceNarrowingList } from '../ResourceNarrowingList';
 import { WarningCard } from '../WarningCard';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
-import { Chip } from '../../Chip';
+import { Chip } from '../Chip';
 
 interface Props {
   policyRule: PolicyRuleCardType;

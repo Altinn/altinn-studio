@@ -74,20 +74,20 @@ export function EditOptions({
   };
 
   const handleUpdateOptionLabel = (index: number) => (id: string) => {
-    const options = [...component.options];
-    options[index].label = id;
     handleComponentChange({
       ...component,
-      options,
+      options: component.options.map((option, idx) =>
+        idx === index ? { ...option, label: id } : option
+      )
     });
   };
 
   const handleUpdateOptionValue = (index: number, e: any) => {
-    const options = [...component.options];
-    options[index].value = e.target.value;
     handleComponentChange({
       ...component,
-      options,
+      options: component.options.map((option, idx) =>
+        idx === index ? { ...option, value: e.target.value } : option
+      )
     });
   };
 

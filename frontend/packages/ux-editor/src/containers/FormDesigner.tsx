@@ -105,18 +105,11 @@ export const FormDesigner = ({ selectedLayout, selectedLayoutSet }: FormDesigner
     return (
       <DndProvider backend={HTML5Backend}>
         <div className={classes.root}>
-          <div className={classes.container} id='formFillerGrid'>
-            <div className={classes.leftContent + ' ' + classes.item}>
-              <LeftMenu />
-            </div>
+          <div className={classes.container}>
+            <LeftMenu className={classes.leftContent + ' ' + classes.item} />
             <FormContextProvider>
-              <div className={classes.mainContent + ' ' + classes.item}>
-                <h1 className={classes.pageHeader}>{selectedLayout}</h1>
-                <DesignView />
-              </div>
-              <div className={classes.rightContent + ' ' + classes.item}>
-                <RightMenu />
-              </div>
+              <DesignView className={classes.mainContent + ' ' + classes.item} />
+              <RightMenu className={classes.rightContent + ' ' + classes.item} />
             </FormContextProvider>
           </div>
         </div>

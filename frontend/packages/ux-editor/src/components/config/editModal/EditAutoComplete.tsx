@@ -96,13 +96,8 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
       ...component,
       autocomplete,
     });
+    setSearchFieldFocused(false);
   };
-
-  const persistChange = (): void =>
-    handleComponentChange({
-      ...component,
-      autocomplete: autocompleteText,
-    });
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     setAutocompleteText(event.target.value);
@@ -117,10 +112,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
         value={autocompleteText}
         onFocus={(): void => setSearchFieldFocused(true)}
         onBlur={(): void => {
-          persistChange();
-          setTimeout(() => {
-            setSearchFieldFocused(false);
-          }, 100);
+          if (searchFieldFocused) setSearchFieldFocused(false);
         }}
       />
       <Popover
@@ -138,7 +130,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
               size={ButtonSize.Small}
               color={ButtonColor.Secondary}
               variant={ButtonVariant.Quiet}
-              onClick={() => handleWordClick(option)}
+              onMouseDown={() => handleWordClick(option)}
             >
               {option}
             </Button>

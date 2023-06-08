@@ -1,17 +1,14 @@
-import React, { useState, useMemo, useCallback, createContext } from 'react';
+import React, { useState, useMemo, useCallback, createContext, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
-import { useUpdateContainerIdMutation } from '../hooks/mutations/useUpdateContainerIdMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { useFormLayoutsSelector } from '../hooks';
 import { selectedLayoutSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
-import { useRuleConfigMutation } from '../hooks/mutations/useRuleConfigMutation';
-import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
-import { switchSelectedFieldId } from '../utils/ruleConfigUtils';
+import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
 
 export type FormContext = {
   formId: string;
@@ -42,24 +39,19 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   const { org, app } = useParams();
   const selectedLayoutSetName = useFormLayoutsSelector(selectedLayoutSetSelector);
 
+  const containerTimeoutRef = useRef(null);
+  const componentTimeoutRef = useRef(null);
+
   const [formId, setFormId] = useState<string>();
   const [form, setForm] = useState<FormContainer | FormComponent>();
 
-  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSetName);
-  const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutSetName);
-  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSetName);
-  const { components } = useFormLayoutsSelector(selectedLayoutSelector);
   const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(org, app, selectedLayoutSetName);
-  const { mutateAsync: updateContainerId } = useUpdateContainerIdMutation(org, app, selectedLayoutSetName);
+  const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(org, app, selectedLayoutSetName);
+  const { components } = useFormLayoutsSelector(selectedLayoutSelector);
 
   const handleUpdateFormContainer = useCallback(
     updateFormContainer,
     [updateFormContainer]
-  );
-
-  const handleUpdateContainerId = useCallback(
-    updateContainerId,
-    [updateContainerId]
   );
 
   const handleEdit = useCallback((component: FormContainer | FormComponent): void => {
@@ -73,33 +65,38 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   }, [handleEdit]);
 
   const handleContainerSave = useCallback(async (id: string, updatedContainer: FormContainer): Promise<void> => {
-    await handleUpdateFormContainer({
-      updatedContainer,
-      id,
-    });
-    if (id !== updatedContainer.id) {
-      await handleUpdateContainerId({
-        currentId: id,
-        newId: updatedContainer.id,
+    clearTimeout(containerTimeoutRef.current);
+    containerTimeoutRef.current = setTimeout(async () => {
+      clearTimeout(containerTimeoutRef.current);
+
+      await handleUpdateFormContainer({
+        id,
+        updatedContainer,
       });
-    }
-    handleDiscard();
-  }, [handleDiscard, handleUpdateContainerId, handleUpdateFormContainer]);
+      if (id !== updatedContainer.id) {
+        setFormId(updatedContainer.id);
+      }
+    }, AUTOSAVE_DEBOUNCE_INTERVAL);
+  }, [handleUpdateFormContainer]);
 
   const handleComponentSave = useCallback(async (id: string, updatedComponent: FormComponent): Promise<void> => {
-    const component: FormComponent = components[id];
+    clearTimeout(componentTimeoutRef.current);
+    componentTimeoutRef.current = setTimeout(async () => {
+      clearTimeout(componentTimeoutRef.current);
 
-    if (JSON.stringify(updatedComponent) !== JSON.stringify(component)) {
-      await updateFormComponent({
-        id,
-        updatedComponent,
-      });
-      if (id !== updatedComponent.id) {
-        await switchSelectedFieldId(ruleConfig, id, updatedComponent.id, saveRuleConfig);
+      const component: FormComponent = components[id];
+
+      if (JSON.stringify(updatedComponent) !== JSON.stringify(component)) {
+        await updateFormComponent({
+          id,
+          updatedComponent,
+        })
+        if (id !== updatedComponent.id) {
+          setFormId(updatedComponent.id);
+        }
       }
-    }
-    handleDiscard();
-  }, [components, handleDiscard, ruleConfig, saveRuleConfig, updateFormComponent]);
+    }, AUTOSAVE_DEBOUNCE_INTERVAL);
+  }, [components, updateFormComponent]);
 
   const value = useMemo(() => ({
     formId,

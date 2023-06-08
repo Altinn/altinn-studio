@@ -10,7 +10,7 @@ import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './dragAndDrop/DragHandle';
 import { ITextResource } from 'app-shared/types/global';
-import { CheckmarkIcon, MonitorIcon, PencilIcon, TrashIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { MonitorIcon, TrashIcon } from '@navikt/aksel-icons';
 import { formItemConfigs } from '../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
 import { selectedLayoutNameSelector, selectedLayoutSetSelector } from '../selectors/formLayoutSelectors';
@@ -59,17 +59,26 @@ export const FormComponent = memo(function FormComponent({
 
   const isPreviewable = previewableComponents.includes(component?.type as ComponentType);
 
-  const handleDelete = (): void => {
+  const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    event.stopPropagation();
     deleteFormComponent(id);
-    handleDiscard();
+    if (isEditMode) handleDiscard();
   };
 
-  const handlePreview = () => {
+  const handlePreview = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     setIsPreviewMode(previous => !previous);
   };
 
   return (
-    <div className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode)} role='listitem'>
+    <div
+      className={cn(classes.wrapper, isEditMode && classes.editMode, isPreviewMode && classes.previewMode)}
+      role='listitem'
+      onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+        event.stopPropagation();
+        if (!isEditMode) handleEdit(component);
+      }}
+    >
       <div className={classes.formComponentWithHandle}>
         <div ref={dragHandleRef} className={classes.dragHandle}>
           <DragHandle />
@@ -78,7 +87,10 @@ export const FormComponent = memo(function FormComponent({
           {isPreviewMode ? (
             <ComponentPreview
               component={component}
-              handleComponentChange={handleEdit}
+              handleComponentChange={async (updatedComponent) => {
+                handleEdit(updatedComponent);
+                await handleSave(id, updatedComponent);
+              }}
               layoutName={selectedLayout}
             />
           ) : (
@@ -96,44 +108,15 @@ export const FormComponent = memo(function FormComponent({
         </div>
       </div>
       <div className={classes.buttons}>
-          {!isEditMode ? (
-          <>
-            <Button
-              data-testid='component-delete-button'
-              color={ButtonColor.Secondary}
-              icon={<TrashIcon />}
-              onClick={handleDelete}
-              tabIndex={0}
-              title={t('general.delete')}
-              variant={ButtonVariant.Quiet}
-            />
-            <Button
-              color={ButtonColor.Secondary}
-              icon={<PencilIcon />}
-              onClick={() => handleEdit(component)}
-              tabIndex={0}
-              title={t('general.edit')}
-              variant={ButtonVariant.Quiet}
-            />
-          </>
-        ) : (
-          <>
-          <Button
-            color={ButtonColor.Secondary}
-            icon={<XMarkIcon title={t('general.cancel')} />}
-            onClick={handleDiscard}
-            tabIndex={0}
-            variant={ButtonVariant.Quiet}
-          />
-            <Button
-              color={ButtonColor.Secondary}
-              icon={<CheckmarkIcon title={t('general.save')} />}
-              onClick={() => handleSave(id, component)}
-              tabIndex={0}
-              variant={ButtonVariant.Quiet}
-            />
-          </>
-        )}
+        <Button
+          data-testid='component-delete-button'
+          color={ButtonColor.Secondary}
+          icon={<TrashIcon />}
+          onClick={handleDelete}
+          tabIndex={0}
+          title={t('general.delete')}
+          variant={ButtonVariant.Quiet}
+        />
         {
           isPreviewable && (
             <Button

@@ -20,7 +20,11 @@ import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { ConfigureLayoutSetPanel } from "./ConfigureLayoutSetPanel";
 
-export const LeftMenu = () => {
+export interface LeftMenuProps {
+  className?: string;
+}
+
+export const LeftMenu = ({ className }: LeftMenuProps) => {
   const { org, app } = useParams();
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
