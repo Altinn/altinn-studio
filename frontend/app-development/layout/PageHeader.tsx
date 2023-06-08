@@ -37,40 +37,26 @@ export const subMenuContent = () => {
 };
 
 export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
-  if (window.location.pathname.includes('preview')) {
-    const previewAction = [
-      {
-        title: 'top_menu.preview_back_to_editing',
-        path: editorPath,
-        menuKey: TopBarMenu.Preview,
-        buttonVariant: ButtonVariant.Outline,
-        headerButtonsClasses: undefined,
-        handleClick: () => window.open(editorPath(org, app), '_blank'),
-      },
-    ];
-    return previewAction;
-  } else {
-    const actions = [
-      {
-        title: 'top_menu.preview',
-        path: previewPath,
-        menuKey: TopBarMenu.Preview,
-        buttonVariant: ButtonVariant.Outline,
-        headerButtonsClasses: classes.previewButton,
-        handleClick: () => window.open(previewPath(org, app), '_blank'),
-        inBeta: true,
-      },
-      {
-        title: 'top_menu.deploy',
-        path: publiserPath,
-        menuKey: TopBarMenu.Deploy,
-        buttonVariant: ButtonVariant.Outline,
-        headerButtonsClasses: undefined,
-        handleClick: () => (window.location.href = publiserPath(org, app)),
-      },
-    ];
-    return actions;
-  }
+  const actions = [
+    {
+      title: 'top_menu.preview',
+      path: previewPath,
+      menuKey: TopBarMenu.Preview,
+      buttonVariant: ButtonVariant.Outline,
+      headerButtonsClasses: classes.previewButton,
+      handleClick: () => (window.location.href = previewPath(org, app)),
+      inBeta: true,
+    },
+    {
+      title: 'top_menu.deploy',
+      path: publiserPath,
+      menuKey: TopBarMenu.Deploy,
+      buttonVariant: ButtonVariant.Outline,
+      headerButtonsClasses: undefined,
+      handleClick: () => (window.location.href = publiserPath(org, app)),
+    },
+  ];
+  return actions;
 };
 
 export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {

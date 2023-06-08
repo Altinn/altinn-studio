@@ -26,7 +26,7 @@ export const PreviewApp = () => {
   return (
     <div className={classes.previewContainer}>
       <Routes>
-        <Route path='/:org/:app' element={<LandingPage showSubMenu={false} />} />
+        <Route path='/:org/:app' element={<LandingPage showSubMenu={true} />} />
         <Route path='*' element={<NoMatch />} />
       </Routes>
     </div>

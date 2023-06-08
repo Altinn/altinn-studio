@@ -6,19 +6,21 @@ import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { Button, ToggleButtonGroup } from '@digdir/design-system-react';
-import { ButtonVariant } from '@altinn/altinn-design-system';
-import { LinkIcon, ArrowCirclepathIcon, EyeIcon } from '@navikt/aksel-icons';
+import { ToggleButtonGroup } from '@digdir/design-system-react';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
-import { buttonActions, subMenuContent } from 'app-development/layout/PageHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { IRepository } from 'app-shared/types/global';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import { getTopBarAppPreviewMenu } from '../components/AppBarConfig/AppPreviewBarConfig';
+import {
+  appPreviewButtonActions,
+  subPreviewMenuContent,
+} from '../components/AppPreviewHeader/AppPreviewHeader';
 
 export interface LandingPageProps {
   showSubMenu: boolean;
   variant?: AltinnHeaderVariant;
   repository?: IRepository;
-  subMenuContent?: JSX.Element;
 }
 
 export const LandingPage = ({ showSubMenu, variant = 'preview', repository }: LandingPageProps) => {
@@ -29,6 +31,8 @@ export const LandingPage = ({ showSubMenu, variant = 'preview', repository }: La
   const [viewSize, setViewSize] = useState<string>(localSelectedViewSize ?? 'desktop');
   const selectedLayoutSetInEditor = localStorage.getItem('layoutSetName');
   const { data: user } = useUserQuery();
+  const repoType = getRepositoryType(org, app);
+  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
@@ -55,15 +59,14 @@ export const LandingPage = ({ showSubMenu, variant = 'preview', repository }: La
       <>
         <div className={classes.header}>
           <AltinnHeader
-            menu={undefined}
-            showSubMenu={showSubMenu}
-            subMenuContent={subMenuContent()}
+            menu={menu}
+            showSubMenu={true}
             activeMenuSelection={undefined}
             org={org}
             app={app}
             user={user}
             repository={repository}
-            buttonActions={buttonActions(org, app)}
+            buttonActions={appPreviewButtonActions(org, app)}
             variant={variant}
           />
         </div>
@@ -84,17 +87,7 @@ export const LandingPage = ({ showSubMenu, variant = 'preview', repository }: La
               selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
             />
           </span>
-          <div className={classes.leftSubHeaderButtons}>
-            <Button icon={<ArrowCirclepathIcon />} variant={ButtonVariant.Quiet}>
-              {t('preview.subheader.restart.button')}
-            </Button>
-            <Button icon={<EyeIcon />} variant={ButtonVariant.Quiet}>
-              {t('preview.subheader.showas.button')}
-            </Button>
-            <Button icon={<LinkIcon />} variant={ButtonVariant.Quiet}>
-              {t('preview.subheader.sharelink.button')}
-            </Button>
-          </div>
+          {subPreviewMenuContent()}
         </div>
         <div className={classes.iframeMobileViewContainer}>
           <iframe

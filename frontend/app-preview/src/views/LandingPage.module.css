@@ -1,7 +1,8 @@
 .header {
+  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   display: flex;
   align-items: center;
-  height: 90px;
+  height: 100px;
 }
 
 .subHeader {
@@ -12,7 +13,6 @@
   align-items: center;
   height: 70px;
   position: relative;
-  height: 50px;
 }
 
 .leftSubHeaderButtons {
@@ -31,7 +31,7 @@
 
 .viewSizeButtons {
   margin: 4px 4px 4px 15px;
-  flex: 1;
+  padding: 8px 0;
   --component-toggle_button-color-border-inactive: white;
   --component-toggle_button-color-border-active: white;
   --component-toggle_button-color-background-active: white;

@@ -1,20 +1,18 @@
 import React from 'react';
-import classes from './AltinnHeaderMenu.module.css';
+import classes from './AppPreviewMenu.module.css';
 import classNames from 'classnames';
 
-export interface IAltinnHeaderMenuProps {
+export interface IAppPreviewMenuProps {
   activeSubHeaderSelection?: string;
-  menu: AltinnHeaderMenuItem[];
+  menu: AppPreviewMenuItem[];
 }
 
-export interface AltinnHeaderMenuItem {
+export interface AppPreviewMenuItem {
   key: string;
   link: JSX.Element;
 }
 
-export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHeaderMenuProps) => {
-  if (!menu?.length) return null;
-
+export const AppPreviewMenu = ({ activeSubHeaderSelection, menu }: IAppPreviewMenuProps) => {
   return (
     <ul className={classes.menu} data-testid='altinn-header-menu'>
       {menu.map((item) => (

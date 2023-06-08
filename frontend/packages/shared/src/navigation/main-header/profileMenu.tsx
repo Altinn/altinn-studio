@@ -27,18 +27,11 @@ export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
 
   return (
     <div>
-      {window.location.pathname.includes('preview') ? (
-        <PersonCircleIcon className={classes.previewProfilIcon} title='profile Icon' />
-      ) : (
-        <img
-          src={user.avatar_url}
-          className={classes.userAvatar}
-          aria-haspopup
-          onClick={handleClick}
-          aria-label='profilikon'
-        />
-      )}
-
+      <PersonCircleIcon
+        onClick={handleClick}
+        className={classes.previewProfilIcon}
+        title='profile Icon'
+      />
       <Menu
         id='simple-menu'
         anchorEl={anchorEl}
