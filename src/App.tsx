@@ -23,6 +23,8 @@ import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import type { IApplicationSettings } from 'src/types/shared';
 
+import '@digdir/design-system-tokens/brand/altinn/tokens.css';
+
 export const App = () => {
   const { data: applicationSettings, isError: hasApplicationSettingsError } = useApplicationSettingsQuery();
   const { data: applicationMetadata, isError: hasApplicationMetadataError } = useApplicationMetadataQuery();
