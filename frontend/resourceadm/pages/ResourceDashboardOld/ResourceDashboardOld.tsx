@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CenterContainer } from '../../components/CenterContainer';
 import { Footer } from '../../components/Footer';
 
-import classes from './ResourceDashboard.module.css';
+import classes from './ResourceDashboardOld.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
@@ -23,7 +23,7 @@ type ResourceDashboardProps = {
   disableDebounce?: boolean;
 };
 
-export const ResourceDashboard = ({
+export const ResourceDashboardOld = ({
   user,
   organizations,
   disableDebounce,
@@ -94,7 +94,7 @@ export const ResourceDashboard = ({
         <h3> Dette er RessursDashboard side pakket inn i PageLayout banner </h3>
         <h5> Vi bygger gradvis fra Dashboard mal. </h5>
         <h5> Vi ønsker muligens listefunksjonalitet her, som i RepoList og OrgRepoList, </h5>
-        
+
         {/*
             Dummy button that takes the user to the resource page where the user can navigate
             between the 3 pages "about the resource", "security", and "policy".

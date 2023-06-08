@@ -55,6 +55,8 @@ export const formLayoutSettingsMock: ILayoutSettings = {
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
+export const optionListIdsMock: string[] = ['test-1', 'test-2'];
+
 export const queriesMock: ServicesContextProps = {
   ...allQueriesMock,
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
@@ -67,7 +69,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
   getInstanceIdForPreview: jest.fn(),
-  getOptionListIds: jest.fn(),
+  getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(optionListIdsMock)),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),

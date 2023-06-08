@@ -3,7 +3,6 @@ import classes from './PolicyEditorPage.module.css';
 import { PolicyActionType, PolicyBackendType, PolicySubjectType } from 'resourceadm/types/global';
 import { useParams } from 'react-router-dom';
 import { get, put } from 'app-shared/utils/networking';
-import { getPolicyRulesUrl } from 'resourceadm/utils/backendUrlUtils';
 import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
 import {
   getActionOptionsUrlBySelectedContextAndRepo,
@@ -55,7 +54,7 @@ export const PolicyEditorPage = () => {
             setSubjects(mapPolicySubjectResultToPolicySubjects(subjectResult));
 
             // E.g., http://studio.localhost/designer/api/ttd/ttd-resources/policy/resource_id_7
-            get(getPolicyRulesUrl(selectedContext, repo, resourceId))
+            get(getPolicyUrlBySelectedContextRepoAndId(selectedContext, repo, resourceId))
               .then((policyResult: unknown) => {
                 // Set the policy
                 setPolicy(mapPolicyResultToPolicyObject(policyResult));

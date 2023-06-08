@@ -1,4 +1,4 @@
-import { PolicyActionType, PolicyBackendType, PolicySubjectType } from "resourceadm/types/global";
+import { PolicyActionType, PolicyBackendType, PolicySubjectType, ResourceType } from "resourceadm/types/global";
 
 /**
  * Maps from an uknown response object from backend to the correct policy type
@@ -44,4 +44,26 @@ export const mapPolicySubjectResultToPolicySubjects = (
 ): PolicySubjectType[] =>{
   const subjectsResult: PolicySubjectType[] = res as PolicySubjectType[];
   return subjectsResult
+}
+
+/**
+ * Maps from an uknown response object from backend to the correct list of resource type
+ *
+ * @param res the unknown response
+ *
+ * @returns a list of mapped resource type
+ */
+export const mapResourceListBackendResultToResourceList = (
+  res: unknown
+): ResourceType[] => {
+  // TODO - Find out the type it should be assigned as, and how to handle the languages
+  const resourcesResult: any[] = res as any[];
+
+  return resourcesResult.map((r: any, i: number) => ({
+    name: r.title.nb,
+    createdBy: 'Kåre Fredriksen', // TODO
+    dateChanged: '08.06.2023', // TODO
+    hasPolicy: i % 2 === 0, // TODO
+    resourceId: r.identifier
+  }))
 }

@@ -1,6 +1,6 @@
 import { FormComponent } from '../types/FormComponent';
 import { useTranslation } from 'react-i18next';
-import { validateComponent } from '../utils/validationUtils';
+import { useValidateComponent } from './useValidateComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 /**
@@ -10,7 +10,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
  */
 export const useComponentErrorMessage = (component: FormComponent): string | null => {
   const { t } = useTranslation();
-  const { isValid, error } = validateComponent(component);
+  const { isValid, error } = useValidateComponent(component);
   if (isValid) return null;
   switch(component.type) {
     case ComponentType.Checkboxes:
