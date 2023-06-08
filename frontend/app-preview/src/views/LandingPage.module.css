@@ -2,7 +2,7 @@
   font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   display: flex;
   align-items: center;
-  height: 140px;
+  height: var(--header-height);
 }
 
 .subHeader {
@@ -11,8 +11,8 @@
   background-color: #0c6536;
   display: flex;
   align-items: center;
-  height: 70px;
-  position: relative;
+  height: var(--subtoolbar-height);
+  margin-top: 80px;
 }
 
 .leftSubHeaderButtons {
