@@ -46,6 +46,7 @@ export const VersionControlButtons = (props: IVersionControlHeaderProps) => {
   const [hasChangesInLocalRepo, setHasChangesInLocalRepo] = useState(false);
   const [modalState, setModalState] = useState(initialModalState);
   const [syncModalAnchorEl, setSyncModalAnchorEl] = useState(null);
+
   const { data: currentRepo } = useRepoMetadataQuery(selectedContext, repo);
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(
     selectedContext,
