@@ -25,8 +25,9 @@ import { Spinner } from '@digdir/design-system-react';
 export const PolicyEditorPage = () => {
   // TODO - translation
 
-  const { resourceId, selectedContext, repo } = useParams();
+  const { resourceId, selectedContext } = useParams();
   const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
+  const repo = `${selectedContext}-resources`;
 
   const [actions, setActions] = useState<PolicyActionType[]>([]);
   const [subjects, setSubjects] = useState<PolicySubjectType[]>([]);
