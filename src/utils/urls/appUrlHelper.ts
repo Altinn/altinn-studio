@@ -3,10 +3,9 @@ import type { SortDirection } from '@altinn/altinn-design-system';
 import { mapFormData } from 'src/utils/databindings';
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 import type { IFormData } from 'src/features/formData';
-import type { IAltinnWindow, IMapping } from 'src/types';
+import type { IMapping } from 'src/types';
 
-const altinnWindow = window as Window as IAltinnWindow;
-const { org, app } = altinnWindow;
+const { org, app } = window;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
@@ -25,13 +24,13 @@ export const updateCookieUrl = (partyId: string) => `${appPath}/api/v1/parties/$
 export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
 
 export const fileUploadUrl = (attachmentType: string) =>
-  `${appPath}/instances/${altinnWindow.instanceId}/data?dataType=${attachmentType}`;
+  `${appPath}/instances/${window.instanceId}/data?dataType=${attachmentType}`;
 
-export const fileTagUrl = (dataGuid: string) => `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}/tags`;
+export const fileTagUrl = (dataGuid: string) => `${appPath}/instances/${window.instanceId}/data/${dataGuid}/tags`;
 
-export const dataElementUrl = (dataGuid: string) => `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}`;
+export const dataElementUrl = (dataGuid: string) => `${appPath}/instances/${window.instanceId}/data/${dataGuid}`;
 
-export const getProcessStateUrl = () => `${appPath}/instances/${altinnWindow.instanceId}/process`;
+export const getProcessStateUrl = () => `${appPath}/instances/${window.instanceId}/process`;
 
 export const getCreateInstancesUrl = (partyId: string) => `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
 
@@ -49,7 +48,7 @@ export const getProcessNextUrl = (taskId?: string | null, language?: string | nu
     lang: language,
   });
 
-  return `${appPath}/instances/${altinnWindow.instanceId}/process/next${queryString}`;
+  return `${appPath}/instances/${window.instanceId}/process/next${queryString}`;
 };
 
 export const getRedirectUrl = (returnUrl: string) => `${appPath}/api/v1/redirect?url=${encodeURIComponent(returnUrl)}`;
@@ -156,7 +155,7 @@ export const getCalculatePageOrderUrl = (stateless: boolean) => {
   if (stateless) {
     return `${appPath}/v1/pages/order`;
   } else {
-    return `${appPath}/instances/${altinnWindow.instanceId}/pages/order`;
+    return `${appPath}/instances/${window.instanceId}/pages/order`;
   }
 };
 

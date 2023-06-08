@@ -5,15 +5,13 @@ import { createSagaSlice } from 'src/redux/sagaSlice';
 import { getLanguageQueryParam } from 'src/utils/party';
 import type { IFetchProfileFulfilled, IFetchProfileRejected, IProfileState } from 'src/features/profile/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
-import type { IAltinnWindow } from 'src/types';
 import type { IProfile } from 'src/types/shared';
 
 export interface IUpdateSelectedAppLanguage {
   selected: string;
 }
 
-const altinnWindow = window as Window as IAltinnWindow;
-const getLanguageStorageKey = (userId: number | undefined) => `selectedAppLanguage${altinnWindow.app}${userId ?? ''}`;
+const getLanguageStorageKey = (userId: number | undefined) => `selectedAppLanguage${window.app}${userId ?? ''}`;
 
 export const initialState: IProfileState = {
   profile: {

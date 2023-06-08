@@ -1,23 +1,9 @@
-import type { ToolkitStore } from '@reduxjs/toolkit/src/configureStore';
 import type Ajv from 'ajv/dist/core';
 
 import type { ExprUnresolved, ExprVal } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
-import type { IFeatureToggles } from 'src/features/toggles';
 import type { RootState } from 'src/redux/store';
-
-export interface IAltinnWindow extends Window {
-  app: string;
-  conditionalRuleHandlerHelper: IRules;
-  instanceId: string;
-  org: string;
-  reportee: string;
-  evalExpression: (maybeExpression: any, forComponentId?: string) => any;
-  reduxStore: ToolkitStore<IRuntimeState>;
-  reduxActionLog: any[];
-  featureToggles: IFeatureToggles;
-}
 
 export interface IComponentBindingValidation {
   errors?: string[];
@@ -135,7 +121,13 @@ export interface IRepeatingGroups {
 }
 
 export interface IRules {
-  [id: string]: any;
+  [id: string]: () => Record<string, string>;
+}
+
+export type RuleFunc<T extends Record<string, any>> = (argObject: T) => T;
+
+export interface IRuleObject {
+  [id: string]: RuleFunc<any>;
 }
 
 export type IRuntimeState = RootState;

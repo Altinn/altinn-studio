@@ -60,6 +60,7 @@ describe('ConfirmPage', () => {
 
   it('should show loading when clicking submit', async () => {
     const user = userEvent.setup();
+    window.instanceId = state.instance?.id;
     const { store } = renderWithProviders(
       <MemoryRouter>
         <ConfirmPage {...props} />

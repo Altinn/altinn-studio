@@ -1,8 +1,6 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import type { IAltinnWindow } from 'src/types';
-
 const appFrontend = new AppFrontend();
 
 describe('Reportee selection', () => {
@@ -40,7 +38,7 @@ describe('Reportee selection', () => {
 describe.only('doNotPromptForParty doNotPromptForPartyPreference', () => {
   beforeEach(() => {
     // Enable feature toggle on the window object
-    cy.on('window:before:load', (win: IAltinnWindow) => {
+    cy.on('window:before:load', (win) => {
       win.featureToggles = {
         doNotPromptForPartyPreference: true,
       };

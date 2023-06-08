@@ -3,6 +3,6 @@
   "compilerOptions": {
     "types": ["node", "cypress", "@testing-library/cypress"]
   },
-  "include": ["./**/*.ts", "../src/global.d.ts"],
+  "include": ["./**/*.ts", "../src/modules.d.ts", "../src/global.d.ts"],
   "exclude": ["../node_modules"]
 }

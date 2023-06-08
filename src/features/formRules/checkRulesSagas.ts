@@ -6,7 +6,7 @@ import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { checkIfRuleShouldRun } from 'src/utils/rules';
 import type { IRuleConnections } from 'src/features/dynamics';
 import type { IFormDataState } from 'src/features/formData';
-import type { IUpdateFormDataFulfilled } from 'src/features/formData/formDataTypes';
+import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { IRuntimeState } from 'src/types';
 
@@ -23,7 +23,7 @@ export interface IResponse {
 
 export function* checkIfRuleShouldRunSaga({
   payload: { field, skipAutoSave, skipValidation, singleFieldValidation },
-}: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
+}: PayloadAction<IUpdateFormData>): SagaIterator {
   try {
     const ruleConnectionState: IRuleConnections | null = yield select(selectRuleConnection);
     const formDataState: IFormDataState = yield select(selectFormDataConnection);

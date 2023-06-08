@@ -1,11 +1,6 @@
 import type { IProcessPermissions } from 'src/features/process';
 import type { FixedLanguageList } from 'src/language/languages';
 
-export interface IAltinnWindow extends Window {
-  org: string;
-  app: string;
-}
-
 export interface IApplication {
   createdBy: string;
   created: string;

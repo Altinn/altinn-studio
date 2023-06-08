@@ -28,21 +28,12 @@ export interface ISaveAction {
   singleFieldValidation?: ISingleFieldValidation;
 }
 
-export interface IUpdateFormDataProps {
+export interface IUpdateFormData {
   skipValidation?: boolean;
   skipAutoSave?: boolean;
   singleFieldValidation?: ISingleFieldValidation;
-}
-
-export interface IUpdateFormData extends IUpdateFormDataProps {
-  field: string;
-  data: any;
   componentId?: string;
-}
-
-export interface IUpdateFormDataFulfilled extends IUpdateFormDataProps {
   field: string;
-  componentId?: string;
   data: any;
 }
 

@@ -65,8 +65,8 @@ describe('conditionalRendering', () => {
       mockField: '4',
     };
 
-    (window as any).conditionalRuleHandlerHelper = mockRuleHandlerHelper;
-    (window as any).conditionalRuleHandlerObject = mockRuleHandler;
+    window.conditionalRuleHandlerHelper = mockRuleHandlerHelper;
+    window.conditionalRuleHandlerObject = mockRuleHandler;
   });
 
   it('should HIDE element when rule is set to HIDE and condition is TRUE', () => {

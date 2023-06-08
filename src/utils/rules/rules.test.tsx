@@ -89,8 +89,8 @@ describe('rules checkIfRuleShouldRun', () => {
       layouts: mockLayout,
     };
     mockLastUpdatedDataBinding = 'mockDataModelBinding2';
-    (window as any).ruleHandlerHelper = mockRuleHandlerHelper;
-    (window as any).ruleHandlerObject = mockRuleHandlerObject;
+    window.ruleHandlerHelper = mockRuleHandlerHelper;
+    window.ruleHandlerObject = mockRuleHandlerObject;
   });
 
   it('should return true if rule should be triggered', () => {
@@ -283,12 +283,12 @@ describe('rules getRuleModelFields', () => {
       'var conditionalRuleHandlerHelper = { biggerThan10: () => { return { number: "number" }; }, smallerThan10:' +
       ' () => { return { number: "number" } }, lengthBiggerThan4: () => { return { value: "value" } } }';
 
-    const scriptEle = (window as any).document.createElement('script');
+    const scriptEle = window.document.createElement('script');
     scriptEle.innerHTML = mockRuleScript;
-    (window as any).ruleHandlerHelper = mockRuleHandlerHelper;
-    (window as any).conditionalRuleHandlerHelper = mockConditionalRuleHandlerHelper;
-    (window as any).conditionalRuleHandlerObject = mockConditionalRuleHandlerObject;
-    (window as any).ruleHandlerObject = mockRuleHandlerObject;
+    window.ruleHandlerHelper = mockRuleHandlerHelper;
+    window.conditionalRuleHandlerHelper = mockConditionalRuleHandlerHelper;
+    window.conditionalRuleHandlerObject = mockConditionalRuleHandlerObject;
+    window.ruleHandlerObject = mockRuleHandlerObject;
   });
 
   it('should return an array ', () => {

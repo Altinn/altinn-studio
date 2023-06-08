@@ -25,7 +25,7 @@ import {
 } from 'src/utils/validation/validation';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IFormData } from 'src/features/formData';
-import type { IUpdateFormDataFulfilled } from 'src/features/formData/formDataTypes';
+import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { IRuntimeState, IRuntimeStore, IValidationIssue } from 'src/types';
 
@@ -251,7 +251,7 @@ function getModelToSave(state: IRuntimeState) {
  */
 export function* saveFormDataSaga({
   payload: { field, componentId, singleFieldValidation },
-}: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
+}: PayloadAction<IUpdateFormData>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     // updates the default data element
@@ -347,7 +347,7 @@ export function* postStatelessData({ field, componentId }: SaveDataParams) {
  */
 export function* autoSaveSaga({
   payload: { skipAutoSave, field, componentId, singleFieldValidation },
-}: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
+}: PayloadAction<IUpdateFormData>): SagaIterator {
   if (skipAutoSave) {
     return;
   }

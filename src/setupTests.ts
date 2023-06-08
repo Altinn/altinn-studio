@@ -4,8 +4,6 @@ import 'core-js/stable/structured-clone'; // https://github.com/jsdom/jsdom/issu
 
 import { TextDecoder, TextEncoder } from 'util';
 
-import type { IAltinnWindow } from 'src/types';
-
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -26,10 +24,9 @@ Object.defineProperty(document, 'fonts', {
 });
 
 // org and app is assigned to window object, so to avoid 'undefined' in tests, they need to be set
-const altinnWindow = window as Window as IAltinnWindow;
-altinnWindow.org = 'ttd';
-altinnWindow.app = 'test';
-altinnWindow.featureToggles = {};
+window.org = 'ttd';
+window.app = 'test';
+window.featureToggles = {};
 jest.setTimeout(10000);
 
 jest.mock('axios');

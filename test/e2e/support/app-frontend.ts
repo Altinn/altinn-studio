@@ -1,7 +1,6 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import type { ILayouts } from 'src/layout/layout';
-import type { IAltinnWindow } from 'src/types';
 
 const appFrontend = new AppFrontend();
 
@@ -83,8 +82,7 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator) 
 
 Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.window().then((win) => {
-    const aWin = win as unknown as IAltinnWindow;
-    const state = aWin.reduxStore.getState();
+    const state = win.reduxStore.getState();
     const layouts: ILayouts = structuredClone(state.formLayout.layouts || {});
     if (mutator && layouts) {
       for (const layout of Object.values(layouts)) {
@@ -96,7 +94,7 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
     if (wholeLayoutMutator) {
       wholeLayoutMutator(layouts);
     }
-    aWin.reduxStore.dispatch({
+    win.reduxStore.dispatch({
       type: 'formLayout/updateLayouts',
       payload: layouts,
     });

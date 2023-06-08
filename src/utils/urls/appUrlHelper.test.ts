@@ -28,7 +28,7 @@ import {
 } from 'src/utils/urls/appUrlHelper';
 
 describe('Frontend urlHelper.ts', () => {
-  window['instanceId'] = '12345/instanceId-1234';
+  window.instanceId = '12345/instanceId-1234';
   describe('constants', () => {
     it('should return the expected url for validPartiesUrl', () => {
       expect(validPartiesUrl).toBe(

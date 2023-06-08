@@ -17,7 +17,7 @@ import type {
   IFetchSpecificDataListSaga,
 } from 'src/features/dataLists/index';
 import type { IFormData } from 'src/features/formData';
-import type { IUpdateFormDataFulfilled } from 'src/features/formData/formDataTypes';
+import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
 import type { ILayouts } from 'src/layout/layout';
 import type { IRepeatingGroups, IRuntimeState } from 'src/types';
 
@@ -152,7 +152,7 @@ export function* fetchSpecificDataListSaga({
 
 export function* checkIfDataListShouldRefetchSaga({
   payload: { field },
-}: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
+}: PayloadAction<IUpdateFormData>): SagaIterator {
   const dataList: IDataList = yield select(dataListsSelector);
   let foundInExistingDataList = false;
   for (const dataListKey of Object.keys(dataList)) {

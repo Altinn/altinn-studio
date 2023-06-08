@@ -5,7 +5,7 @@ import type {
   ISelectedFields,
 } from 'src/features/dynamics';
 import type { IFormData } from 'src/features/formData';
-import type { IAltinnWindow, IRepeatingGroup, IRepeatingGroups } from 'src/types';
+import type { IRepeatingGroup, IRepeatingGroups } from 'src/types';
 
 /*
  * Runs conditional rendering rules, returns array of affected layout elements
@@ -16,7 +16,7 @@ export function runConditionalRenderingRules(
   repeatingGroups?: IRepeatingGroups,
 ): Set<string> {
   const componentsToHide = new Set<string>();
-  if (!(window as Window as IAltinnWindow).conditionalRuleHandlerHelper) {
+  if (!window.conditionalRuleHandlerHelper) {
     // rules have not been initialized
     return componentsToHide;
   }
@@ -108,7 +108,7 @@ function runConditionalRenderingRule(
   hiddenFields: Set<string>,
 ) {
   const functionToRun = rule.selectedFunction;
-  const objectToUpdate = (window as Window as IAltinnWindow).conditionalRuleHandlerHelper[functionToRun]();
+  const objectToUpdate = window.conditionalRuleHandlerHelper[functionToRun]();
 
   // Map input object structure to input object defined in the conditional rendering rule connection
   const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
@@ -117,7 +117,7 @@ function runConditionalRenderingRule(
     return acc;
   }, {});
 
-  const result = (window as any).conditionalRuleHandlerObject[functionToRun](newObj);
+  const result = window.conditionalRuleHandlerObject[functionToRun](newObj);
   const action = rule.selectedAction;
   const hide = (action === 'Show' && !result) || (action === 'Hide' && result);
   Object.keys(rule.selectedFields).forEach((elementToPerformActionOn) => {

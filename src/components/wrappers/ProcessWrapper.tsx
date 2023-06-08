@@ -34,7 +34,7 @@ export const ProcessWrapper = () => {
 
   const instanceId = useAppSelector((state) => state.instantiation.instanceId);
   const instanceIdFromUrl = useInstanceIdParams()?.instanceId;
-  window['instanceId'] = instanceIdFromUrl;
+  window.instanceId = instanceIdFromUrl;
 
   const { pdfPreview } = useAppSelector((state) => state.devTools);
   const [searchParams] = useSearchParams();

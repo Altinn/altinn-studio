@@ -98,7 +98,7 @@ export const ExpressionPlayground = () => {
             style={{ color: isError ? 'red' : 'black' }}
             className={cn(classes.textbox, classes.output)}
             readOnly={true}
-            value={output}
+            value={JSON.stringify(output)}
             placeholder={'Resultatet av uttrykket vises her'}
           />
         </SplitView>

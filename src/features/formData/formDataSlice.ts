@@ -16,7 +16,6 @@ import type {
   ISaveAction,
   ISubmitDataAction,
   IUpdateFormData,
-  IUpdateFormDataFulfilled,
 } from 'src/features/formData/formDataTypes';
 import type { IFormData, IFormDataState } from 'src/features/formData/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
@@ -97,7 +96,7 @@ export const formDataSlice = () => {
       update: mkAction<IUpdateFormData>({
         takeEvery: updateFormDataSaga,
       }),
-      updateFulfilled: mkAction<IUpdateFormDataFulfilled>({
+      updateFulfilled: mkAction<IUpdateFormData>({
         takeLatest: [checkIfRuleShouldRunSaga, autoSaveSaga],
         takeEvery: [checkIfOptionsShouldRefetchSaga, checkIfDataListShouldRefetchSaga],
         reducer: (state, action) => {

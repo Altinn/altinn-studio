@@ -11,8 +11,6 @@ import 'test/e2e/support/auth';
 import { chaiExtensions } from 'test/e2e/support/chai-extensions';
 import { resetNavigation } from 'test/e2e/support/navigation';
 
-import type { IAltinnWindow } from 'src/types';
-
 before(() => {
   chai.use(chaiExtensions);
 });
@@ -36,13 +34,12 @@ afterEach(function () {
     const fileName = `redux-${specBaseName}-${title}-${attempt}.json`;
 
     cy.window().then((win) => {
-      const aWin = win as unknown as IAltinnWindow;
-      if (aWin.reduxActionLog && aWin.reduxStore) {
+      if (win.reduxActionLog && win.reduxStore) {
         // This object does approximately what the export function from redux-devtools does:
         // https://github.com/reduxjs/redux-devtools/blob/b82de745928211cd9b7daa7a61b197ad9e11ec36/extension/src/browser/extension/inject/pageScript.ts#L220-L226
         const history = {
-          payload: JSON.stringify(aWin.reduxActionLog),
-          preloadedState: JSON.stringify(aWin.reduxStore.getState()),
+          payload: JSON.stringify(win.reduxActionLog),
+          preloadedState: JSON.stringify(win.reduxStore.getState()),
         };
         cy.writeFile(`test/redux-history/${fileName}`, JSON.stringify(history, null, 2));
       }

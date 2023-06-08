@@ -5,7 +5,6 @@ import { Grid, makeStyles } from '@material-ui/core';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IAltinnWindow } from 'src/types';
 
 export type IImageProps = PropsFromGenericComponent<'Image'>;
 
@@ -25,10 +24,7 @@ export function ImageComponent({ node, language, getTextResourceAsString, getTex
 
   let imgSrc = image?.src[languageKey] || image?.src.nb || '';
   if (imgSrc.startsWith('wwwroot')) {
-    imgSrc = imgSrc.replace(
-      'wwwroot',
-      `/${(window as Window as IAltinnWindow).org}/${(window as Window as IAltinnWindow).app}`,
-    );
+    imgSrc = imgSrc.replace('wwwroot', `/${window.org}/${window.app}`);
   }
 
   const imgType = imgSrc.slice(-3);

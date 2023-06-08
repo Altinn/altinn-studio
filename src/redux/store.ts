@@ -6,7 +6,6 @@ import type { SagaMiddleware } from 'redux-saga';
 
 import { combinedReducers } from 'src/redux/reducers';
 import { appApi } from 'src/services/AppApi';
-import type { IAltinnWindow } from 'src/types';
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
@@ -39,12 +38,12 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   //    and inject actions when we need to. Testing the state directly might expose problems not easily/visibly testable
   //    in the app itself.
   // 2. Allows the window.evalExpression() test-function to get the current state for testing expressions.
-  (window as unknown as IAltinnWindow).reduxStore = store;
+  window.reduxStore = store;
 
   if (process.env.NODE_ENV === 'development') {
     // Expose a log containing all dispatched actions. This is useful when Cypress tests fail, so that we can gather
     // the logged actions to re-construct the redux state history using the redux devtools.
-    (window as unknown as IAltinnWindow).reduxActionLog = actionLog;
+    window.reduxActionLog = actionLog;
   }
 
   return { store, sagaMiddleware };

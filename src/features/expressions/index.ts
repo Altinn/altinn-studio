@@ -12,7 +12,6 @@ import { ExprContext } from 'src/features/expressions/ExprContext';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
 import { getTextResourceByKey } from 'src/language/sharedLanguage';
-import { dataSourcesFromState, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
@@ -27,7 +26,6 @@ import type {
 } from 'src/features/expressions/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutComponent } from 'src/layout/layout';
-import type { IAltinnWindow } from 'src/types';
 import type { IAuthContext, IInstanceContext } from 'src/types/shared';
 
 export interface EvalExprOptions {
@@ -730,41 +728,11 @@ export const ExprTypes: {
  *
  * @see resolvedNodesInLayouts
  */
-(window as unknown as IAltinnWindow).evalExpression = (maybeExpression: any, forComponentId?: string) => {
-  const config: ExprConfig<ExprVal.Any> = {
-    returnType: ExprVal.Any,
-    defaultValue: null,
-    resolvePerRow: false,
-  };
-
-  const expr = asExpression(maybeExpression, config);
-  if (!expr) {
-    return null;
-  }
-
-  const state = (window as unknown as IAltinnWindow).reduxStore.getState();
-  const nodes = resolvedLayoutsFromState(state);
-  let layout: LayoutPage | LayoutNode | undefined = nodes?.current();
-  if (!layout) {
-    console.error('Unable to find current page/layout');
-    return;
-  }
-
-  if (forComponentId) {
-    const foundNode = nodes?.findById(forComponentId);
-    if (!foundNode) {
-      console.error('Unable to find component with id', forComponentId);
-      console.error(
-        'Available components on the current page:',
-        layout?.flat(true).map((c) => c.item.id),
-      );
-      return;
-    }
-    layout = foundNode;
-  }
-
-  const dataSources = dataSourcesFromState(state);
-  return evalExpr(expr as Expression, layout, dataSources, { config });
+window.evalExpression = () => {
+  throw new Error(
+    'evalExpression() utgår. Du kan nå evaluere og teste uttrykk i utviklerverktøyene i stedet. Trykk Ctrl+Shift+K ' +
+      'for å åpne utviklerverktøyene, og naviger til fanen som heter "Uttrykk".',
+  );
 };
 
 export const ExprConfigForComponent: ExprObjConfig<ILayoutComponent> = {

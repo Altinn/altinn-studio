@@ -9,7 +9,6 @@ import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IAltinnWindow } from 'src/types';
 import type { HComponent } from 'src/utils/layout/hierarchy.types';
 
 export type IButtonReceivedProps = PropsFromGenericComponent<'Button'>;
@@ -54,7 +53,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
 
   const submitTask = ({ componentId }: { componentId: string }) => {
     if (!disabled) {
-      const { org, app, instanceId } = window as Window as IAltinnWindow;
+      const { org, app, instanceId } = window;
       if (currentTaskType === 'data') {
         dispatch(
           FormDataActions.submit({

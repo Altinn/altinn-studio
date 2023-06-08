@@ -3,11 +3,8 @@ import axios from 'axios';
 import type { BaseQueryFn } from '@reduxjs/toolkit/query/react';
 import type { AxiosError, AxiosRequestConfig } from 'axios';
 
-import type { IAltinnWindow } from 'src/types';
-
-const altinnWindow = window as Window as IAltinnWindow;
-const { org, app } = altinnWindow;
-const origin = altinnWindow.location.origin;
+const { org, app } = window;
+const origin = window.location.origin;
 
 const axiosBaseQuery =
   (

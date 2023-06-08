@@ -15,7 +15,7 @@ import { getOptionLookupKey, getOptionLookupKeys } from 'src/utils/options';
 import { selectNotNull } from 'src/utils/sagas';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IFormData } from 'src/features/formData';
-import type { IUpdateFormDataFulfilled } from 'src/features/formData/formDataTypes';
+import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
 import type { ILayouts, ISelectionComponentProps } from 'src/layout/layout';
 import type {
   IFetchSpecificOptionSaga,
@@ -131,9 +131,7 @@ export function* fetchSpecificOptionSaga({ optionsId, dataMapping, secure }: IFe
   }
 }
 
-export function* checkIfOptionsShouldRefetchSaga({
-  payload: { field },
-}: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
+export function* checkIfOptionsShouldRefetchSaga({ payload: { field } }: PayloadAction<IUpdateFormData>): SagaIterator {
   const options: IOptions = yield select(optionsSelector);
   const optionsWithIndexIndicators = yield select(optionsWithIndexIndicatorsSelector);
   let foundInExistingOptions = false;

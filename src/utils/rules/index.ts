@@ -38,7 +38,7 @@ export function checkIfRuleShouldRun(
     });
 
     if (shouldRunFunction) {
-      const objectToUpdate = (window as any).ruleHandlerHelper[functionToRun]();
+      const objectToUpdate = window.ruleHandlerHelper[functionToRun]();
       if (Object.keys(objectToUpdate).length >= 1) {
         const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
           const inputParamBinding = connectionDef.inputParams[elem];
@@ -46,7 +46,7 @@ export function checkIfRuleShouldRun(
           acc[elem] = formDataState.formData && formDataState.formData[inputParamBinding];
           return acc;
         }, {});
-        const result = (window as any).ruleHandlerObject[functionToRun](newObj);
+        const result = window.ruleHandlerObject[functionToRun](newObj);
         const updatedDataBinding = connectionDef.outParams.outParam0;
         let updatedComponent: string | undefined = undefined;
         Object.keys(layouts || {}).forEach((id) => {
@@ -90,24 +90,23 @@ export function checkIfRuleShouldRun(
 
 export function getRuleModelFields() {
   const ruleModelFields: IRuleModelFieldElement[] = [];
-  const windowObj = window as any;
-  if (!windowObj.ruleHandlerObject || !windowObj.conditionalRuleHandlerObject) {
+  if (!window.ruleHandlerObject || !window.conditionalRuleHandlerObject) {
     return ruleModelFields;
   }
 
-  Object.keys(windowObj.ruleHandlerObject).forEach((functionName) => {
+  Object.keys(window.ruleHandlerObject).forEach((functionName) => {
     const innerFuncObj = {
       name: functionName,
-      inputs: (window as any).ruleHandlerHelper[functionName](),
+      inputs: window.ruleHandlerHelper[functionName](),
       type: 'rule',
     };
     ruleModelFields.push(innerFuncObj);
   });
 
-  Object.keys(windowObj.conditionalRuleHandlerObject).forEach((functionName) => {
+  Object.keys(window.conditionalRuleHandlerObject).forEach((functionName) => {
     const innerFuncObj = {
       name: functionName,
-      inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
+      inputs: window.conditionalRuleHandlerHelper[functionName](),
       type: 'condition',
     };
     ruleModelFields.push(innerFuncObj);
