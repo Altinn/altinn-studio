@@ -10,6 +10,7 @@ import { useOnce } from 'resourceadm/hooks/useOnce';
 import { get } from 'app-shared/utils/networking';
 import { getResourcesUrlBySelectedContext } from 'resourceadm/utils/backendUrlUtils';
 import { mapResourceListBackendResultToResourceList } from 'resourceadm/utils/mapperUtils';
+import { Footer } from 'resourceadm/components/Footer';
 
 /**
  * Displays the page for the resource dashboard
@@ -77,38 +78,41 @@ export const ResourceDashboardPage = () => {
   };
 
   return (
-    <div className={classes.pageWrapper}>
-      <div className={classes.topWrapper}>
-        <h1>{`${selectedContext}'s ressurser`}</h1>
-        <div className={classes.topRightWrapper}>
-          <Button
-            variant='quiet'
-            color='secondary'
-            icon={<PlusCircleIcon title='Migrer ressurs' />}
-            iconPlacement='right'
-            onClick={() => {}}
-            size='medium'
-          >
-            <strong>Migrer ressurs</strong>
-          </Button>
-          <div className={classes.verticalDivider} />
-          <Button
-            variant='quiet'
-            color='secondary'
-            icon={<PlusCircleIcon title='Migrer ressurs' />}
-            iconPlacement='right'
-            onClick={() => {}}
-            size='medium'
-          >
-            <strong>Opprett ny ressurs</strong>
-          </Button>
+    <>
+      <div className={classes.pageWrapper}>
+        <div className={classes.topWrapper}>
+          <h1>{`${selectedContext}'s ressurser`}</h1>
+          <div className={classes.topRightWrapper}>
+            <Button
+              variant='quiet'
+              color='secondary'
+              icon={<PlusCircleIcon title='Migrer ressurs' />}
+              iconPlacement='right'
+              onClick={() => {}}
+              size='medium'
+            >
+              <strong>Migrer ressurs</strong>
+            </Button>
+            <div className={classes.verticalDivider} />
+            <Button
+              variant='quiet'
+              color='secondary'
+              icon={<PlusCircleIcon title='Migrer ressurs' />}
+              iconPlacement='right'
+              onClick={() => {}}
+              size='medium'
+            >
+              <strong>Opprett ny ressurs</strong>
+            </Button>
+          </div>
         </div>
+        <div className={classes.horizontalDivider} />
+        <div className={classes.componentWrapper}>
+          <SearchBox onChange={(value: string) => setSearchValue(value)} />
+        </div>
+        <div className={classes.componentWrapper}>{displayContent()}</div>
       </div>
-      <div className={classes.horizontalDivider} />
-      <div className={classes.componentWrapper}>
-        <SearchBox onChange={(value: string) => setSearchValue(value)} />
-      </div>
-      <div className={classes.componentWrapper}>{displayContent()}</div>
-    </div>
+      <Footer />
+    </>
   );
 };
