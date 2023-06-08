@@ -75,6 +75,8 @@
   "app_publish.no_env_1": "To create environments, so you can test and deploy to production, please contact <0>Altinn servicedesk</0>. Please specify organization name and which environments you want access to.",
   "app_publish.no_env_2": "Until a test environment is ready, remember that you can test an application <0 href=\"https://docs.altinn.studio/app/testing/local/\">locally</0>.",
   "app_publish.no_env_title": "Your organization has not ordered access to test- and production environments.",
+  "app_publish.no_team": "You do not belong to any team in your organisation.",
+  "app_publish.no_team_info": "In order to get access to deploy your application to an environment you need to be added to a team that has deploy access to that specific environment.",
   "app_publish.no_versions": "You do not have any versions to deploy",
   "app_release.earlier_releases": "Earlier builds of your application",
   "app_release.release_build_log": "Buildlog",

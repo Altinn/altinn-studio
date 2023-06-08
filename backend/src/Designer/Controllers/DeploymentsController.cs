@@ -67,18 +67,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>List of environment names</returns>
         [HttpGet]
         [Route("permissions")]
-        public async Task<List<string>> Permissions([FromRoute] string org)
+        public async Task<ActionResult<List<string>>> Permissions([FromRoute] string org)
         {
-            List<string> permittedEnvironments;
+            List<string> permittedEnvironments = new ();
 
             List<Team> teams = await _giteaService.GetTeams();
-            permittedEnvironments = teams.Where(t =>
-            t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
-            && t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase))
-                .Select(t => t.Name.Split('-')[1])
-                .ToList();
+            if (teams != null)
+            {
+                permittedEnvironments = teams.Where(t =>
+                        t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
+                        && t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase))
+                    .Select(t => t.Name.Split('-')[1])
+                    .ToList();
+            }
 
-            return permittedEnvironments;
+            return Ok(permittedEnvironments);
         }
 
         /// <summary>
