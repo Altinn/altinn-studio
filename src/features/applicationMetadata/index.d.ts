@@ -13,6 +13,7 @@ export interface IApplicationMetadata {
   autoDeleteOnProcessEnd: boolean;
   onEntry?: IOnEntry;
   features?: Partial<IBackendFeaturesState>;
+  promptForParty?: 'always' | 'never';
 }
 
 export interface IApplicationMetadataState {

@@ -14,6 +14,7 @@ import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
 const initialState: IPartyState = {
   parties: null,
   selectedParty: null,
+  autoRedirect: false,
   error: null,
 };
 
@@ -45,11 +46,17 @@ export const partySlice = () => {
       selectPartyFulfilled: mkAction<ISelectPartyFulfilled>({
         reducer: (state, action) => {
           state.selectedParty = action.payload.party;
+          state.autoRedirect = false;
         },
       }),
       selectPartyRejected: mkAction<ISelectPartyRejected>({
         reducer: (state, action) => {
           state.error = action.payload.error;
+        },
+      }),
+      setAutoRedirect: mkAction<boolean>({
+        reducer: (state, action) => {
+          state.autoRedirect = action.payload;
         },
       }),
     },

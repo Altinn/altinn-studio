@@ -10,6 +10,7 @@ import {
   getPartyValidationUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
+  validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { orgsListUrl } from 'src/utils/urls/urlHelper';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
@@ -27,6 +28,8 @@ export const fetchApplicationMetadata = (): Promise<IApplicationMetadata> => htt
 export const fetchApplicationSettings = (): Promise<IApplicationSettings> => httpGet(applicationSettingsApiUrl);
 
 export const fetchCurrentParty = () => httpGet(currentPartyUrl);
+
+export const fetchParties = () => httpGet(validPartiesUrl);
 
 export const fetchFooterLayout = (): Promise<IFooterLayout> => httpGet(getFooterLayoutUrl());
 

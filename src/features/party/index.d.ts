@@ -4,6 +4,7 @@ export interface IPartyState {
   parties: IParty[] | null;
   selectedParty: IParty | null;
   error: Error | null;
+  autoRedirect?: boolean;
 }
 
 export interface IGetPartiesFulfilled {
@@ -16,11 +17,10 @@ export interface IGetPartiesRejected {
 
 export interface ISelectParty {
   party: IParty;
-  redirect: boolean;
 }
 
 export interface ISelectPartyFulfilled {
-  party: IParty;
+  party: IParty | null;
 }
 
 export interface ISelectPartyRejected {

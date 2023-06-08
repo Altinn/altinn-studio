@@ -29,6 +29,7 @@ Object.defineProperty(document, 'fonts', {
 const altinnWindow = window as Window as IAltinnWindow;
 altinnWindow.org = 'ttd';
 altinnWindow.app = 'test';
+altinnWindow.featureToggles = {};
 jest.setTimeout(10000);
 
 jest.mock('axios');

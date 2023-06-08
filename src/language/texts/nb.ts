@@ -235,6 +235,10 @@ export function nb(): FixedLanguageList {
       unit_personal_number: 'personnr.',
       show_deleted: 'Vis slettede',
       show_sub_unit: 'Vis underenheter',
+      why_seeing_this: 'Hvorfor ser jeg dette?',
+      seeing_this_preference:
+        'Du kan endre [profilinnstillingene](https://altinn.no/ui/Profile) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Avanserte innstillinger** > **Jeg ønsker ikke å bli spurt om aktør hver gang jeg starter utfylling av et nytt skjema**.',
+      seeing_this_override: 'Denne appen er satt opp til å alltid spørre om aktør.',
     },
     helptext: {
       button_title: 'Hjelp',

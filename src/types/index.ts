@@ -4,6 +4,7 @@ import type Ajv from 'ajv/dist/core';
 import type { ExprUnresolved, ExprVal } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
+import type { IFeatureToggles } from 'src/features/toggles';
 import type { RootState } from 'src/redux/store';
 
 export interface IAltinnWindow extends Window {
@@ -15,6 +16,7 @@ export interface IAltinnWindow extends Window {
   evalExpression: (maybeExpression: any, forComponentId?: string) => any;
   reduxStore: ToolkitStore<IRuntimeState>;
   reduxActionLog: any[];
+  featureToggles: IFeatureToggles;
 }
 
 export interface IComponentBindingValidation {

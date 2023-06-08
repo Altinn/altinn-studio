@@ -12,10 +12,12 @@ import { InstantiateContainer } from 'src/features/instantiate/containers/Instan
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
+import { PartyActions } from 'src/features/party/partySlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { usePartyValidationMutation } from 'src/hooks/mutations/usePartyValidationMutation';
 import { useActiveInstancesQuery } from 'src/hooks/queries/useActiveInstancesQuery';
+import { useAlwaysPromptForParty } from 'src/hooks/useAlwaysPromptForParty';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
@@ -56,6 +58,7 @@ export function Entrypoint({ allowAnonymous }: EntrypointProps) {
   const formDataError = useAppSelector((state) => state.formData.error);
   const appName = useAppSelector(selectAppName);
   const appOwner = useAppSelector(selectAppOwner);
+  const alwaysPromptForParty = useAlwaysPromptForParty();
 
   const titleText = useAppSelector((state) => {
     const text = getTextFromAppOrDefault(
@@ -102,6 +105,11 @@ export function Entrypoint({ allowAnonymous }: EntrypointProps) {
 
   if (componentHasErrors) {
     return <UnknownError />;
+  }
+
+  if (alwaysPromptForParty === true && !selectedParty) {
+    dispatch(PartyActions.setAutoRedirect(true));
+    return <Navigate to={'/partyselection/'} />;
   }
 
   if (partyValidation?.valid === false) {
