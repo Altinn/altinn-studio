@@ -152,7 +152,7 @@ namespace Altinn.Studio.PolicyAdmin
                 return policyOutput;
             }
 
-            if (policyInput.Rules != null || policyInput.Rules.Count == 0)
+            if (policyInput.Rules != null && policyInput.Rules.Count > 0)
             {
                 foreach (PolicyRule rule in policyInput.Rules)
                 {
@@ -161,8 +161,10 @@ namespace Altinn.Studio.PolicyAdmin
             }
             else
             {
-                // Add empty rule in XACML since a rule is required when loading document. 
-                policyOutput.Rules.Add(new XacmlRule("1", XacmlEffectType.Permit));
+                // Add empty rule in XACML since a rule is required when loading document.
+                XacmlRule rule = new XacmlRule("1", XacmlEffectType.Permit);
+                rule.Description = "Empty rule. Not Valid";
+                policyOutput.Rules.Add(rule);
             }
 
             if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelEndUser))
