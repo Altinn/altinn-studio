@@ -1,7 +1,7 @@
 import { areItemsUnique } from 'app-shared/utils/arrayUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
-import { useOptionListIdsQuery } from '../../hooks/queries/useOptionListIdsQuery';
+import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
+import { useOptionListIdsQuery } from './queries/useOptionListIdsQuery';
 import { useParams } from 'react-router-dom';
 
 export enum ErrorCode {
@@ -14,7 +14,7 @@ export type ComponentValidationResult = {
   error?: ErrorCode;
 }
 
-const validateGroup = (component: FormCheckboxesComponent | FormRadioButtonsComponent, optionListIds: string[]): ComponentValidationResult => {
+const validateOptionGroup = (component: FormCheckboxesComponent | FormRadioButtonsComponent, optionListIds: string[]): ComponentValidationResult => {
   if (component.optionsId) {
     const isExistingOptionId = optionListIds?.includes(component.optionsId);
     if (!isExistingOptionId) {
@@ -47,7 +47,7 @@ export const useValidateComponent = (component: FormComponent): ComponentValidat
   switch (component.type) {
     case ComponentType.Checkboxes:
     case ComponentType.RadioButtons:
-      return validateGroup(component, optionListIds);
+      return validateOptionGroup(component, optionListIds);
     default:
       return { isValid: true };
   }

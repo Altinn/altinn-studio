@@ -1,10 +1,10 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ErrorCode, useValidateComponent } from './useValidateComponent';
-import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../../types/FormComponent';
-import { optionListIdsMock, renderHookWithMockStore } from '../../testing/mocks';
+import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
+import { optionListIdsMock, renderHookWithMockStore } from '../testing/mocks';
 
-describe('validateComponent', () => {
-  describe('validateCheckboxGroup', () => {
+describe('useValidateComponent', () => {
+  describe('Checkboxes', () => {
     it('Returns ErrorCode.NoOptions if there are no options', () => {
       const component: FormCheckboxesComponent = {
         type: ComponentType.Checkboxes,
@@ -66,7 +66,7 @@ describe('validateComponent', () => {
     });
   });
 
-  describe('validateRadioGroup', () => {
+  describe('RadioButtons', () => {
     it('Returns ErrorCode.NoOptions if there are no options', () => {
       const component: FormRadioButtonsComponent = {
         type: ComponentType.RadioButtons,
