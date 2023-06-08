@@ -60,57 +60,54 @@ describe('expression schema tests', () => {
   const ajv = new Ajv({ strict: false });
   const validate = ajv.compile(expressionSchema);
 
-  it.each(functions)(
-    '$name should validate against generated function calls',
-    ({ name, args, minArguments, lastArgSpreads }) => {
-      if (name === 'if') {
-        // if is a special case, we'll skip it here
-        return;
+  it.each(functions)('$name should validate against generated function calls', ({ name, args, lastArgSpreads }) => {
+    if (name === 'if') {
+      // if is a special case, we'll skip it here
+      return;
+    }
+
+    const funcDef = expressionSchema.definitions[`func-${name}`];
+
+    // With exactly the right number of arguments
+    const funcCall = [name, ...args.map(exprValToString)];
+    if (lastArgSpreads) {
+      funcCall.push(...args.map(exprValToString));
+    }
+
+    // Use enum value, if defined in schema
+    for (let i = 0; i < args.length; i++) {
+      const argDef = funcDef.items.length > i + 1 ? funcDef.items[i + 1] : undefined;
+      if (argDef?.enum) {
+        funcCall[i + 1] = argDef.enum[0];
       }
+    }
 
-      const funcDef = expressionSchema.definitions[`func-${name}`];
+    const valid = validate(funcCall);
+    expect(validate.errors).toEqual(null);
+    expect(valid).toBe(true);
 
-      // With exactly the right number of arguments
-      const funcCall = [name, ...args.map(exprValToString)];
-      if (lastArgSpreads) {
-        funcCall.push(...args.map(exprValToString));
-      }
+    // With too few arguments
+    const funcCallMinArguments = [name];
+    const validMinArguments = validate(funcCallMinArguments);
 
-      // Use enum value, if defined in schema
-      for (let i = 0; i < args.length; i++) {
-        const argDef = funcDef.items.length > i + 1 ? funcDef.items[i + 1] : undefined;
-        if (argDef?.enum) {
-          funcCall[i + 1] = argDef.enum[0];
-        }
-      }
+    // This always validates, because the schema allows for less than the minimum number of arguments. If it didn't,
+    // you wouldn't get autocomplete for functions until you had the minimum number of arguments, which makes for
+    // a bad developer experience. We test this explicitly below, even though is does not seem to be the desired
+    // behavior.
+    expect(validate.errors).toEqual(null);
+    expect(validMinArguments).toBe(true);
 
-      const valid = validate(funcCall);
+    // With too many arguments
+    const funcCallExtra = [name, ...args.map(exprValToString), 'extra'];
+    const validExtra = validate(funcCallExtra);
+    if (lastArgSpreads) {
+      // This always validates, because the last argument spread
       expect(validate.errors).toEqual(null);
-      expect(valid).toBe(true);
-
-      // With too few arguments
-      const funcCallMinArguments = [name];
-      const validMinArguments = validate(funcCallMinArguments);
-
-      // This always validates, because the schema allows for less than the minimum number of arguments. If it didn't,
-      // you wouldn't get autocomplete for functions until you had the minimum number of arguments, which makes for
-      // a bad developer experience. We test this explicitly below, even though is does not seem to be the desired
-      // behavior.
-      expect(validate.errors).toEqual(null);
-      expect(validMinArguments).toBe(true);
-
-      // With too many arguments
-      const funcCallExtra = [name, ...args.map(exprValToString), 'extra'];
-      const validExtra = validate(funcCallExtra);
-      if (lastArgSpreads) {
-        // This always validates, because the last argument spread
-        expect(validate.errors).toEqual(null);
-        expect(validExtra).toBe(true);
-      } else {
-        expect(validExtra).toBe(false);
-      }
-    },
-  );
+      expect(validExtra).toBe(true);
+    } else {
+      expect(validExtra).toBe(false);
+    }
+  });
 
   it('invalid functions should not validate', () => {
     const valid = validate(['invalid_function']);
