@@ -54,7 +54,10 @@ export function renderValidationMessages(
       style={{ paddingTop: '0.375rem' }}
       key={id}
     >
-      <ErrorMessage id={id}>
+      <ErrorMessage
+        size='small'
+        id={id}
+      >
         <ol>{messages.map(validationMessagesToList)}</ol>
       </ErrorMessage>
     </div>
