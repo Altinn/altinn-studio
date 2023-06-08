@@ -45,7 +45,7 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
         true,
       ),
   );
-  const { langAsString } = useLanguage();
+  const { lang } = useLanguage();
   const summaryItem = summaryNode.item;
   const targetNode = useResolvedNode(overrides?.targetNode || summaryNode.item.componentRef || summaryNode.item.id);
   const targetItem = targetNode?.item;
@@ -113,7 +113,7 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
           <SummaryContent
             onChangeClick={onChangeClick}
             changeText={changeText}
-            label={langAsString(titleKey)}
+            label={lang(titleKey)}
             summaryNode={summaryNode}
             targetNode={targetNode}
             overrides={overrides}
