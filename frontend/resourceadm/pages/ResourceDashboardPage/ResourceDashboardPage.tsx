@@ -30,7 +30,6 @@ export const ResourceDashboardPage = () => {
 
     get(getResourcesUrlBySelectedContext(selectedContext))
       .then((res: any) => {
-        console.log(res);
         setResourceList(mapResourceListBackendResultToResourceList(res));
         setLoading(false);
       })

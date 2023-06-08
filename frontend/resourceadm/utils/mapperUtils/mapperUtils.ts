@@ -59,14 +59,11 @@ export const mapResourceListBackendResultToResourceList = (
   // TODO - Find out the type it should be assigned as, and how to handle the languages
   const resourcesResult: any[] = res as any[];
 
-  const result = resourcesResult.map((r: any, i: number) => ({
+  return resourcesResult.map((r: any, i: number) => ({
     name: r.title.nb,
     createdBy: 'Kåre Fredriksen', // TODO
     dateChanged: '08.06.2023', // TODO
     hasPolicy: i % 2 === 0, // TODO
     resourceId: r.identifier
   }))
-
-  console.log(result)
-  return result;
 }
