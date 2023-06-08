@@ -40,3 +40,11 @@ export interface PolicyBackendType {
 }
 
 export type NavigationBarPageType = 'about' | 'security' | 'policy';
+
+export interface ResourceType {
+  name: string;
+  createdBy: string;
+  dateChanged: string;
+  hasPolicy: boolean;
+  resourceId: string;
+}

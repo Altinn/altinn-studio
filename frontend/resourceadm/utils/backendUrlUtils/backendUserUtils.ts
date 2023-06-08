@@ -46,3 +46,16 @@ export const getActionOptionsUrlBySelectedContextAndRepo = (
 ): string => {
   return `${basePath}/${selectedContext}/${repo}/policy/actionoptions`
 }
+
+/**
+ * Gets the URL path to the API for the list of all resources
+ *
+ * @param selectedContext the organisation
+ *
+ * @returns the url path string
+ */
+export const getResourcesUrlBySelectedContext = (
+  selectedContext: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/repository/resourcelist`
+}

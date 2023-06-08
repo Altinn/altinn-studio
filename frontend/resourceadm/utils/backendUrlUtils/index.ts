@@ -1,3 +1,6 @@
 export {
-  getPolicyUrlBySelectedContextRepoAndId as getPolicyRulesUrl
+  getPolicyUrlBySelectedContextRepoAndId,
+  getActionOptionsUrlBySelectedContextAndRepo,
+  getSubjectOptionsUrlBySelectedContextAndRepo,
+  getResourcesUrlBySelectedContext
 } from './backendUserUtils'
