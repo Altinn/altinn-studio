@@ -1,13 +1,9 @@
-export interface PolicyType {
-  Rules: PolicyRuleCardType[]
-}
-
 export interface PolicyRuleCardType {
-  RuleId: string;
-  Description: string;
-  Subject: string[];
-  Actions: string[];
-  Resources: PolicyRuleResourceType[][];
+  ruleId: string;
+  description: string;
+  subject: string[];
+  actions: string[];
+  resources: PolicyRuleResourceType[][];
 }
 
 export interface PolicyRuleResourceType {
@@ -16,22 +12,31 @@ export interface PolicyRuleResourceType {
 }
 
 export interface PolicySubjectType {
-  SubjectId: string;
-  SubjectSource: string;
-  SubjectTitle: string;
-  SubjectDescription: string;
+  subjectId: string;
+  subjectSource: string;
+  subjectTitle: string;
+  subjectDescription: string;
+}
+
+export interface PolicyActionType {
+  actionId: string,
+  actionTitle: string,
+  actionDescription: string | null
 }
 
 export interface PolicyRuleBackendType {
-  RuleId: string,
-  Description: string,
-  Subject: string[],
-  Actions: string[],
-  Resources: string[][]
+  ruleId: string,
+  description: string,
+  subject: string[],
+  actions: string[],
+  resources: string[][]
 }
 
-export interface PolicyEditorSendType {
-  Rules: PolicyRuleBackendType[]
+export type RequiredAuthLevelType = '1' | '2' | '3' | '4';
+export interface PolicyBackendType {
+  rules: PolicyRuleBackendType[] | null,
+  requiredAuthenticationLevelEndUser: RequiredAuthLevelType,
+  requiredAuthenticationLevelOrg: string
 }
 
 export type NavigationBarPageType = 'about' | 'security' | 'policy';

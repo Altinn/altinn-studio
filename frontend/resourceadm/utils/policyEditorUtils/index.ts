@@ -1,5 +1,6 @@
 export {
   emptyPolicyRule,
+  emptyPolicy,
   mapPolicySubjectToSubjectTitle,
   mapPolicyRulesBackendObjectToPolicyRuleCardType,
   mapResourceFromBackendToResourceType,

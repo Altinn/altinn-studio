@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
-import { PolicyEditor } from '../PolicyEditor';
+import { PolicyEditorPage } from '../PolicyEditorPage';
 import { AboutResource } from '../AboutResource';
 
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
@@ -16,9 +16,8 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 export const ResourcePage = () => {
   const navigate = useNavigate();
 
-  const { pageType, resourceId, repo, selectedContext } = useParams();
-  const org:string = selectedContext; // FIXME: org replaced by selectedContext
-  // due to PageLayout banner integration
+  const { pageType, resourceId, selectedContext } = useParams();
+  const repo = `${selectedContext}-resources`;
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
     pageType as NavigationBarPageType
@@ -29,14 +28,14 @@ export const ResourcePage = () => {
    */
   const navigateToPage = (page: NavigationBarPageType) => {
     setCurrentPage(page);
-    navigate(getResourcePageURL(org, repo, resourceId, page));
+    navigate(getResourcePageURL(selectedContext, repo, resourceId, page));
   };
 
   /**
    * Takes the user back to where they came from
    */
   const goBack = () => {
-    navigate(getResourceDashboardURL(org, repo));
+    navigate(getResourceDashboardURL(selectedContext, repo));
   };
 
   return (
@@ -48,8 +47,12 @@ export const ResourcePage = () => {
       />
       <div className={classes.resourcePageWrapper}>
         {currentPage === 'about' && <AboutResource />}
-        {currentPage === 'security' && <h1>Sikkerhet - TODO sett inn komponent</h1>}
-        {currentPage === 'policy' && <PolicyEditor />}
+        {currentPage === 'security' && (
+          <div className={classes.resourcePage}>
+            <h2 className={classes.resourceH2}>Sikkerhet - TODO sett inn komponent</h2>
+          </div>
+        )}
+        {currentPage === 'policy' && <PolicyEditorPage />}
       </div>
     </div>
   );

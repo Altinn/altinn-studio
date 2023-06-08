@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Button, TextArea } from '@digdir/design-system-react';
-import { Chip } from '../Chip';
-
+import { ExclamationmarkTriangleFillIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
 import {
+  PolicyActionType,
   PolicyRuleCardType,
   PolicyRuleResourceType,
   PolicySubjectType,
@@ -12,16 +12,15 @@ import { PolicyRuleSubjectListItem } from '../PolicyRuleSubjectListItem';
 import { PolicySubjectSelectButton } from '../PolicySubjectSelectButton';
 import { ResourceNarrowingList } from '../ResourceNarrowingList';
 import { WarningCard } from '../WarningCard';
-import { ExclamationmarkTriangleFillIcon } from '@navikt/aksel-icons';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
+import { Chip } from '../Chip';
 
 interface Props {
   policyRule: PolicyRuleCardType;
-  actions: string[];
+  actions: PolicyActionType[];
   subjects: PolicySubjectType[];
   rules: PolicyRuleCardType[];
   setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCardType[]>>;
-  rulePosition: number;
   resourceId: string;
   resourceType: string;
   handleDuplicateRule: () => void;
@@ -37,7 +36,6 @@ interface Props {
  * @param props.subjects the possible subjects to select from
  * @param props.rules the list of all the rules
  * @param props.setPolicyRules useState function to update the list of rules
- * @param props.rulePosition the position of the rule in the rule array
  * @param props.resourceId the ID of the resource
  * @param props.resourceType the type of the resource
  * @param props.handleDuplicateRule function to be executed when clicking duplicate rule
@@ -49,25 +47,20 @@ export const ExpandablePolicyCard = ({
   subjects,
   rules,
   setPolicyRules,
-  rulePosition,
   resourceId,
   resourceType,
   handleDuplicateRule,
   handleDeleteRule,
 }: Props) => {
-  const [resources, setResources] = useState<PolicyRuleResourceType[][]>(policyRule.Resources);
-  const [selectedActions, setSelectedActions] = useState(policyRule.Actions);
-  const [ruleDescription, setRuleDescription] = useState(policyRule.Description);
-  const [selectedSubjectTitles, setSelectedSubjectTitles] = useState(policyRule.Subject);
-
-  const [hasResourceError, setHasResourceError] = useState(policyRule.Resources.length === 0);
-  const [hasRightsError, setHasRightsErrors] = useState(policyRule.Actions.length === 0);
-  const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.Subject.length === 0);
+  const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
+  const [hasRightsError, setHasRightsErrors] = useState(policyRule.actions.length === 0);
+  const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.subject.length === 0);
 
   /**
    * Function to update the fields inside the rule object in the rule array.
    * This function has to be called every time an element inside the card is
    * changing so that the parent component knows that the child element is changed.
+   * It also updates the complete list of policy rules.
    *
    * @param d the description
    * @param s the selected subjectTitle array
@@ -76,13 +69,16 @@ export const ExpandablePolicyCard = ({
    */
   const updateRules = (d: string, s: string[], a: string[], r: PolicyRuleResourceType[][]) => {
     const updatedRules = [...rules];
-    updatedRules[rulePosition] = {
-      ...updatedRules[rulePosition],
-      Description: d,
-      Subject: s,
-      Actions: a,
-      Resources: r,
+    const ruleIndex = rules.findIndex((rule) => rule.ruleId === policyRule.ruleId);
+
+    updatedRules[ruleIndex] = {
+      ...updatedRules[ruleIndex],
+      description: d,
+      subject: s,
+      actions: a,
+      resources: r,
     };
+
     setPolicyRules(updatedRules);
   };
 
@@ -91,8 +87,8 @@ export const ExpandablePolicyCard = ({
    */
   const getSubjectOptions = () => {
     return subjects
-      .filter((s) => !selectedSubjectTitles.includes(s.SubjectTitle))
-      .map((s) => ({ value: s.SubjectTitle, label: s.SubjectTitle }));
+      .filter((s) => !policyRule.subject.includes(s.subjectTitle))
+      .map((s) => ({ value: s.subjectTitle, label: s.subjectTitle }));
   };
   const [subjectOptions, setSubjectOptions] = useState(getSubjectOptions());
 
@@ -100,7 +96,7 @@ export const ExpandablePolicyCard = ({
    * Gets the id of the policy
    */
   const getPolicyRuleId = () => {
-    return policyRule.RuleId.toString();
+    return policyRule.ruleId.toString();
   };
 
   /**
@@ -117,14 +113,12 @@ export const ExpandablePolicyCard = ({
     value: string,
     resourceIndex: number
   ) => {
-    const updatedResources = [...resources];
+    const updatedResources = [...policyRule.resources];
     updatedResources[resourceIndex][index] = {
       ...updatedResources[resourceIndex][index],
       [field]: value,
     };
-
-    setResources(updatedResources);
-    updateRules(ruleDescription, selectedSubjectTitles, selectedActions, updatedResources);
+    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
   };
 
   /**
@@ -138,12 +132,9 @@ export const ExpandablePolicyCard = ({
         id: resourceId,
       },
     ];
+    const updatedResources = [...policyRule.resources, newResource];
+    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
 
-    const updatedResources = [...resources, newResource];
-    setResources(updatedResources);
-    updateRules(ruleDescription, selectedSubjectTitles, selectedActions, updatedResources);
-
-    // TODO - Display Error when fields are empty???
     setHasResourceError(false);
   };
 
@@ -151,7 +142,7 @@ export const ExpandablePolicyCard = ({
    * Displays a list of resource blocks, which each contains a list of the resources
    * and the list narrowing down the elements.
    */
-  const displayResources = resources.map((r, i) => {
+  const displayResources = policyRule.resources.map((r, i) => {
     return (
       <ResourceNarrowingList
         key={i}
@@ -177,67 +168,63 @@ export const ExpandablePolicyCard = ({
       type: '',
       id: '',
     };
+    const updatedResources = [...policyRule.resources];
+    updatedResources[resourceIndex].push(newResource);
 
-    setResources(() => {
-      const newElem = [...resources];
-      newElem[resourceIndex].push(newResource);
-      return newElem;
-    });
+    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
   };
 
   /**
    * Handles the removal of the narrowed resources
    */
   const handleRemoveNarrowingResource = (index: number, resourceIndex: number) => {
-    const updatedResources = [...resources];
+    const updatedResources = [...policyRule.resources];
     updatedResources[resourceIndex].splice(index, 1);
-    setResources(updatedResources);
-    updateRules(ruleDescription, selectedSubjectTitles, selectedActions, updatedResources);
+    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
   };
 
   /**
    * Displays the actions
    */
-  const displayActions = actions.map((a, i) => {
-    return (
-      <Chip
-        key={i}
-        text={a}
-        isSelected={selectedActions.includes(a)}
-        onClick={() => handleClickAction(i, a)}
-      />
-    );
-  });
+  const displayActions = actions.map((a, i) => (
+    <Chip
+      key={i}
+      text={a.actionTitle}
+      isSelected={policyRule.actions.includes(a.actionTitle)}
+      onClick={() => handleClickAction(i, a.actionTitle)}
+    />
+  ));
 
   /**
    * Removes or adds an action
    */
   const handleClickAction = (index: number, action: string) => {
-    // If already present, remove it
-    if (selectedActions.includes(actions[index])) {
-      const updatedSelectedActions = [...selectedActions];
-      const selectedActionIndex = selectedActions.findIndex((a) => a === action);
-      updatedSelectedActions.splice(selectedActionIndex, 1);
-      setSelectedActions(updatedSelectedActions);
-      updateRules(ruleDescription, selectedSubjectTitles, updatedSelectedActions, resources);
+    const updatedSelectedActions = [...policyRule.actions];
 
+    // If already present, remove it and check if there is an error
+    if (policyRule.actions.includes(actions[index].actionTitle)) {
+      const selectedActionIndex = policyRule.actions.findIndex((a) => a === action);
+      updatedSelectedActions.splice(selectedActionIndex, 1);
       setHasRightsErrors(updatedSelectedActions.length === 0);
     }
-    // else add it
+    // else add it and remove the action error
     else {
-      const updatedSelectedActions = [...selectedActions];
       updatedSelectedActions.push(action);
-      setSelectedActions(updatedSelectedActions);
-      updateRules(ruleDescription, selectedSubjectTitles, updatedSelectedActions, resources);
-
       setHasRightsErrors(false);
     }
+
+    updateRules(
+      policyRule.description,
+      policyRule.subject,
+      updatedSelectedActions,
+      policyRule.resources
+    );
   };
 
   /**
    * Displays the selected subjects
    */
-  const displaySubjects = selectedSubjectTitles.map((s, i) => {
+  const displaySubjects = policyRule.subject.map((s, i) => {
     return (
       <PolicyRuleSubjectListItem
         key={i}
@@ -252,13 +239,13 @@ export const ExpandablePolicyCard = ({
    */
   const handleRemoveSubject = (index: number, subjectTitle: string) => {
     // Remove from selected list
-    const updatedSubjects = [...selectedSubjectTitles];
+    const updatedSubjects = [...policyRule.subject];
     updatedSubjects.splice(index, 1);
-    setSelectedSubjectTitles(updatedSubjects);
 
     // Add to options list
     setSubjectOptions([...subjectOptions, { value: subjectTitle, label: subjectTitle }]);
-    updateRules(ruleDescription, updatedSubjects, selectedActions, resources);
+    //updateRules(ruleDescription, updatedSubjects, selectedActions, resources);
+    updateRules(policyRule.description, updatedSubjects, policyRule.actions, policyRule.resources);
 
     setHasSubjectsError(updatedSubjects.length === 0);
   };
@@ -271,7 +258,7 @@ export const ExpandablePolicyCard = ({
     // As the input field is multiple, the onchance function uses string[], but
     // we are removing the element from the options list before it is displayed, so
     // it will only ever be a first value in the array.
-    const clickedOption = option; //[0];
+    const clickedOption = option;
 
     // Remove from options list
     const index = subjectOptions.findIndex((o) => o.value === clickedOption);
@@ -279,11 +266,14 @@ export const ExpandablePolicyCard = ({
     updatedOptions.splice(index, 1);
     setSubjectOptions(updatedOptions);
 
-    const updatedSubjectTitles = [...selectedSubjectTitles, clickedOption];
-    // Add to selected list
-    setSelectedSubjectTitles(updatedSubjectTitles);
+    const updatedSubjectTitles = [...policyRule.subject, clickedOption];
 
-    updateRules(ruleDescription, updatedSubjectTitles, selectedActions, resources);
+    updateRules(
+      policyRule.description,
+      updatedSubjectTitles,
+      policyRule.actions,
+      policyRule.resources
+    );
 
     setHasSubjectsError(false);
   };
@@ -292,8 +282,7 @@ export const ExpandablePolicyCard = ({
    * Updates the description of the rule
    */
   const handleChangeDescription = (description: string) => {
-    setRuleDescription(description);
-    updateRules(description, selectedSubjectTitles, selectedActions, resources);
+    updateRules(description, policyRule.subject, policyRule.actions, policyRule.resources);
   };
 
   /**
@@ -302,10 +291,9 @@ export const ExpandablePolicyCard = ({
    * @param resourceIndex the index of the resource group to duplicate
    */
   const handleDuplicateResourceGroup = (resourceIndex: number) => {
-    const resourceGroupToDuplicate: PolicyRuleResourceType[] = resources[resourceIndex];
-    const updatedResources = [...resources, resourceGroupToDuplicate];
-    setResources(updatedResources);
-    updateRules(ruleDescription, selectedSubjectTitles, selectedActions, updatedResources);
+    const resourceGroupToDuplicate: PolicyRuleResourceType[] = policyRule.resources[resourceIndex];
+    const updatedResources = [...policyRule.resources, resourceGroupToDuplicate];
+    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
   };
 
   /**
@@ -314,10 +302,9 @@ export const ExpandablePolicyCard = ({
    * @param resourceIndex the index of the resource group to remove
    */
   const handleDeleteResourceGroup = (resourceIndex: number) => {
-    const updatedResources = [...resources];
+    const updatedResources = [...policyRule.resources];
     updatedResources.splice(resourceIndex, 1);
-    setResources(updatedResources);
-    updateRules(ruleDescription, selectedSubjectTitles, selectedActions, updatedResources);
+    updateRules(policyRule.description, policyRule.subject, policyRule.actions, updatedResources);
 
     setHasResourceError(updatedResources.length === 0);
   };
@@ -354,7 +341,7 @@ export const ExpandablePolicyCard = ({
           <p className={classes.subHeader}>Hvilken ressurser skal regelen gjelde for?</p>
           {displayResources}
           <div className={classes.addResourceButton}>
-            <Button type='button' onClick={handleClickAddResource}>
+            <Button type='button' onClick={handleClickAddResource} color='secondary'>
               Legg til en ressurs
             </Button>
           </div>
@@ -378,7 +365,7 @@ export const ExpandablePolicyCard = ({
             <TextArea
               resize='vertical'
               placeholder='Beskrivelse beskrevet her i tekst av tjenesteeier'
-              value={ruleDescription}
+              value={policyRule.description}
               onChange={(e) => handleChangeDescription(e.currentTarget.value)}
               rows={5}
             />
