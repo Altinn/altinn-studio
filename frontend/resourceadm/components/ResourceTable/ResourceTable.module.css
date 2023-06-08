@@ -9,6 +9,18 @@
   padding-block: 15px;
 }
 
+.tableHeaderLarge {
+  width: 26%;
+}
+
+.tableHeaderMedium {
+  width: 15%;
+}
+
+.tableHeaderSmall {
+  width: 3%;
+}
+
 .tableHeaderText {
   font-size: 16px;
   font-weight: 400;

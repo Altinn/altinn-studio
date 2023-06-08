@@ -6,27 +6,36 @@ import { Button } from '@digdir/design-system-react';
 import { ResourceType } from 'resourceadm/types/global';
 
 interface Props {
-  list: ResourceType[]; // TODO
+  list: ResourceType[];
   isSortedByNewest: boolean;
 }
 
+/**
+ * Table to display a list of all resources available
+ *
+ * @param props.list the list to display in the table
+ * @param props.isSortedByNewest flag for which way to sort the list
+ */
 export const ResourceTable = ({ list, isSortedByNewest }: Props) => {
+  /**
+   * Displays a row for each resource in the list
+   */
   const displayRows = list.map((resource: ResourceType, key: number) => {
     return <ResourceTableDataRow key={key} resource={resource} />;
   });
 
+  // TODO - translate
   return (
     <table className={classes.table}>
       <tbody>
         <tr>
-          <th className={classes.tableHeader}>
+          <th className={`${classes.tableHeaderLarge} ${classes.tableHeader}`}>
             <p className={classes.tableHeaderText}>Ressurser</p>
           </th>
-          {/* TODO - Refactor to own component? */}
-          <th className={classes.tableHeader}>
+          <th className={`${classes.tableHeaderLarge} ${classes.tableHeader}`}>
             <p className={classes.tableHeaderText}>Opprettet av</p>
           </th>
-          <th className={classes.tableHeaderLastChanged}>
+          <th className={`${classes.tableHeaderMedium} ${classes.tableHeaderLastChanged}`}>
             <Button
               variant='quiet'
               icon={
@@ -42,11 +51,17 @@ export const ResourceTable = ({ list, isSortedByNewest }: Props) => {
               Sist endret
             </Button>
           </th>
-          <th className={classes.tableHeader}>
+          <th className={`${classes.tableHeaderMedium} ${classes.tableHeader}`}>
             <p className={classes.tableHeaderText}>Policy</p>
           </th>
-          <th className={classes.tableHeader} aria-label='Rediger ressurs kolonne' />
-          <th className={classes.tableHeader} aria-label='Se flere valg for ressursen' />
+          <th
+            className={`${classes.tableHeaderMedium} ${classes.tableHeader}`}
+            aria-label='Rediger ressurs kolonne'
+          />
+          <th
+            className={`${classes.tableHeaderSmall} ${classes.tableHeader}`}
+            aria-label='Se flere valg for ressursen'
+          />
         </tr>
         {displayRows}
       </tbody>

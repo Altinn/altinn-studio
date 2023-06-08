@@ -1,5 +1,6 @@
 export {
   mapPolicyResultToPolicyObject,
   mapPolicyActionResultToPolicyActions,
-  mapPolicySubjectResultToPolicySubjects
+  mapPolicySubjectResultToPolicySubjects,
+  mapResourceListBackendResultToResourceList
 } from './mapperUtils'

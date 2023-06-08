@@ -15,7 +15,7 @@ import { useOrganizationsQuery } from '../hooks/queries';
 
 import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
 import { ResourcePage } from 'resourceadm/pages/ResourcePage';
-import { ResourceDashboard } from 'resourceadm/pages/ResourceDashboard';
+import { ResourceDashboardPage } from 'resourceadm/pages/ResourceDashboardPage';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -60,7 +60,7 @@ export const App = (): JSX.Element => {
       <div className={classes.root}>
         <Routes>
           <Route element={<PageLayout />}>
-            <Route path={basePath} element={<ResourceDashboard />} />
+            <Route path={basePath} element={<ResourceDashboardPage />} />
           </Route>
 
           <Route element={<TestPage />}>

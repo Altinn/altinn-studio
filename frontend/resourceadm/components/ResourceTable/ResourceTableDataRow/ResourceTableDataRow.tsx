@@ -11,11 +11,20 @@ interface Props {
   resource: ResourceType;
 }
 
+/**
+ * Display the row in the resource table. It displays values for
+ * name, created by, the date changed, if it has policy or not, as well as
+ * two buttons, one for editing a resource, and one for doing more actions
+ *
+ * @param props.resource the resource to display in the row
+ */
 export const ResourceTableDataRow = ({ resource }: Props) => {
-  const { selectedContext, repo } = useParams();
+  const { selectedContext } = useParams();
+  const repo = `${selectedContext}-resources`;
 
   const navigate = useNavigate();
 
+  // TODO - translate
   return (
     <tr>
       <td className={`${classes.tableDataLarge} ${classes.tableData}`}>
@@ -24,13 +33,13 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
       <td className={`${classes.tableDataLarge} ${classes.tableData}`}>
         <p className={classes.tableDataText}>{resource.createdBy}</p>
       </td>
-      <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
+      <td className={`${classes.tableDataMedium} ${classes.tableData} ${classes.tableDataDate}`}>
         <p className={classes.tableDataText}>{resource.dateChanged}</p>
       </td>
-      <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
+      <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
         <ResourceTableDataChip hasPolicy={resource.hasPolicy} />
       </td>
-      <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
+      <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
         <Button
           variant='quiet'
           color='secondary'
@@ -43,7 +52,7 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
           Rediger
         </Button>
       </td>
-      <td className={`${classes.tableDataXSmall} ${classes.tableData}`}>
+      <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
         <Button
           variant='quiet'
           color='secondary'

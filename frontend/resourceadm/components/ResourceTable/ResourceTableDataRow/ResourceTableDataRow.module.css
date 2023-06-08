@@ -4,20 +4,19 @@
 }
 
 .tableDataLarge {
-  width: 27%;
+  width: 26%;
 }
 
 .tableDataMedium {
-  width: 17%;
+  width: 15%;
+}
+
+.tableDataDate {
   padding-left: 1%;
 }
 
-.tableDataSall {
-  width: 10%;
-}
-
-.tableDataXSmall {
-  width: 2%;
+.tableDataSmall {
+  width: 3%;
 }
 
 .tableDataText {

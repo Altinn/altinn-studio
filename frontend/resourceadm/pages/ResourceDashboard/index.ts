@@ -1,1 +1,0 @@
-export { ResourceDashboard } from './ResourceDashboard'
