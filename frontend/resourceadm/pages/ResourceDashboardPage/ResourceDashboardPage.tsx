@@ -39,6 +39,12 @@ export const ResourceDashboardPage = () => {
         setLoading(false);
         setHasError(true);
       });
+
+    /**
+     * IF you do not want to run agains backend, comment out the code above,
+     * and comment in the code below. It will then work the same.
+     */
+    // setResourceList(mockResources);
   });
 
   /**
