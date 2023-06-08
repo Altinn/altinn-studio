@@ -1,9 +1,10 @@
 import React from 'react';
-import { render as renderRtl, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ComponentPreview, ComponentPreviewProps } from './ComponentPreview';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormComponent } from '../../types/FormComponent';
 import { componentMocks } from '../../testing/componentMocks';
+import { renderWithMockStore } from '../../testing/mocks';
 
 // Test data:
 const handleComponentChange = jest.fn();
@@ -49,7 +50,7 @@ describe('ComponentPreview', () => {
         { label: 'Option 3', value: 'option1' },
       ],
       id: 'test',
-      optionsId: 'test',
+      optionsId: '',
       itemType: 'COMPONENT',
       dataModelBindings: {},
     };
@@ -82,5 +83,4 @@ describe('ComponentPreview', () => {
   });
 });
 
-const render = (props: Partial<ComponentPreviewProps> = {}) =>
-  renderRtl(<ComponentPreview {...defaultProps} {...props} />);
+const render = (props: Partial<ComponentPreviewProps> = {}) => renderWithMockStore({}, )(<ComponentPreview {...defaultProps} {...props} />);
