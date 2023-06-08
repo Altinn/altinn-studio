@@ -10,7 +10,7 @@ import { VersionControlHeader } from 'app-development/layout/version-control/Ver
 import classes from './PageHeader.module.css';
 import { useUserQuery } from 'app-development/hooks/queries';
 import { useAppSelector } from 'app-development/hooks';
-import { editorPath, previewPath, publiserPath } from 'app-shared/api/paths';
+import { previewPath, publiserPath } from 'app-shared/api/paths';
 import { TopBarMenu } from './AppBar/appBarConfig';
 import { ButtonVariant } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
