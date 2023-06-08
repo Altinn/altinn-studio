@@ -16,7 +16,8 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 export const ResourcePage = () => {
   const navigate = useNavigate();
 
-  const { pageType, resourceId, selectedContext, repo } = useParams();
+  const { pageType, resourceId, selectedContext } = useParams();
+  const repo = `${selectedContext}-resources`;
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
     pageType as NavigationBarPageType
