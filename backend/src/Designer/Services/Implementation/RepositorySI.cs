@@ -971,7 +971,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string policyPath = GetPolicyPath(org, repo, resourceId);
 
-    
+
             string xsd;
             await using (MemoryStream stream = new MemoryStream())
             await using (var xw = XmlWriter.Create(stream, new XmlWriterSettings { Indent = true, Async = true }))
@@ -981,7 +981,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 stream.Position = 0;
                 xsd = Encoding.UTF8.GetString(stream.ToArray());
             }
-            await WriteTextAsync(policyPath, xsd);    
+            await WriteTextAsync(policyPath, xsd);
 
             return true;
         }
