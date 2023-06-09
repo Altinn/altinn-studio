@@ -1,9 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
@@ -94,7 +93,93 @@ namespace LocalTest.Services.Storage.Implementation
             return dataElement;
         }
 
-        public async Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
+        public async Task<DataElement> Update(Guid instanceGuid, Guid dataElementId, Dictionary<string, object> propertylist)
+        {
+            string path = GetDataPath($"{instanceGuid}", $"{dataElementId}");
+
+            if (File.Exists(path))
+            {
+                string content = await ReadFileAsString(path);
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(content);
+
+                foreach (KeyValuePair<string, object> property in propertylist)
+                {
+                    string propName = property.Key.Trim('/');
+                    switch (propName)
+                    {
+                        case "contentType":
+                            {
+                                dataElement.ContentType = (string)property.Value;
+                                break;
+                            }
+                        case "deleteStatus":
+                            {
+                                dataElement.DeleteStatus = (DeleteStatus)property.Value;
+                                break;
+                            }
+                        case "filename":
+                            {
+                                dataElement.Filename = (string)property.Value;
+                                break;
+                            }
+                        case "fileScanResult":
+                            {
+                                dataElement.FileScanResult = (FileScanResult)property.Value;
+                                break;
+                            }
+                        case "isRead":
+                            {
+                                dataElement.IsRead = (bool)property.Value;
+                                break;
+                            }
+                        case "lastChangedBy":
+                            {
+                                dataElement.LastChangedBy = (string)property.Value;
+                                break;
+                            }
+                        case "lastChanged":
+                            {
+                                dataElement.LastChanged = (DateTime)property.Value;
+                                break;
+                            }
+                        case "locked":
+                            {
+                                dataElement.Locked = (bool)property.Value;
+                                break;
+                            }
+                        case "refs":
+                            {
+                                dataElement.Refs = (List<Guid>)property.Value;
+                                break;
+                            }
+                        case "references":
+                            {
+                                dataElement.References = (List<Reference>)property.Value;
+                                break;
+                            }
+                        case "size":
+                            {
+                                dataElement.Size = (long)property.Value;
+                                break;
+                            }
+                        case "tags":
+                            {
+                                dataElement.Tags = (List<string>)property.Value;
+                                break;
+                            }
+                        default:
+                            break;
+                    }
+                }
+                await Update(dataElement);
+
+                return dataElement;
+            }
+
+            throw new RepositoryException("Error occured");
+        }
+
+        public async Task<(long ContentLength, DateTimeOffset LastModified)> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
         {
             string filePath = GetFilePath(blobStoragePath);
             if (!Directory.Exists(Path.GetDirectoryName(filePath)))
@@ -117,7 +202,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         private string GetDataForInstanceFolder(string instanceId)
         {
-            return Path.Combine(GetDataCollectionFolder() + instanceId.Replace("/", "_") + "/"); 
+            return Path.Combine(GetDataCollectionFolder() + instanceId.Replace("/", "_") + "/");
         }
 
         private string GetDataCollectionFolder()
@@ -165,7 +250,7 @@ namespace LocalTest.Services.Storage.Implementation
             await WriteToFile(path, stream);
         }
 
-        private static async Task<long> WriteToFile(string path, Stream stream)
+        private static async Task<(long ContentLength, DateTimeOffset LastModified)> WriteToFile(string path, Stream stream)
         {
             if (stream is not MemoryStream memStream)
             {
@@ -195,7 +280,7 @@ namespace LocalTest.Services.Storage.Implementation
             }
         }
 
-        private static async Task<long> WriteToFileInternal(string path, MemoryStream stream)
+        private static async Task<(long ContentLength, DateTimeOffset LastModified)> WriteToFileInternal(string path, MemoryStream stream)
         {
             long fileSize;
             await using (FileStream streamToWriteTo = File.Open(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
@@ -205,7 +290,12 @@ namespace LocalTest.Services.Storage.Implementation
                 fileSize = streamToWriteTo.Length;
             }
 
-            return fileSize;
+            return (fileSize, DateTime.UtcNow);
+        }
+
+        public Task<Dictionary<string, List<DataElement>>> ReadAllForMultiple(List<string> instanceGuids)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,7 +1,9 @@
-using Altinn.Common.PEP.Interfaces;
+#nullable enable
+using Altinn.Platform.Storage.Authorization;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,24 +18,22 @@ public class DataLockController : ControllerBase
 {
     private readonly IInstanceRepository _instanceRepository;
     private readonly IDataRepository _dataRepository;
-    private readonly AuthorizationHelper _authorizationHelper;
+    private readonly IAuthorization _authorizationService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataLockController"/> class
     /// </summary>
     /// <param name="instanceRepository">the instance repository</param>
     /// <param name="dataRepository">the data repository handler</param>
-    /// <param name="pdp"></param>
-    /// <param name="authzLogger"></param>
+    /// <param name="authorizationService">the authorization service.</param>
     public DataLockController(
         IInstanceRepository instanceRepository,
         IDataRepository dataRepository,
-        IPDP pdp,
-        ILogger<AuthorizationHelper> authzLogger)
+        IAuthorization authorizationService)
     {
         _instanceRepository = instanceRepository;
         _dataRepository = dataRepository;
-        _authorizationHelper = new AuthorizationHelper(pdp, authzLogger);
+        _authorizationService = authorizationService;
     }
 
     /// <summary>
@@ -42,24 +42,43 @@ public class DataLockController : ControllerBase
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The id of the instance that the data element is associated with.</param>
     /// <param name="dataGuid">The id of the data element to delete.</param>
-    /// <returns></returns>
+    /// <returns>DataElement that was locked</returns>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Produces("application/json")]
     public async Task<ActionResult<DataElement>> Lock(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
     {
-        (DataElement dataElement, ActionResult errorMessage) = await GetDataElementAsync(instanceGuid, dataGuid);
-        if (dataElement == null)
+        (Instance? instance, ActionResult? instanceError) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
+        if (instance == null)
         {
-            return errorMessage;
+            return instanceError!;
         }
-        dataElement.Locked = true;
 
-        DataElement updatedDataElement = await _dataRepository.Update(dataElement);
-        return Ok(updatedDataElement);
+        DataElement? dataElement = instance.Data.Find(d => d.Id == dataGuid.ToString());
+
+        if (dataElement?.Locked is true)
+        {
+            return Ok(dataElement);
+        }
+
+        Dictionary<string, object> propertyList = new()
+        {
+            { "/locked", true }
+        };
+
+        try
+        {
+            DataElement updatedDataElement = await _dataRepository.Update(instanceGuid, dataGuid, propertyList);
+            return Created(updatedDataElement.Id, updatedDataElement);
+        }
+        catch (RepositoryException e)
+        {
+            return e.StatusCodeSuggestion != null ? StatusCode((int)e.StatusCodeSuggestion) : StatusCode(500);
+        }
     }
 
     /// <summary>
@@ -68,7 +87,7 @@ public class DataLockController : ControllerBase
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The id of the instance that the data element is associated with.</param>
     /// <param name="dataGuid">The id of the data element to delete.</param>
-    /// <returns></returns>
+    /// <returns>DataElement that was unlocked</returns>
     [Authorize]
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -78,30 +97,34 @@ public class DataLockController : ControllerBase
     [Produces("application/json")]
     public async Task<ActionResult<DataElement>> Unlock(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
     {
-        (Instance instance, _) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
+        (Instance? instance, _) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
         if (instance == null)
         {
             return Forbid();
         }
 
-        bool authorized = await _authorizationHelper.AuthorizeAnyOfInstanceActions(HttpContext.User, instance, new List<string>() { "write", "unlock", "reject" });
+        bool authorized = await _authorizationService.AuthorizeAnyOfInstanceActions(instance, new List<string>() { "write", "unlock", "reject" });
         if (!authorized)
         {
             return Forbid();
         }
 
-        (DataElement dataElement, ActionResult errorMessage) = await GetDataElementAsync(instanceGuid, dataGuid);
-        if (dataElement == null)
+        Dictionary<string, object> propertyList = new()
         {
-            return errorMessage;
+            { "/locked", false }
+        };
+        try
+        {
+            DataElement updatedDataElement = await _dataRepository.Update(instanceGuid, dataGuid, propertyList);
+            return Ok(updatedDataElement);
         }
-        dataElement.Locked = false;
-
-        DataElement updatedDataElement = await _dataRepository.Update(dataElement);
-        return Ok(updatedDataElement);
+        catch (RepositoryException e)
+        {
+            return e.StatusCodeSuggestion != null ? StatusCode((int)e.StatusCodeSuggestion) : StatusCode(500);
+        }
     }
 
-    private async Task<(Instance Instance, ActionResult ErrorMessage)> GetInstanceAsync(Guid instanceGuid, int instanceOwnerPartyId)
+    private async Task<(Instance? Instance, ActionResult? ErrorMessage)> GetInstanceAsync(Guid instanceGuid, int instanceOwnerPartyId)
     {
         Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
@@ -111,17 +134,5 @@ public class DataLockController : ControllerBase
         }
 
         return (instance, null);
-    }
-
-    private async Task<(DataElement DataElement, ActionResult ErrorMessage)> GetDataElementAsync(Guid instanceGuid, Guid dataGuid)
-    {
-        DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
-
-        if (dataElement == null)
-        {
-            return (null, NotFound($"Unable to find any data element with id: {dataGuid}."));
-        }
-
-        return (dataElement, null);
     }
 }

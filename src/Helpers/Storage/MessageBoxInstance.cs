@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using Altinn.Platform.Storage.Interface.Models;
@@ -66,6 +67,11 @@ namespace Altinn.Platform.Storage.Helpers
         public ReadStatus ReadStatus { get; set; }
 
         /// <summary>
+        /// The substatus of the instance.
+        /// </summary>
+        public Substatus Substatus { get; set; }
+
+        /// <summary>
         /// Boolean indicating if user is allowed to delete instance.
         /// </summary>
         public bool AllowDelete { get; set; }
@@ -81,7 +87,12 @@ namespace Altinn.Platform.Storage.Helpers
         public bool AuthorizedForWrite { get; set; }
 
         /// <summary>
-        /// DateTime the instance was archived 
+        /// Gets or sets a value indicating whether user is authorized to sign the data elements on instance.
+        /// </summary>
+        public bool AuthorizedForSign { get; set; }
+
+        /// <summary>
+        /// DateTime the instance was archived
         /// </summary>
         public DateTime? ArchivedDateTime { get; set; }
 
@@ -89,6 +100,18 @@ namespace Altinn.Platform.Storage.Helpers
         /// DateTime the instance was deleted
         /// </summary>
         public DateTime? DeletedDateTime { get; set; }
+
+        /// <summary>
+        /// Presentation text is a dynamically created text that have been retrieved from data elements
+        /// and stored on the instance. The text can be used to make it easy to separate instaces from
+        /// the same app when displayed by the portal message box.
+        /// </summary>
+        public string PresentationText { get; set; }
+
+        /// <summary>
+        /// Dictionary holding metadata about the instance.
+        /// </summary>
+        public Dictionary<string, string> DataValues { get; set; }
     }
 
     /// <summary>
@@ -107,5 +130,21 @@ namespace Altinn.Platform.Storage.Helpers
         /// </summary>
         [EnumMember]
         SoftDeleted = 1
+    }
+
+    /// <summary>
+    /// Status containing label and description.
+    /// </summary>
+    public class Substatus
+    {
+        /// <summary>
+        /// A text key pointing to a short description of the substatus.
+        /// </summary>
+        public string Label { get; set; }
+
+        /// <summary>
+        /// A text key pointing to a longer description of the substatus.
+        /// </summary>
+        public string Description { get; set; }
     }
 }

@@ -15,12 +15,16 @@ using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Services;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Register.Core;
+using Altinn.Platform.Storage.Authorization;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.Services;
 using Altinn.ResourceRegistry.Core;
+
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
+
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Helpers;
@@ -42,6 +46,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -49,6 +54,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+
 using ResourceRegistryTest.Mocks;
 
 namespace LocalTest
@@ -101,9 +107,6 @@ namespace LocalTest
             services.AddHttpClient<AuthorizationApiClient>();
             services.AddHttpClient<AltinnOrgsClient>();
             services.AddSingleton<IPDP, PDPAppSI>();
-            services.AddSingleton<IAuthentication, AuthenticationService>();
-            services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
-            services.AddTransient<IAuthorizationHandler, ScopeAccessHandler>();
             services.AddTransient<IPersonLookup, PersonLookupService>();
             services.AddTransient<TestDataService>();
 
@@ -115,6 +118,21 @@ namespace LocalTest
             services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
             services.AddSingleton<IResourceRegistry, ResourceRegistryService>();
             services.AddSingleton<IResourceRegistryRepository, RegisterResourceRepositoryMock>();
+
+            // Shared auth services
+            services.AddSingleton<IAuthentication, AuthenticationService>();
+            services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
+            services.AddTransient<IAuthorizationHandler, ScopeAccessHandler>();
+            services.AddTransient<IAuthorizationHandler, StorageAccessHandler>();
+            services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
+
+            // Storage services
+            services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
+            services.AddTransient<IAuthorization, AuthorizationService>();
+            services.AddTransient<IDataService, DataService>();
+            services.AddTransient<IInstanceService, InstanceService>();
+            services.AddTransient<IInstanceEventService, InstanceEventService>();
+            services.AddSingleton<IApplicationService, ApplicationService>();
             services.AddMemoryCache();
 
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
@@ -149,12 +167,16 @@ namespace LocalTest
                 options.AddPolicy(
                     AuthzConstants.POLICY_INSTANCE_COMPLETE,
                     policy => policy.Requirements.Add(new AppAccessRequirement("complete")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_SIGN,
+                    policy => policy.Requirements.Add(new AppAccessRequirement("sign")));
+
                 options.AddPolicy(
                     AuthzConstants.POLICY_SCOPE_APPDEPLOY,
                     policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:appdeploy")));
                 options.AddPolicy(
                     AuthzConstants.POLICY_SCOPE_INSTANCE_READ,
                     policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:instances.read")));
+
                 options.AddPolicy(
                     "AuthorizationLevel2",
                     policy => policy.RequireClaim(AltinnCoreClaimTypes.AuthenticationLevel, "2", "3", "4"));
