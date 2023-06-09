@@ -5,8 +5,8 @@ import { NavigationBarPageType } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
 import { AboutResource } from '../AboutResource';
-
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { DeployResourcePage } from '../DeployResourcePage';
 
 /**
  * Displays the 3 pages to manage resources and a left navigation bar.
@@ -53,6 +53,7 @@ export const ResourcePage = () => {
           </div>
         )}
         {currentPage === 'policy' && <PolicyEditorPage />}
+        {currentPage === 'deploy' && <DeployResourcePage />}
       </div>
     </div>
   );

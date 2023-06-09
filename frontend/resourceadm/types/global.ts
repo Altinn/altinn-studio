@@ -39,7 +39,7 @@ export interface PolicyBackendType {
   requiredAuthenticationLevelOrg: string
 }
 
-export type NavigationBarPageType = 'about' | 'security' | 'policy';
+export type NavigationBarPageType = 'about' | 'security' | 'policy' | 'deploy';
 
 export interface ResourceType {
   name: string;

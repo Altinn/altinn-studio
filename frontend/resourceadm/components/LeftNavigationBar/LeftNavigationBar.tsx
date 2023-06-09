@@ -1,6 +1,11 @@
 import React from 'react';
 import classes from './LeftNavigationBar.module.css';
-import { InformationSquareIcon, ShieldLockIcon, GavelSoundBlockIcon } from '@navikt/aksel-icons';
+import {
+  InformationSquareIcon,
+  ShieldLockIcon,
+  GavelSoundBlockIcon,
+  UploadIcon,
+} from '@navikt/aksel-icons';
 import { NavigationBarPageType } from 'resourceadm/types/global';
 
 interface Props {
@@ -42,6 +47,10 @@ export const LeftNavigationBar = ({ currentPage, navigateToPage, goBack }: Props
         <button className={getNavElementClass('policy')} onClick={() => navigateToPage('policy')}>
           <GavelSoundBlockIcon className={classes.icon} title='Policy' fontSize='1.8rem' />
           <p className={classes.buttonText}>Policy</p>
+        </button>
+        <button className={getNavElementClass('deploy')} onClick={() => navigateToPage('deploy')}>
+          <UploadIcon className={classes.icon} title='Deploy' fontSize='1.8rem' />
+          <p className={classes.buttonText}>Publiser</p>
         </button>
       </div>
     </div>
