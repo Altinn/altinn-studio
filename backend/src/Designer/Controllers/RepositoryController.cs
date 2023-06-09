@@ -31,6 +31,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IGitea _giteaApi;
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
+        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
@@ -38,11 +39,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
-        public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository)
+        /// <param name="userRequestsSynchronizationService">An <see cref="IUserRequestsSynchronizationService"/> used to control parallel execution of user requests.</param>
+        public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
             _repository = repository;
+            _userRequestsSynchronizationService = userRequestsSynchronizationService;
         }
 
         /// <summary>
@@ -200,16 +203,27 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/pull")]
         public RepoStatus Pull(string org, string repository)
         {
-            RepoStatus pullStatus = _sourceControl.PullRemoteChanges(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
 
-            RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
-
-            if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
+            try
             {
-                status.RepositoryStatus = pullStatus.RepositoryStatus;
-            }
+                RepoStatus pullStatus = _sourceControl.PullRemoteChanges(org, repository);
 
-            return status;
+                RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
+
+                if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
+                {
+                    status.RepositoryStatus = pullStatus.RepositoryStatus;
+                }
+
+                return status;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         /// <summary>
@@ -222,6 +236,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/reset")]
         public ActionResult ResetLocalRepository(string org, string repository)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
+
             try
             {
                 _repository.ResetLocalRepository(org, repository);
@@ -230,6 +248,10 @@ namespace Altinn.Studio.Designer.Controllers
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
 
