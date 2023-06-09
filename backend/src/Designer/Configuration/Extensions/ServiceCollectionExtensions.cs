@@ -45,7 +45,7 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
             where TOption : class, new()
         {
             services.Configure<TOption>(configuration.GetSection(sectionName));
-            services.TryAddScoped(typeof(TOption), svc => ((IOptionsSnapshot<object>)svc.GetService(typeof(IOptionsSnapshot<TOption>))).Value);
+            services.TryAddScoped(typeof(TOption), svc => ((IOptionsSnapshot<object>)svc.GetService(typeof(IOptionsSnapshot<TOption>)))!.Value);
         }
 
     }
