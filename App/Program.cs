@@ -7,6 +7,8 @@ using Altinn.App.logic.Pdf;
 using Altinn.App.logic.Validation;
 using Altinn.App.Options;
 using Altinn.App.services.options;
+using Altinn.App.Core.Features.FileAnalysis;
+using Altinn.FileAnalyzers.MimeType;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +27,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IPdfFormatter, PdfFormatter>();
     services.AddTransient<IDataListProvider, ListCases>();
     services.AddTransient<IPageOrder, PageOrder>();
+    services.AddMimeTypeValidation();
 }
 
 // ###########################################################################
