@@ -1,9 +1,11 @@
 #nullable enable
 using System.Security.Claims;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
@@ -20,7 +22,7 @@ namespace Altinn.App.Core.Tests.Internal.Process;
 public class ProcessEngineTest : IDisposable
 {
     private Mock<IProcessReader> _processReaderMock;
-    private readonly Mock<IProfile> _profileMock;
+    private readonly Mock<IProfileClient> _profileMock;
     private readonly Mock<IProcessNavigator> _processNavigatorMock;
     private readonly Mock<IProcessEventDispatcher> _processEventDispatcherMock;
 
@@ -822,7 +824,7 @@ public class ProcessEngineTest : IDisposable
                 Name = "Utfylling",
                 ExtensionElements = new()
                 {
-                    AltinnProperties = new()
+                    TaskExtension = new()
                     {
                         TaskType = "data"
                     }
@@ -838,7 +840,7 @@ public class ProcessEngineTest : IDisposable
                 Name = "Bekreft",
                 ExtensionElements = new()
                 {
-                    AltinnProperties = new()
+                    TaskExtension = new()
                     {
                         TaskType = "confirmation"
                     }
@@ -861,7 +863,8 @@ public class ProcessEngineTest : IDisposable
             _processReaderMock.Object,
             _profileMock.Object,
             _processNavigatorMock.Object,
-            _processEventDispatcherMock.Object);
+            _processEventDispatcherMock.Object,
+            new UserActionFactory(new List<IUserAction>()));
     }
 
     public void Dispose()

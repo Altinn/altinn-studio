@@ -4,11 +4,11 @@ using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Instances;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,8 +38,8 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
 {
     PlatformSettings platformSettings = new PlatformSettings() { ApiAuthorizationEndpoint = "http://localhost:5101/authorization/api/v1/" };
     services.AddSingleton<IOptions<PlatformSettings>>(Options.Create(platformSettings));
-    services.AddTransient<IAuthorization, AuthorizationMock>();
-    services.AddTransient<IInstance, InstanceMockSI>();
+    services.AddTransient<IAuthorizationClient, AuthorizationMock>();
+    services.AddTransient<IInstanceClient, InstanceClientMockSi>();
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

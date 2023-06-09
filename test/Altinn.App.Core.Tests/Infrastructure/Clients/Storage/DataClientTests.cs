@@ -6,9 +6,9 @@ using System.Text;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
-using Altinn.App.Core.Infrastructure.Clients.Storage.TestData;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
 using Altinn.App.PlatformServices.Tests.Data;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -19,7 +19,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace Altinn.App.Core.Tests.Infrastructure.Clients
+namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
 {
     public class DataClientTests
     {

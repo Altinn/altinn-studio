@@ -1,5 +1,7 @@
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -17,11 +19,11 @@ public class ProcessEventDispatcherTests
     public async Task UpdateProcessAndDispatchEvents_StartEvent_instance_updated_and_events_sent_to_storage_nothing_sent_to_ITask()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings());
         var logger = new NullLogger<ProcessEventDispatcher>();
         IProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -104,11 +106,11 @@ public class ProcessEventDispatcherTests
     public async Task UpdateProcessAndDispatchEvents_StartTask_instance_updated_and_events_sent_to_storage_nothing_sent_to_ITask_when_tasktype_missing()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings());
         var logger = new NullLogger<ProcessEventDispatcher>();
         IProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -188,11 +190,11 @@ public class ProcessEventDispatcherTests
     public async Task UpdateProcessAndDispatchEvents_StartTask_data_instance_updated_and_events_sent_to_storage_and_trigger_ITask()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings());
         var logger = new NullLogger<ProcessEventDispatcher>();
         IProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -277,11 +279,11 @@ public class ProcessEventDispatcherTests
     public async Task UpdateProcessAndDispatchEvents_EndTask_confirmation_instance_updated_and_events_sent_to_storage_and_trigger_ITask()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings());
         var logger = new NullLogger<ProcessEventDispatcher>();
         IProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -366,11 +368,11 @@ public class ProcessEventDispatcherTests
     public async Task UpdateProcessAndDispatchEvents_AbandonTask_feedback_instance_updated_and_events_sent_to_storage_and_trigger_ITask()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings());
         var logger = new NullLogger<ProcessEventDispatcher>();
         IProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -455,11 +457,11 @@ public class ProcessEventDispatcherTests
     public async Task UpdateProcessAndDispatchEvents_EndEvent_confirmation_instance_updated_and_events_sent_to_storage_and_trigger_ITask()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings());
         var logger = new NullLogger<ProcessEventDispatcher>();
         IProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -543,11 +545,11 @@ public class ProcessEventDispatcherTests
     public async Task UpdateProcessAndDispatchEvents_EndEvent_confirmation_instance_updated_and_dispatches_no_events_when_events_null()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings());
         var logger = new NullLogger<ProcessEventDispatcher>();
         IProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -612,11 +614,11 @@ public class ProcessEventDispatcherTests
     public async Task RegisterEventWithEventsComponent_sends_movedTo_event_to_events_system_when_enabled_and_current_task_set()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings()
         {
             RegisterEventsWithEventsComponent = true
@@ -658,11 +660,11 @@ public class ProcessEventDispatcherTests
     public async Task RegisterEventWithEventsComponent_sends_complete_event_to_events_system_when_currentTask_null_and_endevent_set()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings()
         {
             RegisterEventsWithEventsComponent = true
@@ -702,11 +704,11 @@ public class ProcessEventDispatcherTests
     public async Task RegisterEventWithEventsComponent_sends_no_events_when_process_is_null()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings()
         {
             RegisterEventsWithEventsComponent = true
@@ -741,11 +743,11 @@ public class ProcessEventDispatcherTests
     public async Task RegisterEventWithEventsComponent_sends_no_events_when_current_and_endevent_is_null()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings()
         {
             RegisterEventsWithEventsComponent = true
@@ -780,11 +782,11 @@ public class ProcessEventDispatcherTests
     public async Task RegisterEventWithEventsComponent_sends_no_events_when_registereventswitheventscomponent_false()
     {
         // Arrange
-        var instanceService = new Mock<IInstance>();
-        var instanceEvent = new Mock<IInstanceEvent>();
+        var instanceService = new Mock<IInstanceClient>();
+        var instanceEvent = new Mock<IInstanceEventClient>();
         var taskEvents = new Mock<ITaskEvents>();
         var appEvents = new Mock<IAppEvents>();
-        var eventsService = new Mock<IEvents>();
+        var eventsService = new Mock<IEventsClient>();
         var appSettings = Options.Create(new AppSettings()
         {
             RegisterEventsWithEventsComponent = false

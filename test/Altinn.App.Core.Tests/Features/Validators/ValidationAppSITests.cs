@@ -2,10 +2,11 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -93,8 +94,8 @@ public class ValidationAppSITests
     private static ValidationAppSI ConfigureMockServicesForValidation()
     {
         Mock<ILogger<ValidationAppSI>> loggerMock = new();
-        var dataMock = new Mock<IData>();
-        var instanceMock = new Mock<IInstance>();
+        var dataMock = new Mock<IDataClient>();
+        var instanceMock = new Mock<IInstanceClient>();
         var instanceValidator = new Mock<IInstanceValidator>();
         var appModelMock = new Mock<IAppModel>();
         var appResourcesMock = new Mock<IAppResources>();

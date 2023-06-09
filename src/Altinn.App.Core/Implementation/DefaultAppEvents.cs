@@ -1,5 +1,6 @@
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -13,8 +14,8 @@ public class DefaultAppEvents: IAppEvents
 {
     private readonly ILogger<DefaultAppEvents> _logger;
     private readonly IAppMetadata _appMetadata;
-    private readonly IInstance _instanceClient;
-    private readonly IData _dataClient;
+    private readonly IInstanceClient _instanceClient;
+    private readonly IDataClient _dataClient;
 
     /// <summary>
     /// Constructor with services from DI
@@ -22,8 +23,8 @@ public class DefaultAppEvents: IAppEvents
     public DefaultAppEvents(
         ILogger<DefaultAppEvents> logger, 
         IAppMetadata appMetadata, 
-        IInstance instanceClient,
-        IData dataClient)
+        IInstanceClient instanceClient,
+        IDataClient dataClient)
     {
         _logger = logger;
         _appMetadata = appMetadata;

@@ -1,10 +1,10 @@
-using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -15,7 +15,7 @@ namespace Altinn.App.Api.Controllers
     /// </summary>
     public class AuthorizationController : Controller
     {
-        private readonly IAuthorization _authorization;
+        private readonly IAuthorizationClient _authorization;
         private readonly UserHelper _userHelper;
         private readonly GeneralSettings _settings;
 
@@ -23,12 +23,12 @@ namespace Altinn.App.Api.Controllers
         /// Initializes a new instance of the <see cref="AuthorizationController"/> class
         /// </summary>
         public AuthorizationController(
-                IAuthorization authorization,
-                IProfile profileClient,
-                IRegister registerClient,
+                IAuthorizationClient authorization,
+                IProfileClient profileClient,
+                IAltinnPartyClient altinnPartyClientClient,
                 IOptions<GeneralSettings> settings)
         {
-            _userHelper = new UserHelper(profileClient, registerClient, settings);
+            _userHelper = new UserHelper(profileClient, altinnPartyClientClient, settings);
             _authorization = authorization;
             _settings = settings.Value;
         }

@@ -11,7 +11,13 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// <summary>
         /// Gets or sets the altinn properties
         /// </summary>
-        [XmlElement("properties", Namespace = "http://altinn.no")]
-        public AltinnProperties? AltinnProperties { get; set; }
+        [XmlElement("taskExtension", Namespace = "http://altinn.no/process")]
+        public AltinnTaskExtension? TaskExtension { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the altinn properties
+        /// </summary>
+        [XmlElement("gatewayExtension", Namespace = "http://altinn.no/process")]
+        public AltinnGatewayExtension? GatewayExtension { get; set; }
     }
 }

@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for handling form data related operations
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Instances.IInstanceClient instead", error: true)]
     public interface IInstance
     {
         /// <summary>

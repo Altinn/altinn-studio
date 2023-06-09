@@ -2,13 +2,14 @@
 using System.Net;
 
 using Altinn.App.Api.Infrastructure.Filters;
-using Altinn.App.Api.Mappers;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
@@ -34,7 +35,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IAppResources _appResourcesService;
         private readonly IDataProcessor _dataProcessor;
         private readonly IPrefill _prefillService;
-        private readonly IRegister _registerClient;
+        private readonly IAltinnPartyClient _altinnPartyClientClient;
         private readonly IPDP _pdp;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -52,7 +53,7 @@ namespace Altinn.App.Api.Controllers
             IAppResources appResourcesService,
             IDataProcessor dataProcessor,
             IPrefill prefillService,
-            IRegister registerClient,
+            IAltinnPartyClient altinnPartyClientClient,
             IPDP pdp)
         {
             _logger = logger;
@@ -60,7 +61,7 @@ namespace Altinn.App.Api.Controllers
             _appResourcesService = appResourcesService;
             _dataProcessor = dataProcessor;
             _prefillService = prefillService;
-            _registerClient = registerClient;
+            _altinnPartyClientClient = altinnPartyClientClient;
             _pdp = pdp;
         }
 
@@ -272,7 +273,7 @@ namespace Altinn.App.Api.Controllers
                     return null;
                 }
 
-                var partyFromUser = await _registerClient.GetParty(partyId.Value);
+                var partyFromUser = await _altinnPartyClientClient.GetParty(partyId.Value);
                 if (partyFromUser is null)
                 {
                     return null;
@@ -292,11 +293,11 @@ namespace Altinn.App.Api.Controllers
             var idPrefix = headerParts[0].ToLowerInvariant();
             var party = idPrefix switch
             {
-                PartyPrefix => await _registerClient.GetParty(int.TryParse(id, out var partyId) ? partyId : 0),
+                PartyPrefix => await _altinnPartyClientClient.GetParty(int.TryParse(id, out var partyId) ? partyId : 0),
 
                 // Frontend seems to only use partyId, not orgnr or ssn.
-                PersonPrefix => await _registerClient.LookupParty(new PartyLookup { Ssn = id }),
-                OrgPrefix => await _registerClient.LookupParty(new PartyLookup { OrgNo = id }),
+                PersonPrefix => await _altinnPartyClientClient.LookupParty(new PartyLookup { Ssn = id }),
+                OrgPrefix => await _altinnPartyClientClient.LookupParty(new PartyLookup { OrgNo = id }),
                 _ => null,
             };
 

@@ -1,11 +1,13 @@
 ﻿using System.Security.Claims;
-using System.Text;
 using System.Xml.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Extensions;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
@@ -27,10 +29,10 @@ public class PdfService : IPdfService
     private readonly IPDF _pdfClient;
     private readonly IAppResources _resourceService;
     private readonly IPdfOptionsMapping _pdfOptionsMapping;
-    private readonly IData _dataClient;
+    private readonly IDataClient _dataClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IProfile _profileClient;
-    private readonly IRegister _registerClient;
+    private readonly IProfileClient _profileClient;
+    private readonly IAltinnPartyClient _altinnPartyClientClient;
     private readonly IPdfFormatter _pdfFormatter;
 
     private readonly IPdfGeneratorClient _pdfGeneratorClient;
@@ -49,7 +51,7 @@ public class PdfService : IPdfService
     /// <param name="dataClient">The data client.</param>
     /// <param name="httpContextAccessor">The httpContextAccessor</param>
     /// <param name="profileClient">The profile client</param>
-    /// <param name="registerClient">The register client</param>
+    /// <param name="altinnPartyClientClient">The register client</param>
     /// <param name="pdfFormatter">Class for customizing pdf formatting and layout.</param>
     /// <param name="pdfGeneratorClient">PDF generator client for the experimental PDF generator service</param>
     /// <param name="pdfGeneratorSettings">PDF generator related settings.</param>
@@ -58,10 +60,10 @@ public class PdfService : IPdfService
         IPDF pdfClient,
         IAppResources appResources,
         IPdfOptionsMapping pdfOptionsMapping,
-        IData dataClient,
+        IDataClient dataClient,
         IHttpContextAccessor httpContextAccessor,
-        IProfile profileClient,
-        IRegister registerClient,
+        IProfileClient profileClient,
+        IAltinnPartyClient altinnPartyClientClient,
         IPdfFormatter pdfFormatter,
         IPdfGeneratorClient pdfGeneratorClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
@@ -74,7 +76,7 @@ public class PdfService : IPdfService
         _dataClient = dataClient;
         _httpContextAccessor = httpContextAccessor;
         _profileClient = profileClient;
-        _registerClient = registerClient;
+        _altinnPartyClientClient = altinnPartyClientClient;
         _pdfFormatter = pdfFormatter;
         _pdfGeneratorClient = pdfGeneratorClient;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
@@ -191,7 +193,7 @@ public class PdfService : IPdfService
         else
         {
             string? orgNumber = user.GetOrgNumber().ToString();
-            actingParty = await _registerClient.LookupParty(new PartyLookup { OrgNo = orgNumber });
+            actingParty = await _altinnPartyClientClient.LookupParty(new PartyLookup { OrgNo = orgNumber });
         }
 
         // If layoutset exists pick correct layotFiles
@@ -216,7 +218,7 @@ public class PdfService : IPdfService
             LayoutSettings = layoutSettings,
             TextResources = JsonConvert.DeserializeObject(textResourcesString)!,
             OptionsDictionary = optionsDictionary,
-            Party = await _registerClient.GetParty(instanceOwnerId),
+            Party = await _altinnPartyClientClient.GetParty(instanceOwnerId),
             Instance = instance,
             UserParty = actingParty,
             Language = language

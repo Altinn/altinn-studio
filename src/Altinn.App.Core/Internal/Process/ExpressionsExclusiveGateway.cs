@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
@@ -21,7 +21,7 @@ namespace Altinn.App.Core.Internal.Process
         private readonly LayoutEvaluatorStateInitializer _layoutStateInit;
         private readonly IAppResources _resources;
         private readonly IAppMetadata _appMetadata;
-        private readonly IData _dataClient;
+        private readonly IDataClient _dataClient;
         private readonly IAppModel _appModel;
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Altinn.App.Core.Internal.Process
             IAppResources resources,
             IAppModel appModel,
             IAppMetadata appMetadata,
-            IData dataClient)
+            IDataClient dataClient)
         {
             _layoutStateInit = layoutEvaluatorStateInitializer;
             _resources = resources;

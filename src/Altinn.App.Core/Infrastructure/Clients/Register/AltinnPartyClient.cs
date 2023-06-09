@@ -4,8 +4,8 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
@@ -20,10 +20,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
     /// <summary>
     /// A client for retrieving register data from Altinn Platform.
     /// </summary>
-    public class RegisterClient : IRegister
+    public class AltinnPartyClient : IAltinnPartyClient
     {
-        private readonly IDSF _dsfClient;
-        private readonly IER _erClient;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
@@ -32,30 +30,27 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         private readonly IAccessTokenGenerator _accessTokenGenerator;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegisterClient"/> class
+        /// Initializes a new instance of the <see cref="AltinnPartyClient"/> class
         /// </summary>
         /// <param name="platformSettings">The current platform settings.</param>
         /// <param name="dsf">The dsf</param>
-        /// <param name="er">The er</param>
+        /// <param name="organizationClient">The organizationClient</param>
         /// <param name="logger">The logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
         /// <param name="httpClient">The http client</param>
         /// <param name="appMetadata">The app metadata service</param>
         /// <param name="accessTokenGenerator">The platform access token generator</param>
-        public RegisterClient(
+        public AltinnPartyClient(
             IOptions<PlatformSettings> platformSettings,
-            IDSF dsf,
-            IER er,
-            ILogger<RegisterClient> logger,
+            IOrganizationClient organizationClient,
+            ILogger<AltinnPartyClient> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
             IAppMetadata appMetadata,
             IAccessTokenGenerator accessTokenGenerator)
         {
-            _dsfClient = dsf;
-            _erClient = er;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
@@ -65,22 +60,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             _client = httpClient;
             _appMetadata = appMetadata;
             _accessTokenGenerator = accessTokenGenerator;
-        }
-
-        /// <summary>
-        /// The access to the dsf component through register services
-        /// </summary>
-        public IDSF DSF
-        {
-            get { return _dsfClient; }
-        }
-
-        /// <summary>
-        /// The access to the er component through register services
-        /// </summary>
-        public IER ER
-        {
-            get { return _erClient; }
         }
 
         /// <inheritdoc/>

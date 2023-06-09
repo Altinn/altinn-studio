@@ -1,8 +1,9 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
@@ -28,9 +29,9 @@ public class DefaultEFormidlingService : IEFormidlingService
     private readonly IEFormidlingClient? _eFormidlingClient;
     private readonly IEFormidlingMetadata? _eFormidlingMetadata;
     private readonly IAppMetadata _appMetadata;
-    private readonly IData _dataClient;
+    private readonly IDataClient _dataClient;
     private readonly IEFormidlingReceivers _eFormidlingReceivers;
-    private readonly IEvents _eventClient;
+    private readonly IEventsClient _eventClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultEFormidlingService"/> class.
@@ -39,9 +40,9 @@ public class DefaultEFormidlingService : IEFormidlingService
         ILogger<DefaultEFormidlingService> logger,
         IHttpContextAccessor httpContextAccessor,
         IAppMetadata appMetadata,
-        IData dataClient,
+        IDataClient dataClient,
         IEFormidlingReceivers eFormidlingReceivers,
-        IEvents eventClient,
+        IEventsClient eventClient,
         IOptions<AppSettings>? appSettings = null,
         IOptions<PlatformSettings>? platformSettings = null,
         IEFormidlingClient? eFormidlingClient = null,

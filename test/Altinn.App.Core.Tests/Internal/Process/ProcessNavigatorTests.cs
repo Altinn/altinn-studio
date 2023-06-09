@@ -48,7 +48,7 @@ public class ProcessNavigatorTests
                 TaskType = null!,
                 ExtensionElements = new()
                 {
-                  AltinnProperties = new()
+                  TaskExtension = new()
                   {
                       TaskType = "confirm",
                       AltinnActions = new()
@@ -92,7 +92,7 @@ public class ProcessNavigatorTests
                 TaskType = null!,
                 ExtensionElements = new()
                 {
-                    AltinnProperties = new()
+                    TaskExtension = new()
                     {
                         TaskType = "data",
                         AltinnActions = new()

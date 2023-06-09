@@ -2,9 +2,9 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -343,7 +343,7 @@ public class ExpressionsExclusiveGatewayTests
         var resources = new Mock<IAppResources>();
         var appModel = new Mock<IAppModel>();
         var appMetadata = new Mock<IAppMetadata>();
-        var dataClient = new Mock<IData>();
+        var dataClient = new Mock<IDataClient>();
 
         resources.Setup(r => r.GetLayoutSets()).Returns(layoutSets ?? string.Empty);
         appMetadata.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("ttd/test-app")

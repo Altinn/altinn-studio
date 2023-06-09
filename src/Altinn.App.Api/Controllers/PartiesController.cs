@@ -1,8 +1,10 @@
 #nullable enable
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Profile.Models;
@@ -21,9 +23,9 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class PartiesController : ControllerBase
     {
-        private readonly IAuthorization _authorizationClient;
+        private readonly IAuthorizationClient _authorizationClient;
         private readonly UserHelper _userHelper;
-        private readonly IProfile _profileClient;
+        private readonly IProfileClient _profileClient;
         private readonly GeneralSettings _settings;
         private readonly IAppMetadata _appMetadata;
 
@@ -31,14 +33,14 @@ namespace Altinn.App.Api.Controllers
         /// Initializes a new instance of the <see cref="PartiesController"/> class
         /// </summary>
         public PartiesController(
-            IAuthorization authorizationClient,
-            IProfile profileClient,
-            IRegister registerClient,
+            IAuthorizationClient authorizationClient,
+            IProfileClient profileClient,
+            IAltinnPartyClient altinnPartyClientClient,
             IOptions<GeneralSettings> settings,
             IAppMetadata appMetadata)
         {
             _authorizationClient = authorizationClient;
-            _userHelper = new UserHelper(profileClient, registerClient, settings);
+            _userHelper = new UserHelper(profileClient, altinnPartyClientClient, settings);
             _profileClient = profileClient;
             _settings = settings.Value;
             _appMetadata = appMetadata;

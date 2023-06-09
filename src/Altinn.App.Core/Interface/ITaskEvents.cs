@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Interface;
 /// <summary>
 /// Interface for implementing a receiver handling task process events.
 /// </summary>
+[Obsolete(message: "Use Altinn.App.Core.Internal.Process.ITaskEvents instead", error: true)]
 public interface ITaskEvents
 {
     /// <summary>

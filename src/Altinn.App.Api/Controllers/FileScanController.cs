@@ -1,11 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using Altinn.App.Api.Models;
-using Altinn.App.Core.Interface;
+﻿using Altinn.App.Api.Models;
+using Altinn.App.Core.Infrastructure.Clients;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers
@@ -17,12 +15,12 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class FileScanController : ControllerBase
     {
-        private readonly IInstance _instanceClient;
+        private readonly IInstanceClient _instanceClient;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="FileScanController"/> class
         /// </summary>
-        public FileScanController(IInstance instanceClient)
+        public FileScanController(IInstanceClient instanceClient)
         {
             _instanceClient = instanceClient;
         }

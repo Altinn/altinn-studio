@@ -1,5 +1,4 @@
 using System.Xml.Serialization;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 
@@ -13,14 +12,14 @@ public class ProcessReader : IProcessReader
     private readonly Definitions _definitions;
 
     /// <summary>
-    /// Create instance of ProcessReader where process stream is fetched from <see cref="IProcess"/>
+    /// Create instance of ProcessReader where process stream is fetched from <see cref="IProcessClient"/>
     /// </summary>
-    /// <param name="processService">Implementation of IProcess used to get stream of BPMN process</param>
+    /// <param name="processClient">Implementation of IProcessClient used to get stream of BPMN process</param>
     /// <exception cref="InvalidOperationException">If BPMN file could not be deserialized</exception>
-    public ProcessReader(IProcess processService)
+    public ProcessReader(IProcessClient processClient)
     {
         XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
-        Definitions? definitions = (Definitions?)serializer.Deserialize(processService.GetProcessDefinition());
+        Definitions? definitions = (Definitions?)serializer.Deserialize(processClient.GetProcessDefinition());
 
         _definitions = definitions ?? throw new InvalidOperationException("Failed to deserialize BPMN definitions. Definitions was null");
     }

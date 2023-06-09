@@ -1,14 +1,11 @@
-﻿using Altinn.App.Core.Interface;
-using Altinn.Platform.Register.Models;
-using System;
-using System.Collections.Generic;
+﻿using Altinn.Platform.Register.Models;
 using System.Security.Claims;
-using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Api.Tests.Mocks
 {
-    public class AuthorizationMock : IAuthorization
+    public class AuthorizationMock : IAuthorizationClient
     {
         public Task<List<Party>?> GetPartyList(int userId)
         {

@@ -1,5 +1,7 @@
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -13,28 +15,28 @@ namespace Altinn.App.Core.Internal.Process;
 /// </summary>
 class ProcessEventDispatcher : IProcessEventDispatcher
 {
-    private readonly IInstance _instanceService;
-    private readonly IInstanceEvent _instanceEventClient;
+    private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceEventClient _instanceEventClient;
     private readonly ITaskEvents _taskEvents;
     private readonly IAppEvents _appEvents;
-    private readonly IEvents _eventsService;
+    private readonly IEventsClient _eventsClient;
     private readonly bool _registerWithEventSystem;
     private readonly ILogger<ProcessEventDispatcher> _logger;
 
     public ProcessEventDispatcher(
-        IInstance instanceService, 
-        IInstanceEvent instanceEventClient,
+        IInstanceClient instanceClient, 
+        IInstanceEventClient instanceEventClient,
         ITaskEvents taskEvents, 
         IAppEvents appEvents, 
-        IEvents eventsService, 
+        IEventsClient eventsClient, 
         IOptions<AppSettings> appSettings,
         ILogger<ProcessEventDispatcher> logger)
     {
-        _instanceService = instanceService;
+        _instanceClient = instanceClient;
         _instanceEventClient = instanceEventClient;
         _taskEvents = taskEvents;
         _appEvents = appEvents;
-        _eventsService = eventsService;
+        _eventsClient = eventsClient;
         _registerWithEventSystem = appSettings.Value.RegisterEventsWithEventsComponent;
         _logger = logger;
     }
@@ -45,11 +47,11 @@ class ProcessEventDispatcher : IProcessEventDispatcher
         await HandleProcessChanges(instance, events, prefill);
 
         // need to update the instance process and then the instance in case appbase has changed it, e.g. endEvent sets status.archived
-        Instance updatedInstance = await _instanceService.UpdateProcess(instance);
+        Instance updatedInstance = await _instanceClient.UpdateProcess(instance);
         await DispatchProcessEventsToStorage(updatedInstance, events);
 
         // remember to get the instance anew since AppBase can have updated a data element or stored something in the database.
-        updatedInstance = await _instanceService.GetInstance(updatedInstance);
+        updatedInstance = await _instanceClient.GetInstance(updatedInstance);
 
         return updatedInstance;
     }
@@ -63,11 +65,11 @@ class ProcessEventDispatcher : IProcessEventDispatcher
             {
                 if (!string.IsNullOrWhiteSpace(instance.Process.CurrentTask?.ElementId))
                 {
-                    await _eventsService.AddEvent($"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}", instance);
+                    await _eventsClient.AddEvent($"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}", instance);
                 }
                 else if (instance.Process.EndEvent != null)
                 {
-                    await _eventsService.AddEvent("app.instance.process.completed", instance);
+                    await _eventsClient.AddEvent("app.instance.process.completed", instance);
                 }
             }
             catch (Exception exception)
@@ -120,7 +122,7 @@ class ProcessEventDispatcher : IProcessEventDispatcher
                             break;
                         case InstanceEventType.process_AbandonTask:
                             await task.HandleTaskAbandon(elementId, instance);
-                            await _instanceService.UpdateProcess(instance);
+                            await _instanceClient.UpdateProcess(instance);
                             break;
                         case InstanceEventType.process_EndEvent:
                             await _appEvents.OnEndAppEvent(instanceEvent.ProcessInfo?.EndEvent, instance);

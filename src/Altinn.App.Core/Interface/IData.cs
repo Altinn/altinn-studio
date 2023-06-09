@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for data handling
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Data.IDataClient instead", error: true)]
     public interface IData
     {
         /// <summary>

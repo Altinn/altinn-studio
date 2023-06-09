@@ -1,27 +1,21 @@
 ﻿using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Instances;
 
 namespace Altinn.App.Api.Tests.Mocks
 {
-    public class InstanceMockSI : IInstance
+    public class InstanceClientMockSi : IInstanceClient
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public InstanceMockSI(ILogger<IInstance> logger, IHttpContextAccessor httpContextAccessor)
+        public InstanceClientMockSi(ILogger<IInstanceClient> logger, IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;

@@ -1,14 +1,14 @@
-using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Tests.Controllers.TestResources;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.DataProcessing;
-using Altinn.App.Core.Infrastructure.Clients.Profile;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
@@ -36,7 +36,7 @@ public class StatelessDataControllerTests
         var appResourcesMock = new Mock<IAppResources>();
         var dataProcessorMock = new Mock<IDataProcessor>();
         var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IRegister>();
+        var registerMock = new Mock<IAltinnPartyClient>();
         var pdpMock = new Mock<IPDP>();
         ILogger<DataController> logger = new NullLogger<DataController>();
         var statelessDataController = new StatelessDataController(logger, altinnAppModelMock.Object, appResourcesMock.Object,
@@ -65,7 +65,7 @@ public class StatelessDataControllerTests
         var appResourcesMock = new Mock<IAppResources>();
         var dataProcessorMock = new Mock<IDataProcessor>();
         var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IRegister>();
+        var registerMock = new Mock<IAltinnPartyClient>();
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
@@ -92,8 +92,8 @@ public class StatelessDataControllerTests
     // party headers.
     private class StatelessDataControllerWebApplicationFactory : WebApplicationFactory<Program>
     {
-        public Mock<IProfile> ProfileClientMoq { get; set; } = new();
-        public Mock<IRegister> RegisterClientMoq { get; set; } = new();
+        public Mock<IProfileClient> ProfileClientMoq { get; set; } = new();
+        public Mock<IAltinnPartyClient> RegisterClientMoq { get; set; } = new();
         public Mock<IAppResources> AppResourcesMoq { get; set; } = new();
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -102,8 +102,8 @@ public class StatelessDataControllerTests
 
             builder.ConfigureServices(services=>
             {
-                services.AddTransient<IProfile>((sp)=>ProfileClientMoq.Object);
-                services.AddTransient<IRegister>((sp)=>RegisterClientMoq.Object);
+                services.AddTransient<IProfileClient>((sp)=>ProfileClientMoq.Object);
+                services.AddTransient<IAltinnPartyClient>((sp)=>RegisterClientMoq.Object);
                 services.AddTransient<IAppResources>((sp)=>AppResourcesMoq.Object);
             });
         }
@@ -170,7 +170,7 @@ public class StatelessDataControllerTests
         var appResourcesMock = new Mock<IAppResources>();
         var dataProcessorMock = new Mock<IDataProcessor>();
         var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IRegister>();
+        var registerMock = new Mock<IAltinnPartyClient>();
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
@@ -201,7 +201,7 @@ public class StatelessDataControllerTests
         var appResourcesMock = new Mock<IAppResources>();
         var dataProcessorMock = new Mock<IDataProcessor>();
         var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IRegister>();
+        var registerMock = new Mock<IAltinnPartyClient>();
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
@@ -241,7 +241,7 @@ public class StatelessDataControllerTests
         var appResourcesMock = new Mock<IAppResources>();
         var dataProcessorMock = new Mock<IDataProcessor>();
         var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IRegister>();
+        var registerMock = new Mock<IAltinnPartyClient>();
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
@@ -298,7 +298,7 @@ public class StatelessDataControllerTests
         var appResourcesMock = new Mock<IAppResources>();
         var dataProcessorMock = new Mock<IDataProcessor>();
         var prefillMock = new Mock<IPrefill>();
-        var registerMock = new Mock<IRegister>();
+        var registerMock = new Mock<IAltinnPartyClient>();
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
         var classRef = typeof(DummyModel).FullName!;

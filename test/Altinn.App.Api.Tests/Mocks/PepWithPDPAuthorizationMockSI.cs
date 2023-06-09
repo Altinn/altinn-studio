@@ -1,5 +1,4 @@
-﻿using Altinn.App.Core.Interface;
-using Altinn.Authorization.ABAC.Constants;
+﻿using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Authorization.ABAC.Xacml;
@@ -9,22 +8,18 @@ using Altinn.Platform.Storage.Interface.Models;
 using Authorization.Platform.Authorization.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using System.Xml;
 using Altinn.App.Api.Tests.Models;
 using Altinn.App.Api.Tests.Constants;
 using Altinn.App.Api.Tests.Data;
+using Altinn.App.Core.Internal.Instances;
 
 namespace Altinn.App.Api.Tests.Mocks
 {
     public class PepWithPDPAuthorizationMockSI : Common.PEP.Interfaces.IPDP
     {
-        private readonly IInstance _instanceService;
+        private readonly IInstanceClient _instanceClient;
 
         private readonly PepSettings _pepSettings;
 
@@ -44,9 +39,9 @@ namespace Altinn.App.Api.Tests.Mocks
 
         private const string AltinnRoleAttributeId = "urn:altinn:rolecode";
 
-        public PepWithPDPAuthorizationMockSI(IInstance instanceService, IOptions<PepSettings> pepSettings)
+        public PepWithPDPAuthorizationMockSI(IInstanceClient instanceClient, IOptions<PepSettings> pepSettings)
         {
-            this._instanceService = instanceService;
+            this._instanceClient = instanceClient;
             _pepSettings = pepSettings.Value;
         }
 
@@ -121,7 +116,7 @@ namespace Altinn.App.Api.Tests.Mocks
 
             if (!resourceAttributeComplete)
             {
-                Instance instanceData = await _instanceService.GetInstance(resourceAttributes.AppValue, resourceAttributes.OrgValue, Convert.ToInt32(resourceAttributes.InstanceValue.Split('/')[0]), new Guid(resourceAttributes.InstanceValue.Split('/')[1]));
+                Instance instanceData = await _instanceClient.GetInstance(resourceAttributes.AppValue, resourceAttributes.OrgValue, Convert.ToInt32(resourceAttributes.InstanceValue.Split('/')[0]), new Guid(resourceAttributes.InstanceValue.Split('/')[1]));
 
                 if (instanceData != null)
                 {

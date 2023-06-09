@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for retrieving application metadata data related operations
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.App.IApplicationClient instead", error: true)]
     public interface IApplication
     {
         /// <summary>

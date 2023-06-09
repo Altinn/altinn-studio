@@ -1,5 +1,4 @@
-using System.Threading.Tasks;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Mvc;

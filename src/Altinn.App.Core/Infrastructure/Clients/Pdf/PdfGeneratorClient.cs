@@ -3,11 +3,10 @@ using System.Text.Json;
 
 using Altinn.App.Core.Internal.Pdf;
 
-using Altinn.App.Core.Interface;
-
 using Microsoft.Extensions.Options;
 using Altinn.App.Core.Models.Pdf;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Internal.Auth;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Pdf;
 

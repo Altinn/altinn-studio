@@ -1,9 +1,7 @@
-using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Auth;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -14,13 +12,13 @@ namespace Altinn.App.Api.Controllers
     /// </summary>
     public class AuthenticationController : ControllerBase
     {
-        private readonly IAuthentication _authenticationClient;
+        private readonly IAuthenticationClient _authenticationClient;
         private readonly GeneralSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthenticationController"/> class
         /// </summary>
-        public AuthenticationController(IAuthentication authenticationClient, IOptions<GeneralSettings> settings)
+        public AuthenticationController(IAuthenticationClient authenticationClient, IOptions<GeneralSettings> settings)
         {
             _authenticationClient = authenticationClient;
             _settings = settings.Value;

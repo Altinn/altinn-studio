@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
@@ -23,7 +23,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
     /// <summary>
     /// Client for handling authorization actions in Altinn Platform.
     /// </summary>
-    public class AuthorizationClient : IAuthorization
+    public class AuthorizationClient : IAuthorizationClient
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;

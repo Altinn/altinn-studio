@@ -2,8 +2,8 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Profile.Models;
@@ -17,7 +17,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
     /// <summary>
     /// A client for retrieving profiles from Altinn Platform.
     /// </summary>
-    public class ProfileClient : IProfile
+    public class ProfileClient : IProfileClient
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;

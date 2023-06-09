@@ -1,7 +1,8 @@
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Infrastructure.Clients;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +17,7 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class ValidateController : ControllerBase
     {
-        private readonly IInstance _instanceClient;
+        private readonly IInstanceClient _instanceClient;
         private readonly IAppMetadata _appMetadata;
         private readonly IValidation _validationService;
 
@@ -24,7 +25,7 @@ namespace Altinn.App.Api.Controllers
         /// Initialises a new instance of the <see cref="ValidateController"/> class
         /// </summary>
         public ValidateController(
-            IInstance instanceClient,
+            IInstanceClient instanceClient,
             IValidation validationService,
             IAppMetadata appMetadata)
         {

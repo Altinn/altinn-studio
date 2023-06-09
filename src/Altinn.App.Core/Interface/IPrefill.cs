@@ -3,6 +3,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// The prefill service
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Prefill.IPrefill instead", error: true)]
     public interface IPrefill
     {
         /// <summary>

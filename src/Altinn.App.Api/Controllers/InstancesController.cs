@@ -12,10 +12,15 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
@@ -47,11 +52,11 @@ namespace Altinn.App.Api.Controllers
     {
         private readonly ILogger<InstancesController> _logger;
 
-        private readonly IInstance _instanceClient;
-        private readonly IData _dataClient;
-        private readonly IRegister _registerClient;
-        private readonly IEvents _eventsService;
-        private readonly IProfile _profileClientClient;
+        private readonly IInstanceClient _instanceClient;
+        private readonly IDataClient _dataClient;
+        private readonly IAltinnPartyClient _altinnPartyClientClient;
+        private readonly IEventsClient _eventsClient;
+        private readonly IProfileClient _profileClient;
 
         private readonly IAppMetadata _appMetadata;
         private readonly IAppModel _appModel;
@@ -61,6 +66,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IPrefill _prefillService;
         private readonly AppSettings _appSettings;
         private readonly IProcessEngine _processEngine;
+        private readonly IOrganizationClient _orgClient;
 
         private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
@@ -69,34 +75,36 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         public InstancesController(
             ILogger<InstancesController> logger,
-            IRegister registerClient,
-            IInstance instanceClient,
-            IData dataClient,
+            IAltinnPartyClient altinnPartyClientClient,
+            IInstanceClient instanceClient,
+            IDataClient dataClient,
             IAppMetadata appMetadata,
             IAppModel appModel,
             IInstantiationProcessor instantiationProcessor,
             IInstantiationValidator instantiationValidator,
             IPDP pdp,
-            IEvents eventsService,
+            IEventsClient eventsClient,
             IOptions<AppSettings> appSettings,
             IPrefill prefillService,
-            IProfile profileClient, 
-            IProcessEngine processEngine)
+            IProfileClient profileClient, 
+            IProcessEngine processEngine, 
+            IOrganizationClient orgClient)
         {
             _logger = logger;
             _instanceClient = instanceClient;
             _dataClient = dataClient;
             _appMetadata = appMetadata;
-            _registerClient = registerClient;
+            _altinnPartyClientClient = altinnPartyClientClient;
             _appModel = appModel;
             _instantiationProcessor = instantiationProcessor;
             _instantiationValidator = instantiationValidator;
             _pdp = pdp;
-            _eventsService = eventsService;
+            _eventsClient = eventsClient;
             _appSettings = appSettings.Value;
             _prefillService = prefillService;
-            _profileClientClient = profileClient;
+            _profileClient = profileClient;
             _processEngine = processEngine;
+            _orgClient = orgClient;
         }
 
         /// <summary>
@@ -739,7 +747,7 @@ namespace Altinn.App.Api.Controllers
             {
                 if (lastChangedBy?.Length == 9)
                 {
-                    Organization? organization = await _registerClient.ER.GetOrganization(lastChangedBy);
+                    Organization? organization = await _orgClient.GetOrganization(lastChangedBy);
                     if (organization is not null && !string.IsNullOrEmpty(organization.Name))
                     {
                         userAndOrgLookup.Add(lastChangedBy, organization.Name);
@@ -747,7 +755,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 else if (int.TryParse(lastChangedBy, out int lastChangedByInt))
                 {
-                    UserProfile? user = await _profileClientClient.GetUserProfile(lastChangedByInt);
+                    UserProfile? user = await _profileClient.GetUserProfile(lastChangedByInt);
                     if (user is not null && user.Party is not null && !string.IsNullOrEmpty(user.Party.Name))
                     {
                         userAndOrgLookup.Add(lastChangedBy, user.Party.Name);
@@ -899,7 +907,7 @@ namespace Altinn.App.Api.Controllers
             {
                 try
                 {
-                    return await _registerClient.GetParty(int.Parse(instanceOwner.PartyId));
+                    return await _altinnPartyClientClient.GetParty(int.Parse(instanceOwner.PartyId));
                 }
                 catch (Exception e) when (e is not ServiceException)
                 {
@@ -916,12 +924,12 @@ namespace Altinn.App.Api.Controllers
                     if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                     {
                         lookupNumber = "personNumber";
-                        return await _registerClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
+                        return await _altinnPartyClientClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
                     }
                     else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                     {
                         lookupNumber = "organisationNumber";
-                        return await _registerClient.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
+                        return await _altinnPartyClientClient.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
                     }
                     else
                     {
@@ -1034,7 +1042,7 @@ namespace Altinn.App.Api.Controllers
             {
                 try
                 {
-                    await _eventsService.AddEvent(eventType, instance);
+                    await _eventsClient.AddEvent(eventType, instance);
                 }
                 catch (Exception exception)
                 {

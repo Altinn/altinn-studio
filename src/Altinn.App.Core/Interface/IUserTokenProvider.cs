@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Interface
     /// The provider is used by client implementations that needs the user token in requests 
     /// against other systems.
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Auth.IUserTokenProvider instead", error: true)]
     public interface IUserTokenProvider
     {
         /// <summary>

@@ -71,6 +71,9 @@
     <Content Include="Internal\App\TestData\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Features\Action\TestData\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Implementation\TestData\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

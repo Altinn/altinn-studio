@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Core.Models.UserAction;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -17,27 +19,31 @@ namespace Altinn.App.Core.Internal.Process;
 public class ProcessEngine : IProcessEngine
 {
     private readonly IProcessReader _processReader;
-    private readonly IProfile _profileService;
+    private readonly IProfileClient _profileClient;
     private readonly IProcessNavigator _processNavigator;
     private readonly IProcessEventDispatcher _processEventDispatcher;
+    private readonly UserActionFactory _userActionFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessEngine"/> class
     /// </summary>
-    /// <param name="processReader"></param>
-    /// <param name="profileService"></param>
-    /// <param name="processNavigator"></param>
-    /// <param name="processEventDispatcher"></param>
+    /// <param name="processReader">Process reader service</param>
+    /// <param name="profileClient">The profile service</param>
+    /// <param name="processNavigator">The process navigator</param>
+    /// <param name="processEventDispatcher">The process event dispatcher</param>
+    /// <param name="userActionFactory">The action handler factory</param>
     public ProcessEngine(
         IProcessReader processReader,
-        IProfile profileService,
+        IProfileClient profileClient,
         IProcessNavigator processNavigator,
-        IProcessEventDispatcher processEventDispatcher)
+        IProcessEventDispatcher processEventDispatcher,
+        UserActionFactory userActionFactory)
     {
         _processReader = processReader;
-        _profileService = profileService;
+        _profileClient = profileClient;
         _processNavigator = processNavigator;
         _processEventDispatcher = processEventDispatcher;
+        _userActionFactory = userActionFactory;
     }
 
     /// <inheritdoc/>
@@ -74,10 +80,12 @@ public class ProcessEngine : IProcessEngine
         {
             events.Add(startEvent);
         }
+
         if (goToNextEvent is not null)
         {
             events.Add(goToNextEvent);
         }
+
         ProcessStateChange processStateChange = new ProcessStateChange
         {
             OldProcessState = startChange?.OldProcessState,
@@ -96,7 +104,7 @@ public class ProcessEngine : IProcessEngine
             ProcessStateChange = processStateChange
         };
     }
-     
+
     /// <inheritdoc/>
     public async Task<ProcessChangeResult> Next(ProcessNextRequest request)
     {
@@ -110,6 +118,28 @@ public class ProcessEngine : IProcessEngine
                 Success = false,
                 ErrorMessage = $"Instance does not have current task information!",
                 ErrorType = ProcessErrorType.Conflict
+            };
+        }
+
+        int? userId = request.User.GetUserIdAsInt();
+        if (userId == null)
+        {
+            return new ProcessChangeResult()
+            {
+                Success = false,
+                ErrorMessage = $"User does not have a valid user id!",
+                ErrorType = ProcessErrorType.Conflict
+            };
+        }
+        var actionHandler = await _userActionFactory.GetActionHandler(request.Action).HandleAction(new UserActionContext(request.Instance, userId.Value));
+
+        if (!actionHandler)
+        {
+            return new ProcessChangeResult()
+            {
+                Success = false,
+                ErrorMessage = $"Action handler for action {request.Action} failed!",
+                ErrorType = ProcessErrorType.Internal
             };
         }
 
@@ -141,7 +171,7 @@ public class ProcessEngine : IProcessEngine
             {
                 Started = now,
                 StartEvent = startEvent,
-                CurrentTask = new ProcessElementInfo { Flow = 1, ElementId = startEvent}
+                CurrentTask = new ProcessElementInfo { Flow = 1, ElementId = startEvent }
             };
 
             instance.Process = startState;
@@ -186,7 +216,7 @@ public class ProcessEngine : IProcessEngine
 
         return null;
     }
-    
+
     private async Task<List<InstanceEvent>> MoveProcessToNext(
         Instance instance,
         ClaimsPrincipal user,
@@ -209,6 +239,7 @@ public class ProcessEngine : IProcessEngine
             {
                 eventType = InstanceEventType.process_AbandonTask.ToString();
             }
+
             events.Add(await GenerateProcessChangeEvent(eventType, instance, now, user));
             instance.Process = currentState;
         }
@@ -234,7 +265,7 @@ public class ProcessEngine : IProcessEngine
                 ElementId = nextElement!.Id,
                 Name = nextElement!.Name,
                 Started = now,
-                AltinnTaskType = task?.ExtensionElements?.AltinnProperties?.TaskType,
+                AltinnTaskType = task?.ExtensionElements?.TaskExtension?.TaskType,
                 Validated = null,
             };
 
@@ -267,13 +298,13 @@ public class ProcessEngine : IProcessEngine
 
         if (string.IsNullOrEmpty(instanceEvent.User.OrgId) && userId != null)
         {
-            UserProfile up = await _profileService.GetUserProfile((int)userId);
+            UserProfile up = await _profileClient.GetUserProfile((int)userId);
             instanceEvent.User.NationalIdentityNumber = up.Party.SSN;
         }
 
         return instanceEvent;
     }
-    
+
     private async Task<ProcessStateChange?> HandleMoveToNext(Instance instance, ClaimsPrincipal user, string? action)
     {
         var processStateChange = await ProcessNext(instance, user, action);

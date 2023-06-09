@@ -1,17 +1,15 @@
-using System;
-using System.Linq;
 using System.Net.Mime;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Infrastructure.Clients;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers
@@ -26,8 +24,8 @@ namespace Altinn.App.Api.Controllers
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}/tags")]
     public class DataTagsController : ControllerBase
     {
-        private readonly IInstance _instanceClient;
-        private readonly IData _dataClient;
+        private readonly IInstanceClient _instanceClient;
+        private readonly IDataClient _dataClient;
 
         /// <summary>
         /// Initialize a new instance of <see cref="DataTagsController"/> with the given services.
@@ -35,8 +33,8 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceClient">A client that can be used to send instance requests to storage.</param>
         /// <param name="dataClient">A client that can be used to send data requests to storage.</param>
         public DataTagsController(
-            IInstance instanceClient,
-            IData dataClient)
+            IInstanceClient instanceClient,
+            IDataClient dataClient)
         {
             _instanceClient = instanceClient;
             _dataClient = dataClient;

@@ -3,7 +3,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +16,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     /// <summary>
     /// The app implementation of the process service.
     /// </summary>
-    public class ProcessClient : IProcess
+    public class ProcessClient : IProcessClient
     {
         private readonly AppSettings _appSettings;
         private readonly ILogger<ProcessClient> _logger;

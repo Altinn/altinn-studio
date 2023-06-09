@@ -2,7 +2,7 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Auth;
 using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authentication
     /// <summary>
     /// A client for authentication actions in Altinn Platform.
     /// </summary>
-    public class AuthenticationClient : IAuthentication
+    public class AuthenticationClient : IAuthenticationClient
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;

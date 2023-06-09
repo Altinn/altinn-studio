@@ -310,7 +310,7 @@ public class ProcessReaderTests
             Outgoing = new List<string> { "Flow2" },
             ExtensionElements = new ExtensionElements()
             {
-                AltinnProperties = new AltinnProperties()
+                TaskExtension = new AltinnTaskExtension()
                 {
                     AltinnActions = new List<AltinnAction>()
                     {
@@ -319,7 +319,13 @@ public class ProcessReaderTests
                             Id = "submit",
                         }
                     },
-                    TaskType = "data"
+                    TaskType = "data",
+                    DataTypesToSign = new()
+                    {
+                        "default",
+                        "default2"
+                    },
+                    SignatureDataType = "signature"
                 }
             }
         });

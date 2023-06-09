@@ -1,10 +1,8 @@
 #nullable enable
-using System;
 using System.Globalization;
-using System.IO;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 

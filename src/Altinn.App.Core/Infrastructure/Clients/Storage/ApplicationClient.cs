@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.Extensions.Logging;
@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     /// <summary>
     /// Client for retrieving application for Altinn Platform
     /// </summary>
-    public class ApplicationClient : IApplication
+    public class ApplicationClient : IApplicationClient
     {
         private readonly ILogger _logger;
         private readonly HttpClient _client;

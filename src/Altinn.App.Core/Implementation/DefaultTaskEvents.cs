@@ -5,11 +5,14 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -26,11 +29,11 @@ public class DefaultTaskEvents : ITaskEvents
     private readonly ILogger<DefaultTaskEvents> _logger;
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
-    private readonly IData _dataClient;
+    private readonly IDataClient _dataClient;
     private readonly IPrefill _prefillService;
     private readonly IAppModel _appModel;
     private readonly IInstantiationProcessor _instantiationProcessor;
-    private readonly IInstance _instanceClient;
+    private readonly IInstanceClient _instanceClient;
     private readonly IEnumerable<IProcessTaskStart> _taskStarts;
     private readonly IEnumerable<IProcessTaskEnd> _taskEnds;
     private readonly IEnumerable<IProcessTaskAbandon> _taskAbandons;
@@ -47,11 +50,11 @@ public class DefaultTaskEvents : ITaskEvents
         ILogger<DefaultTaskEvents> logger,
         IAppResources appResources,
         IAppMetadata appMetadata,
-        IData dataClient,
+        IDataClient dataClient,
         IPrefill prefillService,
         IAppModel appModel,
         IInstantiationProcessor instantiationProcessor,
-        IInstance instanceClient,
+        IInstanceClient instanceClient,
         IEnumerable<IProcessTaskStart> taskStarts,
         IEnumerable<IProcessTaskEnd> taskEnds,
         IEnumerable<IProcessTaskAbandon> taskAbandons,

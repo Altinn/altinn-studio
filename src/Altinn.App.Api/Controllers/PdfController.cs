@@ -2,8 +2,10 @@
 
 using System.Text.Json;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -19,11 +21,11 @@ namespace Altinn.App.Api.Controllers
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}/pdf")]
     public class PdfController : ControllerBase
     {
-        private readonly IInstance _instanceClient;
+        private readonly IInstanceClient _instanceClient;
         private readonly IPdfFormatter _pdfFormatter;
         private readonly IAppResources _resources;
         private readonly IAppModel _appModel;
-        private readonly IData _dataClient;
+        private readonly IDataClient _dataClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PdfController"/> class.
@@ -34,11 +36,11 @@ namespace Altinn.App.Api.Controllers
         /// <param name="appModel">The app model service</param>
         /// <param name="dataClient">The data client</param>
         public PdfController(
-            IInstance instanceClient,
+            IInstanceClient instanceClient,
             IPdfFormatter pdfFormatter,
             IAppResources resources,
             IAppModel appModel,
-            IData dataClient)
+            IDataClient dataClient)
         {
             _instanceClient = instanceClient;
             _pdfFormatter = pdfFormatter;

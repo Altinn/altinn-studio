@@ -2,7 +2,6 @@ using Microsoft.Extensions.Primitives;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
@@ -14,6 +13,12 @@ using Moq;
 using Xunit;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
@@ -23,19 +28,20 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class InstancesController_ActiveInstancesTest
 {
     private readonly Mock<ILogger<InstancesController>> _logger = new();
-    private readonly Mock<IRegister> _registrer = new();
-    private readonly Mock<IInstance> _instanceClient = new();
-    private readonly Mock<IData> _data = new();
+    private readonly Mock<IAltinnPartyClient> _registrer = new();
+    private readonly Mock<IInstanceClient> _instanceClient = new();
+    private readonly Mock<IDataClient> _data = new();
     private readonly Mock<IAppMetadata> _appMetadata = new();
     private readonly Mock<IAppModel> _appModel = new();
     private readonly Mock<IInstantiationProcessor> _instantiationProcessor = new();
     private readonly Mock<IInstantiationValidator> _instantiationValidator = new();
     private readonly Mock<IPDP> _pdp = new();
-    private readonly Mock<IEvents> _eventsService = new();
+    private readonly Mock<IEventsClient> _eventsService = new();
     private readonly IOptions<AppSettings> _appSettings = Options.Create<AppSettings>(new());
     private readonly Mock<IPrefill> _prefill = new();
-    private readonly Mock<IProfile> _profile = new();
+    private readonly Mock<IProfileClient> _profile = new();
     private readonly Mock<IProcessEngine> _processEngine = new();
+    private readonly Mock<IOrganizationClient> _oarganizationClientMock = new();
 
     private InstancesController SUT => new InstancesController(
         _logger.Object,
@@ -51,7 +57,8 @@ public class InstancesController_ActiveInstancesTest
         _appSettings,
         _prefill.Object,
         _profile.Object,
-        _processEngine.Object);
+        _processEngine.Object,
+        _oarganizationClientMock.Object);
 
     private void VerifyNoOtherCalls()
     {
@@ -286,7 +293,7 @@ public class InstancesController_ActiveInstancesTest
         });
 
         _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
-        _registrer.Setup(r => r.ER.GetOrganization("123456789")).ReturnsAsync(default(Organization));
+        _oarganizationClientMock.Setup(er => er.GetOrganization("123456789")).ReturnsAsync(default(Organization));
 
         // Act
         var controller = SUT;
@@ -300,7 +307,7 @@ public class InstancesController_ActiveInstancesTest
         _instanceClient.Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query =>
             query.ContainsKey("appId")
         )));
-        _registrer.Verify(r => r.ER.GetOrganization("123456789"));
+        _oarganizationClientMock.Verify(er => er.GetOrganization("123456789"));
         VerifyNoOtherCalls();
     }
 
@@ -333,7 +340,7 @@ public class InstancesController_ActiveInstancesTest
         });
 
         _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
-        _registrer.Setup(r => r.ER.GetOrganization("123456789")).ReturnsAsync(new Organization
+        _oarganizationClientMock.Setup(er => er.GetOrganization("123456789")).ReturnsAsync(new Organization
         {
             Name = "Testdepartementet"
         });
@@ -350,7 +357,7 @@ public class InstancesController_ActiveInstancesTest
         _instanceClient.Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query =>
             query.ContainsKey("appId")
         )));
-        _registrer.Verify(r => r.ER.GetOrganization("123456789"));
+        _oarganizationClientMock.Verify(er => er.GetOrganization("123456789"));
         VerifyNoOtherCalls();
     }
 }

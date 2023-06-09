@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;

@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Process service that encapsulate reading of the BPMN process definition.
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Process.IProcessClient instead", error: true)]
     public interface IProcess
     {
         /// <summary>

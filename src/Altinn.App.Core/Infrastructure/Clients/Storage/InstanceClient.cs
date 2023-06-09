@@ -5,7 +5,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -23,7 +23,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     /// <summary>
     /// A client for handling actions on instances in Altinn Platform.
     /// </summary>
-    public class InstanceClient : IInstance
+    public class InstanceClient : IInstanceClient
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;

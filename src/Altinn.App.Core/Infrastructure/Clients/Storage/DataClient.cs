@@ -8,11 +8,8 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
-using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -21,14 +18,15 @@ using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
 using System.Xml;
-using Microsoft.IdentityModel.Tokens;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Data;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Storage
 {
     /// <summary>
     /// A client for handling actions on data in Altinn Platform.
     /// </summary>
-    public class DataClient : IData
+    public class DataClient : IDataClient
     {
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;

@@ -84,7 +84,7 @@ public class ProcessNavigator : IProcessNavigator
                 ProcessGatewayInformation gatewayInformation = new()
                 {
                     Action = action,
-                    DataTypeId = gateway.ExtensionElements?.AltinnProperties?.ConnectedDataTypeId
+                    DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId
                 };
                 
                 filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance, gatewayInformation);

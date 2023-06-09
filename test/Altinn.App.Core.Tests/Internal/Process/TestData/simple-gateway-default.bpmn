@@ -3,7 +3,7 @@
                   xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                  xmlns:altinn="http://altinn.no"
+                  xmlns:altinn="http://altinn.no/process"
                   id="Definitions_1eqx4ru" targetNamespace="http://bpmn.io/schema/bpmn"
                   exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="10.2.0">
   <bpmn:process id="Process_1rq9ej8" isExecutable="false">
@@ -15,12 +15,17 @@
       <bpmn:incoming>Flow1</bpmn:incoming>
       <bpmn:outgoing>Flow2</bpmn:outgoing>
       <bpmn:extensionElements>
-        <altinn:properties>
+        <altinn:taskExtension>
           <altinn:actions>
             <altinn:action id="submit"/>
           </altinn:actions>
           <altinn:taskType>data</altinn:taskType>
-        </altinn:properties>
+          <altinn:dataTypesToSign>
+            <altinn:dataType>default</altinn:dataType>
+            <altinn:dataType>default2</altinn:dataType>
+          </altinn:dataTypesToSign>
+          <altinn:signatureDataType>signature</altinn:signatureDataType>
+        </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow2" sourceRef="Task1" targetRef="Gateway1"/>
@@ -35,13 +40,13 @@
       <bpmn:incoming>Flow3</bpmn:incoming>
       <bpmn:outgoing>Flow5</bpmn:outgoing>
       <bpmn:extensionElements>
-        <altinn:properties>
+        <altinn:taskExtension>
           <altinn:actions>
             <altinn:action id="confirm"/>
             <altinn:action id="reject"/>
           </altinn:actions>
           <altinn:taskType>confirm</altinn:taskType>
-        </altinn:properties>
+        </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow5" sourceRef="Task2" targetRef="EndEvent"/>

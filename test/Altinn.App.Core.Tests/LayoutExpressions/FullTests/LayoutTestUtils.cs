@@ -3,7 +3,8 @@ using System.Text.Json;
 
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -19,9 +20,9 @@ public static class LayoutTestUtils
     {
         var services = new ServiceCollection();
 
-        var data = new Mock<IData>();
+        var data = new Mock<IDataClient>();
         data.Setup(d => d.GetFormData(default, default!, default!, default!, default, default)).ReturnsAsync(model);
-        services.AddTransient<IData>((sp) => data.Object);
+        services.AddTransient<IDataClient>((sp) => data.Object);
 
         var resources = new Mock<IAppResources>();
         var layoutModel = new LayoutModel();

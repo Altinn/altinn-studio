@@ -32,6 +32,16 @@ namespace Altinn.App.Core.Models.Process
         /// <summary>
         /// The process change was not allowed due to the current state of the process
         /// </summary>
-        Conflict
+        Conflict,
+        
+        /// <summary>
+        /// The process change lead to an internal error
+        /// </summary>
+        Internal,
+        
+        /// <summary>
+        /// The user is not authorized to perform the process change
+        /// </summary>
+        Unauthorized
     }
 }

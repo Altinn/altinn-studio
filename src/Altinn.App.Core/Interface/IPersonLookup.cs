@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Describes the methods required by a person lookup service.
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Registers.IPersonClient instead", error: true)]
     public interface IPersonLookup
     {
         /// <summary>

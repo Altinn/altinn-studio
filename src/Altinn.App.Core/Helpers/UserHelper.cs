@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
@@ -14,20 +15,20 @@ namespace Altinn.App.Core.Helpers
     /// </summary>
     public class UserHelper
     {
-        private readonly IProfile _profileService;
-        private readonly IRegister _registerService;
+        private readonly IProfileClient _profileClient;
+        private readonly IAltinnPartyClient _altinnPartyClientService;
         private readonly GeneralSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserHelper"/> class
         /// </summary>
-        /// <param name="profileService">The ProfileService (defined in Startup.cs)</param>
-        /// <param name="registerService">The RegisterService (defined in Startup.cs)</param>
+        /// <param name="profileClient">The ProfileService (defined in Startup.cs)</param>
+        /// <param name="altinnPartyClientService">The RegisterService (defined in Startup.cs)</param>
         /// <param name="settings">The general settings</param>
-        public UserHelper(IProfile profileService, IRegister registerService, IOptions<GeneralSettings> settings)
+        public UserHelper(IProfileClient profileClient, IAltinnPartyClient altinnPartyClientService, IOptions<GeneralSettings> settings)
         {
-            _profileService = profileService;
-            _registerService = registerService;
+            _profileClient = profileClient;
+            _altinnPartyClientService = altinnPartyClientService;
             _settings = settings.Value;
         }
 
@@ -63,7 +64,7 @@ namespace Altinn.App.Core.Helpers
                 }
             }
 
-            UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
+            UserProfile userProfile = await _profileClient.GetUserProfile(userContext.UserId);
             userContext.UserParty = userProfile.Party;
 
             if (context.Request.Cookies[_settings.GetAltinnPartyCookieName] != null)
@@ -77,7 +78,7 @@ namespace Altinn.App.Core.Helpers
             }
             else
             {
-                userContext.Party = await _registerService.GetParty(userContext.PartyId);
+                userContext.Party = await _altinnPartyClientService.GetParty(userContext.PartyId);
             }
 
             return userContext;

@@ -3,9 +3,14 @@ using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
@@ -28,20 +33,21 @@ namespace Altinn.App.Api.Tests.Controllers;
 public class InstancesController_CopyInstanceTests
 {
     private readonly Mock<ILogger<InstancesController>> _logger = new();
-    private readonly Mock<IRegister> _registrer = new();
-    private readonly Mock<IInstance> _instanceClient = new();
-    private readonly Mock<IData> _data = new();
+    private readonly Mock<IAltinnPartyClient> _registrer = new();
+    private readonly Mock<IInstanceClient> _instanceClient = new();
+    private readonly Mock<IDataClient> _data = new();
     private readonly Mock<IAppMetadata> _appMetadata = new();
     private readonly Mock<IAppModel> _appModel = new();
     private readonly Mock<IInstantiationProcessor> _instantiationProcessor = new();
     private readonly Mock<IInstantiationValidator> _instantiationValidator = new();
     private readonly Mock<IPDP> _pdp = new();
-    private readonly Mock<IEvents> _eventsService = new();
+    private readonly Mock<IEventsClient> _eventsService = new();
     private readonly IOptions<AppSettings> _appSettings = Options.Create<AppSettings>(new());
     private readonly Mock<IPrefill> _prefill = new();
-    private readonly Mock<IProfile> _profile = new();
+    private readonly Mock<IProfileClient> _profile = new();
     private readonly Mock<IProcessEngine> _processEngine = new();
     private readonly Mock<HttpContext> _httpContextMock = new();
+    private readonly Mock<IOrganizationClient> _oarganizationClientMock = new();
 
     private readonly InstancesController SUT;
 
@@ -66,7 +72,8 @@ public class InstancesController_CopyInstanceTests
             _appSettings,
             _prefill.Object,
             _profile.Object,
-            _processEngine.Object)
+            _processEngine.Object,
+            _oarganizationClientMock.Object)
         { 
             ControllerContext = controllerContext
         };

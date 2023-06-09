@@ -7,9 +7,11 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -28,9 +30,9 @@ namespace Altinn.App.Api.Controllers
     public class DataController : ControllerBase
     {
         private readonly ILogger<DataController> _logger;
-        private readonly IData _dataClient;
+        private readonly IDataClient _dataClient;
         private readonly IDataProcessor _dataProcessor;
-        private readonly IInstance _instanceClient;
+        private readonly IInstanceClient _instanceClient;
         private readonly IInstantiationProcessor _instantiationProcessor;
         private readonly IAppModel _appModel;
         private readonly IAppResources _appResourcesService;
@@ -53,9 +55,9 @@ namespace Altinn.App.Api.Controllers
         /// <param name="prefillService">A service with prefill related logic.</param>
         public DataController(
             ILogger<DataController> logger,
-            IInstance instanceClient,
+            IInstanceClient instanceClient,
             IInstantiationProcessor instantiationProcessor,
-            IData dataClient,
+            IDataClient dataClient,
             IDataProcessor dataProcessor,
             IAppModel appModel,
             IAppResources appResourcesService,

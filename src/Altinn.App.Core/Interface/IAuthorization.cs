@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for authorization functionality.
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Auth.IAuthorizationClient instead", error: true)]
     public interface IAuthorization
     {
         /// <summary>

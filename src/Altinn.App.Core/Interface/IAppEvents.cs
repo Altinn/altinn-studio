@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Interface;
 /// <summary>
 /// Interface for implementing a receiver handling instance events.
 /// </summary>
+[Obsolete(message: "Use Altinn.App.Core.Internal.App.IAppEvents instead", error: true)]
 public interface IAppEvents
 {
     /// <summary>

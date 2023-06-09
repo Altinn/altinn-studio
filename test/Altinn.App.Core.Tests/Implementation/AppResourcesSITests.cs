@@ -1,6 +1,5 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Implementation;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;

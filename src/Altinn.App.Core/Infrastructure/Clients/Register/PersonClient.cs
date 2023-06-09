@@ -8,8 +8,9 @@ using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
@@ -18,10 +19,10 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Core.Infrastructure.Clients.Register
 {
     /// <summary>
-    /// Represents an implementation of <see cref="IPersonRetriever"/> that will call the Register
+    /// Represents an implementation of <see cref="IPersonClient"/> that will call the Register
     /// component to retrieve person information.
     /// </summary>
-    public class PersonClient : IPersonRetriever
+    public class PersonClient : IPersonClient
     {
         private readonly HttpClient _httpClient;
         private readonly IAppMetadata _appMetadata;

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Secrets;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Extensions.Configuration;
@@ -10,7 +10,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
     /// <summary>
     /// Class that handles integration with Azure Key Vault
     /// </summary>
-    public class SecretsLocalClient : ISecrets
+    public class SecretsLocalClient : ISecretsClient
     {
         private readonly IConfiguration _configuration;
 
