@@ -1,14 +1,13 @@
 {
-    "UserId": 1001,
-    "UserName": "PengelensPartner",
-    "PhoneNumber": "12345678",
-    "Email": "test@test.com",
-    "PartyId": 510001,
-    "Party": {
-  
-    },
-    "UserType": 0,
-    "ProfileSettingPreference": {
-      "Language": "nb"
-    }
+  "UserId": 1001,
+  "UserName": "PengelensPartner",
+  "PhoneNumber": "12345678",
+  "Email": "test@test.com",
+  "PartyId": 510001,
+  "Party": {},
+  "UserType": 0,
+  "ProfileSettingPreference": {
+    "Language": "nb",
+    "doNotPromptForParty": true
   }
+}

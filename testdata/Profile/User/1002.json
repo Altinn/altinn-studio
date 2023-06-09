@@ -1,14 +1,13 @@
 {
-    "UserId": 1002,
-    "UserName": "GjentagendeForelder",
-    "PhoneNumber": "12345678",
-    "Email": "test@test.com",
-    "PartyId": 510002,
-    "Party": {
-  
-    },
-    "UserType": 0,
-    "ProfileSettingPreference": {
-      "Language": "nb"
-    }
+  "UserId": 1002,
+  "UserName": "GjentagendeForelder",
+  "PhoneNumber": "12345678",
+  "Email": "test@test.com",
+  "PartyId": 510002,
+  "Party": {},
+  "UserType": 0,
+  "ProfileSettingPreference": {
+    "Language": "nb",
+    "doNotPromptForParty": true
   }
+}

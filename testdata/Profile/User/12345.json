@@ -4,11 +4,10 @@
   "PhoneNumber": "12345678",
   "Email": "test@test.com",
   "PartyId": 512345,
-  "Party": {
-
-  },
+  "Party": {},
   "UserType": 0,
   "ProfileSettingPreference": {
-	"Language": "nb"
+    "Language": "nb",
+    "doNotPromptForParty": true
   }
 }
