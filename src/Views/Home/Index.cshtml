@@ -84,6 +84,7 @@
         <label for="exampleInputEmail1">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
       </div>
+      <button type="submit" class="btn btn-primary" name="action" value="reauthenticate">Refresh authentication</button>
       @if(Model.AppModeIsHttp)
       {
         <div class="form-group">
@@ -94,7 +95,7 @@
           <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
         </div>
       }
-      <button type="submit" class="btn btn-primary">Proceed to app</button>
+      <button type="submit" class="btn btn-primary" name="action" value="start">Proceed to app</button>
     }
 
     <div class="alert alert-light" role="alert">

@@ -142,7 +142,7 @@ namespace LocalTest.Controllers
         /// <param name="startAppModel">An object with information about app and user.</param>
         /// <returns>Redirects to returnUrl</returns>
         [HttpPost]
-        public async Task<ActionResult> LogInTestUser(StartAppModel startAppModel)
+        public async Task<ActionResult> LogInTestUser(string action, StartAppModel startAppModel)
         {
             if (startAppModel.AuthenticationLevel != "-1")
             {
@@ -151,6 +151,11 @@ namespace LocalTest.Controllers
 
                 string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
                 CreateJwtCookieAndAppendToResponse(token, startAppModel.PartyId, startAppModel.UserSelect);
+            }
+
+            if (action.Equals("reauthenticate"))
+            {
+                return NoContent();
             }
 
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
