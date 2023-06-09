@@ -1,0 +1,31 @@
+.alert {
+  background-color: #F9D5DB;
+  border-left: 8px solid #E02E49;
+}
+
+.success {
+  background-color: #D1F4E1;
+  border-left: 8px solid #118849;
+}
+
+.card {
+  padding-block: 10px;
+  padding-inline: 20px;
+  width: 510px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 16px;
+}
+
+.alertIcon {
+  color: #E02E49;
+  font-size: 25px;
+  margin-right: 10px;
+}
+
+.successIcon {
+  color: #118849;
+  font-size: 25px;
+  margin-right: 10px;
+}
