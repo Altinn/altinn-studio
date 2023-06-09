@@ -72,14 +72,11 @@ namespace Altinn.Studio.Designer.Controllers
             List<string> permittedEnvironments = new ();
 
             List<Team> teams = await _giteaService.GetTeams();
-            if (teams != null)
-            {
-                permittedEnvironments = teams.Where(t =>
+            permittedEnvironments = teams.Where(t =>
                         t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
                         && t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase))
                     .Select(t => t.Name.Split('-')[1])
                     .ToList();
-            }
 
             return Ok(permittedEnvironments);
         }
