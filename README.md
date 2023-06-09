@@ -39,8 +39,7 @@ These are some of the required steps, tips, and tricks when it comes to running 
    the profile restriction in `docker-compose.yml`.
 
 3. Start your app
-  
-    _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/) and [cloned it](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
+    _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
   
     Move into the `App` folder of your application.
 
