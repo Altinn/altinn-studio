@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string key = GenerateKey(org, repo, developer);
             s_lastUsedTimes.AddOrUpdate(key, DateTime.Now, (k, v) => DateTime.Now);
-            return s_semaphoreSlims.GetOrAdd(key, new SemaphoreSlim(_userParallelizationSettings.MaxDegreeOfParallelism, _userParallelizationSettings.MaxDegreeOfParallelism));
+            return s_semaphoreSlims.GetOrAdd(key, _ => new SemaphoreSlim(_userParallelizationSettings.MaxDegreeOfParallelism, _userParallelizationSettings.MaxDegreeOfParallelism));
         }
 
         private static string GenerateKey(string org, string repo, string developer)
