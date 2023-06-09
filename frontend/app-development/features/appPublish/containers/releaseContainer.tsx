@@ -61,6 +61,19 @@ export function ReleaseContainer() {
   const handlePopoverClose = () => setPopoverOpenHover(false);
 
   function renderCreateRelease() {
+    if (repoStatusIsLoading || masterBranchStatusIsLoading) {
+      return (
+        <div style={{ padding: '2rem' }}>
+          <div>
+            <AltinnSpinner />
+          </div>
+          <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
+        </div>
+      );
+    }
+    if (!masterBranchStatus || !repoStatus) {
+      return null;
+    }
     if (!masterBranchStatus) {
       return (
         <div className={classes.cannotCreateReleaseContainer}>
@@ -82,19 +95,6 @@ export function ReleaseContainer() {
           </div>
         </div>
       );
-    }
-    if (repoStatusIsLoading || masterBranchStatusIsLoading) {
-      return (
-        <div style={{ padding: '2rem' }}>
-          <div>
-            <AltinnSpinner />
-          </div>
-          <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
-        </div>
-      );
-    }
-    if (!masterBranchStatus || !repoStatus) {
-      return null;
     }
     // Check if latest
     if (
