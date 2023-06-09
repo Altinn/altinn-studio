@@ -19,6 +19,12 @@
   font-size: 18px;
 }
 
+.deployCardsWrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 800px;
+  margin-top: 20px;
+}
 
 p, h1, h2 {
   margin: 0;
