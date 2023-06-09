@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { AltinnSpinner } from 'app-shared/components';
-import type { JsonSchema, SchemaState } from '../types';
+import type { SchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
 import {
   setJsonSchema,
@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { TypesInspector } from './TypesInspector';
 import classNames from 'classnames';
 import { GenerateSchemaState } from 'app-shared/types/global';
+import { JSONSchema7 } from 'json-schema';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
@@ -38,7 +39,7 @@ export interface IEditorProps {
   name?: string;
   onSaveSchema: (payload: any) => void;
   saveUrl: string;
-  schema: JsonSchema;
+  schema: JSONSchema7;
   schemaState: GenerateSchemaState;
   editMode: boolean;
   toggleEditMode: () => void;

@@ -1,6 +1,6 @@
 import React from 'react';
 import Select from 'react-select';
-import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
+import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import { useParams } from 'react-router-dom';
 
 export interface ISelectDataModelProps {
@@ -31,7 +31,7 @@ export const SelectDataModelComponent = ({
   selectGroup,
 }: ISelectDataModelProps) => {
   const { org, app } = useParams();
-  const datamodelQuery = useDatamodelQuery(org, app);
+  const datamodelQuery = useDatamodelMetadataQuery(org, app);
   const dataModelElements = datamodelQuery?.data ?? [];
 
   const onChangeSelectedBinding = (e: any) => {

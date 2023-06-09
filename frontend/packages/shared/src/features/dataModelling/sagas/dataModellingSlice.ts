@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Action, PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
-import type { JsonSchema } from '@altinn/schema-editor/types';
 import type { IDataModelsMetadataState } from './metadata';
 import type { IMetadataOption } from '../functions/types';
+import { JSONSchema7 } from 'json-schema';
 
 export interface IDataModelAction {
   payload: IDataModelActionPayload;
@@ -12,7 +12,7 @@ export interface IDataModelAction {
 export interface IDataModelActionPayload {
   relativePath?: string;
   name?: string;
-  schema?: JsonSchema;
+  schema?: JSONSchema7;
   repoType?: string;
   metadata?: IMetadataOption;
   org: string;
@@ -27,7 +27,7 @@ export interface ISetDataModelFilePathActionPayload extends Action {
   filePath: string;
 }
 export interface IDataModellingState {
-  schema: JsonSchema;
+  schema: JSONSchema7;
   error: Error;
   saving: boolean;
   metadata?: IDataModelsMetadataState;

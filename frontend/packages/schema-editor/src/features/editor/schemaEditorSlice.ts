@@ -1,28 +1,33 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
-import type { JsonSchema, SchemaState } from '../../types';
+import type { SchemaState } from '../../types';
 import type { UiSchemaNode, CombinationKind, FieldType } from '@altinn/schema-model';
 import {
   buildJsonSchema,
   buildUiSchema,
-  castRestrictionType,
-  convertPropToType,
-  createNodeBase,
-  getNodeByPointer,
-  getParentNodeByPointer,
-  getUniqueNodePath,
-  Keyword,
-  makePointer,
-  ObjectKind,
   pointerIsDefinition,
-  removeNodeByPointer,
-  renameNodePointer,
-  replaceLastPointerSegment,
   ROOT_POINTER,
-  splitPointerInBaseAndName,
+  addEnumValue as addEnumReducer,
+  addRootItem as addRootItemReducer,
+  addProperty as addPropertyReducer,
+  deleteEnumValue as deleteEnumReducer,
+  promoteProperty as promotePropertyReducer,
+  deleteNode as deleteNodeReducer,
+  setRestriction as setRestrictionReducer,
+  setRestrictions as setRestrictionsReducer,
+  setRef as setRefReducer,
+  setType as setTypeReducer,
+  setTitle as setTitleReducer,
+  setDescription as setDescriptionReducer,
+  setRequired as setRequiredReducer,
+  setCombinationType as setCombinationTypeReducer,
+  addCombinationItem as addCombinationItemReducer,
+  setPropertyName as setPropertyNameReducer,
+  toggleArrayField as toggleArrayFieldReducer,
+  changeChildrenOrder as changeChildrenOrderReducer,
 } from '@altinn/schema-model';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { swapArrayElements } from 'app-shared/utils/arrayUtils';
+import { JSONSchema7 } from 'json-schema';
 
 export const initialState: SchemaState = {
   schema: {},
@@ -40,18 +45,7 @@ const schemaEditorSlice = createSlice({
   initialState,
   reducers: {
     addEnum(state, action: PayloadAction<{ path: string; value: string; oldValue?: string }>) {
-      const { path, value, oldValue } = action.payload;
-      const addToItem = getNodeByPointer(state.uiSchema, path);
-      addToItem.enum = addToItem.enum ?? [];
-      if (oldValue === null || oldValue === undefined) {
-        addToItem.enum.push(value);
-      }
-      if (addToItem.enum.includes(oldValue)) {
-        addToItem.enum[addToItem.enum.indexOf(oldValue)] = value;
-      }
-      if (!addToItem.enum.includes(value)) {
-        addToItem.enum.push(value);
-      }
+      state.uiSchema = addEnumReducer(state.uiSchema, action.payload);
     },
     addRootItem(
       state,
@@ -61,18 +55,14 @@ const schemaEditorSlice = createSlice({
         props: Partial<UiSchemaNode>;
       }>
     ) {
-      const { location, name, props } = action.payload;
-      const newPointer = getUniqueNodePath(state.uiSchema, [location, name].join('/'));
-      const newNode = createNodeBase(newPointer);
-      newNode.implicitType = false;
-      state.uiSchema.push(Object.assign(newNode, props));
-      getNodeByPointer(state.uiSchema, ROOT_POINTER).children.push(newPointer);
-      if (pointerIsDefinition(newPointer)) {
-        state.selectedDefinitionNodeId = newPointer;
-      } else {
-        state.selectedPropertyNodeId = newPointer;
-      }
-      state.focusNameField = newPointer;
+      state.uiSchema = addRootItemReducer(state.uiSchema, {
+        ...action.payload,
+        callback: (newPointer: string) => {
+          if (pointerIsDefinition(newPointer)) state.selectedDefinitionNodeId = newPointer;
+          else state.selectedPropertyNodeId = newPointer;
+          state.focusNameField = newPointer;
+        }
+      });
     },
     addProperty(
       state,
@@ -83,41 +73,27 @@ const schemaEditorSlice = createSlice({
       }>
     ) {
       const { pointer, keepSelection, props } = action.payload;
-      const addToNode = getNodeByPointer(state.uiSchema, pointer);
-      const pointerBase = addToNode.isArray
-        ? makePointer(addToNode.pointer, Keyword.Items)
-        : addToNode.pointer;
-      const newNodePointer = getUniqueNodePath(
-        state.uiSchema,
-        makePointer(pointerBase, Keyword.Properties, 'name')
-      );
-      addToNode.children.push(newNodePointer);
-      if (!keepSelection) {
-        if (state.selectedEditorTab === 'definitions') {
-          state.selectedDefinitionNodeId = newNodePointer;
-        } else {
-          state.selectedPropertyNodeId = newNodePointer;
+      state.uiSchema = addPropertyReducer(state.uiSchema, {
+        pointer,
+        props,
+        callback: (newPointer: string) => {
+          if (!keepSelection) {
+            if (pointerIsDefinition(newPointer)) state.selectedDefinitionNodeId = newPointer;
+            else state.selectedPropertyNodeId = newPointer;
+            state.focusNameField = newPointer;
+          }
         }
-        state.focusNameField = newNodePointer;
-      }
-      props.implicitType = false;
-      state.uiSchema.push(Object.assign(createNodeBase(newNodePointer), props));
+      });
     },
     deleteEnum(state, action: PayloadAction<{ path: string; value: string }>) {
-      const { path, value } = action.payload;
-      const removeFromItem = getNodeByPointer(state.uiSchema, path);
-      const removeIndex = removeFromItem.enum?.findIndex((v: any) => v === value) ?? -1;
-      if (removeIndex >= 0) {
-        removeFromItem.enum?.splice(removeIndex, 1);
-      }
+      state.uiSchema = deleteEnumReducer(state.uiSchema, action.payload);
     },
     promoteProperty(state, action: PayloadAction<{ path: string }>) {
-      const { path } = action.payload;
-      state.uiSchema = convertPropToType(state.uiSchema, path);
+      state.uiSchema = promotePropertyReducer(state.uiSchema, action.payload.path);
     },
     deleteProperty(state, action: PayloadAction<{ path: string }>) {
       const { path } = action.payload;
-      state.uiSchema = removeNodeByPointer(state.uiSchema, path);
+      state.uiSchema = deleteNodeReducer(state.uiSchema, path);
       if (state.selectedDefinitionNodeId === path) {
         state.selectedDefinitionNodeId = '';
       } else if (state.selectedPropertyNodeId === path) {
@@ -134,89 +110,46 @@ const schemaEditorSlice = createSlice({
       if (state.selectedPropertyNodeId === path) {
         state.selectedPropertyNodeId = '';
       }
-      state.uiSchema = removeNodeByPointer(state.uiSchema, path);
+      state.uiSchema = deleteNodeReducer(state.uiSchema, path);
     },
     setRestriction(state, action: PayloadAction<{ path: string; key: string; value?: string | boolean }>) {
-      const { path, value, key } = action.payload;
-      const schemaItem = getNodeByPointer(state.uiSchema, path);
-      const restrictions = { ...schemaItem.restrictions };
-      restrictions[key] = castRestrictionType(key, value);
-      Object.keys(restrictions).forEach((k) => {
-        if (restrictions[k] === undefined) {
-          delete restrictions[k];
-        }
-      });
-      schemaItem.restrictions = restrictions;
+      state.uiSchema = setRestrictionReducer(state.uiSchema, action.payload);
     },
     setRestrictions(state, action: PayloadAction<{ path: string; restrictions: KeyValuePairs }>) {
-      const { path, restrictions } = action.payload;
-      const schemaItem = getNodeByPointer(state.uiSchema, path);
-      const schemaItemRestrictions = { ...schemaItem.restrictions };
-      Object.keys(restrictions).forEach((key) => {
-        schemaItemRestrictions[key] = castRestrictionType(key, restrictions[key]);
-      });
-      Object.keys(schemaItemRestrictions).forEach((k) => {
-        if (schemaItemRestrictions[k] === undefined) {
-          delete schemaItemRestrictions[k];
-        }
-      });
-      schemaItem.restrictions = schemaItemRestrictions;
+      state.uiSchema = setRestrictionsReducer(state.uiSchema, action.payload);
     },
     setRef(state, action: PayloadAction<{ path: string; ref: string }>) {
-      const { path, ref } = action.payload;
-      const referredNode = getNodeByPointer(state.uiSchema, ref);
-      const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
-      uiSchemaNode.reference = ref;
-      uiSchemaNode.objectKind = ObjectKind.Reference;
-      uiSchemaNode.fieldType = referredNode.fieldType;
-      uiSchemaNode.implicitType = true;
+      state.uiSchema = setRefReducer(state.uiSchema, action.payload);
     },
     setType(state, action: PayloadAction<{ path: string; type: FieldType }>) {
-      const { path, type } = action.payload;
-      const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
-      uiSchemaNode.reference = undefined;
-      uiSchemaNode.children = [];
-      uiSchemaNode.fieldType = type;
-      uiSchemaNode.implicitType = false;
+      state.uiSchema = setTypeReducer(state.uiSchema, action.payload);
     },
     setTitle(state, action: PayloadAction<{ path: string; title: string }>) {
-      const { path, title } = action.payload;
-      getNodeByPointer(state.uiSchema, path).title = title;
+      state.uiSchema = setTitleReducer(state.uiSchema, action.payload);
     },
     setDescription(state, action: PayloadAction<{ path: string; description: string }>) {
-      const { path, description } = action.payload;
-      getNodeByPointer(state.uiSchema, path).description = description;
+      state.uiSchema = setDescriptionReducer(state.uiSchema, action.payload);
     },
     setRequired(state, action: PayloadAction<{ path: string; required: boolean }>) {
-      const { path, required } = action.payload;
-      getNodeByPointer(state.uiSchema, path).isRequired = required;
+      state.uiSchema = setRequiredReducer(state.uiSchema, action.payload);
     },
     setCombinationType(state, action: PayloadAction<{ type: CombinationKind; path: string }>) {
-      const { type, path } = action.payload;
-      const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
-      const oldPointer = [path, uiSchemaNode.fieldType].join('/');
-      const newPointer = [path, type].join('/');
-      uiSchemaNode.fieldType = type;
-      state.uiSchema = renameNodePointer(state.uiSchema, oldPointer, newPointer);
+      state.uiSchema = setCombinationTypeReducer(state.uiSchema, action.payload);
     },
     addCombinationItem(
       state,
       action: PayloadAction<{ pointer: string; props: Partial<UiSchemaNode> }>
     ) {
-      const { pointer, props } = action.payload;
-      const addToNode = getNodeByPointer(state.uiSchema, pointer);
-      const item = Object.assign(
-        createNodeBase(pointer, addToNode.fieldType, addToNode.children.length.toString()),
-        props
-      );
-      item.isCombinationItem = true;
-      addToNode.children.push(item.pointer);
-      state.uiSchema.push(item);
-      state.selectedEditorTab === 'definitions'
-        ? (state.selectedDefinitionNodeId = item.pointer)
-        : (state.selectedPropertyNodeId = item.pointer);
+      state.uiSchema = addCombinationItemReducer(state.uiSchema, {
+        ...action.payload,
+        callback: (newPointer: string) => {
+          state.selectedEditorTab === 'definitions'
+            ? (state.selectedDefinitionNodeId = newPointer)
+            : (state.selectedPropertyNodeId = newPointer);
+        }
+      });
     },
-    setJsonSchema(state, action) {
+    setJsonSchema(state, action: PayloadAction<{ schema: JSONSchema7 }>) {
       const { schema } = action.payload;
       state.schema = schema;
     },
@@ -225,18 +158,17 @@ const schemaEditorSlice = createSlice({
       action: PayloadAction<{ path: string; name: string; navigate?: boolean }>
     ) {
       const { path, navigate, name } = action.payload;
-      if (!name || name.length === 0) {
-        return;
-      }
-      const nodeToRename = getNodeByPointer(state.uiSchema, path);
-      const oldPointer = nodeToRename.pointer;
-      const newPointer = replaceLastPointerSegment(oldPointer, name);
-      state.uiSchema = renameNodePointer(state.uiSchema, nodeToRename.pointer, newPointer);
-      if (navigate) {
-        state.selectedEditorTab === 'definitions'
-          ? (state.selectedDefinitionNodeId = newPointer)
-          : (state.selectedPropertyNodeId = newPointer);
-      }
+      state.uiSchema = setPropertyNameReducer(state.uiSchema, {
+        path,
+        name,
+        callback: (newPointer: string) => {
+          if (navigate) {
+            state.selectedEditorTab === 'definitions'
+              ? (state.selectedDefinitionNodeId = newPointer)
+              : (state.selectedPropertyNodeId = newPointer);
+          }
+        }
+      });
     },
     setSchemaName(state, action: PayloadAction<{ name: string }>) {
       const { name } = action.payload;
@@ -267,7 +199,7 @@ const schemaEditorSlice = createSlice({
     },
     updateJsonSchema(state, action: PayloadAction<{ onSaveSchema?: (payload: any) => void }>) {
       const { onSaveSchema } = action.payload;
-      const updatedSchema: JsonSchema = buildJsonSchema(state.uiSchema);
+      const updatedSchema: JSONSchema7 = buildJsonSchema(state.uiSchema);
       state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);
@@ -287,21 +219,10 @@ const schemaEditorSlice = createSlice({
       }
     },
     toggleArrayField(state, action: PayloadAction<{ pointer: string }>) {
-      const { pointer } = action.payload;
-      const node = getNodeByPointer(state.uiSchema, pointer);
-      node.isArray = !node.isArray;
+      state.uiSchema = toggleArrayFieldReducer(state.uiSchema, action.payload.pointer);
     },
     changeChildrenOrder(state, action: PayloadAction<{ pointerA: string; pointerB: string }>) {
-      const { pointerA, pointerB } = action.payload;
-      const { base: baseA } = splitPointerInBaseAndName(pointerA);
-      const { base: baseB } = splitPointerInBaseAndName(pointerB);
-      if (baseA !== baseB) {
-        return;
-      }
-      const parentNode = getParentNodeByPointer(state.uiSchema, pointerA);
-      if (parentNode) {
-        parentNode.children = swapArrayElements(parentNode.children, pointerA, pointerB);
-      }
+      state.uiSchema = changeChildrenOrderReducer(state.uiSchema, action.payload);
     },
   },
 });

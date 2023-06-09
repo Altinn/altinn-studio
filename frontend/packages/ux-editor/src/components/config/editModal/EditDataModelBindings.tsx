@@ -5,7 +5,7 @@ import React from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { Label } from 'app-shared/components/Label';
-import { useDatamodelQuery } from '../../../hooks/queries/useDatamodelQuery';
+import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useParams } from 'react-router-dom';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
@@ -23,7 +23,7 @@ export const EditDataModelBindings = ({
   renderOptions,
 }: EditDataModelBindingsProps) => {
   const { org, app } = useParams();
-  const { data } = useDatamodelQuery(org, app);
+  const { data } = useDatamodelMetadataQuery(org, app);
   const t = useText();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {

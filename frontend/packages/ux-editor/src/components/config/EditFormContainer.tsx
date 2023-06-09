@@ -8,7 +8,7 @@ import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { Checkbox, CheckboxGroup, FieldSet, TextField } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
-import { useDatamodelQuery } from '../../hooks/queries/useDatamodelQuery';
+import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import { useText } from '../../hooks';
 import { useParams } from 'react-router-dom';
 import { useFormLayoutsSelector, useTextResourcesSelector } from '../../hooks';
@@ -41,7 +41,7 @@ export const EditFormContainer = ({
 
   const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
-  const { data: dataModel } = useDatamodelQuery(org, app);
+  const { data: dataModel } = useDatamodelMetadataQuery(org, app);
   const { components, containers } = useFormLayoutsSelector(selectedLayoutSelector);
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE)

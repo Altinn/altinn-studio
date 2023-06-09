@@ -14,10 +14,10 @@ import { getRootNode } from './selectors';
 import { sortNodesByChildren } from './mutations/sort-nodes';
 import { ROOT_POINTER } from './constants';
 import { makePointer } from './utils';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { JSONSchema7 } from 'json-schema';
 
-export const buildJsonSchema = (nodes: UiSchemaNodes): KeyValuePairs => {
-  const out: KeyValuePairs = {};
+export const buildJsonSchema = (nodes: UiSchemaNodes): JSONSchema7 => {
+  const out: JSONSchema7 = {};
   const rootNode = getRootNode(nodes);
   Object.assign(out, rootNode.custom);
   JSONPointer.set(

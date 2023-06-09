@@ -4,6 +4,7 @@ import { select } from 'redux-saga/effects';
 import { put } from 'app-shared/utils/networking';
 import axios from 'axios';
 import { buildUiSchema } from '@altinn/schema-model';
+import { JSONSchema7 } from 'json-schema';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -13,7 +14,7 @@ describe('schemaEditorSaga', () => {
   afterAll(() => {
     spy.mockRestore();
   });
-  const jsonschema = {
+  const jsonschema: JSONSchema7 = {
     properties: {
       test: {
         type: 'string',

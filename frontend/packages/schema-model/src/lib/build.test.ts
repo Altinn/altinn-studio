@@ -6,16 +6,16 @@ import {
   validateSchema,
 } from '../../test/testUtils';
 
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { ObjectKind } from '../types';
 import { buildUiSchema } from './build-ui-schema';
 import { buildJsonSchema } from './build-json-schema';
 import { ROOT_POINTER } from './constants';
 import { dataMock } from '@altinn/schema-editor/mockData';
+import { JSONSchema7 } from 'json-schema';
 
 test.each(getSeresJsonSchemasForTest())(
   'Seres model %p can be converted',
-  (name: string, testSchema: KeyValuePairs) => {
+  (name: string, testSchema: JSONSchema7) => {
     const uiSchemaNodes = buildUiSchema(testSchema);
     dumpToDebug(__dirname, name, uiSchemaNodes);
     const jsonSchema = buildJsonSchema(uiSchemaNodes);
@@ -34,7 +34,7 @@ test.each(getSeresJsonSchemasForTest())(
 
 test.each(getGeneralJsonSchemasForTest())(
   'General model %p can be converted',
-  (name: string, testSchema: object) => {
+  (name: string, testSchema: JSONSchema7) => {
     const uiSchemaNodes = buildUiSchema(testSchema);
     dumpToDebug(__dirname, name, uiSchemaNodes);
     const jsonSchema = buildJsonSchema(uiSchemaNodes);

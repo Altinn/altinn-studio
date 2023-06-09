@@ -1,0 +1,1 @@
+export { useDatamodelMutation } from './useDatamodelMutation';

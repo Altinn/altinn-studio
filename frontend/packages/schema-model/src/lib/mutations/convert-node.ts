@@ -17,11 +17,11 @@ import { copyNodePointer } from './copy-node';
 export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
   const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
   if (uiNodeIndex === undefined) {
-    throw new Error(`Pointer ${pointer}, can't be found.`);
+    throw new Error(`Pointer ${pointer} can't be found.`);
   }
   const uiNode = uiSchemaNodes[uiNodeIndex];
   if (uiNode.objectKind === ObjectKind.Reference) {
-    throw new Error(`Pointer ${pointer}, is already a reference.`);
+    throw new Error(`Pointer ${pointer} is already a reference.`);
   }
 
   const promotedNodePointer = getUniqueNodePath(
@@ -68,7 +68,7 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
 export const convertRefToField = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
   const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
   if (uiNodeIndex === undefined) {
-    throw new Error(`Pointer ${pointer}, can't be found.`);
+    throw new Error(`Pointer ${pointer} can't be found.`);
   }
   const uiNode = uiSchemaNodes[uiNodeIndex];
   if (uiNode.objectKind !== ObjectKind.Reference) {
