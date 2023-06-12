@@ -41,13 +41,13 @@
 .altinnHeaderBar .rightContent {
   align-items: center;
   display: flex;
-  flex: 2;
+  flex: 3;
   gap: 1rem;
   justify-content: flex-end;
 }
 
 .profileMenuWrapper {
-  flex: 2;
+  flex: 3;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -58,16 +58,17 @@
   white-space: pre-line;
   line-height: 25px;
   font-size: 1rem;
-  margin-right: 15px;
+  margin-right: 1px;
 }
 
 .rightContentButtons {
   align-items: center;
   display: flex;
   gap: 1rem;
-  flex: 2;
+  flex: 0;
+  padding: 15px;
 }
 
 .rightContentButtons > * {
-  flex: 2;
+  flex: 1;
 }

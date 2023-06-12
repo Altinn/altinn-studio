@@ -53,3 +53,7 @@
   background-color: #efefef;
   z-index: 1;
 }
+
+.backToEditorBtn {
+  width: 18vw;
+}

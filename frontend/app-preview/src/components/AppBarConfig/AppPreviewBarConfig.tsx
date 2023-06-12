@@ -2,15 +2,13 @@ import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
 import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
-
 import { editorPath } from 'app-shared/api/paths';
 import { Button, ButtonVariant } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { TopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
+import classes from '../../views/LandingPage.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
-
-import classes from '../../views/LandingPage.module.css';
 
 export interface AppPreviewMenuItem {
   key: string;
@@ -31,7 +29,7 @@ export const menu: TopBarAppPreviewMenuItem[] = [
   {
     key: TopBarAppPreviewMenu.Preview,
     link: '/:org/:app',
-    repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+    repositoryTypes: [RepositoryType.App],
   },
 ];
 
@@ -53,17 +51,15 @@ export const getTopBarAppPreviewMenu = (
 
 export const SubPreviewMenuContent = () => {
   const { t } = useTranslation();
-  // This content will not be shown in production now
-  // return null;
   return (
     <div className={classes.leftSubHeaderButtons}>
-      <Button icon={<ArrowCirclepathIcon />} variant={ButtonVariant.Quiet}>
+      <Button data-testid='restartBtn' icon={<ArrowCirclepathIcon />} variant={ButtonVariant.Quiet}>
         {t('preview.subheader.restart.button')}
       </Button>
-      <Button icon={<EyeIcon />} variant={ButtonVariant.Quiet}>
+      <Button data-testid='showBtn' icon={<EyeIcon />} variant={ButtonVariant.Quiet}>
         {t('preview.subheader.showas.button')}
       </Button>
-      <Button icon={<LinkIcon />} variant={ButtonVariant.Quiet}>
+      <Button data-testid='shareBtn' icon={<LinkIcon />} variant={ButtonVariant.Quiet}>
         {t('preview.subheader.sharelink.button')}
       </Button>
     </div>
@@ -77,7 +73,7 @@ export const appPreviewButtonActions = (org: string, app: string): AltinnButtonA
       path: editorPath,
       menuKey: TopBarMenu.Preview,
       buttonVariant: ButtonVariant.Outline,
-      headerButtonsClasses: undefined,
+      headerButtonsClasses: classes.backToEditorBtn,
       handleClick: () => (window.location.href = editorPath(org, app)),
     },
   ];

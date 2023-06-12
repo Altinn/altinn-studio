@@ -1,7 +1,7 @@
 import { ToggleButtonGroup } from '@digdir/design-system-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { SubPreviewMenuContent } from '../components/AppBarConfig/AppPreviewBarConfig';
+//import { SubPreviewMenuContent } from '../components/AppBarConfig/AppPreviewBarConfig';
 import classes from './AppPreviewSubMenu.module.css';
 
 export interface AppPreviewSubMenuProps {
@@ -36,7 +36,8 @@ export const AppPreviewSubMenu = ({ viewSize, setViewSize }: AppPreviewSubMenuPr
           />
         </div>
       </div>
-      <div className={classes.rightContent}>{<SubPreviewMenuContent />}</div>
+      {/*This line is comment out just for now because the content will not be shown in production */}
+      {/*    <div className={classes.rightContent}>{<SubPreviewMenuContent />}</div> */}
     </>
   );
 };

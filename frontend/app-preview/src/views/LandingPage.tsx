@@ -18,7 +18,6 @@ import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBa
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 
 export interface LandingPageProps {
-  showSubMenu: boolean;
   variant?: AltinnHeaderVariant;
   repository?: IRepository;
 }
