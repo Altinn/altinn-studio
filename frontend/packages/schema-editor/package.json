@@ -10,7 +10,7 @@
     "jest": "29.5.0"
   },
   "peerDependencies": {
-    "@mui/material": "5.13.2",
+    "@mui/material": "5.13.4",
     "@reduxjs/toolkit": "1.9.5",
     "axios": "1.4.0",
     "classnames": "2.3.2",
@@ -18,7 +18,7 @@
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1",
     "react-dom": "18.2.0",
-    "react-redux": "8.0.5",
+    "react-redux": "8.0.7",
     "redux": "4.2.1",
     "redux-saga": "1.2.3"
   },
