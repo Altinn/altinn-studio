@@ -33,6 +33,7 @@ export function* watchAutosaveModelSaga(): SagaIterator {
       SchemaEditorActions.deleteProperty,
       SchemaEditorActions.promoteProperty,
       SchemaEditorActions.setCombinationType,
+      SchemaEditorActions.setCustomProperties,
       SchemaEditorActions.setDescription,
       SchemaEditorActions.setPropertyName,
       SchemaEditorActions.setRef,

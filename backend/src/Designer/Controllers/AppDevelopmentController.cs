@@ -441,7 +441,7 @@ namespace Altinn.Studio.Designer.Controllers
                     return BadRequest("LayoutSetName is not valid");
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                string ruleConfig = await _appDevelopmentService.GetRuleConfig(org, app, developer, layoutSetName);
+                string ruleConfig = await _appDevelopmentService.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(org, app, developer, layoutSetName);
                 return Content(ruleConfig);
             }
             catch (FileNotFoundException)

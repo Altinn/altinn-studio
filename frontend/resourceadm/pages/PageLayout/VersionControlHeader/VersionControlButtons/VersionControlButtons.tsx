@@ -190,7 +190,6 @@ export const VersionControlButtons = (props: IVersionControlHeaderProps) => {
   };
 
   const repoCommitMutation = useCreateRepoCommitMutation(selectedContext, repo);
-
   const commitChanges = async (commitMessage: string) => {
     setModalState({
       ...initialModalState,

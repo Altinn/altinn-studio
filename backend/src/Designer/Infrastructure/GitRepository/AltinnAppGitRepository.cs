@@ -14,6 +14,7 @@ using JetBrains.Annotations;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -608,9 +609,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Saves the RuleConfiguration.json for a specific layoutset
+        /// Saves the RuleConfiguration.json for a specific layout set
         /// </summary>
-        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="layoutSetName">The name of the layout set where the layout belong</param>
         /// <param name="ruleConfiguration">The ruleConfiguration to be saved</param>
         public async Task SaveRuleConfiguration(string layoutSetName, JsonNode ruleConfiguration)
         {
@@ -620,19 +621,33 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets the RuleConfiguration.json for a specific layoutset
+        /// Gets the RuleConfiguration.json for a specific layout set
         /// </summary>
-        /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
-        /// <returns>The content of Settings.json</returns>
-        public async Task<string> GetRuleConfiguration(string layoutSetName)
+        /// <param name="layoutSetName">The name of the layout set where the layout belong</param>
+        /// <returns>The content of RuleConfiguration.json</returns>
+        public async Task<string> GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(string layoutSetName)
         {
             string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);
             if (FileExistsByRelativePath(ruleConfigurationPath))
             {
                 string ruleConfiguration = await ReadTextByRelativePathAsync(ruleConfigurationPath);
-                return ruleConfiguration;
+                string fixedRuleConfig = await AddDataToRootOfRuleConfigIfNotPresent(layoutSetName, ruleConfiguration);
+                return fixedRuleConfig;
             }
             throw new FileNotFoundException("Rule configuration not found.");
+        }
+
+        private async Task<string> AddDataToRootOfRuleConfigIfNotPresent(string layoutSetName, string ruleConfigData)
+        {
+            JsonNode ruleConfig = JsonNode.Parse(ruleConfigData);
+            if (ruleConfig?["data"] == null)
+            {
+                JsonNode fixedRuleConfig = JsonNode.Parse("{\"data\":\"\"}");
+                fixedRuleConfig["data"] = ruleConfig;
+                await SaveRuleConfiguration(layoutSetName, fixedRuleConfig);
+                return JsonSerializer.Serialize(fixedRuleConfig);
+            }
+            return ruleConfigData;
         }
 
         public async Task<LayoutSets> CreateLayoutSetFile(string layoutSetName)

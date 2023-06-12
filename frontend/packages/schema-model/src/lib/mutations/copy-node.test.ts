@@ -5,17 +5,20 @@ import { makePointer as p } from '../utils';
 import { getRootNode } from '../selectors';
 
 const { Properties, Type } = Keyword;
-test('that it can copy nodes', () => {
-  const uiSchemaNodes = buildUiSchema({
-    [Properties]: {
-      email: { [Type]: FieldType.String },
-    },
+
+describe('copyNodePointer', () => {
+  it('Can copy nodes', () => {
+    const uiSchemaNodes = buildUiSchema({
+      [Properties]: {
+        email: { [Type]: FieldType.String },
+      },
+    });
+    const mutatedNodes = copyNodePointer(
+      uiSchemaNodes,
+      p(Properties, 'email'),
+      p(Properties, 'copiedEmail')
+    );
+    expect(mutatedNodes).toHaveLength(3);
+    expect(getRootNode(mutatedNodes).children).toHaveLength(2);
   });
-  const mutatedNodes = copyNodePointer(
-    uiSchemaNodes,
-    p(Properties, 'email'),
-    p(Properties, 'copiedEmail')
-  );
-  expect(mutatedNodes).toHaveLength(3);
-  expect(getRootNode(mutatedNodes).children).toHaveLength(2);
 });

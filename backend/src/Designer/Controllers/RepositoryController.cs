@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
@@ -204,7 +205,7 @@ namespace Altinn.Studio.Designer.Controllers
         public RepoStatus Pull(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
             semaphore.Wait();
 
             try
@@ -237,7 +238,7 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult ResetLocalRepository(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
             semaphore.Wait();
 
             try

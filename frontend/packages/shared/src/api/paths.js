@@ -21,12 +21,12 @@ export const datamodelUploadPagePath = (org, app) => `${APP_DEVELOPMENT_BASENAME
 // See frontend/app-development/utils/urlHelper.ts Deployments
 
 // FormEditor
-export const ruleHandlerPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get
-export const saveRuleHandlerPath = (org, app, stageFile) => `/designer/api/${org}/${app}/app-development/rule-handler?${stageFile}`; // Post
+export const ruleHandlerPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get, Post
 export const widgetSettingsPath = (org, app) => `/designer/api/${org}/${app}/app-development/widget-settings`; // Get
 export const optionListIdsPath = (org, app) => `/designer/api/${org}/${app}/app-development/option-list-ids`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
-export const layoutSetsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-sets?${s({ layoutSetName })}`; // Get, Put, Post
+export const layoutSetPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-sets?${s({ layoutSetName })}`; // Put, Post
+export const layoutSetsPath = (org, app) => `/designer/api/${org}/${app}/app-development/layout-sets`; // Get
 export const layoutSettingsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
 export const formLayoutPath = (org, app, layout, layoutSetName) => `/designer/api/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
