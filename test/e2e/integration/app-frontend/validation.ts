@@ -308,4 +308,26 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).findByText(texts.requiredSendersName).click();
     cy.get(appFrontend.group.sendersName).should('be.focused');
   });
+
+  it('Validates mime type on attachment', () => {
+    cy.goto('changename');
+
+    cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
+
+    cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
+    cy.get(appFrontend.changeOfName.uploadedTable)
+      .find('tbody > tr')
+      .eq(0)
+      .find(appFrontend.changeOfName.uploadSuccess)
+      .should('exist');
+
+    cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.png', { force: true });
+    cy.get(appFrontend.changeOfName.uploadError).should('contain.text', texts.invalidFileExtension);
+    cy.get(appFrontend.changeOfName.uploadedTable).find('tbody > tr').should('have.length', 1);
+
+    cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test-invalid.pdf', { force: true });
+    cy.get(appFrontend.changeOfName.uploadError).should('contain.text', texts.invalidMimeType);
+    cy.get(appFrontend.errorReport).should('contain.text', texts.invalidMimeType);
+    cy.get(appFrontend.changeOfName.uploadedTable).find('tbody > tr').should('have.length', 1);
+  });
 });

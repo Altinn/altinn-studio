@@ -54,7 +54,7 @@ describe('UI Components', () => {
     const downloadsFolder = Cypress.config('downloadsFolder');
     const downloadedFilename = path.join(downloadsFolder, 'test.pdf');
 
-    cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((buffer) => expect(buffer.length).equal(1024));
+    cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((buffer) => expect(buffer.length).equal(299));
   });
 
   it('is possible to upload attachments with tags', () => {
@@ -98,7 +98,7 @@ describe('UI Components', () => {
     const downloadsFolder = Cypress.config('downloadsFolder');
     const downloadedFilename = path.join(downloadsFolder, 'test.pdf');
 
-    cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((buffer) => expect(buffer.length).equal(1024));
+    cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((buffer) => expect(buffer.length).equal(299));
   });
 
   it('is possible to navigate between pages using navigation bar', () => {

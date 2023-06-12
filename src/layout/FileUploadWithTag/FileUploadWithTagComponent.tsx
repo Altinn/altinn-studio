@@ -78,11 +78,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     );
   };
 
-  const handleClick = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    event.preventDefault();
-  };
-
-  const handleEdit = (index) => {
+  const handleEdit = (index: number) => {
     if (editIndex === -1 || editIndex !== index) {
       setEditIndex(index);
     } else {
@@ -148,7 +144,6 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
   const shouldShowFileUpload = (): boolean => attachments.length < maxNumberOfAttachments;
 
   const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-    const newFiles: IAttachment[] = [];
     const fileType = baseComponentId || id;
     const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
 
@@ -162,34 +157,24 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     } else {
       // we should upload all files, if any rejected files we should display an error
       acceptedFiles.forEach((file: File, index) => {
-        if (attachments.length + newFiles.length < maxNumberOfAttachments) {
-          const tmpId: string = uuidv4();
-          newFiles.push({
-            name: file.name,
-            size: file.size,
-            uploaded: false,
-            tags: [],
-            id: tmpId,
-            deleting: false,
-            updating: false,
-          });
-          dataDispatch(
-            AttachmentActions.uploadAttachment({
-              file,
-              attachmentType: fileType,
-              tmpAttachmentId: tmpId,
-              componentId: id,
-              dataModelBindings,
-              index: attachments.length + index,
-            }),
-          );
-        }
+        dataDispatch(
+          AttachmentActions.uploadAttachment({
+            file,
+            attachmentType: fileType,
+            tmpAttachmentId: uuidv4(),
+            componentId: id,
+            dataModelBindings,
+            index: attachments.length + index,
+          }),
+        );
       });
+
       const rejections = handleRejectedFiles({
         language,
         rejectedFiles,
         maxFileSizeInMB,
       });
+
       setValidationsFromArray(rejections);
     }
   };
@@ -213,7 +198,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
           isMobile={mobileView}
           maxFileSizeInMB={maxFileSizeInMB}
           readOnly={!!readOnly}
-          onClick={handleClick}
+          onClick={(e) => e.preventDefault()}
           onDrop={handleDrop}
           hasValidationMessages={hasValidationMessages}
           hasCustomFileEndings={hasCustomFileEndings}

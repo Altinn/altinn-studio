@@ -2,6 +2,12 @@ import type { FixedLanguageList } from 'src/language/languages';
 
 export function nn(): FixedLanguageList {
   return {
+    altinn: {
+      standard_validation: {
+        file_content_type_not_allowed:
+          'Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera.',
+      },
+    },
     actions: {
       sign: 'Signer',
       confirm: 'Bekreft',
@@ -73,7 +79,7 @@ export function nn(): FixedLanguageList {
       file_uploader_validation_error_file_size: 'overskrid tillatt filstorleik.',
       file_uploader_validation_error_general_1: 'Det var eit problem med fila',
       file_uploader_validation_error_general_2:
-        '. Forsikre deg om at fila har rett filtype og ikkke overskrid maks filstorleik.',
+        '. Forsikre deg om at fila har rett filtype og ikkje overskrid maks filstorleik.',
       file_uploader_validation_error_upload: 'Noko gjekk galt under opplastinga av fila, prøv igjen seinare.',
       file_uploader_validation_error_update: 'Noko gjekk galt under oppdateringa av filas merking, prøv igjen seinare.',
       file_uploader_validation_error_no_chosen_tag: 'Du må velja',

@@ -11,7 +11,7 @@ interface Args {
   maxFileSizeInMB: number;
 }
 
-export function handleRejectedFiles({ language, rejectedFiles, maxFileSizeInMB }: Args) {
+export function handleRejectedFiles({ language, rejectedFiles, maxFileSizeInMB }: Args): string[] {
   return rejectedFiles.length > 0
     ? rejectedFiles.map((fileRejection) => {
         if (fileRejection.file.size > maxFileSizeInMB * bytesInOneMB) {

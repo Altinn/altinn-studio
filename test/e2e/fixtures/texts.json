@@ -44,5 +44,7 @@
   "change": "Endre",
   "view": "Se innhold",
   "edit": "Rediger",
-  "emptySummary": "Du har ikke lagt inn informasjon her"
+  "emptySummary": "Du har ikke lagt inn informasjon her",
+  "invalidFileExtension": "Det var et problem med filen test.png . Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse.",
+  "invalidMimeType": "Filtypen er ikke tillatt."
 }

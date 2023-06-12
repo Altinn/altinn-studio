@@ -46,4 +46,5 @@ export interface IBackendFeaturesState {
   footer: boolean;
   multiPartSave: boolean;
   processActions: boolean;
+  jsonObjectInDataResponse: boolean; // Extended attachment validation
 }
