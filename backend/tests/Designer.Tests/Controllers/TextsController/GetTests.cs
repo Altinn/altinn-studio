@@ -65,7 +65,6 @@ namespace Designer.Tests.Controllers.TextsController
         [InlineData("ttd", "invalid-texts-and-ruleconfig", "en")]
         public async Task Get_InvalidFile_500InternalServer(string org, string app, string lang)
         {
-            var len = "invalid-texts-and-ruleconfig-format".Length;
             string dataPathWithData = $"{VersionPrefix(org, app)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
