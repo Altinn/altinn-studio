@@ -50,7 +50,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "invalid-texts-and-ruleconfig-format", "testUser", null)]
+        [InlineData("ttd", "invalid-texts-and-ruleconfig", "testUser", null)]
         public async Task GetRuleConfig_WhenFileMissesDataOnRoot_ReturnsFixedFile(string org, string app, string developer, string layoutSetName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
