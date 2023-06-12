@@ -69,10 +69,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("permissions")]
         public async Task<ActionResult<List<string>>> Permissions([FromRoute] string org)
         {
-            List<string> permittedEnvironments = new ();
-
             List<Team> teams = await _giteaService.GetTeams();
-            permittedEnvironments = teams.Where(t =>
+            List<string> permittedEnvironments = teams.Where(t =>
                         t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
                         && t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase))
                     .Select(t => t.Name.Split('-')[1])
