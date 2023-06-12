@@ -3,7 +3,7 @@ import { expect } from '@jest/globals';
 import { sortNodesByChildren } from './sort-nodes';
 import { ROOT_POINTER } from '../constants';
 
-test('that we can sortNodes', () => {
+test('sortNodesByChildren', () => {
   const rootNode = createNodeBase(ROOT_POINTER);
   const child1 = createNodeBase('someother path');
   const child3 = createNodeBase('somepath');

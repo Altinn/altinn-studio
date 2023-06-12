@@ -1,0 +1,41 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.listItem {
+  --vertical-padding: .5rem; /* Must use padding instead of gap to get a proper hover effect */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  padding: var(--vertical-padding) 0;
+}
+
+.listItem:first-child {
+  margin-top: calc(-1 * var(--vertical-padding));
+}
+
+.listItem:last-child {
+  margin-bottom: calc(-1 * var(--vertical-padding));
+}
+
+.listItem:hover {
+  --background: #0001;
+  background-color: var(--background);
+  box-shadow: 100px 0 var(--background), -100px 0 var(--background);
+}
+
+.data, .data > * {
+  flex: 1;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.deleteButton {}
+
+.unknownFormatValue {
+  display: inline-flex;
+  gap: .5rem;
+}
