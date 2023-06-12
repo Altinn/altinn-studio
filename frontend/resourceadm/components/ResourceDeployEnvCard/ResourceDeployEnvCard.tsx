@@ -9,12 +9,22 @@ interface Props {
   deploymentNotPossibleText: string;
 }
 
+/**
+ * Component for the card displaying the button for publishing the resource
+ * to an environment and information about the resource version
+ *
+ * @param props.isDeployPossible flag for if deploy is possible or not
+ * @param props.envName the name of the environment
+ * @param props.currentEnvVersion the current version in the environment
+ * @param props.deploymentNotPossibleText text to display if the deployment is not possible
+ */
 export const ResourceDeployEnvCard = ({
   isDeployPossible,
   envName,
   currentEnvVersion,
   deploymentNotPossibleText,
 }: Props) => {
+  // TODO - Translation
   return (
     <div className={classes.cardWrapper}>
       <p className={classes.envName}>Miljø: {envName}</p>

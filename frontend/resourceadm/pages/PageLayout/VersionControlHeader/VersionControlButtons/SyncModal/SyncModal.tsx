@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Popover } from '@mui/material';
 import classNames from 'classnames';
 import classes from './SyncModal.module.css';
-import { Button, ButtonColor, ButtonVariant, TextArea } from '@digdir/design-system-react';
+import { Button, TextArea } from '@digdir/design-system-react';
 import { SimpleContainer } from 'app-shared/primitives';
 import { AltinnSpinner } from 'app-shared/components';
 
@@ -71,8 +71,8 @@ export const SyncModal = (props: ISyncModalComponentProps) => {
 
         {props.btnText && (
           <Button
-            variant={ButtonVariant.Filled}
-            color={ButtonColor.Primary}
+            variant='filled'
+            color='primary'
             className={classes.button}
             onClick={btnClickedHandler}
             id='share_changes_modal_button'
