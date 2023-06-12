@@ -1,18 +1,12 @@
 .header {
   font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  display: flex;
   align-items: center;
   height: var(--header-height);
-}
-
-.subHeader {
-  color: white;
-  border-bottom: 1px solid gray;
-  background-color: #0c6536;
-  display: flex;
-  align-items: center;
-  height: var(--subtoolbar-height);
-  margin-top: 80px;
+  width: 100vw;
+  --component-button-outline-primary-color-background-default: #efefef;
+  --component-button-outline-primary-color-border-default: #1e2b3c;
+  --component-button-outline-primary-color-border-hover: none;
+  --component-button-outline-primary-color-text-default: #1e2b3c !important;
 }
 
 .leftSubHeaderButtons {
@@ -29,23 +23,6 @@
   --component-button-quiet-primary-color-text-default: #ffffff;
 }
 
-.viewSizeButtons {
-  margin: 4px 4px 4px 15px;
-  padding: 8px 0;
-  --component-toggle_button-color-border-inactive: white;
-  --component-toggle_button-color-border-active: white;
-  --component-toggle_button-color-background-active: white;
-  --component-toggle_button-color-background-inactive: transparent;
-  --component-toggle_button-color-text-active: black;
-  --component-toggle_button-color-text-inactive: white;
-}
-
-/* Overriding this style because it is hardcoded in the design system */
-.viewSizeButtons button[aria-pressed='false']:hover {
-  background-color: #dbf5d5 !important;
-  color: black !important;
-}
-
 .iframeDesktop {
   height: 100%;
   width: 100%;
@@ -56,11 +33,13 @@
   display: flex;
   justify-content: center;
   background-color: #efefef;
+  height: calc(100vh - var(--header-height));
 }
 
 .iframeMobile {
-  height: 100%;
-  width: 360px;
+  height: 844px;
+  width: calc(390px + 48px);
+  padding: 20px 0;
   border: none;
   margin: 0;
 }
