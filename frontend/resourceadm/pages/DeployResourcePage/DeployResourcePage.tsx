@@ -66,12 +66,12 @@ export const DeployResourcePage = ({ isLocalRepoInSync }: Props) => {
   };
 
   /**
-   * Gets either alert or success for the card type
+   * Gets either danger or success for the card type
    *
-   * @returns alert or success
+   * @returns danger or success
    */
-  const getStatusCardType = (): 'alert' | 'success' => {
-    if (!isLocalRepoInSync || !resourceIsValid) return 'alert';
+  const getStatusCardType = (): 'danger' | 'success' => {
+    if (!isLocalRepoInSync || !resourceIsValid) return 'danger';
     return 'success';
   };
 
