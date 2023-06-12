@@ -1,6 +1,8 @@
 {
   "name": "altinn-studio",
   "dependencies": {
+    "@altinn/altinn-design-system": "0.27.8",
+    "@digdir/design-system-react": "0.15.0",
     "@microsoft/signalr": "7.0.5",
     "@navikt/aksel-icons": "3.3.1",
     "@tanstack/react-query-devtools": "4.29.11",
