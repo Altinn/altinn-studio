@@ -16,7 +16,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -190,8 +190,18 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
         public RepoStatus RepoStatus(string org, string repository)
         {
-            _sourceControl.FetchRemoteChanges(org, repository);
-            return _sourceControl.RepositoryStatus(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
+            try
+            {
+                _sourceControl.FetchRemoteChanges(org, repository);
+                return _sourceControl.RepositoryStatus(org, repository);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         /// <summary>
