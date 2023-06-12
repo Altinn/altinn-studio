@@ -64,8 +64,7 @@ namespace Altinn.Platform.Storage.Services
         {
             using (SHA256 sha256 = SHA256.Create())
             {
-                byte[] hashBytes = sha256.ComputeHash(fileStream);
-                return Convert.ToBase64String(hashBytes);
+                return BitConverter.ToString(sha256.ComputeHash(fileStream)).Replace("-", "").ToLowerInvariant();
             }
         }
     }
