@@ -6,16 +6,16 @@ import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { ToggleButtonGroup } from '@digdir/design-system-react';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { IRepository } from 'app-shared/types/global';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import { getTopBarAppPreviewMenu } from '../components/AppBarConfig/AppPreviewBarConfig';
 import {
-  appPreviewButtonActions,
-  subPreviewMenuContent,
-} from '../components/AppPreviewHeader/AppPreviewHeader';
+  getTopBarAppPreviewMenu,
+  TopBarAppPreviewMenu,
+} from '../components/AppBarConfig/AppPreviewBarConfig';
+import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
+import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 
 export interface LandingPageProps {
   showSubMenu: boolean;
@@ -23,12 +23,24 @@ export interface LandingPageProps {
   repository?: IRepository;
 }
 
-export const LandingPage = ({ showSubMenu, variant = 'preview', repository }: LandingPageProps) => {
+export type ViewSize = 'desktop' | 'mobile';
+
+const getLocalSelectedViewSize = (): ViewSize => {
+  const localViewSize = localStorage.getItem('viewSize');
+  if (localViewSize === 'mobile') {
+    return 'mobile';
+  }
+  return 'desktop';
+};
+
+export const LandingPage = ({ variant = 'preview', repository }: LandingPageProps) => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
-  const localSelectedViewSize = localStorage.getItem('viewSize');
-  const [viewSize, setViewSize] = useState<string>(localSelectedViewSize ?? 'desktop');
+  const localSelectedViewSize: 'desktop' | 'mobile' = getLocalSelectedViewSize();
+  const [viewSize, setViewSize] = useState<'desktop' | 'mobile'>(
+    localSelectedViewSize ?? 'desktop'
+  );
   const selectedLayoutSetInEditor = localStorage.getItem('layoutSetName');
   const { data: user } = useUserQuery();
   const repoType = getRepositoryType(org, app);
@@ -49,11 +61,6 @@ export const LandingPage = ({ showSubMenu, variant = 'preview', repository }: La
     });
   }
 
-  const handleChangeViewSizeClick = (selectedViewSize: string) => {
-    localStorage.setItem('viewSize', selectedViewSize);
-    setViewSize(selectedViewSize);
-  };
-
   return (
     <PreviewContext>
       <>
@@ -61,33 +68,15 @@ export const LandingPage = ({ showSubMenu, variant = 'preview', repository }: La
           <AltinnHeader
             menu={menu}
             showSubMenu={true}
-            activeMenuSelection={undefined}
+            activeMenuSelection={TopBarAppPreviewMenu.Preview}
             org={org}
             app={app}
             user={user}
             repository={repository}
             buttonActions={appPreviewButtonActions(org, app)}
             variant={variant}
+            subMenuContent={<AppPreviewSubMenu setViewSize={setViewSize} viewSize={viewSize} />}
           />
-        </div>
-        <div className={classes.subHeader}>
-          <span className={classes.viewSizeButtons}>
-            <ToggleButtonGroup
-              items={[
-                {
-                  label: t('preview.view_size_desktop'),
-                  value: 'desktop',
-                },
-                {
-                  label: t('preview.view_size_mobile'),
-                  value: 'mobile',
-                },
-              ]}
-              onChange={handleChangeViewSizeClick}
-              selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
-            />
-          </span>
-          {subPreviewMenuContent()}
         </div>
         <div className={classes.iframeMobileViewContainer}>
           <iframe
