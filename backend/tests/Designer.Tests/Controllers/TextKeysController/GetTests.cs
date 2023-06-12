@@ -47,7 +47,7 @@ namespace Designer.Tests.Controllers.TextKeysController
         }
 
         [Theory]
-        [InlineData("ttd", "invalid-texts-format", "testUser")]
+        [InlineData("ttd", "invalid-texts-and-ruleconfig", "testUser")]
         public async Task GetKeys_TextsFileInvalidFormat_500InternalServerError(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
