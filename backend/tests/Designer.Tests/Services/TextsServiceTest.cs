@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using Json.More;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -166,7 +164,7 @@ public class TextsServiceTest : IDisposable
             AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
         };
         EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
-        AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings());
+        AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
         ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object, new IGiteaMock());
         TextsService textsService = new(altinnGitRepositoryFactory, applicationMetadataService);
 
