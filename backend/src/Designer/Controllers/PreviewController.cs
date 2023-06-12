@@ -632,7 +632,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string ruleConfig = await altinnAppGitRepository.GetRuleConfiguration(null);
+                string ruleConfig = await altinnAppGitRepository.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(null);
                 return Ok(ruleConfig);
             }
             catch (FileNotFoundException)
@@ -656,7 +656,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string ruleConfig = await altinnAppGitRepository.GetRuleConfiguration(layoutSetName);
+                string ruleConfig = await altinnAppGitRepository.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(layoutSetName);
                 return Ok(ruleConfig);
             }
             catch (FileNotFoundException)
