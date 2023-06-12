@@ -22,7 +22,7 @@ export const ResourceDeployStatus = ({ type, message }: Props) => {
       );
     }
     if (type === 'danger') {
-      return <XMarkOctagonFillIcon title='Error, valideringsfeil' className={classes.alertIcon} />;
+      return <XMarkOctagonFillIcon title='Error, valideringsfeil' className={classes.dangerIcon} />;
     }
     return null;
   };

@@ -1,4 +1,4 @@
-.alert {
+.danger {
   background-color: #F9D5DB;
   border-left: 8px solid #E02E49;
 }
@@ -18,7 +18,7 @@
   padding: 16px;
 }
 
-.alertIcon {
+.dangerIcon {
   color: #E02E49;
   font-size: 25px;
   margin-right: 10px;
