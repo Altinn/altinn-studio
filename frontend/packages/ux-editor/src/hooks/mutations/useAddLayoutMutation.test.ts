@@ -1,4 +1,4 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock, formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { AddLayoutMutationArgs, useAddLayoutMutation } from './useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
@@ -41,7 +41,31 @@ describe('useAddLayoutMutation', () => {
     );
   });
 
-  // Todo: Add test for adding receipt page
+  it('Calls saveFormLayout with new layout for receiptPage', async () => {
+    await renderAndWaitForData();
+
+    const addLayoutResult = renderHookWithMockStore()(() => useAddLayoutMutation(org, app, selectedLayoutSet))
+      .renderHookResult
+      .result;
+
+    addLayoutResult.current.mutate({ layoutName: formLayoutSettingsMock.receiptLayoutName, isReceipt: true });
+
+    await waitFor(() => expect(addLayoutResult.current.isSuccess).toBe(true));
+
+    expect(queriesMock.saveFormLayout).toHaveBeenLastCalledWith(
+      org,
+      app,
+      formLayoutSettingsMock.receiptLayoutName,
+      selectedLayoutSet,
+      {
+        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+        data: {
+          layout: [expect.not.objectContaining({ componentType: ComponentType.NavigationButtons })],
+          hidden: undefined,
+        }
+      }
+    );
+  });
 });
 
 const renderAndWaitForData = async () => {

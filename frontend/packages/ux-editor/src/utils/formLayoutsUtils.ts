@@ -52,17 +52,18 @@ export const addOrRemoveNavigationButtons = async (
         await callback(name, layoutWithNavigation);
       }
     }
-    if (currentLayoutName) {
-      // Add navigation buttons to the current layout if they are not present, and run callback
-      let currentLayout = layouts[currentLayoutName];
-      if (!hasNavigationButtons(currentLayout) && currentLayoutName !== receiptLayoutName){
-        const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
-        currentLayout = addNavigationButtons(currentLayout, navButtonsId);
-        updatedLayouts[currentLayoutName] = currentLayout;
-      }
-      await callback(currentLayoutName, currentLayout);
-    }
   }
+  if (currentLayoutName) {
+    // Add navigation buttons to the current layout if they are not present, and run callback
+    let currentLayout = layouts[currentLayoutName];
+    if (!hasNavigationButtons(currentLayout) && currentLayoutName !== receiptLayoutName){
+      const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
+      currentLayout = addNavigationButtons(currentLayout, navButtonsId);
+      updatedLayouts[currentLayoutName] = currentLayout;
+    }
+    await callback(currentLayoutName, currentLayout);
+  }
+
   return updatedLayouts;
 };
 
