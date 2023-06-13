@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './ResourceTableDataRow.module.css';
 import { ResourceTableDataChip } from './ResourceTableDataChip';
 import { Button } from '@digdir/design-system-react';
@@ -6,11 +6,9 @@ import { PencilWritingIcon } from '@navikt/aksel-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { ResourceType } from 'resourceadm/types/global';
-import { ResourceTableDropdownMenu } from './ResourceTableDropdownMenu';
 
 interface Props {
   resource: ResourceType;
-  handleRemoveElement: () => void;
 }
 
 /**
@@ -19,15 +17,12 @@ interface Props {
  * two buttons, one for editing a resource, and one for doing more actions
  *
  * @param props.resource the resource to display in the row
- * @param props.handleRemoveElement function to be executed when the element is to be removed
  */
-export const ResourceTableDataRow = ({ resource, handleRemoveElement }: Props) => {
+export const ResourceTableDataRow = ({ resource }: Props) => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const navigate = useNavigate();
-
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // TODO - translate
   return (
@@ -56,17 +51,6 @@ export const ResourceTableDataRow = ({ resource, handleRemoveElement }: Props) =
         >
           Rediger
         </Button>
-      </td>
-      <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
-        <ResourceTableDropdownMenu
-          isOpen={isDropdownOpen}
-          handleClickMoreIcon={() => setIsDropdownOpen((prev) => !prev)}
-          handleCloseMenu={() => setIsDropdownOpen(false)}
-          handleDelete={() => {
-            handleRemoveElement();
-            setIsDropdownOpen(false);
-          }}
-        />
       </td>
     </tr>
   );

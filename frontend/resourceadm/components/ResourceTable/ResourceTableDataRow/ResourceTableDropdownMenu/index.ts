@@ -1,1 +1,0 @@
-export { ResourceTableDropdownMenu } from './ResourceTableDropdownMenu'

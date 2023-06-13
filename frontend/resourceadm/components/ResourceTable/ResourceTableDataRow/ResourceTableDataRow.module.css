@@ -8,15 +8,11 @@
 }
 
 .tableDataMedium {
-  width: 15%;
+  width: 16%;
 }
 
 .tableDataDate {
   padding-left: 1%;
-}
-
-.tableDataSmall {
-  width: 3%;
 }
 
 .tableDataText {
