@@ -147,7 +147,7 @@
     },
     {
       "id": "confirm.body",
-      "value": "Vennligst vent, endrer navn til {1}. <br/> <br/> Du har startet instance: {2} for app: {3}. <br/> <br/>Trykk [her]({4}) for å starte på nytt.",
+      "value": "Vennligst vent, endrer navn til {1}. <br/> <br/> Du har startet instance: <span class='no-visual-testing'>{2}</span> for app: {3}. <br/> <br/>Trykk [her]({4}) for å starte på nytt.",
       "variables": [
         {
           "key": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value",
@@ -213,7 +213,7 @@
     },
     {
       "id": "startAgain",
-      "value": "Du har startet instance: {0} for app: {1}.<br/> <br/> Trykk <a href='{2}' class='same-window'>her</a> for å starte på nytt.<br /><br />Noen lenker:<br /><a href='/'>Intern lenke i nytt vindu</a><br /><a href='/' class='same-window'>Intern lenke i samme vindu</a><br /><a href='https://nrk.no/'>Ekstern lenke i nytt vindu</a><br /><a href='https://nrk.no' class='same-window'>Ekstern lenke i samme vindu</a><br />",
+      "value": "Du har startet instance: <span class='no-visual-testing'>{0}</span> for app: {1}.<br/> <br/> Trykk <a href='{2}' class='same-window'>her</a> for å starte på nytt.<br /><br />Noen lenker:<br /><a href='/'>Intern lenke i nytt vindu</a><br /><a href='/' class='same-window'>Intern lenke i samme vindu</a><br /><a href='https://nrk.no/'>Ekstern lenke i nytt vindu</a><br /><a href='https://nrk.no' class='same-window'>Ekstern lenke i samme vindu</a><br />",
       "variables": [
         {
           "key": "instanceId",
