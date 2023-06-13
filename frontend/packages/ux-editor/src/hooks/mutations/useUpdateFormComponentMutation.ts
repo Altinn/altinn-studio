@@ -63,7 +63,6 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
         };
       }
 
-
       return saveLayout(updatedLayout).then(async (data) => {
         if (updatedComponent.type === ComponentType.FileUpload || updatedComponent.type === ComponentType.FileUploadWithTag) {
           // Todo: Consider handling this in the backend

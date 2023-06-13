@@ -2,7 +2,11 @@ import { queriesMock, queryClientMock, renderHookWithMockStore } from '../../tes
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { UpdateFormComponentArgs, useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import { component1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
-import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
+import type {
+  FormCheckboxesComponent,
+  FormComponent,
+  FormFileUploaderComponent, FormRadioButtonsComponent,
+} from '../../types/FormComponent';
 import { IDataModelBindings } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
@@ -55,7 +59,7 @@ describe('useUpdateFormComponentMutation', () => {
     );
   });
 
-  it('Does not run attachment metadata queries if the component type is not fileupload', async () => {
+  it('Does not run attachment metadata queries if the component type is not fileUpload', async () => {
     renderAndWaitForData();
     const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
       .renderHookResult
@@ -66,7 +70,7 @@ describe('useUpdateFormComponentMutation', () => {
     expect(queriesMock.updateAppAttachmentMetadata).not.toHaveBeenCalled();
   });
 
-  it('Updates attachment metadata queries if the component type is fileupload', async () => {
+  it('Updates attachment metadata queries if the component type is fileUpload', async () => {
     renderAndWaitForData();
     const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
       .renderHookResult
@@ -87,6 +91,50 @@ describe('useUpdateFormComponentMutation', () => {
     }
     await updateFormComponentResult.current.mutateAsync(args);
     expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+  });
+
+  it('Does not keep original optionsId and options props from component when updating RadioButtons and CheckBoxes', async () => {
+    renderAndWaitForData();
+    const updateFormComponentResult = renderHookWithMockStore()(() => useUpdateFormComponentMutation(org, app, selectedLayoutSet))
+      .renderHookResult
+      .result;
+
+    for (const componentType of [ComponentType.RadioButtons, ComponentType.Checkboxes]) {
+      for (const optionKind of ['options', 'optionsId']) {
+        const optionsProp = optionKind === 'options' ? { options: [] } : { optionsId: 'test' };
+        const newComponent = {
+          ...updatedComponent,
+          type: componentType,
+          ...optionsProp,
+        } as FormRadioButtonsComponent | FormCheckboxesComponent;
+
+        const args: UpdateFormComponentArgs = {
+          ...defaultArgs,
+          updatedComponent: newComponent,
+        }
+        await updateFormComponentResult.current.mutateAsync(args);
+        expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+          org,
+          app,
+          layout1NameMock,
+          selectedLayoutSet,
+          expect.objectContaining({
+            data: expect.objectContaining({
+              layout: expect.arrayContaining([
+                {
+                  id,
+                  type: componentType,
+                  dataModelBindings,
+                  ...optionsProp,
+                }
+              ])
+            })
+          })
+        );
+      }
+    }
+
+
   });
 });
 
