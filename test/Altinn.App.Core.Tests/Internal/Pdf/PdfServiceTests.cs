@@ -121,16 +121,16 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
             };
 
             // Act
-            await target.GenerateAndStorePdf(instance, CancellationToken.None);
+            await target.GenerateAndStorePdf(instance, "Task_1", CancellationToken.None);
 
             // Asserts
             _pdfGeneratorClient.Verify(
                 s => s.GeneratePdf(
                     It.Is<Uri>(
                         u => u.Scheme == "https" &&
-                        u.Host == $"{instance.Org}.apps.{HostName}" &&
-                        u.AbsoluteUri.Contains(instance.AppId) &&
-                        u.AbsoluteUri.Contains(instance.Id)),
+                             u.Host == $"{instance.Org}.apps.{HostName}" &&
+                             u.AbsoluteUri.Contains(instance.AppId) &&
+                             u.AbsoluteUri.Contains(instance.Id)),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
 
@@ -140,7 +140,84 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
                     It.Is<string>(s => s == "ref-data-as-pdf"),
                     It.Is<string>(s => s == "application/pdf"),
                     It.Is<string>(s => s == "not-really-an-app.pdf"),
-                    It.IsAny<Stream>()),
+                    It.IsAny<Stream>(),
+                    It.Is<string>(s => s == "Task_1")),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task GenerateAndStorePdf_with_generatedFrom()
+        {
+            // Arrange
+            _pdfGeneratorClient.Setup(s => s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<CancellationToken>()));
+
+            _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+            var target = new PdfService(
+                _pdf.Object,
+                _appResources.Object,
+                _pdfOptionsMapping.Object,
+                _dataClient.Object,
+                _httpContextAccessor.Object,
+                _profile.Object,
+                _register.Object,
+                pdfFormatter.Object,
+                _pdfGeneratorClient.Object,
+                _pdfGeneratorSettingsOptions,
+                _generalSettingsOptions);
+
+            var dataModelId = Guid.NewGuid();
+            var attachmentId = Guid.NewGuid();
+            
+            Instance instance = new()
+            {
+                Id = $"509378/{Guid.NewGuid()}",
+                AppId = "digdir/not-really-an-app",
+                Org = "digdir",
+                Process = new()
+                {
+                    CurrentTask = new()
+                    {
+                        ElementId = "Task_1"
+                    }
+                },
+                Data = new()
+                {
+                    new()
+                    {
+                        Id = dataModelId.ToString(),
+                        DataType = "Model"
+                    },
+                    new()
+                    {
+                        Id = attachmentId.ToString(),
+                        DataType = "attachment"
+                    }
+                }
+            };
+
+            // Act
+            await target.GenerateAndStorePdf(instance, "Task_1", CancellationToken.None);
+
+            // Asserts
+            _pdfGeneratorClient.Verify(
+                s => s.GeneratePdf(
+                    It.Is<Uri>(
+                        u => u.Scheme == "https" &&
+                             u.Host == $"{instance.Org}.apps.{HostName}" &&
+                             u.AbsoluteUri.Contains(instance.AppId) &&
+                             u.AbsoluteUri.Contains(instance.Id)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            _dataClient.Verify(
+                s => s.InsertBinaryData(
+                    It.Is<string>(s => s == instance.Id),
+                    It.Is<string>(s => s == "ref-data-as-pdf"),
+                    It.Is<string>(s => s == "application/pdf"),
+                    It.Is<string>(s => s == "not-really-an-app.pdf"),
+                    It.IsAny<Stream>(),
+                    It.Is<string>(s => s == "Task_1")),
                 Times.Once);
         }
     }

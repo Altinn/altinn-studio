@@ -67,8 +67,7 @@ public class PdfService : IPdfService
         IPdfFormatter pdfFormatter,
         IPdfGeneratorClient pdfGeneratorClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
-        IOptions<GeneralSettings> generalSettings
-        )
+        IOptions<GeneralSettings> generalSettings)
     {
         _pdfClient = pdfClient;
         _resourceService = appResources;
@@ -85,7 +84,7 @@ public class PdfService : IPdfService
 
 
     /// <inheritdoc/>
-    public async Task GenerateAndStorePdf(Instance instance, CancellationToken ct)
+    public async Task GenerateAndStorePdf(Instance instance, string taskId, CancellationToken ct)
     {
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
         var pagePath = _pdfGeneratorSettings.AppPdfPagePathTemplate.ToLowerInvariant().Replace("{instanceid}", instance.Id);
@@ -102,13 +101,13 @@ public class PdfService : IPdfService
 
         TextResource? textResource = await GetTextResource(appIdentifier.App, appIdentifier.Org, language);
         string fileName = GetFileName(instance, textResource);
-
         await _dataClient.InsertBinaryData(
             instance.Id,
             PdfElementType,
             PdfContentType,
             fileName,
-            pdfContent);
+            pdfContent,
+            taskId);
     }
 
     private static Uri BuildUri(string baseUrl, string pagePath, string language)
@@ -225,11 +224,11 @@ public class PdfService : IPdfService
         };
 
         Stream pdfContent = await _pdfClient.GeneratePDF(pdfContext);
-        await StorePDF(pdfContent, instance, textResource);
+        await StorePDF(pdfContent, instance, textResource, taskId);
         pdfContent.Dispose();
     }
 
-    private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, TextResource textResource)
+    private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, TextResource textResource, string generatedFromTask)
     {
         string? fileName = null;
         string app = instance.AppId.Split("/")[1];
@@ -247,7 +246,8 @@ public class PdfService : IPdfService
             PdfElementType,
             PdfContentType,
             fileName,
-            pdfStream);
+            pdfStream,
+            generatedFromTask);
     }
 
     private async Task<string> GetLanguage()

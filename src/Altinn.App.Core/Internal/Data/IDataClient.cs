@@ -140,8 +140,9 @@ namespace Altinn.App.Core.Internal.Data
         /// <param name="contentType">content type</param>
         /// <param name="filename">filename</param>
         /// <param name="stream">the stream to stream</param>
+        /// <param name="generatedFromTask">Optional field to set what task the binary data was generated from</param>
         /// <returns></returns>
-        Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream);
+        Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream, string? generatedFromTask = null);
 
         /// <summary>
         /// Updates the data element metadata object.
@@ -150,5 +151,21 @@ namespace Altinn.App.Core.Internal.Data
         /// <param name="dataElement">The data element with values to update</param>
         /// <returns>the updated data element</returns>
         Task<DataElement> Update(Instance instance, DataElement dataElement);
+        
+        /// <summary>
+        /// Lock data element in storage
+        /// </summary>
+        /// <param name="instanceIdentifier">InstanceIdentifier identifying the instance containing the DataElement to lock</param>
+        /// <param name="dataGuid">Id of the DataElement to lock</param>
+        /// <returns></returns>
+        Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid);
+        
+        /// <summary>
+        /// Unlock data element in storage
+        /// </summary>
+        /// <param name="instanceIdentifier">InstanceIdentifier identifying the instance containing the DataElement to unlock</param>
+        /// <param name="dataGuid">Id of the DataElement to unlock</param>
+        /// <returns></returns>
+        Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid);
     }
 }

@@ -122,7 +122,6 @@ class ProcessEventDispatcher : IProcessEventDispatcher
                             break;
                         case InstanceEventType.process_AbandonTask:
                             await task.HandleTaskAbandon(elementId, instance);
-                            await _instanceClient.UpdateProcess(instance);
                             break;
                         case InstanceEventType.process_EndEvent:
                             await _appEvents.OnEndAppEvent(instanceEvent.ProcessInfo?.EndEvent, instance);

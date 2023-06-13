@@ -71,6 +71,39 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
             Assert.NotNull(platformRequest);
             AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Post, "\"a cats story.pdf\"", "application/pdf");
         }
+        
+        [Fact]
+        public async Task InsertBinaryData_MethodProduceValidPlatformRequest_with_generatedFrom_query_params()
+        {
+            // Arrange
+            HttpRequestMessage? platformRequest = null;
+
+            var target = GetDataClient(async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                platformRequest = request;
+
+                DataElement dataElement = new DataElement
+                {
+                    Id = "DataElement.Id",
+                    InstanceGuid = "InstanceGuid"
+                };
+                await Task.CompletedTask;
+                return new HttpResponseMessage() { Content = JsonContent.Create(dataElement) };
+            });
+
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes("This is not a pdf, but no one here will care."));
+            var instanceIdentifier = new InstanceIdentifier(323413, Guid.NewGuid());
+            Uri expectedUri = new Uri($"{apiStorageEndpoint}instances/{instanceIdentifier}/data?dataType=catstories&generatedFromTask=Task_1", UriKind.RelativeOrAbsolute);
+
+            // Act
+            DataElement actual = await target.InsertBinaryData(instanceIdentifier.ToString(), "catstories", "application/pdf", "a cats story.pdf", stream, "Task_1");
+
+            // Assert
+            Assert.NotNull(actual);
+
+            Assert.NotNull(platformRequest);
+            AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Post, "\"a cats story.pdf\"", "application/pdf");
+        }
 
         [Fact]
         public async Task GetFormData_MethodProduceValidPlatformRequest_ReturnedFormIsValid()
@@ -334,7 +367,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
             };
             response.Should().BeEquivalentTo(expectedList);
         }
-        
+
         [Fact]
         public async Task GetBinaryDataList_throws_PlatformHttpException_if_non_ok_response()
         {
@@ -352,7 +385,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
             actual.Should().NotBeNull();
             actual.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
         }
-        
+
         [Fact]
         public async Task DeleteBinaryData_returns_true_when_data_was_deleted()
         {
@@ -375,7 +408,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
             AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete);
             result.Should().BeTrue();
         }
-        
+
         [Fact]
         public async Task DeleteBinaryData_throws_PlatformHttpException_when_dataelement_not_found()
         {
@@ -397,7 +430,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
             AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete);
             actual.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
-        
+
         [Fact]
         public async Task DeleteData_returns_true_when_data_was_deleted_with_delay_true()
         {
@@ -446,7 +479,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
             platformRequest?.Should().NotBeNull();
             AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Put, null, "application/xml");
         }
-        
+
         [Fact]
         public async Task UpdateData_throws_error_if_serilization_fails()
         {
@@ -467,7 +500,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await dataClient.UpdateData(exampleModel, instanceIdentifier.InstanceGuid, typeof(DataElement), "ttd", "app", instanceIdentifier.InstanceOwnerPartyId, dataGuid));
             invocations.Should().Be(0);
         }
-        
+
         [Fact]
         public async Task UpdateData_throws_platformhttpexception_if_platform_request_fails()
         {
@@ -488,10 +521,107 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
                 return new HttpResponseMessage() { StatusCode = HttpStatusCode.InternalServerError };
             });
             var expectedUri = new Uri($"{apiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}", UriKind.RelativeOrAbsolute);
-            var result = await Assert.ThrowsAsync<PlatformHttpException>(async () => await dataClient.UpdateData(exampleModel, instanceIdentifier.InstanceGuid, typeof(ExampleModel), "ttd", "app", instanceIdentifier.InstanceOwnerPartyId, dataGuid));
+            var result = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
+                await dataClient.UpdateData(exampleModel, instanceIdentifier.InstanceGuid, typeof(ExampleModel), "ttd", "app", instanceIdentifier.InstanceOwnerPartyId, dataGuid));
             invocations.Should().Be(1);
             platformRequest?.Should().NotBeNull();
             AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Put, null, "application/xml");
+            result.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        }
+
+        [Fact]
+        public async Task LockDataElement_calls_lock_endpoint_in_storage_and_returns_updated_DataElement()
+        {
+            var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+            var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+            HttpRequestMessage? platformRequest = null;
+            int invocations = 0;
+            DataElement dataElement = new()
+            {
+                Id = "67a5ef12-6e38-41f8-8b42-f91249ebcec0",
+                Locked = true
+            };
+            var dataClient = GetDataClient(async (request, token) =>
+            {
+                invocations++;
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage() { StatusCode = HttpStatusCode.OK, Content = new StringContent("{\"id\":\"67a5ef12-6e38-41f8-8b42-f91249ebcec0\",\"locked\":true}") };
+            });
+            var expectedUri = new Uri($"{apiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock", UriKind.RelativeOrAbsolute);
+            var response = await dataClient.LockDataElement(instanceIdentifier, dataGuid);
+            invocations.Should().Be(1);
+            platformRequest?.Should().NotBeNull();
+            response.Should().BeEquivalentTo(dataElement);
+            AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Put);
+        }
+
+        [Fact]
+        public async Task LockDataElement_throws_platformhttpexception_if_platform_request_fails()
+        {
+            var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+            var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+            int invocations = 0;
+            HttpRequestMessage? platformRequest = null;
+            var dataClient = GetDataClient(async (request, token) =>
+            {
+                invocations++;
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage() { StatusCode = HttpStatusCode.InternalServerError };
+            });
+            var expectedUri = new Uri($"{apiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock", UriKind.RelativeOrAbsolute);
+            var result = await Assert.ThrowsAsync<PlatformHttpException>(async () => await dataClient.LockDataElement(instanceIdentifier, dataGuid));
+            invocations.Should().Be(1);
+            AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Put);
+            result.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        }
+
+        [Fact]
+        public async Task UnlockDataElement_calls_lock_endpoint_in_storage_and_returns_updated_DataElement()
+        {
+            var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+            var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+            HttpRequestMessage? platformRequest = null;
+            int invocations = 0;
+            DataElement dataElement = new()
+            {
+                Id = "67a5ef12-6e38-41f8-8b42-f91249ebcec0",
+                Locked = true
+            };
+            var dataClient = GetDataClient(async (request, token) =>
+            {
+                invocations++;
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage() { StatusCode = HttpStatusCode.OK, Content = new StringContent("{\"id\":\"67a5ef12-6e38-41f8-8b42-f91249ebcec0\",\"locked\":true}") };
+            });
+            var expectedUri = new Uri($"{apiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock", UriKind.RelativeOrAbsolute);
+            var response = await dataClient.UnlockDataElement(instanceIdentifier, dataGuid);
+            invocations.Should().Be(1);
+            platformRequest?.Should().NotBeNull();
+            response.Should().BeEquivalentTo(dataElement);
+            AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete);
+        }
+
+        [Fact]
+        public async Task UnlockDataElement_throws_platformhttpexception_if_platform_request_fails()
+        {
+            var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
+            var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
+            int invocations = 0;
+            HttpRequestMessage? platformRequest = null;
+            var dataClient = GetDataClient(async (request, token) =>
+            {
+                invocations++;
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage() { StatusCode = HttpStatusCode.InternalServerError };
+            });
+            var expectedUri = new Uri($"{apiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock", UriKind.RelativeOrAbsolute);
+            var result = await Assert.ThrowsAsync<PlatformHttpException>(async () => await dataClient.UnlockDataElement(instanceIdentifier, dataGuid));
+            invocations.Should().Be(1);
+            AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete);
             result.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
         }
 
@@ -513,6 +643,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
             actual.Content?.Headers.TryGetValues("Content-Disposition", out actualContentDisposition);
             var authHeader = actual.Headers.Authorization;
             actual.RequestUri.Should().BeEquivalentTo(expectedUri);
+            actual.Method.Should().BeEquivalentTo(method);
             Uri.Compare(actual.RequestUri, expectedUri, UriComponents.HttpRequestUrl, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase).Should().Be(0, "Actual request Uri did not match expected Uri");
             if (expectedContentType is not null)
             {

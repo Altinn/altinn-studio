@@ -21,7 +21,8 @@ namespace Altinn.App.Core.Internal.Pdf
         /// to storage as a new binary file associated with the predefined PDF data type in most apps.
         /// </summary>
         /// <param name="instance">The instance details.</param>
+        /// <param name="taskId">The task id for witch the pdf is generated</param>
         /// <param name="ct">Cancellation Token for when a request should be stopped before it's completed.</param>
-        Task GenerateAndStorePdf(Instance instance, CancellationToken ct);
+        Task GenerateAndStorePdf(Instance instance, string taskId, CancellationToken ct);
     }
 }

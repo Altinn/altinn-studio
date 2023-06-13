@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using System.Xml;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Storage
 {
@@ -292,9 +293,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
+        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream, string? generatedFromTask = null)
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
+            if(!string.IsNullOrEmpty(generatedFromTask))
+            {
+                apiUrl += $"&generatedFromTask={generatedFromTask}";
+            }
             string token = _userTokenProvider.GetUserToken();
             DataElement dataElement;
 
@@ -399,6 +404,38 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 return result;
             }
 
+            throw await PlatformHttpException.CreateAsync(response);
+        }
+
+        /// <inheritdoc />
+        public async Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+        {
+            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
+            string token = _userTokenProvider.GetUserToken();
+            _logger.LogDebug("Locking data element {DataGuid} for instance {InstanceIdentifier} URL: {Url}", dataGuid, instanceIdentifier, apiUrl);
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content: null);
+            if (response.IsSuccessStatusCode)
+            {
+                DataElement result = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync())!;
+                return result;
+            }
+            _logger.LogError("Locking data element {DataGuid} for instance {InstanceIdentifier} failed with status code {StatusCode}", dataGuid, instanceIdentifier, response.StatusCode);
+            throw await PlatformHttpException.CreateAsync(response);
+        }
+
+        /// <inheritdoc />
+        public async Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+        {
+            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
+            string token = _userTokenProvider.GetUserToken();
+            _logger.LogDebug("Unlocking data element {DataGuid} for instance {InstanceIdentifier} URL: {Url}", dataGuid, instanceIdentifier, apiUrl);
+            HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
+            if (response.IsSuccessStatusCode)
+            {
+                DataElement result = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync())!;
+                return result;
+            }
+            _logger.LogError("Unlocking data element {DataGuid} for instance {InstanceIdentifier} failed with status code {StatusCode}", dataGuid, instanceIdentifier, response.StatusCode);
             throw await PlatformHttpException.CreateAsync(response);
         }
     }

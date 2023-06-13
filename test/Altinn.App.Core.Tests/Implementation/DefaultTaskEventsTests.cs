@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Implementation.TestData.AppDataModel;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -133,7 +134,8 @@ public class DefaultTaskEventsTests: IDisposable
             _layoutStateInitializer);
         var instance = new Instance()
         {
-            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d"
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/test",
         };
         await te.OnEndProcessTask("Task_1", instance);
         _metaMock.Verify(r => r.GetApplicationMetadata());
@@ -195,7 +197,7 @@ public class DefaultTaskEventsTests: IDisposable
         _metaMock.Verify(r => r.GetApplicationMetadata());
         _dataMock.Verify(r => r.InsertFormData<object>(It.IsAny<ModelWithShadowFields>(), instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, "model-clean"));
         _dataMock.Verify(r => r.GetFormData(instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId));
-        _dataMock.Verify(r => r.Update(instance, instance.Data[0]));
+        _dataMock.Verify(r => r.LockDataElement(It.Is<InstanceIdentifier>(i => i.InstanceOwnerPartyId == 1337 && i.InstanceGuid == instanceGuid), new Guid(instance.Data[0].Id)));
     }
 
     [Fact]
@@ -250,7 +252,7 @@ public class DefaultTaskEventsTests: IDisposable
         _metaMock.Verify(r => r.GetApplicationMetadata());
         _dataMock.Verify(r => r.UpdateData<object>(It.IsAny<Altinn.App.Core.Tests.Implementation.TestData.AppDataModel.ModelWithShadowFields>(), instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId));
         _dataMock.Verify(r => r.GetFormData(instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId));
-        _dataMock.Verify(r => r.Update(instance, instance.Data[0]));
+        _dataMock.Verify(r => r.LockDataElement(It.Is<InstanceIdentifier>(i => i.InstanceOwnerPartyId == 1337 && i.InstanceGuid == instanceGuid), new Guid(instance.Data[0].Id)));
     }
 
     [Fact]
@@ -372,6 +374,7 @@ public class DefaultTaskEventsTests: IDisposable
         var instance = new Instance()
         {
             Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/test",
             InstanceOwner = new()
             {
                 PartyId = "1000"
@@ -384,6 +387,68 @@ public class DefaultTaskEventsTests: IDisposable
         await te.OnEndProcessTask("EndEvent_1", instance);
         _metaMock.Verify(r => r.GetApplicationMetadata());
         _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
+    }
+    
+    [Fact]
+    public async void OnEndProcessTask_deletes_old_datatypes_generated_from_task_beeing_ended()
+    {
+        _application.DataTypes = new List<DataType>();
+        _application.AutoDeleteOnProcessEnd = false;
+        _metaMock.Setup(r => r.GetApplicationMetadata()).ReturnsAsync(_application);
+        DefaultTaskEvents te = new DefaultTaskEvents(
+            _logger,
+            _resMock.Object,
+            _metaMock.Object,
+            _dataMock.Object,
+            _prefillMock.Object,
+            _appModel,
+            _instantiationMock.Object,
+            _instanceMock.Object,
+            _taskStarts,
+            _taskEnds,
+            _taskAbandons,
+            _pdfMock.Object,
+            _featureManagerMock.Object,
+            _layoutStateInitializer);
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/test",
+            InstanceOwner = new()
+            {
+                PartyId = "1000"
+            },
+            Process = new()
+            {
+                Ended = DateTime.Now
+            },
+            Data = new()
+            {
+                new()
+                {
+                    Id = "ba0678ad-960d-4307-aba2-ba29c9804c9d",
+                    References = new()
+                    {
+                        new()
+                        {
+                            Relation = RelationType.GeneratedFrom,
+                            Value = "Task_1",
+                            ValueType = ReferenceType.Task
+                        },
+                        new()
+                        {
+                            Relation = RelationType.GeneratedFrom,
+                            Value = "EndEvent_1",
+                            ValueType = ReferenceType.Task
+                        }
+                    }
+                }
+            }
+        };
+        await te.OnEndProcessTask("EndEvent_1", instance);
+        _metaMock.Verify(r => r.GetApplicationMetadata());
+        _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
+        _dataMock.Verify(d => d.DeleteData("ttd", "test", 1337, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), Guid.Parse("ba0678ad-960d-4307-aba2-ba29c9804c9d"), false), Times.Once);
     }
     
     [Fact]
@@ -410,6 +475,7 @@ public class DefaultTaskEventsTests: IDisposable
         var instance = new Instance()
         {
             Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/test",
             InstanceOwner = new()
             {
                 PartyId = "1000"
@@ -448,6 +514,7 @@ public class DefaultTaskEventsTests: IDisposable
         var instance = new Instance()
         {
             Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/test",            
             InstanceOwner = new()
             {
                 PartyId = "1000"
@@ -483,6 +550,7 @@ public class DefaultTaskEventsTests: IDisposable
         var instance = new Instance()
         {
             Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/test",
             InstanceOwner = new()
             {
                 PartyId = "1000"

@@ -443,7 +443,7 @@ public class ProcessEventDispatcherTests
         // Assert
         result.Should().Be(getInstanceResponse);
         taskEvents.Verify(t => t.OnAbandonProcessTask("Task_2", instance), Times.Once);
-        instanceService.Verify(i => i.UpdateProcess(instance), Times.Exactly(2));
+        instanceService.Verify(i => i.UpdateProcess(instance), Times.Once);
         instanceService.Verify(i => i.GetInstance(updateInstanceResponse), Times.Once);
         instanceEvent.Verify(p => p.SaveInstanceEvent(events[0], instance.Org, "test-app"), Times.Once);
         instanceService.VerifyNoOtherCalls();
