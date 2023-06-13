@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
 namespace Altinn.App.Core.Helpers
@@ -29,12 +28,12 @@ namespace Altinn.App.Core.Helpers
     }
 
     /// <summary>
-    /// This class extends the IList<T> interface with a RemoveAll method.
+    /// This class extends the <![CDATA[IList<T>]]> interface with a RemoveAll method.
     /// </summary>
     public static class ListHelpers
     {
         /// <summary>
-        /// IList<T> implementation of List<T>.RemoveAll method.
+        /// <![CDATA[IList<T>]]> implementation of <![CDATA[IList<T>.RemoveAll]]> method.
         /// </summary>
         public static void RemoveAll<T>(this IList<T> list, Predicate<T> predicate)
         {

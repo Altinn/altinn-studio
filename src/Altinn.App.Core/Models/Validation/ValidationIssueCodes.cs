@@ -55,6 +55,16 @@ namespace Altinn.App.Core.Models.Validation
             /// Gets a value that represents a validation issue where the data element is infected with virus or malware of some form.
             /// </summary>
             public static string DataElementFileInfected => nameof(DataElementFileInfected);
+
+            /// <summary>
+            /// Gets a value that represents a validation issue where the data element has a file name that is not allowed.
+            /// </summary>
+            public static string InvalidFileNameFormat => nameof(InvalidFileNameFormat);
+
+            /// <summary>
+            /// Gets a value that represents a validation issue where the data element is missing a file name.
+            /// </summary>
+            public static string MissingFileName => nameof(MissingFileName);
         }
     }
 }

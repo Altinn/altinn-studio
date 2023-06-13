@@ -6,6 +6,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using Moq;
 using Xunit;
 
@@ -206,9 +207,11 @@ public class AppResourcesSITests
 
     private static IAppMetadata SetupAppMedata(IOptions<AppSettings> appsettings, IFrontendFeatures frontendFeatures = null)
     {
+        var featureManagerMock = new Mock<IFeatureManager>();
+
         if (frontendFeatures == null)
         {
-            return new AppMetadata(appsettings, new FrontendFeatures());
+            return new AppMetadata(appsettings, new FrontendFeatures(featureManagerMock.Object));
         }
 
         return new AppMetadata(appsettings, frontendFeatures);

@@ -7,12 +7,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace Altinn.App.Api.Tests.Mocks
 {
@@ -136,7 +130,7 @@ namespace Altinn.App.Api.Tests.Mocks
         // Finds the path for the instance based on instanceId. Only works if guid is unique.
         private static string GetInstancePath(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string[] paths = Directory.GetFiles(TestData.GetTestDataInstancesFolder(), instanceGuid + ".json", SearchOption.AllDirectories);
+            string[] paths = Directory.GetFiles(TestData.GetInstancesDirectory(), instanceGuid + ".json", SearchOption.AllDirectories);
             paths = paths.Where(p => p.Contains($"{instanceOwnerPartyId}")).ToArray();
             if (paths.Length == 1)
             {
@@ -148,24 +142,25 @@ namespace Altinn.App.Api.Tests.Mocks
 
         private static string GetInstancePath(string app, string org, int instanceOwnerId, Guid instanceId)
         {
-            return Path.Combine(TestData.GetTestDataInstancesFolder(), org, app, instanceOwnerId.ToString(), instanceId.ToString() + ".json");
+            return Path.Combine(TestData.GetInstancesDirectory(), org, app, instanceOwnerId.ToString(), instanceId + ".json");
         }
 
         private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
-            return Path.Combine(TestData.GetTestDataInstancesFolder(), org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
+            return Path.Combine(TestData.GetInstancesDirectory(), org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
         }
 
         private List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
         {
             string path = GetDataPath(org, app, instanceOwnerId, instanceId);
-            
-            if (!Directory.Exists(path))
-            {
-                throw new IOException($"Can't find data path {path} for instance {instanceId} in app {org}/{app}");
-            }
 
             List<DataElement> dataElements = new();
+
+            if (!Directory.Exists(path))
+            {
+                return dataElements;
+            }
+           
             foreach (string file in Directory.GetFiles(path))
             {
                 if (file.Contains(".pretest"))
@@ -418,7 +413,7 @@ namespace Altinn.App.Api.Tests.Mocks
 
             List<Instance> instances = new();
 
-            string instancesPath = TestData.GetTestDataInstancesFolder();
+            string instancesPath = TestData.GetInstancesDirectory();
 
             int fileDepth = 4;
 

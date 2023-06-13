@@ -12,4 +12,10 @@ public static class FeatureFlags
     /// based solution for pdf generation.
     /// </summary>
     public const string NewPdfGeneration = "NewPdfGeneration";
+
+    /// <summary>
+    /// By enabling this feature calling the POST on the /data endpoints will
+    /// return validation errors in the response body instead of a string.
+    /// </summary>
+    public const string JsonObjectInDataResponse = "JsonObjectInDataResponse";
 }
