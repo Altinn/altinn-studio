@@ -1,0 +1,1 @@
+export { AboutResourceOld } from './AboutResourceOld';

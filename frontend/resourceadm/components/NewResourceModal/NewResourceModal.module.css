@@ -1,0 +1,17 @@
+.modalTitle {
+  font-size: 18px;
+}
+
+.textfieldWrapper {
+  margin-top: 20px;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+}
+
+p, h2 {
+  margin: 0;
+}

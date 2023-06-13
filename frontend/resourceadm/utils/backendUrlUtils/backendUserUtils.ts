@@ -59,3 +59,16 @@ export const getResourcesUrlBySelectedContext = (
 ): string => {
   return `${basePath}/${selectedContext}/resources/repository/resourcelist`
 }
+
+/**
+ * Gets the URL path to the API for the creation of a new resource
+ *
+ * @param selectedContext the organisation
+ *
+ * @returns the url path string
+ */
+export const getCreateResourceUrlBySelectedContext = (
+  selectedContext: string
+): string => {
+  return `${basePath}/${selectedContext}/resources/repository/addresource`
+}
