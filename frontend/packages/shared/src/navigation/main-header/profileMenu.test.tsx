@@ -50,7 +50,7 @@ describe('ProfileMenu', () => {
       screen.queryByRole('menuitem', { name: textMock('shared.header_logout') })
     ).not.toBeInTheDocument();
 
-    const profileBtn = screen.getByTestId('profileIcon');
+    const profileBtn = screen.getByRole('img', { name: textMock('general.profile_icon') });
     await act(() => user.click(profileBtn));
 
     expect(
@@ -79,7 +79,7 @@ describe('ProfileMenu', () => {
       screen.queryByRole('menuitem', { name: textMock('shared.header_logout') })
     ).not.toBeInTheDocument();
 
-    const profileBtn = screen.getByTestId('profileIcon');
+    const profileBtn = screen.getByRole('img', { name: textMock('general.profile_icon') });
     await act(() => user.click(profileBtn));
 
     expect(
