@@ -3,7 +3,7 @@ import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
 import { useOnce } from 'resourceadm/hooks/useOnce';
-import { TextField } from '@digdir/design-system-react';
+import { TextField, Button } from '@digdir/design-system-react';
 
 interface Props {
   isLocalRepoInSync: boolean;
@@ -21,6 +21,10 @@ export const DeployResourcePage = ({ isLocalRepoInSync }: Props) => {
   const [currentEnvVersionTest, setCurrentEnvVersionTest] = useState('1');
   const [currentEnvVersionProd, setCurrentEnvVersionProd] = useState('1');
 
+  // TODO - The user MUST save the version number to backend. When the version number
+  // from backend is different than what is in test/prod, then it is valid.
+  // Do not compare it with the text directly, it must first be saved.
+  // TODO - ADD information box.
   const [newVersionText, setNewVersionText] = useState('1');
 
   useOnce(() => {
@@ -138,14 +142,18 @@ export const DeployResourcePage = ({ isLocalRepoInSync }: Props) => {
       {displayStatusCard()}
       <div>
         <div className={classes.newVersionWrapper}>
-          <p className={classes.newVersionText}>Nytt versjonsnummer:</p>
-          <TextField
-            placeholder='1' // TODO
-            value={newVersionText}
-            onChange={(e) => setNewVersionText(e.target.value)}
-            isValid={hasOnlyNumbers(newVersionText)} // TODO - only numbers??
-            // TODO - Is a save button needed?
-          />
+          <p className={classes.newVersionText}>Versjonsnummer for ressurs og policy</p>
+          <div className={classes.textAndButton}>
+            <div className={classes.textfield}>
+              <TextField
+                placeholder='1' // TODO
+                value={newVersionText}
+                onChange={(e) => setNewVersionText(e.target.value)}
+                isValid={hasOnlyNumbers(newVersionText)} // TODO - only numbers??
+              />
+            </div>
+            <Button color='secondary'>Oppdater versjon</Button>
+          </div>
         </div>
         <h2 className={classes.subHeader}>Velg miljø å publisere i</h2>
         <div className={classes.deployCardsWrapper}>
