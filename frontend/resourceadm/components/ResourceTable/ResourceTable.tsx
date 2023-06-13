@@ -8,7 +8,6 @@ import { ResourceType } from 'resourceadm/types/global';
 interface Props {
   list: ResourceType[];
   isSortedByNewest: boolean;
-  updateTable: (res: ResourceType[]) => void;
 }
 
 /**
@@ -17,7 +16,7 @@ interface Props {
  * @param props.list the list to display in the table
  * @param props.isSortedByNewest flag for which way to sort the list
  */
-export const ResourceTable = ({ list, isSortedByNewest, updateTable }: Props) => {
+export const ResourceTable = ({ list, isSortedByNewest }: Props) => {
   /**
    * Displays a row for each resource in the list
    */
