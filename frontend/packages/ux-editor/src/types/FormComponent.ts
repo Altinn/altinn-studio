@@ -26,9 +26,9 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
 }
 
 interface FormOptionsComponentBase<T extends ComponentType> extends FormComponentBase<T> {
-  options: IOption[];
+  options?: IOption[];
   preselectedOptionIndex?: number;
-  optionsId: string;
+  optionsId?: string;
 }
 
 export interface FormHeaderComponent extends FormComponentBase<ComponentType.Header> {

@@ -25,14 +25,14 @@ export interface ISelectionEditComponentProvidedProps extends IGenericEditCompon
 }
 
 export enum SelectedOptionsType {
-  Codelist = 'codelist',
+  CodeList = 'codelist',
   Manual = 'manual',
   Unknown = '',
 }
 
 const getSelectedOptionsType = (codeListId: string, options: IOption[]): SelectedOptionsType => {
   if (codeListId) {
-    return SelectedOptionsType.Codelist;
+    return SelectedOptionsType.CodeList;
   }
   if (options?.length) {
     return SelectedOptionsType.Manual;
@@ -59,16 +59,19 @@ export function EditOptions({
 
   const handleOptionsTypeChange = (value: SelectedOptionsType) => {
     setSelectedOptionsType(value);
-    if (value === SelectedOptionsType.Codelist) {
+    const updatedComponent = { ...component };
+    if (value === SelectedOptionsType.CodeList) {
+      delete updatedComponent.options;
       handleComponentChange({
-        ...component,
-        options: [],
+        ...updatedComponent,
+        optionsId: '',
       });
     }
     if (value === SelectedOptionsType.Manual) {
+      delete updatedComponent.optionsId;
       handleComponentChange({
-        ...component,
-        optionsId: '',
+        ...updatedComponent,
+        options: [],
       });
     }
   };
@@ -126,7 +129,7 @@ export function EditOptions({
         value={selectedOptionsType}
         variant={RadioGroupVariant.Horizontal}
       />
-      {selectedOptionsType === SelectedOptionsType.Codelist && (
+      {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
       {selectedOptionsType === SelectedOptionsType.Manual &&

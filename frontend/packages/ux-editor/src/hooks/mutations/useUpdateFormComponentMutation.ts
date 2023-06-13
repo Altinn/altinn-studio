@@ -53,11 +53,16 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
         const containerIndex = parentContainerOrder.indexOf(id);
         parentContainerOrder[containerIndex] = newId;
       } else {
+        if (components[id].type === ComponentType.RadioButtons || components[id].type === ComponentType.Checkboxes) {
+          delete components[id].options;
+          delete components[id].optionListId;
+        }
         components[id] = {
           ...components[id],
           ...updatedComponent,
         };
       }
+
 
       return saveLayout(updatedLayout).then(async (data) => {
         if (updatedComponent.type === ComponentType.FileUpload || updatedComponent.type === ComponentType.FileUploadWithTag) {
