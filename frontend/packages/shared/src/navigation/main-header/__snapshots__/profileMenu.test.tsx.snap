@@ -4,7 +4,6 @@ exports[`ProfileMenu should match snapshot 1`] = `
 <div>
   <svg
     aria-labelledby="title-r0"
-    data-testid="profileIcon"
     fill="none"
     focusable="false"
     height="1em"
@@ -16,7 +15,7 @@ exports[`ProfileMenu should match snapshot 1`] = `
     <title
       id="title-r0"
     >
-      profileIcon
+      [mockedText(general.profile_icon)]
     </title>
     <path
       clip-rule="evenodd"
@@ -32,7 +31,6 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
 <div>
   <svg
     aria-labelledby="title-r1"
-    data-testid="profileIcon"
     fill="none"
     focusable="false"
     height="1em"
@@ -44,7 +42,7 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
     <title
       id="title-r1"
     >
-      profileIcon
+      [mockedText(general.profile_icon)]
     </title>
     <path
       clip-rule="evenodd"

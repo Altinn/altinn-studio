@@ -27,7 +27,7 @@ export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
 
   return (
     <div className={classes.previewProfilIcon}>
-      <PersonCircleIcon onClick={handleClick} title='profileIcon' data-testid='profileIcon' />
+      <PersonCircleIcon onClick={handleClick} title={t('general.profile_icon')} />
       <Menu
         id='simple-menu'
         anchorEl={anchorEl}
