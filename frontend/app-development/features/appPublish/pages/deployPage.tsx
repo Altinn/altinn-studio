@@ -3,18 +3,19 @@ import classes from './deployPage.module.css';
 import { DeployContainerComponent } from '../containers/deployContainer';
 import { InfoCard } from '../components/InfoCard';
 import { ReleaseContainer } from '../containers/releaseContainer';
-import { useOrgListQuery } from '../../../hooks/queries';
+import { useDeployPermissionsQuery, useOrgListQuery } from '../../../hooks/queries';
 import { useParams } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { useInvalidator } from '../../../hooks/useInvalidator';
 
 export function DeployPage() {
-  const { data: orgs = { orgs: {} }, isLoading: isLoadingOrgs } = useOrgListQuery();
+  const { org, app } = useParams();
   const { t } = useTranslation();
-  const { org } = useParams();
+  const { data: orgs = { orgs: {} }, isLoading: isLoadingOrgs } = useOrgListQuery();
+  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissionsQuery(org, app);
   useInvalidator();
-  if (isLoadingOrgs) {
+  if (isLoadingOrgs || permissionsIsLoading) {
     return (
       <div style={{ height: 'calc(100% - 111px)' }}>
         <AltinnContentLoader width={1200} height={600}>
@@ -39,6 +40,16 @@ export function DeployPage() {
           <Trans i18nKey={'app_publish.no_env_2'}>
             <a target='_new' rel='noopener noreferrer' />
           </Trans>
+        </div>
+      </InfoCard>
+    );
+  }
+
+  if (!permissions || !permissions.length) {
+    return (
+      <InfoCard headerText={t('app_publish.no_team')} shadow={true}>
+        <div style={{ paddingTop: '2.4rem' }}>
+          {t('app_publish.no_team_info')}
         </div>
       </InfoCard>
     );

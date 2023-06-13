@@ -98,6 +98,8 @@
   "app_publish.no_env_1": "For å opprette miljøer, slik at du kan teste og produksjonssette må du ta kontakt med <0 href=\"mailto:tjenesteeier@altinn.no\">Altinn servicedesk</0>. Det er viktig at du oppgir organisasjonnavn og hvilke miljøer du ønsker tilgang til.",
   "app_publish.no_env_2": "Fram til et miljø er på plass, husk at du kan gjøre mye <0 href=\"https://docs.altinn.studio/app/testing/local/\">testing lokalt</0>.",
   "app_publish.no_env_title": "Din organisasjon har ikke test- og produksjonsmiljø",
+  "app_publish.no_team": "Du tilhører ikke noe team i organisasjonen din.",
+  "app_publish.no_team_info": "For å få tilgang til å deploye applikasjonen din til et miljø er du nødt til å være lagt til i et team som har deploy rettigheter til det spesifikke miljøet.",
   "app_publish.no_versions": "Du har ingen versjoner å deploye",
   "app_release.earlier_releases": "Tidligere bygg av applikasjonen",
   "app_release.release_build_log": "Bygglogg",
