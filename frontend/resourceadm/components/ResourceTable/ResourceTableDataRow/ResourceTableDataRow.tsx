@@ -39,7 +39,7 @@ export const ResourceTableDataRow = ({ resource }: Props) => {
       <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
         <ResourceTableDataChip hasPolicy={resource.hasPolicy} />
       </td>
-      <td className={`${classes.tableDataMedium} ${classes.tableData}`}>
+      <td className={`${classes.tableDataSmall} ${classes.tableData}`}>
         <Button
           variant='quiet'
           color='secondary'

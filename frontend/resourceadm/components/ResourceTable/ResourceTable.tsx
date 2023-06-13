@@ -56,7 +56,7 @@ export const ResourceTable = ({ list, isSortedByNewest, updateTable }: Props) =>
             <p className={classes.tableHeaderText}>Policy</p>
           </th>
           <th
-            className={`${classes.tableHeaderMedium} ${classes.tableHeader}`}
+            className={`${classes.tableHeaderSmall} ${classes.tableHeader}`}
             aria-label='Rediger ressurs kolonne'
           />
         </tr>

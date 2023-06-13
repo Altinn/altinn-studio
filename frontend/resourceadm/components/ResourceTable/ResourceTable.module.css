@@ -10,11 +10,15 @@
 }
 
 .tableHeaderLarge {
-  width: 26%;
+  width: 27%;
 }
 
 .tableHeaderMedium {
-  width: 16%;
+  width: 18%;
+}
+
+.tableHeaderSmall {
+  width: 10%;
 }
 
 .tableHeaderText {

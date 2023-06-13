@@ -4,11 +4,16 @@
 }
 
 .tableDataLarge {
-  width: 26%;
+  width: 27%;
 }
 
 .tableDataMedium {
-  width: 16%;
+  width: 18%;
+}
+
+.tableDataSmall {
+  width: 10%;
+  justify-content: flex-end;
 }
 
 .tableDataDate {
