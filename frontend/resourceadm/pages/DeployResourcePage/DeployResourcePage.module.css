@@ -26,6 +26,17 @@
   margin-top: 20px;
 }
 
+.newVersionWrapper {
+  margin-top: 40px;
+  width: 550px;
+}
+
+.newVersionText {
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
 p, h1, h2 {
   margin: 0;
   line-height: 24px;

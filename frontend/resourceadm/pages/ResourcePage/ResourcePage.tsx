@@ -50,6 +50,8 @@ export const ResourcePage = () => {
    */
   const navigateToPage = (page: NavigationBarPageType) => {
     setCurrentPage(page);
+    console.log(repoStatus);
+    refetch();
     navigate(getResourcePageURL(selectedContext, repo, resourceId, page));
   };
 

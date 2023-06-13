@@ -3,6 +3,7 @@ import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
 import { useOnce } from 'resourceadm/hooks/useOnce';
+import { TextField } from '@digdir/design-system-react';
 
 interface Props {
   isLocalRepoInSync: boolean;
@@ -20,14 +21,12 @@ export const DeployResourcePage = ({ isLocalRepoInSync }: Props) => {
   const [currentEnvVersionTest, setCurrentEnvVersionTest] = useState('1');
   const [currentEnvVersionProd, setCurrentEnvVersionProd] = useState('1');
 
-  // TODO - find out what to do with this
-  const isFinalTestVersionPublished = true;
-  const isFinalProdVersionPublished = false;
+  const [newVersionText, setNewVersionText] = useState('1');
 
   useOnce(() => {
     // TODO - replace with API call
-    setResourceIsValid(false);
-    setCurrentEnvVersionTest('1');
+    setResourceIsValid(true);
+    setCurrentEnvVersionTest('2');
     setCurrentEnvVersionProd('1');
   });
 
@@ -41,9 +40,19 @@ export const DeployResourcePage = ({ isLocalRepoInSync }: Props) => {
    */
   const getDeploymentNotPossibleText = (type: 'test' | 'prod'): string => {
     if (!resourceIsValid) return '';
-    if (resourceIsValid && type === 'test' && isFinalTestVersionPublished)
+    if (
+      resourceIsValid &&
+      type === 'test' &&
+      newVersionText === currentEnvVersionTest &&
+      isLocalRepoInSync
+    )
       return 'Siste versjon er allerede publisert';
-    if (resourceIsValid && type === 'prod' && isFinalProdVersionPublished)
+    if (
+      resourceIsValid &&
+      type === 'prod' &&
+      newVersionText === currentEnvVersionProd &&
+      isLocalRepoInSync
+    )
       return 'Siste versjon er allerede publisert';
     return '';
   };
@@ -82,23 +91,72 @@ export const DeployResourcePage = ({ isLocalRepoInSync }: Props) => {
     return <ResourceDeployStatus type={getStatusCardType()} message={getStatusCardMessage()} />;
   };
 
+  /**
+   * Checks that the version number entered contains only numbers
+   *
+   * @param value the string to check
+   *
+   * @returns a boolean for if it has only numbers
+   */
+  const hasOnlyNumbers = (value: string): boolean => {
+    const regex = /^[0-9]+$/;
+    return regex.test(value);
+  };
+
+  /**
+   * Checks if deploy is possible for the given type
+   *
+   * @param type the environment, test or prod
+   *
+   * @returns a boolean for if it is possible
+   */
+  const isDeployPossible = (type: 'test' | 'prod'): boolean => {
+    if (
+      type === 'test' &&
+      hasOnlyNumbers(newVersionText) &&
+      resourceIsValid &&
+      isLocalRepoInSync &&
+      newVersionText !== currentEnvVersionTest
+    ) {
+      return true;
+    }
+    if (
+      type === 'prod' &&
+      hasOnlyNumbers(newVersionText) &&
+      resourceIsValid &&
+      isLocalRepoInSync &&
+      newVersionText !== currentEnvVersionProd
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <div className={classes.deployPageWrapper}>
       <h1 className={classes.pageHeader}>Publiser ressurs</h1>
       {displayStatusCard()}
       <div>
+        <div className={classes.newVersionWrapper}>
+          <p className={classes.newVersionText}>Nytt versjonsnummer:</p>
+          <TextField
+            placeholder='1' // TODO
+            value={newVersionText}
+            onChange={(e) => setNewVersionText(e.target.value)}
+            isValid={hasOnlyNumbers(newVersionText)} // TODO - only numbers??
+            // TODO - Is a save button needed?
+          />
+        </div>
         <h2 className={classes.subHeader}>Velg miljø å publisere i</h2>
         <div className={classes.deployCardsWrapper}>
           <ResourceDeployEnvCard
-            // TODO - Check the version properly
-            isDeployPossible={resourceIsValid && currentEnvVersionTest === '1'}
+            isDeployPossible={isDeployPossible('test')}
             envName='tt02-miljøet'
             currentEnvVersion={currentEnvVersionTest}
             deploymentNotPossibleText={getDeploymentNotPossibleText('test')}
           />
           <ResourceDeployEnvCard
-            // TODO - Check the version properly
-            isDeployPossible={resourceIsValid && currentEnvVersionProd === '2'}
+            isDeployPossible={isDeployPossible('prod')}
             envName='production-miljøet'
             currentEnvVersion={currentEnvVersionProd}
             deploymentNotPossibleText={getDeploymentNotPossibleText('prod')}
