@@ -60,6 +60,9 @@ export const orgsListPath = () => '/designer/api/orgs'; // Get
 export const previewPath = (org, app) => `/preview/${org}/${app}`;
 export const instanceIdForPreviewPath = (org, app) => `/designer/api/${org}/${app}/mock-instance-id`; // Get
 
+//Editor
+export const editorPath = (org, app) => `/editor/${org}/${app}`;
+
 // Preview - SignalR Hub
 export const previewSignalRHubSubPath = () => '/previewHub';
 

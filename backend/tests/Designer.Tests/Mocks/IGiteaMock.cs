@@ -120,7 +120,11 @@ namespace Designer.Tests.Mocks
 
         public Task<List<Team>> GetTeams()
         {
-            throw new NotImplementedException();
+            List<Team> teamWithDeployAccess = new()
+            {
+                new Team { Name = "Deploy-TestEnv", Organization = new Organization { Username = "ttd" } }
+            };
+            return Task.FromResult(teamWithDeployAccess);
         }
 
         public Task<string> GetUserNameFromUI()

@@ -9,6 +9,7 @@ import { userHasAccessToSelectedContext } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
+import { VersionControlHeader } from './VersionControlHeader';
 
 export const PageLayout = () => {
   const { data: user } = useUserQuery();
@@ -23,7 +24,7 @@ export const PageLayout = () => {
       organizations &&
       !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })
     ) {
-      navigate("/");
+      navigate('/');
     }
   }, [organizations, selectedContext, user.login, navigate]);
 
@@ -39,6 +40,7 @@ export const PageLayout = () => {
     <>
       <HeaderContext.Provider value={headerContextValue}>
         <AppHeader />
+        <VersionControlHeader />
       </HeaderContext.Provider>
       <Outlet />
     </>

@@ -1,7 +1,6 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { SchemaState } from '../../types';
 import { NameError } from '../../types';
 import {
   addCombinationItem,
@@ -40,8 +39,10 @@ import {
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
+import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
+import { uiSchemaSelector } from '@altinn/schema-editor/selectors/schemaStateSelectors';
 
-export type IItemDataComponentProps = UiSchemaNode;
+export type IItemDataComponentProps = Omit<UiSchemaNode, 'children'>;
 
 export function ItemDataComponent(props: IItemDataComponentProps) {
   const {
@@ -53,6 +54,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
     isCombinationItem,
     objectKind,
     isArray,
+    custom,
   } = props;
   const dispatch = useDispatch();
 
@@ -62,7 +64,7 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
   const [nameError, setNameError] = useState(NameError.NoError);
   const [itemDescription, setItemItemDescription] = useState<string>(description || '');
 
-  const uiSchema = useSelector((state: SchemaState) => state.uiSchema);
+  const uiSchema = useSelector(uiSchemaSelector);
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(uiSchema, pointer) : [];
@@ -146,6 +148,8 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
 
   const { t } = useTranslation();
 
+  const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
+
   const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
   const descriptionId = getDomFriendlyID(pointer, { suffix: 'description' });
 
@@ -220,6 +224,12 @@ export function ItemDataComponent(props: IItemDataComponentProps) {
         />
       )}
       <ItemRestrictions {...props} />
+      {hasCustomProps && (
+        <>
+          <Divider marginless/>
+          <CustomProperties path={pointer}/>
+        </>
+      )}
       <Divider marginless/>
       <FieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>

@@ -2,18 +2,54 @@
 
 exports[`ProfileMenu should match snapshot 1`] = `
 <div>
-  <img
-    aria-haspopup="true"
-    aria-label="profilikon"
-  />
+  <svg
+    aria-labelledby="title-r0"
+    fill="none"
+    focusable="false"
+    height="1em"
+    role="img"
+    viewBox="0 0 24 24"
+    width="1em"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <title
+      id="title-r0"
+    >
+      [mockedText(general.profile_icon)]
+    </title>
+    <path
+      clip-rule="evenodd"
+      d="M12 3.75a8.25 8.25 0 0 0-5.144 14.7 5.25 5.25 0 0 1 10.288 0A8.25 8.25 0 0 0 12 3.75Zm3.747 15.602a3.75 3.75 0 0 0-7.494 0A8.215 8.215 0 0 0 12 20.25c1.35 0 2.623-.324 3.747-.898ZM2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 7.25a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM8.25 9.5a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+    />
+  </svg>
 </div>
 `;
 
 exports[`ProfileMenu should match snapshot with logout text 1`] = `
 <div>
-  <img
-    aria-haspopup="true"
-    aria-label="profilikon"
-  />
+  <svg
+    aria-labelledby="title-r1"
+    fill="none"
+    focusable="false"
+    height="1em"
+    role="img"
+    viewBox="0 0 24 24"
+    width="1em"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <title
+      id="title-r1"
+    >
+      [mockedText(general.profile_icon)]
+    </title>
+    <path
+      clip-rule="evenodd"
+      d="M12 3.75a8.25 8.25 0 0 0-5.144 14.7 5.25 5.25 0 0 1 10.288 0A8.25 8.25 0 0 0 12 3.75Zm3.747 15.602a3.75 3.75 0 0 0-7.494 0A8.215 8.215 0 0 0 12 20.25c1.35 0 2.623-.324 3.747-.898ZM2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM12 7.25a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM8.25 9.5a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+    />
+  </svg>
 </div>
 `;

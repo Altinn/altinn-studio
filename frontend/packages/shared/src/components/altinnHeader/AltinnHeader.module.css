@@ -3,6 +3,7 @@
   align-items: center;
   height: var(--toolbar-height);
   padding: 0 2rem;
+  flex: 2;
 }
 
 .regular {
@@ -19,10 +20,10 @@
   align-items: center;
   border-right: 1px solid #fff2;
   display: flex;
-  flex: 1;
+  flex: 2;
   line-height: 1;
   overflow: hidden;
-  padding-right: 2rem;
+  padding-right: 1rem;
 }
 
 .appName {
@@ -40,13 +41,13 @@
 .altinnHeaderBar .rightContent {
   align-items: center;
   display: flex;
-  flex: 1;
+  flex: 3;
   gap: 1rem;
   justify-content: flex-end;
 }
 
 .profileMenuWrapper {
-  flex: 2;
+  flex: 3;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -57,14 +58,15 @@
   white-space: pre-line;
   line-height: 25px;
   font-size: 1rem;
-  margin-right: 15px;
+  margin-right: 1px;
 }
 
 .rightContentButtons {
   align-items: center;
   display: flex;
   gap: 1rem;
-  flex: 3;
+  flex: 0;
+  padding: 15px;
 }
 
 .rightContentButtons > * {

@@ -6,17 +6,14 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -190,8 +187,18 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
         public RepoStatus RepoStatus(string org, string repository)
         {
-            _sourceControl.FetchRemoteChanges(org, repository);
-            return _sourceControl.RepositoryStatus(org, repository);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
+            try
+            {
+                _sourceControl.FetchRemoteChanges(org, repository);
+                return _sourceControl.RepositoryStatus(org, repository);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         /// <summary>
@@ -264,7 +271,18 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit-and-push")]
         public void CommitAndPushRepo([FromBody] CommitInfo commitInfo)
         {
-            _sourceControl.PushChangesForRepository(commitInfo);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(commitInfo.Org, commitInfo.Repository, developer);
+            semaphore.Wait();
+            try
+            {
+                _sourceControl.PushChangesForRepository(commitInfo);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+
         }
 
         /// <summary>
@@ -276,6 +294,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit")]
         public ActionResult Commit([FromBody] CommitInfo commitInfo)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(commitInfo.Org, commitInfo.Repository, developer);
+            semaphore.Wait();
             try
             {
                 _sourceControl.Commit(commitInfo);
@@ -284,6 +305,10 @@ namespace Altinn.Studio.Designer.Controllers
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
 
@@ -296,14 +321,17 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
         public async Task<ActionResult> Push(string org, string repository)
         {
-            bool pushSuccess = await _sourceControl.Push(org, repository);
-            if (pushSuccess)
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            await semaphore.WaitAsync();
+            try
             {
-                return Ok();
+                bool pushSuccess = await _sourceControl.Push(org, repository);
+                return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
             }
-            else
+            finally
             {
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                semaphore.Release();
             }
         }
 

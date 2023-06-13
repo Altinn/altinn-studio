@@ -62,7 +62,7 @@ namespace Designer.Tests.Controllers.TextsController
         }
 
         [Theory]
-        [InlineData("ttd", "invalid-texts-format", "en")]
+        [InlineData("ttd", "invalid-texts-and-ruleconfig", "en")]
         public async Task Get_InvalidFile_500InternalServer(string org, string app, string lang)
         {
             string dataPathWithData = $"{VersionPrefix(org, app)}/language/{lang}";

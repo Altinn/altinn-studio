@@ -22,3 +22,10 @@
   border-radius: 30px;
   padding: 5px;
 }
+
+.previewProfilIcon {
+  font-size: 40px;
+  align-items: center;
+  flex: 1;
+  display: flex;
+}
