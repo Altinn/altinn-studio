@@ -7,7 +7,9 @@ import {
   deleteEnumValue,
   deleteNode,
   promoteProperty,
-  setCombinationType, setCustomProperties, SetCustomPropertiesArgs,
+  setCombinationType,
+  setCustomProperties,
+  SetCustomPropertiesArgs,
   setDescription,
   setPropertyName,
   setRef,
@@ -48,14 +50,32 @@ import {
 } from '../../../test/uiSchemaMock';
 import { getChildNodesByPointer, getNodeByPointer } from '../selectors';
 import { expect } from '@jest/globals';
-import { CombinationKind, FieldType, Keyword, ObjectKind, StrRestrictionKey, UiSchemaNode } from '../../types';
+import {
+  CombinationKind,
+  FieldType,
+  Keyword,
+  ObjectKind,
+  StrRestrictionKey,
+  UiSchemaNode,
+  UiSchemaNodes
+} from '../../types';
 import { ROOT_POINTER } from '../constants';
 import { getPointers } from '../mappers/getPointers';
 import { substringAfterLast, substringBeforeLast } from 'app-shared/utils/stringUtils';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
 
 describe('ui-schema-reducers', () => {
-  afterEach(jest.clearAllMocks);
+  let result: UiSchemaNodes;
+
+  beforeEach(() => {
+    result = [];
+  });
+
+  afterEach(() => {
+    validateTestUiSchema(result);
+    jest.clearAllMocks();
+  });
 
   describe('addEnumValue', () => {
     const { pointer } = enumNodeMock;
@@ -63,7 +83,7 @@ describe('ui-schema-reducers', () => {
 
     it('Adds an enum value to the given node if oldValue is not given', () => {
       const args: AddEnumValueArgs = { path: pointer, value };
-      const result = addEnumValue(uiSchemaMock, args);
+      result = addEnumValue(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.enum).toEqual([...enumNodeMock.enum, value]);
     });
@@ -71,7 +91,7 @@ describe('ui-schema-reducers', () => {
     it('Adds an enum value to the given node if oldValue does not exist', () => {
       const oldValue = 'val5';
       const args: AddEnumValueArgs = { path: pointer, value, oldValue };
-      const result = addEnumValue(uiSchemaMock, args);
+      result = addEnumValue(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.enum).toEqual([...enumNodeMock.enum, value]);
     });
@@ -79,7 +99,7 @@ describe('ui-schema-reducers', () => {
     it('Replaces oldValue if it exists', () => {
       const oldValue = enumNodeMock.enum[0];
       const args: AddEnumValueArgs = { path: pointer, value, oldValue };
-      const result = addEnumValue(uiSchemaMock, args);
+      result = addEnumValue(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.enum).toEqual([value, ...enumNodeMock.enum.slice(1)]);
     });
@@ -94,25 +114,25 @@ describe('ui-schema-reducers', () => {
     const expectedPointer = `${location}/${name}`;
 
     it('Adds an item to the root node', () => {
-      const result = addRootItem(uiSchemaMock, args);
+      result = addRootItem(uiSchemaMock, args);
       expect(getPointers(result)).toContain(expectedPointer);
       expect(getNodeByPointer(result, ROOT_POINTER).children).toContain(expectedPointer);
     });
 
     it('Sets implicitType of the new node to false', () => {
-      const result = addRootItem(uiSchemaMock, args);
+      result = addRootItem(uiSchemaMock, args);
       const newNode = getNodeByPointer(result, expectedPointer);
       expect(newNode.implicitType).toBe(false);
     });
 
     it('Calls the callback function with the new pointer', () => {
-      addRootItem(uiSchemaMock, args);
+      result = addRootItem(uiSchemaMock, args);
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(expectedPointer);
     });
 
     it('Adds the given props to the new node', () => {
-      const result = addRootItem(uiSchemaMock, args);
+      result = addRootItem(uiSchemaMock, args);
       const newNode = getNodeByPointer(result, expectedPointer);
       expect(newNode).toMatchObject(props);
     });
@@ -126,19 +146,19 @@ describe('ui-schema-reducers', () => {
     const expectedPropPointer = `${pointer}/${Keyword.Properties}/name`;
 
     it('Adds a property with the name "name" to the given node', () => {
-      const result = addProperty(uiSchemaMock, args);
+      result = addProperty(uiSchemaMock, args);
       const parentNode = getNodeByPointer(result, pointer);
       expect(parentNode.children).toContain(expectedPropPointer);
     });
 
     it('Calls the callback function with the new pointer', () => {
-      addProperty(uiSchemaMock, args);
+      result = addProperty(uiSchemaMock, args);
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(expectedPropPointer);
     });
 
     it('Sets implicitType of the new node to false', () => {
-      const result = addProperty(uiSchemaMock, args);
+      result = addProperty(uiSchemaMock, args);
       const newNode = getNodeByPointer(result, expectedPropPointer);
       expect(newNode.implicitType).toBe(false);
     });
@@ -149,7 +169,7 @@ describe('ui-schema-reducers', () => {
       const path = enumNodeMock.pointer;
       const value = enumNodeMock.enum[0];
       const args: DeleteEnumValueArgs = { path, value };
-      const result = deleteEnumValue(uiSchemaMock, args);
+      result = deleteEnumValue(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, path);
       expect(updatedNode.enum).toEqual(enumNodeMock.enum.slice(1));
     });
@@ -158,7 +178,7 @@ describe('ui-schema-reducers', () => {
   describe('promoteProperty', () => {
     it('Convert a property to a root level definition', () => {
       const { pointer } = stringNodeMock;
-      const result = promoteProperty(uiSchemaMock, pointer);
+      result = promoteProperty(uiSchemaMock, pointer);
       const expectedPointer = `${ROOT_POINTER}/$defs/${substringAfterLast(pointer, '/')}`;
       expect(getPointers(result)).toContain(expectedPointer);
       expect(getNodeByPointer(result, expectedPointer)).toMatchObject({ fieldType: stringNodeMock.fieldType });
@@ -168,7 +188,7 @@ describe('ui-schema-reducers', () => {
   describe('deleteNode', () => {
     it('Deletes the given node', () => {
       const { pointer } = stringNodeMock;
-      const result = deleteNode(uiSchemaMock, pointer);
+      result = deleteNode(uiSchemaMock, pointer);
       expect(getPointers(result)).not.toContain(pointer);
     });
   });
@@ -179,7 +199,7 @@ describe('ui-schema-reducers', () => {
       const key = StrRestrictionKey.maxLength;
       const value = 144;
       const args: SetRestrictionArgs = { path: pointer, key, value: value.toString() };
-      const result = setRestriction(uiSchemaMock, args);
+      result = setRestriction(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.restrictions[key]).toEqual(value);
     });
@@ -190,7 +210,7 @@ describe('ui-schema-reducers', () => {
       const { pointer } = stringNodeMock;
       const restrictions = { maxLength: 144, minLength: 12 };
       const args: SetRestrictionsArgs = { path: pointer, restrictions };
-      const result = setRestrictions(uiSchemaMock, args);
+      result = setRestrictions(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.restrictions).toEqual(restrictions);
     });
@@ -201,7 +221,7 @@ describe('ui-schema-reducers', () => {
       const path = numberNodeMock.pointer;
       const ref = defNodeMock.pointer;
       const args: SetRefArgs = { path, ref };
-      const result = setRef(uiSchemaMock, args);
+      result = setRef(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, path);
       expect(updatedNode.reference).toEqual(ref);
       expect(updatedNode.objectKind).toEqual(ObjectKind.Reference);
@@ -215,7 +235,7 @@ describe('ui-schema-reducers', () => {
       const path = numberNodeMock.pointer;
       const type = FieldType.String;
       const args: SetTypeArgs = { path, type };
-      const result = setType(uiSchemaMock, args);
+      result = setType(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, path);
       expect(updatedNode.fieldType).toEqual(type);
       expect(updatedNode.implicitType).toBe(false);
@@ -227,7 +247,7 @@ describe('ui-schema-reducers', () => {
       const path = numberNodeMock.pointer;
       const title = 'test title';
       const args: SetTitleArgs = { path, title };
-      const result = setTitle(uiSchemaMock, args);
+      result = setTitle(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, path);
       expect(updatedNode.title).toEqual(title);
     });
@@ -238,7 +258,7 @@ describe('ui-schema-reducers', () => {
       const path = numberNodeMock.pointer;
       const description = 'test description';
       const args: SetDescriptionArgs = { path, description };
-      const result = setDescription(uiSchemaMock, args);
+      result = setDescription(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, path);
       expect(updatedNode.description).toEqual(description);
     });
@@ -248,11 +268,14 @@ describe('ui-schema-reducers', () => {
     const optionalPropertyPath = optionalNodeMock.pointer;
     const requiredPropertyPath = requiredNodeMock.pointer;
 
-    it.each([true, false])('Sets "isRequired" to %s', (required) => {
-      const schemaWithChangeOnOptional = setRequired(uiSchemaMock, { path: optionalPropertyPath, required });
-      const schemaWithChangeOnRequired = setRequired(uiSchemaMock, { path: requiredPropertyPath, required });
-      expect(getNodeByPointer(schemaWithChangeOnOptional, optionalPropertyPath).isRequired).toBe(required);
-      expect(getNodeByPointer(schemaWithChangeOnRequired, requiredPropertyPath).isRequired).toBe(required);
+    it.each([true, false])('Sets "isRequired" to %s when it was false', (required) => {
+      result = setRequired(uiSchemaMock, { path: optionalPropertyPath, required });
+      expect(getNodeByPointer(result, optionalPropertyPath).isRequired).toBe(required);
+    });
+
+    it.each([true, false])('Sets "isRequired" to %s when it was true', (required) => {
+      result = setRequired(uiSchemaMock, { path: requiredPropertyPath, required });
+      expect(getNodeByPointer(result, requiredPropertyPath).isRequired).toBe(required);
     });
   });
 
@@ -261,7 +284,7 @@ describe('ui-schema-reducers', () => {
       const path = numberNodeMock.pointer;
       const properties: KeyValuePairs = { someCustomProp: 'test' };
       const args: SetCustomPropertiesArgs = { path, properties };
-      const result = setCustomProperties(uiSchemaMock, args);
+      result = setCustomProperties(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, path);
       expect(updatedNode.custom).toEqual(properties);
     });
@@ -271,14 +294,16 @@ describe('ui-schema-reducers', () => {
     const path = allOfNodeMock.pointer;
     const combinationType = CombinationKind.OneOf;
     const args: SetCombinationTypeArgs = { path, type: combinationType };
-    const result = setCombinationType(uiSchemaMock, args);
-    const updatedNode = getNodeByPointer(result, path);
 
     it('Sets the combination type of the given node', () => {
+      result = setCombinationType(uiSchemaMock, args);
+      const updatedNode = getNodeByPointer(result, path);
       expect(updatedNode.fieldType).toEqual(combinationType);
     });
 
     it('Updates the childrens\' pointers', () => {
+      result = setCombinationType(uiSchemaMock, args);
+      const updatedNode = getNodeByPointer(result, path);
       expect(allOfNodeMock.children.length).toEqual(updatedNode.children.length);
       getChildNodesByPointer(result, path).forEach((childNode) => {
         expect(childNode.pointer.startsWith(`${path}/${combinationType}`)).toBe(true);
@@ -292,7 +317,7 @@ describe('ui-schema-reducers', () => {
       const props: Partial<UiSchemaNode> = { fieldType: FieldType.Number };
       const callback = jest.fn();
       const args: AddCombinationItemArgs = { pointer, props, callback };
-      const result = addCombinationItem(uiSchemaMock, args);
+      result = addCombinationItem(uiSchemaMock, args);
       const parentNode = getNodeByPointer(result, pointer);
       const newItemPointer = callback.mock.calls[0][0];
       expect(getPointers(result)).toContain(newItemPointer);
@@ -309,7 +334,7 @@ describe('ui-schema-reducers', () => {
     const expectedPointer = substringBeforeLast(pointer, '/') + '/' + name;
 
     it('Sets the name of the given property', () => {
-      const result = setPropertyName(uiSchemaMock, args);
+      result = setPropertyName(uiSchemaMock, args);
       const newPointers = getPointers(result);
       expect(newPointers).toContain(expectedPointer);
       expect(newPointers).not.toContain(pointer);
@@ -320,7 +345,7 @@ describe('ui-schema-reducers', () => {
     });
 
     it('Calls the callback function with the new pointer', () => {
-      setPropertyName(uiSchemaMock, args);
+      result = setPropertyName(uiSchemaMock, args);
       expect(callback).toBeCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(expectedPointer);
     });
@@ -329,7 +354,7 @@ describe('ui-schema-reducers', () => {
   describe('toggleArrayField', () => {
     it('Converts an array node to a single field node', () => {
       const { pointer } = arrayNodeMock;
-      const result = toggleArrayField(uiSchemaMock, pointer);
+      result = toggleArrayField(uiSchemaMock, pointer);
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.fieldType).toEqual(arrayNodeMock.fieldType);
       expect(updatedNode.isArray).toBe(false);
@@ -337,7 +362,7 @@ describe('ui-schema-reducers', () => {
 
     it('Converts a single field node to an array node', () => {
       const { pointer } = stringNodeMock;
-      const result = toggleArrayField(uiSchemaMock, pointer);
+      result = toggleArrayField(uiSchemaMock, pointer);
       const updatedNode = getNodeByPointer(result, pointer);
       expect(updatedNode.fieldType).toEqual(stringNodeMock.fieldType);
       expect(updatedNode.isArray).toBe(true);
@@ -349,7 +374,7 @@ describe('ui-schema-reducers', () => {
       const { pointer: parentPointer, children } = parentNodeMock;
       const [pointerA, pointerB] = children;
       const args: ChangeChildrenOrderArgs = { pointerA, pointerB };
-      const result = changeChildrenOrder(uiSchemaMock, args);
+      result = changeChildrenOrder(uiSchemaMock, args);
       const updatedNode = getNodeByPointer(result, parentPointer);
       expect(updatedNode.children[0]).toBe(pointerB);
       expect(updatedNode.children[1]).toBe(pointerA);

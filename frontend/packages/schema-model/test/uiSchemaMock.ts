@@ -77,7 +77,7 @@ export const arrayNodeMock: UiSchemaNode = {
   ...nodeMockBase,
   pointer: arrayNodePointer,
   isArray: true,
-}
+};
 
 export const defNodeMock: UiSchemaNode = {
   ...nodeMockBase,

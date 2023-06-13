@@ -169,7 +169,7 @@ export const setType: UiSchemaReducer<SetTypeArgs> =
     uiSchemaNode.fieldType = type;
     uiSchemaNode.implicitType = false;
     return newSchema;
-  }
+  };
 
 export type SetTitleArgs = {
   path: string;
