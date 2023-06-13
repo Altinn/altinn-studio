@@ -57,7 +57,6 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
   [ComponentType.Datepicker]: [...editBoilerPlate],
   [ComponentType.Paragraph]: [EditSettings.Title],
   [ComponentType.AttachmentList]: [EditSettings.Title],
-  [ComponentType.RadioButtons]: [...editBoilerPlate],
   [ComponentType.Checkboxes]: [
     ...editBoilerPlate,
     EditSettings.Options,

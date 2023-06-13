@@ -1,9 +1,16 @@
 import React, { useEffect, useState, MouseEvent } from 'react';
-import { Panel, PanelVariant, ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
+import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import classes from './TopToolbar.module.css';
 import { useTranslation } from 'react-i18next';
 import { CogIcon } from '@navikt/aksel-icons';
-import { Button, ButtonVariant, ErrorMessage, Popover, Spinner } from '@digdir/design-system-react';
+import {
+  Button,
+  ButtonVariant,
+  ErrorMessage,
+  Popover,
+  Spinner,
+  ToggleButtonGroup,
+} from '@digdir/design-system-react';
 import { GenerateSchemaState } from 'app-shared/types/global';
 import cn from 'classnames';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
@@ -92,10 +99,14 @@ export function TopToolbar({
         )}
       </div>
       {toggleEditMode && (
-        <ToggleButtonGroup selectedValue={editMode ? 'edit' : 'view'} onChange={toggleEditMode}>
-          <ToggleButton value='view'>{t('schema_editor.view_mode')}</ToggleButton>
-          <ToggleButton value='edit'>{t('schema_editor.edit_mode')}</ToggleButton>
-        </ToggleButtonGroup>
+        <ToggleButtonGroup
+          selectedValue={editMode ? 'edit' : 'view'}
+          onChange={toggleEditMode}
+          items={[
+            { value: 'view', label: t('schema_editor.view_mode') },
+            { value: 'edit', label: t('schema_editor.edit_mode') },
+          ]}
+        />
       )}
     </section>
   );

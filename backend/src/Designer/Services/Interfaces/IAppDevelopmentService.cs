@@ -129,7 +129,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">The name of the developer.</param>
         /// <param name="layoutSetName">The name of the layout set.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the rule configuration as a string.</returns>
-        public Task<string> GetRuleConfig(string org, string app, string developer, [CanBeNull] string layoutSetName);
+        public Task<string> GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(string org, string app, string developer, [CanBeNull] string layoutSetName);
 
         /// <summary>
         /// Saves the rule configuration for a specific organization, application, developer, rule configuration, and layout set name.

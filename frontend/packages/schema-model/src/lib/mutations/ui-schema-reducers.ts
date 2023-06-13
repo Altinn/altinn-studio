@@ -204,6 +204,18 @@ export const setRequired: UiSchemaReducer<SetRequiredArgs> =
     return newSchema;
   };
 
+export type SetCustomPropertiesArgs = {
+  path: string;
+  properties: KeyValuePairs;
+};
+export const setCustomProperties: UiSchemaReducer<SetCustomPropertiesArgs> =
+  (uiSchema, { path, properties }) => {
+    const newSchema = deepCopy(uiSchema);
+    const uiSchemaNode = getNodeByPointer(newSchema, path);
+    uiSchemaNode.custom = properties;
+    return newSchema;
+  };
+
 export type SetCombinationTypeArgs = {
   path: string;
   type: CombinationKind;

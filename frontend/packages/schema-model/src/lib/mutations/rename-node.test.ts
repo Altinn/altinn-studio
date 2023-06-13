@@ -32,4 +32,9 @@ describe('renameNodePointer', () => {
     expect(renamedNode.children)
       .toEqual(parentNodeMock.children.map((child) => child.replace(oldPointer, newPointer)));
   });
+
+  it('Throws error on unknown pointer', () => {
+    const uiSchemaNodes = uiSchemaMock;
+    expect(() => renameNodePointer(uiSchemaNodes, 'fdasdfas', 'asdfsadfsaasdf')).toThrowError();
+  });
 });

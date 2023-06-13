@@ -140,7 +140,7 @@ describe('CheckboxGroupPreview', () => {
     const valueInput = screen.getByLabelText(valueText);
     expect(valueInput).not.toHaveValue('');
     await act(() => user.clear(valueInput));
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(emptyErrorText);
+    expect(screen.getByRole('alert')).toHaveTextContent(emptyErrorText);
   });
 
   it('Renders correct error message when an existing value is given in the add section', async () => {
@@ -149,7 +149,7 @@ describe('CheckboxGroupPreview', () => {
     expect(valueInput).not.toHaveValue('');
     await act(() => user.clear(valueInput));
     await act(() => user.type(valueInput, option1Value));
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(duplicateErrorText);
+    expect(screen.getByRole('alert')).toHaveTextContent(duplicateErrorText);
   });
 });
 

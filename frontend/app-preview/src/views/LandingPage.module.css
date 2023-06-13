@@ -1,7 +1,26 @@
-@import url('https://fonts.googleapis.com/css?family=Inter');
+.header {
+  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  align-items: center;
+  height: var(--header-height);
+  width: 100vw;
+  --component-button-outline-primary-color-background-default: #efefef;
+  --component-button-outline-primary-color-border-default: #1e2b3c;
+  --component-button-outline-primary-color-border-hover: none;
+  --component-button-outline-primary-color-text-default: #1e2b3c !important;
+}
 
-.landingPage {
-  background-color: #0a572e;
+.leftSubHeaderButtons {
+  flex-direction: row;
+  text-align: right;
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  flex: 3;
+  --component-button-quiet-primary-color-background-default: none;
+  --component-button-quiet-primary-color-border-default: none;
+  --component-button-quiet-primary-color-border-hover: #004e95;
+  --component-button-quiet-primary-color-text-default: #ffffff;
 }
 
 .iframeDesktop {
@@ -14,11 +33,13 @@
   display: flex;
   justify-content: center;
   background-color: #efefef;
+  height: calc(100vh - var(--header-height));
 }
 
 .iframeMobile {
-  height: 100%;
-  width: 360px;
+  height: 844px;
+  width: calc(390px + 48px);
+  padding: 20px 0;
   border: none;
   margin: 0;
 }
@@ -33,48 +54,6 @@
   z-index: 1;
 }
 
-.header {
-  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: white;
-  background-color: #118849;
-  display: flex;
-  align-items: center;
-  height: 90px;
-  padding: 0 2rem;
-}
-
-.betaTag {
-  border: 2px solid white;
-  border-radius: 4px;
-  width: fit-content;
-  height: fit-content;
-  margin-left: 30px;
-  padding: 0 5px;
-  font-weight: bold;
-}
-
-.viewSizeButtons {
-  --component-toggle_button-color-border-inactive: white;
-  --component-toggle_button-color-border-active: white;
-  --component-toggle_button-color-background-active: white;
-  --component-toggle_button-color-background-inactive: transparent;
-  --component-toggle_button-color-text-active: black;
-  --component-toggle_button-color-text-inactive: white;
-}
-
-/* Overriding this style because it is hardcoded in the design system */
-.viewSizeButtons button[aria-pressed="false"]:hover {
-  background-color: #Dbf5d5 !important;
-  color: black !important;
-}
-
-.subHeader {
-  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: white;
-  border-bottom: 1px solid gray;
-  background-color: #0c6536;
-  display: flex;
-  align-items: center;
-  height: 70px;
-  padding: 0 2rem;
+.backToEditorBtn {
+  width: 18vw;
 }

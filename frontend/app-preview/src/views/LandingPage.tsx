@@ -4,79 +4,93 @@ import { PreviewContext } from '../PreviewContext';
 import { useParams } from 'react-router-dom';
 import { stringify } from 'qs';
 import { useTranslation } from 'react-i18next';
-import { usePreviewConnection } from "app-shared/providers/PreviewConnectionContext";
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import AltinnStudioLogo from "app-shared/navigation/main-header/AltinnStudioLogo";
-import { ToggleButtonGroup } from '@digdir/design-system-react';
+import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
+import { useUserQuery } from 'app-shared/hooks/queries';
+import { AltinnHeader } from 'app-shared/components/altinnHeader';
+import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
+import { IRepository } from 'app-shared/types/global';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import {
+  getTopBarAppPreviewMenu,
+  TopBarAppPreviewMenu,
+} from '../components/AppBarConfig/AppPreviewBarConfig';
+import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
+import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 
-export const LandingPage = () => {
+export interface LandingPageProps {
+  variant?: AltinnHeaderVariant;
+  repository?: IRepository;
+}
+
+export type ViewSize = 'desktop' | 'mobile';
+
+const getLocalSelectedViewSize = (): ViewSize => {
+  const localViewSize = localStorage.getItem('viewSize');
+  if (localViewSize === 'mobile') {
+    return 'mobile';
+  }
+  return 'desktop';
+};
+
+export const LandingPage = ({ variant = 'preview', repository }: LandingPageProps) => {
   const { org, app } = useParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
-  const { data: instanceId } = useInstanceIdQuery(org, app);
-  const selectedLayoutInEditor = localStorage.getItem(instanceId);
-  const localSelectedViewSize = localStorage.getItem('viewSize');
-  const [viewSize, setViewSize] = useState<string>(localSelectedViewSize ?? 'desktop');
+  const localSelectedViewSize: 'desktop' | 'mobile' = getLocalSelectedViewSize();
+  const [viewSize, setViewSize] = useState<'desktop' | 'mobile'>(
+    localSelectedViewSize ?? 'desktop'
+  );
   const selectedLayoutSetInEditor = localStorage.getItem('layoutSetName');
-
-
+  const { data: user } = useUserQuery();
+  const repoType = getRepositoryType(org, app);
+  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
   if (previewConnection) {
-    previewConnection.on("ReceiveMessage", function (message) {
+    previewConnection.on('ReceiveMessage', function (message) {
       const frame = document.getElementById('app-frontend-react-iframe');
       if (isIFrame(frame) && frame.contentWindow) {
         const targetOrigin = window.origin;
         // Trigger a reload of preview window until app-frontend implements re-calling api #https://github.com/Altinn/app-frontend-react/issues/1088
         window.location.reload();
-        console.log("Sending reload message to app-frontend with targetOrigin: " + targetOrigin);
+        console.log('Sending reload message to app-frontend with targetOrigin: ' + targetOrigin);
         frame.contentWindow.postMessage({ action: message }, targetOrigin);
       }
-    })
+    });
   }
 
-  const handleChangeViewSizeClick = (selectedViewSize: string) => {
-      localStorage.setItem('viewSize', selectedViewSize);
-      setViewSize(selectedViewSize);
-  };
-
   return (
-      <PreviewContext>
+    <PreviewContext>
+      <>
         <div className={classes.header}>
-          <a href={`/editor/${org}/${app}/ui-editor?layout=${selectedLayoutInEditor}`}>
-            <AltinnStudioLogo />
-          </a>
-          <div className={classes.betaTag}>
-            {'BETA'}
-          </div>
-        </div>
-        <div className={classes.subHeader}>
-          <span className={classes.viewSizeButtons}>
-          <ToggleButtonGroup
-            items={[
-              {
-                label: t('preview.view_size_desktop'),
-                value: 'desktop'
-              },
-              {
-                label: t('preview.view_size_mobile'),
-                value: 'mobile'
-              }
-            ]}
-            onChange={handleChangeViewSizeClick}
-            selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}/>
-            </span>
+          <AltinnHeader
+            menu={menu}
+            showSubMenu={true}
+            activeMenuSelection={TopBarAppPreviewMenu.Preview}
+            org={org}
+            app={app}
+            user={user}
+            repository={repository}
+            buttonActions={appPreviewButtonActions(org, app)}
+            variant={variant}
+            subMenuContent={<AppPreviewSubMenu setViewSize={setViewSize} viewSize={viewSize} />}
+          />
         </div>
         <div className={classes.iframeMobileViewContainer}>
           <iframe
             title={t('preview.iframe_title')}
             id='app-frontend-react-iframe'
-            src={`/designer/html/preview.html?${stringify({ org, app, selectedLayoutSetInEditor })}`}
+            src={`/designer/html/preview.html?${stringify({
+              org,
+              app,
+              selectedLayoutSetInEditor,
+            })}`}
             className={viewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           ></iframe>
           {viewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
         </div>
-      </PreviewContext>
+      </>
+    </PreviewContext>
   );
 };

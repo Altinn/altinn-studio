@@ -1,4 +1,5 @@
 export * from './CombinationKind';
+export * from './CustomPropertyType';
 export * from './FieldType';
 export * from './Keyword';
 export * from './ObjectKind';

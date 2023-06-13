@@ -18,7 +18,6 @@ import { getNameFromPointer, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-
 import {
   getChildNodesByPointer,
   getNodeByPointer,
-  getParentNodeByPointer,
   pointerIsDefinition,
   ROOT_POINTER,
 } from '@altinn/schema-model';
@@ -30,6 +29,11 @@ import { useTranslation } from 'react-i18next';
 import { TypesInspector } from './TypesInspector';
 import classNames from 'classnames';
 import { GenerateSchemaState } from 'app-shared/types/global';
+import {
+  selectedDefinitionParentSelector,
+  selectedItemSelector,
+  selectedPropertyParentSelector
+} from '@altinn/schema-editor/selectors/schemaStateSelectors';
 import { JSONSchema7 } from 'json-schema';
 
 export interface IEditorProps {
@@ -118,18 +122,8 @@ export const SchemaEditor = ({
       : properties.push(rootNodeMap.get(childPointer))
   );
 
-  const selectedPropertyParent = useSelector((state: SchemaState) =>
-    getParentNodeByPointer(state.uiSchema, state.selectedPropertyNodeId)
-  );
-
-  const selectedId = useSelector((state: SchemaState) =>
-    state.selectedEditorTab === 'properties'
-      ? state.selectedPropertyNodeId
-      : state.selectedDefinitionNodeId
-  );
-  const selectedItem = useSelector((state: SchemaState) =>
-    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined
-  );
+  const selectedPropertyParent = useSelector(selectedPropertyParentSelector);
+  const selectedItem = useSelector(selectedItemSelector);
 
   useEffect(() => {
     if (selectedType) {
@@ -149,9 +143,7 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionParent = useSelector((state: SchemaState) =>
-    getParentNodeByPointer(state.uiSchema, state.selectedDefinitionNodeId)
-  );
+  const selectedDefinitionParent = useSelector(selectedDefinitionParentSelector);
   useEffect(() => {
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
       setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);

@@ -1,22 +1,5 @@
 import { del, post, put } from 'app-shared/utils/networking';
-import {
-  appMetadataAttachmentPath,
-  copyAppPath,
-  createRepoPath,
-  deploymentsPath,
-  formLayoutNamePath,
-  formLayoutPath,
-  layoutSetsPath,
-  layoutSettingsPath,
-  releasesPath,
-  repoCommitPath,
-  repoPushPath,
-  ruleConfigPath,
-  textResourceIdsPath,
-  textResourcesPath,
-  userLogoutPath,
-  userStarredRepoPath,
-} from 'app-shared/api/paths';
+import { appMetadataAttachmentPath, copyAppPath, createRepoPath, deploymentsPath, formLayoutNamePath, formLayoutPath, layoutSetPath, layoutSetsPath, layoutSettingsPath, releasesPath, repoCommitPath, repoPushPath, ruleConfigPath, textResourceIdsPath, textResourcesPath, userLogoutPath, userStarredRepoPath } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
 import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
@@ -25,11 +8,7 @@ import { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload'
 import { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import {
-  ILayoutSettings,
-  IRepository,
-  ITextResourcesObjectFormat
-} from 'app-shared/types/global';
+import { ILayoutSettings, IRepository, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
@@ -46,7 +25,7 @@ export const addLayoutSet = (org: string, app: string, payload: LayoutSetConfig)
 export const addRepo = (repoToAdd: AddRepoParams) => post<IRepository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
 export const copyApp = (org: string, app: string, repoName: string) => post(copyAppPath(org, app, repoName));
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<void, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
-export const configureLayoutSet = (org: string, app: string, layoutSetName: string) => post<LayoutSets>(layoutSetsPath(org, app, layoutSetName));
+export const configureLayoutSet = (org: string, app: string, layoutSetName: string) => post<LayoutSets>(layoutSetPath(org, app, layoutSetName));
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
 export const createRepoCommit = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPath(org, app), payload, { headers });
 export const deleteAppAttachmentMetadata = (org: string, app: string, id: string) => del(appMetadataAttachmentPath(org, app), { headers, data: id });

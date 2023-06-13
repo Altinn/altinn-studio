@@ -4,6 +4,7 @@ import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
 import {
   Button,
+  ButtonColor,
   ButtonSize,
   ButtonVariant,
   ErrorMessage,
@@ -13,7 +14,6 @@ import {
   TableRow,
   TextField,
 } from '@digdir/design-system-react';
-import { ButtonColor } from '@altinn/altinn-design-system';
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
 import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';

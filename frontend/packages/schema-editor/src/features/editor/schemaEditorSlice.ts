@@ -20,6 +20,7 @@ import {
   setTitle as setTitleReducer,
   setDescription as setDescriptionReducer,
   setRequired as setRequiredReducer,
+  setCustomProperties as setCustomPropertiesReducer,
   setCombinationType as setCombinationTypeReducer,
   addCombinationItem as addCombinationItemReducer,
   setPropertyName as setPropertyNameReducer,
@@ -133,6 +134,9 @@ const schemaEditorSlice = createSlice({
     setRequired(state, action: PayloadAction<{ path: string; required: boolean }>) {
       state.uiSchema = setRequiredReducer(state.uiSchema, action.payload);
     },
+    setCustomProperties(state, action: PayloadAction<{ path: string, properties: KeyValuePairs }>) {
+      state.uiSchema = setCustomPropertiesReducer(state.uiSchema, action.payload);
+    },
     setCombinationType(state, action: PayloadAction<{ type: CombinationKind; path: string }>) {
       state.uiSchema = setCombinationTypeReducer(state.uiSchema, action.payload);
     },
@@ -241,6 +245,7 @@ export const {
   navigateToType,
   promoteProperty,
   setCombinationType,
+  setCustomProperties,
   setDescription,
   setJsonSchema,
   setPropertyName,

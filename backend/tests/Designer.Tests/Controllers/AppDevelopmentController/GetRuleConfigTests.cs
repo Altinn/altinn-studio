@@ -25,7 +25,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string expectedLayoutSettings = await AddRuleConfigToRepo(CreatedFolderPath, layoutSetName, expectedRuleConfigPath);
+            string expectedRuleConfig = await AddRuleConfigToRepo(CreatedFolderPath, layoutSetName, expectedRuleConfigPath);
 
             string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -34,7 +34,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            JsonUtils.DeepEquals(expectedLayoutSettings, responseContent).Should().BeTrue();
+            JsonUtils.DeepEquals(expectedRuleConfig, responseContent).Should().BeTrue();
         }
 
         [Theory]
@@ -47,6 +47,26 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }
+
+        [Theory]
+        [InlineData("ttd", "invalid-texts-and-ruleconfig", "testUser", null)]
+        public async Task GetRuleConfig_WhenFileMissesDataOnRoot_ReturnsFixedFile(string org, string app, string developer, string layoutSetName)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+
+            string expectedRuleConfigPath = "TestData/App/ui/changename/RuleConfiguration.json";
+            string expectedRuleConfig = await AddRuleConfigToRepo(CreatedFolderPath, layoutSetName, expectedRuleConfigPath);
+
+            string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+            JsonUtils.DeepEquals(expectedRuleConfig, responseContent).Should().BeTrue();
         }
 
         private async Task<string> AddRuleConfigToRepo(string createdFolderPath, string layoutSetName, string expectedLayoutPath)

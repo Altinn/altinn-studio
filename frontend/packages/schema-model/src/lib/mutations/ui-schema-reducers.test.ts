@@ -7,7 +7,7 @@ import {
   deleteEnumValue,
   deleteNode,
   promoteProperty,
-  setCombinationType,
+  setCombinationType, setCustomProperties, SetCustomPropertiesArgs,
   setDescription,
   setPropertyName,
   setRef,
@@ -52,6 +52,7 @@ import { CombinationKind, FieldType, Keyword, ObjectKind, StrRestrictionKey, UiS
 import { ROOT_POINTER } from '../constants';
 import { getPointers } from '../mappers/getPointers';
 import { substringAfterLast, substringBeforeLast } from 'app-shared/utils/stringUtils';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 describe('ui-schema-reducers', () => {
   afterEach(jest.clearAllMocks);
@@ -252,6 +253,17 @@ describe('ui-schema-reducers', () => {
       const schemaWithChangeOnRequired = setRequired(uiSchemaMock, { path: requiredPropertyPath, required });
       expect(getNodeByPointer(schemaWithChangeOnOptional, optionalPropertyPath).isRequired).toBe(required);
       expect(getNodeByPointer(schemaWithChangeOnRequired, requiredPropertyPath).isRequired).toBe(required);
+    });
+  });
+
+  describe('setCustomProperties', () => {
+    it('Sets custom properties of the given node', () => {
+      const path = numberNodeMock.pointer;
+      const properties: KeyValuePairs = { someCustomProp: 'test' };
+      const args: SetCustomPropertiesArgs = { path, properties };
+      const result = setCustomProperties(uiSchemaMock, args);
+      const updatedNode = getNodeByPointer(result, path);
+      expect(updatedNode.custom).toEqual(properties);
     });
   });
 

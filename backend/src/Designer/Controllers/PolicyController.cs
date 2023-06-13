@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
 
-            if(xacmlPolicy == null)
+            if (xacmlPolicy == null)
             {
                 return Ok(new ResourcePolicy());
             }
