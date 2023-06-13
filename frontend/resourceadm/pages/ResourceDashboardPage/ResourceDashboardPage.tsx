@@ -88,7 +88,11 @@ export const ResourceDashboardPage = () => {
     return (
       <>
         <h2 className={classes.subheader}>{`Alle ressurser (${resourceList.length})`}</h2>
-        <ResourceTable list={filteredTableData} isSortedByNewest={true} />
+        <ResourceTable
+          list={filteredTableData}
+          isSortedByNewest={true}
+          updateTable={(lst: ResourceType[]) => setResourceList(lst)}
+        />
       </>
     );
   };
