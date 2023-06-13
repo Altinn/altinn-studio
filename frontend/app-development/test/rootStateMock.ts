@@ -2,8 +2,13 @@ import { repositoryMock } from './repositoryMock';
 import { mockDeployments } from './appDeploymentsMock';
 import { LoadingState } from 'app-shared/features/dataModelling/sagas/metadata';
 import type { RootState } from '../store';
+import { applicationMetadataMock } from './applicationMetadataMock';
 
 export const rootStateMock: RootState = {
+  applicationMetadataState: {
+    applicationMetadata: applicationMetadataMock,
+    error: null,
+  },
   serviceInformation: {
     repositoryInfo: repositoryMock,
     error: null,

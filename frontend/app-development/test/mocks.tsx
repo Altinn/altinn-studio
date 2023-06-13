@@ -9,21 +9,12 @@ import { BrowserRouter } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 
 import { queriesMock as allQueriesMock } from 'app-shared/mocks/queriesMock';
-import { applicationMetadataMock } from './applicationMetadataMock';
 import { rootStateMock } from './rootStateMock';
-import { serviceConfigMock } from './serviceConfigMock';
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
 export const queriesMock: ServicesContextProps = {
   ...allQueriesMock,
-  getApplicationMetadata: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(applicationMetadataMock)),
-  getServiceConfig: jest.fn().mockImplementation(() => Promise.resolve(serviceConfigMock)),
-  getServiceName: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(serviceConfigMock.serviceName)),
 };
 
 export const renderWithMockStore =
