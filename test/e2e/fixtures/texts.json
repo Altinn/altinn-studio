@@ -46,5 +46,5 @@
   "edit": "Rediger",
   "emptySummary": "Du har ikke lagt inn informasjon her",
   "invalidFileExtension": "Det var et problem med filen test.png . Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse.",
-  "invalidMimeType": "Filtypen er ikke tillatt."
+  "invalidMimeType": "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være."
 }
