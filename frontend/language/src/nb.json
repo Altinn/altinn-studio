@@ -29,6 +29,7 @@
   "administration.download_repo_info": "Hvis ting henger seg opp, og <em>push</em> ikke virker, kan det være mulig å \"redde\" endringene dine ved å laste ned en zip fil, og manuelt pakke den ut over et lokalt git repo og sjekke inn endrinene.",
   "administration.repo_owner_is": "Opprettet for:",
   "administration.reset_repo_button": "Slett mine endringer",
+  "administration.reset_repo_completed": "Alle endringer er nå slettet",
   "administration.reset_repo_confirm_heading": "Slette endringer?",
   "administration.reset_repo_confirm_info": "Du vil nå slette alle endringer gjort på {{repositoryName}}. Endringene kan ikke gjenopprettes.",
   "administration.reset_repo_confirm_repo_name": "Skriv inn navn på appen for å bekrefte",

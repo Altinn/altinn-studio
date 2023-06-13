@@ -89,7 +89,7 @@ export const repoLogPath = (org, app) => `/designer/api/repos/repo/${org}/${app}
 export const repoMetaPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/metadata`; // Get
 export const repoPullPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/pull`; // Get
 export const repoPushPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/push`; // Post
-export const repoResetPAth = (org, app) => `/designer/api/repos/repo/${org}/${app}/reset`; // Get
+export const repoResetPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/reset`; // Get
 export const repoSearchPath = () => '/designer/api/repos/search'; // Get
 export const repoStatusPath = (org, app) => `/designer/api/repos/repo/${org}/${app}/status`; // Get
 export const reposListPath = (org) => `/designer/api/repos/org/${org}`; // Get
