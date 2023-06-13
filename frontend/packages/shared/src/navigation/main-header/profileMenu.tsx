@@ -7,6 +7,7 @@ import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api/p
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/User';
+import { PersonCircleIcon } from '@navikt/aksel-icons';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -25,14 +26,8 @@ export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
       .finally(() => true);
 
   return (
-    <div>
-      <img
-        src={user.avatar_url}
-        className={classes.userAvatar}
-        aria-haspopup
-        onClick={handleClick}
-        aria-label='profilikon'
-      />
+    <div className={classes.previewProfilIcon}>
+      <PersonCircleIcon onClick={handleClick} title='profileIcon' data-testid='profileIcon' />
       <Menu
         id='simple-menu'
         anchorEl={anchorEl}
