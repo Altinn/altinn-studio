@@ -5,8 +5,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useRepoMetadataQuery = (owner, app): UseQueryResult<Repository> => {
   const { getRepoMetadata } = useServicesContext();
-  return useQuery<Repository>(
-    [QueryKey.RepoMetaData, owner, app],
-    () => getRepoMetadata(owner, app),
+  return useQuery<Repository>([QueryKey.RepoMetaData, owner, app], () =>
+    getRepoMetadata(owner, app)
   );
 };
