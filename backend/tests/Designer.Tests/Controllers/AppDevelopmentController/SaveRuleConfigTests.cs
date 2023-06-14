@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,8 +12,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class SaveRuleConfigTests : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
+    public class SaveRuleConfigTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController,GetFormLayoutsTestsBase>
     {
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
 
         public SaveRuleConfigTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {
@@ -26,7 +28,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         public async Task SaveRuleConfiguration_ShouldCreateRuleConfigurationFile_AndReturnOk(string org, string app, string developer, string layoutSetName, string expectedRuleConfigPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string content = SharedResourcesHelper.LoadTestDataAsString(expectedRuleConfigPath);
 

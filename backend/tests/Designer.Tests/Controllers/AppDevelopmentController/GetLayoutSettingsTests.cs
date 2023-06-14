@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,8 +11,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetLayoutSettingsTests : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
+    public class GetLayoutSettingsTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController,GetFormLayoutsTestsBase>
     {
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public GetLayoutSettingsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {
         }
@@ -26,7 +28,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         public async Task GetLayoutSettings_ShouldReturnLayouts(string org, string app, string developer, string layoutSetName, string expectedLayoutPaths)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string expectedLayoutSettings = await AddLayoutSettingsToRepo(CreatedFolderPath, layoutSetName, expectedLayoutPaths);
 

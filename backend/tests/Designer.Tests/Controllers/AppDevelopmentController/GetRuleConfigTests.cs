@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,8 +11,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetRuleConfigTests : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
+    public class GetRuleConfigTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController,GetFormLayoutsTestsBase>
     {
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public GetRuleConfigTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {
         }
@@ -23,7 +25,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         public async Task GetRuleConfig_ShouldReturnOK(string org, string app, string developer, string layoutSetName, string expectedRuleConfigPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string expectedRuleConfig = await AddRuleConfigToRepo(CreatedFolderPath, layoutSetName, expectedRuleConfigPath);
 
@@ -54,7 +56,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         public async Task GetRuleConfig_WhenFileMissesDataOnRoot_ReturnsFixedFile(string org, string app, string developer, string layoutSetName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string expectedRuleConfigPath = "TestData/App/ui/changename/RuleConfiguration.json";
             string expectedRuleConfig = await AddRuleConfigToRepo(CreatedFolderPath, layoutSetName, expectedRuleConfigPath);
