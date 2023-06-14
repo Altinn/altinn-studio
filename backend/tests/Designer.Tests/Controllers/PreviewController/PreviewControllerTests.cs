@@ -10,6 +10,7 @@ using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -22,7 +23,7 @@ using TextResource = Altinn.Studio.Designer.Models.TextResource;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class PreviewControllerTests : PreviewControllerTestsBase<PreviewControllerTests>
+    public class PreviewControllerTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.PreviewController, PreviewControllerTests>
     {
         private const string Org = "ttd";
         private const string App = "preview-app";
@@ -212,7 +213,7 @@ namespace Designer.Tests.Controllers.PreviewController
         public async Task Post_Instance_Ok()
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(Org, App, Developer, targetRepository);
+            await CopyRepositoryForTest(Org, App, Developer, targetRepository);
 
             string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
@@ -232,7 +233,7 @@ namespace Designer.Tests.Controllers.PreviewController
         public async Task Post_InstanceForStatefulApp_Ok()
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(Org, StatefulApp, Developer, targetRepository);
+            await CopyRepositoryForTest(Org, StatefulApp, Developer, targetRepository);
 
             string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
