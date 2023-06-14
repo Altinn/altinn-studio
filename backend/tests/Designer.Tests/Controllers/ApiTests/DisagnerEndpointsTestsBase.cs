@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -32,6 +35,16 @@ namespace Designer.Tests.Controllers.ApiTests
                 c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGitea, IGiteaMock>();
         }
+
+        /// <summary>
+        /// Common Serialization options for tests.
+        /// </summary>
+        protected readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
 
         public DisagnerEndpointsTestsBase(WebApplicationFactory<TController> factory) : base(factory)
         {
