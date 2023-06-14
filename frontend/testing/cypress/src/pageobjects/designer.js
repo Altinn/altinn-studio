@@ -1,5 +1,5 @@
 //Selectors in designer
-import {cypressTestid} from "../../cypressTestid";
+import { cypressTestid } from '../../cypressTestid';
 
 export const designer = {
   appMenu: {
@@ -105,5 +105,8 @@ export const designer = {
     requiredError: '.help-block.errormsg',
     save: 'input[onclick="submitForm()"]',
     delete: '.json-editor-btn-delete',
+  },
+  preview: {
+    backToEditorText: 'Tilbake til redigering',
   },
 };

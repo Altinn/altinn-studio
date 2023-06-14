@@ -1,4 +1,4 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock, formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { waitFor } from '@testing-library/react';
 
@@ -13,12 +13,7 @@ describe('useFormLayoutSettingsMutation', () => {
       .renderHookResult
       .result;
 
-    const layoutSettings = {
-      pages: {
-        order: ['Side1', 'Side2']
-      }
-    };
-    settingsResult.current.mutate(layoutSettings);
+    settingsResult.current.mutate(formLayoutSettingsMock);
     await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(1);
@@ -26,7 +21,7 @@ describe('useFormLayoutSettingsMutation', () => {
       org,
       app,
       selectedLayoutSet,
-      layoutSettings
+      formLayoutSettingsMock
     );
   });
 });

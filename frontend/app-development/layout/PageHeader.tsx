@@ -80,7 +80,7 @@ export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {
               org={org}
               app={app}
               user={user}
-              repository={{ ...repository, user_has_starred: false }}
+              repository={{ ...repository }}
               buttonActions={buttonActions(org, app)}
             />
           }

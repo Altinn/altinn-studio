@@ -48,9 +48,9 @@ context(
       cy.get(designer.texts.new).should('be.visible');
 
       // Preview
-      cy.findByRole('button', { name: designer.appMenu.previewText }).should('be.visible');
+      cy.findByRole('button', { name: designer.appMenu.previewText }).should('be.visible').click();
       cy.visit('/preview/' + Cypress.env('deployApp'));
-      cy.get(`a[href^="/editor/${Cypress.env('deployApp')}"]`)
+      cy.findByRole('button', { name: designer.preview.backToEditorText })
         .should('be.visible')
         .click();
 
