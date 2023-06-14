@@ -45,7 +45,6 @@
     <PackageReference Include="Scrutor" />
     <PackageReference Include="Yuniql.AspNetCore" />
     <PackageReference Include="Yuniql.PostgreSql" />
-    <PackageReference Include="RestSharp" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 
