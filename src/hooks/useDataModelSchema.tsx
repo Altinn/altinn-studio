@@ -32,7 +32,7 @@ function useDraft(enabled: boolean) {
   const rootPath = getRootElementPath(currentModel);
   const modelCopy = structuredClone(currentModel);
   if (rootPath) {
-    modelCopy.$ref = rootPath;
+    (modelCopy as any).$ref = rootPath;
   }
 
   return new Draft07(modelCopy);

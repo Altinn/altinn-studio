@@ -67,7 +67,7 @@ export function CustomWebComponent({
   Object.keys(passThroughProps).forEach((key) => {
     let prop = passThroughProps[key];
     if (React.isValidElement(prop)) {
-      prop = ReactDOMServer.renderToStaticMarkup(prop);
+      prop = ReactDOMServer.renderToStaticMarkup(prop as any);
     } else if (['object', 'array'].includes(typeof prop)) {
       prop = JSON.stringify(passThroughProps[key]);
     }

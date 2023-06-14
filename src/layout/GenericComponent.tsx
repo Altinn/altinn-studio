@@ -339,10 +339,10 @@ const gridToClasses = (labelGrid: IGridStyling | undefined, classes: ReturnType<
   }
 
   return {
-    [classes.xs]: labelGrid.xs !== undefined && labelGrid.xs > 0 && labelGrid.xs < 12,
-    [classes.sm]: labelGrid.sm !== undefined && labelGrid.sm > 0 && labelGrid.sm < 12,
-    [classes.md]: labelGrid.md !== undefined && labelGrid.md > 0 && labelGrid.md < 12,
-    [classes.lg]: labelGrid.lg !== undefined && labelGrid.lg > 0 && labelGrid.lg < 12,
-    [classes.xl]: labelGrid.xl !== undefined && labelGrid.xl > 0 && labelGrid.xl < 12,
+    [classes.xs]: labelGrid.xs !== undefined && labelGrid.xs !== 'auto' && labelGrid.xs > 0 && labelGrid.xs < 12,
+    [classes.sm]: labelGrid.sm !== undefined && labelGrid.sm !== 'auto' && labelGrid.sm > 0 && labelGrid.sm < 12,
+    [classes.md]: labelGrid.md !== undefined && labelGrid.md !== 'auto' && labelGrid.md > 0 && labelGrid.md < 12,
+    [classes.lg]: labelGrid.lg !== undefined && labelGrid.lg !== 'auto' && labelGrid.lg > 0 && labelGrid.lg < 12,
+    [classes.xl]: labelGrid.xl !== undefined && labelGrid.xl !== 'auto' && labelGrid.xl > 0 && labelGrid.xl < 12,
   };
 };

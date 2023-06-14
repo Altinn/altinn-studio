@@ -83,7 +83,9 @@ function isFocusable(element: FocusableHTMLElement) {
   }
 
   const isAvailable =
-    element.type !== 'hidden' || !element.disabled || (element.type.toLowerCase() === 'a' && !!element.href);
+    (element.tagName === 'INPUT' && element.getAttribute('type') !== 'hidden') ||
+    !element.disabled ||
+    (element.tagName === 'A' && !!element.href);
 
   return focusableElements.includes(tagName) && isAvailable;
 }
