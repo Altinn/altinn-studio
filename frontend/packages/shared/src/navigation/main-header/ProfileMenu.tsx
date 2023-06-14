@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import classes from './profileMenu.module.css';
+import classes from './ProfileMenu.module.css';
 import { Menu, MenuItem } from '@mui/material';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../utils/networking';
@@ -7,7 +7,6 @@ import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api/p
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/User';
-import { PersonCircleIcon } from '@navikt/aksel-icons';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -27,7 +26,13 @@ export function ProfileMenu({ showlogout, user }: IProfileMenuComponentProps) {
 
   return (
     <div className={classes.previewProfilIcon}>
-      <PersonCircleIcon onClick={handleClick} title={t('general.profile_icon')} />
+      <img
+        alt={t('general.profile_icon')}
+        aria-haspopup
+        className={classes.userAvatar}
+        onClick={handleClick}
+        src={user.avatar_url}
+      />
       <Menu
         id='simple-menu'
         anchorEl={anchorEl}

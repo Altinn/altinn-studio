@@ -1,4 +1,4 @@
-import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
+import { ProfileMenu } from 'app-shared/navigation/main-header/ProfileMenu';
 import { IRepository } from 'app-shared/types/global';
 import { User } from 'app-shared/types/User';
 import React from 'react';
