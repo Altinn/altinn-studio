@@ -73,7 +73,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("preview/preview-status")]
         public ActionResult<string> PreviewStatus()
         {
-            return Ok("Ready for preview");
+            return Ok();
         }
 
         /// <summary>
