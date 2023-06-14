@@ -18,6 +18,7 @@ import { useDeleteLayoutMutation } from '../../hooks/mutations/useDeleteLayoutMu
 import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayoutNameMutation';
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
+import {DEFAULT_SELECTED_LAYOUT_NAME} from "app-shared/constants";
 
 export interface IPageElementProps {
   name: string;
@@ -126,7 +127,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
       ...removeKey(searchParams, 'layout'),
       deletedLayout: name,
     });
-    dispatch(FormLayoutActions.updateSelectedLayout('default'));
+    dispatch(FormLayoutActions.updateSelectedLayout(DEFAULT_SELECTED_LAYOUT_NAME));
   };
 
   return (
