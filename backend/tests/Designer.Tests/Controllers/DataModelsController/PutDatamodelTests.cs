@@ -65,6 +65,24 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
     }
 
     [Theory]
+    [InlineData("testModel.schema.json", "ttd", "hvem-er-hvem", "testUser", "Model/JsonSchema/General/NonXsdContextSchema.json")]
+    public async Task ValidSchema_ShouldReturn_NoContent_And_Create_Files(string modelPath, string org, string repo, string user, string schemaPath)
+    {
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+
+        string schema = SharedResourcesHelper.LoadTestDataAsString(schemaPath);
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(schema, Encoding.UTF8, MediaTypeNames.Application.Json)
+        };
+
+        var response = await HttpClient.Value.SendAsync(request);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Theory]
     [InlineData("testModel.schema.json", OneOfAndPropertiesSchema, DatamodelingErrorCodes.JsonSchemaConvertError, "ttd", "hvem-er-hvem", "testUser")]
     public async Task ValidInput_ShouldReturn_NoContent_And_Create_Files2(string modelPath, string schema, string expectedErrorCode, string org, string repo, string user)
     {

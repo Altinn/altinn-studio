@@ -75,6 +75,10 @@ namespace Designer.Tests.Controllers.ApiTests
             {
                 TestDataHelper.DeleteDirectory(CreatedFolderPath);
             }
+            if (HttpClient.IsValueCreated)
+            {
+                HttpClient.Value.Dispose();
+            }
         }
     }
 }
