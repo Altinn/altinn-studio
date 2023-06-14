@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class SaveFormLayoutTestsBase : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController,SaveFormLayoutTestsBase>
+    public class SaveFormLayoutTestsBase : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, SaveFormLayoutTestsBase>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public SaveFormLayoutTestsBase(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)

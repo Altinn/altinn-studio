@@ -50,7 +50,7 @@ public class GetPermissions : DeploymentsControllerTestsBase<GetPermissions>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        Assert.Equal(1, permittedEnvironments.Count);
+        Assert.Single(permittedEnvironments);
         Assert.Equal("TestEnv", permittedEnvironments[0]);
     }
 
@@ -61,7 +61,7 @@ public class GetPermissions : DeploymentsControllerTestsBase<GetPermissions>
         // Arrange
         string uri = $"{VersionPrefix(org, app)}/permissions";
 
-        List<Team> emptyTeam = new ();
+        List<Team> emptyTeam = new();
         GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(emptyTeam);
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
