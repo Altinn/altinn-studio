@@ -5,18 +5,18 @@ import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButton } from '../altinnHeaderButtons/AltinnHeaderButton';
 import { AltinnHeaderProfile } from '../AltinnHeaderProfile';
-import { IRepository } from 'app-shared/types/global';
 import { User } from 'app-shared/types/User';
 import classnames from 'classnames';
 import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
 import { AltinnHeaderMenuItem } from '../altinnHeaderMenu/AltinnHeaderMenu';
+import { Repository } from 'app-shared/types/Repository';
 
 export interface AltinnHeaderProps {
   menu: AltinnHeaderMenuItem[];
   activeMenuSelection?: string;
   showSubMenu: boolean;
   subMenuContent?: JSX.Element;
-  repository: IRepository;
+  repository: Repository;
   user: User;
   org: string;
   app: string;
