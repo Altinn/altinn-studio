@@ -46,14 +46,9 @@ namespace Designer.Tests.Controllers.ApiTests
         /// <param name="org">Organization short name.</param>
         /// <param name="repo">Repository name.</param>
         /// <param name="developer">Developer username.</param>
-        /// <param name="testRepoSuffix">If prefix is desired in generated test repo name it can be provided.</param>
-        protected async Task CopyRepositoryForTest(string org, string repo, string developer, string testRepoSuffix = null)
+        /// <param name="targetRepository">Repository to be coppied.</param>
+        protected async Task CopyRepositoryForTest(string org, string repo, string developer, string targetRepository)
         {
-            if (CreatedFolderPath is not null)
-            {
-                throw new InvalidOperationException("Repository already created for test.");
-            }
-            string targetRepository = TestDataHelper.GenerateTestRepoName(testRepoSuffix);
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
         }
 

@@ -63,7 +63,7 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     /// </summary>
     protected virtual HttpClient GetTestClient()
     {
-        var configPath = GetConfigPath();
+        string configPath = GetConfigPath();
 
         var client = Factory.WithWebHostBuilder(builder =>
         {
