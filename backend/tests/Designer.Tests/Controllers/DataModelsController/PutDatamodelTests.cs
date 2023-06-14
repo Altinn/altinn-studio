@@ -102,7 +102,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
     {
-        var location = Path.GetFullPath(Path.Combine(CreatedFolderPath, "App", "models"));
+        var location = Path.GetFullPath(Path.Combine(TestRepoPath, "App", "models"));
         var jsonSchemaLocation = Path.Combine(location, $"{modelName}.schema.json");
         var xsdSchemaLocation = Path.Combine(location, $"{modelName}.xsd");
         var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");

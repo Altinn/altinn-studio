@@ -36,7 +36,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string relativePath = string.IsNullOrEmpty(layoutSetName)
                 ? $"App/ui/layouts/{layoutName}.json"
                 : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
-            string layoutFilePath = Path.Combine(CreatedFolderPath, relativePath);
+            string layoutFilePath = Path.Combine(TestRepoPath, relativePath);
             File.Exists(layoutFilePath).Should().BeFalse();
         }
 

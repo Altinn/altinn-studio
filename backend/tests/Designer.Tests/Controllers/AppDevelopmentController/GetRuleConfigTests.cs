@@ -27,7 +27,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string expectedRuleConfig = await AddRuleConfigToRepo(CreatedFolderPath, layoutSetName, expectedRuleConfigPath);
+            string expectedRuleConfig = await AddRuleConfigToRepo(TestRepoPath, layoutSetName, expectedRuleConfigPath);
 
             string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -59,7 +59,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string expectedRuleConfigPath = "TestData/App/ui/changename/RuleConfiguration.json";
-            string expectedRuleConfig = await AddRuleConfigToRepo(CreatedFolderPath, layoutSetName, expectedRuleConfigPath);
+            string expectedRuleConfig = await AddRuleConfigToRepo(TestRepoPath, layoutSetName, expectedRuleConfigPath);
 
             string url = $"{VersionPrefix(org, targetRepository)}/rule-config?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);

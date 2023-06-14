@@ -38,7 +38,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            string metadataPath = Path.Combine(CreatedFolderPath, "App", "config", "applicationmetadata.json");
+            string metadataPath = Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json");
             File.Delete(metadataPath);
 
 

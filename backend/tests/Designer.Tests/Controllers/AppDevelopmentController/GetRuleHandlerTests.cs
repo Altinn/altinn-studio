@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string expectedRuleHandler = await AddRuleHandler(CreatedFolderPath, layoutSetName, expectedRuleLayoutPath);
+            string expectedRuleHandler = await AddRuleHandler(TestRepoPath, layoutSetName, expectedRuleLayoutPath);
 
             string url = $"{VersionPrefix(org, targetRepository)}/rule-handler?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);

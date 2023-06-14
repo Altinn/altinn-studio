@@ -38,7 +38,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            string applicationMetadataFile = await File.ReadAllTextAsync(Path.Combine(CreatedFolderPath, "App", "config", "applicationmetadata.json"));
+            string applicationMetadataFile = await File.ReadAllTextAsync(Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json"));
             var applicationMetadata = JsonSerializer.Deserialize<Application>(applicationMetadataFile, JsonSerializerOptions);
 
             var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == payload.Id);

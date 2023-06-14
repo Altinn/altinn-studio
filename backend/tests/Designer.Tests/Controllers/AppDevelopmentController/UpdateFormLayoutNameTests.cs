@@ -45,8 +45,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string relativeNewLayoutPath = string.IsNullOrEmpty(layoutSetName)
                 ? $"App/ui/layouts/{newLayoutName}.json"
                 : $"App/ui/{layoutSetName}/layouts/{newLayoutName}.json";
-            string oldLayoutPath = Path.Combine(CreatedFolderPath, relativeOldLayoutPath);
-            string newLayoutPath = Path.Combine(CreatedFolderPath, relativeNewLayoutPath);
+            string oldLayoutPath = Path.Combine(TestRepoPath, relativeOldLayoutPath);
+            string newLayoutPath = Path.Combine(TestRepoPath, relativeNewLayoutPath);
             File.Exists(oldLayoutPath).Should().BeFalse();
             File.Exists(newLayoutPath).Should().BeTrue();
         }

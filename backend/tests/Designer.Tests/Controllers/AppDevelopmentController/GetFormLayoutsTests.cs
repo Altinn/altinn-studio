@@ -29,7 +29,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            Dictionary<string, string> expectedLayouts = await AddLayoutsToRepo(CreatedFolderPath, layoutSetName, expectedLayoutPaths);
+            Dictionary<string, string> expectedLayouts = await AddLayoutsToRepo(TestRepoPath, layoutSetName, expectedLayoutPaths);
 
             string url = $"{VersionPrefix(org, targetRepository)}/form-layouts?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);

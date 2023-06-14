@@ -3,17 +3,30 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.RepositoryClient.Model;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CreateAppTests : RepositoryControllerTestsBase<CreateAppTests>
+    public class CreateAppTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, CreateAppTests>
     {
-
+        private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
+        private static string VersionPrefix => "/designer/api/repos";
         public CreateAppTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
         {
+        }
+
+        protected override void ConfigureTestServices(IServiceCollection services)
+        {
+            services.Configure<ServiceRepositorySettings>(c =>
+                c.RepositoryLocation = TestRepositoriesLocation);
+            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton(_ => _repositoryMock.Object);
         }
 
         [Fact]
@@ -36,7 +49,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{VersionPrefix}/create-app?org=ttd&repository=test";
 
-            RepositoryMock
+            _repositoryMock
                 .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))
                 .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
 

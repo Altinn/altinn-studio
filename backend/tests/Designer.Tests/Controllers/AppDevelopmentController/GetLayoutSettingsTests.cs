@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string expectedLayoutSettings = await AddLayoutSettingsToRepo(CreatedFolderPath, layoutSetName, expectedLayoutPaths);
+            string expectedLayoutSettings = await AddLayoutSettingsToRepo(TestRepoPath, layoutSetName, expectedLayoutPaths);
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-settings?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
