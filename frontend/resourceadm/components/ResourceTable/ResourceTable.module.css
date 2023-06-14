@@ -9,8 +9,13 @@
   padding-block: 15px;
 }
 
+.tableHeaderXLarge {
+  width: 32%;
+}
+
 .tableHeaderLarge {
-  width: 27%;
+  width: 22%;
+  padding-left: 20px;
 }
 
 .tableHeaderMedium {

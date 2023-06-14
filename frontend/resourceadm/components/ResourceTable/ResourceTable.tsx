@@ -29,7 +29,7 @@ export const ResourceTable = ({ list, isSortedByNewest }: Props) => {
     <table className={classes.table}>
       <tbody>
         <tr>
-          <th className={`${classes.tableHeaderLarge} ${classes.tableHeader}`}>
+          <th className={`${classes.tableHeaderXLarge} ${classes.tableHeader}`}>
             <p className={classes.tableHeaderText}>Ressurser</p>
           </th>
           <th className={`${classes.tableHeaderLarge} ${classes.tableHeader}`}>

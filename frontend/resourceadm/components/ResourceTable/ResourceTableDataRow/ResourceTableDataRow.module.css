@@ -3,8 +3,13 @@
   border-bottom: 2px solid #BCC7CC;
 }
 
+.tableDataXLarge {
+  width: 32%;
+}
+
 .tableDataLarge {
-  width: 27%;
+  width: 22%;
+  padding-left: 20px;
 }
 
 .tableDataMedium {
