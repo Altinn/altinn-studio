@@ -58,6 +58,9 @@
           "type": "boolean",
           "title": "Show progress indicator",
           "description": "Enables a progress indicator in the upper right corner of the app"
+        },
+        "autoSaveBehavior": {
+          "$ref": "#/definitions/autoSaveBehavior"
         }
       }
     },
@@ -98,6 +101,12 @@
       "additionalProperties": false,
       "description": "Name of a custom layout file to use for PDF creation instead of the automatically generated PDF.",
       "type": "string"
+    },
+    "autoSaveBehavior": {
+      "additionalProperties": false,
+      "description": "An attribute specifying when the application will save form data. onChangeFormData saves on every interaction with form elements. onChangePage saves on every page change.",
+      "default": "onChangeFormData",
+      "enum": ["onChangeFormData", "onChangePage"]
     }
   }
 }

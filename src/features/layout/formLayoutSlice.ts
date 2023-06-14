@@ -58,6 +58,7 @@ export const initialState: ILayoutState = {
     excludePageFromPdf: null,
     excludeComponentFromPdf: null,
     pdfLayoutName: undefined,
+    autoSaveBehavior: 'onChangeFormData',
   },
   layoutsets: null,
 };
@@ -348,11 +349,15 @@ export const formLayoutSlice = () => {
 
 const updateCommonPageSettings = (
   state: ILayoutState,
-  page: Pick<IPagesSettings, 'hideCloseButton' | 'showLanguageSelector' | 'showProgress' | 'triggers'>,
+  page: Pick<
+    IPagesSettings,
+    'hideCloseButton' | 'showLanguageSelector' | 'showProgress' | 'triggers' | 'autoSaveBehavior'
+  >,
 ) => {
   const {
     hideCloseButton = state.uiConfig.hideCloseButton,
     showLanguageSelector = state.uiConfig.showLanguageSelector,
+    autoSaveBehavior = state.uiConfig.autoSaveBehavior,
     showProgress = state.uiConfig.showProgress,
     triggers = state.uiConfig.pageTriggers,
   } = page;
@@ -361,4 +366,5 @@ const updateCommonPageSettings = (
   state.uiConfig.showLanguageSelector = showLanguageSelector;
   state.uiConfig.showProgress = showProgress;
   state.uiConfig.pageTriggers = triggers;
+  state.uiConfig.autoSaveBehavior = autoSaveBehavior;
 };

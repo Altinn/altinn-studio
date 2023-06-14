@@ -3,6 +3,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { SagaIterator } from 'redux-saga';
 
+import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { QueueActions } from 'src/features/queue/queueSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
@@ -28,7 +29,7 @@ import {
 } from 'src/utils/validation/validation';
 import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { ICalculatePageOrderAndMoveToNextPage, IUpdateCurrentView } from 'src/features/layout/formLayoutTypes';
-import type { IRuntimeState, IValidationIssue } from 'src/types';
+import type { IRuntimeState, IUiConfig, IValidationIssue } from 'src/types';
 
 export const selectFormLayoutState = (state: IRuntimeState) => state.formLayout;
 export const selectFormData = (state: IRuntimeState) => state.formData;
@@ -38,6 +39,7 @@ export const selectValidations = (state: IRuntimeState) => state.formValidations
 export const selectOptions = (state: IRuntimeState) => state.optionState.options;
 export const selectAllLayouts = (state: IRuntimeState) => state.formLayout.uiConfig.tracks.order;
 export const selectCurrentLayout = (state: IRuntimeState) => state.formLayout.uiConfig.currentView;
+const selectUiConfig = (state: IRuntimeState) => state.formLayout.uiConfig;
 
 export function* updateCurrentViewSaga({
   payload: {
@@ -51,9 +53,21 @@ export function* updateCurrentViewSaga({
   },
 }: PayloadAction<IUpdateCurrentView>): SagaIterator {
   try {
-    // When triggering navigation to the next page, we need to make sure there are no unsaved changes. The action to
-    // save it should be triggered elsewhere, but we should wait until the state settles before navigating.
-    yield waitFor((state) => !state.formData.unsavedChanges);
+    const uiConfig: IUiConfig = yield select(selectUiConfig);
+
+    // When triggering navigation we should save the data if autoSaveBehavior === 'onChangePage'
+    // But we should not save the data when currentView is hidden.
+    // This happens on the initial page load
+    if (uiConfig.autoSaveBehavior === 'onChangePage') {
+      const visibleLayouts: string[] | null = yield select(selectLayoutOrder);
+      if (visibleLayouts?.includes(uiConfig.currentView)) {
+        yield put(FormDataActions.saveLatest({}));
+      }
+    } else {
+      // When triggering navigation to the next page, we need to make sure there are no unsaved changes. The action to
+      // save it should be triggered elsewhere, but we should wait until the state settles before navigating.
+      yield waitFor((state) => !state.formData.unsavedChanges);
+    }
 
     const state: IRuntimeState = yield select();
     const visibleLayouts: string[] | null = yield select(selectLayoutOrder);

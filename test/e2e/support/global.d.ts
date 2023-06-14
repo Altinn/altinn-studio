@@ -4,7 +4,7 @@ import type { user } from 'test/e2e/support/auth';
 
 import type { ExprUnresolved } from 'src/features/expressions/types';
 import type { ILayoutComponentOrGroup, ILayouts } from 'src/layout/layout';
-import type { IRuntimeState } from 'src/types';
+import type { ILayoutSets, IRuntimeState } from 'src/types';
 
 export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist' | 'confirm';
 export type GotoMode = 'fast' | 'with-data';
@@ -139,6 +139,8 @@ declare global {
         mutator?: (component: ExprUnresolved<ILayoutComponentOrGroup>) => void,
         allLayoutsMutator?: (layouts: ILayouts) => void,
       ): Chainable<null>;
+
+      interceptLayoutSetsUiSettings(uiSettings: Partial<ILayoutSets['uiSettings']>): Chainable<null>;
 
       switchUser(user: user): any;
       assertUser(user: user): any;

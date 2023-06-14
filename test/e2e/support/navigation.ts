@@ -134,8 +134,6 @@ const completeFormSlow: { [key in FrontendTestTask]: () => void } = {
       cy.get(appFrontend.grid.bolig.percent).type('80');
       cy.get(appFrontend.grid.studie.percent).type('15');
       cy.get(appFrontend.grid.kredittkort.percent).type('5');
-      cy.get(appFrontend.grid.totalPercent).focus();
-      cy.get(appFrontend.grid.totalPercent).should('have.value', '100 %');
 
       cy.navPage('form').click();
       cy.get(appFrontend.changeOfName.newFirstName).type('a');

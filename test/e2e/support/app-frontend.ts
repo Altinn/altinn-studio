@@ -100,3 +100,15 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
     });
   });
 });
+
+Cypress.Commands.add('interceptLayoutSetsUiSettings', (uiSettings) => {
+  cy.intercept('GET', '**/api/layoutsets', (req) => {
+    req.continue((res) => {
+      const body = JSON.parse(res.body);
+      res.body = JSON.stringify({
+        ...body,
+        uiSettings: { ...body.uiSettings, ...uiSettings },
+      });
+    });
+  }).as('layoutSets');
+});
