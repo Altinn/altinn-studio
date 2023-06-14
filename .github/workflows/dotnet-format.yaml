@@ -16,7 +16,7 @@ jobs:
     name: Format check
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/dotnet/sdk:6.0.300-alpine3.18 # hardcode version until microsoft fixes problem in the latest release
+      image: mcr.microsoft.com/dotnet/sdk:6.0.410-alpine3.18 # hardcode version until microsoft fixes issue in github runners
     steps:
       - uses: actions/checkout@v3
         with:
