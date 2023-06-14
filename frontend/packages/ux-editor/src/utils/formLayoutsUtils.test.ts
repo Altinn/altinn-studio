@@ -13,31 +13,31 @@ import { FormButtonComponent } from '../types/FormComponent';
 describe('formLayoutsUtils', () => {
   describe('addOrRemoveNavigationButtons', () => {
     it('Adds navigation buttons to all layouts if there are multiple layouts', async () => {
-      const layout1id = 'layout1';
-      const layout2id = 'layout2';
+      const layout1Id = 'layout1';
+      const layout2Id = 'layout2';
       const callback = jest.fn();
       const layouts: IFormLayouts = {
-        [layout1id]: createEmptyLayout(),
-        [layout2id]: createEmptyLayout(),
+        [layout1Id]: createEmptyLayout(),
+        [layout2Id]: createEmptyLayout(),
       };
-      const updatedLayouts = await addOrRemoveNavigationButtons(layouts, callback, layout1id);
-      const layout1Components = Object.values(updatedLayouts[layout1id].components);
-      const layout2Components = Object.values(updatedLayouts[layout2id].components);
+      const updatedLayouts = await addOrRemoveNavigationButtons(layouts, callback, layout1Id);
+      const layout1Components = Object.values(updatedLayouts[layout1Id].components);
+      const layout2Components = Object.values(updatedLayouts[layout2Id].components);
       expect(layout1Components.length).toBe(1);
       expect(layout1Components[0].type).toBe(ComponentType.NavigationButtons);
       expect(layout2Components.length).toBe(1);
       expect(layout2Components[0].type).toBe(ComponentType.NavigationButtons);
       expect(callback).toHaveBeenCalledTimes(2);
-      expect(callback).toHaveBeenCalledWith(layout1id, updatedLayouts[layout1id]);
-      expect(callback).toHaveBeenCalledWith(layout2id, updatedLayouts[layout2id]);
+      expect(callback).toHaveBeenCalledWith(layout1Id, updatedLayouts[layout1Id]);
+      expect(callback).toHaveBeenCalledWith(layout2Id, updatedLayouts[layout2Id]);
     });
 
     it('Does not add navigation buttons to all layouts if there are two layouts when one of them is the receipt layout', async () => {
-      const layout1id = 'layout1';
+      const layoutId = 'layout1';
       const layoutReceiptId = 'receipt';
       const callback = jest.fn();
       const layouts: IFormLayouts = {
-        [layout1id]: createEmptyLayout(),
+        [layoutId]: createEmptyLayout(),
         [layoutReceiptId]: createEmptyLayout(),
       };
       const updatedLayouts = await addOrRemoveNavigationButtons(
@@ -47,9 +47,45 @@ describe('formLayoutsUtils', () => {
         layoutReceiptId
       );
 
-      const layout1Components = Object.values(updatedLayouts[layout1id].components);
+      const layoutComponents = Object.values(updatedLayouts[layoutId].components);
       const layoutReceiptComponents = Object.values(updatedLayouts[layoutReceiptId].components);
-      expect(layout1Components.length).toBe(0);
+      expect(layoutComponents.length).toBe(0);
+      expect(layoutReceiptComponents.length).toBe(0);
+      expect(callback).toHaveBeenCalledTimes(0);
+    });
+
+    it('Removes navigation button on regular layout if there are two layouts when one of them is the receipt layout', async () => {
+      const layoutId = 'layout1';
+      const layoutReceiptId = 'receipt';
+      const callback = jest.fn();
+      const navButtonsId = 'navButtons';
+      const navButtonsComponent: FormButtonComponent = {
+        id: navButtonsId,
+        itemType: 'COMPONENT',
+        onClickAction: jest.fn(),
+        type: ComponentType.NavigationButtons,
+        dataModelBindings: {},
+      };
+      const layouts: IFormLayouts = {
+        [layoutId]: {
+          components: { [navButtonsId]: navButtonsComponent },
+          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          order: { [BASE_CONTAINER_ID]: [navButtonsId] },
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+        [layoutReceiptId]: createEmptyLayout(),
+      };
+      const updatedLayouts = await addOrRemoveNavigationButtons(
+        layouts,
+        callback,
+        null,
+        layoutReceiptId
+      );
+
+      const layoutComponents = Object.values(updatedLayouts[layoutId].components);
+      const layoutReceiptComponents = Object.values(updatedLayouts[layoutReceiptId].components);
+      expect(layoutComponents.length).toBe(0);
       expect(layoutReceiptComponents.length).toBe(0);
       expect(callback).toHaveBeenCalledTimes(1);
     });
@@ -178,6 +214,24 @@ describe('formLayoutsUtils', () => {
       expect(layoutReceiptComponents.length).toBe(0);
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(layoutId, updatedLayouts[layoutId]);
+    });
+
+    it('Does callback on layout if current layout is receipt and there is only one layout from before', async () => {
+      const layoutId = 'layout1';
+      const layoutReceiptId = 'receipt';
+      const callback = jest.fn();
+      const layouts: IFormLayouts = {
+        [layoutId]: createEmptyLayout(),
+        [layoutReceiptId]: createEmptyLayout(),
+      };
+      const updatedLayouts = await addOrRemoveNavigationButtons(
+        layouts,
+        callback,
+        layoutReceiptId,
+        layoutReceiptId
+      );
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(layoutReceiptId, updatedLayouts[layoutReceiptId]);
     });
   });
 
