@@ -95,7 +95,7 @@ export const ResourceDashboardPage = () => {
     post(getCreateResourceUrlBySelectedContext(selectedContext), idAndTitle)
       .then((res) => {
         console.log('res', res);
-        // navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
+        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
       })
       .catch((err) => {
         console.error('Error posting the new resource', err);

@@ -1,0 +1,31 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 5px;
+  color: #004E95;
+}
+
+.link > svg {
+  margin-left: 5px;
+}
+
+.link:hover {
+  text-decoration: none;
+}
+
+.link:focus {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-skip-ink: none;
+  outline: 2px solid #98177E;
+  outline-offset: 5px;
+  border-radius: 2px;
+}
+
+.link:visited {
+  color: #7A1265;
+  text-decoration: none;
+}

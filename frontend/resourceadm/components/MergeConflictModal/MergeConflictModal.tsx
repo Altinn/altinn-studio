@@ -7,17 +7,19 @@ import { Download } from '@navikt/ds-icons';
 import { repoDownloadPath, repoResetPAth } from 'app-shared/api/paths';
 import { RemoveChangesModal } from './RemoveChangesModal/RemoveChangesModal';
 import { get } from 'app-shared/utils/networking';
+import { Link } from '../Link';
 
 /**
  * Style the modal
  */
 const modalStyles = {
   content: {
-    width: '800px',
+    width: '600px',
     height: 'fit-content',
     margin: 'auto',
     paddingBlock: '40px',
     paddingInline: '70px',
+    borderRadius: '10px',
   },
   overlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -80,25 +82,25 @@ export const MergeConflictModal = ({
       ariaHideApp={false}
     >
       <h2 className={classes.modalHeader}>{t('merge_conflict.headline')}</h2>
+      <div className={classes.contentDivider} />
       <p className={classes.bodyText}>{t('merge_conflict.body1')} </p>
       <p className={classes.bodyText}>{t('merge_conflict.body2')}</p>
       <div className={classes.buttonWrapper}>
-        <Button
-          variant='quiet'
-          icon={<Download title='Download changed file' />}
-          iconPlacement='right'
-          onClick={handleDownloadChangedFilesZIP}
-        >
-          {'Last ned kun endret fil(er)'}
-        </Button>
-        <Button
-          variant='quiet'
-          icon={<Download title='Download whole repo' />}
-          iconPlacement='right'
-          onClick={handleDownloadRepoZIP}
-        >
-          {'Last ned hele repoet'}
-        </Button>
+        <div className={classes.downloadWrapper}>
+          <p className={classes.subHeader}>Last ned</p>
+          <Link
+            href={repoDownloadPath(org, repo)}
+            text='Last ned endret fil(er)'
+            icon={<Download title='Download changed file' fontSize='1.3rem' />}
+          />
+          <div className={classes.linkDivier}>
+            <Link
+              href={repoDownloadPath(org, repo, true)}
+              text='Last ned hele repoet'
+              icon={<Download title='Download whole repo' fontSize='1.3rem' />}
+            />
+          </div>
+        </div>
         <Button onClick={() => setResetModalOpen(true)}>
           {t('merge_conflict.remove_my_changes')}
         </Button>
