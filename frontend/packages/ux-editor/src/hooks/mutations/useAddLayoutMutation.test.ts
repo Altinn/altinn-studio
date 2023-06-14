@@ -60,7 +60,7 @@ describe('useAddLayoutMutation', () => {
       {
         $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
         data: {
-          layout: [expect.not.objectContaining({ componentType: ComponentType.NavigationButtons })],
+          layout: [],
           hidden: undefined,
         }
       }
