@@ -4,7 +4,7 @@ import classes from './AltinnHeader.module.css';
 import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButton } from '../altinnHeaderButtons/AltinnHeaderButton';
-import { AltinnHeaderProfile } from '../AltinnHeaderProfile/AltinnHeaderProfile';
+import { AltinnHeaderProfile } from '../AltinnHeaderProfile';
 import { IRepository } from 'app-shared/types/global';
 import { User } from 'app-shared/types/User';
 import classnames from 'classnames';
@@ -47,7 +47,7 @@ export const AltinnHeader = ({
           <span className={classes.appName}>{app || ''}</span>
         </div>
         <AltinnHeaderMenu activeSubHeaderSelection={activeMenuSelection} menu={menu} />
-        <div className={classes.rightContent} data-testid='altinn-header-buttons'>
+        <div className={classes.rightContent}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>
               {buttonActions.map((action) => (
