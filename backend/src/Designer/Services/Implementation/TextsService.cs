@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
-using NuGet.Protocol;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -39,6 +38,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
                 TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+                if (textResource?.Resources == null)
+                {
+                    textResource = new TextResource();
+                    textResource.Language = "nb";
+                    textResource.Resources = new List<TextResourceElement>();
+                }
+
                 textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = repo });
                 await altinnAppGitRepository.SaveTextV1("nb", textResource);
             }
