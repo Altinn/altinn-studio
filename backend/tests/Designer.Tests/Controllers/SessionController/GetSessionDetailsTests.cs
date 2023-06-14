@@ -3,14 +3,16 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.Controllers.SessionController
 {
-    public class GetSessionDetailsTests : SessionControllerTestsBase<GetSessionDetailsTests>
+    public class GetSessionDetailsTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.SessionController, GetSessionDetailsTests>
     {
+        private static string VersionPrefix => "/designer/api/session";
         public GetSessionDetailsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.SessionController> factory) : base(factory)
         {
         }

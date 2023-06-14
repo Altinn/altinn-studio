@@ -2,15 +2,16 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.Controllers.TextsController
 {
-    public class GetTests : TextsControllerTestsBase<GetTests>
+    public class GetTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextsController,GetTests>
     {
-
+        protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
         public GetTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextsController> factory) : base(factory)
         {
         }

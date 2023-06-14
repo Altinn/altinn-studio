@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -8,9 +9,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class GetResource : TextControllerTestsBase<GetResource>
+    public class GetResource : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, GetResource>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
         public GetResource(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }

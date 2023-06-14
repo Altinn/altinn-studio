@@ -2,6 +2,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,9 +10,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextsController
 {
-    public class PutTests : TextsControllerTestsBase<PutTests>
+    public class PutTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextsController, PutTests>
     {
-
+        protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
         public PutTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextsController> factory) : base(factory)
         {
         }
@@ -21,7 +22,7 @@ namespace Designer.Tests.Controllers.TextsController
         public async Task Put_UpdateNbTexts_200OK(string org, string app, string developer, string lang)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new
@@ -40,7 +41,7 @@ namespace Designer.Tests.Controllers.TextsController
         public async Task Put_Markdown_200OK(string org, string app, string developer, string lang)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new
@@ -58,7 +59,7 @@ namespace Designer.Tests.Controllers.TextsController
         public async Task Put_UpdateInvalidFormat_400BadRequest(string org, string app, string developer, string lang)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new

@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,9 +12,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class SaveResource : TextControllerTestsBase<SaveResource>
+    public class SaveResource : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, SaveResource>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
         public SaveResource(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
@@ -23,7 +24,7 @@ namespace Designer.Tests.Controllers.TextController
         public async Task SaveResource_WithValidInput_ReturnsOk(string org, string app, string developer, string lang, string payload)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string url = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
 

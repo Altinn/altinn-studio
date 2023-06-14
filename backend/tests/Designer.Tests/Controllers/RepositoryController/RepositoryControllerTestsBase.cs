@@ -10,24 +10,20 @@ using Moq;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class RepositoryControllerTestsBase<TControllerTestType> : ApiTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, TControllerTestType>, IDisposable
+    public class RepositoryControllerTestsBase<TControllerTestType> : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, TControllerTestType>, IDisposable
         where TControllerTestType : class
     {
         protected static string VersionPrefix => "/designer/api/repos";
-        protected string CreatedFolderPath { get; set; }
         protected string CreatedSecondaryFolderPath { get; set; }
         protected readonly Mock<IRepository> RepositoryMock;
 
-        public void Dispose()
+        void IDisposable.Dispose()
         {
-            if (!string.IsNullOrWhiteSpace(CreatedFolderPath))
-            {
-                TestDataHelper.DeleteDirectory(CreatedFolderPath);
-            }
             if (!string.IsNullOrWhiteSpace(CreatedSecondaryFolderPath))
             {
                 TestDataHelper.DeleteDirectory(CreatedSecondaryFolderPath);
             }
+            Dispose();
         }
 
         public RepositoryControllerTestsBase(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)

@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -8,9 +9,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextsController
 {
-    public class DeleteTests : TextsControllerTestsBase<DeleteTests>
+    public class DeleteTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextsController,DeleteTests>
     {
-
+        protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
         public DeleteTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextsController> factory) : base(factory)
         {
         }
@@ -21,7 +22,7 @@ namespace Designer.Tests.Controllers.TextsController
         public async Task Delete_200Ok(string org, string app, string developer, string lang)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 

@@ -24,7 +24,7 @@ namespace Designer.Tests.Controllers.ApiTests
         where TControllerTest : class
     {
         /// <summary>
-        /// Holds the information of the test repo path that was created for tests purposes.
+        /// Holds the path of the test repo path that was created for tests purposes.
         /// </summary>
         protected string CreatedFolderPath { get; private set; }
 

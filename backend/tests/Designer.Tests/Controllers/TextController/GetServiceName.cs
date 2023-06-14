@@ -1,14 +1,15 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class GetServiceName : TextControllerTestsBase<GetServiceName>
+    public class GetServiceName : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextController, GetServiceName>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
         public GetServiceName(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextController> factory) : base(factory)
         {
         }
