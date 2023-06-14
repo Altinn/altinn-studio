@@ -18,7 +18,7 @@ import { useDeleteLayoutMutation } from '../../hooks/mutations/useDeleteLayoutMu
 import { useUpdateLayoutNameMutation } from '../../hooks/mutations/useUpdateLayoutNameMutation';
 import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
-import {DEFAULT_SELECTED_LAYOUT_NAME} from "app-shared/constants";
+import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 
 export interface IPageElementProps {
   name: string;
