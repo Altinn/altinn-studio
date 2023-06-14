@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,8 +10,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class UseXsdFromRepoTests : DatamodelsControllerTestsBase<UseXsdFromRepoTests>
+public class UseXsdFromRepoTests : DisagnerEndpointsTestsBase<DatamodelsController, UseXsdFromRepoTests>
 {
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     public UseXsdFromRepoTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
     }
@@ -21,7 +23,7 @@ public class UseXsdFromRepoTests : DatamodelsControllerTestsBase<UseXsdFromRepoT
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        await CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         string filePath = "/App/models/41111.xsd";
         string url = $"{VersionPrefix(org, targetRepository)}/xsd-from-repo?filePath={filePath}";
 

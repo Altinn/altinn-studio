@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
+using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -9,8 +10,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class NonAuthenticatedCallsTests : DatamodelsControllerTestsBase<NonAuthenticatedCallsTests>
+public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<DatamodelsController, NonAuthenticatedCallsTests>
 {
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private readonly WebApplicationFactory<DatamodelsController> _factory;
 
     public NonAuthenticatedCallsTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
