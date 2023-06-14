@@ -49,6 +49,10 @@ namespace Designer.Tests.Controllers.ApiTests
         /// <param name="targetRepository">Repository to be coppied.</param>
         protected async Task CopyRepositoryForTest(string org, string repo, string developer, string targetRepository)
         {
+            if (CreatedFolderPath is not null)
+            {
+                throw new InvalidOperationException("Repository already created for test.");
+            }
             CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
         }
 
