@@ -5,20 +5,34 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
-using Designer.Tests.Controllers;
+using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-public class GetDeployments : DeploymentsControllerTestsBase<GetDeployments>
+public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, GetDeployments>
 {
+    private readonly Mock<IDeploymentService> _deploymentServiceMock = new Mock<IDeploymentService>();
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
     public GetDeployments(WebApplicationFactory<DeploymentsController> factory) : base(factory)
     {
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        services.Configure<ServiceRepositorySettings>(c =>
+            c.RepositoryLocation = TestRepositoriesLocation);
+        services.AddSingleton<IGitea, IGiteaMock>();
+        services.AddSingleton(_ => _deploymentServiceMock.Object);
     }
 
     [Theory]
@@ -29,7 +43,7 @@ public class GetDeployments : DeploymentsControllerTestsBase<GetDeployments>
         string uri = $"{VersionPrefix(org, app)}?sortDirection=Descending";
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
 
-        DeploymentServiceMock
+        _deploymentServiceMock
             .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>()))
             .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
@@ -38,15 +52,15 @@ public class GetDeployments : DeploymentsControllerTestsBase<GetDeployments>
         // Act
         HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, Options);
+        SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, JsonSerializerOptions);
         IEnumerable<DeploymentEntity> actual = searchResult.Results;
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         Assert.Equal(8, actual.Count());
         Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
-        DeploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        DeploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
+        _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
     }
 
     [Theory]
@@ -57,11 +71,11 @@ public class GetDeployments : DeploymentsControllerTestsBase<GetDeployments>
         string uri = $"{VersionPrefix(org, app)}?sortDirection=Descending";
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("singleLaggingDeployment.json");
 
-        DeploymentServiceMock
+        _deploymentServiceMock
             .Setup(ps => ps.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
-        DeploymentServiceMock
+        _deploymentServiceMock
             .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>()))
             .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
@@ -70,15 +84,15 @@ public class GetDeployments : DeploymentsControllerTestsBase<GetDeployments>
         // Act
         HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, Options);
+        SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, JsonSerializerOptions);
         IEnumerable<DeploymentEntity> actual = searchResult.Results;
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         Assert.Equal(8, actual.Count());
         Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
-        DeploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-        DeploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
+        _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
     }
 
     private List<DeploymentEntity> GetDeploymentsList(string filename)
@@ -90,7 +104,7 @@ public class GetDeployments : DeploymentsControllerTestsBase<GetDeployments>
         }
 
         string deployments = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<List<DeploymentEntity>>(deployments, Options);
+        return JsonSerializer.Deserialize<List<DeploymentEntity>>(deployments, JsonSerializerOptions);
 
     }
 }
