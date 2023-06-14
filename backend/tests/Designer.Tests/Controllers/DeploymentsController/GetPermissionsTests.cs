@@ -73,6 +73,6 @@ public class GetPermissions : DeploymentsControllerTestsBase<GetPermissions>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        Assert.Equal(0, permittedEnvironments.Count);
+        Assert.Empty(permittedEnvironments);
     }
 }
