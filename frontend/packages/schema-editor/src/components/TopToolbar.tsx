@@ -60,54 +60,58 @@ export function TopToolbar({
   return (
     <section className={classes.toolbar} role={'toolbar'}>
       {Toolbar}
-      <div className={classes.spinnerWrapper}>
-        {saving ? (
-          <Spinner title={t('general.saving')} />
-        ) : (
-          <Popover
-            className={cn(classes.statusPopover, generatedSchemaSuccessfully && classes.success)}
-            open={showGenerationState}
-            trigger={
-              <Button
-                id='save-model-button'
-                data-testid='save-model-button'
-                onClick={handleGenerateButtonClick}
-                disabled={!editMode || !saveAction}
-                icon={<CogIcon />}
-                variant={ButtonVariant.Quiet}
-              >
-                {t('schema_editor.generate_model_files')}
-              </Button>
-            }
-          >
-            {error?.message ? (
-              <>
-                <ErrorMessage role='alertdialog'>{error.message}</ErrorMessage>
+      <div className={classes.wrapper}>
+        <div className={classes.spinnerWrapper}>
+          {saving ? (
+            <Spinner title={t('general.saving')} />
+          ) : (
+            <Popover
+              className={cn(classes.statusPopover, generatedSchemaSuccessfully && classes.success)}
+              open={showGenerationState}
+              trigger={
                 <Button
-                  onClick={() => setShowGenerationState(false)}
-                  variant={ButtonVariant.Outline}
+                  id='save-model-button'
+                  data-testid='save-model-button'
+                  onClick={handleGenerateButtonClick}
+                  disabled={!editMode || !saveAction}
+                  icon={<CogIcon />}
+                  variant={ButtonVariant.Quiet}
                 >
-                  {t('general.close')}
+                  {t('schema_editor.generate_model_files')}
                 </Button>
-              </>
-            ) : (
-              <Panel variant={PanelVariant.Success} forceMobileLayout={true}>
-                {t('general.saved')}
-              </Panel>
-            )}
-          </Popover>
+              }
+            >
+              {error?.message ? (
+                <>
+                  <ErrorMessage role='alertdialog'>{error.message}</ErrorMessage>
+                  <Button
+                    onClick={() => setShowGenerationState(false)}
+                    variant={ButtonVariant.Outline}
+                  >
+                    {t('general.close')}
+                  </Button>
+                </>
+              ) : (
+                <Panel variant={PanelVariant.Success} forceMobileLayout={true}>
+                  {t('general.saved')}
+                </Panel>
+              )}
+            </Popover>
+          )}
+        </div>
+        {toggleEditMode && (
+          <div className={classes.toggleButtonGroupWrapper}>
+            <ToggleButtonGroup
+              selectedValue={editMode ? 'edit' : 'view'}
+              onChange={toggleEditMode}
+              items={[
+                { value: 'view', label: t('schema_editor.view_mode') },
+                { value: 'edit', label: t('schema_editor.edit_mode') },
+              ]}
+            />
+          </div>
         )}
       </div>
-      {toggleEditMode && (
-        <ToggleButtonGroup
-          selectedValue={editMode ? 'edit' : 'view'}
-          onChange={toggleEditMode}
-          items={[
-            { value: 'view', label: t('schema_editor.view_mode') },
-            { value: 'edit', label: t('schema_editor.edit_mode') },
-          ]}
-        />
-      )}
     </section>
   );
 }
