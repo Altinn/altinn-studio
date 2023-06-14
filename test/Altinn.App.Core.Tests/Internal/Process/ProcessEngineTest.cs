@@ -125,6 +125,7 @@ public class ProcessEngineTest : IDisposable
                     ElementId = "Task_1",
                     Flow = 2,
                     AltinnTaskType = "data",
+                    FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                     Name = "Utfylling"
                 },
                 StartEvent = "StartEvent_1"
@@ -187,7 +188,7 @@ public class ProcessEngineTest : IDisposable
         _processEventDispatcherMock.Verify(d => d.UpdateProcessAndDispatchEvents(
             It.Is<Instance>(i => CompareInstance(expectedInstance, i)),
             null,
-            It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(l, expectedInstanceEvents))));
+            It.Is<List<InstanceEvent>>(l => CompareInstanceEvents(expectedInstanceEvents, l))));
         result.Success.Should().BeTrue();
     }
 
@@ -229,6 +230,7 @@ public class ProcessEngineTest : IDisposable
                     ElementId = "Task_1",
                     Flow = 2,
                     AltinnTaskType = "data",
+                    FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                     Name = "Utfylling"
                 },
                 StartEvent = "StartEvent_1"
@@ -335,6 +337,7 @@ public class ProcessEngineTest : IDisposable
                     ElementId = "Task_2",
                     Flow = 3,
                     AltinnTaskType = "confirmation",
+                    FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                     Name = "Bekreft"
                 },
                 StartEvent = "StartEvent_1"
@@ -422,6 +425,7 @@ public class ProcessEngineTest : IDisposable
                         ElementId = "Task_2",
                         Name = "Bekreft",
                         AltinnTaskType = "confirmation",
+                        FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                         Flow = 3
                     }
                 }
@@ -458,6 +462,7 @@ public class ProcessEngineTest : IDisposable
                     ElementId = "Task_2",
                     Flow = 3,
                     AltinnTaskType = "confirmation",
+                    FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                     Name = "Bekreft"
                 },
                 StartEvent = "StartEvent_1"
@@ -545,6 +550,7 @@ public class ProcessEngineTest : IDisposable
                         ElementId = "Task_2",
                         Name = "Bekreft",
                         AltinnTaskType = "confirmation",
+                        FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                         Flow = 3
                     }
                 }
@@ -923,6 +929,12 @@ public class ProcessEngineTest : IDisposable
         var expectedJson = JsonConvert.SerializeObject(expected);
         var actualJson = JsonConvert.SerializeObject(actual);
 
-        return expectedJson == actualJson;
+        var jsonCompare = expectedJson == actualJson;
+        if (jsonCompare == false)
+        {
+            Console.WriteLine("Not equal");
+        }
+        
+        return jsonCompare;
     }
 }

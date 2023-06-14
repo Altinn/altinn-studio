@@ -266,6 +266,7 @@ public class ProcessEngine : IProcessEngine
                 Name = nextElement!.Name,
                 Started = now,
                 AltinnTaskType = task?.ExtensionElements?.TaskExtension?.TaskType,
+                FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                 Validated = null,
             };
 

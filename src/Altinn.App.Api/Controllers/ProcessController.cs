@@ -281,7 +281,8 @@ namespace Altinn.App.Api.Controllers
                 {
                     return Forbid();
                 }
-
+                
+                _logger.LogDebug("User is authorized to perform action {Action}", checkedAction);
                 var request = new ProcessNextRequest()
                 {
                     Instance = instance,
@@ -306,6 +307,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
+                _logger.LogError("Platform exception when processing next. {message}", e.Message);
                 return HandlePlatformHttpException(e, "Process next failed.");
             }
             catch (Exception exception)
