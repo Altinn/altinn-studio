@@ -917,7 +917,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                 return true;
                             }
                         }
-                    } 
+                    }
                 }
             }
 
