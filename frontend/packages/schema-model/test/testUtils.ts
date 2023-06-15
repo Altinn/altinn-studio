@@ -3,7 +3,7 @@ import fs from 'fs';
 import Ajv2020 from 'ajv/dist/2020';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FieldType } from '../src';
-import { JSONSchema7 } from 'json-schema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 /**
  * Some schemas might not be valid
@@ -21,9 +21,9 @@ const readJsonFile = (filepath): KeyValuePairs => JSON.parse(fs.readFileSync(fil
 /**
  * Returns a map with json schemas.
  */
-const getJsonSchemasForTest = (dirPath: string): Map<string, JSONSchema7> => {
+const getJsonSchemasForTest = (dirPath: string): Map<string, JsonSchema> => {
   if (!cache.has(dirPath)) {
-    const output = new Map<string, JSONSchema7>();
+    const output = new Map<string, JsonSchema>();
     fs.readdirSync(dirPath).forEach((filename) => {
       const filepath = path.resolve(dirPath, filename);
       const basename = path.basename(filepath, '.json');
@@ -35,7 +35,7 @@ const getJsonSchemasForTest = (dirPath: string): Map<string, JSONSchema7> => {
   }
   return cache.get(dirPath);
 };
-export const mapToTable = (input: Map<string, JSONSchema7>): any[] => {
+export const mapToTable = (input: Map<string, JsonSchema>): any[] => {
   const out: any[] = [];
   input.forEach((value, key) => {
     out.push([key, value]);
@@ -78,7 +78,7 @@ export const validateSchema = (schema: KeyValuePairs) => {
   return new Ajv2020().validateSchema(schema);
 };
 
-export const simpleTestJsonSchema: JSONSchema7 = {
+export const simpleTestJsonSchema: JsonSchema = {
   properties: {
     hello: {
       type: FieldType.String,
@@ -93,7 +93,7 @@ export const simpleTestJsonSchema: JSONSchema7 = {
   },
 };
 
-export const selectorsTestSchema: JSONSchema7 = {
+export const selectorsTestSchema: JsonSchema = {
   $defs: {
     waba: { type: FieldType.String },
     duba: { type: FieldType.String },

@@ -34,7 +34,7 @@ import {
   selectedItemSelector,
   selectedPropertyParentSelector
 } from '@altinn/schema-editor/selectors/schemaStateSelectors';
-import { JSONSchema7 } from 'json-schema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
@@ -43,7 +43,7 @@ export interface IEditorProps {
   name?: string;
   onSaveSchema: (payload: any) => void;
   saveUrl: string;
-  schema: JSONSchema7;
+  schema: JsonSchema;
   schemaState: GenerateSchemaState;
   editMode: boolean;
   toggleEditMode: () => void;

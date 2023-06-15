@@ -43,7 +43,7 @@ import {
   StringFormat,
   StrRestrictionKey,
 } from '@altinn/schema-model';
-import { JSONSchema7 } from 'json-schema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 describe('SchemaEditorSlice', () => {
   let state: SchemaState;
@@ -356,7 +356,7 @@ describe('SchemaEditorSlice', () => {
   });
 
   it('handles promotion of root-level types', () => {
-    const schema: JSONSchema7 = {
+    const schema: JsonSchema = {
       properties: {
         melding: {
           properties: {

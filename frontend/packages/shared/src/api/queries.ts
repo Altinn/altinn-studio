@@ -48,11 +48,11 @@ import { User } from 'app-shared/types/User';
 import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgsListUrl } from '../cdn-paths';
-import { JSONSchema7 } from 'json-schema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
-export const getDatamodel = (owner: string, app: string, modelPath: string) => get<JSONSchema7>(datamodelPath(owner, app, modelPath));
+export const getDatamodel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(datamodelPath(owner, app, modelPath));
 export const getDatamodelMetadata = (owner: string, app: string) => get<DatamodelMetadataResponse>(datamodelMetadataPath(owner, app));
 export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelsXsd[]>(datamodelsXsdPath(owner, app));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));

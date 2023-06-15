@@ -14,14 +14,15 @@ import {
 import { GenerateSchemaState } from 'app-shared/types/global';
 import cn from 'classnames';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { JSONSchema7 } from 'json-schema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
+
 
 export interface TopToolbarProps {
   Toolbar: JSX.Element;
   editMode: boolean;
   saveAction?: (payload: any) => void;
   toggleEditMode?: (e: any) => void;
-  schema: JSONSchema7;
+  schema: JsonSchema;
   schemaState: GenerateSchemaState;
 }
 

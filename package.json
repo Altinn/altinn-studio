@@ -24,7 +24,6 @@
     "@testing-library/user-event": "14.4.3",
     "@types/css-modules": "1.0.2",
     "@types/jest": "29.5.2",
-    "@types/json-schema": "7.0.12",
     "@types/lodash-es": "4.17.7",
     "@types/react": "18.2.9",
     "@types/react-dom": "18.2.4",

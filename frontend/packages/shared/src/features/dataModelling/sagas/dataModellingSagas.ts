@@ -23,7 +23,7 @@ import {
   datamodelPath,
 } from '../../../api/paths';
 import { _useParamsClassCompHack } from '../../../utils/_useParamsClassCompHack';
-import { JSONSchema7 } from 'json-schema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
@@ -68,7 +68,7 @@ function* createDataModelSaga(action: IDataModelAction) {
   const body = { modelName: name, relativeDirectory: relativePath };
   const { org, app } = _useParamsClassCompHack();
   try {
-    const schema: JSONSchema7 = yield call(post, createDatamodelPath(org, app), body);
+    const schema: JsonSchema = yield call(post, createDatamodelPath(org, app), body);
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
     yield put(createDataModelFulfilled({ schema }));
   } catch (err) {

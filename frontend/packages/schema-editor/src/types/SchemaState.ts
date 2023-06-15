@@ -1,8 +1,8 @@
 import type { UiSchemaNodes } from '@altinn/schema-model';
-import { JSONSchema7 } from 'json-schema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export interface SchemaState {
-  schema: JSONSchema7;
+  schema: JsonSchema;
   uiSchema: UiSchemaNodes;
   name: string;
   saveSchemaUrl: string;

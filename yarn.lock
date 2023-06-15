@@ -4121,13 +4121,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/json-schema@npm:7.0.12":
-  version: 7.0.12
-  resolution: "@types/json-schema@npm:7.0.12"
-  checksum: 00239e97234eeb5ceefb0c1875d98ade6e922bfec39dd365ec6bd360b5c2f825e612ac4f6e5f1d13601b8b30f378f15e6faa805a3a732f4a1bbe61915163d293
-  languageName: node
-  linkType: hard
-
 "@types/json5@npm:^0.0.29":
   version: 0.0.29
   resolution: "@types/json5@npm:0.0.29"
@@ -5082,7 +5075,6 @@ __metadata:
     "@testing-library/user-event": 14.4.3
     "@types/css-modules": 1.0.2
     "@types/jest": 29.5.2
-    "@types/json-schema": 7.0.12
     "@types/lodash-es": 4.17.7
     "@types/react": 18.2.9
     "@types/react-dom": 18.2.4

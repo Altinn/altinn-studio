@@ -28,7 +28,7 @@ import {
   changeChildrenOrder as changeChildrenOrderReducer,
 } from '@altinn/schema-model';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { JSONSchema7 } from 'json-schema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export const initialState: SchemaState = {
   schema: {},
@@ -153,7 +153,7 @@ const schemaEditorSlice = createSlice({
         }
       });
     },
-    setJsonSchema(state, action: PayloadAction<{ schema: JSONSchema7 }>) {
+    setJsonSchema(state, action: PayloadAction<{ schema: JsonSchema }>) {
       const { schema } = action.payload;
       state.schema = schema;
     },
@@ -203,7 +203,7 @@ const schemaEditorSlice = createSlice({
     },
     updateJsonSchema(state, action: PayloadAction<{ onSaveSchema?: (payload: any) => void }>) {
       const { onSaveSchema } = action.payload;
-      const updatedSchema: JSONSchema7 = buildJsonSchema(state.uiSchema);
+      const updatedSchema: JsonSchema = buildJsonSchema(state.uiSchema);
       state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);

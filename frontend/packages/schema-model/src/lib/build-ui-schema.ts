@@ -13,7 +13,7 @@ import { findUiFieldType } from './mappers/field-type';
 import { findGenericKeywordsOnNode, findReference } from './mappers/generic';
 import { ROOT_POINTER } from './constants';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { JSONSchema7 } from 'json-schema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 /**
  * Recursive function that traverse the json schema tree. This should not be accessed directly but through `toUiSchema`
@@ -81,7 +81,7 @@ const createUiNode = (schemaNode: KeyValuePairs, uiNode: UiSchemaNode): UiSchema
   }
 };
 
-export const buildUiSchema = (jsonSchema: JSONSchema7): UiSchemaNodes => {
+export const buildUiSchema = (jsonSchema: JsonSchema): UiSchemaNodes => {
   const uiNodeMap = createUiNode(jsonSchema, createNodeBase(ROOT_POINTER));
   // Just resolve references when we are dealing with the root, all items is resolved at this point.
   const lookup = new Map();
