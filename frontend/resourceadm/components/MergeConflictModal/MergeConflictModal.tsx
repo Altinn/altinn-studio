@@ -4,7 +4,7 @@ import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@digdir/design-system-react';
 import { Download } from '@navikt/ds-icons';
-import { repoDownloadPath, repoResetPAth } from 'app-shared/api/paths';
+import { repoDownloadPath, repoResetPath } from 'app-shared/api/paths';
 import { RemoveChangesModal } from './RemoveChangesModal/RemoveChangesModal';
 import { get } from 'app-shared/utils/networking';
 import { Link } from '../Link';
@@ -55,7 +55,7 @@ export const MergeConflictModal = ({
    * Function that resets the repo
    */
   const handleClickResetRepo = () => {
-    get(repoResetPAth(org, repo));
+    get(repoResetPath(org, repo));
     onSolveMerge();
   };
 
