@@ -79,7 +79,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                teams = await response.Content.ReadAsAsync<List<Team>>();
+                teams = await response.Content.ReadAsAsync<List<Team>>() ?? new List<Team>();
             }
             else
             {

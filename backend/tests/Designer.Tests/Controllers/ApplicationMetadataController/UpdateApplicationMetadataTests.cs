@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -13,9 +14,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class UpdateApplicationMetadataTests : ApplicationMetadataControllerTestsBase<UpdateApplicationMetadataTests>
+    public class UpdateApplicationMetadataTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, UpdateApplicationMetadataTests>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
         public UpdateApplicationMetadataTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
         {
         }
@@ -25,10 +26,10 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
         public async Task UpdateApplicationMetadata_WhenExists_ShouldReturnConflict(string org, string app, string developer, string metadataToUpdate)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string metadata = SharedResourcesHelper.LoadTestDataAsString(metadataToUpdate);
-            string expectedMetadataJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(metadata, SerializerOptions), SerializerOptions);
+            string expectedMetadataJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(metadata, JsonSerializerOptions), JsonSerializerOptions);
 
             string url = VersionPrefix(org, targetRepository);
 

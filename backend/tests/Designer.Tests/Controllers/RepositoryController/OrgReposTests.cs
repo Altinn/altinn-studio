@@ -1,14 +1,15 @@
 ﻿using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class OrgReposTests : RepositoryControllerTestsBase<OrgReposTests>
+    public class OrgReposTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.RepositoryController, OrgReposTests>
     {
-
+        private static string VersionPrefix => "/designer/api/repos";
         public OrgReposTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.RepositoryController> factory) : base(factory)
         {
         }

@@ -6,7 +6,6 @@ export { useDeployPermissionsQuery } from './useDeployPermissionsQuery';
 export { useEnvironmentsQuery } from './useEnvironmentsQuery';
 export { useLanguagesQuery } from './useLanguagesQuery';
 export { useOrgListQuery } from './useOrgListQuery';
-export { useRepoMetadataQuery } from './useRepoMetadataQuery';
 export { useRepoPullQuery } from './useRepoPullQuery';
 export { useRepoStatusQuery } from './useRepoStatusQuery';
 export { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';

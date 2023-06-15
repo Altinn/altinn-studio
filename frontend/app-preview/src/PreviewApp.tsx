@@ -3,7 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { LandingPage } from './views/LandingPage';
 import { NoMatch } from './views/NoMatch';
 import classes from './PreviewApp.module.css';
-import { DEFAULT_LANGUAGE } from "app-shared/constants";
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import nb from '../../language/src/nb.json';

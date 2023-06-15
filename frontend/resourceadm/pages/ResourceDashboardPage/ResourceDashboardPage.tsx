@@ -25,6 +25,7 @@ import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 export const ResourceDashboardPage = () => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
+  const repo = `${selectedContext}-resources`;
 
   const [searchValue, setSearchValue] = useState('');
   const [resourceList, setResourceList] = useState<ResourceType[]>([]);

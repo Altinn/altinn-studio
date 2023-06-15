@@ -63,11 +63,11 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     /// </summary>
     protected virtual HttpClient GetTestClient()
     {
-        var configPath = GetConfigPath();
+        string configPath = GetConfigPath();
 
         var client = Factory.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
+            builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
 
             builder.ConfigureTestServices(ConfigureTestServices);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
@@ -80,7 +80,7 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     /// <returns></returns>
     protected virtual string GetConfigPath()
     {
-        var projectDir = Directory.GetCurrentDirectory();
+        string projectDir = Directory.GetCurrentDirectory();
         return Path.Combine(projectDir, "appsettings.json");
     }
 }

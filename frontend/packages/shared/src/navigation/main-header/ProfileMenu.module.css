@@ -1,0 +1,31 @@
+.paperStyle {
+  border-radius: 1px;
+  min-width: 150px;
+  padding: 0;
+  top: 50px;
+  right: 25px;
+}
+
+.menuItem {
+  font-size: 16px;
+  justify-content: flex-end;
+  padding-right: 25px;
+}
+
+.profileIconButton {
+  color: white;
+}
+
+.userAvatar {
+  height: 40px;
+  width: 40px;
+  border-radius: 30px;
+  padding: 5px;
+}
+
+.previewProfilIcon {
+  font-size: 40px;
+  align-items: center;
+  flex: 1;
+  display: flex;
+}

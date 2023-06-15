@@ -2,14 +2,16 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Controllers;
+using Designer.Tests.Controllers.ApiTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class GetTests : DatamodelsControllerTestsBase<GetTests>
+public class GetTests : DisagnerEndpointsTestsBase<DatamodelsController, GetTests>
 {
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     public GetTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
     }

@@ -1,5 +1,5 @@
-import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
-import { IRepository } from 'app-shared/types/global';
+import { ProfileMenu } from 'app-shared/navigation/main-header/ProfileMenu';
+import { Repository } from 'app-shared/types/Repository';
 import { User } from 'app-shared/types/User';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,14 +8,15 @@ import classes from './AltinnHeaderProfile.module.css';
 export interface AltinnHeaderProfileProps {
   user: User;
   org: string;
-  repository: IRepository;
+  repository: Repository;
 }
 
 export const AltinnHeaderProfile = ({ user, repository, org }: AltinnHeaderProfileProps) => {
   const { t } = useTranslation();
+
   return (
     <div className={classes.profileMenuWrapper}>
-      {user && (
+      {user && repository && (
         <>
           <span className={classes.userOrgNames}>
             {org && user.login !== org

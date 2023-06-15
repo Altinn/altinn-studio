@@ -5,7 +5,7 @@ export const dashboard = {
   appName: '#service-saved-name',
   button: 'button',
   createApp: 'Opprett applikasjon',
-  appOwnersList: "[data-testid='select-root'] [role='option']",
+  appOwnersList: "[role='listbox'] [role='option']",
   searchApp: '#search-repos',
   apps: {
     name: "div[data-field='name']",

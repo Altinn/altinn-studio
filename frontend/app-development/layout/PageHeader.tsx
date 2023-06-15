@@ -22,7 +22,7 @@ interface PageHeaderProps {
   app: string;
 }
 
-const subMenuContent = () => {
+export const subMenuContent = () => {
   return (
     <>
       <div className={classes.leftContent} data-testid='branching-icon'>
@@ -36,7 +36,7 @@ const subMenuContent = () => {
   );
 };
 
-const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
+export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
   const actions = [
     {
       title: 'top_menu.preview',
@@ -44,7 +44,7 @@ const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
       menuKey: TopBarMenu.Preview,
       buttonVariant: ButtonVariant.Outline,
       headerButtonsClasses: classes.previewButton,
-      handleClick: () => window.open(previewPath(org, app), '_blank'),
+      handleClick: () => (window.location.href = previewPath(org, app)),
       inBeta: true,
     },
     {
@@ -80,7 +80,7 @@ export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {
               org={org}
               app={app}
               user={user}
-              repository={{ ...repository, user_has_starred: false }}
+              repository={{ ...repository }}
               buttonActions={buttonActions(org, app)}
             />
           }

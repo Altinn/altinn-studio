@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,9 +11,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetRuleHandlerTests : AppDevelopmentControllerTestsBase<GetFormLayoutsTestsBase>
+    public class GetRuleHandlerTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetFormLayoutsTestsBase>
     {
-
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public GetRuleHandlerTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
         {
         }
@@ -27,9 +28,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         public async Task GetRuleHandler_ShouldReturnJsContent(string org, string app, string developer, string layoutSetName, string expectedRuleLayoutPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string expectedRuleHandler = await AddRuleHandler(CreatedFolderPath, layoutSetName, expectedRuleLayoutPath);
+            string expectedRuleHandler = await AddRuleHandler(TestRepoPath, layoutSetName, expectedRuleLayoutPath);
 
             string url = $"{VersionPrefix(org, targetRepository)}/rule-handler?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);

@@ -112,7 +112,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 await _appDevelopmentService.SaveFormLayout(org, app, developer, layoutSetName, layoutName, formLayout);
-                return Ok("Layout successfully saved.");
+                return Ok();
             }
             catch (FileNotFoundException exception)
             {
@@ -141,7 +141,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 _appDevelopmentService.DeleteFormLayout(org, app, developer, layoutSetName, layoutName);
-                return Ok("Layout successfully deleted.");
+                return Ok();
             }
             catch (FileNotFoundException exception)
             {
@@ -171,7 +171,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 _appDevelopmentService.UpdateFormLayoutName(org, app, developer, layoutSetName, layoutName, newName);
-                return Ok("Layout name successfully changed.");
+                return Ok();
             }
             catch (FileNotFoundException exception)
             {
@@ -201,7 +201,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 await _appDevelopmentService.SaveLayoutSettings(org, app, developer, layoutSettings, layoutSetName);
-                return Ok("Layout settings successfully saved.");
+                return Ok();
             }
             catch (FileNotFoundException exception)
             {
@@ -259,7 +259,7 @@ namespace Altinn.Studio.Designer.Controllers
                 LayoutSets layoutSets = await _appDevelopmentService.GetLayoutSets(org, app, developer);
                 if (layoutSets is null)
                 {
-                    return Ok("App is not configured to use layout sets");
+                    return Ok();
                 }
                 return Ok(layoutSets);
             }
@@ -318,7 +318,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 await _appDevelopmentService.AddLayoutSet(org, app, developer, layoutSet);
-                return Ok("Layout set added");
+                return Ok();
             }
             catch (FileNotFoundException exception)
             {
@@ -414,7 +414,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 await _appDevelopmentService.SaveRuleConfig(org, app, developer, ruleConfig, layoutSetName);
-                return Ok("Rule configuration successfully saved.");
+                return Ok();
             }
             catch (Exception exception)
             {

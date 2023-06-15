@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,8 +10,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextKeysController
 {
-    public class PutTests : TextKeysControllerTestsBase<GetTests>
+    public class PutTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.TextKeysController, GetTests>
     {
+        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text-keys";
         public PutTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.TextKeysController> factory) : base(factory)
         {
         }
@@ -20,7 +22,7 @@ namespace Designer.Tests.Controllers.TextKeysController
         public async Task PutNewKey_OldKeyPresentInAllFiles_200OkAndNewKeyPresent(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=AlreadyExistingKey&newKey=ReplacedKey";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
@@ -40,7 +42,7 @@ namespace Designer.Tests.Controllers.TextKeysController
         public async Task Put_NewKeyExistInOneFileOldKeyExistInAnotherFile_200OkAndOneLessTotalKeys(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
@@ -60,7 +62,7 @@ namespace Designer.Tests.Controllers.TextKeysController
         public async Task Put_NewKeyExistInSameFileAsOldKey_400BadRequestNoFilesChanged(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=AlreadyExistingKey&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
@@ -80,7 +82,7 @@ namespace Designer.Tests.Controllers.TextKeysController
         public async Task Put_EmptyNewKey_200OkOldKeyIsRemoved(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=AlreadyExistingKey&newKey=";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
@@ -101,7 +103,7 @@ namespace Designer.Tests.Controllers.TextKeysController
         public async Task Put_TextsFilesNotFound_404NotFound(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
@@ -115,7 +117,7 @@ namespace Designer.Tests.Controllers.TextKeysController
         public async Task Put_IllegalArguments_400BadRequest(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
             string dataPathWithData = $"{VersionPrefix(org, targetRepository)}?wrongQueryParam=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
             HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
 
