@@ -77,6 +77,9 @@ jobs:
       - name: 'Running Unit Tests'
         run: yarn test:ci
 
+      - name: Fix code coverage paths
+        run: sed -i 's@'frontend/'@/github/workspace/frontend/@g' frontend/coverage/lcov.info
+
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         with:
