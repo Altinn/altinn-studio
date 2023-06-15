@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -46,7 +44,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org)
         {
             string repository = string.Format("{0}-resources", org);
-            List <ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
+            List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
             foreach (ServiceResource resource in repositoryResourceList)
