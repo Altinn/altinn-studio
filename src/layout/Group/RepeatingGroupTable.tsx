@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
-import { useMediaQuery } from '@material-ui/core';
 import cn from 'classnames';
 
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowRenderer } from 'src/layout/Grid/GridComponent';
@@ -57,7 +57,7 @@ export function RepeatingGroupTable({
   rowsBefore,
   rowsAfter,
 }: IRepeatingGroupTableProps): JSX.Element | null {
-  const mobileView = useMediaQuery('(max-width:992px)');
+  const mobileView = useIsMobileOrTablet();
   const textResources = useAppSelector((state) => state.textResources.resources);
   const language = useAppSelector((state) => state.language.language);
 

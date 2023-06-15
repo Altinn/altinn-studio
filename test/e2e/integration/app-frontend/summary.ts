@@ -151,6 +151,8 @@ describe('Summary', () => {
         cy.wrap(items).eq(1).should('contain.text', 'Referanse : Test');
         cy.wrap(items).eq(2).should('contain.text', 'Referanse 2 : Doffen');
       });
+
+    cy.snapshot('summary:change-name');
   });
 
   it('is possible to view summary of repeating group', () => {
@@ -300,6 +302,8 @@ describe('Summary', () => {
       .children()
       .last()
       .should('contain.text', texts.emptySummary);
+
+    cy.snapshot('summary:repeating-groups');
 
     // Hiding the group should hide the group summary as well
     cy.get('[data-testid=summary-summary1]').should('be.visible');

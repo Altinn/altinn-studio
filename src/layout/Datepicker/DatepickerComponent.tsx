@@ -1,13 +1,14 @@
 import React from 'react';
 
 import MomentUtils from '@date-io/moment';
-import { Grid, Icon, makeStyles, useMediaQuery, useTheme } from '@material-ui/core';
+import { Grid, Icon, makeStyles } from '@material-ui/core';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import moment from 'moment';
 import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { getDateConstraint, getDateFormat, getDateString } from 'src/utils/dateHelpers';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -122,8 +123,7 @@ export function DatepickerComponent({
   const calculatedMaxDate = getDateConstraint(maxDate, 'max');
 
   const calculatedFormat = getDateFormat(format, languageLocale);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useIsMobile();
 
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(handleDataChange, formData?.simpleBinding ?? '');
 

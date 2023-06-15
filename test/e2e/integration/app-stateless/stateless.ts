@@ -21,6 +21,7 @@ describe('Stateless', () => {
     cy.get(appFrontend.stateless.name).blur();
     cy.get(appFrontend.stateless.name).should('have.value', 'automation');
     cy.get(appFrontend.header).should('contain.text', appFrontend.apps.stateless).and('contain.text', texts.ttd);
+    cy.snapshot('stateless');
   });
 
   it('Dynamics in stateless app', () => {

@@ -5,6 +5,7 @@ import cn from 'classnames';
 
 import { AltinnIcon } from 'src/components/AltinnIcon';
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
+import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { IAttachment } from 'src/types/shared';
 
 const useStyles = makeStyles(() => ({
@@ -75,7 +76,7 @@ export function AltinnCollapsibleAttachments({
               />
             </ListItemIcon>
             <ListItemText
-              primary={`${title} ${attachmentCount}`}
+              primary={`${getPlainTextFromNode(title)} ${attachmentCount}`}
               classes={{
                 root: cn(classes.listItemTextPadding),
                 primary: cn(classes.collapsedTitle),

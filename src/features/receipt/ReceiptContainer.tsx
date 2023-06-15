@@ -16,6 +16,7 @@ import { getAppReceiver, getLanguageFromKey } from 'src/language/sharedLanguage'
 import { getAttachmentGroupings, getInstancePdf, mapInstanceAttachments } from 'src/utils/attachmentsUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
+import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { ITextResource } from 'src/types';
 import type { IAltinnOrgs, IAttachment, ILanguage, IParty } from 'src/types/shared';
 
@@ -29,9 +30,12 @@ export const returnInstanceMetaDataObject = (
   lastChangedDateTime: string,
   org: string,
 ) => {
-  const obj: any = {};
+  const obj: SummaryDataObject = {};
 
-  obj[getLanguageFromKey('receipt.date_sent', languageData)] = lastChangedDateTime;
+  obj[getLanguageFromKey('receipt.date_sent', languageData)] = {
+    value: lastChangedDateTime,
+    hideFromVisualTesting: true,
+  };
 
   let sender = '';
   if (instanceOwnerParty?.ssn) {
@@ -39,17 +43,26 @@ export const returnInstanceMetaDataObject = (
   } else if (instanceOwnerParty?.orgNumber) {
     sender = `${instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
   }
-  obj[getLanguageFromKey('receipt.sender', languageData)] = sender;
+  obj[getLanguageFromKey('receipt.sender', languageData)] = {
+    value: sender,
+  };
 
   const receiver = getAppReceiver(textResources, orgsData, org, userLanguageString);
   if (receiver) {
-    obj[getLanguageFromKey('receipt.receiver', languageData)] = receiver;
+    obj[getLanguageFromKey('receipt.receiver', languageData)] = {
+      value: receiver,
+    };
   } else {
     // This is only related to testing in Altinn Studio Dev
-    obj[getLanguageFromKey('receipt.receiver', languageData)] = 'Error: Receiver org not found';
+    obj[getLanguageFromKey('receipt.receiver', languageData)] = {
+      value: 'Error: Receiver org not found',
+    };
   }
 
-  obj[getLanguageFromKey('receipt.ref_num', languageData)] = instanceGuid.split('-')[4];
+  obj[getLanguageFromKey('receipt.ref_num', languageData)] = {
+    value: instanceGuid.split('-')[4],
+    hideFromVisualTesting: true,
+  };
 
   return obj;
 };
@@ -59,7 +72,7 @@ export const ReceiptContainer = () => {
   const [attachments, setAttachments] = useState<IAttachment[]>([]);
   const [pdf, setPdf] = useState<IAttachment[] | undefined>(undefined);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
-  const [instanceMetaObject, setInstanceMetaObject] = useState({});
+  const [instanceMetaObject, setInstanceMetaObject] = useState<SummaryDataObject>({});
   const [userLanguage, setUserLanguage] = useState('nb');
 
   const receiptLayoutName = useAppSelector((state) => state.formLayout.uiConfig.receiptLayoutName);

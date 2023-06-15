@@ -1,69 +1,53 @@
 import React from 'react';
 
-import { makeStyles, Table, TableBody, TableCell, TableRow, Typography } from '@material-ui/core';
-import classNames from 'classnames';
+import { Table, TableBody, TableCell, TableRow, Typography } from '@material-ui/core';
+import cn from 'classnames';
 
-const returnGridRow = (name: string, prop: string, classes: any, index: number) => (
-  <TableRow
-    key={index}
-    classes={{
-      root: classNames(classes.tableRow),
-    }}
-  >
+import classes from 'src/components/table/AltinnSummaryTable.module.css';
+
+interface InnerRowProps {
+  name: string;
+  prop: SummaryDataObject[keyof SummaryDataObject];
+}
+
+export type SummaryDataObject = {
+  [name: string]: {
+    value: string | boolean | number | null | undefined;
+    hideFromVisualTesting?: boolean;
+  };
+};
+
+export interface IAltinnSummaryTableProps {
+  summaryDataObject: SummaryDataObject;
+}
+
+const InnerRow = ({ name, prop }: InnerRowProps) => (
+  <TableRow className={classes.tableRow}>
     <TableCell
       padding='none'
-      classes={{
-        root: classNames(classes.tableCell),
-      }}
+      className={classes.tableCell}
     >
       <Typography variant='body1'>{name}:</Typography>
     </TableCell>
     <TableCell
       padding='none'
-      classes={{
-        root: classNames(classes.tableCell),
-      }}
+      className={cn(classes.tableCell, { ['no-visual-testing']: prop.hideFromVisualTesting })}
     >
-      <Typography variant='body1'>{prop}</Typography>
+      <Typography variant='body1'>{prop.value}</Typography>
     </TableCell>
   </TableRow>
 );
 
-const useStyles = makeStyles({
-  instanceMetaData: {
-    '@media only screen': {
-      marginTop: 36,
-    },
-    '@media print': {
-      marginBottom: '1.25rem',
-    },
-  },
-  tableCell: {
-    borderBottom: 0,
-    paddingRight: '1.5625rem',
-  },
-  tableRow: {
-    height: 'auto',
-  },
-});
-
-export interface IAltinnSummaryTableProps {
-  summaryDataObject: any;
-}
-
-export function AltinnSummaryTable(props: IAltinnSummaryTableProps) {
-  const classes = useStyles();
-  return (
-    <Table
-      style={{ height: 'auto', width: 'auto' }}
-      padding='none'
-      className={classes.instanceMetaData}
-    >
-      <TableBody>
-        {Object.keys(props.summaryDataObject).map((name, i) =>
-          returnGridRow(name, props.summaryDataObject[name], classes, i),
-        )}
-      </TableBody>
-    </Table>
-  );
-}
+export const AltinnSummaryTable = (props: IAltinnSummaryTableProps) => (
+  <Table className={classes.instanceMetaData}>
+    <TableBody>
+      {Object.keys(props.summaryDataObject).map((name) => (
+        <InnerRow
+          key={name}
+          name={name}
+          prop={props.summaryDataObject[name]}
+        />
+      ))}
+    </TableBody>
+  </Table>
+);

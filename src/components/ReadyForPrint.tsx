@@ -13,14 +13,18 @@ export function ReadyForPrint() {
 
     promises.push(document.fonts.ready);
 
-    const imageLoadPromise = (img: HTMLImageElement) =>
+    const loadPromise = (element: HTMLImageElement | HTMLLinkElement) =>
       new Promise((res) => {
-        img.addEventListener('load', res);
-        img.addEventListener('error', res);
+        element.addEventListener('load', res);
+        element.addEventListener('error', res);
       });
 
     document.querySelectorAll('img').forEach((image) => {
-      image.complete || promises.push(imageLoadPromise(image));
+      image.complete || promises.push(loadPromise(image));
+    });
+
+    document.querySelectorAll('link[rel="stylesheet"]').forEach((link: HTMLLinkElement) => {
+      cssHasLoaded(link.href) || promises.push(loadPromise(link));
     });
 
     Promise.all(promises).then(() => {
@@ -46,4 +50,9 @@ export function ReadyForPrint() {
       id='readyForPrint'
     />
   );
+}
+
+function cssHasLoaded(url: string) {
+  const resources = window.performance.getEntriesByType('resource');
+  return resources.some((resource) => resource.name === url);
 }

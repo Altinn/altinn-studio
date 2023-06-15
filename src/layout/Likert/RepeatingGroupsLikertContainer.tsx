@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Grid, TableCell, Typography } from '@material-ui/core';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { AltinnTable } from 'src/components/organisms/AltinnTable';
@@ -10,6 +9,7 @@ import { AltinnTableHeader } from 'src/components/table/AltinnTableHeader';
 import { AltinnTableRow } from 'src/components/table/AltinnTableRow';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useGetOptions } from 'src/hooks/useGetOptions';
+import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { LayoutStyle } from 'src/types';
 import { getTextResource } from 'src/utils/formComponentUtils';
@@ -28,7 +28,7 @@ export const RepeatingGroupsLikertContainer = ({ id }: RepeatingGroupsLikertCont
   const node = useResolvedNode(id);
   const firstLikertChild = node?.children((item) => item.type === 'Likert') as LayoutNodeFromType<'Likert'> | undefined;
   const { optionsId, mapping, source, options } = firstLikertChild?.item || {};
-  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
+  const mobileView = useIsMobileOrTablet();
   const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || [];
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });

@@ -1,3 +1,5 @@
+import escapeRegex from 'escape-string-regexp';
+
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
@@ -14,6 +16,11 @@ describe('Likert', () => {
       expect($alerts.eq(1).text()).to.match(new RegExp(`du må fylle ut ${likertPage.requiredQuestions[1]}`, 'i'));
       expect($alerts.eq(2).text()).to.match(new RegExp(`du må fylle ut ${likertPage.requiredQuestions[2]}`, 'i'));
     });
+
+    // Check the second required question and take a snapshot
+    likertPage.selectRadio(new RegExp(`^${escapeRegex(likertPage.requiredQuestions[1])}`), likertPage.options[1]);
+    cy.findAllByRole('alert').should('have.length', 2);
+    cy.snapshot('likert');
   });
   it('Should fill out optional likert and see results in summary component', () => {
     cy.goto('likert');

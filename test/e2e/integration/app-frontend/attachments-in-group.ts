@@ -270,6 +270,8 @@ describe('Repeating group attachments', () => {
 
     interceptFormDataSave();
 
+    cy.snapshot('attachments-in-group');
+
     // Now that all attachments described above have been uploaded and verified, start deleting the middle attachment
     // of the first-row multi-uploader to verify that the next attachment is shifted upwards.
     cy.get(appFrontend.group.row(0).uploadMulti.attachments(1).deleteBtn).click();

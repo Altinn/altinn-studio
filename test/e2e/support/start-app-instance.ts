@@ -29,22 +29,34 @@ Cypress.Commands.add('startAppInstance', (appName, user: user | null = 'default'
     cy.log(`Response fuzzing off, enable with --env responseFuzzing=on`);
   }
 
+  const targetUrl =
+    Cypress.env('environment') === 'local'
+      ? `${Cypress.config('baseUrl')}/ttd/${appName}`
+      : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`;
+
   // Rewrite all references to the app-frontend with a local URL
-  cy.intercept(/\/altinn-app-frontend\.(css|js)$/, (req) => {
-    if (req.url.match(/localhost:8080/)) {
-      req.continue();
-    } else {
-      const extension = req.url.endsWith('.css') ? 'css' : 'js';
-      req.redirect(`http://localhost:8080/altinn-app-frontend.${extension}`);
-    }
-  }).as('frontend');
+  // We cannot just intercept and redirect (like we did before), because Percy reads this DOM to figure out where
+  // to download assets from. If we redirect, Percy will download from altinncdn.no, which will cause the test to
+  // use outdated CSS.
+  // https://docs.percy.io/docs/debugging-sdks#asset-discovery
+  cy.intercept(targetUrl, (req) => {
+    req.on('response', (res) => {
+      if (typeof res.body === 'string' || res.statusCode === 200) {
+        const source = /https?:\/\/.*?\/altinn-app-frontend\./g;
+        const target = `http://localhost:8080/altinn-app-frontend.`;
+        res.body = res.body.replace(source, target);
+      }
+    });
+  }).as('app');
+
+  cy.intercept('https://altinncdn.no/toolkits/altinn-app-frontend/*/altinn-app-frontend.*', (req) => {
+    req.destroy();
+    throw new Error('Requested asset from altinncdn.no, our rewrite code is apparently not working, aborting test');
+  });
 
   if (!anonymous) {
     login(user);
   }
-  if (Cypress.env('environment') === 'local') {
-    cy.visit(`${Cypress.config('baseUrl')}/ttd/${appName}/`, visitOptions);
-  } else {
-    cy.visit(`https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}/`, visitOptions);
-  }
+
+  cy.visit(targetUrl, visitOptions);
 });

@@ -53,6 +53,8 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   cy.get('@firstRow').eq(1).should('contain.text', 'Endre fra');
   cy.get('@firstRow').eq(2).should('contain.text', 'Endre til');
 
+  cy.snapshot('hide-row-in-group');
+
   // Adding a new row to the repeating group should automatically move it to the overflow group on the next page
   cy.navPage('repeating').click();
   cy.get(appFrontend.group.addNewItem).click();

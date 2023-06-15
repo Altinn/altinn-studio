@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import { Grid, TableCell, Typography, useMediaQuery } from '@material-ui/core';
+import { Grid, TableCell, Typography } from '@material-ui/core';
 import { Edit as EditIcon } from '@navikt/ds-icons';
 
 import { AltinnTable } from 'src/components/organisms/AltinnTable';
@@ -12,6 +12,7 @@ import { AltinnTableBody } from 'src/components/table/AltinnTableBody';
 import { AltinnTableHeader } from 'src/components/table/AltinnTableHeader';
 import { AltinnTableRow } from 'src/components/table/AltinnTableRow';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -52,7 +53,7 @@ const buttonCell = {
 
 export function InstanceSelection({ instances, onNewInstance }: IInstanceSelectionProps) {
   const language = useAppSelector((state) => state.language.language);
-  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
+  const mobileView = useIsMobileOrTablet();
 
   const openInstance = (instanceId: string) => {
     window.location.href = getInstanceUiUrl(instanceId);

@@ -1,4 +1,5 @@
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { ILanguage, IParty, ITextResource } from 'src/types/shared';
 
 export interface ISummaryData {
@@ -7,7 +8,11 @@ export interface ISummaryData {
   textResources?: ITextResource[];
 }
 
-export const returnConfirmSummaryObject = ({ languageData, instanceOwnerParty, textResources }: ISummaryData) => {
+export const returnConfirmSummaryObject = ({
+  languageData,
+  instanceOwnerParty,
+  textResources,
+}: ISummaryData): SummaryDataObject => {
   let sender = '';
   if (instanceOwnerParty?.ssn) {
     sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
@@ -18,6 +23,8 @@ export const returnConfirmSummaryObject = ({ languageData, instanceOwnerParty, t
   const key = getTextFromAppOrDefault('confirm.sender', textResources || [], languageData || {}, undefined, true);
 
   return {
-    [key]: sender,
+    [key]: {
+      value: sender,
+    },
   };
 };

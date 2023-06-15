@@ -1,13 +1,13 @@
 import React from 'react';
 import type { FileRejection } from 'react-dropzone';
 
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { v4 as uuidv4 } from 'uuid';
 
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { DropzoneComponent } from 'src/layout/FileUpload/shared/DropzoneComponent';
 import { handleRejectedFiles } from 'src/layout/FileUpload/shared/handleRejectedFiles';
@@ -45,7 +45,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
   } = props.node.item;
   const dataDispatch = useAppDispatch();
   const [validations, setValidations] = React.useState<Array<{ id: string; message: string }>>([]);
-  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
+  const mobileView = useIsMobileOrTablet();
   const options = useAppSelector(
     (state: IRuntimeState) => state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]?.options,
   );

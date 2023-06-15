@@ -1,21 +1,12 @@
 import React from 'react';
 
 import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
-import {
-  Grid,
-  makeStyles,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-  Typography,
-  useMediaQuery,
-} from '@material-ui/core';
+import { Grid, makeStyles, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, Warning as WarningIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { AltinnStudioTheme } from 'src/theme/altinnStudioTheme';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
@@ -145,7 +136,7 @@ export function AltinnMobileTableItem({
   deleteFunctionality,
 }: IAltinnMobileTableItemProps) {
   const classes = useStyles();
-  const mobileViewSmall = useMediaQuery('(max-width:768px)');
+  const mobileViewSmall = useIsMobile();
 
   const {
     onDeleteClick,

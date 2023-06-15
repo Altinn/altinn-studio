@@ -1,11 +1,12 @@
 import React from 'react';
 
 import { Button, ButtonColor, ButtonVariant, TableCell, TableRow } from '@digdir/design-system-react';
-import { Grid, useMediaQuery } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { useIsMobile } from 'src/hooks/useIsMobile';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
@@ -78,7 +79,7 @@ export function RepeatingGroupTableRow({
   displayEditColumn,
   displayDeleteColumn,
 }: IRepeatingGroupTableRowProps): JSX.Element {
-  const mobileViewSmall = useMediaQuery('(max-width:768px)');
+  const mobileViewSmall = useIsMobile();
   const { refSetter } = useRepeatingGroupsFocusContext();
 
   const { popoverOpen, popoverPanelIndex, onDeleteClick, setPopoverOpen, onPopoverDeleteClick, onOpenChange } =

@@ -11,6 +11,7 @@ import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { selectAppReceiver } from 'src/selectors/language';
 import { getDateFormat } from 'src/utils/dateHelpers';
+import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IRuntimeState } from 'src/types';
 import type { IInstance, ILanguage, IParty } from 'src/types/shared';
 
@@ -21,25 +22,35 @@ export const returnInstanceMetaDataObject = (
   instanceReceiver?: string | boolean | null | undefined,
   instanceReferenceNumber?: string | boolean | null | undefined,
 ) => {
-  const obj: any = {};
+  const obj: SummaryDataObject = {};
   if (!language) {
     return null;
   }
 
   if (instanceDateSent) {
-    obj[getLanguageFromKey('receipt.date_sent', language)] = instanceDateSent;
+    obj[getLanguageFromKey('receipt.date_sent', language)] = {
+      value: instanceDateSent,
+      hideFromVisualTesting: true,
+    };
   }
 
   if (instanceSender) {
-    obj[getLanguageFromKey('receipt.sender', language)] = instanceSender;
+    obj[getLanguageFromKey('receipt.sender', language)] = {
+      value: instanceSender,
+    };
   }
 
   if (instanceReceiver) {
-    obj[getLanguageFromKey('receipt.receiver', language)] = instanceReceiver;
+    obj[getLanguageFromKey('receipt.receiver', language)] = {
+      value: instanceReceiver,
+    };
   }
 
   if (instanceReferenceNumber) {
-    obj[getLanguageFromKey('receipt.ref_num', language)] = instanceReferenceNumber;
+    obj[getLanguageFromKey('receipt.ref_num', language)] = {
+      value: instanceReferenceNumber,
+      hideFromVisualTesting: true,
+    };
   }
 
   return obj;
@@ -78,6 +89,10 @@ export function InstanceInformationComponent({ node }: PropsFromGenericComponent
     instanceReceiver,
     instanceReferenceNumber,
   );
+
+  if (!instanceMetaDataObject) {
+    return null;
+  }
 
   return (
     <Grid

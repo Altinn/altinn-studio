@@ -2,6 +2,7 @@ import escapeRegex from 'escape-string-regexp';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
+import { breakpoints } from 'src/hooks/useIsMobile';
 
 const appFrontend = new AppFrontend();
 
@@ -76,4 +77,42 @@ Cypress.Commands.add('numberFormatClear', { prevSubject: true }, (subject: JQuer
   const moveToStart = new Array(5).fill('{moveToStart}').join('');
 
   cy.wrap(subject).type(`${moveToStart}${del}`);
+});
+
+Cypress.Commands.add('snapshot', (name: string) => {
+  cy.get('#readyForPrint').should('exist');
+
+  cy.window().then((win) => {
+    const { innerWidth, innerHeight } = win;
+    cy.readFile('test/percy.css').then((percyCSS) => {
+      cy.log('Taking snapshot with Percy');
+
+      // We need to manually resize the viewport to ensure that the snapshot is taken with the correct DOM. We sometimes
+      // change the DOM based on the viewport size, and Percy only understands CSS media queries (not our React logic).
+      const viewportSizes = {
+        desktop: { width: 1280, height: 768 },
+        tablet: { width: breakpoints.tablet - 5, height: 1024 },
+        mobile: { width: 360, height: 768 },
+      };
+      for (const [viewport, { width, height }] of Object.entries(viewportSizes)) {
+        cy.viewport(width, height);
+        cy.get(`html.viewport-is-${viewport}`).should('be.visible');
+        cy.percySnapshot(`${name} (${viewport})`, { percyCSS, widths: [width] });
+      }
+
+      // Reset to original viewport
+      cy.viewport(innerWidth, innerHeight);
+    });
+  });
+
+  /*
+   * TODO: Enable this again later, when we have fixed all the accessibility issues in current tests.
+   *
+   *
+  cy.log('Testing WCAG');
+  cy.injectAxe();
+  cy.checkA11y(undefined, {
+    includedImpacts: ['critical', 'serious', 'moderate'],
+  });
+   */
 });

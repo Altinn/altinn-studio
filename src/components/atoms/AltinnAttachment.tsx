@@ -4,6 +4,8 @@ import { List, ListItem, ListItemIcon, ListItemText, makeStyles, Typography } fr
 import cn from 'classnames';
 
 import { AltinnIcon } from 'src/components/AltinnIcon';
+import { useAppSelector } from 'src/hooks/useAppSelector';
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IAttachment } from 'src/types/shared';
 
@@ -67,6 +69,7 @@ function ListItemLink(props: any) {
 
 export function AltinnAttachment({ attachments, listDisableVerticalPadding, nested, id }: IAltinnAttachmentProps) {
   const classes = useStyles();
+  const currentLanguage = useAppSelector(appLanguageStateSelector);
 
   return (
     <>
@@ -76,48 +79,55 @@ export function AltinnAttachment({ attachments, listDisableVerticalPadding, nest
         data-testid='attachment-list'
       >
         {attachments &&
-          attachments.map((attachment, index) => (
-            <ListItemLink
-              className={cn(
-                {
-                  [classes.listItemPadding]: nested === true,
-                  [classes.listItemPaddingNone]: nested !== true,
-                },
-                classes.a,
-              )}
-              href={attachment.url && makeUrlRelativeIfSameDomain(attachment.url)}
-              key={index}
-            >
-              <ListItemIcon>
-                <AltinnIcon
-                  iconClass={attachment.iconClass}
-                  iconColor='#000000'
-                  iconSize='3.125rem'
+          attachments
+            .sort((a, b) => {
+              if (!a.name || !b.name) {
+                return 0;
+              }
+              return a.name.localeCompare(b.name, currentLanguage);
+            })
+            .map((attachment, index) => (
+              <ListItemLink
+                className={cn(
+                  {
+                    [classes.listItemPadding]: nested === true,
+                    [classes.listItemPaddingNone]: nested !== true,
+                  },
+                  classes.a,
+                )}
+                href={attachment.url && makeUrlRelativeIfSameDomain(attachment.url)}
+                key={index}
+              >
+                <ListItemIcon>
+                  <AltinnIcon
+                    iconClass={attachment.iconClass}
+                    iconColor='#000000'
+                    iconSize='3.125rem'
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <>
+                      <Typography
+                        variant='body1'
+                        className={cn(classes.inline, classes.primaryText)}
+                      >
+                        {attachment.name}
+                      </Typography>
+                      <Typography
+                        variant='body1'
+                        className={classes.inline}
+                      >
+                        &nbsp;(last ned)
+                      </Typography>
+                    </>
+                  }
+                  classes={{
+                    root: cn(classes.listItemTextPadding),
+                  }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <>
-                    <Typography
-                      variant='body1'
-                      className={cn(classes.inline, classes.primaryText)}
-                    >
-                      {attachment.name}
-                    </Typography>
-                    <Typography
-                      variant='body1'
-                      className={classes.inline}
-                    >
-                      &nbsp;(last ned)
-                    </Typography>
-                  </>
-                }
-                classes={{
-                  root: cn(classes.listItemTextPadding),
-                }}
-              />
-            </ListItemLink>
-          ))}
+              </ListItemLink>
+            ))}
       </List>
     </>
   );

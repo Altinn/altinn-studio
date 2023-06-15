@@ -13,7 +13,9 @@ describe('returnConfirmSummaryObject', () => {
     });
 
     expect(result).toEqual({
-      'confirm.sender': '01017512345-Ola Privatperson',
+      'confirm.sender': {
+        value: '01017512345-Ola Privatperson',
+      },
     });
   });
 
@@ -29,7 +31,9 @@ describe('returnConfirmSummaryObject', () => {
     });
 
     expect(result).toEqual({
-      'confirm.sender': '01017512345-Ola Privatperson',
+      'confirm.sender': {
+        value: '01017512345-Ola Privatperson',
+      },
     });
   });
 
@@ -44,7 +48,9 @@ describe('returnConfirmSummaryObject', () => {
     });
 
     expect(result).toEqual({
-      'confirm.sender': '987654321-Ola Bedrift',
+      'confirm.sender': {
+        value: '987654321-Ola Bedrift',
+      },
     });
   });
 
@@ -58,7 +64,9 @@ describe('returnConfirmSummaryObject', () => {
     });
 
     expect(result).toEqual({
-      'confirm.sender': '',
+      'confirm.sender': {
+        value: '',
+      },
     });
   });
 
@@ -68,7 +76,9 @@ describe('returnConfirmSummaryObject', () => {
     });
 
     expect(result).toEqual({
-      'confirm.sender': '',
+      'confirm.sender': {
+        value: '',
+      },
     });
   });
 
@@ -84,7 +94,9 @@ describe('returnConfirmSummaryObject', () => {
     });
 
     expect(result).toEqual({
-      'Some custom value': '01017512345-Ola Privatperson',
+      'Some custom value': {
+        value: '01017512345-Ola Privatperson',
+      },
     });
   });
 });

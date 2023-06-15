@@ -6,6 +6,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import { AltinnCollapsibleAttachments } from 'src/components/molecules/AltinnCollapsibleAttachments';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
+import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IAttachment, IAttachmentGrouping } from 'src/types/shared';
 
 export interface IReceiptComponentProps {
@@ -13,7 +14,7 @@ export interface IReceiptComponentProps {
   body: React.ReactNode;
   collapsibleTitle: React.ReactNode;
   hideCollapsibleCount?: boolean;
-  instanceMetaDataObject: any;
+  instanceMetaDataObject: SummaryDataObject;
   pdf?: IAttachment[];
   subtitle?: JSX.Element | JSX.Element[];
   subtitleurl?: string;

@@ -46,8 +46,15 @@ describe('On Entry', () => {
       .eq(0)
       .contains(/04\/06\/2021|06.04.2021/g);
     cy.get('@tableRow').find('td').eq(1).should('have.text', 'Ola Nordmann');
+    cy.snapshot('select-instance');
+
+    // Click to begin working on one of our fake instances
     cy.get('@tableRow').find('td').eq(2).find('button').click();
     cy.url().should('contain', instanceIdExamples[0]);
+
+    // The instance does not actually exist, we pretended it did by mocking
+    // the response, so trying to fetch it will fail
+    cy.get(appFrontend.instanceErrorCode).should('have.text', 'Ukjent feil');
   });
 
   it('is possible to create a new instance', () => {
@@ -58,5 +65,8 @@ describe('On Entry', () => {
     cy.get(appFrontend.selectInstance.newInstance).click();
     cy.wait('@createdInstance').its('response.statusCode').should('eq', 201);
     cy.url().should('not.contain', instanceIdExamples[0]);
+
+    cy.get(appFrontend.instanceErrorCode).should('not.exist');
+    cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
   });
 });

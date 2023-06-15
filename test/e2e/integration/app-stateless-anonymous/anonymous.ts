@@ -50,5 +50,6 @@ describe('Anonymous (stateless)', () => {
       .within(() => {
         cy.get('h1').contains('The red title is rendered within an iframe');
       });
+    cy.snapshot('anonymous:iframe');
   });
 });

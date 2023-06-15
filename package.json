@@ -45,6 +45,8 @@
     "@babel/preset-react": "7.22.3",
     "@babel/runtime": "^7.21.0",
     "@babel/runtime-corejs3": "^7.21.0",
+    "@percy/cli": "^1.26.0",
+    "@percy/cypress": "^3.1.2",
     "@pmmmwh/react-refresh-webpack-plugin": "0.5.10",
     "@tanstack/react-query-devtools": "^4.29.3",
     "@testing-library/cypress": "9.0.0",
@@ -228,5 +230,19 @@
       "not op_mini all",
       "ie 11"
     ]
+  },
+  "percy": {
+    "version": 2,
+    "discovery": {
+      "allowed-hostnames": [
+        "localhost",
+        "localhost:8080",
+        "altinncdn.no"
+      ],
+      "launch-options": {
+        "executable": "/usr/bin/google-chrome",
+        "timeout": 30000
+      }
+    }
   }
 }

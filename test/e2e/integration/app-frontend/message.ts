@@ -43,7 +43,8 @@ describe('Message', () => {
           : 'https://ttd.apps.tt02.altinn.no/ttd/frontend-test/';
       const maybeInstanceId = instanceIdExpr.exec(url);
       const instanceId = maybeInstanceId ? maybeInstanceId[1] : 'instance-id-not-found';
-      cy.get(appFrontend.startAgain).contains(instanceId).and('contain.text', appFrontend.apps.frontendTest);
+      cy.get(appFrontend.startAgain).contains(instanceId);
+      cy.get(appFrontend.startAgain).should('contain.text', appFrontend.apps.frontendTest);
       cy.get(appFrontend.startAgain).find('a:contains("her")').should('have.attr', 'href', instantiateUrl);
 
       cy.get('a:contains("Intern lenke i nytt vindu")')

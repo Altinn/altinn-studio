@@ -95,6 +95,8 @@ describe('doNotPromptForParty doNotPromptForPartyPreference', () => {
           );
         cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
 
+        cy.snapshot('reportee-selection');
+
         // Test that the message is not visible when going directly to party selection
         cy.reloadAndWait();
         cy.get('[id^="party-"]').should('be.visible');

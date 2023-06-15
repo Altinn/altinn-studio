@@ -26,6 +26,7 @@ describe('Footer', () => {
       .should('eq', 'https://www.altinn.no/om-altinn/tilgjengelighet/');
     cy.get('footer > div').eq(2).children('a').invoke('attr', 'href').should('eq', 'mailto:hjelp@etaten.no');
     cy.get('footer > div').eq(3).children('a').invoke('attr', 'href').should('eq', 'tel:+4798765432');
+    cy.snapshot('footer');
   });
 
   [204, 404].forEach((statusCode) => {

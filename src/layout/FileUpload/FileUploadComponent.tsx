@@ -2,7 +2,6 @@ import React from 'react';
 import type { FileRejection } from 'react-dropzone';
 
 import { Button } from '@digdir/design-system-react';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { CheckmarkCircleFillIcon, TrashIcon } from '@navikt/aksel-icons';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -10,6 +9,7 @@ import { AltinnLoader } from 'src/components/AltinnLoader';
 import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
 import { AttachmentFileName } from 'src/layout/FileUpload/shared/AttachmentFileName';
@@ -44,7 +44,7 @@ export function FileUploadComponent({ node, componentValidations, language }: IF
   const dispatch = useAppDispatch();
   const [validations, setValidations] = React.useState<string[]>([]);
   const [showFileUpload, setShowFileUpload] = React.useState(false);
-  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
+  const mobileView = useIsMobileOrTablet();
   const attachments = useAppSelector((state) => state.attachments.attachments[id] || emptyArray);
   const { lang, langAsString } = useLanguage();
 

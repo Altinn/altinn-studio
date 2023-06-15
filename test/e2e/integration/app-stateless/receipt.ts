@@ -34,6 +34,7 @@ describe('Receipt', () => {
           .should('eq', 200);
       });
       cy.get(appFrontend.receipt.container).should('contain.text', texts.securityReasons);
+      cy.snapshot('stateless:receipt');
     });
   });
 });

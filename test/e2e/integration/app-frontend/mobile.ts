@@ -2,6 +2,8 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
+import { breakpoints } from 'src/hooks/useIsMobile';
+
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
 const dataListPage = new Datalist();
@@ -12,6 +14,7 @@ describe('Mobile', () => {
   it('is possible to submit app instance from mobile', () => {
     cy.viewport('samsung-s10');
     testChangeName();
+    cy.get('html.viewport-is-mobile').should('be.visible');
     testGroup('mobile');
     testLikert();
     testList('mobile');
@@ -19,8 +22,9 @@ describe('Mobile', () => {
   });
 
   it('is possible to submit app instance a tablet', () => {
-    cy.viewport('ipad-2');
+    cy.viewport(breakpoints.tablet - 5, 1024);
     testChangeName();
+    cy.get('html.viewport-is-tablet').should('be.visible');
     testGroup('tablet');
     testLikert();
     testList('tablet');

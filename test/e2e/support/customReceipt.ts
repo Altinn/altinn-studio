@@ -8,5 +8,8 @@ export const customReceipt: ILayout = [
     type: 'Paragraph',
     textResourceBindings: { title: 'Takk for din innsending, dette er en veldig fin custom kvittering.' },
   },
-  { id: 'r-attachments', type: 'AttachmentList', dataTypeIds: ['ref-data-as-pdf'], includePDF: true },
+  { id: 'r-header-pdfs', type: 'Header', size: 'M', textResourceBindings: { title: 'receipt.title_submitted' } },
+  { id: 'r-pdfs', type: 'AttachmentList', dataTypeIds: ['ref-data-as-pdf'], includePDF: true },
+  { id: 'r-header-attachments', type: 'Header', size: 'M', textResourceBindings: { title: 'receipt.attachments' } },
+  { id: 'r-attachments', type: 'AttachmentList', dataTypeIds: ['fileUpload-changename'] },
 ];
