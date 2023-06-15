@@ -52,20 +52,6 @@ export const MergeConflictModal = ({
   const [resetModalOpen, setResetModalOpen] = useState(false);
 
   /**
-   * Handles the download of only the file(s) changed
-   */
-  const handleDownloadChangedFilesZIP = () => {
-    window.location.href = repoDownloadPath(org, repo);
-  };
-
-  /**
-   * Handles the download of all the files in the repo
-   */
-  const handleDownloadRepoZIP = () => {
-    window.location.href = repoDownloadPath(org, repo, true);
-  };
-
-  /**
    * Function that resets the repo
    */
   const handleClickResetRepo = () => {

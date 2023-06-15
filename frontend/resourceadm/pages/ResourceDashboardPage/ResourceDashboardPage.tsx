@@ -25,7 +25,6 @@ import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 export const ResourceDashboardPage = () => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
-  const repo = `${selectedContext}-resources`;
 
   const [searchValue, setSearchValue] = useState('');
   const [resourceList, setResourceList] = useState<ResourceType[]>([]);
@@ -55,7 +54,6 @@ export const ResourceDashboardPage = () => {
 
     get(getResourcesUrlBySelectedContext(selectedContext))
       .then((res: any) => {
-        console.log(res);
         setResourceList(mapResourceListBackendResultToResourceList(res));
         setLoading(false);
       })
@@ -93,9 +91,9 @@ export const ResourceDashboardPage = () => {
       },
     };
 
+    // TODO - missing API connection - not working atm
     post(getCreateResourceUrlBySelectedContext(selectedContext), idAndTitle)
-      .then((res) => {
-        console.log('res', res);
+      .then(() => {
         navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
       })
       .catch((err) => {
