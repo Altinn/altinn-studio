@@ -771,6 +771,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return serviceResourceList;
         }
 
+        public List<ListviewServiceResource> GetListViewServiceResources(string org, string repository, string path = "")
+        {
+            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, path);
+            List<ListviewServiceResource> simplifiedResourceList = new List<ListviewServiceResource>();
+            string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            foreach (FileSystemObject resourceFile in resourceFiles)
+            {
+                string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
+                ServiceResource serviceResource = JsonConvert.DeserializeObject<ServiceResource>(jsonString);
+
+                if (serviceResource != null)
+                {
+                    //ListviewServiceResource simplifiedResource = ResourceAdminHelper.MapServiceResourceToListView(serviceResource);
+                    ListviewServiceResource simplifiedResource = new ListviewServiceResource { Identifier = serviceResource.Identifier, Title = serviceResource.Title };
+                    //string createdBy = GetCreatedByFromFile(resourceFile, repopath);
+                    //simplifiedResource.CreatedBy = createdBy;
+                    //simplifiedResource.HasPolicy = GetHasPolicyForResource();
+                    simplifiedResourceList.Add(simplifiedResource);
+                }
+            }
+
+            return simplifiedResourceList;
+        }
+
         public ActionResult<string> ValidateServiceResource(string org, string repository, string id, bool strictMode = false)
         {
             if (id != "")
@@ -868,6 +893,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             List<ServiceResource> resourcesInRepo = GetServiceResources(org, repository);
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
+        }
+
+        public bool ResourceHasPolicy(string org, string repository, ServiceResource resource)
+        {
+            List<FileSystemObject> contents = new();
+            string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            if (Directory.Exists(repositoryPath))
+            {
+                string[] dirs = Directory.GetDirectories(repositoryPath);
+                foreach (string directoryPath in dirs)
+                {
+                    FileSystemObject d = GetFileSystemObjectForDirectory(directoryPath);
+                    if (!d.Name.StartsWith(".") && d.Name.ToLower().Contains(resource.Identifier.ToLower()))
+                    {
+                        contents.Add(d);
+                        string[] files = Directory.GetFiles(d.Path);
+                        foreach (string file in files)
+                        {
+                            if (file.EndsWith("policy.xml"))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
