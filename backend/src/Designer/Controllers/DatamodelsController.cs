@@ -61,6 +61,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository name</param>
+        /// <param name="payload">Json schema payload</param>
         /// <param name="modelPath">The path to the file to be updated.</param>
         /// <param name="saveOnly">Flag indicating if the model should ONLY be saved (no conversion) </param>
         [HttpPut]
