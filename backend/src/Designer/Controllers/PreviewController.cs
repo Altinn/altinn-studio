@@ -336,6 +336,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="partyId">party id</param>
+        /// <param name="instanceGuid">instance</param>
         /// <returns>Json schema for datamodel for the current task</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
