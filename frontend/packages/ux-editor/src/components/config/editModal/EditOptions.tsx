@@ -59,18 +59,17 @@ export function EditOptions({
 
   const handleOptionsTypeChange = (value: SelectedOptionsType) => {
     setSelectedOptionsType(value);
-    const updatedComponent = { ...component };
     if (value === SelectedOptionsType.CodeList) {
-      delete updatedComponent.options;
+      delete component.options;
       handleComponentChange({
-        ...updatedComponent,
+        ...component,
         optionsId: '',
       });
     }
     if (value === SelectedOptionsType.Manual) {
-      delete updatedComponent.optionsId;
+      delete component.optionsId;
       handleComponentChange({
-        ...updatedComponent,
+        ...component,
         options: [],
       });
     }

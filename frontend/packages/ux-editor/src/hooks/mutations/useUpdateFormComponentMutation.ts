@@ -55,7 +55,7 @@ export const useUpdateFormComponentMutation = (org: string, app: string, layoutS
       } else {
         if (components[id].type === ComponentType.RadioButtons || components[id].type === ComponentType.Checkboxes) {
           delete components[id].options;
-          delete components[id].optionListId;
+          delete components[id].optionsId;
         }
         components[id] = {
           ...components[id],
