@@ -1,7 +1,7 @@
 .wrapper {
   display: flex;
   justify-content: space-between;
-  margin-block: 5px;
+  margin-block: 10px;
 }
 
 .inputWrapper {
