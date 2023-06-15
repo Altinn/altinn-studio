@@ -17,7 +17,6 @@ export interface IResetRepoModalProps {
 export function ResetRepoModal(props: IResetRepoModalProps) {
   const [canDelete, setCanDelete] = useState<boolean>(false);
   const [deleteRepoName, setDeleteRepoName] = useState<string>('');
-  const [resetComplete, setResetComplete] = useState(false);
   const { org, app } = useParams<{ org: string; app: string }>();
 
   useEffect(() => {
@@ -31,10 +30,9 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   const onDeleteRepoNameChange = (event: any) => setDeleteRepoName(event.target.value);
 
   const repoResetMutation = useResetRepositoryMutation(org, app);
-  const onResetWrapper = async () => {
+  const onResetWrapper = () => {
     setCanDelete(false);
-    await repoResetMutation.mutateAsync();
-    setResetComplete(true);
+    repoResetMutation.mutate();
   };
 
   const handleOnKeypressEnter = (event: any) => {
@@ -45,7 +43,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
 
   const onCloseWrapper = () => {
     setDeleteRepoName('');
-    setResetComplete(false);
+    repoResetMutation.reset();
     props.onClose();
   };
   const { t } = useTranslation();
@@ -67,7 +65,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
       >
         <div className={classes.modalContainer}>
           <h2>{t('administration.reset_repo_confirm_heading')}</h2>
-          {!resetComplete && (
+          {!repoResetMutation.isSuccess && (
             <>
               <div>
                 {t('administration.reset_repo_confirm_info', {
@@ -85,7 +83,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
               />
             </>
           )}
-          {resetComplete && (
+          {repoResetMutation.isSuccess && (
             <>
               <div>
                 {t('administration.reset_repo_completed', {
@@ -104,7 +102,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
             </>
           )}
           {repoResetMutation.isLoading && <AltinnSpinner />}
-          {!repoResetMutation.isLoading && !resetComplete && (
+          {!repoResetMutation.isLoading && !repoResetMutation.isSuccess && (
             <div className={classes.buttonContainer}>
               <Button
                 color={ButtonColor.Danger}
