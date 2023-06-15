@@ -1,8 +1,7 @@
-import { ToggleButtonGroup } from '@digdir/design-system-react';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-//import { SubPreviewMenuContent } from '../components/AppBarConfig/AppPreviewBarConfig';
+import { SubPreviewMenuLeftContent, SubPreviewMenuRightContent } from './AppBarConfig/AppPreviewBarConfig';
 import classes from './AppPreviewSubMenu.module.css';
+import { _useIsProdHack } from "app-shared/utils/_useIsProdHack";
 
 export interface AppPreviewSubMenuProps {
   viewSize: 'desktop' | 'mobile';
@@ -10,34 +9,15 @@ export interface AppPreviewSubMenuProps {
 }
 
 export const AppPreviewSubMenu = ({ viewSize, setViewSize }: AppPreviewSubMenuProps) => {
-  const { t } = useTranslation();
-  const handleChangeViewSizeClick = (selectedViewSize: string) => {
-    localStorage.setItem('viewSize', selectedViewSize);
-    setViewSize(selectedViewSize);
-  };
-
   return (
     <>
       <div className={classes.leftContent}>
-        <div className={classes.viewSizeButtons}>
-          <ToggleButtonGroup
-            items={[
-              {
-                label: t('preview.view_size_desktop'),
-                value: 'desktop',
-              },
-              {
-                label: t('preview.view_size_mobile'),
-                value: 'mobile',
-              },
-            ]}
-            onChange={handleChangeViewSizeClick}
-            selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
-          />
-        </div>
+        <SubPreviewMenuLeftContent viewSize={viewSize} setViewSize={setViewSize}/>
       </div>
-      {/*This line is comment out just for now because the content will not be shown in production */}
-      {/*    <div className={classes.rightContent}>{<SubPreviewMenuContent />}</div> */}
+      {!_useIsProdHack() &&
+      <div className={classes.rightContent}>
+        <SubPreviewMenuRightContent />
+      </div> }
     </>
   );
 };
