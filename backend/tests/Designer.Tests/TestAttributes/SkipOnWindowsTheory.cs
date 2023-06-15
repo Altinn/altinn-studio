@@ -7,7 +7,8 @@ namespace Designer.Tests.TestAttributes
     {
         public SkipOnWindowsTheory()
         {
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
                 Skip = "Ignoring test on Windows platform.";
             }
         }
