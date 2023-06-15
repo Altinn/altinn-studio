@@ -39,7 +39,7 @@ export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.j
 export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;
 export const repositoryGitPath = (org, app) => `/repos/${org}/${app}.git`;
 export const repositoryPath = (org, app) => `/repos/${org}/${app}`;
-export const publiserPath = (org, app) => `/editor/${org}/${app}/deploy`;
+export const publishPath = (org, app) => `/editor/${org}/${app}/deploy`;
 export const repositoryOwnerPath = (org) => `/repos/${org}`;
 export const repositoryBasePath = () => '/repos';
 export const userLogoutPath = () => '/repos/user/logout';

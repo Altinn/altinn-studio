@@ -10,7 +10,7 @@ import { VersionControlHeader } from 'app-development/layout/version-control/Ver
 import classes from './PageHeader.module.css';
 import { useUserQuery } from 'app-development/hooks/queries';
 import { useAppSelector } from 'app-development/hooks';
-import { previewPath, publiserPath } from 'app-shared/api/paths';
+import { previewPath, publishPath } from 'app-shared/api/paths';
 import { TopBarMenu } from './AppBar/appBarConfig';
 import { ButtonVariant } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
@@ -49,11 +49,11 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
     },
     {
       title: 'top_menu.deploy',
-      path: publiserPath,
+      path: publishPath,
       menuKey: TopBarMenu.Deploy,
       buttonVariant: ButtonVariant.Outline,
       headerButtonsClasses: undefined,
-      handleClick: () => (window.location.href = publiserPath(org, app)),
+      handleClick: () => (window.location.href = publishPath(org, app)),
     },
   ];
   return actions;
